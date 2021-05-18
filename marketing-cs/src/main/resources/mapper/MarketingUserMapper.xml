@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingUserMapper">
+	<update id="createUserTable" parameterType="java.lang.String">
+		CREATE TABLE
+		IF NOT EXISTS ${tableName} (
+			`id` INT (11) NOT NULL AUTO_INCREMENT,
+			`api_code` VARCHAR (10) NOT NULL COMMENT '商户编号',
+			`batch_number` VARCHAR (100) NOT NULL COMMENT '批次号',
+			`cus_num` VARCHAR (128) DEFAULT NULL,
+			`id_card` VARCHAR (266) DEFAULT NULL COMMENT '身份证号',
+			`name` VARCHAR (255) DEFAULT NULL COMMENT '姓名',
+			`cell` VARCHAR (255) DEFAULT NULL COMMENT '电话',
+			`linkman_cell` VARCHAR (255) DEFAULT NULL COMMENT '联系人电话，支持加密',
+			`home_addr` VARCHAR (65) DEFAULT NULL COMMENT '家庭地址',
+			`tel_home` VARCHAR (20) DEFAULT NULL COMMENT '家庭座机号',
+			`mail` VARCHAR (30) DEFAULT NULL COMMENT '邮箱',
+			`create_time` datetime DEFAULT NULL,
+			`update_time` datetime DEFAULT NULL,
+			`time_range` INT (11) DEFAULT NULL COMMENT '时间范围。取值：0-5，单位：年；填入相应数字表示查询最近几年的特殊名单服务，未填或填入其它数字表示默认查询所有时间段的标签。',
+			`pass_date` VARCHAR (100) DEFAULT NULL COMMENT '审批通过日期',
+			`approval_result` VARCHAR (50) DEFAULT NULL COMMENT '贷前审批结果',
+			`loanMaturity_date` VARCHAR (100) DEFAULT NULL COMMENT '贷款到期日期',
+			`user_date` VARCHAR (50) DEFAULT NULL COMMENT '观察日期',
+			`decodeFailType` VARCHAR (50) DEFAULT NULL COMMENT '解密失败类型 MD5、Sha256、SM3',
+			`status` INT (10) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
+			PRIMARY KEY (`id`),
+			KEY `index_api_code` (`api_code`, `batch_number`) USING BTREE,
+			KEY `index_create_time` (`create_time`) USING BTREE,
+			KEY `index_cus_num` (`cus_num`) USING HASH
+		) ENGINE = INNODB AUTO_INCREMENT = 1681 DEFAULT CHARSET = utf8
+	</update>
+	<insert id="insertUser" parameterType="com.br.marketing.entity.MarketingUser">
+		    INSERT INTO b_marketing_user (
+        	`api_code`,
+        	`batch_number`,
+        	`cus_num`,
+        	`id_card`,
+        	`name`,
+        	`cell`,
+        	`linkman_cell`,
+        	`home_addr`,
+        	`tel_home`,
+        	`mail`,
+        	`create_time`,
+        	`update_time`,
+        	`time_range`,
+        	`pass_date`,
+        	`approval_result`,
+        	`loanMaturity_date`,
+        	`decodeFailType`)
+        VALUES
+        	(
+        	    #{apiCode},
+        		#{batchNumber},
+        		#{cusNum},
+        		#{idCard},
+        		#{name},
+        		#{cell},
+        		#{linkmanCell},
+        		#{homeAddr},
+        		#{telHome},
+        		#{mail},
+        		now(),
+        		now(),
+        		#{timeRange},
+        		#{passDate},
+        		#{approvalResult},
+        		#{loanMaturityDate},
+        		#{decodeFailType}
+        	)
+	</insert>
+	<select id="queryPpd" parameterType="map" resultType="com.br.marketing.entity.MarketingUser">
+		select batch_number,cus_num,id_card,`name`,cell from b_marketing_user_ppd_tmp where id_card=#{id} and cell=#{cell} and name=#{name}
+	</select>
+	<select id="queryHnnxUserByid" parameterType="com.br.marketing.entity.MarketingTask" resultType="com.br.marketing.entity.MarketingUser">
+		SELECT
+		*
+		FROM
+		${tableName}
+		WHERE
+		id &gt;= #{begin}
+		AND id &lt; #{end}
+		AND api_code = #{apiCode}
+	</select>
+	<select id="queryUserByid" parameterType="com.br.marketing.entity.MarketingTask" resultType="com.br.marketing.entity.MarketingUser">
+		SELECT
+		*
+		FROM
+		${tableName}
+		WHERE
+		id &gt;= #{begin}
+		AND id &lt; #{end}
+		AND api_code = #{apiCode}
+		AND batch_number = #{batchNumber}
+		<if test="tableName=='b_marketing_user_chg'">
+			AND 	hit_date=#{hitDate}
+		</if>
+	</select>
+	<select id="queryHnnxMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+		SELECT
+		id
+		FROM
+		${tableName}
+		WHERE
+		api_code = #{apiCode}
+		ORDER BY
+		id DESC
+		LIMIT 1;
+	</select>
+	<select id="queryMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+		SELECT
+		id
+		FROM
+		${tableName}
+		WHERE
+		api_code = #{apiCode}
+		AND batch_number = #{batchNumber}
+		<if test="tableName=='b_marketing_user_chg'">
+			AND 	hit_date=#{hitDate}
+		</if>
+		ORDER BY
+		id DESC
+		LIMIT 1;
+	</select>
+	<select id="queryHnnxMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+		SELECT
+		id
+		FROM
+		${tableName}
+		WHERE
+		api_code = #{apiCode}
+		ORDER BY
+		id ASC
+		LIMIT 1;
+	</select>
+	<select id="queryMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+		SELECT
+			id
+		FROM
+			${tableName}
+		WHERE
+			api_code = #{apiCode}
+		AND batch_number = #{batchNumber}
+		<if test="tableName=='b_marketing_user_chg'">
+			AND 	hit_date=#{hitDate}
+		</if>
+		ORDER BY
+			id ASC
+		LIMIT 1;
+	</select>
+	<insert id="insertDirtyuser" parameterType="java.util.List">
+		INSERT INTO b_marketing_dirty_user (`api_code`,`batch_number`,`cus_num`,`id_card`,`name`,	`cell`,	`create_time`)VALUES<foreach collection="list" item="item" index="index" separator=",">
+(#{item.api_code,jdbcType=VARCHAR},#{item.batch_number,jdbcType=VARCHAR},#{item.cus_num,jdbcType=VARCHAR},#{item.id_card,jdbcType=VARCHAR},#{item.name,jdbcType=VARCHAR},#{item.cell,jdbcType=VARCHAR},now())
+		</foreach>
+	</insert>
+	<select id="queryUserByCusNum" parameterType="map" resultType="com.br.marketing.entity.MarketingUser">
+		SELECT
+		api_code,batch_number,cus_num,id_card,name,cell
+		FROM
+		b_marketing_user
+		WHERE
+		api_code=#{api_code}
+		AND
+		batch_number=#{batch_number}
+		AND
+		cus_num=#{cus_num}
+	</select>
+    <select id="queryUser" parameterType="com.br.marketing.entity.MarketingTask" resultType="com.br.marketing.entity.MarketingUser">
+         SELECT
+	     *
+         FROM
+         	${table_name}
+         WHERE
+         	api_code = #{api_code}
+         AND batch_number = #{batch_number}
+         <if test="table_name=='b_marketing_user_chg'">
+		  AND 	hit_date=#{hit_date}
+		 </if>
+         LIMIT #{begin},#{end}
+    </select>
+    <select id="getTotalNumForAll" parameterType="java.util.List" resultType="java.lang.Integer">
+        SELECT
+        count(*) AS num
+        FROM
+        b_marketing_user
+        WHERE
+        	batch_number in
+        <foreach collection="list" separator="," index="index" item="blt" open="(" close=")">
+            #{blt.batch_number}
+        </foreach>
+    </select>
+    <select id="getTotalNum" parameterType="java.util.List" resultType="java.lang.Integer">
+        SELECT
+        	count(*) AS num
+        FROM
+        	b_marketing_user_chg
+        WHERE
+        	batch_number in
+        <foreach collection="list" separator="," index="index" item="blt" open="(" close=")">
+            #{blt.batch_number}
+        </foreach>
+		AND
+		DATE_FORMAT(hit_date,'%Y-%m-%d')=DATE_SUB(curdate(),INTERVAL 1 DAY)
+    </select>
+    <select id="queryCount" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+        SELECT
+    	count(*) AS num
+        FROM
+        	${tableName}
+        WHERE
+        	api_code = #{apiCode} and
+        	batch_number = #{batchNumber}
+		<if test="tableName=='b_marketing_user_chg'">
+			AND  hit_date=#{hitDate}
+		</if>
+			AND status=1
+    </select>
+	<select id="queryCountForFreq" resultType="java.lang.Integer">
+		SELECT
+		count(*) AS num
+		FROM
+		b_marketing_user_chg
+		WHERE
+		api_code = #{api_code} and
+		batch_number = #{batch_number}
+		AND  hit_date &gt;= #{hit_date}
+	</select>
+	<insert id="insertLoanUser" parameterType="map">
+    INSERT INTO b_marketing_user (
+        	`api_code`,
+        	`batch_number`,
+        	`cus_num`,
+        	`id_card`,
+        	`name`,
+        	`cell`,
+        	`linkman_cell`,
+        	`home_addr`,
+        	`tel_home`,
+        	`mail`,
+        	`create_time`,
+        	`update_time`,
+        	`time_range`,
+        	`pass_date`,
+        	`approval_result`,
+        	`loanMaturity_date`)
+        VALUES
+        	(
+        	    #{api_code},
+        		#{batch_number},
+        		#{cus_num},
+        		#{id_card},
+        		#{name},
+        		#{cell},
+        		#{linkman_cell},
+        		#{home_addr},
+        		#{tel_home},
+        		#{mail},
+        		now(),
+        		now(),
+        		#{time_range},
+        		#{pass_date},
+        		#{approval_result},
+        		now()
+        	)
+    </insert>
+</mapper>

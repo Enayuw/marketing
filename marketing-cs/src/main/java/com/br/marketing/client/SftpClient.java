@@ -1,0 +1,386 @@
+package com.br.marketing.client;
+
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.SyncConfig;
+import com.jcraft.jsch.*;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
+import java.util.*;
+
+import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
+
+/**
+ * The type Sftp client.
+ */
+@Slf4j
+public class SftpClient extends BaseFtpClient{
+
+    private JSch jSch = null;
+    private ChannelSftp sftp = null;
+    private Channel channel = null;
+    private Session session = null;
+
+
+
+    /**
+     * Instantiates a new Sftp client.
+     *
+     * @param hostName the host name
+     * @param port     the port
+     * @param userName the user name
+     * @param password the password
+     */
+    public SftpClient(String hostName, int port, String userName, String password) {
+        super(hostName,port,userName,password);
+    }
+
+    /**
+     * Instantiates a new Sftp client.
+     *
+     * @param loanSyncConfig the loan sync config
+     * @param isSrc          the is src
+     */
+    public SftpClient(SyncConfig loanSyncConfig, boolean isSrc) {
+        super(loanSyncConfig, isSrc);
+    }
+    /**
+     * 连接登陆远程服务器
+     *
+     * @return
+     */
+    public boolean connect() throws Exception {
+        try {
+            jSch = new JSch();
+            session = jSch.getSession(userName, hostName, port);
+            session.setPassword(password);
+
+            session.setConfig(this.getSshConfig());
+            session.connect();
+
+            channel = session.openChannel("sftp");
+            channel.connect();
+
+            sftp = (ChannelSftp) channel;
+            log.debug("登陆成功:{} 欢迎：{}" , sftp.getServerVersion(),userName);
+        } catch (JSchException e) {
+            log.error("SSH方式连接FTP服务器时有JSchException异常!",e);
+            throw e;
+        }
+        return true;
+    }
+
+    /**
+     * 关闭连接
+     *
+     * @throws Exception
+     */
+    public void disconnect() throws Exception {
+        try {
+            if (sftp.isConnected()) {
+                sftp.disconnect();
+            }
+            if (channel.isConnected()) {
+                channel.disconnect();
+            }
+            if (session.isConnected()) {
+                session.disconnect();
+            }
+            log.debug("退出成功:{}",userName);
+        } catch (Exception e) {
+            log.error("SSH方式断开连接异常!",e);
+            throw e;
+        }
+    }
+
+    /**
+     * 是否连接
+     * @return
+     */
+    public boolean isConnected(){
+        return sftp.isConnected();
+    }
+    /**
+     * 获取服务配置
+     *
+     * @return
+     */
+    private Properties getSshConfig()  {
+        Properties sshConfig = null;
+        sshConfig = new Properties();
+        sshConfig.put("StrictHostKeyChecking", "no");
+        return sshConfig;
+    }
+
+
+    /**
+     * 获取sftp上文件的字节流
+     * @param path 文件路径
+     * @param fileName 文件名称
+     * @return 字节流
+     * @throws SftpException
+     */
+    public InputStream getInputStream(String path, String fileName) throws Exception {
+        InputStream inputStream=null;
+        if(StringUtils.isEmpty(path)||StringUtils.isEmpty(fileName)){
+            return inputStream;
+        }
+        sftp.cd(path);
+        inputStream = sftp.get(fileName);
+        return inputStream;
+    }
+
+    /**
+     * 通过字节流上传文件到sftp
+     * @param inputStream 字节流
+     * @param path 文件路径
+     * @param fileName 文件名称
+     * @throws SftpException
+     */
+    public void uploadFile(InputStream inputStream,String path,String fileName) throws SftpException {
+        sftp.cd(path);
+        sftp.put(inputStream,fileName);
+    }
+
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性
+     * @param srcPath 原路径
+     * @param suffix 文件类型
+     * @return 需要同步的文件名称和文件属性
+     * @throws SftpException
+     */
+    public Map<String,SftpATTRS> listFiles(String srcPath, String suffix)  {
+        Map<String,SftpATTRS> ftpFileMap = new HashMap();
+        if(!isExist(srcPath)){
+            return ftpFileMap;
+        }
+        Vector<ChannelSftp.LsEntry> sftpFile = null;
+        try {
+            sftpFile = sftp.ls(srcPath);
+        } catch (SftpException e) {
+           log.error("srcPath:{}",srcPath,e);
+        }
+        ChannelSftp.LsEntry isEntity = null;
+        String fileName = null;
+        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+        while (sftpFileNames.hasNext()) {
+            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
+            SftpATTRS attrs = isEntity.getAttrs();
+            fileName = isEntity.getFilename();
+            String[] split = suffix.split(",");
+            for(int i=0;i<split.length;i++){
+                if(fileName.endsWith(split[i])){
+                    ftpFileMap.put(fileName,attrs);
+                    break;
+                }
+            }
+        }
+        return ftpFileMap;
+    }
+
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性
+     * @param srcPath 原路径
+     * @return 需要同步的文件名称和文件属性
+     * @throws SftpException
+     */
+    public Map<String,SftpATTRS> listFiles(String srcPath)  {
+        Map<String,SftpATTRS> ftpFileMap = new HashMap();
+        if(!isExist(srcPath)){
+            return ftpFileMap;
+        }
+        Vector<ChannelSftp.LsEntry> sftpFile = null;
+        try {
+            sftpFile = sftp.ls(srcPath);
+        } catch (SftpException e) {
+            log.error("srcPath:{}",srcPath,e);
+        }
+        ChannelSftp.LsEntry isEntity = null;
+        String fileName = null;
+        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+        while (sftpFileNames.hasNext()) {
+            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
+            SftpATTRS attrs = isEntity.getAttrs();
+            fileName = isEntity.getFilename();
+            ftpFileMap.put(fileName,attrs);
+        }
+        return ftpFileMap;
+    }
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性
+     * @param srcPath 原路径
+     * @param suffix 文件类型
+     * @return 对应文件类型的文件列表
+     * @throws SftpException
+     */
+    public List<String> listFileName(String srcPath, String suffix)  {
+        List<String> list=new ArrayList<>();
+        if(!isExist(srcPath)){
+            return list;
+        }
+        Vector<ChannelSftp.LsEntry> sftpFile = null;
+        try {
+            sftpFile = sftp.ls(srcPath);
+        } catch (SftpException e) {
+            log.error("srcPath:{}",srcPath,e);
+        }
+        ChannelSftp.LsEntry isEntity = null;
+        String fileName = null;
+        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+        while (sftpFileNames.hasNext()) {
+            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
+            fileName = isEntity.getFilename();
+            String[] split = suffix.split(",");
+            for(int i=0;i<split.length;i++){
+                if(fileName.endsWith(split[i])){
+                    list.add(fileName);
+                    break;
+                }
+            }
+        }
+        return list;
+    }
+    /**
+     * 获取文件属性
+     * @param filePath 文件路径
+     * @return 文件属性
+     * @throws SftpException
+     */
+    public SftpATTRS stats(String filePath) throws SftpException {
+        return sftp.stat(filePath);
+    }
+
+    /**
+     * 递归创建目录
+     * @param path 目录
+     * @throws SftpException
+     */
+    public void mkdir(String path) throws Exception {
+        log.warn("ftp mkdir {}",path);
+        String[] split = path.split("/");
+        String realPath="";
+        for(int i=0;i<split.length;i++){
+            String s = split[i];
+            if(StringUtils.isNotEmpty(s)){
+                realPath=realPath+"/"+s;
+                if(!isExist(realPath)){
+                    sftp.mkdir(realPath);
+                }
+            }
+        }
+    }
+    /**
+     * 判断文件是否存在
+     *
+     * @param remoteFile 文件
+     * @return
+     * @throws SftpException
+     */
+    public boolean isExistFile(String remoteFile)  {
+        boolean flag = false;
+        try {
+            sftp.ls(remoteFile);
+            log.debug("存在文件：{}",remoteFile);
+            flag = true;
+        }catch  (SftpException e) {
+            if (e.id == SSH_FX_NO_SUCH_FILE) {
+                log.warn("文件不存在：{}",remoteFile);
+                return flag;
+            }
+            log.error("Unexpected exception during ls files on sftp: [{}:{}]", e.id, e.getMessage());
+        }
+        return flag;
+    }
+
+    /**
+     * 判断路径是否存在
+     *
+     * @param remotePath
+     * @return
+     * @throws SftpException
+     */
+    public boolean isExist(String remotePath)  {
+        boolean flag = false;
+        try {
+            sftp.cd(remotePath);
+            log.debug("存在路径：{}",remotePath);
+           flag = true;
+        }catch (Exception e) {
+            log.warn("目录不存在：{}",remotePath);
+        }
+        return flag;
+    }
+
+
+    public void rename(String oldName,String newName) throws SftpException {
+        sftp.rename(oldName,newName);
+    }
+    /**
+     * 上传文件至远程sftp服务器
+     * @param remotePath
+     * @param remoteFilename
+     * @param localFileName
+     * @return
+     */
+    public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) {
+        boolean success = false;
+        File localFile = new File(localFileName);
+        try (FileInputStream fis = new FileInputStream(localFile)){
+            if(!isExist(remotePath)){
+                mkdir(remotePath);
+            }
+            sftp.cd(remotePath);
+            sftp.put(fis, remoteFilename);
+            success = true;
+        } catch (SftpException e) {
+           log.error("SftpException",e);
+        } catch (Exception e) {
+            log.error("Exception",e);
+        }
+        return success;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * 下载远程sftp服务器文件
+     *
+     * @param remotePath
+     * @param remoteFilename
+     * @param localFilename
+     * @return
+     */
+    public boolean downloadFile(String remotePath, String remoteFilename, String localFilename){
+        File localFile = new File(localFilename);
+        boolean success = false;
+        try (FileOutputStream output= new FileOutputStream(localFile); ){
+            if (null != remotePath && remotePath.trim() != "") {
+                sftp.cd(remotePath);
+            }
+            sftp.get(remoteFilename, output);
+            success = true;
+            log.info("成功接收文件,本地路径：" + localFilename);
+        } catch (SftpException e) {
+            log.error("接收文件时有SftpException异常!",e);
+            return success;
+        } catch (IOException e) {
+            log.error("接收文件时有I/O异常!",e);
+            return success;
+        }
+        return success;
+    }
+
+
+
+}

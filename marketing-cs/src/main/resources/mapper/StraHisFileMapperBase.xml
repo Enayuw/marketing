@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.StraHisFileMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.StraHisFile" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
+    <result column="file_path" property="filePath" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="zipFile_name" property="zipfileName" jdbcType="VARCHAR" />
+    <result column="error_file" property="errorFile" jdbcType="VARCHAR" />
+    <result column="expected_num" property="expectedNum" jdbcType="INTEGER" />
+    <result column="upload_time" property="uploadTime" jdbcType="VARCHAR" />
+    <result column="file_size" property="fileSize" jdbcType="VARCHAR" />
+    <result column="actual_num" property="actualNum" jdbcType="INTEGER" />
+    <result column="file_num" property="fileNum" jdbcType="INTEGER" />
+    <result column="sign_file_status" property="signFileStatus" jdbcType="INTEGER" />
+    <result column="zip_status" property="zipStatus" jdbcType="INTEGER" />
+    <result column="md5" property="md5" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, batch_number, file_path, create_time, update_time, status, type, zipFile_name, 
+    error_file, expected_num, upload_time, file_size, actual_num, file_num, sign_file_status, 
+    zip_status, md5
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.StraHisFileExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from stra_his_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from stra_his_file
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from stra_his_file
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.StraHisFileExample" >
+    delete from stra_his_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.StraHisFile" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into stra_his_file (api_code, batch_number, file_path, 
+      create_time, update_time, status, 
+      type, zipFile_name, error_file, 
+      expected_num, upload_time, file_size, 
+      actual_num, file_num, sign_file_status, 
+      zip_status, md5)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{type,jdbcType=INTEGER}, #{zipfileName,jdbcType=VARCHAR}, #{errorFile,jdbcType=VARCHAR}, 
+      #{expectedNum,jdbcType=INTEGER}, #{uploadTime,jdbcType=VARCHAR}, #{fileSize,jdbcType=VARCHAR}, 
+      #{actualNum,jdbcType=INTEGER}, #{fileNum,jdbcType=INTEGER}, #{signFileStatus,jdbcType=INTEGER}, 
+      #{zipStatus,jdbcType=INTEGER}, #{md5,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.StraHisFile" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into stra_his_file
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="batchNumber != null" >
+        batch_number,
+      </if>
+      <if test="filePath != null" >
+        file_path,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="zipfileName != null" >
+        zipFile_name,
+      </if>
+      <if test="errorFile != null" >
+        error_file,
+      </if>
+      <if test="expectedNum != null" >
+        expected_num,
+      </if>
+      <if test="uploadTime != null" >
+        upload_time,
+      </if>
+      <if test="fileSize != null" >
+        file_size,
+      </if>
+      <if test="actualNum != null" >
+        actual_num,
+      </if>
+      <if test="fileNum != null" >
+        file_num,
+      </if>
+      <if test="signFileStatus != null" >
+        sign_file_status,
+      </if>
+      <if test="zipStatus != null" >
+        zip_status,
+      </if>
+      <if test="md5 != null" >
+        md5,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        #{batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="filePath != null" >
+        #{filePath,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="zipfileName != null" >
+        #{zipfileName,jdbcType=VARCHAR},
+      </if>
+      <if test="errorFile != null" >
+        #{errorFile,jdbcType=VARCHAR},
+      </if>
+      <if test="expectedNum != null" >
+        #{expectedNum,jdbcType=INTEGER},
+      </if>
+      <if test="uploadTime != null" >
+        #{uploadTime,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSize != null" >
+        #{fileSize,jdbcType=VARCHAR},
+      </if>
+      <if test="actualNum != null" >
+        #{actualNum,jdbcType=INTEGER},
+      </if>
+      <if test="fileNum != null" >
+        #{fileNum,jdbcType=INTEGER},
+      </if>
+      <if test="signFileStatus != null" >
+        #{signFileStatus,jdbcType=INTEGER},
+      </if>
+      <if test="zipStatus != null" >
+        #{zipStatus,jdbcType=INTEGER},
+      </if>
+      <if test="md5 != null" >
+        #{md5,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.StraHisFileExample" resultType="java.lang.Integer" >
+    select count(*) from stra_his_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update stra_his_file
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchNumber != null" >
+        batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.filePath != null" >
+        file_path = #{record.filePath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=INTEGER},
+      </if>
+      <if test="record.zipfileName != null" >
+        zipFile_name = #{record.zipfileName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.errorFile != null" >
+        error_file = #{record.errorFile,jdbcType=VARCHAR},
+      </if>
+      <if test="record.expectedNum != null" >
+        expected_num = #{record.expectedNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.uploadTime != null" >
+        upload_time = #{record.uploadTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileSize != null" >
+        file_size = #{record.fileSize,jdbcType=VARCHAR},
+      </if>
+      <if test="record.actualNum != null" >
+        actual_num = #{record.actualNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.fileNum != null" >
+        file_num = #{record.fileNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.signFileStatus != null" >
+        sign_file_status = #{record.signFileStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.zipStatus != null" >
+        zip_status = #{record.zipStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.md5 != null" >
+        md5 = #{record.md5,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update stra_his_file
+    set id = #{record.id,jdbcType=INTEGER},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+      file_path = #{record.filePath,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      status = #{record.status,jdbcType=INTEGER},
+      type = #{record.type,jdbcType=INTEGER},
+      zipFile_name = #{record.zipfileName,jdbcType=VARCHAR},
+      error_file = #{record.errorFile,jdbcType=VARCHAR},
+      expected_num = #{record.expectedNum,jdbcType=INTEGER},
+      upload_time = #{record.uploadTime,jdbcType=VARCHAR},
+      file_size = #{record.fileSize,jdbcType=VARCHAR},
+      actual_num = #{record.actualNum,jdbcType=INTEGER},
+      file_num = #{record.fileNum,jdbcType=INTEGER},
+      sign_file_status = #{record.signFileStatus,jdbcType=INTEGER},
+      zip_status = #{record.zipStatus,jdbcType=INTEGER},
+      md5 = #{record.md5,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.StraHisFile" >
+    update stra_his_file
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="filePath != null" >
+        file_path = #{filePath,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="zipfileName != null" >
+        zipFile_name = #{zipfileName,jdbcType=VARCHAR},
+      </if>
+      <if test="errorFile != null" >
+        error_file = #{errorFile,jdbcType=VARCHAR},
+      </if>
+      <if test="expectedNum != null" >
+        expected_num = #{expectedNum,jdbcType=INTEGER},
+      </if>
+      <if test="uploadTime != null" >
+        upload_time = #{uploadTime,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSize != null" >
+        file_size = #{fileSize,jdbcType=VARCHAR},
+      </if>
+      <if test="actualNum != null" >
+        actual_num = #{actualNum,jdbcType=INTEGER},
+      </if>
+      <if test="fileNum != null" >
+        file_num = #{fileNum,jdbcType=INTEGER},
+      </if>
+      <if test="signFileStatus != null" >
+        sign_file_status = #{signFileStatus,jdbcType=INTEGER},
+      </if>
+      <if test="zipStatus != null" >
+        zip_status = #{zipStatus,jdbcType=INTEGER},
+      </if>
+      <if test="md5 != null" >
+        md5 = #{md5,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.StraHisFile" >
+    update stra_his_file
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      batch_number = #{batchNumber,jdbcType=VARCHAR},
+      file_path = #{filePath,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER},
+      zipFile_name = #{zipfileName,jdbcType=VARCHAR},
+      error_file = #{errorFile,jdbcType=VARCHAR},
+      expected_num = #{expectedNum,jdbcType=INTEGER},
+      upload_time = #{uploadTime,jdbcType=VARCHAR},
+      file_size = #{fileSize,jdbcType=VARCHAR},
+      actual_num = #{actualNum,jdbcType=INTEGER},
+      file_num = #{fileNum,jdbcType=INTEGER},
+      sign_file_status = #{signFileStatus,jdbcType=INTEGER},
+      zip_status = #{zipStatus,jdbcType=INTEGER},
+      md5 = #{md5,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

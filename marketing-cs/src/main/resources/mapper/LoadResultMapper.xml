@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.LoadResultMapper">
+	<insert id="insertLoadResult" parameterType="com.br.marketing.entity.LoadResult">
+		INSERT INTO `load_result` (
+			`api_code`,
+			`cus_batch`,
+			`file_name`,
+			`message`,
+			`status`,
+			`batch_number`,
+			`actual_number`,
+			`task_number`,
+			`type`
+		)
+		VALUES
+			(
+				#{apiCode},
+				#{cusBatch},
+				#{fileName},
+				#{message},
+				#{status},
+				#{batchNumber},
+				#{actualNumber},
+				#{taskNumber},
+				#{type}
+			);
+	</insert>
+	<select id="queryLoadResult" resultType="com.br.marketing.entity.LoadResult" parameterType="map">
+		SELECT
+		 api_code,
+		 cus_batch,
+		 file_name,
+		 message,
+		 status,
+		 batch_number,
+		 actual_number,
+		 task_number,
+		 `type`
+ 		 FROM
+ 		 load_result
+ 		 WHERE
+ 		 api_code=#{apiCode}
+		<if test="batchNumber!= null">
+			AND batch_number=#{batchNumber}
+		</if>
+		<if test="cusBatch!= null">
+			AND cus_batch=#{cusBatch}
+		</if>
+		 AND
+		 status=#{status}
+	</select>
+
+</mapper>

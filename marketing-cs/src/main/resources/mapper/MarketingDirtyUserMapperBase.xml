@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingDirtyUserMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDirtyUser" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
+    <result column="cus_num" property="cusNum" jdbcType="VARCHAR" />
+    <result column="id_card" property="idCard" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="linkman_cell" property="linkmanCell" jdbcType="VARCHAR" />
+    <result column="home_addr" property="homeAddr" jdbcType="VARCHAR" />
+    <result column="tel_home" property="telHome" jdbcType="VARCHAR" />
+    <result column="mail" property="mail" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="time_range" property="timeRange" jdbcType="VARCHAR" />
+    <result column="pass_date" property="passDate" jdbcType="VARCHAR" />
+    <result column="approval_result" property="approvalResult" jdbcType="VARCHAR" />
+    <result column="loanMaturity_date" property="loanmaturityDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, batch_number, cus_num, id_card, name, cell, linkman_cell, home_addr, 
+    tel_home, mail, create_time, update_time, time_range, pass_date, approval_result, 
+    loanMaturity_date
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDirtyUserExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_dirty_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_dirty_user
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from b_marketing_dirty_user
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDirtyUserExample" >
+    delete from b_marketing_dirty_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingDirtyUser" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_dirty_user (api_code, batch_number, cus_num, 
+      id_card, name, cell, 
+      linkman_cell, home_addr, tel_home, 
+      mail, create_time, update_time, 
+      time_range, pass_date, approval_result, 
+      loanMaturity_date)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{cusNum,jdbcType=VARCHAR}, 
+      #{idCard,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{linkmanCell,jdbcType=VARCHAR}, #{homeAddr,jdbcType=VARCHAR}, #{telHome,jdbcType=VARCHAR}, 
+      #{mail,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{timeRange,jdbcType=VARCHAR}, #{passDate,jdbcType=VARCHAR}, #{approvalResult,jdbcType=VARCHAR}, 
+      #{loanmaturityDate,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDirtyUser" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_dirty_user
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="batchNumber != null" >
+        batch_number,
+      </if>
+      <if test="cusNum != null" >
+        cus_num,
+      </if>
+      <if test="idCard != null" >
+        id_card,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="linkmanCell != null" >
+        linkman_cell,
+      </if>
+      <if test="homeAddr != null" >
+        home_addr,
+      </if>
+      <if test="telHome != null" >
+        tel_home,
+      </if>
+      <if test="mail != null" >
+        mail,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="timeRange != null" >
+        time_range,
+      </if>
+      <if test="passDate != null" >
+        pass_date,
+      </if>
+      <if test="approvalResult != null" >
+        approval_result,
+      </if>
+      <if test="loanmaturityDate != null" >
+        loanMaturity_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        #{batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="cusNum != null" >
+        #{cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="idCard != null" >
+        #{idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="linkmanCell != null" >
+        #{linkmanCell,jdbcType=VARCHAR},
+      </if>
+      <if test="homeAddr != null" >
+        #{homeAddr,jdbcType=VARCHAR},
+      </if>
+      <if test="telHome != null" >
+        #{telHome,jdbcType=VARCHAR},
+      </if>
+      <if test="mail != null" >
+        #{mail,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="timeRange != null" >
+        #{timeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="passDate != null" >
+        #{passDate,jdbcType=VARCHAR},
+      </if>
+      <if test="approvalResult != null" >
+        #{approvalResult,jdbcType=VARCHAR},
+      </if>
+      <if test="loanmaturityDate != null" >
+        #{loanmaturityDate,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDirtyUserExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_dirty_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_dirty_user
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchNumber != null" >
+        batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cusNum != null" >
+        cus_num = #{record.cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.idCard != null" >
+        id_card = #{record.idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.linkmanCell != null" >
+        linkman_cell = #{record.linkmanCell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.homeAddr != null" >
+        home_addr = #{record.homeAddr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.telHome != null" >
+        tel_home = #{record.telHome,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mail != null" >
+        mail = #{record.mail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.timeRange != null" >
+        time_range = #{record.timeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="record.passDate != null" >
+        pass_date = #{record.passDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.approvalResult != null" >
+        approval_result = #{record.approvalResult,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanmaturityDate != null" >
+        loanMaturity_date = #{record.loanmaturityDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_dirty_user
+    set id = #{record.id,jdbcType=INTEGER},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+      cus_num = #{record.cusNum,jdbcType=VARCHAR},
+      id_card = #{record.idCard,jdbcType=VARCHAR},
+      name = #{record.name,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      linkman_cell = #{record.linkmanCell,jdbcType=VARCHAR},
+      home_addr = #{record.homeAddr,jdbcType=VARCHAR},
+      tel_home = #{record.telHome,jdbcType=VARCHAR},
+      mail = #{record.mail,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      time_range = #{record.timeRange,jdbcType=VARCHAR},
+      pass_date = #{record.passDate,jdbcType=VARCHAR},
+      approval_result = #{record.approvalResult,jdbcType=VARCHAR},
+      loanMaturity_date = #{record.loanmaturityDate,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDirtyUser" >
+    update b_marketing_dirty_user
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="cusNum != null" >
+        cus_num = #{cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="idCard != null" >
+        id_card = #{idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="linkmanCell != null" >
+        linkman_cell = #{linkmanCell,jdbcType=VARCHAR},
+      </if>
+      <if test="homeAddr != null" >
+        home_addr = #{homeAddr,jdbcType=VARCHAR},
+      </if>
+      <if test="telHome != null" >
+        tel_home = #{telHome,jdbcType=VARCHAR},
+      </if>
+      <if test="mail != null" >
+        mail = #{mail,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="timeRange != null" >
+        time_range = #{timeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="passDate != null" >
+        pass_date = #{passDate,jdbcType=VARCHAR},
+      </if>
+      <if test="approvalResult != null" >
+        approval_result = #{approvalResult,jdbcType=VARCHAR},
+      </if>
+      <if test="loanmaturityDate != null" >
+        loanMaturity_date = #{loanmaturityDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDirtyUser" >
+    update b_marketing_dirty_user
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      batch_number = #{batchNumber,jdbcType=VARCHAR},
+      cus_num = #{cusNum,jdbcType=VARCHAR},
+      id_card = #{idCard,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      linkman_cell = #{linkmanCell,jdbcType=VARCHAR},
+      home_addr = #{homeAddr,jdbcType=VARCHAR},
+      tel_home = #{telHome,jdbcType=VARCHAR},
+      mail = #{mail,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      time_range = #{timeRange,jdbcType=VARCHAR},
+      pass_date = #{passDate,jdbcType=VARCHAR},
+      approval_result = #{approvalResult,jdbcType=VARCHAR},
+      loanMaturity_date = #{loanmaturityDate,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

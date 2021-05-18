@@ -1,0 +1,30 @@
+{
+  "Reject": {
+    "Reject": "D",
+    "no_result": "D",
+    "Review":"D",
+    "Accept":"D",
+    "no_loan_approval":"D"
+  },
+  "no_result": {
+    "Reject": "D",
+    "no_result": "C",
+    "Review":"C",
+    "Accept":"B",
+    "no_loan_approval":"D"
+  },
+  "Review": {
+    "Reject": "B",
+    "no_result": "C",
+    "Review":"C",
+    "Accept":"C",
+    "no_loan_approval":"B"
+  },
+  "Accept": {
+    "Reject": "B",
+    "no_result": "B",
+    "Review":"B",
+    "Accept":"A",
+    "no_loan_approval":"B"
+  }
+}

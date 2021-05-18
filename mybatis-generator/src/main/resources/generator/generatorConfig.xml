@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<!-- 配置生成器 -->
+<generatorConfiguration>
+    <context id="DB2Tables" targetRuntime="MyBatis3">
+
+        <!--        <commentGenerator>-->
+        <!--            <property name="suppressDate" value="true"/>-->
+        <!--            &lt;!&ndash; 是否去除自动生成的注释 true：是 ： false:否 &ndash;&gt;-->
+        <!--            <property name="suppressAllComments" value="true"/>-->
+        <!--        </commentGenerator>-->
+
+
+        <commentGenerator type="com.edison.CommentGenerator">
+            <!--            <property name="author" value="Wjm"/>-->
+            <!--            <property name="allArgsConstructor" value="false"/>-->
+            <!--            <property name="noArgsConstructor" value="false"/>-->
+            <property name="toString" value="true"/>
+            <!--            <property name="builder.toBuilder" value="true"/>-->
+            <!--            <property name="builder" value="true"/>-->
+        </commentGenerator>
+
+        <!-- 数据库链接URL，用户名、密码 -->
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://192.168.162.192:3306/test_loan"
+                        userId="rule_service"
+                        password="rule_service_2015-09-10">
+        </jdbcConnection>
+
+        <!-- 类型转换 -->
+        <javaTypeResolver>
+            <!-- 是否使用BigDecimals，false可自动转化以下类型(Long Integer Short等) -->
+            <property name="forceBigDecimals" value="false"/>
+        </javaTypeResolver>
+
+        <!-- 生成模型的包名和位置-->
+        <javaModelGenerator targetPackage="com.br.marketing.entity" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <!-- 生成映射文件的包名和位置-->
+        <sqlMapGenerator targetPackage="mappers" targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <!-- 生成DAO的包名和位置 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.br.marketing.mapper" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+
+        <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
+        <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
+        <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
+        <table tableName="load_result" domainObjectName="LoadResult" >
+            <property name="useActualColumnNames" value="false"/>
+            <!-- 数据库表主键 自动返回主键值 -->
+            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>
+    </context>
+
+</generatorConfiguration>

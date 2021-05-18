@@ -1,0 +1,31 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExample;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface MarketingTaskMapperBase {
+    int countByExample(MarketingTaskExample example);
+
+    int deleteByExample(MarketingTaskExample example);
+
+    int deleteByPrimaryKey(Integer id);
+
+    int insert(MarketingTask record);
+
+    int insertSelective(MarketingTask record);
+
+    List<MarketingTask> selectByExample(MarketingTaskExample example);
+
+    MarketingTask selectByPrimaryKey(Integer id);
+
+    int updateByExampleSelective(@Param("record") MarketingTask record, @Param("example") MarketingTaskExample example);
+
+    int updateByExample(@Param("record") MarketingTask record, @Param("example") MarketingTaskExample example);
+
+    int updateByPrimaryKeySelective(MarketingTask record);
+
+    int updateByPrimaryKey(MarketingTask record);
+}

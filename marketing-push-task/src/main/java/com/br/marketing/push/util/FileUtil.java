@@ -1,0 +1,607 @@
+package com.br.marketing.push.util;
+
+import cn.hutool.crypto.SecureUtil;
+import com.br.marketing.common.bean.Score;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.file.ZipUtil;
+import com.br.marketing.entity.Marketing;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+
+/**
+ * Created by Bairong on 2019/9/2.
+ */
+@Slf4j
+public class FileUtil {
+
+    public static boolean merge(Map<String,List<String>> map,String fileName,String errorFileName){
+        log.info("merge  fileName:{}",fileName);
+        boolean result=false;
+        FileReader read=null;
+        BufferedReader br=null;
+        int errorRownum = 0;
+
+            Map<String,String> clearMap=new HashMap<>();
+            Set<String> keys = map.keySet();
+            Set<String> sortSet = new TreeSet<String>(new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    return  (DateHelper.parseDate(o2).compareTo(DateHelper.parseDate(o1)));
+                }
+            });
+            sortSet.addAll(keys);
+            log.info("sortSet size:{}",sortSet.size());
+            File file1 = new File(fileName);
+            File errorFile = new File(errorFileName);
+
+        try ( Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), StandardCharsets.UTF_8));
+
+
+              Writer errorFw = new BufferedWriter(
+                      new OutputStreamWriter(
+                              new FileOutputStream(errorFile), StandardCharsets.UTF_8));){
+            int rownum = 1;
+            boolean flag=true;
+            for(String key:sortSet) {
+                List<String> strings = map.get(key);
+                log.info("key:{},strings",key,strings.size());
+                for(String name:strings){
+                    log.info("FileName ---{}",name);
+                    File writeName = new File(name);
+                    if (!writeName.exists()) {
+                        log.info("name ---{} 不存在",name);
+                        continue;
+                    }
+                    if(name.indexOf("error")>-1){
+                        read = new FileReader(name);
+                        br = new BufferedReader(read);
+                        String row;
+                        while ((row = br.readLine()) != null) {
+                            errorRownum ++;
+                            errorFw.append(row + "\r\n");
+                        }
+                    }else{
+                        read = new FileReader(name);
+                        br = new BufferedReader(read);
+                        String row;
+                        while ((row = br.readLine()) != null) {
+                            //log.info("row ---{}",row);
+                            rownum ++;
+                            String[] split = row.split(",");
+                            //如果是表头，第一个文件需要写表头，第二个文件开始不再写表头
+                            if("request_time".equals(split[0])){
+                                if(flag){
+                                    fw.append(row + "\r\n");
+                                }
+                            }else {
+                                String md5String = SecureUtil.md5(split[1] + split[2]);
+                                String s = clearMap.get(md5String);
+                                log.info("md5String ---{}",s);
+                                if(StringUtils.isEmpty(s)){
+                                    fw.append(row + "\r\n");
+                                    clearMap.put(md5String,String.valueOf(System.currentTimeMillis()));
+                                }
+                            }
+                        }
+                        flag=false;
+                    }
+                }
+            }
+            errorFw.close();
+            log.info("rownum="+rownum);
+            log.info("errorRownum="+errorRownum);
+        } catch (FileNotFoundException e) {
+            log.error("FileNotFoundException ",e);
+        } catch (IOException e) {
+            log.error("IOException ",e);
+        }finally {
+            if(br!=null){
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+        }
+        if(errorRownum>0){
+            result=true;
+        }
+        return result;
+    }
+
+    private static int countStr(String str,String sToFind) {
+        int num = 0;
+        int len1=str.length();
+        String str1=str.replaceAll(sToFind,"");
+        int len2=str1.length();
+        num=len1-len2;
+        return num;
+    }
+    /**
+     * 合并错误文件
+     * @param pathName
+     * @param destPath
+     */
+    public static boolean mergeError(String pathName, String destPath) {
+        boolean flag=false;
+        log.info("开始合并文件 结果文件名称:{},需要合并的目录:{}",pathName,destPath);
+        long l = System.currentTimeMillis();
+        FileReader read=null;
+        BufferedReader br=null;
+        int rownum = 0;
+
+            File writeName = new File(destPath);
+            if (!writeName.exists()) {
+                return flag;
+            }
+            File file1 = new File(pathName);
+
+        try ( Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), StandardCharsets.UTF_8));){
+            List<String> fileNmaes = getErrorFileNames(writeName);
+            for(String name:fileNmaes){
+                read = new FileReader(destPath+"/"+name);
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    rownum ++;
+                    fw.append(row + "\r\n");
+                }
+                br.close();
+                read.close();
+            }
+            log.info("rownum="+rownum);
+        } catch (FileNotFoundException e) {
+            log.error("FileNotFoundException ",e);
+        } catch (Exception e) {
+            log.error("合并文件出错",e);
+        }finally {
+            if(br!=null){
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+        }
+        log.info("合并文件结束--耗时：{}",System.currentTimeMillis()-l);
+
+        if(rownum>0){
+            flag=true;
+        }
+        return flag;
+    }
+
+    /**
+     *
+     * @param pathName 结果文件名称
+     * @param destPath 需要合并的目录
+     */
+    public static void mergeAll(String head, String pathName, String destPath,String sep){
+        log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}",pathName,destPath);
+        long l = System.currentTimeMillis();
+        ExecutorService mergeExecutor = BrExecutors.getThreadPool(100,100);
+        FileReader read=null;
+        BufferedReader br=null;
+
+        File writeName = new File(destPath);
+        if (!writeName.exists()) {
+            return;
+        }
+        File file1 = new File(pathName);
+
+        try (  Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), StandardCharsets.UTF_8));){
+            List<String> fileNmaes = getFileNames(writeName);
+            int rownum = 1;
+            String headstring = head.substring(0, head.length() - 1);
+            if(destPath.indexOf("error")==-1){
+                fw.append(headstring+ "\r\n");
+            }
+            int i = countStr(headstring, sep);
+            for(String name:fileNmaes){
+                read = new FileReader(destPath+"/"+name);
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    mergeExecutor.submit(new CheckRowSep(fw,row,i,sep));
+                }
+                br.close();
+                read.close();
+            }
+            /**
+             * 等待所有任务都执行完成
+             **/
+            mergeExecutor.shutdown();
+            while (true){
+                if(mergeExecutor.isTerminated()){
+                    log.warn("所有合并线程都执行结束");
+                    break;
+                }
+                try {
+                    Thread.sleep(3000);
+                }catch (Exception e){
+                    log.error("sleep ",e);
+                }
+            }
+            log.warn("rownum="+rownum);
+        } catch (FileNotFoundException e) {
+            log.error("FileNotFoundException ",e);
+        } catch (Exception e) {
+            log.error("合并文件出错",e);
+        }finally {
+            if(br!=null){
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+        }
+        log.warn("合并文件结束--耗时：{}",System.currentTimeMillis()-l);
+    }
+    /**
+
+
+     * @param head 统计文件头
+     * @param fileName 统计文件路径+名字
+     * @param scores 原始数据
+     * @param separator 分隔符
+     * @return 文件名称
+     */
+    public static void writeFile(String head, String fileName,ArrayList<Score> scores,String separator){
+        log.warn("开始生成统计文件，文件名称:{}",fileName);
+        long l = System.currentTimeMillis();
+        File file = new File(fileName);
+//        NumberFormat percent = NumberFormat.getPercentInstance();
+//        percent.setMaximumFractionDigits(2);
+        try (  Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), StandardCharsets.UTF_8));){
+            fw.append(head+"\r\n");
+            for (Score score : scores) {
+                StringBuilder rowBuilder=new StringBuilder();
+//                rowBuilder.append(score.getScoringRange()).append(separator)
+//                        .append(score.getSampleCapacity()).append(separator)
+//                        .append(percent.format(score.getProportion())).append(separator)
+//                        .append(percent.format(score.getCumulativeProportion()));
+                rowBuilder.append(score.getScoringRange()).append(separator)
+                        .append(score.getSampleCapacity()).append(separator)
+                        .append(score.getProportion().multiply(new BigDecimal(100)).divide(new BigDecimal(1),2,BigDecimal.ROUND_HALF_UP).toString()).append("%").append(separator)
+                        .append(score.getCumulativeProportion().multiply(new BigDecimal(100)).divide(new BigDecimal(1),2,BigDecimal.ROUND_HALF_UP).toString()).append("%");
+                fw.append(rowBuilder.toString()+"\r\n");
+            }
+        } catch (FileNotFoundException e) {
+            log.error("FileNotFoundException ",e);
+        } catch (Exception e) {
+            log.error("生成文件出错",e);
+        }
+        log.warn("生成文件结束--耗时：{}",System.currentTimeMillis()-l);
+    }
+    public static int mergeMarketing(String head, String pathName, String destPath,String sep,int totalNum){
+        log.warn("mergeMarketing 开始合并文件 结果文件名称:{},需要合并的目录:{}",pathName,destPath);
+        int expectedNum=0;
+        int realNum=0;
+        long l = System.currentTimeMillis();
+        FileReader read=null;
+        BufferedReader br=null;
+        File writeName = new File(destPath);
+        if (!writeName.exists()) {
+            return realNum;
+        }
+        File file1 = new File(pathName);
+        List<Marketing> list=new ArrayList<>(totalNum);
+        try (  Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), StandardCharsets.UTF_8));){
+            List<String> fileNmaes = getFileNames(writeName);
+            String headstring = head.substring(0, head.length() - 1);
+            fw.append(headstring+ "\r\n");
+
+            int i = countStr(headstring, sep);
+            for(String name:fileNmaes){
+                read = new FileReader(destPath+"/"+name);
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    row = row.substring(0, row.length() - 1);
+                    int i1 = countStr(row, sep);
+                    if(i==i1){
+                        list.add(new Marketing(row));
+                    }else{
+                        log.error("分隔符校验失败 head:{},row:{}",i,i1);
+                        log.warn("Row--{}",row);
+                    }
+
+                }
+                br.close();
+                read.close();
+            }
+            long l1 = System.currentTimeMillis();
+            Collections.sort(list);
+
+            realNum= (int) Math.ceil(totalNum*0.2);
+            log.warn("realNum{}",realNum);
+            Marketing last=null;
+            for(int k=0;k<realNum;k++){
+                last=list.get(k);
+                String row = last.getRow();
+                log.info("row:{}",row);
+                if(!last.getScore().equals(0.0)){
+                    fw.append(row+"\n");
+                    expectedNum++;
+                }
+
+            }
+
+           List<String> lastLast= getLast(last,list);
+                log.warn("lastLast is not Empty:{}",lastLast.size());
+                for(String row:lastLast){
+                    log.warn("row:{}",row);
+                    fw.append(row+"\n");
+                    expectedNum++;
+                    realNum++;
+            }
+            log.warn("sort cost time:{}",System.currentTimeMillis()-l1);
+            log.warn("realNum{}",realNum);
+        } catch (FileNotFoundException e) {
+            log.error("FileNotFoundException ",e);
+        } catch (Exception e) {
+            log.error("合并文件出错",e);
+        }finally {
+            if(br!=null){
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+            if(read!=null){
+                try {
+                    read.close();
+                } catch (IOException e) {
+                    log.error("IOException ",e);
+                }
+            }
+        }
+        log.warn("合并文件结束--耗时：{}",System.currentTimeMillis()-l);
+        return expectedNum;
+    }
+
+    private static List<String> getLast(Marketing last, List<Marketing> list) {
+        List<String> result=new ArrayList<>();
+        boolean flag=false;
+        for(Marketing marketing:list){
+            if(marketing==last){
+                flag=true;
+                continue;
+            }
+            if(flag&&last.getScore().equals(marketing.getScore())&&!last.getScore().equals(0.0)){
+                result.add(marketing.getRow());
+            }
+        }
+        return result;
+    }
+
+    static class CheckRowSep implements  Runnable{
+        private Writer fw;
+        private String row;
+        private int headSepNum;
+        private String sep;
+
+        public CheckRowSep(Writer fw, String row, int headSepNum,String sep) {
+            this.fw = fw;
+            this.row = row;
+            this.headSepNum = headSepNum;
+            this.sep=sep;
+        }
+
+        @Override
+        public void run() {
+            log.info("开始合并：{}，{}",Thread.currentThread().getName(),headSepNum);
+            try{
+                row = row.substring(0, row.length() - 1);
+                int i1 = countStr1(row, sep);
+                if(headSepNum==i1){
+                    fw.append(row + "\r\n");
+                }else{
+                    log.error("分隔符校验失败 head:{},row:{}",headSepNum,i1);
+                    log.warn("Row--{}",row);
+                }
+            }catch (Exception e){
+                log.error("合并文件出错",e);
+            }
+        }
+
+        private  int countStr1(String str,String sToFind) {
+            int num = 0;
+            int len1=str.length();
+            String str1=str.replaceAll(sToFind,"");
+            int len2=str1.length();
+            num=len1-len2;
+            return num;
+        }
+    }
+    /**
+     * 获取路径下的错误文件
+     * @param writeName
+     * @return
+     */
+    public static List<String> getErrorFileNames(File writeName) {
+        List<String> fileNames = new ArrayList<>();
+        File[] files = writeName.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            String name = files[i].getName();
+            if(name.indexOf("error")>-1){
+                fileNames.add(name);
+            }
+        }
+
+        return fileNames;
+    }
+    /**
+     * 对路径下的文件名进行排序
+     * @param writeName
+     * @return
+     */
+    public static List<String> getFileNames(File writeName){
+        List<String> fileNames=new ArrayList<>();
+        File[] files = writeName.listFiles();
+        for(int i=0;i<files.length;i++){
+            String name = files[i].getName();
+            String str1 = name.replace(".txt", "");
+            try{
+                Integer.valueOf(str1);
+                fileNames.add(name);
+            }catch (Exception e){
+                log.info("filename:{}",name);
+                log.info("Exception",e);
+            }
+        }
+        return fileNames;
+    }
+
+
+
+
+    public static List<String> merge360(String head, String s1, String destPath, String startTime,String batchNumber ,
+                                        String strategyId,String apiCode,int max,String sep) {
+        log.info("开始合并文件 结果文件名称:{},需要合并的目录:{},max:{}",s1,destPath,max);
+        File writeName = new File(destPath);
+        if (!writeName.exists()) {
+            log.warn("{},不存在",destPath);
+            return new ArrayList<>();
+        }
+        List<String> fileNmaes = getFileNames(writeName);
+        String headstring = head.substring(0, head.length() - 1);
+        int i = countStr(headstring, sep);
+        int rownum = 0;
+        int fileNo=0;
+        List<String> result=new ArrayList<>();
+        List<String> zipFileResult=new ArrayList<>();
+        for(String name:fileNmaes){
+            log.info("开始合并文件 小文件名称:{}",name);
+            try( FileReader  read = new FileReader(destPath+"/"+name);
+                 BufferedReader  br = new BufferedReader(read);){
+                String row;
+                while ((row = br.readLine()) != null) {
+                    row = row.substring(0, row.length() - 1);
+                    int i1 = countStr(row, sep);
+                    if(i==i1){
+                        if(rownum==max){
+                            fileNo++;
+                            writeResultFile(result,fileNo,s1,destPath,zipFileResult,startTime,batchNumber,strategyId,apiCode,headstring);
+                            result=new ArrayList<>();
+                            rownum=0;
+                        }
+                        result.add(row);
+                        rownum ++;
+                    }else{
+                        log.warn("head--{},row:{}",i,i1);
+                        log.warn("row:{}",row);
+                    }
+                }
+            }catch (Exception e){
+                log.error("merge360 error",e);
+            }
+        }
+        if(result.size()>0){
+            log.info("最后一个文件");
+            fileNo++;
+            writeResultFile(result,fileNo,s1,destPath,zipFileResult,startTime,batchNumber,strategyId,apiCode,headstring);
+        }
+        return zipFileResult;
+    }
+
+    private static void writeResultFile(List<String> result, int fileNo, String s1, String destPath,List<String> zipFileResult,
+                                        String startTime, String batchNumber, String strategyId, String apiCode,String headstring) {
+        String fileName=apiCode+"_"+s1+"_"+fileNo+"_"+batchNumber+"_"+strategyId.split(":")[0]+"_"+startTime
+                +"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
+        String pathName=destPath+fileName;
+        String zipFile=fileName.replace(".txt",".zip");
+        File file = new File(pathName);
+        try(Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), StandardCharsets.UTF_8));){
+            fw.append(headstring+ "\r\n");
+            for(String row:result){
+                fw.append(row + "\r\n");
+            }
+        }catch (Exception e){
+            log.error("writeResultFile error",e);
+        }
+        ZipUtil.compress(destPath+"/"+fileName,destPath+"/"+zipFile);
+        zipFileResult.add(destPath+"/"+zipFile);
+    }
+
+    /**
+     * 查找某个值在数组中的索引
+     * @param array 数组
+     * @param value 给定的值
+     * @return 索引
+     */
+    public static int findIndex(String[] array, String value) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i].equals(value)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+//    public static void main(String[] args) {
+//       /* Random r = new Random();
+//        for(int i=1;i<21;i++){
+//            System.out.println(i);
+//            try(
+//            Writer fw=new BufferedWriter(
+//                    new OutputStreamWriter(
+//                            Files.newOutputStream(Paths.get("D:/test/"+i+".txt")), StandardCharsets.UTF_8));){
+//                for(int k=0;k<100000;k++){
+//                    double v1 = Math.random() * 100;
+//                    DecimalFormat df = new DecimalFormat( "0.00" );
+//                    String str=df.format( v1 );
+//                    String s="2020-12-14,3005913_20201213103017_6803,202012132279807,DTB0000001,,1,"+str+"\r\n";
+//                    fw.append(s);
+//                    System.out.println(s);
+//                }
+//            }catch (Exception e){
+//
+//            }
+//        }*/
+//        FileUtil.mergeMarketing("request_time,batch_number,cus_num,strategy_id,version,flag_scorecust,scorecust","D:/test/result.txt","D:/test/",",",2000000);
+//    }
+}

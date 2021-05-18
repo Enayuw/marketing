@@ -1,0 +1,213 @@
+package com.br.marketing.common.utils;
+
+import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @Author: jinwei.li@100credit.com
+ * @Date: 2018/5/25 14:40
+ */
+@Slf4j
+public class DateHelper {
+
+    //key为正则 value为日期格式
+    private static Map<String, String> patterns = new HashMap() {
+        {
+            put("^\\d{4}-\\d{1,2}-\\d{1,2}$", "yyyy-MM-dd");
+            put("^\\d{4}/\\d{1,2}/\\d{1,2}$", "yyyy/MM/dd");
+            put("^\\d{6,8}$", "yyyyMMdd");
+            put("^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}$", "yyyy-MM-dd HH:mm:ss");
+        }
+    };
+
+    /**
+     * 转换字符串为日期
+     *
+     * @param str
+     * @return
+     */
+    public static Date parseDate(String str) {
+        if (str == null) {
+            throw new IllegalArgumentException("日期格式错误");
+        }
+        str = str.trim();
+        for(Map.Entry<String, String> entry:patterns.entrySet()){
+            String key = entry.getKey();
+            if (str.matches(key)) {
+                //日期转换
+                DateTimeFormatter format = DateTimeFormat.forPattern(entry.getValue());
+                DateTime dateTime = DateTime.parse(str, format);
+                return dateTime.toDate();
+            }
+        }
+        throw new IllegalArgumentException("日期格式错误");
+    }
+
+    public static  String getDateAdd(int days){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -days);
+        return sf.format(c.getTime());
+    }
+
+    public static  String getDateAddYyMmDd(int days){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -days);
+        return sf.format(c.getTime());
+    }
+    public static  String getDateAddYyMmDdHhMmSs(int days){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMddHHmmss");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -days);
+        return sf.format(c.getTime());
+    }
+
+    public static int daysBetween(String dateStr) throws ParseException {
+        Date today = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date compareDate = sdf.parse(dateStr);
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(compareDate);
+        long time1 = cal.getTimeInMillis();
+
+        cal.setTime(today);
+        long time2 = cal.getTimeInMillis();
+        long betweenDays = (time2 - time1) / (1000 * 3600 * 24);
+
+        return Integer.parseInt(String.valueOf(betweenDays));
+    }
+
+    /**
+     * 时间戳转换成日期格式字符串
+     * @param seconds 精确到秒的字符串
+     * @return
+     */
+    public static String timeStamp2Date(String seconds,String format) {
+        if(seconds == null || seconds.isEmpty() || seconds.equals("null")){
+            return "";
+        }
+        if(format == null || format.isEmpty()){
+            format = "yyyy-MM-dd HH:mm:ss";
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        return sdf.format(new Date(Long.valueOf(seconds+"000")));
+    }
+    /**
+     * 日期格式字符串转换成时间戳
+     * @param format 如：yyyy-MM-dd HH:mm:ss
+     * @return
+     */
+    public static String date2TimeStamp(String dateStr,String format){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            return String.valueOf(sdf.parse(dateStr).getTime()/1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 两个时间之间相差距离多少天
+     * @return 相差天数
+     */
+    public static long getDistanceDays(String str1, String str2) throws Exception{
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        Date one;
+        Date two;
+        long days=0;
+        try {
+            one = df.parse(str1);
+            two = df.parse(str2);
+            long time1 = one.getTime();
+            long time2 = two.getTime();
+            long diff = time2 - time1;
+            days = diff / (1000 * 60 * 60 * 24);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return days;
+    }
+
+    /**
+     * 两个时间相差距离多少天多少小时多少分多少秒
+     * @param str1 时间参数 1 格式：1990-01-01 12:00:00
+     * @param str2 时间参数 2 格式：2009-01-01 12:00:00
+     * @return long[] 返回值为：{天, 时, 分, 秒}
+     */
+    public static long[] getDistanceTimes(String str1, String str2) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date one;
+        Date two;
+        long day = 0;
+        long hour = 0;
+        long min = 0;
+        long sec = 0;
+        try {
+            one = df.parse(str1);
+            two = df.parse(str2);
+            long time1 = one.getTime();
+            long time2 = two.getTime();
+            long diff ;
+            if(time1<time2) {
+                diff = time2 - time1;
+            } else {
+                diff = time1 - time2;
+            }
+            day = diff / (24 * 60 * 60 * 1000);
+            hour = (diff / (60 * 60 * 1000) - day * 24);
+            min = ((diff / (60 * 1000)) - day * 24 * 60 - hour * 60);
+            sec = (diff/1000-day*24*60*60-hour*60*60-min*60);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        long[] times = {day, hour, min, sec};
+        return times;
+    }
+    /**
+     * 两个时间相差距离多少天多少小时多少分多少秒
+     * @param str1 时间参数 1 格式：1990-01-01 12:00:00
+     * @param str2 时间参数 2 格式：2009-01-01 12:00:00
+     * @return String 返回值为：xx天xx小时xx分xx秒
+     */
+    public static String getDistanceTime(String str1, String str2) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date one;
+        Date two;
+        long day = 0;
+        long hour = 0;
+        long min = 0;
+        long sec = 0;
+        try {
+            one = df.parse(str1);
+            two = df.parse(str2);
+            long time1 = one.getTime();
+            long time2 = two.getTime();
+            long diff ;
+            if(time1<time2) {
+                diff = time2 - time1;
+            } else {
+                diff = time1 - time2;
+            }
+            day = diff / (24 * 60 * 60 * 1000);
+            hour = (diff / (60 * 60 * 1000) - day * 24);
+            min = ((diff / (60 * 1000)) - day * 24 * 60 - hour * 60);
+            sec = (diff/1000-day*24*60*60-hour*60*60-min*60);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return day + "天" + hour + "小时" + min + "分" + sec + "秒";
+    }
+}

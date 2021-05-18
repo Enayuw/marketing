@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.SyncLogMapper">
+	<insert id="insertSynLog" parameterType="com.br.marketing.entity.SyncLog">
+		INSERT INTO `b_sync_log` (
+			`api_code`,
+			`src_path`,
+			`target_path`,
+			`file_name`,
+			`file_size`,
+			`create_file_time`,
+			`start_time`,
+			`end_time`,
+			`create_time`,
+			`status`
+		)
+		VALUES
+			(
+				#{apiCode},
+				#{srcPath},
+				#{targetPath},
+				#{fileName},
+				#{fileSize},
+				#{createFileTime},
+				#{startTime},
+				#{endTime},
+				now(),
+				#{status}
+			);
+	</insert>
+
+
+	<select id="querySyncLog" parameterType="map" resultType="com.br.marketing.entity.SyncLog">
+		select * from b_sync_log where api_code=#{apiCode} and create_file_time=#{createFileTime} and  file_name=#{fileName}
+	</select>
+
+</mapper>

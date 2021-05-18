@@ -1,0 +1,15 @@
+package com.br.marketing.check.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Created by Bairong on 2020/1/15.
+ */
+@RestController
+public class PingController {
+    @RequestMapping({"/ping"})
+    public String ping() {
+        return "pong-" + System.currentTimeMillis();
+    }
+}

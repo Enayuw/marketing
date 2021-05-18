@@ -1,0 +1,96 @@
+package com.br.marketing.task.utils;
+
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.task.Scheduler;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import java.text.DecimalFormat;
+
+/**
+ * Created by Bairong on 2020/4/16.
+ */
+@Slf4j
+public class HxUtil {
+    private static RestTemplate restTemplate = Scheduler.ac.getBean(RestTemplate.class);
+
+    public static String getReport( String apiCode, JSONObject jsonData,JSONObject jsonMeal,boolean notSaveLog,String url) {
+        log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Pinpoint-Sampled", "s0");
+        JSONObject json=new JSONObject();
+        json.put("jsonMeal",jsonMeal);
+        json.put("id", jsonData.getString("idCard"));
+        json.put("name",jsonData.getString("name"));
+        json.put("cell",jsonData.getString("cell"));
+        if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
+            json.put("pass_date", jsonData.getString("passDate"));
+        }
+        if(StringUtils.isNotEmpty(jsonData.getString("user_date"))){
+            json.put("user_date", jsonData.getString("user_date"));
+        }
+        if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
+            json.put("decodeFailType", jsonData.getString("decodeFailType"));
+        }
+        json.put("originApiCode",apiCode);
+        JSONObject extDataJson=new JSONObject();
+        if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
+            extDataJson.put("isRepair",jsonData.getString("isRepair"));
+        }
+        /**
+         * 0不留存，1留存
+         */
+        if(notSaveLog){
+            extDataJson.put("isSaveLog","0");
+        }else{
+            extDataJson.put("isSaveLog","1");
+        }
+        json.put("ExtData",extDataJson);
+        json.put("ifDeactivated", "0");
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("jsonData", json.toString());
+        //公共apicode
+        paramMap.add("apiCode", Constants.PUBLIC_APICODE);
+
+
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
+       // log.info("画像请求参数 --- {}", paramMap.toString());
+        String result="";
+        try {
+            result = restTemplate.postForObject(url, requestEntity, String.class);
+        }catch (Exception e){
+            log.warn(" 画像错误 ---{}---重试",paramMap.toString(),e);
+            try{
+                result = restTemplate.postForObject(url, requestEntity, String.class);
+                log.warn(" 画像重试返回结果 ---{}",result);
+            }catch (Exception e1){
+                log.error(" 画像重试错误 -{}--{}",jsonData.getString("batch_number"),jsonData.getString("cusNum"),e);
+            }
+        }
+        log.info("画像结果 --- {}", result);
+        return result;
+    }
+
+    public static String hauXiangFlat(String json){
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Pinpoint-Sampled", "s0");
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("tokenid", "aa");
+        paramMap.add("jsonData", json);
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
+        String paramJson = "";
+        try {
+            paramJson = restTemplate.postForObject("http://k8s.brapp.com/huaxiang-api2/huaxiang/flat", requestEntity, String.class);
+        } catch (Exception e) {
+            log.error("hauXiangFlat出错了",e);
+        }
+        return paramJson;
+    }
+
+}

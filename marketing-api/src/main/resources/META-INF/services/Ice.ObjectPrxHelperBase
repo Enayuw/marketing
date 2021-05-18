@@ -1,0 +1,7 @@
+com.br.ice.service.dac.DacServicePrxHelper
+com.br.usernew.CompanyServicePrxHelper
+com.br.ice.service.graphdatabase.GraphDatabaseServicePrxHelper
+com.br.ice.service.dacwgec.DacWgecServicePrxHelper
+com.br.ice.service.alarm.BrSendAlarmNewServicePrxHelper
+com.br.mom.v3.broker_layer_api.api.BrokerLayerServicePrxHelper
+com.br.ice.service.hbase2.datacenter.Hbase2DataCenterServicePrxHelper

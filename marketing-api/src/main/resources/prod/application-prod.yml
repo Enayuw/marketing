@@ -1,0 +1,28 @@
+eureka:
+  client:
+    service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/
+
+otherConfig:
+  huaXiangInterface:
+        getAllProductTypes: http://192.168.162.235:8080/SendBox/ProductTypes
+        getAllProducts: http://192.168.162.235:8080/SendBox/Products
+        getPorductByType: http://192.168.162.235:8080/SendBox/Products/
+        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+        sanxiang_url: http://zh-service/v1/getData
+        haina_url: http://HAINA-SERVICE/query
+  alarm:
+        secretKey: f72b7def3d3c5e2d93d4c0f3be664f21
+        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
+        sendCode: 66618706
+  mq:
+        destinationName: loan_warning_query_log
+        appName: loan_warning_query_producer
+        appSecretKey: 1579f7d582f16d0030bd37537aadb78a
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 7357430aa11febfe81d45945c02706b3
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: a938d0e974746651a11ddcdbcea31404
+

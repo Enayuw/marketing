@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SyncConfigMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.SyncConfig" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="data_type" property="dataType" jdbcType="INTEGER" />
+    <result column="src_path" property="srcPath" jdbcType="VARCHAR" />
+    <result column="target_path" property="targetPath" jdbcType="VARCHAR" />
+    <result column="suffix" property="suffix" jdbcType="VARCHAR" />
+    <result column="check_finish" property="checkFinish" jdbcType="INTEGER" />
+    <result column="check_success" property="checkSuccess" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="src_sftp_host" property="srcSftpHost" jdbcType="VARCHAR" />
+    <result column="src_sftp_port" property="srcSftpPort" jdbcType="INTEGER" />
+    <result column="src_sftp_user" property="srcSftpUser" jdbcType="VARCHAR" />
+    <result column="src_sftp_pwd" property="srcSftpPwd" jdbcType="VARCHAR" />
+    <result column="target_sftp_host" property="targetSftpHost" jdbcType="VARCHAR" />
+    <result column="target_sftp_port" property="targetSftpPort" jdbcType="INTEGER" />
+    <result column="target_sftp_user" property="targetSftpUser" jdbcType="VARCHAR" />
+    <result column="target_sftp_pwd" property="targetSftpPwd" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="src_type" property="srcType" jdbcType="VARCHAR" />
+    <result column="target_type" property="targetType" jdbcType="VARCHAR" />
+    <result column="exclusion_time" property="exclusionTime" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, type, data_type, src_path, target_path, suffix, check_finish, check_success, 
+    status, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd, target_sftp_host, 
+    target_sftp_port, target_sftp_user, target_sftp_pwd, create_time, update_time, src_type, 
+    target_type, exclusion_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.LoanSyncConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_sync_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_sync_config
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from b_sync_config
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.LoanSyncConfigExample" >
+    delete from b_sync_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.SyncConfig" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_sync_config (api_code, type, data_type, 
+      src_path, target_path, suffix, 
+      check_finish, check_success, status, 
+      remark, src_sftp_host, src_sftp_port, 
+      src_sftp_user, src_sftp_pwd, target_sftp_host, 
+      target_sftp_port, target_sftp_user, target_sftp_pwd, 
+      create_time, update_time, src_type, 
+      target_type, exclusion_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER}, 
+      #{srcPath,jdbcType=VARCHAR}, #{targetPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR}, 
+      #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
+      #{remark,jdbcType=VARCHAR}, #{srcSftpHost,jdbcType=VARCHAR}, #{srcSftpPort,jdbcType=INTEGER}, 
+      #{srcSftpUser,jdbcType=VARCHAR}, #{srcSftpPwd,jdbcType=VARCHAR}, #{targetSftpHost,jdbcType=VARCHAR}, 
+      #{targetSftpPort,jdbcType=INTEGER}, #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR}, 
+      #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_sync_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="dataType != null" >
+        data_type,
+      </if>
+      <if test="srcPath != null" >
+        src_path,
+      </if>
+      <if test="targetPath != null" >
+        target_path,
+      </if>
+      <if test="suffix != null" >
+        suffix,
+      </if>
+      <if test="checkFinish != null" >
+        check_finish,
+      </if>
+      <if test="checkSuccess != null" >
+        check_success,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="srcSftpHost != null" >
+        src_sftp_host,
+      </if>
+      <if test="srcSftpPort != null" >
+        src_sftp_port,
+      </if>
+      <if test="srcSftpUser != null" >
+        src_sftp_user,
+      </if>
+      <if test="srcSftpPwd != null" >
+        src_sftp_pwd,
+      </if>
+      <if test="targetSftpHost != null" >
+        target_sftp_host,
+      </if>
+      <if test="targetSftpPort != null" >
+        target_sftp_port,
+      </if>
+      <if test="targetSftpUser != null" >
+        target_sftp_user,
+      </if>
+      <if test="targetSftpPwd != null" >
+        target_sftp_pwd,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="srcType != null" >
+        src_type,
+      </if>
+      <if test="targetType != null" >
+        target_type,
+      </if>
+      <if test="exclusionTime != null" >
+        exclusion_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="dataType != null" >
+        #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="srcPath != null" >
+        #{srcPath,jdbcType=VARCHAR},
+      </if>
+      <if test="targetPath != null" >
+        #{targetPath,jdbcType=VARCHAR},
+      </if>
+      <if test="suffix != null" >
+        #{suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="checkFinish != null" >
+        #{checkFinish,jdbcType=INTEGER},
+      </if>
+      <if test="checkSuccess != null" >
+        #{checkSuccess,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpHost != null" >
+        #{srcSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpPort != null" >
+        #{srcSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="srcSftpUser != null" >
+        #{srcSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpPwd != null" >
+        #{srcSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpHost != null" >
+        #{targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPort != null" >
+        #{targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpUser != null" >
+        #{targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPwd != null" >
+        #{targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="srcType != null" >
+        #{srcType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetType != null" >
+        #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="exclusionTime != null" >
+        #{exclusionTime,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.LoanSyncConfigExample" resultType="java.lang.Integer" >
+    select count(*) from b_sync_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_sync_config
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataType != null" >
+        data_type = #{record.dataType,jdbcType=INTEGER},
+      </if>
+      <if test="record.srcPath != null" >
+        src_path = #{record.srcPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetPath != null" >
+        target_path = #{record.targetPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.suffix != null" >
+        suffix = #{record.suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="record.checkFinish != null" >
+        check_finish = #{record.checkFinish,jdbcType=INTEGER},
+      </if>
+      <if test="record.checkSuccess != null" >
+        check_success = #{record.checkSuccess,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.srcSftpHost != null" >
+        src_sftp_host = #{record.srcSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.srcSftpPort != null" >
+        src_sftp_port = #{record.srcSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="record.srcSftpUser != null" >
+        src_sftp_user = #{record.srcSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.srcSftpPwd != null" >
+        src_sftp_pwd = #{record.srcSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetSftpHost != null" >
+        target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetSftpPort != null" >
+        target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="record.targetSftpUser != null" >
+        target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetSftpPwd != null" >
+        target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.srcType != null" >
+        src_type = #{record.srcType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetType != null" >
+        target_type = #{record.targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.exclusionTime != null" >
+        exclusion_time = #{record.exclusionTime,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_sync_config
+    set id = #{record.id,jdbcType=INTEGER},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      type = #{record.type,jdbcType=INTEGER},
+      data_type = #{record.dataType,jdbcType=INTEGER},
+      src_path = #{record.srcPath,jdbcType=VARCHAR},
+      target_path = #{record.targetPath,jdbcType=VARCHAR},
+      suffix = #{record.suffix,jdbcType=VARCHAR},
+      check_finish = #{record.checkFinish,jdbcType=INTEGER},
+      check_success = #{record.checkSuccess,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=INTEGER},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      src_sftp_host = #{record.srcSftpHost,jdbcType=VARCHAR},
+      src_sftp_port = #{record.srcSftpPort,jdbcType=INTEGER},
+      src_sftp_user = #{record.srcSftpUser,jdbcType=VARCHAR},
+      src_sftp_pwd = #{record.srcSftpPwd,jdbcType=VARCHAR},
+      target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
+      target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
+      target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
+      target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      src_type = #{record.srcType,jdbcType=VARCHAR},
+      target_type = #{record.targetType,jdbcType=VARCHAR},
+      exclusion_time = #{record.exclusionTime,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.SyncConfig" >
+    update b_sync_config
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="dataType != null" >
+        data_type = #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="srcPath != null" >
+        src_path = #{srcPath,jdbcType=VARCHAR},
+      </if>
+      <if test="targetPath != null" >
+        target_path = #{targetPath,jdbcType=VARCHAR},
+      </if>
+      <if test="suffix != null" >
+        suffix = #{suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="checkFinish != null" >
+        check_finish = #{checkFinish,jdbcType=INTEGER},
+      </if>
+      <if test="checkSuccess != null" >
+        check_success = #{checkSuccess,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpHost != null" >
+        src_sftp_host = #{srcSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpPort != null" >
+        src_sftp_port = #{srcSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="srcSftpUser != null" >
+        src_sftp_user = #{srcSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSftpPwd != null" >
+        src_sftp_pwd = #{srcSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpHost != null" >
+        target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPort != null" >
+        target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpUser != null" >
+        target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPwd != null" >
+        target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="srcType != null" >
+        src_type = #{srcType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetType != null" >
+        target_type = #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="exclusionTime != null" >
+        exclusion_time = #{exclusionTime,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SyncConfig" >
+    update b_sync_config
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      type = #{type,jdbcType=INTEGER},
+      data_type = #{dataType,jdbcType=INTEGER},
+      src_path = #{srcPath,jdbcType=VARCHAR},
+      target_path = #{targetPath,jdbcType=VARCHAR},
+      suffix = #{suffix,jdbcType=VARCHAR},
+      check_finish = #{checkFinish,jdbcType=INTEGER},
+      check_success = #{checkSuccess,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
+      remark = #{remark,jdbcType=VARCHAR},
+      src_sftp_host = #{srcSftpHost,jdbcType=VARCHAR},
+      src_sftp_port = #{srcSftpPort,jdbcType=INTEGER},
+      src_sftp_user = #{srcSftpUser,jdbcType=VARCHAR},
+      src_sftp_pwd = #{srcSftpPwd,jdbcType=VARCHAR},
+      target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
+      target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
+      target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
+      target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      src_type = #{srcType,jdbcType=VARCHAR},
+      target_type = #{targetType,jdbcType=VARCHAR},
+      exclusion_time = #{exclusionTime,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

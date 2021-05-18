@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingTaskMapper">
+	
+	<resultMap id="closeResultMap" type="com.br.marketing.entity.ApiCodeTask">
+		<result property="apiCode" column="api_code"/>
+		<collection property="marketingTaskList" ofType="com.br.marketing.entity.MarketingTask">
+			<result property="apiCode" column="api_code"/>
+			<result property="batchNumber" column="batch_number"/>
+			<result property="closeDate" column="close_date"/>
+			<result property="id" column="id"/>
+		</collection>
+	</resultMap>
+	<select id="queryCloseBltSoon" resultMap="closeResultMap" parameterType="java.lang.String">
+		SELECT
+		id,api_code,batch_number,close_date
+		FROM
+		b_marketing_task
+		WHERE
+		STATUS = 1
+		AND monitor_status = 1
+		AND close_date &lt;= #{1}
+		AND close_date > curdate()
+		AND monitor_type in (2,3,4)
+	</select>
+	<select id="queryCloseBlt" resultMap="closeResultMap" parameterType="java.lang.String">
+		SELECT
+		id,api_code,batch_number,close_date
+		FROM
+		b_marketing_task
+		WHERE
+		STATUS = 1
+		AND monitor_status = 1
+		AND close_date = #{1}
+		AND monitor_type in (2,3,4)
+	</select>
+	<select id="queryYesterdayUploadTask" resultType="com.br.marketing.entity.MarketingTask">
+		select * from b_marketing_task where create_time>date_add(curdate(), interval -1 day) and create_time &lt; curdate()
+	</select>
+	<select id="getByCusBatch" parameterType="com.br.marketing.entity.MarketingTask" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+		*
+		FROM
+		b_marketing_task
+		WHERE
+		cus_batch=#{cusBatch}
+		and status=1
+	</select>
+
+	<select id="getCusBatch" parameterType="java.lang.String" resultType="java.lang.String">
+		select cus_batch from b_marketing_task where api_code = #{apiCode} and status=1 group by cus_batch
+	</select>
+	<select id="getById" parameterType="com.br.marketing.entity.MarketingTask" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+		*
+		FROM
+		b_marketing_task
+		WHERE
+		id=#{id}
+	</select>
+
+	<select id="queryCount"  resultType="int" parameterType="com.br.marketing.entity.MarketingTask">
+		SELECT
+		count(*)
+		FROM
+		b_marketing_task
+		WHERE
+		`status`=1
+		<if test="apiCode!=null">
+			AND api_code = #{apiCode}
+		</if>
+		<if test="queryBeginDate!=null">
+			AND create_time &gt;= #{queryBeginDate}
+		</if>
+		<if test="queryEndDate!=null">
+			AND create_time &lt;= #{queryEndDate}
+		</if>
+		<if test="monitorStatus!=null">
+			AND
+			monitor_status=#{monitorStatus}
+		</if>
+		<if test="strategyId!=null">
+			AND
+			strategy_id=#{strategyId}
+		</if>
+		<if test="frequency!=null">
+			AND
+			frequency=#{frequency}
+		</if>
+	</select>
+	<select id="queryList" resultType="com.br.marketing.entity.MarketingTask" parameterType="com.br.marketing.entity.MarketingTask">
+		SELECT
+		*
+		FROM
+		b_marketing_task
+		WHERE
+		`status`=1
+		<if test="apiCode!=null">
+			AND api_code = #{apiCode}
+		</if>
+		<if test="queryBeginDate!=null">
+			AND create_time &gt;= #{queryBeginDate}
+		</if>
+		<if test="queryEndDate!=null">
+			AND create_time &lt;= #{queryEndDate}
+		</if>
+		<if test="monitorStatus!=null">
+			AND
+			monitor_status=#{monitorStatus}
+		</if>
+		<if test="strategyId!=null">
+			AND
+			strategy_id=#{strategyId}
+		</if>
+		<if test="frequency!=null">
+			AND
+			frequency=#{frequency}
+		</if>
+		<if test="cusBatch!=null">
+			AND
+			cus_batch=#{cusBatch}
+		</if>
+		order by create_time desc
+		LIMIT #{start},#{limit}
+	</select>
+
+
+
+
+
+
+	<select id="queryScoreData" parameterType="map" resultType="java.lang.String">
+		select fields from b_loan_scoredata where api_code=#{apiCode} and strategyid=#{strategyId} and status=1
+	</select>
+	<select id="querySep" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT sep FROM b_marketing_sep WHERE api_code=#{apiCode}
+	</select>
+	<select id="queryBltForCusBatch" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+		a.cus_batch
+		FROM
+		b_marketing_task a,
+		stra_his_file b
+		WHERE
+		a.batch_number = b.batch_number
+		AND a.api_code=#{apiCode}
+		AND a.monitor_status = 1
+		AND a.cus_batch &lt;&gt; ''
+		AND b.create_time > curdate()
+		AND b. STATUS IN (0, 2)
+		GROUP BY 	a.cus_batch;
+	</select>
+	<select id="queryBltByapiCode" parameterType="java.lang.String" resultType="com.br.marketing.entity.MarketingTask">
+			SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			increment,
+			is_check,
+			monitor_model,
+			close_date,
+			file_name,
+			cus_batch
+		FROM
+			b_marketing_task
+		WHERE
+		api_code=#{apiCode}
+		AND
+		monitor_status = 1
+	</select>
+	<select id="queryApiCode" resultType="java.lang.String">
+		SELECT  api_code
+		FROM
+		b_marketing_task
+		WHERE
+		monitor_status=1
+		AND `status` = 1
+		AND start_date &lt;= now()
+		AND close_date &gt;= now()
+		group by api_code
+	</select>
+
+
+	<select id="query360BatchNumByapiCode" resultType="com.br.marketing.entity.MarketingTask" parameterType="java.lang.String">
+		SELECT
+		id,
+		batch_number,
+		api_code,
+		strategy_id,
+		frequency,
+		start_date,
+		increment,
+		is_check,
+		monitor_model,
+		close_date
+		FROM
+		b_marketing_task_3005390
+		WHERE
+		api_code=#{apiCode}
+		AND	monitor_status = 1
+		AND `status` = 1
+		AND start_date &lt;= now()
+		AND close_date &gt;= now()
+		GROUP BY batch_number
+	</select>
+	<select id="queryBatchNumByapiCode" resultType="com.br.marketing.entity.MarketingTask" parameterType="java.lang.String">
+		SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			monitor_type,
+			close_date,
+			sec_strategy_id,
+			file_name,
+			actual_number,
+			is_repair
+		FROM
+			b_marketing_task
+		WHERE
+		api_code=#{apiCode}
+		AND	monitor_status = 1
+		AND `status` = 1
+		AND start_date &lt;= now()
+		AND close_date &gt;= now()
+		GROUP BY batch_number
+	</select>
+    <select id="queryBatchNum"  resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			increment,
+			is_check,
+			monitor_model,
+			close_date
+		FROM
+			b_marketing_task
+		WHERE
+		api_code &lt;&gt; '3004761'
+		AND monitor_status = 1
+		AND `status` = 1
+		AND start_date &lt;= now()
+		AND close_date &gt;= now()
+		GROUP BY batch_number
+    </select>
+	<select id="queryBlt" resultType="com.br.marketing.entity.MarketingTask" parameterType="java.lang.String">
+		SELECT
+		id,
+		batch_number,
+		api_code,
+		strategy_id,
+		frequency,
+		start_date,
+		increment,
+		is_check,
+		monitor_model,
+		close_date,
+		file_name,
+		sec_strategy_id,
+		monitor_status,
+		monitor_type,
+		actual_number,
+		task_number,
+		is_repair
+		FROM
+		b_marketing_task
+		WHERE
+		batch_number = #{batchNumber}
+	</select>
+	<select id="queryTask" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			increment,
+			is_check,
+			monitor_model,
+			close_date
+		FROM
+			b_marketing_task
+		WHERE
+			monitor_status = 1
+		AND `status` = 1
+	</select>
+	<select id="queryConfig" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			increment,
+			is_check,
+			monitor_model,
+			close_date,
+			create_time
+		FROM
+			b_marketing_task
+		WHERE
+		    monitor_status &gt;0
+		    AND
+		    (
+		    is_check  = 0
+			OR
+			is_check is NULL
+		    )
+
+	</select>
+	<select id="queryMonitorBatch" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			id,
+			batch_number,
+			api_code,
+			strategy_id,
+			frequency,
+			start_date,
+			monitor_type,
+			close_date,
+			sec_strategy_id,
+			file_name,
+			actual_number
+		FROM
+			b_marketing_task
+		WHERE
+		api_code=#{apiCode}
+		AND `status` = 1
+		GROUP BY batch_number
+	</select>
+
+
+	<insert id="insertTask" parameterType="com.br.marketing.entity.MarketingTask">
+		INSERT INTO b_marketing_task (
+			`api_code`,
+			`batch_number`,
+			`file_name`,
+			`strategy_id`,
+			`frequency`,
+			`create_time`,
+			`update_time`,
+			`monitor_status`,
+			`status`,
+			`task_number`,
+			`actual_number`,
+			`strategy_name`,
+			`close_date`,
+			`start_date`,
+			`cus_batch`,
+			`sec_strategy_id`,
+			`monitor_type`,
+			is_repair
+		)
+		VALUES (
+			#{apiCode},
+			#{batchNumber},
+			#{fileName},
+			#{strategyId},
+			#{frequency},
+			now(),
+			now(),
+			#{monitorStatus},
+			#{status},
+			#{taskNumber},
+			#{actualNumber},
+			#{strategyName},
+			#{closeDate},
+			#{startDate},
+			#{cusBatch},
+			#{secStrategyId},
+			#{monitorType},
+			#{isRepair}
+		);
+	</insert>
+
+	<update id="modifyTask" parameterType="com.br.marketing.entity.MarketingTask">
+		UPDATE b_marketing_task
+		SET status=#{status},task_number=#{taskNumber},actual_number=#{actualNumber},strategy_id =#{strategyId}, strategy_name =#{strategyName}, frequency =#{frequency},start_date=#{startDate}, close_date =#{closeDate},monitor_status=#{monitorStatus},sec_strategy_id=#{secStrategyId},is_repair=#{isRepair}
+		WHERE
+		api_code =#{apiCode}
+		AND
+		batch_number=#{batchNumber}
+	</update>
+	<update id="updateIsCheck" parameterType="com.br.marketing.entity.MarketingTask">
+		UPDATE b_marketing_task
+		SET is_check =1
+		WHERE
+		id =#{id}
+	</update>
+	<update id="updateMonitorStatus" parameterType="map">
+		UPDATE b_marketing_task
+		SET monitor_status =#{monitorStatus}
+		WHERE
+		status=1
+		AND
+		id  in (
+		<foreach collection="ids.split(',')" item="item" index="index" separator=",">
+			#{item}
+		</foreach>
+		)
+	</update>
+	<update id="updateMonitorStatusForOff" parameterType="map">
+		UPDATE b_marketing_task
+		SET monitor_status =#{monitorStatus}
+		<if test="error_message!=null">
+			,error_message=#{errorMessage}
+		</if>
+		WHERE
+		id  in (
+		<foreach collection="ids.split(',')" item="item" index="index" separator=",">
+			#{item}
+		</foreach>
+		)
+	</update>
+	<update id="deleteTask" parameterType="map">
+		UPDATE b_marketing_task
+		SET status =0
+		WHERE
+		id  in (
+		<foreach collection="ids.split(',')" item="item" index="index" separator=",">
+			#{item}
+		</foreach>
+		)
+	</update>
+	<update id="updateTask" parameterType="com.br.marketing.entity.MarketingTask">
+		UPDATE b_marketing_task
+		SET strategy_id =#{strategyId}, strategy_name =#{strategyName}, frequency =#{frequency},start_date=#{startDate}, close_date =#{closeDate},update_time=#{updateTime}
+		WHERE
+		id =#{id}
+	</update>
+	<update id="updateTaskActualNumber" parameterType="com.br.marketing.entity.MarketingTask">
+		UPDATE b_marketing_task
+		SET actual_number=#{actualNumber}
+		WHERE
+		id =#{id}
+	</update>
+	<update id="updateBatchTask" parameterType="com.br.marketing.entity.MarketingTask">
+		UPDATE b_marketing_task
+		SET strategy_id =#{strategyId}, strategy_name =#{strategyName}, frequency =#{frequency},start_date=#{startDate}, close_date =#{closeDate},update_time=#{updateTime}
+		WHERE
+		cus_batch=#{cusBatch}
+		and status=1
+	</update>
+</mapper>

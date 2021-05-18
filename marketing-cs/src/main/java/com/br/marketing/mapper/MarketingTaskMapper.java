@@ -1,0 +1,199 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.ApiCodeTask;
+import com.br.marketing.entity.MarketingTask;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Bairong on 2019/8/20.
+ */
+@Repository
+public interface MarketingTaskMapper extends MarketingTaskMapperBase {
+
+    /**
+     * 查询监控种批次
+     * @return
+     */
+    List<MarketingTask> queryBatchNum();
+
+    /**
+     * 获取任务
+     * @param batchNumber
+     * @return
+     */
+    MarketingTask queryBlt(String batchNumber);
+
+    /**
+     *修改监控状态
+     * @param blt
+     */
+    void updateMonitorStatus(MarketingTask blt);
+
+    /**
+     * 获取任务
+     * @return
+     */
+    List<MarketingTask> queryTask();
+
+    /**
+     * 查询配置
+     * @return
+     */
+    List<MarketingTask> queryConfig();
+
+    /**
+     * 修改是否超检查通过
+     * @param blt
+     */
+    void updateIsCheck(MarketingTask blt);
+
+    /**
+     * 查询api_code
+     * @return
+     */
+    List<String> queryApiCode();
+
+    /**
+     * 通过api_code查询任务
+     * @param apiCode
+     * @return
+     */
+    List<MarketingTask> queryBltByapiCode(String apiCode);
+
+    /**
+     * 通过客户侧的批次号查询任务
+     * @param apiCode
+     * @return
+     */
+    List<String> queryBltForCusBatch(String apiCode);
+
+    /**
+     * 通过api_code
+     * 查询任务
+     * @param apiCode
+     * @return
+     */
+    List<MarketingTask> queryBatchNumByapiCode(String apiCode);
+
+    /**
+     * 查询360的任务
+     * @param apiCode
+     * @return
+     */
+    List<MarketingTask> query360BatchNumByapiCode(String apiCode);
+
+    /**
+     * 查询分隔符
+     * @param apiCode
+     * @return
+     */
+    Integer querySep(String apiCode);
+
+    /**
+     * 查询scoredata字段
+     * @param param
+     * @return
+     */
+    String queryScoreData(Map<String,String> param);
+
+    /**
+     *查询任务列表
+     * @param blt
+     * @return
+     */
+    List<MarketingTask> queryList(MarketingTask blt);
+
+    /**
+     *查询任务条数
+     * @param blt
+     * @return
+     */
+    int queryCount(MarketingTask blt);
+
+    /**
+     *修改任务
+     * @param blt
+     */
+    void updateTask(MarketingTask blt);
+
+    /**删除任务
+     *
+     * @param param
+     */
+    void deleteTask(Map<String, Object> param);
+
+    /**
+     *修改任务的监控状态
+     * @param param
+     */
+    void updateMonitorStatusForOff(Map<String, Object> param);
+
+    /**
+     *获取任务
+     * @param blt
+     * @return
+     */
+    MarketingTask getById(MarketingTask blt);
+
+    /**
+     *获取客户侧批次号
+     * @param apiCode
+     * @return
+     */
+    List<String> getCusBatch(String apiCode);
+
+    /**
+     *修改任务
+     * @param blt
+     */
+    void updateBatchTask(MarketingTask blt);
+
+    /**
+     *根据客户侧批次号获取任务列表
+     * @param blt
+     * @return
+     */
+    List<MarketingTask> getByCusBatch(MarketingTask blt);
+
+    /**
+     *获取昨天上传的任务
+     * @return
+     */
+    List<MarketingTask> queryYesterdayUploadTask();
+
+    /**
+     * 修改任务的监控数量
+     * @param lt 任务信息
+     */
+    void updateTaskActualNumber(MarketingTask lt);
+
+    /**
+     * 查询监控中的批次信息
+     * @param apiCode
+     * @return
+     */
+    List<MarketingTask> queryMonitorBatch(String apiCode);
+
+    /**
+     * 插入任务信息
+     * @param lt 任务对象
+     */
+    void insertTask(MarketingTask lt);
+    /**
+     * 修改任务信息
+     * @param lt 任务对象
+     */
+    void modifyTask(MarketingTask lt);
+
+    /**
+     * 查询监控截止日期为当前日期的任务
+     */
+    List<ApiCodeTask> queryCloseBlt(String date);
+    /**
+     * 查询监控截止日期为当前日期的任务
+     */
+    List<ApiCodeTask> queryCloseBltSoon(String date);
+}
