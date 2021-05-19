@@ -23,7 +23,7 @@ APP_HOME=$APP_HOME \
 #服务目录
 SERVICE_HOME=$APP_HOME/app/$APPNAME \
 #启动类
-MAIN_CLASS=com.br.loan.warning.sync.SyncApplication \
+MAIN_CLASS=com.br.marketing.sync.SyncApplication \
 #application文件名
 APP_CONFIG=application.yml \
 #是否依赖公共jar, 1 依赖 2 不依赖

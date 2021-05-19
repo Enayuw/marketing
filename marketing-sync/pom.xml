@@ -91,7 +91,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.br.loan.warning.sync.SyncApplication</mainClass>
+                    <mainClass>com.br.marketing.sync.SyncApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
