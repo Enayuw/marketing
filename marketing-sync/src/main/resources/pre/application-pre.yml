@@ -72,6 +72,3 @@ MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
-corn:
-  getFromSftp: 0 0/1 0-23 * * ? *
-  putToSftp: 0 0/1 0-23 * * ? *
