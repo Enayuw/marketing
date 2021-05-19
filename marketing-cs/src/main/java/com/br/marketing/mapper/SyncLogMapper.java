@@ -3,10 +3,12 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.SyncLog;
 import com.br.marketing.entity.SyncLogExample;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
 
+@Repository
 public interface SyncLogMapper extends SyncLogMapperBase {
     /**
      * 根据文件名称和文件生成时间查询同步历史记录
