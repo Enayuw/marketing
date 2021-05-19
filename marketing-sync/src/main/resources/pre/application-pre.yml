@@ -63,15 +63,3 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
-
-#elastic-job配置
-SERVER_LISTS: 192.168.23.78:2181,192.168.23.79:2181,192.168.23.80:2181
-NAMESPACE: warning-job
-BASE_SLEEP_TIME_MILLISECONDS: 1000
-MAX_SLEEP_TIME_MILLISECONDS: 3000
-MAX_RETRIES: 3
-NESTED_PORT: -1
-NESTED_DATA_DIR: target/test_zk_data/
-corn:
-  getFromSftp: 0 0/1 0-23 * * ? *
-  putToSftp: 0 0/1 0-23 * * ? *
