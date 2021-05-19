@@ -34,7 +34,7 @@ APP_CONFIG=${APP_CONFIG}
         else exit 1; fi; }
 
 SERVICE_HOME=${SERVICE_HOME}
-[ ! -z "$$SERVICE_HOME" ] || { echo "SERVICE_HOME 该文件不存在或者没有权限: $SERVICE_HOME";
+[ ! -z "$SERVICE_HOME" ] || { echo "SERVICE_HOME 该文件不存在或者没有权限: $SERVICE_HOME";
         if [ "$1" = "stop" ]; then exit 0;
         else exit 5; fi; }
 
