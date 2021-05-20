@@ -169,13 +169,13 @@
         </plugins>
     </build>
     <modules>
-<!--        <module>marketing-api</module>-->
-<!--        <module>marketing-task</module>-->
+        <module>marketing-api</module>
+        <module>marketing-task</module>
         <module>marketing-utils</module>
-<!--        <module>marketing-push-task</module>-->
+        <module>marketing-push-task</module>
         <module>marketing-cs</module>
-<!--        <module>marketing-check</module>-->
-<!--        <module>marketing-sync</module>-->
-<!--        <module>mybatis-generator</module>-->
+        <module>marketing-check</module>
+        <module>marketing-sync</module>
+        <module>mybatis-generator</module>
     </modules>
 </project>

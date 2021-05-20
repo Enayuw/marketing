@@ -10,7 +10,7 @@
   <description>存量流失与风险预警文件文件校验</description>
   <build>
     <defaultGoal>compile</defaultGoal>
-    <finalName>marketing-check</finalName>
+    <finalName>loan-warning-check</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -52,7 +52,7 @@
                 <transformer />
                 <transformer>
                   <manifestEntries>
-                    <Main-Class>com.br.marketing.check.CkeckApplication</Main-Class>
+                    <Main-Class>com.br.loan.warning.check.CkeckApplication</Main-Class>
                   </manifestEntries>
                 </transformer>
               </transformers>
