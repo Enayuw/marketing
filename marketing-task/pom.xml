@@ -94,29 +94,29 @@
     </dependencies>
     <!-- 预发、生产环境打包方式-->
     <build>
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <targetPath>${project.build.directory}/classes</targetPath>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <filtering>true</filtering>-->
-<!--                <includes>-->
-<!--                    <include>**/*.ObjectPrxHelperBase</include>-->
-<!--                    <include>mapper/**</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
-<!--        </resources>-->
-        <!-- 打包时将jsp文件拷贝到META-INF目录下-->
         <resources>
             <resource>
-                <!-- 指定resources插件处理哪个目录下的资源文件 -->
+                <targetPath>${project.build.directory}/classes</targetPath>
                 <directory>src/main/resources</directory>
-                <!--注意此次必须要放在此目录下才能被访问到-->
-                <targetPath>/</targetPath>
+                <filtering>true</filtering>
                 <includes>
-                    <include>**/**</include>
+                    <include>**/*.ObjectPrxHelperBase</include>
+                    <include>mapper/**</include>
                 </includes>
             </resource>
         </resources>
+        <!-- 打包时将jsp文件拷贝到META-INF目录下-->
+<!--        <resources>-->
+<!--            <resource>-->
+<!--                &lt;!&ndash; 指定resources插件处理哪个目录下的资源文件 &ndash;&gt;-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                &lt;!&ndash;注意此次必须要放在此目录下才能被访问到&ndash;&gt;-->
+<!--                <targetPath>/</targetPath>-->
+<!--                <includes>-->
+<!--                    <include>**/**</include>-->
+<!--                </includes>-->
+<!--            </resource>-->
+<!--        </resources>-->
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
