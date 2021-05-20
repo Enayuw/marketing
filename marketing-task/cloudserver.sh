@@ -90,9 +90,9 @@ if [[ $PINPOINT_ENABLE == 'true' ]] ; then
     echo "开启Pinpoint"
     AGENT_ID=`echo -n $POD_NAME|openssl dgst -md5 -binary|base64|sed "s/+/-/g;s/\//_/g;s/=//g"`
     if [[ "${PINPOINT_OPTIONS_VER}" == "new" ]] ; then
-        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint-1.8.4/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-task-$SPEED_ENV "
+        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint-1.8.4/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=$NAME-$SPEED_ENV "
     else
-        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-task-$SPEED_ENV "
+        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=$NAME-$SPEED_ENV "
     fi
 else
     echo "未开启Pinpoint"
@@ -123,7 +123,8 @@ SPEED_ENV=${SPEED_ENV}
 
 echo $MAIN_CLASS
 
-JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV  -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
+#JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV  -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
+JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
 
 PARAMS=" --server.tomcat.max-threads=1000 --spring.profiles.active=$CONF_ENV"
 
