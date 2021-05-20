@@ -125,7 +125,7 @@ echo $MAIN_CLASS
 
 JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
 
-PARAMS=" --server.tomcat.max-threads=1000"
+PARAMS=" --server.tomcat.max-threads=1000 --spring.profiles.active=$CONF_ENV"
 
 RETVAL=0
 
