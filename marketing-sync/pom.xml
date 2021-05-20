@@ -62,6 +62,23 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
+        <dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>br-elastic-job-core</artifactId>
+            <version>1.1.7-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>br-elastic-job-spring</artifactId>
+            <version>1.1.7-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-context</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <!-- 预发、生产环境打包方式-->
@@ -74,8 +91,21 @@
                 <includes>
                     <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
+                    <include>**/*.yml</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.properties</include>
                 </includes>
             </resource>
+<!--            <resource>-->
+<!--                <targetPath>${project.build.directory}/classes</targetPath>-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                <filtering>false</filtering>-->
+<!--                <includes>-->
+<!--                    <include>**/*.yml</include>-->
+<!--                    <include>**/*.xml</include>-->
+<!--                    <include>**/*.properties</include>-->
+<!--                </includes>-->
+<!--            </resource>-->
         </resources>
         <plugins>
             <plugin>
