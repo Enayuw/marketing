@@ -11,13 +11,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
 
-
+@ImportResource(locations = {"classpath/resource:scheduler.xml"})
 @SpringBootApplication(scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")
-@ImportResource(locations = {"classpath:scheduler.xml"})
 
 @Slf4j
 public class Scheduler {
