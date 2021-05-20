@@ -54,4 +54,10 @@ public class SyncController {
         syncServiceImpl.insertConfig(loanSyncConfig);
         return "success";
     }
+
+
+    @GetMapping("getTest")
+    public String getTest(){
+        return "success";
+    }
 }

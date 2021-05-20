@@ -22,7 +22,8 @@
                    max-sleep-time-milliseconds="${MAX_SLEEP_TIME_MILLISECONDS}"
                    max-retries="${MAX_RETRIES}"
                    nested-port="${NESTED_PORT}"
-                   nested-data-dir="${NESTED_DATA_DIR}"/>
+                   nested-data-dir="${NESTED_DATA_DIR}"
+                   connection-timeout-milliseconds="60000"/>
 
 
     <job:simple id="taskJob"

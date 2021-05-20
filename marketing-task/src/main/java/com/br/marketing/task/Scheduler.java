@@ -27,7 +27,7 @@ public class Scheduler {
     public static void main(String[] args) {
         Long start=System.currentTimeMillis();
         log.warn("Scheduler开始启动！");
-        ac= new SpringApplicationBuilder().sources(Scheduler.class).web(false).run(args);
+        ac= new SpringApplicationBuilder().sources(Scheduler.class).run(args);
         Long end =System.currentTimeMillis();
         log.warn("Scheduler启动结束，耗时{}",end-start);
 //        String arg = args[0];
