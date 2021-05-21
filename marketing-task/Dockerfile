@@ -12,7 +12,7 @@ version=1.0.0
 #把在宿主机上编译好的jar包复制到容器内的指定地址，格式为”COPY [宿主机目录] [容器内目录]“，注意宿主机目录一定是Dockerfile所在目录的相对目录
 COPY $APPNAME/target/marketing-task*.jar $APP_HOME/app/$APPNAME/lib/
 #拷贝不同环境配置文件到config目录
-COPY $APPNAME/src/main/resources/ $APP_HOME/app/$APPNAME/config/
+#COPY $APPNAME/src/main/resources/ $APP_HOME/app/$APPNAME/config/
 #拷贝启动文件到 工作目录
 COPY $APPNAME/cloudserver.sh $APP_HOME
 #环境变量配置
