@@ -29,7 +29,7 @@ public class PushApplication {
     public static void main(String[] args) {
         Long start=System.currentTimeMillis();
         log.warn("PushApplication开始启动！");
-        ac= new SpringApplicationBuilder().sources(PushApplication.class).web(false).run(args);
+        ac= new SpringApplicationBuilder().sources(PushApplication.class).run(args);
         Long end =System.currentTimeMillis();
         log.warn("PushApplication启动结束，耗时{}",end-start);
 //        String arg = args[0];
