@@ -75,14 +75,14 @@
     <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
     <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
     <springProfile name="dev">
-        <root level="DEBUG" >
+        <root level="INFO" >
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
     <springProfile name="pre">
-        <root level="DEBUG" >
+        <root level="WARN" >
             <!--        <appender-ref ref="STDOUT"/>-->
             <appender-ref ref="FILE"/>
             <appender-ref ref="ERROR_FILE"/>
