@@ -74,11 +74,11 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: loan-warning
+    virtual-host: marketing-flow
 
 #elastic-job配置
 SERVER_LISTS: 192.168.23.78:2181,192.168.23.79:2181,192.168.23.80:2181
-NAMESPACE: warning-job
+NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3

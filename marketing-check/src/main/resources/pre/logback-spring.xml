@@ -57,17 +57,6 @@
             <level>ERROR</level>
         </filter>
     </appender>
-    <appender name="TASK_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${APP_NAME}_TASK.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${APP_NAME}_TASK.log.%d{yyyy-MM-dd}
-            </fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>${ENCODER_PATTERN}</pattern>
-        </encoder>
-    </appender>
 
     <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
 
@@ -99,8 +88,4 @@
 <!--        <appender-ref ref="FILE"/>-->
 <!--        <appender-ref ref="ERROR_FILE"/>-->
 <!--    </root>-->
-    <logger name="TaskInfo" level="INFO" addtivity="false" >
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="TASK_INFO"/>
-    </logger>
 </configuration>
