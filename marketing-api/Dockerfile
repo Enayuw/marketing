@@ -17,7 +17,7 @@ COPY $APPNAME/src/main/resources/ $APP_HOME/app/$APPNAME/config/
 COPY $APPNAME/cloudserver.sh $APP_HOME
 #环境变量配置
 #0为注册中心，1为非注册中心应用
-ENV APP_TYPE=1 \
+ENV APP_TYPE=0 \
 #HOME目录
 APP_HOME=$APP_HOME \
 #服务目录
