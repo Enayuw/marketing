@@ -26,3 +26,11 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
+spring:
+  rabbitmq:
+    addresses: 192.168.23.73:5672
+    username: strategy_distribute
+    password: strategy_distribute
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow

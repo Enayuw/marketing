@@ -12,8 +12,8 @@ public class CustomerBatchNumDTO {
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "策略id")
-    @NotNull(message = "策略id不能为空")
+    @ApiModelProperty(value = "产品名称")
+    @NotNull(message = "产品名称不能为空")
     private String productName;
 
     @ApiModelProperty(value = "产品版本")

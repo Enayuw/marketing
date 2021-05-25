@@ -60,3 +60,7 @@ eureka:
 
     #服务端调用evict频率,如果此值设置过大，会导致服务停止后不能及时被发现，默认60s
     eviction-interval-timer-in-ms: 2000
+mybatis:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

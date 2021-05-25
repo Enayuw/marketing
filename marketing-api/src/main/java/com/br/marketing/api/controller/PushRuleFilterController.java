@@ -5,10 +5,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.dto.CustomerBatchNumDTO;
+import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/pushrulefilter")
 @Slf4j
+@Api(value = "PushRuleFilterController")
 public class PushRuleFilterController {
 
     @Autowired
@@ -46,6 +49,16 @@ public class PushRuleFilterController {
     public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto){
         try {
             return pushRuleService.getPushInfos(dto);
+        }catch (ParamValidErrorException ex){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "推送客服")
+    @PostMapping("/pushCustomer")
+    public Result pushCustomer(@RequestBody PushCustomerDTO dto){
+        try {
+            return pushRuleService.pushCustomer(dto);
         }catch (ParamValidErrorException ex){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }

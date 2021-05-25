@@ -21,13 +21,16 @@ sharding:
         testOnReturn: false
         poolPreparedStatements: true
         maxOpenPreparedStatements: 20
+logging:
+  level:
+    com.br.marketing.mapper : debug
   config:
     sharding:
       props:
         sql.show: true
-#eureka:
-#  client:
-#    service-url.defaultZone: http://192.168.162.193:1111/eureka/
+eureka:
+  client:
+    service-url.defaultZone: http://192.168.162.193:1111/eureka/
 ##    service-url.defaultZone: http://192.168.23.121:18000/eureka/
 
 otherConfig:
@@ -36,3 +39,11 @@ otherConfig:
         getAllProducts: http://192.168.162.235:8080/SendBox/Products
         getPorductByType: http://192.168.162.235:8080/SendBox/Products/
         getReport: http://192.168.23.125:8080/huaxiang/v1/get_report
+spring:
+  rabbitmq:
+    addresses: 192.168.23.73:5672
+    username: strategy_distribute
+    password: strategy_distribute
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow
