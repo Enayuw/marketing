@@ -382,7 +382,7 @@ public class SftpToDbServiceImpl  implements SftpToDbService {
             lt.setCloseDate(Constants.CLOSE_DATE_360);
             lt.setMonitorStatus(1);
         }else{
-            String configFileName = fileName.replace(".txt", ".config");
+            String configFileName = fileName.replace(".txt", ".bean");
             File configFile= new File(path+configFileName);
             log.info("path:{},configFileName:{}",path,configFileName);
             if(configFile.exists()&&configFile.isFile()){

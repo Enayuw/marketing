@@ -2,15 +2,15 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.DecodeClient;
-import com.br.marketing.client.DtbStrategyClient;
-import com.br.marketing.client.LoanWarningClient;
+import com.br.marketing.config.DecodeClient;
+import com.br.marketing.config.DtbStrategyClient;
+import com.br.marketing.config.LoanWarningClient;
 import com.br.marketing.common.utils.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.controller.WebAppConfiguration;
 
 import javax.annotation.Resource;
 import java.net.SocketTimeoutException;

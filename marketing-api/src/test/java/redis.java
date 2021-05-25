@@ -1,8 +1,8 @@
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.api.client.RedisService;
-import com.br.marketing.api.entity.ProInSys;
+import com.br.marketing.client.RedisService;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.entity.ProInSys;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;

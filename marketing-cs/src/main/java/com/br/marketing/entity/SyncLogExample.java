@@ -904,6 +904,76 @@ public class SyncLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andCusBatchNumberIsNull() {
+            addCriterion("cus_batch_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberIsNotNull() {
+            addCriterion("cus_batch_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberEqualTo(String value) {
+            addCriterion("cus_batch_number =", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberNotEqualTo(String value) {
+            addCriterion("cus_batch_number <>", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberGreaterThan(String value) {
+            addCriterion("cus_batch_number >", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("cus_batch_number >=", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberLessThan(String value) {
+            addCriterion("cus_batch_number <", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberLessThanOrEqualTo(String value) {
+            addCriterion("cus_batch_number <=", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberLike(String value) {
+            addCriterion("cus_batch_number like", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberNotLike(String value) {
+            addCriterion("cus_batch_number not like", value, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberIn(List<String> values) {
+            addCriterion("cus_batch_number in", values, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberNotIn(List<String> values) {
+            addCriterion("cus_batch_number not in", values, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberBetween(String value1, String value2) {
+            addCriterion("cus_batch_number between", value1, value2, "cusBatchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCusBatchNumberNotBetween(String value1, String value2) {
+            addCriterion("cus_batch_number not between", value1, value2, "cusBatchNumber");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

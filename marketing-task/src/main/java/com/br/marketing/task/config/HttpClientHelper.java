@@ -1,19 +1,19 @@
 /*
-package com.br.marketing.task.config;
+package com.br.marketing.task.bean;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.httpclient.InstrumentedHttpRequestExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.HttpClient;
+import org.apache.http.config.HttpRequestRetryHandler;
+import org.apache.http.config.bean.RequestConfig;
+import org.apache.http.config.entity.UrlEncodedFormEntity;
+import org.apache.http.config.methods.HttpGet;
+import org.apache.http.config.methods.HttpPost;
+import org.apache.http.config.protocol.HttpClientContext;
+import org.apache.http.bean.Registry;
+import org.apache.http.bean.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -30,8 +30,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.config.CloseableHttpClient;
+import org.apache.http.impl.config.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicNameValuePair;
@@ -295,8 +295,8 @@ public class HttpClientHelper {
     }
 
     private static CloseableHttpClient createHttpClient() {
-        CloseableHttpClient client = HttpClientBuilder.create().setConnectionManager(getConnectionManager(metricRegistry)).setDefaultRequestConfig(getRequestConfig()).setRetryHandler(getRetryHandler()).setKeepAliveStrategy(getKeepAliveStrategy()).setRequestExecutor(getHttpRequestExecutor(metricRegistry)).build();
-        return client;
+        CloseableHttpClient config = HttpClientBuilder.create().setConnectionManager(getConnectionManager(metricRegistry)).setDefaultRequestConfig(getRequestConfig()).setRetryHandler(getRetryHandler()).setKeepAliveStrategy(getKeepAliveStrategy()).setRequestExecutor(getHttpRequestExecutor(metricRegistry)).build();
+        return config;
     }
 
     private static HttpClientConnectionManager getConnectionManager(MetricRegistry metricRegistry) {

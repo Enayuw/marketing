@@ -452,4 +452,19 @@
 		cus_batch=#{cusBatch}
 		and status=1
 	</update>
+	<select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO" resultType="com.br.marketing.vo.ScoreDetailVo">
+		select mt.cus_batch as cusBatchNumber,shf.statistic_file_path as statisticFilePath
+		from b_marketing_task as mt
+		left join b_marketing_strategy_product as msp on mt.api_code = msp.api_code and mt.cus_batch = msp.cus_batch_number
+		left join b_sync_log as sl on mt.api_code = sl.api_code and mt.cus_batch = sl.cus_batch_number
+		left join stra_his_file as shf on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
+		where mt.api_code = #{apiCode}
+		and msp.product_name = #{product_name}
+		and msp.product_version =#{product_version}
+		<![CDATA[ and sl.create_time >= #{uploadBeginTime} ]]>
+		<![CDATA[ and sl.create_time <= #{uploadEndTime} ]]>
+		<![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
+		<![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+		and shf.score_status = 2
+	</select>
 </mapper>

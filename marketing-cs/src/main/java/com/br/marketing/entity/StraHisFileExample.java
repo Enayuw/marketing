@@ -1264,6 +1264,136 @@ public class StraHisFileExample {
             addCriterion("md5 not between", value1, value2, "md5");
             return (Criteria) this;
         }
+
+        public Criteria andScoreStatusIsNull() {
+            addCriterion("score_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusIsNotNull() {
+            addCriterion("score_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusEqualTo(Integer value) {
+            addCriterion("score_status =", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusNotEqualTo(Integer value) {
+            addCriterion("score_status <>", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusGreaterThan(Integer value) {
+            addCriterion("score_status >", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("score_status >=", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusLessThan(Integer value) {
+            addCriterion("score_status <", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("score_status <=", value, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusIn(List<Integer> values) {
+            addCriterion("score_status in", values, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusNotIn(List<Integer> values) {
+            addCriterion("score_status not in", values, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusBetween(Integer value1, Integer value2) {
+            addCriterion("score_status between", value1, value2, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("score_status not between", value1, value2, "scoreStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathIsNull() {
+            addCriterion("statistic_file_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathIsNotNull() {
+            addCriterion("statistic_file_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathEqualTo(String value) {
+            addCriterion("statistic_file_path =", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathNotEqualTo(String value) {
+            addCriterion("statistic_file_path <>", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathGreaterThan(String value) {
+            addCriterion("statistic_file_path >", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathGreaterThanOrEqualTo(String value) {
+            addCriterion("statistic_file_path >=", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathLessThan(String value) {
+            addCriterion("statistic_file_path <", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathLessThanOrEqualTo(String value) {
+            addCriterion("statistic_file_path <=", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathLike(String value) {
+            addCriterion("statistic_file_path like", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathNotLike(String value) {
+            addCriterion("statistic_file_path not like", value, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathIn(List<String> values) {
+            addCriterion("statistic_file_path in", values, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathNotIn(List<String> values) {
+            addCriterion("statistic_file_path not in", values, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathBetween(String value1, String value2) {
+            addCriterion("statistic_file_path between", value1, value2, "statisticFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticFilePathNotBetween(String value1, String value2) {
+            addCriterion("statistic_file_path not between", value1, value2, "statisticFilePath");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

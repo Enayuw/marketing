@@ -143,7 +143,7 @@ public class AlarmApiClient implements ApplicationContextAware {
             config.put("requestData",requestData);
             BrSendAlarmNewServicePrx service= (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
             service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-            log.info("config--{}",config);
+            log.info("bean--{}",config);
             result = service.sendMessageToPresonal(config.toJSONString(),mailContent);
             log.info("【mail send result】:{}",result);
         } catch (Exception e) {
