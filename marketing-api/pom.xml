@@ -171,7 +171,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.br.loan.warning.api.StrategyEarlyWaringApiApplication</mainClass>
+                    <mainClass>com.br.marketing.api.MarketingApiApplication</mainClass>
                 </configuration>
                 <version>1.5.3.RELEASE</version>
                 <executions>
