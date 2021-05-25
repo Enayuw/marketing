@@ -1,25 +1,23 @@
 spring:
   application:
-    name: ${NAME}
-  profiles.active: pre
+    name: marketing-api
+  profiles:
+    active: dev
   aop:
     proxy-target-class: true
     auto: true
   threadpool:
       queueCapacity: 50000
       # 线程池所使用的缓冲队列
-      corePoolSize: 25
+      corePoolSize: 30
       # 线程池维护线程的最少数量
-      maxPoolSize: 30
+      maxPoolSize: 35
       # 线程池维护线程的最大数量
       keepAliveSeconds: 30000
       # 线程池维护线程所允许的空闲时间
       threadNamePrefix: ThreadPool-Common
       # 线程池所生产的线程名前缀
-  cloud:
-     loadbalancer:
-         retry:
-           enabled: true
+
 server:
   port: 18704
 eureka:
@@ -41,8 +39,7 @@ eureka:
     preferIpAddress: true
     status-page-url-path: /health
     #服务初始化状态 枚举值如：UP、DOWN、STARTING、OUT_OF_SERVICE、UNKNOWN，不设置默认为UP
-    initial-status: UP
-
+    initial-status: OUT_OF_SERVICE
   client:
     registerWithEureka: true
     fetchRegistry: true
@@ -50,7 +47,7 @@ eureka:
       enabled: true
     registryFetchIntervalSeconds: 2
     instance-info-replication-interval-seconds: 4
-    initial-instance-info-replication-interval-seconds: 30
+    initial-instance-info-replication-interval-seconds: 4
 
     #Indicates how often(in seconds) to poll for changes to eureka server information. Eureka servers could be added or removed and this setting controls how soon the eureka clients should know about it.
     eureka-service-url-poll-interval-seconds: 2
@@ -58,21 +55,12 @@ eureka:
     #Indicates whether server can redirect a config request to a backup server/cluster.
     #If set to false, the server will handle the request directly, If set to true, it may send HTTP redirect to the config, with a new server location.
     allow-redirects: true
-    service-url:
-      defaultZone: http://192.168.23.121:18000/eureka/
   server:
     enableSelfPreservation: false
 
     #服务端调用evict频率,如果此值设置过大，会导致服务停止后不能及时被发现，默认60s
     eviction-interval-timer-in-ms: 2000
-
-# 贷中系列项目配置
-loaning:
-# 贷中调用画像公用apicode
-  apicode:  4000058
-
-jasypt:
-  encryptor:
-    password: ${JASYPT_ENCRYPTOR_PASSWORD}
-cluster:
-  flag: ${CONF_CLUSTER}
+mybatis:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
