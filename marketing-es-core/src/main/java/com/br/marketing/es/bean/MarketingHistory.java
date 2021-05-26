@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 营销平台ES
@@ -70,5 +71,9 @@ public class MarketingHistory implements Serializable {
      * 策略版本
      */
     private String version;
+    /**
+     * 策略版本
+     */
+    private List<Product> product;
 
 }

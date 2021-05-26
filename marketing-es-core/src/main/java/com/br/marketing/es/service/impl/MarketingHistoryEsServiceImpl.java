@@ -3,11 +3,9 @@ package com.br.marketing.es.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.es.bean.ApprovalHistory;
-import com.br.marketing.es.bean.DateAddBaseBean;
+import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.ApprovalHistoryEsBuilder;
 import com.br.marketing.es.util.EsConstants;
 import com.br.marketing.es.util.MarketingEsBuilder;
 import com.br.marketing.es.util.SwiftNumberManager;
@@ -40,29 +38,32 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
     /**
      * 插入
      *
-     * @param params
+     * @param marketing
      * @param uuid
      * @return
      */
     @Override
-    public void insert(JSONObject params, String uuid) {
+    public void insert(MarketingHistory marketing, String uuid) {
+        String batchNumber = marketing.getBatchNumber();
         //流水号处理
-        String swiftNumber = params.getString("swift_number");
-        String apiCode = params.getString("api_code");
+        String swiftNumber = marketing.getSwiftNumber();
+        String apiCode = marketing.getApiCode();
         if (StringUtils.isBlank(swiftNumber)) {
             swiftNumber = apiCode + "_" + SwiftNumberManager.getSwiftNumberManager().getSwiftNumberPre();
+            marketing.setSwiftNumber(swiftNumber);
         }
         long startTime = System.currentTimeMillis();
         boolean insert = false;
         for (int i = 0; i < 3; i++) {
+            JSONObject params = (JSONObject) JSONObject.toJSON(marketing);
             params.put("_id", uuid);
             try {
-                String date = EsHandleUtil.getDateFromSwiftNumber(swiftNumber);
+                String date = EsHandleUtil.getDateFromBatchNumber(batchNumber);
                 String index = String.format(EsConstants.HISTORY_KEY, date);
                 insert = EsUtil.insert(index, params);
-                log.info("ES insert swift_number:{},uuid:{},insert:{}", swiftNumber, uuid, insert);
+                log.info("ES insert batch_number:{},uuid:{},insert:{}", batchNumber, uuid, insert);
             } catch (Exception e) {
-                log.error("ES insert error,swift_number:{},重试", swiftNumber, e);
+                log.error("ES insert error,uuid:{},重试", uuid, e);
             }
             if (!insert) {
                 log.warn("第{}次请求insert params:{} costTime:{}", i, params, System.currentTimeMillis() - startTime);

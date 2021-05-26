@@ -1,8 +1,6 @@
 package com.br.marketing.es.service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.es.bean.ApprovalHistory;
-import com.br.marketing.es.bean.DateAddBaseBean;
+import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 
 /**
@@ -20,11 +18,11 @@ public interface MarketingHistoryEsService {
     /**
      * 插入
      *
-     * @param params
+     * @param marketing
      * @param uuid
      * @return
      */
-    void insert(JSONObject params, String uuid);
+    void insert(MarketingHistory marketing, String uuid);
 
     /**
      * 总记录数查询

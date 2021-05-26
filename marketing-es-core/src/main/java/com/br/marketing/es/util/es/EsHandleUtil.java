@@ -18,7 +18,7 @@ public class EsHandleUtil {
      * @param swiftNumber 举例：4002055_20191010010034_94784404P09
      * @return java.util.List<java.lang.String>  yyyyMM_01格式的日期
      */
-    public static String getDateFromSwiftNumber(String swiftNumber) {
+    public static String getDateFromBatchNumber(String swiftNumber) {
         String[] number = swiftNumber.split("_");
         String one = number[1].substring(0, 6);
         int i = Integer.parseInt(number[1].substring(6, 8)) / 11;
