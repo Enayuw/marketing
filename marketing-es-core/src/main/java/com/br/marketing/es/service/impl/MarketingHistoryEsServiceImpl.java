@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.es.util.EsConstants;
 import com.br.marketing.es.util.MarketingEsBuilder;
 import com.br.marketing.es.util.SwiftNumberManager;
@@ -13,11 +14,13 @@ import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,18 +98,20 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
      * @return
      */
     @Override
-    public int builderMarketingCount(QueryBaseBean queryBaseBean) {
+    public int builderMarketingWithTotal(QueryBaseBean queryBaseBean) {
         try {
             if (StringUtils.isNotBlank(queryBaseBean.getApiCode())) {
                 MarketingEsBuilder esBuilder = new MarketingEsBuilder(queryBaseBean);
-                //根据时间判断查询ES索引
+                //根据批次号判断查询ES索引
                 Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
                 Map<String, Object> paramsCount = new HashMap<>();
-                // esBuilder.historyWhereCount(paramsCount);
-                log.info("ES builderMarketingCount indexSet:{}", JSON.toJSONString(indexSet));
+                esBuilder.MarketingWhereCount(paramsCount);
                 String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
                 //查询数量
-                return (int) EsUtil.selectByTemplateCount(indexArr, EsConstants.PAGE_TEMPLATE, paramsCount);
+                int count = (int) EsUtil.selectByTemplateCount(indexArr, EsConstants.PAGE_TEMPLATE, paramsCount);
+                log.info("ES builderMarketingCount indexSet:{},paramsCount:{},count:{}",
+                        JSON.toJSONString(indexSet), JSON.toJSONString(paramsCount), count);
+                return amountTopHandle(queryBaseBean.getAmountTop(), count);
             }
         } catch (Exception e) {
             log.error("ES builderMarketingCount error,params:{}", JSON.toJSONString(queryBaseBean), e);
@@ -114,19 +119,144 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
         return 0;
     }
 
+    /**
+     * 数量处理
+     *
+     * @param
+     * @return
+     */
+    private int amountTopHandle(String amountTop, int esTotal) {
+        int topBegin = 0;
+        int topEnd = 0;
+        try {
+            String[] split = amountTop.split(",");
+            if (split != null && split.length > 0) {
+                for (int i = 0; i < split.length; i++) {
+                    if (i == 0) {
+                        topBegin = Integer.parseInt(split[i]);
+                    } else {
+                        topEnd = Integer.parseInt(split[i]);
+                    }
+                }
+                if (topBegin > esTotal) {
+                    return 0;
+                } else if (topBegin < esTotal && topEnd > esTotal) {
+                    return esTotal - topBegin;
+                } else if (topBegin < esTotal && topEnd < esTotal) {
+                    return topEnd - topBegin;
+                }
+            }
+        } catch (Exception e) {
+            log.error("amountTopHandle error", e);
+        }
+        return 0;
+    }
 
-    public static void main(String[] args) {
-        QueryBaseBean queryBaseBean = new QueryBaseBean();
-        queryBaseBean.setTaskStartTime(new Date());
-        Date date = new Date();
-        Calendar next = Calendar.getInstance();
-        next.setTime(date);
-        next.add(Calendar.MONTH, 5);
-        date = next.getTime();
-        queryBaseBean.setTaskEndTime(date);
-        MarketingEsBuilder esBuilder = new MarketingEsBuilder(queryBaseBean);
-        Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
-        System.out.println(JSON.toJSON(indexSet));
+    /**
+     * 根据条件列表最后一条流水号
+     *
+     * @param queryBaseBean
+     * @return
+     */
+    @Override
+    public String builderMarketingWithSwiftNumber(QueryBaseBean queryBaseBean) {
+        try {
+            if (StringUtils.isNotBlank(queryBaseBean.getApiCode())) {
+                MarketingEsBuilder esBuilder = new MarketingEsBuilder(queryBaseBean);
+                //根据批次号判断查询ES索引
+                Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
+                Map<String, Object> params = esBuilder.builderMarketingWithSwiftNumber();
+                log.info("ES builderMarketingWithSwiftNumber indexSet:{} params:{}",
+                        JSON.toJSONString(indexSet), JSON.toJSONString(params));
+                String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
+                SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
+                if (hits != null) {
+                    for (SearchHit hit : hits) {
+                        JSONObject swiftNumberObj = JSON.parseObject(hit.getSourceAsString());
+                        if (swiftNumberObj != null) {
+                            return swiftNumberObj.getString("swift_number");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("ES builderMarketingWithSwiftNumber error,queryBaseBean:{}", JSON.toJSONString(queryBaseBean), e);
+        }
+        return null;
+    }
 
+    /**
+     * 列表查询带列表返参
+     *
+     * @param queryBaseBean
+     * @return
+     */
+    @Override
+    public List<MarketingHistory> builderMarketingWithList(QueryBaseBean queryBaseBean) {
+        return builderMarketingWithList(queryBaseBean, null);
+    }
+
+    /**
+     * 列表查询带列表返参
+     *
+     * @param queryBaseBean
+     * @param columns
+     * @return
+     */
+    @Override
+    public List<MarketingHistory> builderMarketingWithList(QueryBaseBean queryBaseBean, String columns) {
+        List<MarketingHistory> result = new ArrayList<>();
+        try {
+            if (StringUtils.isNotBlank(queryBaseBean.getApiCode())) {
+                MarketingEsBuilder esBuilder = new MarketingEsBuilder(queryBaseBean);
+                //根据批次号判断查询ES索引
+                Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
+                Map<String, Object> params = esBuilder.builderMarketingWithList(columns);
+                log.info("ES builderMarketingWithList indexSet:{} params:{}",
+                        JSON.toJSONString(indexSet), JSON.toJSONString(params));
+                String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
+                SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
+                if (hits != null) {
+                    for (SearchHit hit : hits) {
+                        String sourceAsString = hit.getSourceAsString();
+                        MarketingHistory history = JSON.parseObject(sourceAsString, MarketingHistory.class);
+                        historyJsonColumnHandle(history);
+                        result.add(history);
+                    }
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            log.error("ES builderMarketingWithList error,params:{}", JSON.toJSONString(queryBaseBean), e);
+        }
+        return result;
+    }
+
+    /**
+     * 字段处理
+     *
+     * @param history
+     * @return
+     */
+    private void historyJsonColumnHandle(MarketingHistory history) {
+        //id解密
+        history.setIdCard(BrCipherMaker.getInstance().decode(getValue(history.getIdCard())));
+        //cell解密
+        history.setCell(BrCipherMaker.getInstance().decode(getValue(history.getCell())));
+        //name解密
+        history.setName(BrCipherMaker.getInstance().decode(getValue(history.getName())));
+    }
+
+    /**
+     * value置空
+     *
+     * @param value
+     * @return
+     */
+    private String getValue(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value;
     }
 }

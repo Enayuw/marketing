@@ -1,5 +1,6 @@
 package com.br.marketing.es.bean;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,11 +31,16 @@ public class Product implements Serializable {
      */
     private String version;
     /**
+     * 模型组合
+     */
+    @JSONField(name = "code_version")
+    private String codeVersion;
+    /**
      * 是否命中
      */
     private String flag;
     /**
      * 结果
      */
-    private String score;
+    private Double score;
 }

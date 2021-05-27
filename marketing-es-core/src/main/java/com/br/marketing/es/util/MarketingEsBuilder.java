@@ -7,12 +7,10 @@ import com.br.marketing.es.util.es.EsHandleUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,11 +34,6 @@ public class MarketingEsBuilder {
     }
 
     /**
-     * 日期
-     */
-    public static final String YYYYMMDD = "yyyyMMdd";
-
-    /**
      * 选取索引
      *
      * @param
@@ -49,33 +42,16 @@ public class MarketingEsBuilder {
     public Set<String> builderHistoryWithIndexSet() {
         Set<String> indexSet = new HashSet<>();
         //多个流水号
-        Date startDate = queryBaseBean.getTaskStartTime();
-        Date endDate = queryBaseBean.getTaskEndTime();
-        if (startDate != null && endDate != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(YYYYMMDD);
-            String bDate = dateFormat.format(startDate);
-            String eDate = dateFormat.format(endDate);
-            if (bDate.equals(eDate)) {
-                indexSet.add(String.format(EsConstants.HISTORY_KEY, EsHandleUtil.getIndexFromStr(bDate)));
-            } else {
-                indexSet.add(String.format(EsConstants.HISTORY_KEY, EsHandleUtil.getIndexFromStr(bDate)));
-                String endFormat = String.format(EsConstants.HISTORY_KEY, EsHandleUtil.getIndexFromStr(eDate));
-                while (true) {
-                    Calendar next = Calendar.getInstance();
-                    next.setTime(startDate);
-                    next.add(Calendar.DATE, 1);
-                    startDate = next.getTime();
-                    String indexNext = String.format(EsConstants.HISTORY_KEY, EsHandleUtil.getIndexFromStr(dateFormat.format(startDate)));
-                    if (endFormat.equals(indexNext)) {
-                        indexSet.add(endFormat);
-                        break;
-                    } else {
-                        indexSet.add(indexNext);
-                    }
-                }
+        String batchNumbers = queryBaseBean.getBatchNumbers();
+        String[] split = batchNumbers.split(",");
+        if (split != null && split.length > 0) {
+            for (String batchNumber : split) {
+                String date = EsHandleUtil.getDateFromBatchNumber(batchNumber);
+                String index = String.format(EsConstants.HISTORY_KEY, date);
+                indexSet.add(index);
             }
         } else {
-            throw new RuntimeException("date is exception");
+            throw new RuntimeException("Index is exception");
         }
         return indexSet;
     }
@@ -87,12 +63,9 @@ public class MarketingEsBuilder {
      * @return
      */
     public void MarketingWhereCount(Map<String, Object> paramsCount) {
-        //返回结果
+        //返回结果，排序会根据产品值进行倒序排序，二次排序采用流水号
         paramsCount.put("source", JSON.toJSONString(Arrays.asList("_id".split(","))));
-        //排序
-        JSONObject sortObj = new JSONObject();
-        sortObj.put("swift_number", "desc");
-        paramsCount.put("sort", sortObj.toJSONString());
+        //查询营销条件构建
         MarketingWhere(paramsCount);
     }
 
@@ -103,40 +76,104 @@ public class MarketingEsBuilder {
      * @return
      */
     public void MarketingWhere(Map<String, Object> params) {
-        //apicode
+        //api_code必传
         String apiCode = queryBaseBean.getApiCode();
         if (StringUtils.isNotBlank(apiCode)) {
             params.put("api_code", apiCode);
         }
-        //查询时间
-        filterTime(params);
         //查询批次
-        String batchNumber = queryBaseBean.getBatchNumber();
+        String batchNumber = queryBaseBean.getBatchNumbers();
         if (StringUtils.isNotBlank(batchNumber)) {
             List<String> batchNumberList = Arrays.asList(batchNumber.split(","));
             params.put("batch_number", JSON.toJSONString(batchNumberList));
         }
         //分值区间
-
+        String modelCode = queryBaseBean.getModelCode();
+        String modelVersion = queryBaseBean.getModelVersion();
+        if (StringUtils.isBlank(modelVersion)) {
+            modelVersion = "";
+        }
+        String scoreRange = queryBaseBean.getScoreRange();
+        if (StringUtils.isNotBlank(modelCode) && StringUtils.isNotBlank(scoreRange)) {
+            String cv = String.format(EsConstants.CODEVERSION_KEY, modelCode, modelVersion);
+            params.put("code_version", cv);
+            String[] split = scoreRange.split(",");
+            if (split != null && split.length > 0) {
+                Double begin = 0D;
+                Double end = 0D;
+                for (int i = 0; i < split.length; i++) {
+                    if (i == 0) {
+                        begin = Double.valueOf(split[i]);
+                    } else {
+                        end = Double.valueOf(split[i]);
+                    }
+                }
+                params.put("begin_score", begin);
+                params.put("end_score", end);
+            }
+        }
     }
 
     /**
-     * 查询日期
+     * 根据条件列表最后一条流水号
      *
-     * @param params
+     * @param
      * @return
      */
-    private void filterTime(Map<String, Object> params) {
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(EsConstants.DATE_FORMAT_YMD);
-            if (queryBaseBean.getTaskStartTime() != null) {
-                params.put("task_begin_time", dateFormat.format(queryBaseBean.getTaskStartTime()));
+    public Map<String, Object> builderMarketingWithSwiftNumber() {
+        Map<String, Object> params = new HashMap<>();
+        //返回结果，排序会根据产品值进行倒序排序，二次排序采用流水号
+        List<String> fieldList = Arrays.asList("swift_number".split(","));
+        params.put("source", JSON.toJSONString(fieldList));
+        //返回条数-默认返回1条、from=pageSize-1
+        params.put("size", 1);
+        Integer pageSize = queryBaseBean.getPageSize();
+        int from = 0;
+        if (pageSize != null) {
+            from = pageSize - 1;
+            if (from > 10000) {
+                throw new RuntimeException("ES builderMarketingWithSwiftNumber from Exception" + from);
             }
-            if (queryBaseBean.getTaskEndTime() != null) {
-                params.put("task_end_time", dateFormat.format(queryBaseBean.getTaskEndTime()));
-            }
-        } catch (Exception e) {
-            log.error("MarketingEsBuilder 日期转换错误", e);
         }
+        params.put("from", from);
+        String hisPageSwiftNumber = queryBaseBean.getHisPageSwiftNumber();
+        //默认,下一页第一个流水号
+        if (StringUtils.isNotBlank(hisPageSwiftNumber)) {
+            params.put("nextPageSwiftNumber", hisPageSwiftNumber);
+        }
+        //条件
+        MarketingWhere(params);
+        return params;
+    }
+
+    /**
+     * 选取数据
+     *
+     * @param columns
+     * @return
+     */
+    public Map<String, Object> builderMarketingWithList(String columns) {
+        Map<String, Object> params = new HashMap<>();
+        //返回结果，排序会根据产品值进行倒序排序，二次排序采用流水号
+        String sources = EsConstants.ALL_MARKETING_KEY;
+        if (StringUtils.isNotBlank(columns)) {
+            sources = columns;
+        }
+        List<String> fieldList = Arrays.asList(sources.split(","));
+        params.put("source", JSON.toJSONString(fieldList));
+        //返回条数
+        Integer pageSize = queryBaseBean.getPageSize();
+        if (pageSize > 10000) {
+            throw new RuntimeException("ES size Exception" + pageSize);
+        }
+        params.put("size", pageSize);
+        String hisPageSwiftNumber = queryBaseBean.getHisPageSwiftNumber();
+        //默认,下一页第一个流水号
+        if (StringUtils.isNotBlank(hisPageSwiftNumber)) {
+            params.put("nextPageSwiftNumber", hisPageSwiftNumber);
+        }
+        //条件
+        MarketingWhere(params);
+        return params;
     }
 }

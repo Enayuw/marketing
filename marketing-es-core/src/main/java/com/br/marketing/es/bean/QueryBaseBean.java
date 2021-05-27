@@ -1,9 +1,7 @@
 package com.br.marketing.es.bean;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
-import java.util.Date;
 
 /**
  * 查询参数
@@ -20,18 +18,11 @@ public class QueryBaseBean {
     /**
      * apiCode
      */
-    @JSONField(name = "api_code")
     private String apiCode;
     /**
-     * 跑分日期时间间隔
+     * 多批次
      */
-    private Date taskStartTime;
-    private Date taskEndTime;
-    /**
-     * 批次号
-     */
-    @JSONField(name = "batch_number")
-    private String batchNumber;
+    private String batchNumbers;
     /**
      * 模型名称
      */
@@ -48,4 +39,13 @@ public class QueryBaseBean {
      * 数量top值
      */
     private String amountTop;
+    /**
+     * 分页大小
+     */
+    private Integer pageSize;
+    /**
+     * 流水号
+     * value：上一页最后一个流水号
+     */
+    private String hisPageSwiftNumber;
 }
