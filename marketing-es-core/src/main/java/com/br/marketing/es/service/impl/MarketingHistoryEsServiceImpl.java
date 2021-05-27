@@ -153,30 +153,26 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
     }
 
     /**
-     * 根据条件列表最后一条流水号
+     * 根据条件获取滚动搜索值
      *
      * @param queryBaseBean
      * @return
      */
     @Override
-    public String builderMarketingWithSwiftNumber(QueryBaseBean queryBaseBean) {
+    public String builderMarketingWithSearchAfter(QueryBaseBean queryBaseBean) {
         try {
             if (StringUtils.isNotBlank(queryBaseBean.getApiCode())) {
                 MarketingEsBuilder esBuilder = new MarketingEsBuilder(queryBaseBean);
                 //根据批次号判断查询ES索引
                 Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
-                Map<String, Object> params = esBuilder.builderMarketingWithSwiftNumber();
+                Map<String, Object> params = esBuilder.builderMarketingWithSearchAfter();
                 log.info("ES builderMarketingWithSwiftNumber indexSet:{} params:{}",
                         JSON.toJSONString(indexSet), JSON.toJSONString(params));
                 String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
                 SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
                 if (hits != null) {
-                    for (SearchHit hit : hits) {
-                        JSONObject swiftNumberObj = JSON.parseObject(hit.getSourceAsString());
-                        if (swiftNumberObj != null) {
-                            return swiftNumberObj.getString("swift_number");
-                        }
-                    }
+                    SearchHit hit = hits.getHits()[hits.getHits().length - 1];
+                    return JSON.toJSONString(hit.getSortValues());
                 }
             }
         } catch (Exception e) {

@@ -40,12 +40,11 @@ public class QueryBaseBean {
      */
     private String amountTop;
     /**
-     * 分页大小
+     * 分页大小,默认2000
      */
-    private Integer pageSize;
+    private Integer pageSize = 2000;
     /**
-     * 流水号
-     * value：上一页最后一个流水号
+     * 滚动搜索值
      */
-    private String hisPageSwiftNumber;
+    private String searchAfter;
 }

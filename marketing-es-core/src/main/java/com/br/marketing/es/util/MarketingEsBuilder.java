@@ -1,6 +1,7 @@
 package com.br.marketing.es.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.util.es.EsHandleUtil;
@@ -115,31 +116,26 @@ public class MarketingEsBuilder {
     }
 
     /**
-     * 根据条件列表最后一条流水号
+     * 根据条件获取滚动搜索值
      *
      * @param
      * @return
      */
-    public Map<String, Object> builderMarketingWithSwiftNumber() {
+    public Map<String, Object> builderMarketingWithSearchAfter() {
         Map<String, Object> params = new HashMap<>();
         //返回结果，排序会根据产品值进行倒序排序，二次排序采用流水号
-        List<String> fieldList = Arrays.asList("swift_number".split(","));
+        List<String> fieldList = Arrays.asList("_id".split(","));
         params.put("source", JSON.toJSONString(fieldList));
-        //返回条数-默认返回1条、from=pageSize-1
-        params.put("size", 1);
+        //分页大小
         Integer pageSize = queryBaseBean.getPageSize();
-        int from = 0;
-        if (pageSize != null) {
-            from = pageSize - 1;
-            if (from > 10000) {
-                throw new RuntimeException("ES builderMarketingWithSwiftNumber from Exception" + from);
-            }
+        if (pageSize > 10000) {
+            throw new RuntimeException("ES size Exception" + pageSize);
         }
-        params.put("from", from);
-        String hisPageSwiftNumber = queryBaseBean.getHisPageSwiftNumber();
-        //默认,下一页第一个流水号
-        if (StringUtils.isNotBlank(hisPageSwiftNumber)) {
-            params.put("nextPageSwiftNumber", hisPageSwiftNumber);
+        params.put("size", pageSize);
+        //滚动搜索值
+        String searchAfter = queryBaseBean.getSearchAfter();
+        if(StringUtils.isNotBlank(searchAfter)){
+            params.put("searchAfter", searchAfter);
         }
         //条件
         MarketingWhere(params);
@@ -167,10 +163,10 @@ public class MarketingEsBuilder {
             throw new RuntimeException("ES size Exception" + pageSize);
         }
         params.put("size", pageSize);
-        String hisPageSwiftNumber = queryBaseBean.getHisPageSwiftNumber();
-        //默认,下一页第一个流水号
-        if (StringUtils.isNotBlank(hisPageSwiftNumber)) {
-            params.put("nextPageSwiftNumber", hisPageSwiftNumber);
+        //滚动搜索值
+        String searchAfter = queryBaseBean.getSearchAfter();
+        if(StringUtils.isNotBlank(searchAfter)){
+            params.put("searchAfter", searchAfter);
         }
         //条件
         MarketingWhere(params);

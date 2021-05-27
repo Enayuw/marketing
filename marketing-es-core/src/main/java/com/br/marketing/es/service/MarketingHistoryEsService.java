@@ -35,12 +35,12 @@ public interface MarketingHistoryEsService {
     int builderMarketingWithTotal(QueryBaseBean queryBaseBean);
 
     /**
-     * 根据条件列表最后一条流水号
+     * 根据条件获取滚动搜索值
      *
      * @param queryBaseBean
      * @return
      */
-    String builderMarketingWithSwiftNumber(QueryBaseBean queryBaseBean);
+    String builderMarketingWithSearchAfter(QueryBaseBean queryBaseBean);
 
     /**
      * 列表查询带列表返参

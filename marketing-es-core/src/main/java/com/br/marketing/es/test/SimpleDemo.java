@@ -32,9 +32,9 @@ public class SimpleDemo {
 //        demo.insert();
 //        demo.delete("deda9fed6a8142be887bc33b77705c9a","request_marketing_history_202105_03");
 //        demo.selectCount();
-//        demo.builderMarketingWithSwiftNumber();
-//        demo.builderMarketingWithList();
-        demo.builderMarketingWithList("cell,product");
+//        demo.builderMarketingWithSearchAfter();
+        demo.builderMarketingWithList();
+//        demo.builderMarketingWithList("cell,product");
         System.exit(0);
     }
 
@@ -87,7 +87,7 @@ public class SimpleDemo {
         System.out.println(count);
     }
 
-    public void builderMarketingWithSwiftNumber() {
+    public void builderMarketingWithSearchAfter() {
         String apiCode = "7410480";
         String batchNumber = "7410480_20210526210400_4077";
         QueryBaseBean qb = new QueryBaseBean();
@@ -96,11 +96,11 @@ public class SimpleDemo {
         qb.setModelCode("scoremcashonxhqbdzcd");
         qb.setModelVersion("S1_0");
         qb.setScoreRange("100,900");
-        qb.setHisPageSwiftNumber("7410480_20210526200801_13010063A39");
+        qb.setSearchAfter("[\"456.0\",\"7410480_20210526200801_13010063A39\"]");
         qb.setPageSize(1);
         MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
-        String swiftNumber = service.builderMarketingWithSwiftNumber(qb);
-        System.out.println(swiftNumber);
+        String searchAfter = service.builderMarketingWithSearchAfter(qb);
+        System.out.println(searchAfter);
     }
 
     public void builderMarketingWithList() {
@@ -112,7 +112,7 @@ public class SimpleDemo {
         qb.setModelCode("scoremcashonxhqbdzcd");
         qb.setModelVersion("S1_0");
         qb.setScoreRange("100,900");
-        qb.setHisPageSwiftNumber("7410480_20210526200801_13010063A39");
+        qb.setSearchAfter("[\"456.0\",\"7410480_20210526200801_13010063A39\"]");
         qb.setPageSize(1);
         MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
         List<MarketingHistory> list = service.builderMarketingWithList(qb);
@@ -128,7 +128,7 @@ public class SimpleDemo {
         qb.setModelCode("scoremcashonxhqbdzcd");
         qb.setModelVersion("S1_0");
         qb.setScoreRange("100,900");
-        qb.setHisPageSwiftNumber("7410480_20210526200801_13010063A39");
+        qb.setSearchAfter("[\"456.0\",\"7410480_20210526200801_13010063A39\"]");
         qb.setPageSize(1);
         MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
         List<MarketingHistory> list = service.builderMarketingWithList(qb, columns);
