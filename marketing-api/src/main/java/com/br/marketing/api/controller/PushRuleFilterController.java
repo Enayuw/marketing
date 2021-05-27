@@ -7,6 +7,7 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
@@ -64,8 +65,18 @@ public class PushRuleFilterController {
         }
     }
 
+    @Autowired
+    RabbitMqProducter producter;
 
-
+    @ApiOperation(value = "测试rabbit")
+    @PostMapping("/testRabbitProduct")
+    public String testRabbitProduct(){
+        String[] strings = {"hehe", "haha", "haiahi"};
+        for (String string : strings) {
+            producter.send(string,string);
+        }
+        return "true";
+    }
 
 
 

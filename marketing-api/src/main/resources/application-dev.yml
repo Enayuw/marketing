@@ -21,13 +21,13 @@ sharding:
         testOnReturn: false
         poolPreparedStatements: true
         maxOpenPreparedStatements: 20
-logging:
-  level:
-    com.br.marketing.mapper : debug
   config:
     sharding:
       props:
         sql.show: true
+logging:
+  level:
+    com.br.marketing.mapper: debug
 eureka:
   client:
     service-url.defaultZone: http://192.168.162.193:1111/eureka/
@@ -47,3 +47,7 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
+api:
+  intelligentCustomerService:
+    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data
