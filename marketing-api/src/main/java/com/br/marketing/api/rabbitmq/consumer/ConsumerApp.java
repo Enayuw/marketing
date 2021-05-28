@@ -28,6 +28,6 @@ public class ConsumerApp {
     public void consumer_UserStatus(Channel channel, Message message){
         Long o = JSON.parseObject(new String(message.getBody()), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,);
+        consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search");
     }
 }
