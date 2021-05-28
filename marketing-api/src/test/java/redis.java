@@ -6,42 +6,90 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.entity.ProInSys;
 import org.junit.Test;
+import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = MarketingApiApplication.class)
+//@SpringBootTest(classes = MarketingApiApplication.class)
 public class redis {
 
-    @Resource
-    RedisService redisService;
+//    @Resource
+//    RedisService redisService;
+//
+//    @Test
+//    public void test(){
+//       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
+//        String s = redisService.get("productionMng-allProductions");
+//        JSONArray array=new JSONArray();
+//        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
+//        Iterator<ProInSys> iterator = proInSys.iterator();
+//        while (iterator.hasNext()){
+//            ProInSys pro=iterator.next();
+//            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
+//                iterator.remove();
+//            }
+//        }
+//        if(proInSys.size()>0){
+//            String json= JSONObject.toJSONString(proInSys);
+//            array=JSONArray.parseArray(json);
+//        }
+//        System.out.println(array);
+//    }
 
     @Test
-    public void test(){
-       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-        String s = redisService.get("productionMng-allProductions");
-        JSONArray array=new JSONArray();
-        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-        Iterator<ProInSys> iterator = proInSys.iterator();
-        while (iterator.hasNext()){
-            ProInSys pro=iterator.next();
-            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-                iterator.remove();
-            }
+    public void testConcurrent(){
+        Integer k=10;
+        List<String> list =new ArrayList();
+        long start = System.currentTimeMillis();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Callable<List>> callableList = new ArrayList<>();
+        for (Integer i = 0; i < k; i++) {
+            callableList.add(()->{
+                List list1 = new ArrayList();
+                Integer kk = 20000;
+                for (Integer integer = 0; integer < kk; integer++) {
+                    list1.add("kk".concat(String.valueOf(kk)));
+                }
+                return list1;
+            });
         }
-        if(proInSys.size()>0){
-            String json= JSONObject.toJSONString(proInSys);
-            array=JSONArray.parseArray(json);
+        try {
+            List<Future<List>> futures = executorService.invokeAll(callableList);
+            futures.forEach(t->{
+                try {
+                    list.addAll(t.get());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        System.out.println(array);
-    }
+        System.out.println(list.size()+"_________"+(System.currentTimeMillis()-start));
 
+        long start2 = System.currentTimeMillis();
+        Integer kkk=200000;
+        List<String> list2 =new ArrayList();
+        for (Integer i = 0; i < kkk; i++) {
+            list2.add("kkk".concat(String.valueOf(kkk)));
+        }
+        System.out.println(list2.size()+"_________"+(System.currentTimeMillis()-start2));
+        System.out.println("1231");
+
+
+
+    }
 
 
 /*@Resource

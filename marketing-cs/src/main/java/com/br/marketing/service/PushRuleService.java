@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.common.commondto.Result;
@@ -30,4 +31,11 @@ public interface PushRuleService {
      * @return
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
+
+    /**
+     * 查询推送结果
+     * @param mId
+     * @return
+     */
+    Result<Boolean> getCustomerStatus(Long mId);
 }

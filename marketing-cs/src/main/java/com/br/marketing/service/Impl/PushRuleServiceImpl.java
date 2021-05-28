@@ -1,11 +1,19 @@
 package com.br.marketing.service.Impl;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
+import com.br.marketing.commonentity.StatusConstants;
+import com.br.marketing.entity.*;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.bean.Product;
+import com.br.marketing.es.bean.QueryBaseBean;
+import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
-import java.util.ArrayList;
-import java.util.Date;
+
+import java.util.*;
 
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -17,10 +25,6 @@ import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.CustomerBatchNumDTO;
-import com.br.marketing.entity.CustomerInfoPushBatch;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.MarketingStrategyProduct;
-import com.br.marketing.entity.MarketingStrategyProductExample;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
@@ -34,11 +38,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,6 +52,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
+
+    @Autowired
+    CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
     @Autowired
     MarketingStrategyProductMapper marketingStrategyProductMapper;
@@ -78,6 +81,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
+    @Autowired
+    MarketingHistoryEsServiceImpl marketingHistoryEsService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -104,6 +109,17 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         if(scoreDvalue<0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
+        }
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(dto.getApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getCusBatchNumberList()));
+        queryBaseBean.setModelCode(dto.getProductName());
+        queryBaseBean.setModelVersion(dto.getProductVersion());
+        queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+        queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
+        int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+        if(total<=0){
+            throw new RuntimeException("无符合的数据");
         }
         //endregion
 
@@ -134,49 +150,70 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region push Intelligent Customer Service
-        //todo 调用es查询接口
-        List<Integer> list = new ArrayList<>();
-        list.add(1);
-        list.add(2);
+        //调用es查询接口
+
+        Integer minTop = dto.getMinTop();
+        int startPage_yushu = minTop % 10000;
+        Integer startPage = minTop/10000+(startPage_yushu >0?1:0);
+        String searchAfterStr = "";
+        for (int i = 1; i <=startPage; i++) {
+
+            if(i==startPage&&startPage_yushu>0){
+                queryBaseBean.setPageSize(startPage_yushu);
+            }else {
+                queryBaseBean.setPageSize(10000);
+            }
+            if(i==startPage){
+                queryBaseBean.setPageSize(queryBaseBean.getPageSize()-1);
+            }
+            queryBaseBean.setSearchAfter(searchAfterStr);
+            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
+            searchAfterStr = s;
+        }
+        int total_yushu = total % 2000;
+        int total_page = total / 2000 + (total_yushu > 0 ? 1 : 0);
         List<Callable<Result>> listCall = new ArrayList<>();
-        list.forEach(k->{
-            listCall.add(()->{
-
-                List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-                for (int i = 0; i < 2000; i++) {
-                    PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
-                    dto1.setCaseNumber(customerInfoPushMain.getId().toString()+"_"+k.toString()+i);
-                    dto1.setPhone("123");
-                    dto1.setVariables("123");
-                    dto1.setScore("12");
-                    dto1.setScoreDate("2021-05-33");
-                    dto1.setScoreName("hehe");
-                    dto1.setUpload("1");
-
-                    userDetailDTOS.add(dto1);
+        for (int i = 1; i <= total_page; i++) {
+            String sn = String.valueOf(i);
+            queryBaseBean.setSearchAfter(searchAfterStr);
+            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+            List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
+            for (int k = 0; k < marketingHistories.size(); k++) {
+                MarketingHistory marketingHistory = marketingHistories.get(k);
+                PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
+                dto1.setCaseNumber(customerInfoPushMain.getId().toString()+"_"+ marketingHistory.getSwiftNumber());
+                dto1.setPhone(marketingHistory.getCell());
+//                dto1.setVariables("");
+                Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
+                        && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
+                if(first.isPresent()){
+                    dto1.setScore(String.valueOf(first.get().getScore()));
                 }
-                PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-                pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+//                dto1.setScoreDate("2021-05-33");
+                dto1.setScoreName(customerInfoPushMain.getmModel());
+                dto1.setUpload("1");
+                userDetailDTOS.add(dto1);
+            }
+            PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+            pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+            pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
 //                pushMarketingUserTaskInfoDTO.setStrategyCode("");
 //                pushMarketingUserTaskInfoDTO.setIsAutoRunStrategy("");
-                pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+k.toString());
+            pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
 //                pushMarketingUserTaskInfoDTO.setExtendData("");
-                pushMarketingUserTaskInfoDTO.setScoreName(dto.getProductName());
-                pushMarketingUserTaskInfoDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
-                pushMarketingUserTaskInfoDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
-                pushMarketingUserTaskInfoDTO.setSampleTotal(k.toString());
-                pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
+            pushMarketingUserTaskInfoDTO.setScoreName(dto.getProductName());
+            pushMarketingUserTaskInfoDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+            pushMarketingUserTaskInfoDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
+            pushMarketingUserTaskInfoDTO.setSampleTotal(sn);
+            pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
-                PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                pushMarketingUserDTO.setApiCode(dto.getApiCode());
-                pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
-                pushMarketingUserDTO.setJsonData(JSON.toJSONString(pushMarketingUserTaskInfoDTO));
+            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+            pushMarketingUserDTO.setApiCode(dto.getApiCode());
+            pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
+            pushMarketingUserDTO.setJsonData(JSON.toJSONString(pushMarketingUserTaskInfoDTO));
 
-                return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());
-            });
-        });
-
+            return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());
+        }
         List<Future<Result>>  futures = null;
         try {
             futures = threadPoolExecutor.invokeAll(listCall);
@@ -225,5 +262,44 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Boolean> getCustomerStatus(Long mId) {
+
+        CustomerInfoPushMain main = customerInfoPushMainMapper.selectByPrimaryKey(mId);
+
+        CustomerInfoPushLogExample logExample = new CustomerInfoPushLogExample();
+        logExample.createCriteria().andMIdEqualTo(mId).andRealStautsIn(Arrays.asList(StatusConstants.CustomerService_query,StatusConstants.CustomerService_updateing));
+        List<CustomerInfoPushLog> customerInfoPushLogs = customerInfoPushLogMapper.selectByExample(logExample);
+        Boolean isContinue = false;
+        for (CustomerInfoPushLog t : customerInfoPushLogs) {
+            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+            pushMarketingUserDTO.setApiCode(main.getmApiCode());
+            pushMarketingUserDTO.setPlatApiCode("");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("method","uploadResult");
+            jsonObject.put("accessNumber",t.getBatch());
+            pushMarketingUserDTO.setJsonData(jsonObject.toJSONString());
+            Result userStatus = intelligentCustomerServiceClient.getUserStatus(pushMarketingUserDTO);
+            if(ResultCode.SUCCESS.getValue().equals(userStatus.getCode())){
+                CustomerInfoPushLog updateLog = new CustomerInfoPushLog();
+                updateLog.setId(t.getId());
+                if("UPLOAD".equals(userStatus.getData())){
+                    updateLog.setRealStauts(StatusConstants.CustomerService_success);
+                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
+                }else if("RUNING".equals(userStatus.getData())){
+                    updateLog.setRealStauts(StatusConstants.CustomerService_updateing);
+                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
+                    isContinue=true;
+                }else if("ERROR".equals(userStatus.getData())){
+                    updateLog.setRealStauts(StatusConstants.CustomerService_error);
+                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
+                }
+            }else{
+                isContinue = true;
+            }
+        }
+        return new Result<Boolean>().setDate(isContinue);
     }
 }

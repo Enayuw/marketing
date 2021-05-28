@@ -20,12 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-/**
- * 策略API控制器
- *
- * @author Wang Weiwei
- * @since 2018/3/12
- */
+
 @RestController
 @RequestMapping("/pushrulefilter")
 @Slf4j

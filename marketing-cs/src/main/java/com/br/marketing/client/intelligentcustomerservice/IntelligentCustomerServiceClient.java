@@ -56,4 +56,23 @@ public class IntelligentCustomerServiceClient {
         customerInfoPushLogMapper.insertSelective(log);
         return result;
     }
+
+
+    public Result getUserStatus(PushMarketingUserDTO dto){
+        Result result = new Result();
+        try{
+            ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)
+                    .setContentType(MediaType.MULTIPART_FORM_DATA)
+                    .setRequestParam(dto).postTransferStr();
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            if("000000".equals(jsonObject.getString("code"))){
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("result"));
+            }else{
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+            }
+        }catch (Exception ex){
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+        }
+        return result;
+    }
 }
