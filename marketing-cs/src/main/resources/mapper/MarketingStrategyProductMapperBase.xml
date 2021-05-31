@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cus_batch_number" property="cusBatchNumber" jdbcType="VARCHAR" />
+    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
     <result column="product_name" property="productName" jdbcType="VARCHAR" />
     <result column="product_version" property="productVersion" jdbcType="VARCHAR" />
@@ -70,8 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cus_batch_number, strategy_id, product_name, product_version, is_del, 
-    create_time
+    id, api_code, cus_batch_number, batch_number, strategy_id, product_name, product_version, 
+    is_del, create_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingStrategyProductExample" >
     select
@@ -107,12 +108,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_strategy_product (api_code, cus_batch_number, strategy_id, 
-      product_name, product_version, is_del, 
-      create_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{cusBatchNumber,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
-      #{productName,jdbcType=VARCHAR}, #{productVersion,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_strategy_product (api_code, cus_batch_number, batch_number, 
+      strategy_id, product_name, product_version, 
+      is_del, create_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{cusBatchNumber,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, 
+      #{strategyId,jdbcType=VARCHAR}, #{productName,jdbcType=VARCHAR}, #{productVersion,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingStrategyProduct" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -125,6 +126,9 @@
       </if>
       <if test="cusBatchNumber != null" >
         cus_batch_number,
+      </if>
+      <if test="batchNumber != null" >
+        batch_number,
       </if>
       <if test="strategyId != null" >
         strategy_id,
@@ -148,6 +152,9 @@
       </if>
       <if test="cusBatchNumber != null" >
         #{cusBatchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        #{batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
@@ -184,6 +191,9 @@
       <if test="record.cusBatchNumber != null" >
         cus_batch_number = #{record.cusBatchNumber,jdbcType=VARCHAR},
       </if>
+      <if test="record.batchNumber != null" >
+        batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+      </if>
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
@@ -209,6 +219,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cus_batch_number = #{record.cusBatchNumber,jdbcType=VARCHAR},
+      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       product_name = #{record.productName,jdbcType=VARCHAR},
       product_version = #{record.productVersion,jdbcType=VARCHAR},
@@ -226,6 +237,9 @@
       </if>
       <if test="cusBatchNumber != null" >
         cus_batch_number = #{cusBatchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumber != null" >
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
@@ -249,6 +263,7 @@
     update b_marketing_strategy_product
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cus_batch_number = #{cusBatchNumber,jdbcType=VARCHAR},
+      batch_number = #{batchNumber,jdbcType=VARCHAR},
       strategy_id = #{strategyId,jdbcType=VARCHAR},
       product_name = #{productName,jdbcType=VARCHAR},
       product_version = #{productVersion,jdbcType=VARCHAR},

@@ -44,7 +44,7 @@ public class PushCustomerDTO {
     @NotNull(message = "批次号不能为空")
     @NotEmpty(message = "批次号不能为空")
     @Size(min = 1,message = "批次号不能为空")
-    private List<String> cusBatchNumberList;
+    private List<String> batchNumberList;
 
     @ApiModelProperty(value = "最小分数")
     @NotNull(message = "最小分数不能为空")

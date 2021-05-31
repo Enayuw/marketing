@@ -21,6 +21,10 @@ public class ApiCaller {
         restTemplate = new RestTemplate();
     }
 
+    public ApiCaller(RestTemplate restTemplate){
+        this.restTemplate = restTemplate;
+    }
+
     private RestTemplate restTemplate;
 
     private String url;

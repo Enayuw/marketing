@@ -14,9 +14,14 @@ public class MarketingStrategyProduct {
     private String apiCode;
 
     /**
-     * 
+     * 客户批次编号
      */
     private String cusBatchNumber;
+
+    /**
+     * 内部批次编号
+     */
+    private String batchNumber;
 
     /**
      * 策略id
@@ -65,6 +70,14 @@ public class MarketingStrategyProduct {
 
     public void setCusBatchNumber(String cusBatchNumber) {
         this.cusBatchNumber = cusBatchNumber == null ? null : cusBatchNumber.trim();
+    }
+
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
     }
 
     public String getStrategyId() {

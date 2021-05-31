@@ -14,9 +14,9 @@
     <artifactId>marketing-es-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <properties>
-        <elasticsearch.version>7.7.1</elasticsearch.version>
-    </properties>
+<!--    <properties>-->
+<!--        <elasticsearch.version>7.7.1</elasticsearch.version>-->
+<!--    </properties>-->
 
     <dependencies>
         <dependency>
@@ -33,18 +33,7 @@
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.elasticsearch</groupId>
-                    <artifactId>elasticsearch</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>7.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>7.7.1</version>
+            <version>${elasticsearch.version}</version>
         </dependency>
         <!-- ES 相关jar包 结束 -->
         <dependency>
@@ -83,18 +72,18 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <!--本地开发环境-->
-        <profile>
-            <id>core</id>
-            <properties>
-                <profiles.active>core</profiles.active>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-    </profiles>
+<!--    <profiles>-->
+<!--        &lt;!&ndash;本地开发环境&ndash;&gt;-->
+<!--        <profile>-->
+<!--            <id>core</id>-->
+<!--            <properties>-->
+<!--                <profiles.active>core</profiles.active>-->
+<!--            </properties>-->
+<!--            <activation>-->
+<!--                <activeByDefault>true</activeByDefault>-->
+<!--            </activation>-->
+<!--        </profile>-->
+<!--    </profiles>-->
 
     <!-- 远程和私有仓库 -->
     <repositories>
@@ -133,18 +122,18 @@
     </distributionManagement>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>core/**</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources/${profiles.active}</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
+<!--        <resources>-->
+<!--            <resource>-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                <excludes>-->
+<!--                    <exclude>core/**</exclude>-->
+<!--                </excludes>-->
+<!--            </resource>-->
+<!--            <resource>-->
+<!--                <directory>src/main/resources/${profiles.active}</directory>-->
+<!--                <filtering>true</filtering>-->
+<!--            </resource>-->
+<!--        </resources>-->
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

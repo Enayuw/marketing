@@ -52,7 +52,7 @@ public class SwaggerConfig {
             ip = address.getHostName() + "-" + address.getCanonicalHostName();
         }
         ApiInfo apiInfo = new ApiInfo("营销平台api", "此在线API手册为调用营销平台技术人员提供开发参考", "1.0.0", "Terms of service", new Contact("百融云. 服务器信息: " + ip, "", ""),
-                "百融云", "http://www.brgroup.com/");
+                "百融云", "https://www.brgroup.com/");
         return apiInfo;
     }
 }

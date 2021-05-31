@@ -9,6 +9,9 @@ public class ScoreDetailVo {
     @ApiModelProperty(value = "客户批次号")
     private String cusBatchNumber;
 
+    @ApiModelProperty(value = "内部客户批次号")
+    private String batchNumber;
+
     @ApiModelProperty(value = "统计下载路径")
     private String statisticFilePath;
 }

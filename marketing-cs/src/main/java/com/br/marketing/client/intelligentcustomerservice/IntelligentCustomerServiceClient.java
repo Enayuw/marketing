@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class IntelligentCustomerServiceClient {
@@ -26,6 +27,10 @@ public class IntelligentCustomerServiceClient {
     @Autowired
     CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
+    @Autowired
+    RestTemplate restTemplate;
+
+
     public Result pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
 //        System.out.println("SERVICE===="+apiCaller);
 //        System.out.println("SERVICE===="+JSON.toJSONString(dto));
@@ -35,7 +40,7 @@ public class IntelligentCustomerServiceClient {
         log.setBatch(pushBatch);
         log.setParam(JSON.toJSONString(dto));
         try{
-            ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
                     .setContentType(MediaType.MULTIPART_FORM_DATA)
                     .setRequestParam(dto).postTransferStr();
             log.setResultContent(transfer.getResult());

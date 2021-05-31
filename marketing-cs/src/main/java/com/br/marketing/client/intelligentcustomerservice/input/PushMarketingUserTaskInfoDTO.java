@@ -43,26 +43,6 @@ public class PushMarketingUserTaskInfoDTO implements Serializable {
     private String extendData;
 
     /**
-     *模型英文名称
-     */
-    private String scoreName;
-
-    /**
-     *分值区间
-     */
-    private String scoreRange;
-
-    /**
-     *数量top
-     */
-    private String amountTop;
-
-    /**
-     *样本数量
-     */
-    private String sampleTotal;
-
-    /**
      *外呼数据
      */
     private List<PushMarketingUserDetailDTO> data;

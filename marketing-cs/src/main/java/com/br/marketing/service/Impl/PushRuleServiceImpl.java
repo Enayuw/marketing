@@ -2,7 +2,7 @@ package com.br.marketing.service.Impl;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -11,12 +11,10 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 
 import java.util.*;
 
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.common.utils.net.ApiCaller;
@@ -95,7 +93,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region check
         MarketingStrategyProductExample productExample = new MarketingStrategyProductExample();
-        productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andCusBatchNumberIn(dto.getCusBatchNumberList())
+        productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andBatchNumberIn(dto.getBatchNumberList())
                 .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion()).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductMapper.selectByExample(productExample);
         if(marketingStrategyProducts.size()<=0){
@@ -112,14 +110,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getCusBatchNumberList()));
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setModelCode(dto.getProductName());
         queryBaseBean.setModelVersion(dto.getProductVersion());
         queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
         queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if(total<=0){
-            throw new RuntimeException("无符合的数据");
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
         //endregion
 
@@ -138,7 +136,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setUpdateTime(date);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
-        dto.getCusBatchNumberList().forEach(t->{
+        dto.getBatchNumberList().forEach(t->{
             CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
             customerInfoPushBatch.setmId(customerInfoPushMain.getId());
             customerInfoPushBatch.setmApiCode(dto.getApiCode());
@@ -186,25 +184,28 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                dto1.setVariables("");
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
                         && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
+                PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
+
+                pushMarketingUserDetailVariablesDTO.setScoreDate(customerInfoPushMain.getmModel());
+                pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
+                pushMarketingUserDetailVariablesDTO.setUpload("");
                 if(first.isPresent()){
-                    dto1.setScore(String.valueOf(first.get().getScore()));
+                    pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
-//                dto1.setScoreDate("2021-05-33");
-                dto1.setScoreName(customerInfoPushMain.getmModel());
-                dto1.setUpload("1");
+                dto1.setVariables(JSON.toJSONString(pushMarketingUserDetailVariablesDTO));
                 userDetailDTOS.add(dto1);
             }
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
             pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
 //                pushMarketingUserTaskInfoDTO.setStrategyCode("");
-//                pushMarketingUserTaskInfoDTO.setIsAutoRunStrategy("");
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
-//                pushMarketingUserTaskInfoDTO.setExtendData("");
-            pushMarketingUserTaskInfoDTO.setScoreName(dto.getProductName());
-            pushMarketingUserTaskInfoDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
-            pushMarketingUserTaskInfoDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
-            pushMarketingUserTaskInfoDTO.setSampleTotal(sn);
+            PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
+            extendDataDTO.setScoreName(dto.getProductName());
+            extendDataDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+            extendDataDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
+            extendDataDTO.setSampleTotal(sn);
+            pushMarketingUserTaskInfoDTO.setExtendData(JSON.toJSONString(extendDataDTO));
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
