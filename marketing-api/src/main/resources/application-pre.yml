@@ -62,3 +62,7 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
+api:
+  intelligentCustomerService:
+    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data

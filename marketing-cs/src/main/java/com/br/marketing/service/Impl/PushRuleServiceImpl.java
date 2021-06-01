@@ -139,11 +139,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setUpdateTime(date);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
-        dto.getBatchNumberList().forEach(t->{
+        marketingStrategyProducts.forEach(t->{
             CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
             customerInfoPushBatch.setmId(customerInfoPushMain.getId());
             customerInfoPushBatch.setmApiCode(dto.getApiCode());
-            customerInfoPushBatch.setmBatchNumber(t);
+            customerInfoPushBatch.setmBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
