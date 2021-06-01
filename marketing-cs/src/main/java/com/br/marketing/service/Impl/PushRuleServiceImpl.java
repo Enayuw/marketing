@@ -109,6 +109,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(scoreDvalue<0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
         }
+
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
@@ -120,6 +121,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(total<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
+
         //endregion
 
         //region insert db
@@ -149,8 +151,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region push Intelligent Customer Service
-        //调用es查询接口
 
+        //调用es查询接口
         Integer minTop = dto.getMinTop();
         int startPage_yushu = minTop % 10000;
         Integer startPage = minTop/10000+(startPage_yushu >0?1:0);
@@ -176,17 +178,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             String sn = String.valueOf(i);
             queryBaseBean.setSearchAfter(searchAfterStr);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             for (int k = 0; k < marketingHistories.size(); k++) {
                 MarketingHistory marketingHistory = marketingHistories.get(k);
+
+                //人员信息 todo 人员的案件编号需要变更 客户案件编号_客户上传批次号_时间戳
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
                 dto1.setCaseNumber(customerInfoPushMain.getId().toString()+"_"+ marketingHistory.getSwiftNumber());
                 dto1.setPhone(marketingHistory.getCell());
-//                dto1.setVariables("");
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
                         && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
-                PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
 
+                //人员的变量信息
+                PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
                 pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(marketingHistory.getRequestTime(),"yyyy-MM-dd")));
                 pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
                 pushMarketingUserDetailVariablesDTO.setUpload("");
@@ -196,6 +201,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
             }
+
+            //推送任务基础信息
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
             pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
@@ -209,6 +216,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
+            //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(dto.getApiCode());
             pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
@@ -216,6 +224,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());});
         }
+
         List<Future<Result>>  futures = null;
         try {
             futures = threadPoolExecutor.invokeAll(listCall);
