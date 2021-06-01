@@ -183,9 +183,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (int k = 0; k < marketingHistories.size(); k++) {
                 MarketingHistory marketingHistory = marketingHistories.get(k);
 
-                //人员信息 todo 人员的案件编号需要变更 客户案件编号_客户上传批次号_时间戳
+                //人员信息
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
-                dto1.setCaseNumber(customerInfoPushMain.getId().toString()+"_"+ marketingHistory.getSwiftNumber());
+                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
                         && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
