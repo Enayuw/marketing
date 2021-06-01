@@ -57,7 +57,6 @@ public class IntelligentCustomerServiceClient {
             log.setCode(jsonObject.getString("code"));
             if("000000".equals(jsonObject.getString("code"))){
                 result.setCode(ResultCode.SUCCESS.getValue());
-                log.setRealStauts(2);
             }else{
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
