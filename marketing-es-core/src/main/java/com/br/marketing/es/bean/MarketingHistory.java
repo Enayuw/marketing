@@ -48,17 +48,22 @@ public class MarketingHistory implements Serializable {
     @JSONField(name = "request_time", format = "yyyy-MM-dd")
     private Date requestTime;
     /**
-     * 批次号
+     * 内部批次号
      */
     @JSONField(name = "batch_number")
     private String batchNumber;
+    /**
+     * 客户样本上传的批次号
+     */
+    @JSONField(name = "cus_batch_number")
+    private String cusBatchNumber;
     /**
      * 流水号
      */
     @JSONField(name = "swift_number")
     private String swiftNumber;
     /**
-     * 客戶编号
+     * 案件编号
      */
     @JSONField(name = "cus_num")
     private String cusNum;
