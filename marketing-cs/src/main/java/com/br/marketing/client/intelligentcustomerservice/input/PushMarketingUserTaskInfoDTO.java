@@ -40,7 +40,7 @@ public class PushMarketingUserTaskInfoDTO implements Serializable {
     /**
      *数据集属性自定义字段
      */
-    private String extendData;
+    private PushMarketingExtendDataDTO extendData;
 
     /**
      *外呼数据

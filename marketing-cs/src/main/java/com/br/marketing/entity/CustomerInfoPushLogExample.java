@@ -295,6 +295,76 @@ public class CustomerInfoPushLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andParamIsNull() {
+            addCriterion("param is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamIsNotNull() {
+            addCriterion("param is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamEqualTo(String value) {
+            addCriterion("param =", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamNotEqualTo(String value) {
+            addCriterion("param <>", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamGreaterThan(String value) {
+            addCriterion("param >", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamGreaterThanOrEqualTo(String value) {
+            addCriterion("param >=", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamLessThan(String value) {
+            addCriterion("param <", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamLessThanOrEqualTo(String value) {
+            addCriterion("param <=", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamLike(String value) {
+            addCriterion("param like", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamNotLike(String value) {
+            addCriterion("param not like", value, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamIn(List<String> values) {
+            addCriterion("param in", values, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamNotIn(List<String> values) {
+            addCriterion("param not in", values, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamBetween(String value1, String value2) {
+            addCriterion("param between", value1, value2, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andParamNotBetween(String value1, String value2) {
+            addCriterion("param not between", value1, value2, "param");
+            return (Criteria) this;
+        }
+
         public Criteria andResultContentIsNull() {
             addCriterion("result_content is null");
             return (Criteria) this;
@@ -645,52 +715,62 @@ public class CustomerInfoPushLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsEqualTo(Integer value) {
+        public Criteria andRealStautsEqualTo(String value) {
             addCriterion("real_stauts =", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsNotEqualTo(Integer value) {
+        public Criteria andRealStautsNotEqualTo(String value) {
             addCriterion("real_stauts <>", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsGreaterThan(Integer value) {
+        public Criteria andRealStautsGreaterThan(String value) {
             addCriterion("real_stauts >", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsGreaterThanOrEqualTo(Integer value) {
+        public Criteria andRealStautsGreaterThanOrEqualTo(String value) {
             addCriterion("real_stauts >=", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsLessThan(Integer value) {
+        public Criteria andRealStautsLessThan(String value) {
             addCriterion("real_stauts <", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsLessThanOrEqualTo(Integer value) {
+        public Criteria andRealStautsLessThanOrEqualTo(String value) {
             addCriterion("real_stauts <=", value, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsIn(List<Integer> values) {
+        public Criteria andRealStautsLike(String value) {
+            addCriterion("real_stauts like", value, "realStauts");
+            return (Criteria) this;
+        }
+
+        public Criteria andRealStautsNotLike(String value) {
+            addCriterion("real_stauts not like", value, "realStauts");
+            return (Criteria) this;
+        }
+
+        public Criteria andRealStautsIn(List<String> values) {
             addCriterion("real_stauts in", values, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsNotIn(List<Integer> values) {
+        public Criteria andRealStautsNotIn(List<String> values) {
             addCriterion("real_stauts not in", values, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsBetween(Integer value1, Integer value2) {
+        public Criteria andRealStautsBetween(String value1, String value2) {
             addCriterion("real_stauts between", value1, value2, "realStauts");
             return (Criteria) this;
         }
 
-        public Criteria andRealStautsNotBetween(Integer value1, Integer value2) {
+        public Criteria andRealStautsNotBetween(String value1, String value2) {
             addCriterion("real_stauts not between", value1, value2, "realStauts");
             return (Criteria) this;
         }

@@ -21,19 +21,23 @@ public class ConsumerService {
     public <T>void consumerRun(Channel channel, Message message, Function<T,Result<Boolean>> method,T t,String retry_routeKey){
         Result<Boolean> apply = method.apply(t);
         try {
-        if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
-            if(!apply.getData()) {
+            /**
+             * code 为SUCCESS 认为消费成功
+             *      根据返回结果来判断是否需要重新推送队列 false-不需要；true需要
+             * code 为False 任务消费失败，重推队列
+             */
+            if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-            }else{
-                if(!StringUtils.isBlank(retry_routeKey)){
-                  producter.send(retry_routeKey,message.getBody());
-                }else{
-                  producter.send(message.getMessageProperties().getReceivedRoutingKey(),message);
+                if(apply.getData()){
+                    if(!StringUtils.isBlank(retry_routeKey)){
+                      producter.send(retry_routeKey,new String(message.getBody()));
+                    }else{
+                      producter.send(message.getMessageProperties().getReceivedRoutingKey(),new String(message.getBody()));
+                    }
                 }
+            }else{
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,true);
             }
-        }else{
-                channel.basicAck(message.getMessageProperties().getDeliveryTag(),true);
-        }
         } catch (IOException e) {
             e.printStackTrace();
         }

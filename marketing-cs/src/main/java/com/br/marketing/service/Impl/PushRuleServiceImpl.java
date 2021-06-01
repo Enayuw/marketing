@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.entity.*;
@@ -186,13 +187,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                         && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
                 PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
 
-                pushMarketingUserDetailVariablesDTO.setScoreDate(customerInfoPushMain.getmModel());
+                pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(marketingHistory.getRequestTime(),"yyyy-MM-dd")));
                 pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
                 pushMarketingUserDetailVariablesDTO.setUpload("");
                 if(first.isPresent()){
                     pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
-                dto1.setVariables(JSON.toJSONString(pushMarketingUserDetailVariablesDTO));
+                dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
             }
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
@@ -205,15 +206,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             extendDataDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
             extendDataDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
             extendDataDTO.setSampleTotal(sn);
-            pushMarketingUserTaskInfoDTO.setExtendData(JSON.toJSONString(extendDataDTO));
+            pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(dto.getApiCode());
             pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
-            pushMarketingUserDTO.setJsonData(JSON.toJSONString(pushMarketingUserTaskInfoDTO));
+            pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
-            return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());
+            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());});
         }
         List<Future<Result>>  futures = null;
         try {
@@ -259,7 +260,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region push mq
-        producter.send("Marketing.Push.CustomerService",customerInfoPushMain.getId());
+        producter.send("Marketing.Push.CustomerService",customerInfoPushMain.getId().toString());
         //endregion
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
@@ -271,7 +272,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushMain main = customerInfoPushMainMapper.selectByPrimaryKey(mId);
 
         CustomerInfoPushLogExample logExample = new CustomerInfoPushLogExample();
-        logExample.createCriteria().andMIdEqualTo(mId).andRealStautsIn(Arrays.asList(StatusConstants.CustomerService_query,StatusConstants.CustomerService_updateing));
+        logExample.createCriteria().andMIdEqualTo(mId).andRealStautsIn(Arrays.asList("1","900013"));
         List<CustomerInfoPushLog> customerInfoPushLogs = customerInfoPushLogMapper.selectByExample(logExample);
         Boolean isContinue = false;
         for (CustomerInfoPushLog t : customerInfoPushLogs) {
@@ -281,26 +282,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("method","uploadResult");
             jsonObject.put("accessNumber",t.getBatch());
-            pushMarketingUserDTO.setJsonData(jsonObject.toJSONString());
-            Result userStatus = intelligentCustomerServiceClient.getUserStatus(pushMarketingUserDTO);
+            pushMarketingUserDTO.setJsonData(jsonObject);
+            Result<String> userStatus = intelligentCustomerServiceClient.getUserStatus(pushMarketingUserDTO);
             if(ResultCode.SUCCESS.getValue().equals(userStatus.getCode())){
                 CustomerInfoPushLog updateLog = new CustomerInfoPushLog();
                 updateLog.setId(t.getId());
-                if("UPLOAD".equals(userStatus.getData())){
-                    updateLog.setRealStauts(StatusConstants.CustomerService_success);
-                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
-                }else if("RUNING".equals(userStatus.getData())){
-                    updateLog.setRealStauts(StatusConstants.CustomerService_updateing);
-                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
+                if("900013".equals(userStatus.getData())){
                     isContinue=true;
-                }else if("ERROR".equals(userStatus.getData())){
-                    updateLog.setRealStauts(StatusConstants.CustomerService_error);
-                    customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
                 }
+                updateLog.setRealStauts(userStatus.getData());
+                customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
             }else{
                 isContinue = true;
             }
         }
-        return new Result<Boolean>().setDate(isContinue);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
 }

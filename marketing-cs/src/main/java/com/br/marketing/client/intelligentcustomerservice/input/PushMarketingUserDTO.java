@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class PushMarketingUserDTO  implements Serializable {
+public class PushMarketingUserDTO<T>  implements Serializable {
 
     /**
      *客户的apicode
@@ -20,5 +20,5 @@ public class PushMarketingUserDTO  implements Serializable {
     /**
      * 请求数据
      */
-    private String jsonData;
+    private T jsonData;
 }

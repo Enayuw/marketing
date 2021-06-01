@@ -66,10 +66,9 @@ public class PushRuleFilterController {
     @ApiOperation(value = "测试rabbit")
     @PostMapping("/testRabbitProduct")
     public String testRabbitProduct(){
-        String[] strings = {"hehe", "haha", "haiahi"};
-        for (String string : strings) {
-            producter.send(string,string);
-        }
+        producter.send("hehe","还有谁");
+//        producter.send("hehe",12L);
+//        producter.send("hehe",String.valueOf(12L));
         return "true";
     }
 

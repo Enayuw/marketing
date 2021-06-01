@@ -10,6 +10,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
 public class ConsumerApp {
 
@@ -28,6 +30,15 @@ public class ConsumerApp {
     public void consumer_UserStatus(Channel channel, Message message){
         Long o = JSON.parseObject(new String(message.getBody()), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search");
+        consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search.Delay");
+    }
+
+//    @RabbitListener(queues = "Marketing_Push_CustomerService_Search")
+    public void consumer_removeMessage(Channel channel, Message message){
+        try {
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

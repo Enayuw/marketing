@@ -20,7 +20,7 @@ public class PushMarketingUserDetailDTO implements Serializable {
     /**
      *变量JSON
      */
-    private String variables;
+    private PushMarketingUserDetailVariablesDTO variables;
 
 
 

@@ -5,15 +5,13 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="m_id" property="mId" jdbcType="BIGINT" />
     <result column="batch" property="batch" jdbcType="VARCHAR" />
+    <result column="param" property="param" jdbcType="VARCHAR" />
     <result column="result_content" property="resultContent" jdbcType="VARCHAR" />
     <result column="http_status" property="httpStatus" jdbcType="VARCHAR" />
     <result column="code" property="code" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="error_content" property="errorContent" jdbcType="VARCHAR" />
-    <result column="real_stauts" property="realStauts" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.CustomerInfoPushLog" extends="BaseResultMap" >
-    <result column="param" property="param" jdbcType="LONGVARCHAR" />
+    <result column="real_stauts" property="realStauts" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,27 +72,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, m_id, batch, result_content, http_status, code, create_time, error_content, real_stauts
+    id, m_id, batch, param, result_content, http_status, code, create_time, error_content, 
+    real_stauts
   </sql>
-  <sql id="Blob_Column_List" >
-    param
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.CustomerInfoPushLogExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_customer_info_push_log
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushLogExample" >
     select
     <if test="distinct" >
@@ -109,11 +89,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_customer_info_push_log
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -131,13 +109,13 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_customer_info_push_log (m_id, batch, result_content, 
-      http_status, code, create_time, 
-      error_content, real_stauts, param
+    insert into b_customer_info_push_log (m_id, batch, param, 
+      result_content, http_status, code, 
+      create_time, error_content, real_stauts
       )
-    values (#{mId,jdbcType=BIGINT}, #{batch,jdbcType=VARCHAR}, #{resultContent,jdbcType=VARCHAR}, 
-      #{httpStatus,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{errorContent,jdbcType=VARCHAR}, #{realStauts,jdbcType=INTEGER}, #{param,jdbcType=LONGVARCHAR}
+    values (#{mId,jdbcType=BIGINT}, #{batch,jdbcType=VARCHAR}, #{param,jdbcType=VARCHAR}, 
+      #{resultContent,jdbcType=VARCHAR}, #{httpStatus,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{errorContent,jdbcType=VARCHAR}, #{realStauts,jdbcType=VARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
@@ -151,6 +129,9 @@
       </if>
       <if test="batch != null" >
         batch,
+      </if>
+      <if test="param != null" >
+        param,
       </if>
       <if test="resultContent != null" >
         result_content,
@@ -170,9 +151,6 @@
       <if test="realStauts != null" >
         real_stauts,
       </if>
-      <if test="param != null" >
-        param,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="mId != null" >
@@ -180,6 +158,9 @@
       </if>
       <if test="batch != null" >
         #{batch,jdbcType=VARCHAR},
+      </if>
+      <if test="param != null" >
+        #{param,jdbcType=VARCHAR},
       </if>
       <if test="resultContent != null" >
         #{resultContent,jdbcType=VARCHAR},
@@ -197,10 +178,7 @@
         #{errorContent,jdbcType=VARCHAR},
       </if>
       <if test="realStauts != null" >
-        #{realStauts,jdbcType=INTEGER},
-      </if>
-      <if test="param != null" >
-        #{param,jdbcType=LONGVARCHAR},
+        #{realStauts,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -222,6 +200,9 @@
       <if test="record.batch != null" >
         batch = #{record.batch,jdbcType=VARCHAR},
       </if>
+      <if test="record.param != null" >
+        param = #{record.param,jdbcType=VARCHAR},
+      </if>
       <if test="record.resultContent != null" >
         result_content = #{record.resultContent,jdbcType=VARCHAR},
       </if>
@@ -238,28 +219,9 @@
         error_content = #{record.errorContent,jdbcType=VARCHAR},
       </if>
       <if test="record.realStauts != null" >
-        real_stauts = #{record.realStauts,jdbcType=INTEGER},
-      </if>
-      <if test="record.param != null" >
-        param = #{record.param,jdbcType=LONGVARCHAR},
+        real_stauts = #{record.realStauts,jdbcType=VARCHAR},
       </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_customer_info_push_log
-    set id = #{record.id,jdbcType=BIGINT},
-      m_id = #{record.mId,jdbcType=BIGINT},
-      batch = #{record.batch,jdbcType=VARCHAR},
-      result_content = #{record.resultContent,jdbcType=VARCHAR},
-      http_status = #{record.httpStatus,jdbcType=VARCHAR},
-      code = #{record.code,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      error_content = #{record.errorContent,jdbcType=VARCHAR},
-      real_stauts = #{record.realStauts,jdbcType=INTEGER},
-      param = #{record.param,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -269,12 +231,13 @@
     set id = #{record.id,jdbcType=BIGINT},
       m_id = #{record.mId,jdbcType=BIGINT},
       batch = #{record.batch,jdbcType=VARCHAR},
+      param = #{record.param,jdbcType=VARCHAR},
       result_content = #{record.resultContent,jdbcType=VARCHAR},
       http_status = #{record.httpStatus,jdbcType=VARCHAR},
       code = #{record.code,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       error_content = #{record.errorContent,jdbcType=VARCHAR},
-      real_stauts = #{record.realStauts,jdbcType=INTEGER}
+      real_stauts = #{record.realStauts,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -287,6 +250,9 @@
       </if>
       <if test="batch != null" >
         batch = #{batch,jdbcType=VARCHAR},
+      </if>
+      <if test="param != null" >
+        param = #{param,jdbcType=VARCHAR},
       </if>
       <if test="resultContent != null" >
         result_content = #{resultContent,jdbcType=VARCHAR},
@@ -304,37 +270,22 @@
         error_content = #{errorContent,jdbcType=VARCHAR},
       </if>
       <if test="realStauts != null" >
-        real_stauts = #{realStauts,jdbcType=INTEGER},
-      </if>
-      <if test="param != null" >
-        param = #{param,jdbcType=LONGVARCHAR},
+        real_stauts = #{realStauts,jdbcType=VARCHAR},
       </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
-    update b_customer_info_push_log
-    set m_id = #{mId,jdbcType=BIGINT},
-      batch = #{batch,jdbcType=VARCHAR},
-      result_content = #{resultContent,jdbcType=VARCHAR},
-      http_status = #{httpStatus,jdbcType=VARCHAR},
-      code = #{code,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      error_content = #{errorContent,jdbcType=VARCHAR},
-      real_stauts = #{realStauts,jdbcType=INTEGER},
-      param = #{param,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
     update b_customer_info_push_log
     set m_id = #{mId,jdbcType=BIGINT},
       batch = #{batch,jdbcType=VARCHAR},
+      param = #{param,jdbcType=VARCHAR},
       result_content = #{resultContent,jdbcType=VARCHAR},
       http_status = #{httpStatus,jdbcType=VARCHAR},
       code = #{code,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       error_content = #{errorContent,jdbcType=VARCHAR},
-      real_stauts = #{realStauts,jdbcType=INTEGER}
+      real_stauts = #{realStauts,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

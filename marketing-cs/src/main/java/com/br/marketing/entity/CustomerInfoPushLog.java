@@ -19,6 +19,11 @@ public class CustomerInfoPushLog {
     private String batch;
 
     /**
+     * 请求参数
+     */
+    private String param;
+
+    /**
      * 结果值
      */
     private String resultContent;
@@ -44,14 +49,9 @@ public class CustomerInfoPushLog {
     private String errorContent;
 
     /**
-     * 1-不需查询；2-需要去查询；3-更新中；4-已入库；5-失败入库；
+     * 00-成功，900001-程序错误，900002-公司不存在，900006-请求参数错误，900007-测试条数受限,900009-超出最大上传数量,900013-数据正在导入,900015-数据导入全部失败,900016-案件导入失败（部分成功部分失败）,900031-请求重复
      */
-    private Integer realStauts;
-
-    /**
-     * 
-     */
-    private String param;
+    private String realStauts;
 
     public Long getId() {
         return id;
@@ -75,6 +75,14 @@ public class CustomerInfoPushLog {
 
     public void setBatch(String batch) {
         this.batch = batch == null ? null : batch.trim();
+    }
+
+    public String getParam() {
+        return param;
+    }
+
+    public void setParam(String param) {
+        this.param = param == null ? null : param.trim();
     }
 
     public String getResultContent() {
@@ -117,19 +125,11 @@ public class CustomerInfoPushLog {
         this.errorContent = errorContent == null ? null : errorContent.trim();
     }
 
-    public Integer getRealStauts() {
+    public String getRealStauts() {
         return realStauts;
     }
 
-    public void setRealStauts(Integer realStauts) {
-        this.realStauts = realStauts;
-    }
-
-    public String getParam() {
-        return param;
-    }
-
-    public void setParam(String param) {
-        this.param = param == null ? null : param.trim();
+    public void setRealStauts(String realStauts) {
+        this.realStauts = realStauts == null ? null : realStauts.trim();
     }
 }
