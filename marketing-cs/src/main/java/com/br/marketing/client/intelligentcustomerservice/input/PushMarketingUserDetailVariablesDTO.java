@@ -24,5 +24,5 @@ public class PushMarketingUserDetailVariablesDTO implements Serializable {
     /**
      *上传日期
      */
-    private String upload;
+    private String update;
 }

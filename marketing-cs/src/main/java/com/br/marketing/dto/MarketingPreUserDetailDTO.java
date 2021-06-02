@@ -1,0 +1,29 @@
+package com.br.marketing.dto;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.validation.constraints.NotNull;
+
+@Data
+public class MarketingPreUserDetailDTO {
+    @ApiModelProperty(value = "手机号")
+    @NotNull(message = "cell必传")
+    @NotEmpty(message = "cell必传")
+    private String cell;
+
+    @ApiModelProperty(value = "场景：促首登、促申完、促动之")
+    private String groupType;
+
+    @ApiModelProperty(value = "用户唯一编号，回调时用到")
+    @NotNull(message = "caseNum必传")
+    @NotEmpty(message = "caseNum必传")
+    private String caseNum;
+
+    @ApiModelProperty(value = "")
+    private String registerDate;
+
+    @ApiModelProperty(value = "业务保留字段")
+    private String reserveField;
+}

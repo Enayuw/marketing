@@ -3,8 +3,11 @@ import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.common.util.StringUtils;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
+import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.StatusConstants;
+import com.br.marketing.dto.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.Product;
@@ -19,11 +22,8 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.common.utils.net.ApiCaller;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
@@ -57,6 +57,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingStrategyProductMapper marketingStrategyProductMapper;
+
+    @Autowired
+    MarketingUserMapper marketingUserMapper;
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
@@ -185,6 +188,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
                 //人员信息
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
+//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
@@ -194,7 +198,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
                 pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(marketingHistory.getRequestTime(),"yyyy-MM-dd")));
                 pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
-                pushMarketingUserDetailVariablesDTO.setUpload("");
+                pushMarketingUserDetailVariablesDTO.setUpdate("");
                 if(first.isPresent()){
                     pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
@@ -306,5 +310,28 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    @Override
+    public Result insertMarketingPreUser(RequestCommonDTO<MarketingPreUserDTO> dto) {
+        //region check
+        if(!StringUtils.isNotBlank(dto.getApiCode())){
+            throw new ParamValidErrorException("apiCode必传");
+        }
+        if(dto.getJsonData() == null){
+            throw new ParamValidErrorException("jsonData必传");
+        }
+        if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
+            throw new ParamValidErrorException("taskid必传");
+        }
+        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCaseNum())
+                || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
+        if(checkJson){
+            throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+        }
+        //endregion
+        marketingUserMapper.insertBatchMarketingPreUser(dto.getApiCode(),dto.getJsonData().getTaskId()
+                ,DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"),dto.getJsonData().getDataItems());
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }

@@ -1,10 +1,7 @@
 package com.br.marketing.service;
 
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 
@@ -38,4 +35,6 @@ public interface PushRuleService {
      * @return
      */
     Result<Boolean> getCustomerStatus(Long mId);
+
+    Result insertMarketingPreUser(@Valid RequestCommonDTO<MarketingPreUserDTO> dto);
 }

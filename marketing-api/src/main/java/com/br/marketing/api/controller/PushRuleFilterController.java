@@ -1,4 +1,5 @@
 package com.br.marketing.api.controller;
+import java.util.Date;
 
 
 import com.br.marketing.common.commondto.Result;
@@ -7,6 +8,7 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -71,7 +74,6 @@ public class PushRuleFilterController {
 //        producter.send("hehe",String.valueOf(12L));
         return "true";
     }
-
 
 
 }

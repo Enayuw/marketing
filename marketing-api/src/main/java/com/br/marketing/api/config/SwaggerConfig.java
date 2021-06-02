@@ -21,14 +21,14 @@ import java.net.UnknownHostException;
 public class SwaggerConfig {
 
     @Value("${spring.profiles.active}")
-    String ProAction;
+    String proAction;
 
     @Bean
     public Docket apiConfig() {
         Docket docket = new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).select()
                 .apis(RequestHandlerSelectors.basePackage("com.br.marketing.api.controller"))
                 .paths(input -> {
-                    if (ProAction.toLowerCase().equals("prod")){
+                    if ("prod".equals(proAction.toLowerCase())){
                         return false;
                     }else{
                         return true;

@@ -27,14 +27,14 @@ public class ConsumerApp {
      * @param message
      */
     @RabbitListener(queues = "Marketing_Push_CustomerService_Search")
-    public void consumer_UserStatus(Channel channel, Message message){
+    public void consumerUserStatus(Channel channel, Message message){
         Long o = JSON.parseObject(new String(message.getBody()), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search.Delay");
     }
 
 //    @RabbitListener(queues = "Marketing_Push_CustomerService_Search")
-    public void consumer_removeMessage(Channel channel, Message message){
+    public void consumerRemoveMessage(Channel channel, Message message){
         try {
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
         } catch (IOException e) {
