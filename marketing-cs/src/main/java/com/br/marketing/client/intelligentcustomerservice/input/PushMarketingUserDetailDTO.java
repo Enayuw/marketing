@@ -7,6 +7,8 @@ import java.io.Serializable;
 @Data
 public class PushMarketingUserDetailDTO implements Serializable {
 
+    public static final long serialVersionUID = 1L;
+
     /**
      * 案件编号
      */

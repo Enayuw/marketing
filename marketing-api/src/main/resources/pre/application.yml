@@ -39,7 +39,7 @@ eureka:
     preferIpAddress: true
     status-page-url-path: /health
     #服务初始化状态 枚举值如：UP、DOWN、STARTING、OUT_OF_SERVICE、UNKNOWN，不设置默认为UP
-    initial-status: OUT_OF_SERVICE
+    initial-status: UP
   client:
     registerWithEureka: true
     fetchRegistry: true

@@ -7,6 +7,8 @@ import java.io.Serializable;
 @Data
 public class PushMarketingUserDTO<T>  implements Serializable {
 
+    public static final long serialVersionUID = 1L;
+
     /**
      *客户的apicode
      */

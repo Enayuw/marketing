@@ -42,19 +42,12 @@ public class ValidatorThread implements Callable<String>{
         if(!errorPathFile.exists()){
             errorPathFile.mkdirs();
         }
-        Writer fw=null;
-        Writer errorfw =null;
-        try{
-            File decodeFile = new File(resultPath+currentNum+".txt");
-             fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(decodeFile), "UTF-8"));
 
-            File file1 = new File(errorPath+"error_"+currentNum+".txt");
-             errorfw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file1), "UTF-8"));
+        File decodeFile = new File(resultPath+currentNum+".txt");
+        File file1 = new File(errorPath+"error_"+currentNum+".txt");
 
+        try(Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile), "UTF-8"));
+            Writer errorfw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file1), "UTF-8"));){
             for(String row:dataList){
                    StringBuilder sb=new StringBuilder();
                    boolean flag=false;
@@ -68,13 +61,6 @@ public class ValidatorThread implements Callable<String>{
             }
         }catch (Exception e){
             log.error("数据校验出错--{}",e);
-        }finally {
-            if(fw!=null){
-                fw.close();
-            }
-           if(errorfw!=null){
-               errorfw.close();
-           }
         }
         return null;
     }

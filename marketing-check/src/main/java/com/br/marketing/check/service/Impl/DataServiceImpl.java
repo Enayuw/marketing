@@ -137,22 +137,18 @@ public class DataServiceImpl implements DataService {
 
     private void filterData(String filePath, String zipFileName,JSONArray tcArray,String apiCode,String batchNumber,ExecutorService filterExecutor) {
         //log.info("filterData--{},{},{},{},{]",file_path,zipFile_name,tc_array,api_code,batch_number);
-        FileReader read=null;
-        BufferedReader br=null;
-        try{
-            if(StringUtils.isEmpty(zipFileName)){
-                log.error("zipFile_name为空--{}",zipFileName);
-                return;
-            }
-            String txtFileName=zipFileName.substring(0,zipFileName.lastIndexOf("."))+".txt";
-            File file=new File(filePath+"/"+txtFileName);
-            if(!file.exists()){
-                log.error("结果文件不存在--{}",filePath+"/"+txtFileName);
-                return;
-            }
-
-            read = new FileReader(filePath+"/"+txtFileName);
-            br = new BufferedReader(read);
+        if(StringUtils.isEmpty(zipFileName)){
+            log.error("zipFile_name为空--{}",zipFileName);
+            return;
+        }
+        String txtFileName=zipFileName.substring(0,zipFileName.lastIndexOf("."))+".txt";
+        File file=new File(filePath+"/"+txtFileName);
+        if(!file.exists()){
+            log.error("结果文件不存在--{}",filePath+"/"+txtFileName);
+            return;
+        }
+        try(FileReader read = new FileReader(filePath+"/"+txtFileName);
+            BufferedReader br = new BufferedReader(read)){
             int rownum = 0;
             int fileNo = 1;
             String row="";
@@ -187,21 +183,6 @@ public class DataServiceImpl implements DataService {
             read.close();
         }catch (Exception e){
             log.error("剔除数据出错--{}",e);
-        }finally {
-            if(br!=null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    log.error("br.close()异常",e);
-                }
-            }
-            if(read!=null){
-                try {
-                    read.close();
-                } catch (IOException e) {
-                    log.error("read.close()异常",e);
-                }
-            }
         }
     }
 }

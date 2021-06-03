@@ -6,6 +6,9 @@ import java.io.Serializable;
 
 @Data
 public class PushMarketingExtendDataDTO implements Serializable {
+
+    public static final long serialVersionUID = 1;
+
     /**
      *模型英文名称
      */

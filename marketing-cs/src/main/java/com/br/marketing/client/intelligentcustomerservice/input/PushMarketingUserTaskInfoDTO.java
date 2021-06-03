@@ -7,6 +7,9 @@ import java.util.List;
 
 @Data
 public class PushMarketingUserTaskInfoDTO implements Serializable {
+
+    public static final long serialVersionUID = 1L;
+
     /**
      * 请求类型固定值
      */

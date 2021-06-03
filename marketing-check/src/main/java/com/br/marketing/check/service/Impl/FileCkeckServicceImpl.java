@@ -51,10 +51,6 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
         String apiCode=split[0];
         long l = System.currentTimeMillis();
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
-        Writer fw=null;
-        Writer errorfw =null;
-        FileReader read=null;
-        BufferedReader br=null;
         MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
         String resultPath=path+"/result/";
         String errorPath=path+"/error/";
@@ -77,19 +73,12 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
                 errorFileName=split[0]+"_"+split[1]+"_"+"error_"+split[2];
             }
         }
-        try {
-            File decodeFile = new File(resultPath + Constants.FILE_DATA_RESULT);
-            fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(decodeFile), "UTF-8"));
-
-            File file1 = new File(errorPath +errorFileName);
-            errorfw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file1), "UTF-8"));
-            read = new FileReader(path+filename);
-            br = new BufferedReader(read);
-
+        File decodeFile = new File(resultPath + Constants.FILE_DATA_RESULT);
+        File file1 = new File(errorPath +errorFileName);
+        try(BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile), "UTF-8"));
+        BufferedWriter errorfw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file1), "UTF-8"));
+        FileReader read = new FileReader(path+filename);
+        BufferedReader br = new BufferedReader(read)) {
             String row;
             String head="";
             while ((row = br.readLine()) != null) {
@@ -132,20 +121,6 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
 
         }catch (Exception e){
             log.error("checkSmallFile error",e);
-        }finally {
-            try {
-                if(fw!=null){
-                    fw.close();
-                }
-               if(errorfw!=null){
-                   errorfw.close();
-               }
-                if(br!=null){
-                    br.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         log.warn("cost time :{}",System.currentTimeMillis()-l);
         return true;
@@ -157,16 +132,14 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(20,20);
         String[] split = filename.split("_");
         String apiCode=split[0];
-        FileReader read=null;
-        BufferedReader br=null;
 
-        try {
-            File file=new File(path+"/"+filename);
-            if(!file.exists()){
-                return false;
-            }
-            read = new FileReader(path+filename);
-            br = new BufferedReader(read);
+        File file=new File(path+"/"+filename);
+        if(!file.exists()){
+            return false;
+        }
+
+        try(FileReader read = new FileReader(path+filename);
+            BufferedReader br = new BufferedReader(read);) {
             int rownum = 0;
             int fileNo = 1;
             String head="";
@@ -195,20 +168,6 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
         }catch (Exception e){
             log.error("check file fail --{}",e);
             return false;
-        }finally {
-            if(br!=null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                }
-            }
-            if(read!=null){
-                try {
-                    read.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
 
         /**

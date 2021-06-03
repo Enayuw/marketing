@@ -1,7 +1,9 @@
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.entity.ProInSys;
@@ -19,7 +21,7 @@ import java.util.concurrent.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-//@SpringBootTest(classes = MarketingApiApplication.class)
+@SpringBootTest(classes = MarketingApiApplication.class)
 public class redis {
 
 //    @Resource
@@ -44,6 +46,16 @@ public class redis {
 //        }
 //        System.out.println(array);
 //    }
+
+    @Test
+    public void serTest(){
+        PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
+        pushMarketingUserDetailVariablesDTO.setScore("123");
+        pushMarketingUserDetailVariablesDTO.setScoreDate("123");
+        pushMarketingUserDetailVariablesDTO.setScoreName("123");
+        pushMarketingUserDetailVariablesDTO.setUpdate("123");
+        System.out.println(JSON.toJSONString(pushMarketingUserDetailVariablesDTO));
+    }
 
     @Test
     public void testConcurrent(){
