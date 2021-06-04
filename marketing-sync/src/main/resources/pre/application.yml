@@ -1,8 +1,8 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: loan-warning-sync
-  profiles.active: dev
+    name: marketing-sync
+  profiles.active: pre
   aop:
    proxy-target-class: true
    auto: true

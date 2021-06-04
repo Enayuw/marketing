@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>marketing-sync</artifactId>
-    <description>存量监控文件同步</description>
+    <description>营销平台文件同步</description>
     <dependencies>
         <!--spring-start-->
         <dependency>
@@ -96,16 +96,6 @@
                     <include>**/*.properties</include>
                 </includes>
             </resource>
-<!--            <resource>-->
-<!--                <targetPath>${project.build.directory}/classes</targetPath>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <filtering>false</filtering>-->
-<!--                <includes>-->
-<!--                    <include>**/*.yml</include>-->
-<!--                    <include>**/*.xml</include>-->
-<!--                    <include>**/*.properties</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
         </resources>
         <plugins>
             <plugin>
@@ -126,70 +116,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <!--<build>
-        <finalName>loan-warning-sync</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>1.2.7.RELEASE</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/spring.handlers</resource>
-                                </transformer>
-                                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
-                                    <resource>META-INF/spring.factories</resource>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/spring.schemas</resource>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>com.br.loan.warning.sync.SyncApplication</Main-Class>
-                                    </manifestEntries>
-                                </transformer>
-
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-        <defaultGoal>compile</defaultGoal>
-    </build>-->
 
 </project>
