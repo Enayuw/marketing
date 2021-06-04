@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class SftpToDbController {
     @Value("${otherConfig.warning.path:00}")
-    private String path;
+    private String warningPath;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -109,7 +109,7 @@ public class SftpToDbController {
                 continue;
             }
             String apiCode = merchantParam.getApiCode();
-            StringBuilder localFile=new StringBuilder(path)
+            StringBuilder localFile=new StringBuilder(warningPath)
                     .append("delete")
                     .append("/")
                     .append(apiCode)
@@ -241,7 +241,7 @@ public class SftpToDbController {
             String apiCode = merchantParam.getApiCode();
             String tableName="b_marketing_user_"+apiCode;
             marketingUserMapper.createUserTable(tableName);
-            StringBuilder localFile=new StringBuilder(path)
+            StringBuilder localFile=new StringBuilder(warningPath)
                     .append("ftp_data")
                     .append("/")
                     .append(apiCode)
@@ -373,7 +373,7 @@ public class SftpToDbController {
                                     sftpClient.rename(path+successFile,path+successFile+".bak");
                                     sftpClient.rename(path+fileName,path+fileName+".bak");
                                 } catch (Exception ex) {
-                                    log.error("rename file error ",e);
+                                    log.error("rename file error ",ex);
                                 }
                             }
                         }

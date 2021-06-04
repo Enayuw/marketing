@@ -565,6 +565,9 @@ public class SftpToDbServiceImpl  implements SftpToDbService {
                 try{
                     flag=isVaildMonitorStartTime(value,apiCode);
                 }catch (Exception e){
+                    if(log.isErrorEnabled()){
+                        log.error(e.getMessage(),e);
+                    }
                     flag=false;
                 }
                 break;
@@ -572,6 +575,9 @@ public class SftpToDbServiceImpl  implements SftpToDbService {
                 try{
                     flag=isVaildMonitorendTime(value1,value);
                 }catch (Exception e){
+                    if(log.isErrorEnabled()){
+                        log.error(e.getMessage(),e);
+                    }
                     flag=false;
                 }
                 break;

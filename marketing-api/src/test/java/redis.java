@@ -56,6 +56,13 @@ public class redis {
         pushMarketingUserDetailVariablesDTO.setScoreName("123");
         pushMarketingUserDetailVariablesDTO.setUpdate("123");
         System.out.println(JSON.toJSONString(pushMarketingUserDetailVariablesDTO));
+        List<String> strList = new ArrayList<>();
+        strList.add("123");
+        strList.add("456");
+        strList.add("789");
+        here: for (String s : strList) {
+
+        }
     }
 
     @Test

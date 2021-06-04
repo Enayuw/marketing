@@ -1,5 +1,6 @@
 package com.br.marketing.api.config;
 
+import com.br.marketing.api.aspect.ErrorControllerAspect;
 import com.br.marketing.common.utils.net.ApiCaller;
 import org.apache.http.HttpResponse;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
@@ -8,6 +9,8 @@ import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -28,10 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 托给容器管理的对象
+ */
 @Component
 public class AppConfig {
 
 
+    private static final Logger log = LoggerFactory.getLogger(AppConfig.class);
 
 //    @Bean
 //    @Scope(proxyMode= ScopedProxyMode.TARGET_CLASS,value = "prototype")
@@ -71,7 +78,9 @@ public class AppConfig {
                 try {
                     client.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    if(log.isErrorEnabled()){
+                        log.error(e.getMessage(),e);
+                    }
                 }
             }
         });
@@ -86,6 +95,10 @@ public class AppConfig {
         return clientHttpRequestFactory;
     }
 
+    /**
+     * RestTemplate的单例
+     * @return
+     */
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();

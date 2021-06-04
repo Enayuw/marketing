@@ -3,6 +3,8 @@ package com.br.marketing.api.config;
 
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,18 +18,27 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+/**
+ * swagger配置
+ */
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SwaggerConfig.class);
+
     @Value("${spring.profiles.active}")
     String proAction;
 
+    /**
+     * 生成接口文档方法
+     * @return
+     */
     @Bean
     public Docket apiConfig() {
         Docket docket = new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).select()
                 .apis(RequestHandlerSelectors.basePackage("com.br.marketing.api.controller"))
-                .paths(input -> {
+                .paths((String input) -> {
                     if ("prod".equals(proAction.toLowerCase())){
                         return false;
                     }else{
@@ -46,6 +57,9 @@ public class SwaggerConfig {
         try {
             address = InetAddress.getLocalHost();
         } catch (UnknownHostException e) {
+            if(log.isErrorEnabled()){
+                log.error(e.getMessage(),e);
+            }
             e.printStackTrace();
         }
         if (address != null) {

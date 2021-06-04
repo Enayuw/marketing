@@ -4,6 +4,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
+/**
+ * webmvc的一些配置
+ */
 @Configuration
 public class WebConfig extends WebMvcConfigurationSupport {
     @Override

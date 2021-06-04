@@ -10,7 +10,9 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 
-
+/**
+ * 程序主类
+ */
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient
@@ -18,6 +20,10 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @MapperScan("com.br.marketing.mapper")
 public class MarketingApiApplication {
 
+    /**
+     * 启动入口
+     * @param args
+     */
     public static void main(String[] args) {
         SpringApplication.run(MarketingApiApplication.class, args);
     }

@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -37,4 +38,5 @@ public interface PushRuleService {
     Result<Boolean> getCustomerStatus(Long mId);
 
     Result insertMarketingPreUser(@Valid RequestCommonDTO<MarketingPreUserDTO> dto);
+
 }

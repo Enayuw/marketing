@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
@@ -328,6 +329,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
         if(checkJson){
             throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+        }
+        int size = dto.getJsonData().getDataItems().size();
+        if(size>2000){
+            throw new ParamValidErrorException("传输的数据不要超过2000条");
         }
         //endregion
         marketingUserMapper.insertBatchMarketingPreUser(dto.getApiCode(),dto.getJsonData().getTaskId()

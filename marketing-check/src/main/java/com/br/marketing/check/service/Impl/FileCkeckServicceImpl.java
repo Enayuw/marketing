@@ -116,6 +116,9 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
                 try {
                     Thread.sleep(3000);
                 }catch (Exception e){
+                    if(log.isErrorEnabled()) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
             }
 
@@ -182,6 +185,9 @@ public class FileCkeckServicceImpl implements FileCkeckServicce {
             try {
                 Thread.sleep(3000);
             }catch (Exception e){
+                if(log.isErrorEnabled()){
+                    log.error(e.getMessage(),e);
+                }
             }
         }
         log.info("cost time :{}",System.currentTimeMillis()-l);

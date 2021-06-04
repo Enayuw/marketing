@@ -128,6 +128,10 @@ public class DataServiceImpl implements DataService {
             try {
                 Thread.sleep(3000);
             }catch (Exception e){
+                if(log.isErrorEnabled()){
+                    log.error(e.getMessage(),e);
+                }
+                e.printStackTrace();
             }
         }
         return true;
@@ -141,7 +145,7 @@ public class DataServiceImpl implements DataService {
             log.error("zipFile_name为空--{}",zipFileName);
             return;
         }
-        String txtFileName=zipFileName.substring(0,zipFileName.lastIndexOf("."))+".txt";
+        String txtFileName=zipFileName.substring(0,zipFileName.lastIndexOf('.'))+".txt";
         File file=new File(filePath+"/"+txtFileName);
         if(!file.exists()){
             log.error("结果文件不存在--{}",filePath+"/"+txtFileName);
