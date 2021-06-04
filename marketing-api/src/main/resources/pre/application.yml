@@ -20,6 +20,7 @@ spring:
 
 server:
   port: 18704
+  maxHttpPostSize: 20971520
 eureka:
   instance:
     appname: ${spring.application.name}
