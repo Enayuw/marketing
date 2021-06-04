@@ -17,30 +17,30 @@ import java.util.UUID;
  */
 @Slf4j
 public class MomUtil {
-        public static void send_mom(String hxResult, JSONObject jsonData, RequestLog requestLog, String apiCode, String strategyId, String appSecretKey) {
+        public static void sendMom(String hxResult, JSONObject jsonData, RequestLog requestLog, String apiCode, String strategyId, String appSecretKey) {
             try {
                 JSONObject jsonObject = JSONObject.parseObject(hxResult);
                 if(jsonObject==null||jsonObject.isEmpty()){
                     return;
                 }
                 String swiftNumber = jsonObject.getString("swift_number").replace(Constants.PUBLIC_APICODE, apiCode);
-                JSONObject request_str = new JSONObject();
-                request_str.put("apiCode", apiCode);
-                request_str.put("strategyId", strategyId);
-                request_str.put("jsonData", jsonData);
+                JSONObject requestStr = new JSONObject();
+                requestStr.put("apiCode", apiCode);
+                requestStr.put("strategyId", strategyId);
+                requestStr.put("jsonData", jsonData);
 
-                JSONObject reponse_str = new JSONObject();
-                reponse_str.put("hxResult", jsonObject);
-                reponse_str.put("swift_number", swiftNumber);
-                reponse_str.put("code", jsonObject.getString("code"));
-                reponse_str.put("message", "00".equals(jsonObject.getString("code")) ? "成功" : "");
+                JSONObject reponseStr = new JSONObject();
+                reponseStr.put("hxResult", jsonObject);
+                reponseStr.put("swift_number", swiftNumber);
+                reponseStr.put("code", jsonObject.getString("code"));
+                reponseStr.put("message", "00".equals(jsonObject.getString("code")) ? "成功" : "");
 
 
                 requestLog.setApiCode(apiCode);
                 requestLog.setCode(jsonObject.getString("code"));
                 requestLog.setSwiftNumber(swiftNumber);
-                requestLog.setResponseStr(reponse_str.toString());
-                requestLog.setRequestStr(EncodeUtil.encode(request_str.toString(), "id,idCard,cell,name"));
+                requestLog.setResponseStr(reponseStr.toString());
+                requestLog.setRequestStr(EncodeUtil.encode(requestStr.toString(), "id,idCard,cell,name"));
                 requestLog.setCostTime(requestLog.getResponseTime().getTime() - requestLog.getRequestTime().getTime());
 
                 JSONObject paramJson = new JSONObject();

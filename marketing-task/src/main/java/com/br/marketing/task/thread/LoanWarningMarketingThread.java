@@ -171,7 +171,7 @@ public class LoanWarningMarketingThread implements Callable<String> {
                 s= HxUtil.getReport(apiCode,jsonData,meal,notSaveLog,url);
                 requestLog.setResponseTime(new Date());
                 if(!notSaveLog) {
-                    MomUtil.send_mom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                    MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
                 }
             }
             dealResult(s,writerMap,blu.getCusNum(),blu.getBatchNumber(),strategyJson,blu);

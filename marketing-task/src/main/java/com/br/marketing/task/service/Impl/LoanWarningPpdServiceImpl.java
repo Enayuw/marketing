@@ -215,17 +215,17 @@ public class LoanWarningPpdServiceImpl implements LoanWarningService {
 
         String secPath = path + "/all/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                 + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "/" + secStrategyId;
-        String stmt_key = "";
+        String stmtKey = "";
 //        if (blt.getSecStrategyId().split(":").length > 1) {
-//            stmt_key = blt.getSecStrategyId().split(":")[1];
+//            stmtKey = blt.getSecStrategyId().split(":")[1];
 //        }
         secJson.put("strategy", secStra);
         secJson.put("path", secPath);
-        secJson.put("stmt_key", stmt_key);
+        secJson.put("stmt_key", stmtKey);
         secJson.put("strategyId", secStrategyId);
 
         if (days % Constants.PPDFREQUENCY == 0) {
-            stmt_key = "";
+            stmtKey = "";
             String strategyId = blt.getStrategyId().split(":")[0];
             String firstStra = strategyCS.strategyIdCheck(blt.getApiCode(), strategyId);
             if (StringUtils.isEmpty(firstStra)) {
@@ -236,11 +236,11 @@ public class LoanWarningPpdServiceImpl implements LoanWarningService {
                     + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "/" + strategyId;
 
             if (blt.getStrategyId().split(":").length > 1) {
-                stmt_key = blt.getStrategyId().split(":")[1];
+                stmtKey = blt.getStrategyId().split(":")[1];
             }
             firstJson.put("strategy", firstStra);
             firstJson.put("path", firstPath);
-            firstJson.put("stmt_key", stmt_key);
+            firstJson.put("stmt_key", stmtKey);
             firstJson.put("strategyId", strategyId);
         }
     }

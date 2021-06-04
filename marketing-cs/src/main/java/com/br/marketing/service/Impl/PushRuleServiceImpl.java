@@ -157,13 +157,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //调用es查询接口
         Integer minTop = dto.getMinTop();
-        int startPage_yushu = minTop % 10000;
-        Integer startPage = minTop/10000+(startPage_yushu >0?1:0);
+        int startPageYushu = minTop % 10000;
+        Integer startPage = minTop/10000+(startPageYushu >0?1:0);
         String searchAfterStr = "";
         for (int i = 1; i <=startPage; i++) {
 
-            if(i==startPage&&startPage_yushu>0){
-                queryBaseBean.setPageSize(startPage_yushu);
+            if(i==startPage&&startPageYushu>0){
+                queryBaseBean.setPageSize(startPageYushu);
             }else {
                 queryBaseBean.setPageSize(10000);
             }
@@ -174,10 +174,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
             searchAfterStr = s;
         }
-        int total_yushu = total % 2000;
-        int total_page = total / 2000 + (total_yushu > 0 ? 1 : 0);
+        int totalYuShu = total % 2000;
+        int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
         List<Callable<Result>> listCall = new ArrayList<>();
-        for (int i = 1; i <= total_page; i++) {
+        for (int i = 1; i <= totalPage; i++) {
             String sn = String.valueOf(i);
             queryBaseBean.setSearchAfter(searchAfterStr);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
@@ -332,6 +332,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
         marketingUserMapper.insertBatchMarketingPreUser(dto.getApiCode(),dto.getJsonData().getTaskId()
                 ,DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"),dto.getJsonData().getDataItems());
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 }

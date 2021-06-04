@@ -108,8 +108,8 @@ public class EsUtil {
      * @return
      */
     public static boolean update(String index, Map object) throws IOException {
-        String _id = object.remove("_id").toString();
-        UpdateRequest updateRequest = new UpdateRequest(index, _id);
+        String id = object.remove("_id").toString();
+        UpdateRequest updateRequest = new UpdateRequest(index, id);
         updateRequest.doc(object);
         client.update(updateRequest, RequestOptions.DEFAULT);
         return true;
@@ -123,8 +123,8 @@ public class EsUtil {
      * @return
      */
     public static boolean updateRefreshPolicyImmediate(String index, Map object) throws IOException {
-        String _id = object.remove("_id").toString();
-        UpdateRequest updateRequest = new UpdateRequest(index, _id);
+        String id = object.remove("_id").toString();
+        UpdateRequest updateRequest = new UpdateRequest(index, id);
         //以WriteRequest.RefreshPolicy实例形式设置刷新策略,RefreshPolicy#IMMEDIATE-请求向ElasticSearch提交了数据，立即进行数据刷新，然后再结束请求。
         updateRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         updateRequest.doc(object);

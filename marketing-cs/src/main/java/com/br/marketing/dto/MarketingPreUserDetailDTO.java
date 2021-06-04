@@ -24,6 +24,9 @@ public class MarketingPreUserDetailDTO {
     @ApiModelProperty(value = "")
     private String registerDate;
 
-    @ApiModelProperty(value = "业务保留字段")
-    private String reserveField;
+    @ApiModelProperty(value = "业务保留字段1")
+    private String reserveField1;
+
+    @ApiModelProperty(value = "业务保留字段2")
+    private String reserveField2;
 }

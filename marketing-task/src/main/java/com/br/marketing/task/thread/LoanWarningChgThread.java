@@ -132,7 +132,7 @@ public class LoanWarningChgThread implements Callable<String> {
             String  s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
             requestLog.setResponseTime(new Date());
             if(!isIncr) {
-                MomUtil.send_mom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
             }
             dealResult(s, fw,noChgFw,blu.getCusNum(),blu.getBatchNumber(),strategyId,isIncr,blu);
         }

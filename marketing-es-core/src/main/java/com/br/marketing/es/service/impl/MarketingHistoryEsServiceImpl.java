@@ -105,7 +105,7 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 //根据批次号判断查询ES索引
                 Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
                 Map<String, Object> paramsCount = new HashMap<>();
-                esBuilder.MarketingWhereCount(paramsCount);
+                esBuilder.marketingWhereCount(paramsCount);
                 String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
                 //查询数量
                 int count = (int) EsUtil.selectByTemplateCount(indexArr, EsConstants.PAGE_TEMPLATE, paramsCount);

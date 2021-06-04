@@ -18,7 +18,7 @@ public class ConsumerService {
     @Autowired
     private RabbitMqProducter producter;
 
-    public <T>void consumerRun(Channel channel, Message message, Function<T,Result<Boolean>> method,T t,String retry_routeKey){
+    public <T>void consumerRun(Channel channel, Message message, Function<T,Result<Boolean>> method,T t,String retryRouteKey){
         Result<Boolean> apply = method.apply(t);
         try {
             /**
@@ -29,8 +29,8 @@ public class ConsumerService {
             if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
                 if(apply.getData()){
-                    if(!StringUtils.isBlank(retry_routeKey)){
-                      producter.send(retry_routeKey,new String(message.getBody()));
+                    if(!StringUtils.isBlank(retryRouteKey)){
+                      producter.send(retryRouteKey,new String(message.getBody()));
                     }else{
                       producter.send(message.getMessageProperties().getReceivedRoutingKey(),new String(message.getBody()));
                     }

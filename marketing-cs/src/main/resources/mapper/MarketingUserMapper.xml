@@ -272,7 +272,8 @@
 			`cell`,
 			`group_type`,
 			`register_date`,
-			`reserve_field`,
+			`reserve_field1`,
+			`reserve_field2`,
 			`create_time`,
 			`update_time`
 		)
@@ -286,10 +287,16 @@
 		   	<if test="data.registerDate == null">
 			   ,''
 		   	</if>
-		   <if test="data.reserveField != null">
-			   ,#{data.reserveField}
+		   <if test="data.reserveField1 != null">
+			   ,#{data.reserveField1}
 		   </if>
-		   <if test="data.reserveField == null">
+		   <if test="data.reserveField1 == null">
+			   ,''
+		   </if>
+		   <if test="data.reserveField2 != null">
+			   ,#{data.reserveField2}
+		   </if>
+		   <if test="data.reserveField2 == null">
 			   ,''
 		   </if>
 			,#{dateTime}

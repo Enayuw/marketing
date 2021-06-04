@@ -42,8 +42,8 @@ public class ChgResultUtil {
         /**
          * 添加特殊名单产品详情
          */
-            String speciallist_cFields = proFieldMap.get("SpecialList_c");
-            String[] split = speciallist_cFields.split(",");
+            String speciallistCFields = proFieldMap.get("SpecialList_c");
+            String[] split = speciallistCFields.split(",");
             for (int i=0;i<split.length;i++){
                 chgSb.append(resultJson.get(split[i])==null?"":resultJson.get(split[i]));
                 chgSb.append(Constants.sepMap.get(2));

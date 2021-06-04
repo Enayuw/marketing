@@ -5,6 +5,7 @@ import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.ThreeDes;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.entity.ProInSys;
 import org.junit.Test;
@@ -103,6 +104,12 @@ public class redis {
 
     }
 
+    @Test
+    public void encAnddec() throws Exception {
+        String s = ThreeDes.encryptByCbc("123", "abcddesds", "abcdefgh");
+        String abcddesds = ThreeDes.decryptByCbc(s, "abcddesds","hhhhtttt");
+        System.out.println(abcddesds);
+    }
 
 /*@Resource
     DecodeClient decodeClient;

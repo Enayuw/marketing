@@ -63,11 +63,11 @@ public class MarketingEsBuilder {
      * @param paramsCount
      * @return
      */
-    public void MarketingWhereCount(Map<String, Object> paramsCount) {
+    public void marketingWhereCount(Map<String, Object> paramsCount) {
         //返回结果，排序会根据产品值进行倒序排序，二次排序采用流水号
         paramsCount.put("source", JSON.toJSONString(Arrays.asList("_id".split(","))));
         //查询营销条件构建
-        MarketingWhere(paramsCount);
+        marketingWhere(paramsCount);
     }
 
     /**
@@ -76,7 +76,7 @@ public class MarketingEsBuilder {
      * @param params
      * @return
      */
-    public void MarketingWhere(Map<String, Object> params) {
+    public void marketingWhere(Map<String, Object> params) {
         //api_code必传
         String apiCode = queryBaseBean.getApiCode();
         if (StringUtils.isNotBlank(apiCode)) {
@@ -138,7 +138,7 @@ public class MarketingEsBuilder {
             params.put("searchAfter", searchAfter);
         }
         //条件
-        MarketingWhere(params);
+        marketingWhere(params);
         return params;
     }
 
@@ -169,7 +169,7 @@ public class MarketingEsBuilder {
             params.put("searchAfter", searchAfter);
         }
         //条件
-        MarketingWhere(params);
+        marketingWhere(params);
         return params;
     }
 }

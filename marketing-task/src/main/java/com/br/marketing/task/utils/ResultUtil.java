@@ -234,16 +234,16 @@ public class ResultUtil {
             if(!strategyJson.isEmpty()){
                 sb.append(strategyJson.getString("strategyDecision")).append(sep);
                 RuleField rf=new RuleField();
-                String rule_type="Rule_W_SpecialList_c_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleSpecialListField(),sb,sep);
-                rule_type="Rule_W_InfoRelation_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleInfoRelationField(),sb,sep);
-                rule_type="Rule_W_ApplyLoanStr_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleApplyloanstrField(),sb,sep);
-                rule_type="Rule_W_ApplyLoanUsury_mix";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleApplyloanusuryField(),sb,sep);
-                rule_type="Rule_W_ExecutionLimited_mix";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleExecutionlimitedField(),sb,sep);
+                String ruleType="Rule_W_SpecialList_c_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleSpecialListField(),sb,sep);
+                ruleType="Rule_W_InfoRelation_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleInfoRelationField(),sb,sep);
+                ruleType="Rule_W_ApplyLoanStr_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleApplyloanstrField(),sb,sep);
+                ruleType="Rule_W_ApplyLoanUsury_mix";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleApplyloanusuryField(),sb,sep);
+                ruleType="Rule_W_ExecutionLimited_mix";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleExecutionlimitedField(),sb,sep);
 
             }
 
@@ -265,15 +265,15 @@ public class ResultUtil {
      * 追加规则信息
      * @param flagJson
      * @param strategyJson
-     * @param rule_type
+     * @param ruleType
      * @param ruleField
      * @param sb
      */
-    private static void ruleInfo(JSONObject flagJson,JSONObject strategyJson,String rule_type,List<String> ruleField,StringBuilder sb,String sep){
-        if(flagJson.containsKey(rule_type)){
-            sb.append(flagJson.getString(rule_type)).append(sep);
+    private static void ruleInfo(JSONObject flagJson,JSONObject strategyJson,String ruleType,List<String> ruleField,StringBuilder sb,String sep){
+        if(flagJson.containsKey(ruleType)){
+            sb.append(flagJson.getString(ruleType)).append(sep);
             ReadContext context = JsonPath.parse(strategyJson);
-            Object object = context.read("$..ruleArray[?(@.ruleType=='"+rule_type+"')]");
+            Object object = context.read("$..ruleArray[?(@.ruleType=='"+ruleType+"')]");
             if(object!=null){
                 JSONArray array=JSONArray.parseArray(object.toString());
                 if(!array.isEmpty()&&array.size()>0){
@@ -281,9 +281,9 @@ public class ResultUtil {
                         JSONObject jsonObject = array.getJSONObject(i);
                         sb.append(jsonObject.getString("rulerisk")).append(sep);
                         sb.append(jsonObject.getString("ruleWeight")).append(sep);
-                        ReadContext RuleContext = JsonPath.parse(jsonObject);
+                        ReadContext ruleContext = JsonPath.parse(jsonObject);
                         for(String ruleCode:ruleField){
-                            Object rule = RuleContext.read("$..loanRule[?(@.ruleCode=='" + ruleCode + "')]");
+                            Object rule = ruleContext.read("$..loanRule[?(@.ruleCode=='" + ruleCode + "')]");
                             if(rule!=null){
                                 JSONArray ruleArray=JSONArray.parseArray(rule.toString());
                                 if(ruleArray!=null&&ruleArray.size()>0){
