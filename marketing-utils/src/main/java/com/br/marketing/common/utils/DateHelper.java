@@ -56,7 +56,7 @@ public class DateHelper {
     public static  String getDateAdd(int days){
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
-        c.add(Calendar.DAY_OF_MONTH, -days);
+        c.add(Calendar.DAY_OF_MONTH, days);
         return sf.format(c.getTime());
     }
 
@@ -72,7 +72,19 @@ public class DateHelper {
         c.add(Calendar.DAY_OF_MONTH, -days);
         return sf.format(c.getTime());
     }
+    public static  String getDateByMinute(int minute){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MINUTE, minute);
+        return sf.format(c.getTime());
+    }
 
+    public static void main(String[] args) {
+        String b=getDateByMinute(-20);
+        String now =getDateAddYyMmDd(0);
+        System.out.println(b.equals(now));
+        System.out.println(getDateByMinute(-20));
+    }
     public static int daysBetween(String dateStr) throws ParseException {
         Date today = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -139,6 +151,26 @@ public class DateHelper {
             e.printStackTrace();
         }
         return days;
+    }
+
+    /**
+     * 和当前日期相差多少分钟
+     * @param str 时间参数  格式：2009-01-01 12:00:00
+     * @return long
+     */
+    public static long getDistanceMinutes(String str) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long now=new Date().getTime();
+        long min = 0;
+        try {
+            Date two = df.parse(str);
+            long time = two.getTime();
+            long diff =time - now;
+            min = diff / (60 * 1000);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return min>0?min:min*-1;
     }
 
     /**
