@@ -207,7 +207,7 @@ public class SyncServiceImpl implements SyncService {
         String targetPath = loanSyncConfig.getTargetPath();
         InputStream inputStream=null;
         try{
-            targetClient.mkdir(srcPath);
+            targetClient.mkdir(targetPath);
             inputStream = srcClient.getInputStream(srcPath, fileName);
             targetClient.uploadFile(inputStream,targetPath,fileName);
         }catch (Exception e){
