@@ -192,7 +192,7 @@ public class LoanWarningThread implements Callable<String> {
                 RequestLog  requestLog=new RequestLog();
                 requestLog.setRequestTime(new Date());
                 if(isIncr) {
-                    String pro_change = "";
+                    String proChange = "";
                     String hitData = blu.getHitData();
                     JSONObject jsonObject = JSONObject.parseObject(hitData);
                     Set<String> strings = jsonObject.keySet();
@@ -203,14 +203,14 @@ public class LoanWarningThread implements Callable<String> {
                             String s_value = split[i];
                             String s = s_value.split(":")[0];
                             String s1 = map.get(s);
-                            pro_change += s1;
+                            proChange += s1;
                         }
 
                     }
                     //只要数据的变动产品有一个在配置的策略里面，就正常处理
                     boolean flag = false;
                     for (String key : proFieldMap.keySet()) {
-                        if (pro_change.indexOf(key) != -1) {
+                        if (proChange.indexOf(key) != -1) {
                             flag = true;
                             break;
                         }
@@ -268,7 +268,7 @@ public class LoanWarningThread implements Callable<String> {
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
-                        MomUtil.send_mom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
                     }
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
@@ -348,17 +348,17 @@ public class LoanWarningThread implements Callable<String> {
                 if (min >= list.size()) {
                     addRedisNum(Constants.REDIS_RADAR_TEST_PREFIX+":"+apiCode, typeNoList, list.size());
                     for(String proCode:typeNoList){
-                        String key_test = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ proCode +":"+ date;
-                        String currentNum = redisService.get(key_test);
+                        String keyTest = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ proCode +":"+ date;
+                        String currentNum = redisService.get(keyTest);
                         String dayNum = dayNumMap.get(proCode);
                         if(currentNum==null){
-                            redisService.set(key_test,null,604800);
+                            redisService.set(keyTest,null,604800);
                             if(list.size() > Integer.parseInt(dayNum)){
                                 message="可用条数不足，请确认，若需要请联系客服";
                                 log.error("message--{}",message);
                                 flag = false;
                             }else{
-                                addRedisNumForDayNum(key_test,null,list.size());
+                                addRedisNumForDayNum(keyTest,null,list.size());
                             }
                         }else {
                             if (Integer.parseInt(currentNum) + list.size() > Integer.parseInt(dayNum)) {
@@ -366,7 +366,7 @@ public class LoanWarningThread implements Callable<String> {
                                 log.error("message--{}",message);
                                 flag = false;
                             } else {
-                                addRedisNumForDayNum(key_test, null, list.size());
+                                addRedisNumForDayNum(keyTest, null, list.size());
                             }
                         }
                     }

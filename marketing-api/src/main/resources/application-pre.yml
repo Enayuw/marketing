@@ -1,0 +1,68 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://192.168.23.110:3306/marketing?useUnicode=true&characterEncoding=UTF-8
+        username: u_pd_marketing
+        password: M6teKbFVl1odfOCkC1JA
+        #password: 9gEulsLRkXfzNMJSZMuq
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
+eureka:
+  client:
+    service-url.defaultZone: http://eureka-0.100credit.cn/eureka/,http://eureka-1.100credit.cn/eureka/,http://eureka-2.100credit.cn/eureka/
+eureka.instance.initial-status: OUT_OF_SERVICE
+
+otherConfig:
+  huaXiangInterface:
+        getAllProductTypes: http://192.168.162.235:8080/SendBox/ProductTypes
+        getAllProducts: http://192.168.162.235:8080/SendBox/Products
+        getPorductByType: http://192.168.162.235:8080/SendBox/Products/
+        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+        sanxiang_url: http://zh-service/v1/getData
+        haina_url: http://HAINA-SERVICE/query
+  alarm:
+        secretKey: b4e71d4a674436d77cfa966e893956af
+        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
+        sendCode: 55518704
+  mq:
+        destinationName: strategy_online_query_log
+        appName: strategy_online_query_producer
+        appSecretKey: df7f87ecc7d4937c745f86501f2c3c04
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: f15a1421ac95a284683688af14688b72
+spring:
+  rabbitmq:
+    addresses: 192.168.23.73:5672
+    username: strategy_distribute
+    password: strategy_distribute
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow
+api:
+  intelligentCustomerService:
+    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data

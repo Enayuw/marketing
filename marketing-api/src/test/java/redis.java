@@ -1,45 +1,122 @@
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.api.client.RedisService;
-import com.br.marketing.api.entity.ProInSys;
+import com.br.marketing.api.MarketingApiApplication;
+import com.br.marketing.client.RedisService;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.ThreeDes;
+import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.entity.ProInSys;
 import org.junit.Test;
+import org.junit.runner.Result;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {RedisService.class})
+@SpringBootTest(classes = MarketingApiApplication.class)
 public class redis {
 
-    @Resource
-    RedisService redisService;
+//    @Resource
+//    RedisService redisService;
+//
+//    @Test
+//    public void test(){
+//       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
+//        String s = redisService.get("productionMng-allProductions");
+//        JSONArray array=new JSONArray();
+//        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
+//        Iterator<ProInSys> iterator = proInSys.iterator();
+//        while (iterator.hasNext()){
+//            ProInSys pro=iterator.next();
+//            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
+//                iterator.remove();
+//            }
+//        }
+//        if(proInSys.size()>0){
+//            String json= JSONObject.toJSONString(proInSys);
+//            array=JSONArray.parseArray(json);
+//        }
+//        System.out.println(array);
+//    }
 
     @Test
-    public void test(){
-       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-        String s = redisService.get("productionMng-allProductions");
-        JSONArray array=new JSONArray();
-        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-        Iterator<ProInSys> iterator = proInSys.iterator();
-        while (iterator.hasNext()){
-            ProInSys pro=iterator.next();
-            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-                iterator.remove();
-            }
+    public void serTest(){
+        PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
+        pushMarketingUserDetailVariablesDTO.setScore("123");
+        pushMarketingUserDetailVariablesDTO.setScoreDate("123");
+        pushMarketingUserDetailVariablesDTO.setScoreName("123");
+        pushMarketingUserDetailVariablesDTO.setUpdate("123");
+        System.out.println(JSON.toJSONString(pushMarketingUserDetailVariablesDTO));
+        List<String> strList = new ArrayList<>();
+        strList.add("123");
+        strList.add("456");
+        strList.add("789");
+        here: for (String s : strList) {
+
         }
-        if(proInSys.size()>0){
-            String json= JSONObject.toJSONString(proInSys);
-            array=JSONArray.parseArray(json);
-        }
-        System.out.println(array);
     }
 
+    @Test
+    public void testConcurrent(){
+        Integer k=10;
+        List<String> list =new ArrayList();
+        long start = System.currentTimeMillis();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Callable<List>> callableList = new ArrayList<>();
+        for (Integer i = 0; i < k; i++) {
+            callableList.add(()->{
+                List list1 = new ArrayList();
+                Integer kk = 20000;
+                for (Integer integer = 0; integer < kk; integer++) {
+                    list1.add("kk".concat(String.valueOf(kk)));
+                }
+                return list1;
+            });
+        }
+        try {
+            List<Future<List>> futures = executorService.invokeAll(callableList);
+            futures.forEach(t->{
+                try {
+                    list.addAll(t.get());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(list.size()+"_________"+(System.currentTimeMillis()-start));
 
+        long start2 = System.currentTimeMillis();
+        Integer kkk=200000;
+        List<String> list2 =new ArrayList();
+        for (Integer i = 0; i < kkk; i++) {
+            list2.add("kkk".concat(String.valueOf(kkk)));
+        }
+        System.out.println(list2.size()+"_________"+(System.currentTimeMillis()-start2));
+        System.out.println("1231");
+
+
+
+    }
+
+    @Test
+    public void encAnddec() throws Exception {
+        String s = ThreeDes.encryptByCbc("123", "abcddesds", "abcdefgh");
+        String abcddesds = ThreeDes.decryptByCbc(s, "abcddesds","hhhhtttt");
+        System.out.println(abcddesds);
+    }
 
 /*@Resource
     DecodeClient decodeClient;

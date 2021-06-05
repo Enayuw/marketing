@@ -264,4 +264,44 @@
         		now()
         	)
     </insert>
+    <insert id="insertBatchMarketingPreUser">
+		INSERT INTO b_marketing_sync_${apiCode} (
+			`api_code`,
+			`cus_batch`,
+		    `cust_num`,
+			`cell`,
+			`group_type`,
+			`register_date`,
+			`reserve_field1`,
+			`reserve_field2`,
+			`create_time`,
+			`update_time`
+		)
+		VALUES
+		       <foreach collection="dataItems" separator="," item="data">
+		(
+			#{apiCode},#{tasdId},#{data.caseNum},#{data.cell},#{data.groupType}
+			<if test="data.registerDate != null">
+			,#{data.registerDate}
+			</if>
+		   	<if test="data.registerDate == null">
+			   ,''
+		   	</if>
+		   <if test="data.reserveField1 != null">
+			   ,#{data.reserveField1}
+		   </if>
+		   <if test="data.reserveField1 == null">
+			   ,''
+		   </if>
+		   <if test="data.reserveField2 != null">
+			   ,#{data.reserveField2}
+		   </if>
+		   <if test="data.reserveField2 == null">
+			   ,''
+		   </if>
+			,#{dateTime}
+			,#{dateTime}
+		)
+		</foreach>
+	</insert>
 </mapper>

@@ -6,7 +6,7 @@ package com.br.marketing.common.constants.web;
  */
 public enum RequestType {
 //web单条
-    WEB_SIGNAL("web","web单条"),
+    WEB_SIGNAL("controller","web单条"),
     //web批量
     WEB_BATCH("web_batch","web批量"),
     //api

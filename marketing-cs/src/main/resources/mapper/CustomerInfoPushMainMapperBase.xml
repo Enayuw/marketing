@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerInfoPushMain" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="m_api_code" property="mApiCode" jdbcType="VARCHAR" />
+    <result column="m_model" property="mModel" jdbcType="VARCHAR" />
+    <result column="m_model_version" property="mModelVersion" jdbcType="VARCHAR" />
+    <result column="m_num_min" property="mNumMin" jdbcType="INTEGER" />
+    <result column="m_num_max" property="mNumMax" jdbcType="INTEGER" />
+    <result column="m_score_min" property="mScoreMin" jdbcType="INTEGER" />
+    <result column="m_score_max" property="mScoreMax" jdbcType="INTEGER" />
+    <result column="m_plan_num" property="mPlanNum" jdbcType="INTEGER" />
+    <result column="m_realy_num" property="mRealyNum" jdbcType="INTEGER" />
+    <result column="m_status" property="mStatus" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="finish_time" property="finishTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
+    m_plan_num, m_realy_num, m_status, is_del, create_time, update_time, finish_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_customer_info_push_main
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_customer_info_push_main
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_customer_info_push_main
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
+    delete from b_customer_info_push_main
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_customer_info_push_main (m_api_code, m_model, m_model_version, 
+      m_num_min, m_num_max, m_score_min, 
+      m_score_max, m_plan_num, m_realy_num, 
+      m_status, is_del, create_time, 
+      update_time, finish_time)
+    values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
+      #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
+      #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
+      #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_customer_info_push_main
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="mApiCode != null" >
+        m_api_code,
+      </if>
+      <if test="mModel != null" >
+        m_model,
+      </if>
+      <if test="mModelVersion != null" >
+        m_model_version,
+      </if>
+      <if test="mNumMin != null" >
+        m_num_min,
+      </if>
+      <if test="mNumMax != null" >
+        m_num_max,
+      </if>
+      <if test="mScoreMin != null" >
+        m_score_min,
+      </if>
+      <if test="mScoreMax != null" >
+        m_score_max,
+      </if>
+      <if test="mPlanNum != null" >
+        m_plan_num,
+      </if>
+      <if test="mRealyNum != null" >
+        m_realy_num,
+      </if>
+      <if test="mStatus != null" >
+        m_status,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="finishTime != null" >
+        finish_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="mApiCode != null" >
+        #{mApiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mModel != null" >
+        #{mModel,jdbcType=VARCHAR},
+      </if>
+      <if test="mModelVersion != null" >
+        #{mModelVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="mNumMin != null" >
+        #{mNumMin,jdbcType=INTEGER},
+      </if>
+      <if test="mNumMax != null" >
+        #{mNumMax,jdbcType=INTEGER},
+      </if>
+      <if test="mScoreMin != null" >
+        #{mScoreMin,jdbcType=INTEGER},
+      </if>
+      <if test="mScoreMax != null" >
+        #{mScoreMax,jdbcType=INTEGER},
+      </if>
+      <if test="mPlanNum != null" >
+        #{mPlanNum,jdbcType=INTEGER},
+      </if>
+      <if test="mRealyNum != null" >
+        #{mRealyNum,jdbcType=INTEGER},
+      </if>
+      <if test="mStatus != null" >
+        #{mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="finishTime != null" >
+        #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" resultType="java.lang.Integer" >
+    select count(*) from b_customer_info_push_main
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_customer_info_push_main
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.mApiCode != null" >
+        m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mModel != null" >
+        m_model = #{record.mModel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mModelVersion != null" >
+        m_model_version = #{record.mModelVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mNumMin != null" >
+        m_num_min = #{record.mNumMin,jdbcType=INTEGER},
+      </if>
+      <if test="record.mNumMax != null" >
+        m_num_max = #{record.mNumMax,jdbcType=INTEGER},
+      </if>
+      <if test="record.mScoreMin != null" >
+        m_score_min = #{record.mScoreMin,jdbcType=INTEGER},
+      </if>
+      <if test="record.mScoreMax != null" >
+        m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
+      </if>
+      <if test="record.mPlanNum != null" >
+        m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.mRealyNum != null" >
+        m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.mStatus != null" >
+        m_status = #{record.mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.finishTime != null" >
+        finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_customer_info_push_main
+    set id = #{record.id,jdbcType=BIGINT},
+      m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
+      m_model = #{record.mModel,jdbcType=VARCHAR},
+      m_model_version = #{record.mModelVersion,jdbcType=VARCHAR},
+      m_num_min = #{record.mNumMin,jdbcType=INTEGER},
+      m_num_max = #{record.mNumMax,jdbcType=INTEGER},
+      m_score_min = #{record.mScoreMin,jdbcType=INTEGER},
+      m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
+      m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
+      m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
+      m_status = #{record.mStatus,jdbcType=INTEGER},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      finish_time = #{record.finishTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    update b_customer_info_push_main
+    <set >
+      <if test="mApiCode != null" >
+        m_api_code = #{mApiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mModel != null" >
+        m_model = #{mModel,jdbcType=VARCHAR},
+      </if>
+      <if test="mModelVersion != null" >
+        m_model_version = #{mModelVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="mNumMin != null" >
+        m_num_min = #{mNumMin,jdbcType=INTEGER},
+      </if>
+      <if test="mNumMax != null" >
+        m_num_max = #{mNumMax,jdbcType=INTEGER},
+      </if>
+      <if test="mScoreMin != null" >
+        m_score_min = #{mScoreMin,jdbcType=INTEGER},
+      </if>
+      <if test="mScoreMax != null" >
+        m_score_max = #{mScoreMax,jdbcType=INTEGER},
+      </if>
+      <if test="mPlanNum != null" >
+        m_plan_num = #{mPlanNum,jdbcType=INTEGER},
+      </if>
+      <if test="mRealyNum != null" >
+        m_realy_num = #{mRealyNum,jdbcType=INTEGER},
+      </if>
+      <if test="mStatus != null" >
+        m_status = #{mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="finishTime != null" >
+        finish_time = #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    update b_customer_info_push_main
+    set m_api_code = #{mApiCode,jdbcType=VARCHAR},
+      m_model = #{mModel,jdbcType=VARCHAR},
+      m_model_version = #{mModelVersion,jdbcType=VARCHAR},
+      m_num_min = #{mNumMin,jdbcType=INTEGER},
+      m_num_max = #{mNumMax,jdbcType=INTEGER},
+      m_score_min = #{mScoreMin,jdbcType=INTEGER},
+      m_score_max = #{mScoreMax,jdbcType=INTEGER},
+      m_plan_num = #{mPlanNum,jdbcType=INTEGER},
+      m_realy_num = #{mRealyNum,jdbcType=INTEGER},
+      m_status = #{mStatus,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      finish_time = #{finishTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

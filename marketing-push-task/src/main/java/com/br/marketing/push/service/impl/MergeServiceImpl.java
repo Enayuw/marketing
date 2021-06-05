@@ -272,11 +272,9 @@ public class MergeServiceImpl implements MergeService {
     }
 
     private void readFile(String fileName,ArrayList<Score> scores,int index,String separator){
-        FileReader read=null;
-        BufferedReader br=null;
-        try {
-            read = new FileReader(fileName);
-            br = new BufferedReader(read);
+        try(FileReader read = new FileReader(fileName);
+            BufferedReader br = new BufferedReader(read)) {
+
             String row;
             while ((row = br.readLine()) != null) {
                 row = row.trim();
@@ -299,21 +297,6 @@ public class MergeServiceImpl implements MergeService {
             log.error("FileNotFoundException ",e);
         } catch (IOException e) {
             log.error("FileNotFoundException ",e);
-        } finally {
-            if(br!=null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    log.error("IOException ",e);
-                }
-            }
-            if(read!=null){
-                try {
-                    read.close();
-                } catch (IOException e) {
-                    log.error("IOException ",e);
-                }
-            }
         }
     }
 

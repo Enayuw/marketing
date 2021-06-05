@@ -11,7 +11,7 @@ import java.util.*;
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
 
 /**
- * The type Sftp client.
+ * The type Sftp config.
  */
 @Slf4j
 public class SftpClient extends BaseFtpClient{
@@ -24,7 +24,7 @@ public class SftpClient extends BaseFtpClient{
 
 
     /**
-     * Instantiates a new Sftp client.
+     * Instantiates a new Sftp config.
      *
      * @param hostName the host name
      * @param port     the port
@@ -36,9 +36,9 @@ public class SftpClient extends BaseFtpClient{
     }
 
     /**
-     * Instantiates a new Sftp client.
+     * Instantiates a new Sftp config.
      *
-     * @param loanSyncConfig the loan sync config
+     * @param loanSyncConfig the loan sync bean
      * @param isSrc          the is src
      */
     public SftpClient(SyncConfig loanSyncConfig, boolean isSrc) {

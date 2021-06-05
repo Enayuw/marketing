@@ -104,7 +104,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                                 .append("&nbsp;异常数据量：")
                                 .append((lr.getTaskNumber()-lr.getActualNumber()))
                                 .append("<br/>");
-                    }else if(lr.getFileName().endsWith(".config")){
+                    }else if(lr.getFileName().endsWith(".bean")){
                         content.append("&nbsp;&nbsp;&nbsp;文件名称：")
                                 .append(lr.getFileName())
                                 .append(" &nbsp;上传时间：")
@@ -218,7 +218,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                                 .append("&nbsp;异常数据量：")
                                 .append((lr.getTaskNumber()-lr.getActualNumber()))
                                 .append("<br/>");
-                    }else if(lr.getFileName().endsWith(".config")){
+                    }else if(lr.getFileName().endsWith(".bean")){
                         content.append("&nbsp;&nbsp;&nbsp;文件名称：")
                                 .append(lr.getFileName())
                                 .append(" &nbsp;上传时间：")

@@ -184,7 +184,7 @@ public class FtpToDbJob extends AbstractSimpleElasticJob {
                                 ftpUtil.rename(successFile,successFile+".bak");
                                 ftpUtil.rename(fileName,fileName+".bak");
                             } catch (Exception ex) {
-                                log.error("rename file error ",e);
+                                log.error("rename file error ",ex);
                             }
                         }
                     }

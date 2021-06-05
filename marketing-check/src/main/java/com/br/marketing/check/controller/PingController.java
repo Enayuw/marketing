@@ -1,5 +1,6 @@
 package com.br.marketing.check.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class PingController {
-    @RequestMapping({"/ping"})
+    @GetMapping({"/ping"})
     public String ping() {
         return "pong-" + System.currentTimeMillis();
     }

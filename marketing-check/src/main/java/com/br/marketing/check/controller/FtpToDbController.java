@@ -170,7 +170,7 @@ public class FtpToDbController {
                                         ftpUtil.changeWorkingDirectory("/loanwarn/"+apiCode+"/input/");
                                         ftpUtil.rename(fileName,fileName+".bak");
                                     } catch (Exception ex) {
-                                        log.error("rename zip error ",e);
+                                        log.error("rename zip error ",ex);
                                     }
                                 }
                             }
@@ -198,7 +198,7 @@ public class FtpToDbController {
                             ftpUtil.changeWorkingDirectory("/loanwarn/"+apiCode+"/input/");
                             ftpUtil.rename(finishName+".finish",finishName+".finish"+".bak");
                         } catch (Exception ex) {
-                            log.error("rename finish error ",e);
+                            log.error("rename finish error ",ex);
                         }
                     }
                 }
@@ -250,7 +250,7 @@ public class FtpToDbController {
                                     ftpUtil.rename(successFile,successFile+".bak");
                                     ftpUtil.rename(fileName,fileName+".bak");
                                 } catch (Exception ex) {
-                                    log.error("rename file error ",e);
+                                    log.error("rename file error ",ex);
                                 }
                             }
                         }

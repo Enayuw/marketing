@@ -1,7 +1,9 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.vo.ScoreDetailVo;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -196,4 +198,7 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      * 查询监控截止日期为当前日期的任务
      */
     List<ApiCodeTask> queryCloseBltSoon(String date);
+
+    List<ScoreDetailVo> queryBatchs(CustomerBatchNumDTO dto);
+
 }

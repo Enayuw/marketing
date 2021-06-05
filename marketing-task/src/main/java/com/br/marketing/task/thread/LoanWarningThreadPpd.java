@@ -57,67 +57,67 @@ public class LoanWarningThreadPpd implements Callable<String> {
         }
         String strategyId="";
         String strategyStr="";
-        String first_path = "" ;
-        String sec_path = "" ;
+        String firstPath = "" ;
+        String secPath = "" ;
         String stmtKey="";
 
-        Writer sec_path_fw=null;
-        Writer first_path_fw=null;
+        Writer secPathFw=null;
+        Writer firstPathFw=null;
         Writer errorFw=null;
         File errorFile=null;
         try {
             if(firstJson!=null&&!firstJson.isEmpty()){
                 strategyId=firstJson.getString("strategyId");
                 strategyStr=firstJson.getString("strategy");
-                first_path=firstJson.getString("path");
-                sec_path=secJson.getString("path");
-                File write_first_path = new File(first_path );
-                if (!write_first_path.exists()) {
-                    write_first_path.mkdirs();
+                firstPath=firstJson.getString("path");
+                secPath=secJson.getString("path");
+                File writeFirstPath = new File(firstPath );
+                if (!writeFirstPath.exists()) {
+                    writeFirstPath.mkdirs();
                 }
-                File write_sec_path = new File(sec_path );
-                if (!write_sec_path.exists()) {
-                    write_sec_path.mkdirs();
+                File writeSecPath = new File(secPath );
+                if (!writeSecPath.exists()) {
+                    writeSecPath.mkdirs();
                 }
                 String dateAddYyMmDdHhMmSs = DateHelper.getDateAddYyMmDdHhMmSs(0);
-                 errorFile = new File(first_path + "/error"+ currentPage +"_"+dateAddYyMmDdHhMmSs+  ".txt");
+                 errorFile = new File(firstPath + "/error"+ currentPage +"_"+dateAddYyMmDdHhMmSs+  ".txt");
                  errorFw = new BufferedWriter(
                         new OutputStreamWriter(
                                 new FileOutputStream(errorFile), "UTF-8"));
 
 
-                File file1 = new File(first_path + "/" + currentPage + ".txt");
-                 first_path_fw = new BufferedWriter(
+                File file1 = new File(firstPath + "/" + currentPage + ".txt");
+                firstPathFw = new BufferedWriter(
                         new OutputStreamWriter(
                                 new FileOutputStream(file1), "UTF-8"));
 
-                File sec_path_file1 = new File(sec_path + "/" + currentPage + ".txt");
-                 sec_path_fw = new BufferedWriter(
+                File sec_path_file1 = new File(secPath + "/" + currentPage + ".txt");
+                secPathFw = new BufferedWriter(
                         new OutputStreamWriter(
                                 new FileOutputStream(sec_path_file1), "UTF-8"));
                 proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
             }else{
                 strategyId=secJson.getString("strategyId");
 
-                sec_path=secJson.getString("path");
-                File write_sec_path = new File(sec_path );
-                if (!write_sec_path.exists()) {
-                    write_sec_path.mkdirs();
+                secPath=secJson.getString("path");
+                File writeSecPath = new File(secPath );
+                if (!writeSecPath.exists()) {
+                    writeSecPath.mkdirs();
                 }
 
-                File sec_path_file1 = new File(sec_path + "/" + currentPage + ".txt");
-                sec_path_fw = new BufferedWriter(
+                File secPathFile1 = new File(secPath + "/" + currentPage + ".txt");
+                secPathFw = new BufferedWriter(
                         new OutputStreamWriter(
-                                new FileOutputStream(sec_path_file1), "UTF-8"));
+                                new FileOutputStream(secPathFile1), "UTF-8"));
 
-                errorFile = new File(sec_path + "/error"+ currentPage + ".txt");
+                errorFile = new File(secPath + "/error"+ currentPage + ".txt");
                 errorFw = new BufferedWriter(
                         new OutputStreamWriter(
                                 new FileOutputStream(errorFile), "UTF-8"));
             }
             stmtKey=secJson.getString("stmt_key");
             proFieldsClient.setLoanPro(secJson.getString("strategyId"),apiCode,secJson.getString("strategy"),meal,sceStrProFieldMap,stmtKey);
-            this.query(first_path_fw,sec_path_fw,list,strategyId);
+            this.query(firstPathFw,secPathFw,list,strategyId);
             if(errorList.size()>0){
                 for(MarketingUser lu:errorList){
                     errorFw.append(lu.getBatchNumber()+","+lu.getCusNum()+","+lu.getIdCard()+","+lu.getCell()+","+lu.getName()+",end\n");
@@ -128,14 +128,14 @@ public class LoanWarningThreadPpd implements Callable<String> {
         }catch (Exception e){
             log.error("生成文件出错。。。。",e);
         }finally {
-            if(first_path_fw!=null){
-                first_path_fw.close();
+            if(firstPathFw!=null){
+                firstPathFw.close();
             }
             if(errorFw!=null){
                 errorFw.close();
             }
-            if(sec_path_fw!=null){
-                sec_path_fw.close();
+            if(secPathFw!=null){
+                secPathFw.close();
             }
         }
       return null;
@@ -178,7 +178,7 @@ public class LoanWarningThreadPpd implements Callable<String> {
                 s= HxUtil.getReport(apiCode,jsonData,meal,notSaveLog,url);
                 requestLog.setResponseTime(new Date());
                 if(!notSaveLog) {
-                    MomUtil.send_mom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                    MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
                 }
             }
             dealResult(s, firstPathFw,secPathFw,blu.getCusNum(),blu.getBatchNumber(),firstJson,secJson,blu);

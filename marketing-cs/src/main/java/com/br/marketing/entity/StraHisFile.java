@@ -93,6 +93,16 @@ public class StraHisFile {
      */
     private String md5;
 
+    /**
+     * 2-成功;1-未跑分；
+     */
+    private Integer scoreStatus;
+
+    /**
+     * 统计文件地址
+     */
+    private String statisticFilePath;
+
     public Integer getId() {
         return id;
     }
@@ -235,5 +245,21 @@ public class StraHisFile {
 
     public void setMd5(String md5) {
         this.md5 = md5 == null ? null : md5.trim();
+    }
+
+    public Integer getScoreStatus() {
+        return scoreStatus;
+    }
+
+    public void setScoreStatus(Integer scoreStatus) {
+        this.scoreStatus = scoreStatus;
+    }
+
+    public String getStatisticFilePath() {
+        return statisticFilePath;
+    }
+
+    public void setStatisticFilePath(String statisticFilePath) {
+        this.statisticFilePath = statisticFilePath == null ? null : statisticFilePath.trim();
     }
 }

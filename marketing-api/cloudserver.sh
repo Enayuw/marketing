@@ -34,7 +34,7 @@ APP_CONFIG=${APP_CONFIG}
         else exit 1; fi; }
 
 SERVICE_HOME=${SERVICE_HOME}
-[ ! -z "$$SERVICE_HOME" ] || { echo "SERVICE_HOME 该文件不存在或者没有权限: $SERVICE_HOME";
+[ ! -z "$SERVICE_HOME" ] || { echo "SERVICE_HOME 该文件不存在或者没有权限: $SERVICE_HOME";
         if [ "$1" = "stop" ]; then exit 0;
         else exit 5; fi; }
 
@@ -72,7 +72,7 @@ CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java"
 GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 { ls $GC_LOG_PATH &>/dev/null || { echo "pod子文件夹不存在，开始创建... ...";mkdir -p $GC_LOG_PATH && echo "创建pod子文件夹成功！" || exit 1; };  }
 
-JAVA_OPTIONS="${APP_PARAM} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$GC_LOG_PATH/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=256m"
+JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
 
 APP_JAR_NAME=`ls $SERVICE_HOME/lib/*.jar | awk -F'[/]+' {'print $NF'}`
 [ ! -z "$APP_JAR_NAME" ] || { echo "APP_JAR_NAME为空或者配置错误！";
@@ -98,31 +98,35 @@ else
     echo "未开启Pinpoint"
 fi
 
+#Rasp
+RASP_OPTIONS=""
+if [[ $RASP_ENABLE == 'true' ]] ; then
+    tar -zxf /opt/springcloud/data/OpenRasp/rasp-java.tar.gz -C /tmp \
+    && mv /tmp/rasp-*/rasp /rasp \
+    && echo "cloud.enable: true" >> /rasp/conf/openrasp.yml \
+    && echo "cloud.backend_url: ${RASP_BACKEND_URL}" >> /rasp/conf/openrasp.yml \
+    && echo "cloud.app_id: ${RASP_APP_ID}" >> /rasp/conf/openrasp.yml \
+    && echo "cloud.app_secret: ${RASP_APP_SECRET}" >> /rasp/conf/openrasp.yml \
+    && RASP_OPTIONS="-javaagent:/rasp/rasp.jar"
+else
+    echo "未开启Rasp"
+fi
+
 MAIN_CLASS=${MAIN_CLASS}
 
 DEPEND_COMMON=${DEPEND_COMMON}
 
+SPEED_ENV=${SPEED_ENV}
+[ ! -z "$SPEED_ENV" ] || { echo "环境变量 SPEED_ENV 为空或者配置错误！";
+        if [ "$1" = "stop" ]; then exit 0;
+        else exit 1; fi; }
+
 echo $MAIN_CLASS
 
-#JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS  -cp $SERVICE_HOME/lib/*:$SERVICE_HOME/config/$CONF_ENV $MAIN_CLASS "
-JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
-if [[ $DEPEND_COMMON == '2' ]] ; then
-    echo "依赖标示：$DEPEND_COMMON" 
-    #JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS  -cp $SERVICE_HOME/lib/*:$SERVICE_HOME/config/$CONF_ENV  $MAIN_CLASS "
-    JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
-else
-    echo "依赖标示：$DEPEND_COMMON" 
-fi
+JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV  -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
+#JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
 
-if [[ $SERVICE_HOME == '/opt/SpringCloud/app/RULE-SERVICE' ]] ; then
-    echo "规则服务" 
-    #JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS  -cp $SERVICE_HOME/lib/*:$SERVICE_HOME/config/$CONF_ENV  $MAIN_CLASS $SERVICE_HOME/config/$CONF_ENV/parseJs.js "
-    JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV -jar $SERVICE_HOME/config/$CONF_ENV/parseJs.js "
-fi
-
-CONFIG_PATH=${APP_CONFIG}
-#PARAMS="--spring.config.location=${SERVICE_HOME}/config/${CONF_ENV}/ --server.tomcat.max-threads=1000"
-PARAMS=" --server.tomcat.max-threads=1000"
+PARAMS=" --server.tomcat.max-threads=1000 --spring.profiles.active=$CONF_ENV"
 
 RETVAL=0
 

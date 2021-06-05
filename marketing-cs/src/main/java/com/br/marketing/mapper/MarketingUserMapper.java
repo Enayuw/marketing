@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
 import org.apache.ibatis.annotations.Param;
@@ -124,5 +125,7 @@ public interface MarketingUserMapper {
          * @return
          */
         List<MarketingUser> queryPpd(Map<String, String> param);
+
+        int insertBatchMarketingPreUser(@Param("apiCode") String apiCode,@Param("tasdId") String taskId,@Param("dateTime")String dateTime,@Param("dataItems")List<MarketingPreUserDetailDTO> dataItems);
 }
 

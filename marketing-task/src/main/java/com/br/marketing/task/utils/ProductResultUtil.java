@@ -107,8 +107,8 @@ public class ProductResultUtil {
                 return;
             }
             if(products.contains("speciallist_c")){
-                String speciallist_cFields = proFieldMap.get("SpecialList_c");
-                String[] split = speciallist_cFields.split(",");
+                String speciallistCFields = proFieldMap.get("SpecialList_c");
+                String[] split = speciallistCFields.split(",");
                 for (int i=0;i<split.length;i++){
                     sb.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
                     sb.append(sep);
@@ -273,8 +273,8 @@ public class ProductResultUtil {
             }
         }
         if(products.contains("fraudrelation_g")){
-            String fraudrelation_gFields = proFieldMap.get("FraudRelation_g");
-            String[] split = fraudrelation_gFields.split(",");
+            String fraudrelationGFields = proFieldMap.get("FraudRelation_g");
+            String[] split = fraudrelationGFields.split(",");
             for (int i=0;i<split.length;i++){
                 sb.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
                 sb.append(sep);

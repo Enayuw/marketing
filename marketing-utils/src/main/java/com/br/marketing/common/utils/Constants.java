@@ -180,4 +180,5 @@ public class Constants {
 
 
     public static final String LOAN_BUSINESSTYPECODE="A202";
+    public static final Integer DATA_VALID = 1;
 }

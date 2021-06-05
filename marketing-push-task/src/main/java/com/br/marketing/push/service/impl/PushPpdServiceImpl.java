@@ -1,7 +1,7 @@
 //package com.br.marketing.push.service.impl;
 //
 //import com.alibaba.fastjson.JSONArray;
-//import com.br.marketing.client.*;
+//import com.br.marketing.config.*;
 //import com.br.marketing.common.utils.DateHelper;
 //import com.br.marketing.common.utils.StringUtils;
 //import com.br.marketing.common.utils.file.FtpUtil2;

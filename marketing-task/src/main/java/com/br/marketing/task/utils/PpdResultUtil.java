@@ -64,8 +64,8 @@ public class PpdResultUtil {
         log.info("flagJson:{} products:{}",flagJson,products);
         if (!hxJson.isEmpty()) {
             if(products.contains("speciallist_c")){
-                String speciallist_cFields = proFieldMap.get("SpecialList_c");
-                String[] split = speciallist_cFields.split(",");
+                String speciallistCFields = proFieldMap.get("SpecialList_c");
+                String[] split = speciallistCFields.split(",");
                 for (int i=0;i<split.length;i++){
                     sb.append(hxJson.get(split[i])==null?"":hxJson.get(split[i])).append(sep);
                 }

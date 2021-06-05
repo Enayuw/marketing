@@ -62,7 +62,23 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-
+        <!-- 公共包 -->
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.7.1</version>
+        </dependency>
         <!--策略贷中公共依赖-->
 
         <!--工具依赖-->
@@ -89,16 +105,6 @@
             <groupId>com.br.mom</groupId>
             <artifactId>broker_layer_api</artifactId>
             <version>3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.drore.cloud</groupId>
-            <artifactId>swagger-bootstrap-ui</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.6.1</version>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
@@ -131,29 +137,21 @@
             <artifactId>alarm-rely-new</artifactId>
             <version>3.0.0-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>user-center-new</artifactId>
             <version>2.0.1</version>
         </dependency>
         <dependency>
-            <groupId>com.br.ice.service</groupId>
-            <artifactId>encode-mapping-rely</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.br.bsf</groupId>
             <artifactId>bsf-ext</artifactId>
             <version>2.0.0</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.br.common</groupId>
-            <artifactId>redisengine</artifactId>
-            <version>1.0.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.br.common</groupId>-->
+<!--            <artifactId>redisengine</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -161,19 +159,11 @@
             <version>1.18.8</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus</artifactId>
-            <version>2.1-gamma</version>
+            <artifactId>marketing-cs</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <groupId>com.br.marketing</groupId>
         </dependency>
-        <!--策略中心-->
-        <dependency>
-            <groupId>com.br.ice.service</groupId>
-            <artifactId>strategy-rely</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -185,6 +175,10 @@
                 <includes>
                     <include>**/*.ObjectPrxHelperBase</include>
                     <include>*.json</include>
+                    <include>mapper/**</include>
+                    <include>**/*.yml</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.properties</include>
                 </includes>
             </resource>
         </resources>
@@ -193,7 +187,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.br.loan.warning.api.StrategyEarlyWaringApiApplication</mainClass>
+                    <mainClass>com.br.marketing.api.MarketingApiApplication</mainClass>
                 </configuration>
                 <version>1.5.3.RELEASE</version>
                 <executions>

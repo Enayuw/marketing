@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class SyncServiceImpl implements SyncService {
     /**
-     * The Loan sync config mapper.
+     * The Loan sync bean mapper.
      */
     @Resource
     SyncConfigMapper loanSyncConfigMapper;
@@ -288,7 +288,7 @@ public class SyncServiceImpl implements SyncService {
         String apiCode = loanSyncConfig.getApiCode();
         BaseFtpClient client = getClient(loanSyncConfig,true);
         if(client==null){
-            log.error("client is null");
+            log.error("config is null");
             return resultMap;
         }
         if(!client.isConnected()){
