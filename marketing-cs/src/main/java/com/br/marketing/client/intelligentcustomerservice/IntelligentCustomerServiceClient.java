@@ -24,7 +24,7 @@ public class IntelligentCustomerServiceClient {
 
     private static final Logger logger = LoggerFactory.getLogger(IntelligentCustomerServiceClient.class);
 
-    @Value("${api.intelligentCustomerService.pushUserUrl}")
+    @Value("${api.intelligentCustomerService.pushUserUrl:00}")
     private String pushUrl;
 
     @Autowired
