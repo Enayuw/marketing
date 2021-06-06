@@ -216,7 +216,6 @@
 			start_date,
 			monitor_type,
 			close_date,
-			sec_strategy_id,
 			file_name,
 			actual_number,
 			is_repair
@@ -228,7 +227,6 @@
 		AND `status` = 1
 		AND start_date &lt;= now()
 		AND close_date &gt;= now()
-		GROUP BY batch_number
 	</select>
     <select id="queryBatchNum"  resultType="com.br.marketing.entity.MarketingTask">
 		SELECT
@@ -265,7 +263,6 @@
 		monitor_model,
 		close_date,
 		file_name,
-		sec_strategy_id,
 		monitor_status,
 		monitor_type,
 		actual_number,
@@ -329,7 +326,6 @@
 			start_date,
 			monitor_type,
 			close_date,
-			sec_strategy_id,
 			file_name,
 			actual_number
 		FROM
@@ -358,7 +354,6 @@
 			`close_date`,
 			`start_date`,
 			`cus_batch`,
-			`sec_strategy_id`,
 			`monitor_type`,
 			is_repair
 		)
@@ -378,7 +373,6 @@
 			#{closeDate},
 			#{startDate},
 			#{cusBatch},
-			#{secStrategyId},
 			#{monitorType},
 			#{isRepair}
 		);
@@ -386,7 +380,7 @@
 
 	<update id="modifyTask" parameterType="com.br.marketing.entity.MarketingTask">
 		UPDATE b_marketing_task
-		SET status=#{status},task_number=#{taskNumber},actual_number=#{actualNumber},strategy_id =#{strategyId}, strategy_name =#{strategyName}, frequency =#{frequency},start_date=#{startDate}, close_date =#{closeDate},monitor_status=#{monitorStatus},sec_strategy_id=#{secStrategyId},is_repair=#{isRepair}
+		SET status=#{status},task_number=#{taskNumber},actual_number=#{actualNumber},strategy_id =#{strategyId}, strategy_name =#{strategyName}, frequency =#{frequency},start_date=#{startDate}, close_date =#{closeDate},monitor_status=#{monitorStatus},is_repair=#{isRepair}
 		WHERE
 		api_code =#{apiCode}
 		AND

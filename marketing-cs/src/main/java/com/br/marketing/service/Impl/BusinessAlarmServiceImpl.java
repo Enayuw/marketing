@@ -302,7 +302,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     @Override
     public void monitoringExpirationAlarm() {
-        List<ApiCodeTask> list= marketingTaskMapper.queryCloseBltSoon(DateHelper.getDateAdd(-14));
+        List<ApiCodeTask> list= marketingTaskMapper.queryCloseBltSoon(DateHelper.getDateAdd(14));
         String dateAdd = DateHelper.getDateAdd(0);
         log.info("list:{}",list);
         for(ApiCodeTask alt:list){

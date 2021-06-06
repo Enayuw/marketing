@@ -39,18 +39,17 @@ logging:
     root: INFO
 otherConfig:
   alarm:
-        secretKey: 412a281869db3e152d5a276ad444fade
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        appName: loan-warning
-        outsideSecretKey: 9bde4e22026b188b9fbd919d7d7e7a93
-        outsideAppName: loan_warning_outside
+        secretKey: a9c57e4138807a9e18b439cd9dab275b
+        appName: marketing
+        outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+        outsideAppName: marketing-out
   userCenter:
         appName: loan-strategy
         appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/warning/
+        path: /opt/data/inloan/download/marketing/
         ftpHost: 192.168.23.34
         ftpPort: 21
         ftpUsername: lsyj
@@ -59,10 +58,6 @@ otherConfig:
         sftpPort: 9999
         sftpUser: loan_warning_pre
         sftpPwd: 5Ge89rr8TKvVEiHvmrSL@_2020.11.05
-         #ftpUsername: lsyj_r
-         #ftpPwd: 05@LWmvrp
-        email:
-          notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72

@@ -44,7 +44,6 @@ otherConfig:
         haina_url: http://HAINA-SERVICE/query
   alarm:
         secretKey: b58783d4b67f942166f2ffad298080e4
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
         appName: marketing
         outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
         outsideAppName: marketing-out

@@ -160,11 +160,11 @@ public class SftpClient extends BaseFtpClient{
         } catch (SftpException e) {
            log.error("srcPath:{}",srcPath,e);
         }
-        ChannelSftp.LsEntry isEntity = null;
-        String fileName = null;
+        ChannelSftp.LsEntry isEntity;
+        String fileName;
         Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
         while (sftpFileNames.hasNext()) {
-            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
+            isEntity = sftpFileNames.next();
             SftpATTRS attrs = isEntity.getAttrs();
             fileName = isEntity.getFilename();
             String[] split = suffix.split(",");
@@ -195,11 +195,11 @@ public class SftpClient extends BaseFtpClient{
         } catch (SftpException e) {
             log.error("srcPath:{}",srcPath,e);
         }
-        ChannelSftp.LsEntry isEntity = null;
-        String fileName = null;
+        ChannelSftp.LsEntry isEntity;
+        String fileName;
         Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
         while (sftpFileNames.hasNext()) {
-            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
+            isEntity = sftpFileNames.next();
             SftpATTRS attrs = isEntity.getAttrs();
             fileName = isEntity.getFilename();
             ftpFileMap.put(fileName,attrs);

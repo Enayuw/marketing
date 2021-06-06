@@ -19,10 +19,6 @@ spring:
     # 线程池所生产的线程名前缀
 server:
   port: 19809
-
-#生成结果文件目录
-result.file.path: /opt/data/inloan/warning
-
 mybatis:
   mapper-locations: mapper/*.xml
   configuration:

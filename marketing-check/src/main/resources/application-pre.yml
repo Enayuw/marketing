@@ -3,25 +3,25 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.23.110:3306/marketing?useUnicode=true&characterEncoding=UTF-8
-         username: u_pd_marketing
-         password: M6teKbFVl1odfOCkC1JA
+        url: jdbc:mysql://192.168.23.110:3306/marketing?useUnicode=true&characterEncoding=UTF-8
+        username: u_pd_marketing
+        password: M6teKbFVl1odfOCkC1JA
         # password: 9gEulsLRkXfzNMJSZMuq
-         type: com.alibaba.druid.pool.DruidDataSource
-         driver-class-name: com.mysql.jdbc.Driver
-         filters: stat
-         maxActive: 300
-         initialSize: 1
-         maxWait: 60000
-         minIdle: 1
-         timeBetweenEvictionRunsMillis: 60000
-         minEvictableIdleTimeMillis: 300000
-         validationQuery: select 'x'
-         testWhileIdle: true
-         testOnBorrow: false
-         testOnReturn: false
-         poolPreparedStatements: true
-         maxOpenPreparedStatements: 20
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
     config:
       sharding:
         props:
@@ -33,39 +33,34 @@ sharding:
                 sharding-column: api_code
                 algorithm-expression: b_marketing_user_${api_code}
 logging:
-    level:
-        com.br.off.mapper: debug
-    file: ./logs/core.log
-    root: INFO
+  level:
+    com.br.off.mapper: debug
+  file: ./logs/core.log
+  root: INFO
 otherConfig:
   alarm:
-        secretKey: 412a281869db3e152d5a276ad444fade
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        appName: loan-warning
-        outsideSecretKey: 9bde4e22026b188b9fbd919d7d7e7a93
-        outsideAppName: loan_warning_outside
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
+    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: loan-strategy
+    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/warning/
-        ftpHost: 192.168.23.34
-        ftpPort: 21
-        ftpUsername: lsyj
-        ftpPwd: kb8V@1Wtb
-        sftpHost: 192.168.23.65
-        sftpPort: 9999
-        sftpUser: loan_warning_pre
-        sftpPwd: 5Ge89rr8TKvVEiHvmrSL@_2020.11.05
-         #ftpUsername: lsyj_r
-         #ftpPwd: 05@LWmvrp
-        email:
-          notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    ftpHost: 192.168.23.34
+    ftpPort: 21
+    ftpUsername: lsyj
+    ftpPwd: kb8V@1Wtb
+    sftpHost: 192.168.23.65
+    sftpPort: 9999
+    sftpUser: loan_warning_pre
+    sftpPwd: 5Ge89rr8TKvVEiHvmrSL@_2020.11.05
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: f15a1421ac95a284683688af14688b72
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
 
 spring:
   rabbitmq:

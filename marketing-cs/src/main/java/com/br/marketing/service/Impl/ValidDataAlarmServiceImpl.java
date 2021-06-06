@@ -151,21 +151,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
         }
         boolean flag=false;
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(message);
-        if(marketingTask !=null&& marketingTask.getMonitorStatus()!=null && marketingTask.getMonitorStatus()==1){
-            if(!Constants.APICODE_360.equals(apiCode)&&!Constants.APICODE_360_QA.equals(apiCode)
-                    &&!Constants.APICODE_PPD.equals(apiCode)&&!Constants.APICODE_PPD_QA.equals(apiCode)){
-                flag=true;
-            }
-            marketingTask.setTableName("b_marketing_user_"+ marketingTask.getApiCode());
-            int  integer = marketingUserMapper.queryCount(marketingTask);
-            int actualNumber = marketingTask.getActualNumber();
-            if( integer != actualNumber){
-               log.error("入库数据量错误：batch_number {} integer:{},actual_number:{}",message,integer,actualNumber);
-            }
 
-        }else {
-            flag=false;
-        }
         String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         Map<String,String> param=new HashMap<>();
         param.put("apiCode",apiCode);
@@ -192,9 +178,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                 }
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】存量客户监控-文件校验失败";
                 alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
-        }
-
-        {
+        }else {
             param.put("status","1");
             List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
             if(successList!=null&&successList.size()>0){

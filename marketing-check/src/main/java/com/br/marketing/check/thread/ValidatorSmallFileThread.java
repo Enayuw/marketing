@@ -4,6 +4,8 @@ import cn.hutool.crypto.SecureUtil;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.encryption.Sm3Util;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.CheckDataUtil;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -30,33 +32,27 @@ import java.util.concurrent.Callable;
 public class ValidatorSmallFileThread implements Callable<String> {
     private String row;
     private String apiCode;
-    private Writer fw;
     private Writer errorfw;
     private DecodeClient decodeClient;
     private String head;
-    private boolean isShell;
     private MarketingUserMapper marketingUserMapper;
     private MarketingDirtyUserMapper marketingDirtyUserMapper;
     private String batchNumber;
     private RedisChgService redisChgService;
     private String fileName;
     private MerchantParam merchantParam;
-    public ValidatorSmallFileThread(Map<String,String> param, Writer fw, Writer errorfw, DecodeClient decodeClient,
-                                    boolean isShell, MarketingUserMapper marketingUserMapper, MarketingDirtyUserMapper marketingDirtyUserMapper,
-                                    RedisChgService redisChgService, MerchantParam merchantParam) {
+    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw) {
         this.row=param.get("row");
-        this.apiCode=param.get("apiCode");
-        this.fw=fw;
-        this.errorfw=errorfw;
-        this.decodeClient=decodeClient;
         this.head=param.get("head");
-        this.isShell=isShell;
-        this.marketingUserMapper = marketingUserMapper;
-        this.marketingDirtyUserMapper = marketingDirtyUserMapper;
-        this.batchNumber=param.get("batchNumber");
-        this.redisChgService=redisChgService;
-        this.fileName=param.get("fileName");
-        this.merchantParam=merchantParam;
+        this.apiCode=context.getTask().getApiCode();
+        this.errorfw=errorfw;
+        this.decodeClient=CkeckApplication.ac.getBean(DecodeClient.class);
+        this.marketingUserMapper = CkeckApplication.ac.getBean(MarketingUserMapper.class);
+        this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);;
+        this.batchNumber=context.getTask().getBatchNumber();
+        this.redisChgService=CkeckApplication.ac.getBean(RedisChgService.class);
+        this.fileName=context.getDistinctTxtFileName();
+        this.merchantParam=context.getMerchantParam();
 
     }
 
@@ -67,35 +63,8 @@ public class ValidatorSmallFileThread implements Callable<String> {
             BrCipherMaker instance = BrCipherMaker.getInstance();
             UserValidator userValidator = new UserValidator(merchantParam.getIsCheck());
             boolean b = CheckDataUtil.checkData(head,row, apiCode, errorfw, sb,decodeClient);
-
             if(b){
-                /**
-                 * 如果是shell脚本处理，则写入本地磁盘
-                 * 否则直接写入数据库
-                 */
-                if(isShell){
-                    fw.append(sb+"\n");
-                }else{
-                    /**
-                     * 1900037062,5p2_5bΒ82R5p2D,ClECΒ9DAQFAQlcCwBUCA1VUwBR,UgsΒ0MDFUADlFcUFM,,,,,,,,,,,
-                     * cus_num
-                     * name
-                     * id_card
-                     * cell
-                     * pass_date
-                     * user_date
-                     * loanMaturity_date
-                     * approval_result
-                     * linkman_cell
-                     * time_range
-                     * home_addr
-                     * tel_home
-                     * mail
-                     * decodeFailType
-                     */
-                    //log.info("result:{}",sb);
                     String[] split = sb.toString().split(",",14);
-
                     if(Constants.APICODE_SHAZI.contains(apiCode)){
                         String cell=split[3];
                         if(StringUtils.isNotEmpty(cell)){
@@ -145,7 +114,6 @@ public class ValidatorSmallFileThread implements Callable<String> {
                     marketingUserMapper.insertUser(lu);
                     redisChgService.incr(Constants.INSERT_DB_NUMBER+fileName);
                 }
-            }
         }catch (Exception e){
             log.error("数据校验失败--",e);
         }

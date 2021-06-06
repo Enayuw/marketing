@@ -1,12 +1,14 @@
 package com.br.marketing.check.service;
 
+import com.br.marketing.check.dto.FileContext;
+
 /**
  * Created by Bairong on 2020/1/15.
  */
-public interface FileCkeckServicce {
+public interface FileCheckService {
     boolean checkDataFile(String path, String filename);
 
     boolean strategyIdCheck(String apiCode, String strategyId);
 
-    boolean checkSmallDataFile(String path, String filename,boolean flag,String batchNumber);
+    boolean checkSmallDataFile(FileContext context);
 }

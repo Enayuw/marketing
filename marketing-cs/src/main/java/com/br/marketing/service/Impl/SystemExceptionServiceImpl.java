@@ -29,7 +29,7 @@ public class SystemExceptionServiceImpl implements EmailService {
         json.put("host", IpUtil.getHostName());
         json.put("serverName", type);
         json.put("message", context);
-        alarmClient.sendAlarm(json.toString(),"存量监控"+type+"内部系统异常报警",appName,secretKey, Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(json.toString(),"营销平台"+type+"内部系统异常报警",appName,secretKey, Constants.sendCodeMap.get("sysError"));
     }
 
     @Override

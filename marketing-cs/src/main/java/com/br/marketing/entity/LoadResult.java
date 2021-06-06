@@ -1,11 +1,17 @@
 package com.br.marketing.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Created by Bairong on 2020/4/7.
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class LoadResult {
     private Integer id;
     private String apiCode;
@@ -18,8 +24,7 @@ public class LoadResult {
     private Integer taskNumber;
     private String type;
 
-    public LoadResult() {
-    }
+
 
     public LoadResult(String apiCode, String cusBatch, String fileName, String message, String status, String batchNumber,
                       Integer actualNumber, Integer taskNumber, String type) {

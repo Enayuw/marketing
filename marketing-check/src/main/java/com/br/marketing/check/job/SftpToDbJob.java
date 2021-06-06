@@ -1,6 +1,10 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.check.service.SftpToDbService;
+import com.br.marketing.check.dto.FileContext;
+import com.br.marketing.check.enums.ErrorFileTypeEnum;
+import com.br.marketing.check.service.FileCheckService;
+import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
+import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.check.utils.UploadDataFileUtil;
 import com.br.marketing.client.RedisChgService;
@@ -17,6 +21,7 @@ import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -25,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -60,7 +64,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class SftpToDbJob extends AbstractSimpleElasticJob {
     @Value("${otherConfig.warning.path:00}")
-    private String warningPath;
+    private String path;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -70,9 +74,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
     @Resource
-    SftpToDbService sftpToDbServiceImpl;
-    @Resource
-    LoadResultMapper loadResultMapper;
+    SftpToDbService sftpToDbService;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
     @Resource
@@ -81,29 +83,27 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     MarketingUserMapper marketingUserMapper;
     @Resource(name = "rabbitTemplate")
     private RabbitTemplate rabbitTemplate;
-    private static final Pattern MYREGEX = Pattern.compile("\\.");
-    private static final Pattern MYREGEX1 = Pattern.compile("_");
     @Resource
     ValidDataAlarmServiceImpl validDataAlarmService;
+    @Resource
+    FileCheckServiceImpl fileCheckService;
     @Override
+
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Map<String, Set<String>> map=new HashMap<>();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
-            boolean connect = sftpClient.connect();
-            if(connect){
-                log.info("======登录成功===开始数据文件处理======");
-            }else{
-                log.info("======登录失败=========");
-                return;
-            }
-            SftpToDbUtils.listFtpFile("/UploadFiles/loanwarn/",map,false,sftpClient);
+            sftpClient.connect();
+            log.info("======登录成功=====");
+            SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,false,sftpClient);
             if(!map.isEmpty()){
                 log.info("----------SftpToDb开始处理新上传的数据文件-------------");
                 dealDataFile(map,sftpClient);
             }
-        } catch (Exception e) {
-            log.error("获取ftp上的剔除文件列表出错",e);
+        } catch (JSchException e){
+            log.error("SftpToDbJob,sftp连接失败",e);
+        }catch (Exception e) {
+            log.error("获取sftp上的数据文件列表出错",e);
         }finally {
             try {
                 sftpClient.disconnect();
@@ -121,11 +121,11 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
      */
     private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient) {
         for(Map.Entry<String,Set<String>> entry:map.entrySet()){
-            String key = entry.getKey();
-            Set<String> value = entry.getValue();
-            MerchantParam merchantParam = SftpToDbUtils.vaildApicode(key);
+            String sftpzipFilePash = entry.getKey();
+            Set<String> zipFileNameSet = entry.getValue();
+            MerchantParam merchantParam = SftpToDbUtils.vaildApicode(sftpzipFilePash);
             if(merchantParam==null){
-                log.error("vaildApicode error {}",key);
+                log.error("vaildApicode error {}",sftpzipFilePash);
                 continue;
             }
             String callMethod = merchantParam.getCallMethod();
@@ -141,149 +141,72 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
             String apiCode = merchantParam.getApiCode();
             String tableName="b_marketing_user_"+apiCode;
             marketingUserMapper.createUserTable(tableName);
-            StringBuilder localFile=new StringBuilder(warningPath)
-                    .append("ftp_data")
+            StringBuilder localFile=new StringBuilder(path)
+                    .append("sftp_data")
                     .append("/")
                     .append(apiCode)
                     .append("/");
+            //初始化参数对象
+            FileContext context = new FileContext();
+            context.setBaseFtpClient(sftpClient);
+            context.setMerchantParam(merchantParam);
+            context.setSftpZipFilePath(sftpzipFilePash);
+            context.setLocalZipFilePath(localFile.toString());
 
-            /**
-             * 360定制逻辑：
-             * 从新上传的文件列表中找出finish文件的列表
-             * 循环finish文件列表，找出对应的数据文件，按finish文件一个批次一个批次处理
-             */
-            if(StringUtils.isNotEmpty(apiCode)&&(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))){
-                List<String> finishList = UploadDataFileUtil.isFinish(value);
-                for(String finishName:finishList){
-                    log.info("finishName:{}",finishName);
-                    String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
-                    MarketingTask lt =new MarketingTask();
-                    lt.setApiCode(apiCode);
-                    lt.setBatchNumber(batchNumber);
-                    lt.setCusBatch(finishName.split("_")[1]);
-                    lt.setFileName(finishName);
-                    lt.setMonitorType(monitorType);
-                    lt.setStatus(2);
-                    marketingTaskMapper.insertTask(lt);
-                    for(String fileName:value){
-                        if(fileName.endsWith(".zip")){
-                            String s1 = MYREGEX.split(fileName)[0];
-                            String[] s = MYREGEX1.split(s1);
-                            if(s.length<4){
-                                log.warn("filename:{}",fileName);
-                                continue;
-                            }
-                            String  name=s[0]+"_"+s[1]+"_"+s[3];
-                            String  name1=s[0]+"_UploadCustomFileName"+s[3]+"_"+s[3];
-                            log.debug("fileName:{},name:{}",fileName,name);
-                            if(finishName.equals(name)||finishName.equals(name1)){
-                                StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                                if(UploadDataFileUtil.vaildFileName(fileName, apiCode,errorMessage,false)){
-                                    sftpToDbServiceImpl.parsingFile(key,fileName,localFile.toString(),apiCode,merchantParam,
-                                            finishName,batchNumber,lt,sftpClient);
-                                }else{
-                                    SftpToDbUtils.returnErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);
-                                    LoadResult lr=new LoadResult(apiCode,finishName,fileName,errorMessage.toString(),"0",batchNumber,0,0,"");
-                                    loadResultMapper.insertLoadResult(lr);
-                                }
-                                String path = "/UploadFiles/loanwarn/" + apiCode + "/input/";
-                                try {
-                                    sftpClient.rename(path+fileName,path+fileName+".bak");
-                                } catch (Exception e) {
-                                    log.warn("rename zip error ",e);
-                                    try {
-                                        sftpClient.disconnect();
-                                        sftpClient.connect();
-                                        sftpClient.rename(path+fileName,path+fileName+".bak");
-                                    } catch (Exception ex) {
-                                        log.error("rename zip error ",ex);
-                                    }
-                                }
-                            }
+            for(String zipFileName:zipFileNameSet){
+                if(zipFileName.endsWith(".zip")){
+                    //设置zip文件名
+                    context.setZipFileName(zipFileName);
+
+                    String successFile=zipFileName+".success";
+                    if(zipFileNameSet.contains(successFile)){
+                        StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
+                        String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
+                        MarketingTask task =new MarketingTask();
+                        task.setApiCode(apiCode);
+                        task.setBatchNumber(batchNumber);
+                        task.setMonitorType(monitorType);
+                        task.setMonitorStatus(0);
+                        task.setStatus(2);
+                        task.setFileName(zipFileName);
+                        marketingTaskMapper.insertTask(task);
+                        context.setTask(task);
+                        context.init();
+                        if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage,false)){
+                            sftpToDbService.execute(context);
+                        }else{
+                            fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
                         }
 
-                    }
-                    String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM + batchNumber);
-                    String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
-                    lt.setTableName("b_marketing_user_"+apiCode);
-                    Integer actualNumber = marketingUserMapper.queryCount(lt);
-                    log.info("taskNumber:{},FailNumber:{}, actualNumber:{}",taskNumber,failNumber,actualNumber);
-                    lt.setTaskNumber(StringUtils.isNotEmpty(taskNumber)?Integer.parseInt(taskNumber):0);
-                    lt.setActualNumber(actualNumber);
-                    log.info("LoanTask:{}",lt);
-                    marketingTaskMapper.modifyTask(lt);
-                    validDataAlarmService.fileUpload(apiCode,batchNumber);
-                    String path = "/UploadFiles/loanwarn/" + apiCode + "/input/";
-                    try {
-                        sftpClient.rename(path+finishName+".finish",path+finishName+".finish"+".bak");
-                    } catch (Exception e) {
-                        log.warn("rename finish error ",e);
+                        String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM +batchNumber );
+                        String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
+                        task.setTableName("b_marketing_user_"+apiCode);
+                        Integer actualNumber = marketingUserMapper.queryCount(task);
+                        log.info("taskNumber:{},FailNumber:{}, actualNumber:{}",taskNumber,failNumber,actualNumber);
+                        task.setTaskNumber(StringUtils.isNotEmpty(taskNumber)?Integer.parseInt(taskNumber):0);
+                        task.setActualNumber(actualNumber);
+                        log.info("LoanTask:{}",task);
+                        marketingTaskMapper.modifyTask(task);
+                        validDataAlarmService.fileUpload(apiCode,batchNumber);
+                        String path = Constants.SFTP_IN_INPUT_PATH.replace("apiCode",apiCode);
                         try {
-                            sftpClient.disconnect();
-                            sftpClient.connect();
-                            sftpClient.rename(path+finishName+".finish",path+finishName+".finish"+".bak");
-                        } catch (Exception ex) {
-                            log.error("rename finish error ",ex);
-                        }
-                    }
-                }
-            }else{
-                for(String fileName:value){
-                    if(fileName.endsWith(".zip")){
-                        String successFile=fileName+".success";
-                        if(value.contains(successFile)){
-                            String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
-                            MarketingTask lt =new MarketingTask();
-                            lt.setApiCode(apiCode);
-                            lt.setBatchNumber(batchNumber);
-                            lt.setMonitorType(monitorType);
-                            lt.setMonitorStatus(0);
-                            lt.setStatus(2);
-                            lt.setFileName(MYREGEX.split(fileName)[0]);
-                            marketingTaskMapper.insertTask(lt);
-                            String[] split = MYREGEX.split(fileName);
-                            String zipName = split[0];
-                            StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                            if(UploadDataFileUtil.vaildFileName(fileName, apiCode,errorMessage,false)){
-                                sftpToDbServiceImpl.parsingFile(key,fileName,localFile.toString(),
-                                        apiCode,merchantParam,zipName,batchNumber,lt,sftpClient);
-                            }else{
-                                SftpToDbUtils.returnErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);
-                                LoadResult lr=new LoadResult(apiCode,zipName,fileName,errorMessage.toString(),"0",batchNumber,0,0,"");
-                                loadResultMapper.insertLoadResult(lr);
-                            }
-                            String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM + batchNumber);
-                            String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
-                            lt.setTableName("b_marketing_user_"+apiCode);
-                            Integer actualNumber = marketingUserMapper.queryCount(lt);
-                            log.info("taskNumber:{},FailNumber:{}, actualNumber:{}",taskNumber,failNumber,actualNumber);
-                            lt.setTaskNumber(StringUtils.isNotEmpty(taskNumber)?Integer.parseInt(taskNumber):0);
-                            lt.setActualNumber(actualNumber);
-                            log.info("LoanTask:{}",lt);
-                            marketingTaskMapper.modifyTask(lt);
-                            validDataAlarmService.fileUpload(apiCode,batchNumber);
-                            String path = "/UploadFiles/loanwarn/" + apiCode + "/input/";
+                            sftpClient.rename(path+successFile,path+successFile+".bak");
+                            sftpClient.rename(path+zipFileName,path+zipFileName+".bak");
+                        } catch (Exception e) {
+                            log.warn("rename file error ",e);
                             try {
+                                sftpClient.disconnect();
+                                sftpClient.connect();
                                 sftpClient.rename(path+successFile,path+successFile+".bak");
-                                sftpClient.rename(path+fileName,path+fileName+".bak");
-                            } catch (Exception e) {
-                                log.warn("rename file error ",e);
-                                try {
-                                    sftpClient.disconnect();
-                                    sftpClient.connect();
-                                    sftpClient.rename(path+successFile,path+successFile+".bak");
-                                    sftpClient.rename(path+fileName,path+fileName+".bak");
-                                } catch (Exception ex) {
-                                    log.error("rename file error ",ex);
-                                }
+                                sftpClient.rename(path+zipFileName,path+zipFileName+".bak");
+                            } catch (Exception ex) {
+                                log.error("rename file error ",e);
                             }
                         }
                     }
                 }
             }
-            if(Constants.APICODE_SHAZI.contains(apiCode)){
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.taskRoutingKey,apiCode);
-            }
+            RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.taskRoutingKey,apiCode);
         }
     }
 }
