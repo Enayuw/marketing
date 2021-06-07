@@ -43,11 +43,10 @@ otherConfig:
         sanxiang_url: http://k8s.brapp.com/openapi2/api/zh-service/v1/getData
         haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: f72b7def3d3c5e2d93d4c0f3be664f21
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        appName: loan-warning
-        outsideSecretKey: d4a52dd442b2983f499b05ec37c5b7f9
-        outsideAppName: loan-warning-outside
+        secretKey: b58783d4b67f942166f2ffad298080e4
+        appName: marketing
+        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+        outsideAppName: marketing-out
   userCenter:
         appName: loan-strategy
         appSecretKey: 7357430aa11febfe81d45945c02706b3
@@ -63,9 +62,6 @@ otherConfig:
         appSecretKey: a938d0e974746651a11ddcdbcea31404
   mom:
       appSecretKey: 1579f7d582f16d0030bd37537aadb78a
-product:
-  al: ApplyLoanUsury,GrayList,InfoRelation,ApplyLoan_d,ApplyLoanStr,ApplyLoanMon,TotalLoan,ApplyLoanInterval,DebtRepayStress,FraudRelation_g,FraudRelation,ApplyLoan,
-  sp: SpecialList_c,SpecialList,
-  fy: ExecutionLimited,AttentionListVer_ulbs,
+
 # 用来测试配置文件是否加载正确
 myenv: prod

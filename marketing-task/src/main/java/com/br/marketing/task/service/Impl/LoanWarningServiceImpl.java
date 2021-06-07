@@ -51,19 +51,12 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     TaskStatusMapper taskStatusMapper;
 
-
     @Resource
     StrategyCs strategyCS;
 
     @Resource
     ProFieldsClient proFieldsClient;
 
-    @Value("${product.al}")
-    private String  al;
-    @Value("${product.sp}")
-    private String  sp;
-    @Value("${product.fy}")
-    private String  fy;
     @Value("${otherConfig.mom.appSecretKey:00}")
     private String appSecretKey;
 
@@ -77,9 +70,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Override
     public void process(Customer customer){
 
-        map.put("al",al);
-        map.put("sp",sp);
-        map.put("fy",fy);
         String type=customer.getType();
         ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
@@ -228,6 +218,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("strategyStr",strategyStr);
             param.put("sep",separator);
             param.put("batchNumber", marketingTask.getBatchNumber());
+            param.put("cusBatchNumber",marketingTask.getFileName());
             param.put("url",url);
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
@@ -255,6 +246,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
                 String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
                 core(blt, descPath,false,strategyStr,warrningExecutor);
 
                 /**
@@ -300,30 +292,34 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
                 String descPath=path+"/all/"+blt.getApiCode()+"/"+blt.getBatchNumber()+"/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                core(blt,descPath,false,strategyStr,warrningExecutor);
 
-                /**
-                 * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
-                 */
-                LoanFile blf=new LoanFile();
-                blf.setApiCode(blt.getApiCode());
-                blf.setFilePath(descPath);
-                blf.setStatus(1);
-                blf.setType(1);
-                blf.setIsSec(0);
-                blf.setBatchNumber(blt.getBatchNumber());
-                blf.setExpectedNum(blt.getActualNumber());
-                Integer id=loanFileMapper.insertFile(blf);
+            /**
+             * 任务提交前，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
+             */
+            LoanFile blf=new LoanFile();
+            blf.setApiCode(blt.getApiCode());
+            blf.setFilePath(descPath);
+            blf.setStatus(1);
+            blf.setType(1);
+            blf.setIsSec(0);
+            blf.setBatchNumber(blt.getBatchNumber());
+            blf.setExpectedNum(blt.getActualNumber());
+            Integer id=loanFileMapper.insertFile(blf);
 
-                /**
-                 * 全量任务提交后，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
-                 */
-                TaskStatus bts=new TaskStatus();
-                bts.setAllStatus(1);
-                bts.setApiCode(blt.getApiCode());
-                bts.setBatchNumber(blt.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.insertTaskStatus(bts);
+            /**
+             * 全量任务提交前，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
+             */
+            TaskStatus bts=new TaskStatus();
+            bts.setAllStatus(1);
+            bts.setApiCode(blt.getApiCode());
+            bts.setBatchNumber(blt.getBatchNumber());
+            bts.setFileId(blf.getId());
+            taskStatusMapper.insertTaskStatus(bts);
+
+
+
+            core(blt,descPath,false,strategyStr,warrningExecutor);
+
         }
 
     }
@@ -356,9 +352,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blt.setTableName("b_marketing_user_chg");
                 String descPath = path + "/incr/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                core(blt, descPath,true,strategyStr,warrningExecutor);
-
-
 
                 /**
                  * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
@@ -383,6 +376,13 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 bts.setBatchNumber(blt.getBatchNumber());
                 bts.setFileId(blf.getId());
                 taskStatusMapper.insertTaskStatus(bts);
+
+
+                core(blt, descPath,true,strategyStr,warrningExecutor);
+
+
+
+
             }
         }
     }
@@ -421,6 +421,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         param.put("strategyStr",strategyStr);
                         param.put("sep",separator);
                         param.put("batchNumber",blt.getBatchNumber());
+                        param.put("cusBatchNumber",blt.getFileName());
                         param.put("url",url);
                         param.put("appSecretKey",appSecretKey);
                         param.put("isRepair",blt.getIsRepair());
@@ -444,7 +445,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     private void initBatchNumList(List<MarketingTask> incrList, List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode){
         try{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
-            log.warn("当日除去ppd的批次数量--{}",list.size());
+            log.warn("当日批次数量--{}",list.size());
             for(MarketingTask blt:list) {
                 if (1 == blt.getMonitorType()) {
                     List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
