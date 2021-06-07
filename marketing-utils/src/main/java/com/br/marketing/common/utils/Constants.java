@@ -154,15 +154,13 @@ public class Constants {
         riskMap.put("Exception", 0);
     }
     static {
-        sendCodeMap.put("sysError","66618706");
-        sendCodeMap.put("resultVolume01","400001");
-        sendCodeMap.put("resultVolume02","400002");
-        sendCodeMap.put("ftpToSftp","400005");
-        sendCodeMap.put("fileSize","400004");
-        sendCodeMap.put("dataFileUploadFail","400006");
-        sendCodeMap.put("dataFileVolumn","400007");
-        sendCodeMap.put("uploadSuccess","400008");
-        sendCodeMap.put("fileUploadFtp","400003");
+        sendCodeMap.put("sysError","60000");
+        sendCodeMap.put("resultVolume01","50005");
+        sendCodeMap.put("ftpToSftp","50004");
+        sendCodeMap.put("dataFileUploadFail","50001");
+        sendCodeMap.put("dataFileVolumn","50002");
+        sendCodeMap.put("uploadSuccess","50000");
+        sendCodeMap.put("fileUploadFtp","50003");
     }
     public static final String REDIS_STMT_PREFIX="redisProduct_loan_";
     public static final String REDIS_STMT_RULE_PREFIX="redisMonitor_";
