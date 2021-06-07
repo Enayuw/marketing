@@ -109,12 +109,7 @@ public class PushFinishServiceImpl implements PushFinishService {
                 log.error("创建目录失败{}",finishPath);
             }
         }
-        String finishFileName="";
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            finishFileName=apiCode+"_UploadCustomFileName"+dateAddYyMmDd+"_"+dateAddYyMmDd+".finish";
-        }else{
-            finishFileName=apiCode+"_ReturnCompleted_"+dateAddYyMmDd+".finish";
-        }
+        String finishFileName=apiCode+"_ReturnCompleted_"+dateAddYyMmDd+".finish";
         File finishFile=new File(finishPath+finishFileName);
         log.warn("exists:{},path:{}",finishFile.exists(),finishFile.getAbsolutePath());
 

@@ -44,9 +44,6 @@ public class AlarmController {
     @Value("${otherConfig.warning.ftpPwd}")
     private String ftpPwd;
 
-    @Resource
-    RedisChgService redisChgService;
-
     @GetMapping("monitoringExpirationAlarm")
     public String monitoringExpirationAlarm(){
         businessAlarmServiceImpl.monitoringExpirationAlarm();
@@ -116,33 +113,9 @@ public class AlarmController {
         return "success";
     }
 
-    @GetMapping("/resultFileUploadFtp")
-    public String resultFileUploadFtp(String apiCode,String message) {
-        log.error(" resultFileUploadFtp apiCode--{},message--{}",apiCode,message);
-        businessAlarmServiceImpl.fileUploadFtpException(apiCode,message);
-        return "success";
-    }
 
-    @GetMapping("/ftpToSftpCheck")
-    public String ftpToSftpCheck(final String apiCode) {
-        String s = redisChgService.get(Constants.FTP_TO_SFTP_CHECK_TIME);
-        int i=1;
-        if(StringUtils.isNotEmpty(s)){
-            i=Integer.parseInt(s);
-        }
-        final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1,
-                new BasicThreadFactory.
-                        Builder().namingPattern("ftpToSftpCheck-schedule-pool-%d").daemon(true).build());
-        FtpToSftpCheckTask ftpToSftpCheckTask = new FtpToSftpCheckTask(apiCode, businessAlarmServiceImpl,executorService);
-        executorService.schedule(ftpToSftpCheckTask, 3600000*i,  TimeUnit.MILLISECONDS);
-        return "success";
-    }
 
-    @GetMapping("/ppdFtpToSftpCheck")
-    public String ppdFtpToSftpCheck(String apiCode) {
-        businessAlarmServiceImpl.ftpToSftpCheck(apiCode);
-        return "success";
-    }
+
 
     @GetMapping("/sendReport")
     public String sendReport(String apiCode) {

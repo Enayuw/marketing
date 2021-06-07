@@ -1,6 +1,6 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.check.service.SftpToDbService;
+import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.check.utils.UploadDataFileUtil;
 import com.br.marketing.client.SftpClient;
@@ -68,7 +68,7 @@ public class SftpDeleteMonitorJob extends AbstractSimpleElasticJob {
     private static final Pattern MYREGEX1 = Pattern.compile("_");
 
     @Resource
-    SftpToDbService sftpToDbServiceImpl;
+    FileCheckService fileCheckServiceImpl;
     @Resource
     LoadResultMapper loadResultMapper;
     @Resource
@@ -85,7 +85,7 @@ public class SftpDeleteMonitorJob extends AbstractSimpleElasticJob {
                 log.warn("======登录失败=========");
                 return ;
             }
-            SftpToDbUtils.listFtpFile("/UploadFiles/loanwarn/",map,true,sftpClient);
+            //SftpToDbUtils.listFtpFile("/UploadFiles/loanwarn/",map,true,sftpClient);
             if(!map.isEmpty()){
                 log.warn("----------SftpToDb开始处理新上传的剔除文件-------------");
                 dealDeleteMonitorFile(map,sftpClient);
@@ -123,70 +123,32 @@ public class SftpDeleteMonitorJob extends AbstractSimpleElasticJob {
                     .append(apiCode)
                     .append("/")
                     .append(DateHelper.getDateAddYyMmDd(0)).append("/");
-            if(StringUtils.isNotEmpty(apiCode)&&(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))){
-                List<String> finishList = UploadDataFileUtil.isFinish(value);
-                for(String finishName:finishList){
-                    log.debug("finishName:{}",finishName);
-                    for(String fileName:value){
-                        if(fileName.endsWith(".zip")){
-                            String s1 = MYREGEX.split(fileName)[0];
-                            if(s1.length()<2){
-                                log.warn("fileName is error{}",fileName);
-                                continue;
-                            }
-                            String[] s = MYREGEX1.split(s1);
-                            if(s.length<5){
-                                log.warn("fileName is error{}",fileName);
-                                continue;
-                            }
-                            String  name=s[0]+"_"+s[1]+"_"+s[3]+"_"+s[4];
-                            log.debug("fileName:{},name:{}",fileName,name);
-                            if(finishName.equals(name)){
-                                StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                                if(SftpToDbUtils.vaildFileName(fileName, apiCode,errorMessage,true)){
-                                    sftpToDbServiceImpl.parsingDeleteFile(key,fileName,localFile.toString(),apiCode,merchantParam,finishName,sftpClient);
-                                }else{
-                                    SftpToDbUtils.returnDeleteErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);
-                                    LoadResult lr=new LoadResult(apiCode,finishName,fileName,errorMessage.toString(),"0","",0,0,"delete");
-                                    loadResultMapper.insertLoadResult(lr);
-                                }
-                            }
+
+            for(String fileName:value){
+                if(fileName.endsWith(".zip")){
+                    String successFile=fileName+".success";
+                    if(value.contains(successFile)){
+                        String[] split = MYREGEX.split(fileName);
+                        String zipName = split[0];
+                        StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
+                        if(SftpToDbUtils.vaildFileName(fileName, apiCode,errorMessage,true)){
+                            //fileCheckServiceImpl.parsingDeleteFile(key,fileName,localFile.toString(),apiCode,merchantParam,zipName,sftpClient);
+                        }else{
+                            SftpToDbUtils.returnDeleteErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);
+                            LoadResult lr=new LoadResult(apiCode,zipName,fileName,errorMessage.toString(),"0","",0,0,"delete");
+                            loadResultMapper.insertLoadResult(lr);
                         }
-                    }
-                    try {
-                        validDataAlarmService.deleteMonitorFileUpload(apiCode,finishName);
+                        validDataAlarmService.deleteMonitorFileUpload(apiCode,zipName);
                         String sftpPath = "/UploadFiles/loanwarn/" + apiCode + "/input/";
-                        sftpClient.rename(sftpPath+finishName+".finish",sftpPath+finishName+".finish"+".bak");
-                    } catch (Exception e) {
-                        log.error("rename finish error ",e);
-                    }
-                }
-            }else{
-                for(String fileName:value){
-                    if(fileName.endsWith(".zip")){
-                        String successFile=fileName+".success";
-                        if(value.contains(successFile)){
-                            String[] split = MYREGEX.split(fileName);
-                            String zipName = split[0];
-                            StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                            if(SftpToDbUtils.vaildFileName(fileName, apiCode,errorMessage,true)){
-                                sftpToDbServiceImpl.parsingDeleteFile(key,fileName,localFile.toString(),apiCode,merchantParam,zipName,sftpClient);
-                            }else{
-                                SftpToDbUtils.returnDeleteErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);
-                                LoadResult lr=new LoadResult(apiCode,zipName,fileName,errorMessage.toString(),"0","",0,0,"delete");
-                                loadResultMapper.insertLoadResult(lr);
-                            }
-                            validDataAlarmService.deleteMonitorFileUpload(apiCode,zipName);
-                            String sftpPath = "/UploadFiles/loanwarn/" + apiCode + "/input/";
-                            try {
-                                sftpClient.rename(sftpPath+fileName+".success",sftpPath+fileName+".success.bak");
-                            } catch (SftpException e) {
-                                log.error("rename success error ",e);
-                            }
+                        try {
+                            sftpClient.rename(sftpPath+fileName+".success",sftpPath+fileName+".success.bak");
+                        } catch (SftpException e) {
+                            log.error("rename success error ",e);
                         }
                     }
                 }
             }
+
         }
     }
 }

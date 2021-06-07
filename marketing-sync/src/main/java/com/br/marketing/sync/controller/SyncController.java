@@ -55,9 +55,4 @@ public class SyncController {
         return "success";
     }
 
-
-    @GetMapping("getTest")
-    public String getTest(){
-        return "success";
-    }
 }

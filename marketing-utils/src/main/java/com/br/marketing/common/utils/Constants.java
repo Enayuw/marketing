@@ -3,8 +3,14 @@ package com.br.marketing.common.utils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class Constants {
+    public static final Pattern MYREGEX = Pattern.compile("\\.");
+    public static final String ERRORFILE="_FileVerification_error_";
+    public static final String SFTP_IN_ERROR_PATH="/UploadFiles/marketing/apiCode/error/";
+    public static final String SFTP_IN_INPUT_PATH="/UploadFiles/marketing/apiCode/input/";
+    public static final  Pattern FREQUENCY= Pattern.compile("^[0-5]{1}$");
 
     public static Map<String,Integer> riskMap = new HashMap<>();
                                                  //cus_num,id,cell,name,loan_maturity_date,approve_result,linkman_cell,time_range,home_addr,tel_home,mail
@@ -176,7 +182,7 @@ public class Constants {
     public static final String REDIS_RADAR_TEST_PREFIX = "cnt_loan_test";
     public static final String REDIS_RADAR_TOTALCOUNT = "totalCount";
 
-    public static final String ERRORFILE="_FileVerification_error_";
+
 
 
     public static final String LOAN_BUSINESSTYPECODE="A202";

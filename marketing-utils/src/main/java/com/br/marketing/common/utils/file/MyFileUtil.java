@@ -214,19 +214,22 @@ public class MyFileUtil {
      * @param splitSize 小文件大小
      * @param head
      */
-    public static void distinctByCusNum(File[] littleFiles, String distinctFilePath, int splitSize, StringBuilder head){
-        File distinctedFile = new File(distinctFilePath);
+    public static void distinctByCusNum(File[] littleFiles, String distinctFilePath,String distinctFileName, int splitSize, StringBuilder head){
+        File dir = new File(distinctFilePath);
+        if(!dir.exists()){
+            boolean mkdir = dir.mkdir();
+            if(!mkdir){
+                log.error("mkdir error");
+            }
+        }
+        File distinctedFile=new File(distinctFilePath.concat(distinctFileName));
         if(distinctedFile.exists()){
             try {
-                Files.delete(Paths.get(distinctFilePath));
+                Files.delete(Paths.get(distinctFilePath.concat(distinctFileName)));
+                distinctFilePath.concat(distinctFileName);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        try {
-            distinctedFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         try (PrintWriter pw =new PrintWriter(distinctedFile);){
 

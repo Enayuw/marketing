@@ -40,14 +40,10 @@ public class CopyFileJoinAspect {
     @Resource
     SyncLogMapper loanSyncLogMapper;
     @Resource
-    RedisChgService redisChgService;
-    @Resource
     LoanFileMapper loanFileMapper;
 
     @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.copyFile(..))")
     public void copyFile(){}
-
-    private static final Pattern FILENAME_PATTERN=Pattern.compile("_");
 
     @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
     public void copyFile(ProceedingJoinPoint joinPoint){
@@ -95,48 +91,12 @@ public class CopyFileJoinAspect {
         if(1==loanSyncConfig.getType()||!b||!fileName.endsWith(".zip")){
             return;
         }
-        if(Constants.APICODE_360.equals(loanSyncConfig.getApiCode())
-                ||Constants.APICODE_360_QA.equals(loanSyncConfig.getApiCode())){
-            String[] split = FILENAME_PATTERN.split(fileName);
+        Map<String,String> param=new HashMap<>();
+        param.put("apiCode",loanSyncConfig.getApiCode());
+        param.put("fileName",fileName);
+        loanFileMapper.updateStatus(param);
+        log.warn("updateStatus:{}",param);
 
-            StringBuilder batchNum=new StringBuilder();
-            for(int i=0;i<split.length;i++){
-                if(i==3){
-                    batchNum.append(split[i]).append("_");
-                }
-                if(i==4){
-                    batchNum.append(split[i]).append("_");
-                }
-                if(i==5){
-                    batchNum.append(split[i]);
-                }
-            }
-            if(split.length<6){
-                log.error("文件命名异常：{}",fileName);
-                return;
-            }
-            String batchNumber = batchNum.toString();
-            String key=Constants.SYNC_FILENUM+batchNumber+"_"+DateHelper.getDateAddYyMmDd(0);
-            redisChgService.incr(key);
-            String s = redisChgService.get(key);
-            if(StringUtils.isNotEmpty(s)){
-                LoanFile loanFile = loanFileMapper.queryBlf(batchNumber);
-                if(Integer.parseInt(s)==loanFile.getFileNum()){
-                    Map<String,String> param=new HashMap<>();
-                    param.put("apiCode",loanSyncConfig.getApiCode());
-                    param.put("batchNumber",batchNumber);
-                    loanFileMapper.updateStatus(param);
-                    log.warn("updateStatus:{}",param);
-                    redisChgService.del(key);
-                }
-            }
-        }else {
-            Map<String,String> param=new HashMap<>();
-            param.put("apiCode",loanSyncConfig.getApiCode());
-            param.put("fileName",fileName);
-            loanFileMapper.updateStatus(param);
-            log.warn("updateStatus:{}",param);
-        }
     }
 
     /**
@@ -146,30 +106,22 @@ public class CopyFileJoinAspect {
      * @return 文件同步日志
      */
     private SyncLog setSyncLog(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient){
-        log.debug("CopyFileJoinAspect saveSyncLog loanSyncConfig：{}，fileName：{}",loanSyncConfig,fileName);
+        log.info("CopyFileJoinAspect saveSyncLog loanSyncConfig：{}，fileName：{}",loanSyncConfig,fileName);
         SyncLog lsl=new SyncLog();
         String srcPath = loanSyncConfig.getSrcPath();
-        String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
-        String realSrcPath = srcPath.replace("yyyyMMdd", dateAddYyMmDd);
         String targetPath = loanSyncConfig.getTargetPath();
-        String realTargetPath = targetPath.replace("yyyyMMdd", dateAddYyMmDd);
         String size="";
         String createFileTime="";
         try {
             if(Constants.LOAN_WARNING_SFTP.equals(loanSyncConfig.getSrcType())){
                 SftpClient sftpClient = (SftpClient) srcClient;
-                SftpATTRS value = sftpClient.stats(realSrcPath + "/" + fileName);
-                log.debug("filename：{} Atime:{},size:{},atTime:{},Extended:{},Flags:{},gid:{},mTime:{}," +
-                                "MtimeString:{},Permissions:{},PermissionsString:{},uid:{}"
-                        ,fileName,value.getAtimeString(),value.getSize(),value.getATime()
-                        ,value.getExtended(),value.getFlags(),value.getGId(),value.getMTime()
-                        ,value.getMtimeString(),value.getPermissions(),value.getPermissionsString(),value.getUId());
+                SftpATTRS value = sftpClient.stats(srcPath + "/" + fileName);
                 size=value.getSize()+"";
                 createFileTime=DateHelper.timeStamp2Date(value.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
             }else if(Constants.LOAN_WARNING_FTP.equals(loanSyncConfig.getSrcType())){
                 FtpClient ftpClient = (FtpClient) srcClient;
-                log.info("realTargetPath:{},fileName:{}",realSrcPath,fileName);
-                FTPFile ftpFile = ftpClient.getFtpFile(realSrcPath + "/" , fileName);
+                log.info("realTargetPath:{},fileName:{}",srcPath,fileName);
+                FTPFile ftpFile = ftpClient.getFtpFile(srcPath + "/" , fileName);
                 Calendar timestamp = ftpFile.getTimestamp();
                 createFileTime = DateUtils.parseDateTimeByDate( timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
                 size= ftpFile.getSize()+"";
@@ -177,8 +129,8 @@ public class CopyFileJoinAspect {
 
             lsl.setApiCode(loanSyncConfig.getApiCode());
             lsl.setFileName(fileName);
-            lsl.setSrcPath(loanSyncConfig.getSrcSftpHost()+":"+realSrcPath);
-            lsl.setTargetPath(loanSyncConfig.getTargetSftpHost()+":"+realTargetPath);
+            lsl.setSrcPath(loanSyncConfig.getSrcSftpHost()+":"+srcPath);
+            lsl.setTargetPath(loanSyncConfig.getTargetSftpHost()+":"+targetPath);
             lsl.setFileSize(size);
             lsl.setCreateFileTime(createFileTime);
             lsl.setStartTime(DateUtils.parseDateTimeByDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
@@ -198,31 +150,24 @@ public class CopyFileJoinAspect {
     private boolean vaildatorFile(SyncConfig loanSyncConfig, String fileName, SyncLog lsl, BaseFtpClient targetClient){
         log.debug("CopyFileJoinAspect vaildatorFile loanSyncConfig：{}，fileName：{}",loanSyncConfig,fileName);
         String targetPath = loanSyncConfig.getTargetPath();
-        String realTargetPath = targetPath.replace("yyyyMMdd", DateHelper.getDateAddYyMmDd(0));
         InputStream inputStream=null;
         String size="";
         try{
             if(Constants.LOAN_WARNING_SFTP.equals(loanSyncConfig.getTargetType())){
                 SftpClient sftpClient = (SftpClient) targetClient;
-                SftpATTRS value = sftpClient.stats(realTargetPath + "/" + fileName);
-                log.debug("filename：{} Atime:{},size:{},atTime:{},Extended:{},Flags:{},gid:{},mTime:{}" +
-                                ",MtimeString:{},Permissions:{},PermissionsString:{},uid:{}"
-                        ,fileName,value.getAtimeString(),value.getSize(),value.getATime()
-                        ,value.getExtended(),value.getFlags(),value.getGId(),value.getMTime()
-                        ,value.getMtimeString(),value.getPermissions(),value.getPermissionsString(),value.getUId());
+                SftpATTRS value = sftpClient.stats(targetPath + "/" + fileName);
                 size=value.getSize()+"";
             }else if(Constants.LOAN_WARNING_FTP.equals(loanSyncConfig.getTargetType())){
                 FtpClient ftpClient = (FtpClient) targetClient;
-                log.info("realTargetPath:{},fileName:{}",realTargetPath,fileName);
-                FTPFile ftpFile = ftpClient.getFtpFile(realTargetPath + "/" , fileName);
+                log.info("realTargetPath:{},fileName:{}",targetPath,fileName);
+                FTPFile ftpFile = ftpClient.getFtpFile(targetPath + "/" , fileName);
                 size= ftpFile.getSize()+"";
             }
             if(!size.equals(lsl.getFileSize())){
                 log.error("{}文件同步前后大小不一致。前：{}，后：{}",fileName,lsl.getFileSize(), size);
                 return false;
-            //}else if(value.getSize()>1073741824){
             }else if(2==loanSyncConfig.getType()&&Long.parseLong(size)>1){
-                inputStream = targetClient.getInputStream(realTargetPath, fileName);
+                inputStream = targetClient.getInputStream(targetPath, fileName);
                 String md5 = MyFileUtil.getMd5(inputStream);
                 Map<String,String> param=new HashMap<>();
                 param.put("apiCode",loanSyncConfig.getApiCode());

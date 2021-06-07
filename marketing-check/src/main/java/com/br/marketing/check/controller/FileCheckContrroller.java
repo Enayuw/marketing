@@ -1,7 +1,7 @@
 package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.check.service.FileCkeckServicce;
+import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.service.Impl.EncryptFileServiceImpl;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.entity.MerchantParam;
@@ -21,7 +21,7 @@ import javax.annotation.Resource;
 public class FileCheckContrroller {
 
     @Resource
-    FileCkeckServicce fileCkeckServicceImpl;
+    FileCheckService fileCheckServiceImpl;
 
 
 
@@ -55,7 +55,7 @@ public class FileCheckContrroller {
     public String checkDataFile (String path,String filename){
         log.info("dataFileCheck   path--{}。filename--{}",path,filename);
 
-        boolean b = fileCkeckServicceImpl.checkDataFile(path, filename);
+        boolean b = fileCheckServiceImpl.checkDataFile(path, filename);
         if(b){
             return "success";
         }else{
@@ -63,21 +63,11 @@ public class FileCheckContrroller {
         }
     }
 
-    @GetMapping("checkSmallDataFile")
-    public String checkSmallDataFile (String path,String filename){
-        log.info("checkSmallDataFile   path--{}。filename--{}",path,filename);
-        boolean b = fileCkeckServicceImpl.checkSmallDataFile(path, filename,true,"");
-        if(b){
-            return "success";
-        }else{
-            return "fail";
-        }
-    }
 
     @GetMapping("strategyIdCheck")
     public String strategyIdCheck (String apiCode,String strategyId){
         log.info("strategyIdCheck   api_code--{}。strategyId--{}",apiCode,strategyId);
-        boolean b = fileCkeckServicceImpl.strategyIdCheck(apiCode, strategyId);
+        boolean b = fileCheckServiceImpl.strategyIdCheck(apiCode, strategyId);
         log.info("result--{}",b);
         if(b){
             return "success";
