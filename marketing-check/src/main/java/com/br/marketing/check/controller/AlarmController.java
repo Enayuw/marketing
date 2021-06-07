@@ -35,13 +35,13 @@ public class AlarmController {
     @Resource
     EmailService systemExceptionServiceImpl;
 
-    @Value("${otherConfig.warning.ftpHost}")
+    @Value("${otherConfig.warning.sftpHost}")
     private String ftpHost;
-    @Value("${otherConfig.warning.ftpPort}")
+    @Value("${otherConfig.warning.sftpPort}")
     private Integer ftpPort;
-    @Value("${otherConfig.warning.ftpUsername}")
+    @Value("${otherConfig.warning.sftpUser}")
     private String ftpUsername;
-    @Value("${otherConfig.warning.ftpPwd}")
+    @Value("${otherConfig.warning.sftpPwd}")
     private String ftpPwd;
 
     @GetMapping("monitoringExpirationAlarm")
