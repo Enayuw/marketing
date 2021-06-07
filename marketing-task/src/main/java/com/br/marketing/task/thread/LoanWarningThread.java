@@ -103,6 +103,7 @@ public class LoanWarningThread implements Callable<String> {
     private List<MarketingUser> errorList=new ArrayList<>();
     private RedisChgService redisChgService;
     private String batchNumber;
+    private String cusBatchNumber;
     private String isRepair;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
                              RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,
@@ -122,6 +123,7 @@ public class LoanWarningThread implements Callable<String> {
         this.sep=param.get("sep");
         this.redisChgService=redisChgService;
         this.batchNumber=param.get("batchNumber");
+        this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
@@ -516,14 +518,14 @@ public class LoanWarningThread implements Callable<String> {
             if(strategyId.startsWith("DTB")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,cusNum,batchNumber,proFieldMap,apiCode);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,cusNum,batchNumber,proFieldMap,apiCode);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
