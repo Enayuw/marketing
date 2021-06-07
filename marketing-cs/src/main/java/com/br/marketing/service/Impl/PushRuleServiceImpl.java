@@ -335,8 +335,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new ParamValidErrorException("传输的数据不要超过2000条");
         }
         //endregion
-        marketingUserMapper.insertBatchMarketingPreUser(dto.getApiCode(),dto.getJsonData().getTaskId()
-                ,DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"),dto.getJsonData().getDataItems());
+
+        try {
+            marketingUserMapper.insertBatchMarketingPreUser(dto.getApiCode(), dto.getJsonData().getTaskId()
+                    , DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"), dto.getJsonData().getDataItems());
+        }catch (Exception ex){
+            if(ex.getMessage().contains("IDX_taskId_custNum")){
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的客户编号");
+            }else{
+                throw ex;
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 }

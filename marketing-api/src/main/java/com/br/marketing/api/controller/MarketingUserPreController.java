@@ -38,7 +38,16 @@ public class MarketingUserPreController {
         try {
             RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
             dto.setApiCode(apiCode);
-            dto.setJsonData(JSON.parseObject(jsonData,new TypeReference<MarketingPreUserDTO>(){}.getType()));
+            try {
+                dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
+                }.getType()));
+            }catch (JSONException ex){
+                if(ex.getMessage().contains("not match")){
+                    return new ApiNoDataResult().setCode("100006").setMessage("请核实下是否jsonData过长，jsonData解析异常");
+                }else{
+                    return new ApiNoDataResult().setCode("100006").setMessage("jsonData解析异常");
+                }
+            }
             return new ApiNoDataResult().fromResult(pushRuleService.insertMarketingPreUser(dto));
         }catch (ParamValidErrorException ex){
             log.error(ex.getMessage());
