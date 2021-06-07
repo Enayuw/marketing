@@ -49,20 +49,16 @@ public class FileCheckServiceImpl implements FileCheckService {
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
-        Writer errorfw =null;
-        FileReader read;
-        BufferedReader br=null;
         File errorPathFile=new File(context.getErrorFilePath());
         if(!errorPathFile.exists()){
             errorPathFile.mkdirs();
         }
-        try {
-            File file1 = new File(context.getErrorFilePath().concat(context.getErrorDataFileName()));
-            errorfw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file1), "UTF-8"));
-            read = new FileReader(context.getDistinctTxtFilePath().concat(context.getDistinctTxtFileName()));
-            br = new BufferedReader(read);
+        File file1 = new File(context.getErrorFilePath().concat(context.getErrorDataFileName()));
+        try(Writer errorfw = new BufferedWriter(
+                new OutputStreamWriter(
+                new FileOutputStream(file1), "UTF-8"));
+            FileReader read = new FileReader(context.getDistinctTxtFilePath().concat(context.getDistinctTxtFileName()));
+            BufferedReader br = new BufferedReader(read);) {
             String row;
             String head="";
             while ((row = br.readLine()) != null) {
@@ -98,17 +94,6 @@ public class FileCheckServiceImpl implements FileCheckService {
 
         }catch (Exception e){
             log.error("checkSmallFile error",e);
-        }finally {
-            try {
-               if(errorfw!=null){
-                   errorfw.close();
-               }
-                if(br!=null){
-                    br.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         log.warn("cost time :{}",System.currentTimeMillis()-l);
         return true;
@@ -120,16 +105,13 @@ public class FileCheckServiceImpl implements FileCheckService {
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(20,20);
         String[] split = filename.split("_");
         String apiCode=split[0];
-        FileReader read=null;
-        BufferedReader br=null;
+        File file=new File(path+"/"+filename);
+        if(!file.exists()){
+            return false;
+        }
 
-        try {
-            File file=new File(path+"/"+filename);
-            if(!file.exists()){
-                return false;
-            }
-            read = new FileReader(path+filename);
-            br = new BufferedReader(read);
+        try(FileReader read = new FileReader(path+filename);
+            BufferedReader br = new BufferedReader(read);) {
             int rownum = 0;
             int fileNo = 1;
             String head="";
@@ -158,20 +140,6 @@ public class FileCheckServiceImpl implements FileCheckService {
         }catch (Exception e){
             log.error("check file fail --{}",e);
             return false;
-        }finally {
-            if(br!=null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                }
-            }
-            if(read!=null){
-                try {
-                    read.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
 
         /**
@@ -206,6 +174,7 @@ public class FileCheckServiceImpl implements FileCheckService {
             case ERROR_FILE:
                 fileName=context.getTxtFileName();
                 break;
+            default:
         }
         LoadResult loadResult=LoadResult.builder().apiCode(context.getTask().getApiCode())
                 .cusBatch(context.getTask().getCusBatch())

@@ -148,20 +148,17 @@ public class LoanWarningThread implements Callable<String> {
             log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
             return null;
         }
-        Writer fw=null;
-        Writer errorFw =null;
-        try {
-            boolean check=this.checkRedisNumber();
-            if(isIncr){
-                boolean b = this.checkStrategy();
-                if(!b){
-                    log.error("策略没有配置流失预警产品支持的变动产品.apiCode:{},strategyId:{}",apiCode,strategyId);
-                    return null;
-                }
-            }
 
-            log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
-            String descPath = path ;
+        boolean check=this.checkRedisNumber();
+        if(isIncr){
+            boolean b = this.checkStrategy();
+            if(!b){
+                log.error("策略没有配置流失预警产品支持的变动产品.apiCode:{},strategyId:{}",apiCode,strategyId);
+                return null;
+            }
+        }
+        log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
+        String descPath = path ;
 
         File writeName = new File(descPath );
         if (!writeName.exists()) {
@@ -169,19 +166,21 @@ public class LoanWarningThread implements Callable<String> {
         }
 
         File errorFile = new File(descPath + "/error"+ currentPage + ".txt");
-         errorFw = new BufferedWriter(
+        File file1 = new File(descPath + "/" + currentPage + ".txt");
+
+        try(Writer errorFw = new BufferedWriter(
                 new OutputStreamWriter(
-                        new FileOutputStream(errorFile), "UTF-8"));
-        if(!check){
-            log.error("条数不足--{}",message);
-            dealResult(message,errorFw);
-            errorFw.close();
-            return null;
-        }
-            File file1 = new File(descPath + "/" + currentPage + ".txt");
-             fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file1), "UTF-8"));
+                new FileOutputStream(errorFile), "UTF-8"));
+            Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), "UTF-8"));) {
+
+            if(!check){
+                log.error("条数不足--{}",message);
+                dealResult(message,errorFw);
+                errorFw.close();
+                return null;
+            }
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
@@ -200,8 +199,8 @@ public class LoanWarningThread implements Callable<String> {
                         String string = jsonObject.getString(key);
                         String[] split = string.split("\\|");
                         for(int i=0;i<split.length;i++){
-                            String s_value = split[i];
-                            String s = s_value.split(":")[0];
+                            String sValue = split[i];
+                            String s = sValue.split(":")[0];
                             String s1 = map.get(s);
                             proChange += s1;
                         }
@@ -395,8 +394,8 @@ public class LoanWarningThread implements Callable<String> {
     private String getMinNum(String apiCode, List<String> typeNoList,MerchantParam merchantParam) {
         List<Long> numList = new ArrayList<>();
         for (String typeNo : typeNoList) {
-            String key_test = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ typeNo+":"+Constants.REDIS_RADAR_TOTALCOUNT;
-            String str = redisService.get(key_test);
+            String keyTest = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ typeNo+":"+Constants.REDIS_RADAR_TOTALCOUNT;
+            String str = redisService.get(keyTest);
             long num = 0;
             if (!org.springframework.util.StringUtils.isEmpty(str)) {
                 num = Long.parseLong(str);

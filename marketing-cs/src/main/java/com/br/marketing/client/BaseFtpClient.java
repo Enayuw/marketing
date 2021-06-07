@@ -30,7 +30,7 @@ public abstract class BaseFtpClient {
         this.hostName = isSrc? loanSyncConfig.getSrcSftpHost() : loanSyncConfig.getTargetSftpHost();
         this.port =isSrc? loanSyncConfig.getSrcSftpPort() : loanSyncConfig.getTargetSftpPort();
         this.userName = isSrc? loanSyncConfig.getSrcSftpUser() : loanSyncConfig.getTargetSftpUser();
-        String key = isSrc ? Constants.SFTP_PWD_SECRET_KEY :Constants.SFTP_PWD_SECRET_KEY;
+        String key = isSrc ? Constants.SFTP_P_SECRET_KEY :Constants.SFTP_P_SECRET_KEY;
         this.password = AESAlgorithmUtil.decrypt(loanSyncConfig.getSrcSftpPwd(), key);
     }
     /**

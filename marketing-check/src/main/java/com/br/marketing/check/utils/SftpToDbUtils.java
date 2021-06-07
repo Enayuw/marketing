@@ -347,6 +347,7 @@ public class SftpToDbUtils {
             case ERROR_CONFIG:
                 errorFileName=context.getErrorConfigFileName();
                 break;
+            default:
         }
         String errorFilePathAndName=errorFilePath.concat(errorFileName);
         File dir = new File(context.getErrorFilePath());

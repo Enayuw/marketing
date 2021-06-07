@@ -160,7 +160,7 @@ public class DateHelper {
      */
     public static long getDistanceMinutes(String str) {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        long now=new Date().getTime();
+        long now=System.currentTimeMillis();
         long min = 0;
         try {
             Date two = df.parse(str);

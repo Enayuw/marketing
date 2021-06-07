@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * The type Sync service.
@@ -57,8 +56,8 @@ public class SyncServiceImpl implements SyncService {
     public void insertConfig(SyncConfig loanSyncConfig) {
         String srcSftpPwd = loanSyncConfig.getSrcSftpPwd();
         String targetSftpPwd = loanSyncConfig.getTargetSftpPwd();
-        String encryptSrcSftpPwd = AESAlgorithmUtil.encrypt(srcSftpPwd, Constants.SFTP_PWD_SECRET_KEY);
-        String encryptTargetSftpPwd = AESAlgorithmUtil.encrypt(targetSftpPwd, Constants.SFTP_PWD_SECRET_KEY);
+        String encryptSrcSftpPwd = AESAlgorithmUtil.encrypt(srcSftpPwd, Constants.SFTP_P_SECRET_KEY);
+        String encryptTargetSftpPwd = AESAlgorithmUtil.encrypt(targetSftpPwd, Constants.SFTP_P_SECRET_KEY);
         loanSyncConfig.setSrcSftpPwd(encryptSrcSftpPwd);
         loanSyncConfig.setTargetSftpPwd(encryptTargetSftpPwd);
         log.warn("loanSyncConfig:{}",loanSyncConfig);

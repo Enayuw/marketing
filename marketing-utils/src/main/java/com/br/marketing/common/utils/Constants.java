@@ -68,7 +68,7 @@ public class Constants {
     public static final String INSERT_DB_NUMBER="INSERT_DB_NUMBER_";
     public static final String HX_FLAG_98_NUM="HX_FLAG_98_NUM_";
 
-    public static final String SFTP_PWD_SECRET_KEY="s%^*K%)l*R(a20201105";
+    public static final String SFTP_P_SECRET_KEY ="s%^*K%)l*R(a20201105";
     public static final String SYNC_FILENUM="SYNC_FILENUM_";
     public static final String LOAN_WARNING_FTP="ftp";
     public static final String LOAN_WARNING_SFTP="sftp";
