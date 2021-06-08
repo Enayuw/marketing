@@ -192,12 +192,7 @@ public class MergeServiceImpl implements MergeService {
             }else{
                 startTime= DateHelper.getDateAddYyMmDd(0);
             }
-            String strategyId="";
-            if(blf.getIsSec()==1){
-//                strategyId=blt.getSecStrategyId();
-            }else if (blf.getIsSec()==0){
-                strategyId=blt.getStrategyId();
-            }
+            String  strategyId=blt.getStrategyId();
             String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
                     +strategyId.split(":")[0]+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
             StringBuilder head= new StringBuilder();

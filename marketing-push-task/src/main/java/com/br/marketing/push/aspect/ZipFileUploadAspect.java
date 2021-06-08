@@ -1,6 +1,5 @@
 package com.br.marketing.push.aspect;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.SftpClient;
@@ -87,58 +86,24 @@ public class ZipFileUploadAspect {
         try {
             sftpClient.connect();
             String remotePath="/UploadFiles/loanwarn/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
-            if((apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))){
-                for (LoanFile loanFile : files) {
-                    boolean flag=true;
-                    List<String> fileNames =loanFile.getZipFileNames();
-                    for(String filePath:fileNames){
-                        File file = new File(filePath);
-                        if(file.exists()){
-                            log.warn("push zip to sftp :{}",filePath);
-                            String[] split = filePath.split("/");
-                            flag= sftpClient.uploadFile(remotePath, split[split.length - 1], filePath);
-                        }
-                    }
+            for(LoanFile blf:files){
+                String zipFileName = blf.getZipFileName();
+                String filePath = blf.getFilePath();
+                File file = new File(filePath+"/"+zipFileName);
+                if(file.exists()){
+                    log.warn("push zip to sftp :{}",filePath+"/"+zipFileName);
+                    boolean flag= sftpClient.uploadFile(remotePath, zipFileName, filePath+"/"+zipFileName);
                     if(flag){
-                        String fileaName=apiCode+"_"+loanFile.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                        File successFile=new File(path+"/ftp_data/"+apiCode+"/"+fileaName);
-                        if(successFile.exists()){
-                            log.warn("push complete to sftp :{}",fileaName);
-                            sftpClient.uploadFile(remotePath, fileaName, path+"/ftp_data/"+apiCode+"/"+fileaName);
-                        }
-                    }
-                }
-            }else{
-                for(LoanFile blf:files){
-                    String zipFileName = blf.getZipFileName();
-                    String filePath = blf.getFilePath();
-                    File file = new File(filePath+"/"+zipFileName);
-                    if(file.exists()){
-                        log.warn("push zip to sftp :{}",filePath+"/"+zipFileName);
-                        boolean flag= sftpClient.uploadFile(remotePath, zipFileName, filePath+"/"+zipFileName);
-                        if(flag){
-//                            String successFileName=zipFileName+".success";
-//                            File successFile=new File(path+"/ftp_data/"+apiCode+"/"+successFileName);
-//                            if(successFile.exists()){
-//                                log.warn("push success to sftp :{}",successFileName);
-//                                sftpClient.uploadFile(remotePath, successFileName, path+"/ftp_data/"+apiCode+"/"+successFileName);
-//                            }
-
-                            String completeFileaName="";
-                            if(apiCode.equals(Constants.APICODE_PPD)||apiCode.equals(Constants.APICODE_PPD_QA)){
-                                completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+blf.getIsSec()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                            }else {
-                                completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                            }
-                            File completeFile=new File(path+"/ftp_data/"+apiCode+"/"+completeFileaName);
-                            if(completeFile.exists()){
-                                log.warn("push complete to sftp :{}",completeFileaName);
-                                sftpClient.uploadFile(remotePath, completeFileaName, path+"/ftp_data/"+apiCode+"/"+completeFileaName);
-                            }
+                        String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
+                        File completeFile=new File(path+"/ftp_data/"+apiCode+"/"+completeFileaName);
+                        if(completeFile.exists()){
+                            log.warn("push complete to sftp :{}",completeFileaName);
+                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/ftp_data/"+apiCode+"/"+completeFileaName);
                         }
                     }
                 }
             }
+
         } catch (Exception e) {
             log.error("Exception",e);
         }finally {
