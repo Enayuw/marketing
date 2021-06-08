@@ -85,7 +85,7 @@ public class ZipFileUploadAspect {
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
-            String remotePath="/UploadFiles/loanwarn/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
+            String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
             for(LoanFile blf:files){
                 String zipFileName = blf.getZipFileName();
                 String filePath = blf.getFilePath();
@@ -95,10 +95,10 @@ public class ZipFileUploadAspect {
                     boolean flag= sftpClient.uploadFile(remotePath, zipFileName, filePath+"/"+zipFileName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                        File completeFile=new File(path+"/ftp_data/"+apiCode+"/"+completeFileaName);
+                        File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
                         if(completeFile.exists()){
                             log.warn("push complete to sftp :{}",completeFileaName);
-                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/ftp_data/"+apiCode+"/"+completeFileaName);
+                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/sftp_data/"+apiCode+"/"+completeFileaName);
                         }
                     }
                 }

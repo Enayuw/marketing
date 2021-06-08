@@ -101,7 +101,7 @@ public class PushServiceImpl implements PushService {
             String[] split = blf.getZipFileName().split("/");
             String name = split[split.length - 1];
             String successFileName=name+".success";
-            String destPath=path+"/ftp_data/"+apiCode+"/";
+            String destPath=path+"/sftp_data/"+apiCode+"/";
             File writePath = new File(destPath);
             if (!writePath.exists()) {
                 writePath.mkdirs();
