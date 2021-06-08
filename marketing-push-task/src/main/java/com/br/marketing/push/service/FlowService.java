@@ -6,6 +6,8 @@ import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.push.PushApplication;
+import com.br.marketing.push.service.impl.MergeServiceImpl;
+import com.br.marketing.push.service.impl.PushServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -53,36 +55,23 @@ public class FlowService {
             /**
              * 文件合并
              */
-            Class mergeServiceClass =Class.forName(customer.getMergeServiceName());
-            MergeService mergeService=(MergeService) PushApplication.ac.getBean(mergeServiceClass);
+            MergeService mergeService= PushApplication.ac.getBean(MergeServiceImpl.class);
              pushList =mergeService.process(customer.getApiCode());
 
-//            /**
-//             * 文件过滤
-//             */
-//            if(true){
-//            Class mergeServiceClass1=Class.forName(customer.getPushServiceName());
-//            MergeService mergeService1=(MergeService) PushApplication.ac.getBean(mergeServiceClass1);
-//             pushList =mergeService.process(customer.getApiCode());
-//            }
 //
-//            /**
-//             * 文件压缩
-//             */
             /**
              * 文件推送
              */
             if(pushList !=null&&pushList.size()>0){
-                Class pushClass=Class.forName(customer.getPushServiceName());
-                PushService pushService=(PushService) PushApplication.ac.getBean(pushClass);
+                PushService pushService= PushApplication.ac.getBean(PushServiceImpl.class);
                 pushService.push(pushList);
 
                 //推送消息到pushQueue，进行下一流程处理
                 RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.checkRoutingKey,apiCode);
             }
 
-        } catch (ClassNotFoundException e) {
-            log.error("实现类未找到，apiCode={},serviceName={}",customer.getApiCode(),customer.getPushServiceName());
+        } catch (Exception e) {
+            log.error("推送服务异常，apiCode={},",customer.getApiCode(),e);
         }
 
     }

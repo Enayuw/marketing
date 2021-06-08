@@ -5,6 +5,7 @@ import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -63,14 +64,13 @@ public class QaTaskJob extends AbstractSimpleElasticJob {
             return;
         }
         try {
-            Class loanWarningServiceClass =Class.forName(customer.getTaskServiceName());
-            LoanWarningService loanWarningService=(LoanWarningService) Scheduler.ac.getBean(loanWarningServiceClass);
+            LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
             loanWarningService.process(customer);
             //推送消息到pushQueue，进行下一流程处理
             RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
 
-        } catch (ClassNotFoundException e) {
-            log.error("实现类未找到，apiCode={}",customer.getApiCode());
+        } catch (Exception e) {
+            log.error("跑批异常，apiCode={}",customer.getApiCode());
         }
         Long end =System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{}",end-start);
