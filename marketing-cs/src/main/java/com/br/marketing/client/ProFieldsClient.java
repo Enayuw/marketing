@@ -189,36 +189,36 @@ public class ProFieldsClient {
         Set<String> keySet = jsonObject1.keySet();
         for(String pro:keySet){
             String  s = pro.toLowerCase();
-            if(s.indexOf("scoredata")!=-1){
-                Map<String,String> param=new HashedMap();
-                param.put("apiCode",apiCode);
-                param.put("strategyId",strategyId);
-                //查询客制化衍生变量
-                String  scoreDataFields= marketingTaskMapper.queryScoreData(param);
-                if(StringUtils.isNotEmpty(scoreDataFields)){
-                    scoreDataFields=scoreDataFields.trim();
-                    proFieldMap.put(pro,scoreDataFields);
-                }
-                continue;
-            }
+//            if(s.indexOf("scoredata")!=-1){
+//                Map<String,String> param=new HashedMap();
+//                param.put("apiCode",apiCode);
+//                param.put("strategyId",strategyId);
+//                //查询客制化衍生变量
+//                String  scoreDataFields= marketingTaskMapper.queryScoreData(param);
+//                if(StringUtils.isNotEmpty(scoreDataFields)){
+//                    scoreDataFields=scoreDataFields.trim();
+//                    proFieldMap.put(pro,scoreDataFields);
+//                }
+//                continue;
+//            }
             String stringValue = PropertiesUtil.getProperty(s);
-
-            String proFields = getProFields(pro, jsonObject1.getString(pro), apiCode,stmtKey);
-            if(StringUtils.isEmpty(proFields)){
-                log.info("setFields s:{},value:{}",s,stringValue);
-                proFieldMap.put(pro,stringValue);
-            }else{
-                StringBuilder sb=new StringBuilder();
-                if(StringUtils.isNotEmpty(stringValue)){
-                    String[] split = stringValue.split(",");
-                    for(int k=0;k<split.length;k++){
-                        if(proFields.contains(split[k])){
-                            sb.append(split[k]).append(",");
-                        }
-                    }
-                }
-                proFieldMap.put(pro,sb.toString());
-            }
+            proFieldMap.put(pro,stringValue);
+//            String proFields = getProFields(pro, jsonObject1.getString(pro), apiCode,stmtKey);
+//            if(StringUtils.isEmpty(proFields)){
+//                log.info("setFields s:{},value:{}",s,stringValue);
+//                proFieldMap.put(pro,stringValue);
+//            }else{
+//                StringBuilder sb=new StringBuilder();
+//                if(StringUtils.isNotEmpty(stringValue)){
+//                    String[] split = stringValue.split(",");
+//                    for(int k=0;k<split.length;k++){
+//                        if(proFields.contains(split[k])){
+//                            sb.append(split[k]).append(",");
+//                        }
+//                    }
+//                }
+//                proFieldMap.put(pro,sb.toString());
+//            }
         }
     }
 

@@ -358,7 +358,6 @@
         	`update_time`,
         	`status`,
         	`type`,
-        	is_sec,
         	file_path,
         	expected_num
         	)
@@ -369,7 +368,6 @@
         	 now(),
         	 #{status},
         	 #{type},
-        	 #{isSec},
         	 #{filePath},
         	 #{expectedNum}
         	 )
