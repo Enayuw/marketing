@@ -47,71 +47,9 @@ public class ZipFileUploadAspect {
     @After("com.br.marketing.push.aspect.ZipFileUploadAspect.push()")
     public void push(JoinPoint joinPoint){
         Object[] args = joinPoint.getArgs();
-        checkZipFile(args);
-        pushToSftp(args);
-    }
-
-    private void checkZipFile(Object[] args){
-        List<LoanFile> files= (List<LoanFile>) args[0];
-        String apiCode=files.get(0).getApiCode();
-        JSONObject json=new JSONObject();
-        json.put("apiCode",apiCode);
-        if((apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))){
-            for(LoanFile blf:files){
-                List<String> fileNames=blf.getZipFileNames();
-                json.put("batchNumber",blf.getBatchNumber());
-                json.put("files",fileNames);
-                long l = System.currentTimeMillis();
-                zipFileCheckServiceImpl.zipFileCheck(json);
-                log.warn("cost time :{}",System.currentTimeMillis()-l);
-            }
-        }else {
-            for(LoanFile blf:files){
-                json.put("batchNumber",blf.getBatchNumber());
-                JSONArray array = new JSONArray();
-                array.add(blf.getFilePath()+"/"+blf.getZipFileName());
-                json.put("files",array);
-                long l = System.currentTimeMillis();
-                zipFileCheckServiceImpl.zipFileCheck(json);
-                log.warn("cost time :{}",System.currentTimeMillis()-l);
-            }
-        }
+//        checkZipFile(args);
+//        pushToSftp(args);
     }
 
 
-    public void pushToSftp(Object[] args){
-        List<LoanFile> files= (List<LoanFile>) args[0];
-        String apiCode=files.get(0).getApiCode();
-        SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
-        try {
-            sftpClient.connect();
-            String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
-            for(LoanFile blf:files){
-                String zipFileName = blf.getZipFileName();
-                String filePath = blf.getFilePath();
-                File file = new File(filePath+"/"+zipFileName);
-                if(file.exists()){
-                    log.warn("push zip to sftp :{}",filePath+"/"+zipFileName);
-                    boolean flag= sftpClient.uploadFile(remotePath, zipFileName, filePath+"/"+zipFileName);
-                    if(flag){
-                        String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                        File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
-                        if(completeFile.exists()){
-                            log.warn("push complete to sftp :{}",completeFileaName);
-                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/sftp_data/"+apiCode+"/"+completeFileaName);
-                        }
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            log.error("Exception",e);
-        }finally {
-            try {
-                sftpClient.disconnect();
-            } catch (Exception e) {
-                log.error("Exception",e);
-            }
-        }
-    }
 }
