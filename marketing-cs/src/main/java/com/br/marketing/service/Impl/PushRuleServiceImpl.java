@@ -432,7 +432,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCusBatchEqualTo(dto.getJsonData().getTaskId());
             List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
             List<String> requestBatchs = marketingSyncInfos.stream().map(t -> t.getRequestBatch()).collect(Collectors.toList());
-            redisChgService.sadd(taskRedisKey,requestBatchs);
+            if(requestBatchs.size()>0) {
+                redisChgService.sadd(taskRedisKey, requestBatchs);
+            }
         }
         if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
             throw new ParamValidErrorException("taskid必传");
