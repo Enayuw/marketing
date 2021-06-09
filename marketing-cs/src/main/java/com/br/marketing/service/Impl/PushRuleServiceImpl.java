@@ -435,7 +435,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());
             System.out.println("插入耗时"+(System.currentTimeMillis()-l));
         }catch (DuplicateKeyException keyException){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的客户编号");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
         }catch (Exception ex){
             throw ex;
         }
