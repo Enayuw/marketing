@@ -27,15 +27,11 @@ public class AlarmAndNoticeTest {
     EmailService businessAlarmServiceImpl;
     @Resource
     EmailService reportServiceImpl;
-    @Resource
-    EmailService ppdNoticeServiceImpl;
+
     @Resource
     EmailService validDataAlarmServiceImpl;
 
-    @Resource
-    LoanFileMapper loanFileMapper;
-    @Resource
-    AlarmApiClient alarmApiClient;
+
     @Test
     public void hxflat(){
         String s="{\"swift_number\":\"4002511_20200818102903_836744281\",\"code\":\"00\",\"Flag\":{\"scoremconsonsncfclxmodel\":\"1\"},\"scoremconsonsncfclxmodel\":{\"score\":\"100\"}}";
@@ -48,10 +44,7 @@ public class AlarmAndNoticeTest {
         businessAlarmServiceImpl.closeDateAlarm();
         businessAlarmServiceImpl.monitoringExpirationAlarm();
     }
-    @Test
-    public void sendreportTest(){
-        ppdNoticeServiceImpl.sendReport("4200777");
-    }
+
     @Test
     public void resultVolumeCheckTest(){
         businessAlarmServiceImpl.resultVolumeCheck("4200333");

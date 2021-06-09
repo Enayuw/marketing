@@ -102,8 +102,7 @@
 		expected_num,
 		batch_number,
 		file_num,
-		status,
-		is_sec
+		status
 		FROM
 		stra_his_file
 		WHERE
@@ -148,8 +147,7 @@
 		status,
 		`type`,
 		zipFile_name,
-		error_file,
-		is_sec
+		error_file
 		FROM
 		stra_his_file
 		WHERE
@@ -171,7 +169,6 @@
  		 `type`,
  		 zipFile_name,
  		 error_file,
- 		 is_sec,
  		 file_num
  		 FROM
  		 stra_his_file
@@ -225,7 +222,6 @@
 		batch_number,
 		api_code,
 		`type`,
-		is_sec,
 		file_path,
         zipFile_name,
 		create_time
