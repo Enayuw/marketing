@@ -55,55 +55,15 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     public void resultVolumeCheck(String apiCode){
         log.warn("resultVolumeCheck  apiCode--{}",apiCode);
-        List<MarketingTask> marketingTasks = marketingTaskMapper.queryBatchNumByapiCode(apiCode);
         List<LoanFile> blrList = loanFileMapper.queryResultByApiCode(apiCode);
-        int expectedFileNum=0;
+        int expectedFileNum=blrList.size();
         int actualFileNum=0;
         Map<String,BigDecimal> map;
-        if(Constants.APICODE_360.equals(apiCode)||Constants.APICODE_360_QA.equals(apiCode)){
-            for(LoanFile blf:blrList){
+        for(LoanFile blf:blrList){
+            if( blf.getFileNum()!=null){
                 actualFileNum=actualFileNum+blf.getFileNum();
-                Integer expectedNum = blf.getExpectedNum();
-                int num= expectedNum % SIZE == 0 ? (expectedNum / SIZE) : (expectedNum / SIZE + 1);
-                expectedFileNum=expectedFileNum+num;
-            }
-        }else if(Constants.APICODE_PPD.equals(apiCode)||Constants.APICODE_PPD_QA.equals(apiCode)){
-            log.warn("bLoanTasks {}", marketingTasks);
-            for(MarketingTask blt: marketingTasks){
-                expectedFileNum++;
-                int days = 0;
-                try {
-                    days = DateHelper.daysBetween(blt.getStartDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                if(days % Constants.PPDFREQUENCY == 0){
-                    expectedFileNum++;
-                }
-            }
-
-            for(LoanFile blf:blrList){
-                if( blf.getFileNum()!=null){
-                    actualFileNum=actualFileNum+blf.getFileNum();
-                }
-            }
-            log.warn("expectedFileNum {}actualFileNum{}",expectedFileNum,actualFileNum);
-        }else if(Constants.APICODE_HNNX.equals(apiCode)||Constants.APICODE_APICODE_HNNX_QA.equals(apiCode)){
-            expectedFileNum=1;
-            for(LoanFile blf:blrList){
-                if( blf.getFileNum()!=null){
-                    actualFileNum=blf.getFileNum();
-                }
-            }
-        }else {
-            expectedFileNum= blrList.size();
-            for(LoanFile blf:blrList){
-                if( blf.getFileNum()!=null){
-                    actualFileNum=actualFileNum+blf.getFileNum();
-                }
             }
         }
-
         map=loanFileMapper.queryTotalDataNum(apiCode);
         if(map!=null){
             BigDecimal expecteData=map.get("expecteDataNum");
@@ -176,9 +136,6 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
             }
         }
-//        else {
-//            log.error("数据量比较出错：map为空");
-//        }
     }
 
 
@@ -285,17 +242,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 .append("备注：具体的今日到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】存量客户监控-监控时间今日到期";
                 alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("fileUploadFtp"));
-              /*  StringBuilder ids=new StringBuilder();
-                for(LoanTask lt:loanTaskList){
-                    Integer id = lt.getId();
-                    ids.append(id).append(",");
-                }
-                String string = ids.toString();
-                String substring = string.substring(0, string.length() - 1);
-                Map<String,Object> param=new HashMap<>();
-                param.put("ids", substring);
-                param.put("monitorStatus",4);
-                loanTaskMapper.updateMonitorStatusForOff(param);*/
+
             }
         }
     }

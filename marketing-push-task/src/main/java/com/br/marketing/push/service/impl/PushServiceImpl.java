@@ -45,112 +45,24 @@ public class PushServiceImpl implements PushService {
 
     @Override
     public void push(List<LoanFile> files) {
-
+        checkZipFile(files);
         pushToSftp(files);
-//        log.info("start push files api_code:{}--{}",files.size());
-//        String zipFileName="";
-//        String errorFile="";
-//        FtpUtil2 ftp=new FtpUtil2();
-//        if(files ==null||files.isEmpty()){
-//            return;
-//        }
-//        String apiCode =files.get(0).getApiCode();
-//        try {
-//            String today = DateHelper.getDateAddYyMmDd(0);
-//            boolean connect = ftp.connect( "/loanwarn/" + apiCode + "/output/"+today+"/", ftpHost, ftpPort, ftpUsername, ftpPwd);
-//            if(!connect){
-//                log.error("获取ftp链接出错");
-//                return ;
-//            }
-//            for(LoanFile blf:files){
-//                String fileName = blf.getZipFileName();
-//                log.info("filename:{}",fileName);
-//                File file = new File(fileName);
-//                if(file.exists()){
-//                    boolean upload = ftp.upload(file);
-//                    if(upload){
-//                        successUpLoad(blf,ftp);
-//                    }else {
-//                        log.error("上传文件到ftp失败");
-//                    }
-//
-//                    String[] split = fileName.split("/");
-//                    String name = split[split.length - 1];
-//                    if(name.indexOf("error")>-1){
-//                        errorFile=name;
-//                    }else {
-//                        zipFileName=name;
-//                    }
-//                    log.info("zipFile_name:{}",zipFileName);
-//                }
-//
-//                blf.setZipFileName(zipFileName);
-//                blf.setErrorFile(errorFile);
-//                loanFileMapper.updateFile(blf);
-//                TaskStatus bts = new TaskStatus();
-//                bts.setBatchNumber(blf.getBatchNumber());
-//                bts.setFileId(blf.getId());
-//                taskStatusMapper.updateTaskStatus(bts);
-//            }
-//
-//        } catch (Exception e) {
-//            log.error("上传文件到ftp出错",e);
-//        }finally {
-//            ftp.closeFtp();
-//        }
-    }
-
-    private void successUpLoad(LoanFile blf, FtpUtil2 ftp){
-        try{
-            String apiCode=blf.getApiCode();
-            String batchNumber=blf.getBatchNumber();
-            String[] split = blf.getZipFileName().split("/");
-            String name = split[split.length - 1];
-            String successFileName=name+".success";
-            String destPath=path+"/sftp_data/"+apiCode+"/";
-            File writePath = new File(destPath);
-            if (!writePath.exists()) {
-                writePath.mkdirs();
-            }
-            String fileaName=destPath+apiCode+"_"+batchNumber+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-            File completeFile=new File(fileaName);
-            boolean newFile = completeFile.createNewFile();
-            String s = destPath + successFileName;
-            File successFile=new File(s);
-            boolean newFile1 = successFile.createNewFile();
-            log.info("客户批次回传标识文件---success:{}---create{}---complete:{}-----create:{}",successFileName,newFile1,fileaName,newFile);
-            if(successFile.exists()){
-                ftp.upload(successFile);
-            }
-            if(completeFile.exists()){
-                ftp.upload(completeFile);
-            }
-        }catch (Exception e){
-            log.error("上传周期日回传标识文件文件出错---{}",e);
-        }
 
     }
 
-
-
-    private void checkZipFile(Object[] args){
-        List<LoanFile> files= (List<LoanFile>) args[0];
+    private void checkZipFile(List<LoanFile> files){
         String apiCode=files.get(0).getApiCode();
         JSONObject json=new JSONObject();
         json.put("apiCode",apiCode);
-
         for(LoanFile blf:files){
             json.put("batchNumber",blf.getBatchNumber());
-            JSONArray array = new JSONArray();
-            array.add(blf.getFilePath()+"/"+blf.getZipFileName());
-            json.put("files",array);
+            json.put("file",blf.getZipFileName());
             long l = System.currentTimeMillis();
             zipFileCheckServiceImpl.zipFileCheck(json);
             log.warn("cost time :{}",System.currentTimeMillis()-l);
         }
 
     }
-
 
     public void pushToSftp(List<LoanFile> files){
         String apiCode=files.get(0).getApiCode();
@@ -160,11 +72,12 @@ public class PushServiceImpl implements PushService {
             String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
             for(LoanFile blf:files){
                 String zipFileName = blf.getZipFileName();
-                String filePath = blf.getFilePath();
-                File file = new File(filePath+"/"+zipFileName);
+                String[] split = zipFileName.split("/");
+                String name = split[split.length - 1];
+                File file = new File(zipFileName);
                 if(file.exists()){
-                    log.warn("push zip to sftp :{}",filePath+"/"+zipFileName);
-                    boolean flag= sftpClient.uploadFile(remotePath, zipFileName, filePath+"/"+zipFileName);
+                    log.warn("push zip to sftp :{}",zipFileName);
+                    boolean flag= sftpClient.uploadFile(remotePath, name, zipFileName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
                         File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
@@ -175,7 +88,7 @@ public class PushServiceImpl implements PushService {
                         }
                     }
                 }
-                blf.setZipFileName(zipFileName);
+                blf.setZipFileName(name);
 //                blf.setErrorFile(errorFile);
                 loanFileMapper.updateFile(blf);
                 TaskStatus bts = new TaskStatus();

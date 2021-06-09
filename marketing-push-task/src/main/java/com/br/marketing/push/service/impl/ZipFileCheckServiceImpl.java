@@ -45,23 +45,11 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
         try {
             log.warn("jsonObject :{}",jsonObject);
             String apiCode = jsonObject.getString("apiCode");
-            JSONArray array = jsonObject.getJSONArray("files");
-            List<String> list = JSONObject.parseArray(array.toJSONString(), String.class);
+            String file = jsonObject.getString("file");
             String batchNumber = jsonObject.getString("batchNumber");
-            boolean result=true;
-            for(String fileName:list){
-                result= checkZipFileSize(apiCode, batchNumber, fileName);
-            }
-            log.warn("checkZipFileSize list size:{} result:{}",list.size(),result);
-            if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-                if(result){
-                    Map<String,String> param=new HashMap<>();
-                    param.put("apiCode",apiCode);
-                    param.put("batchNumber",batchNumber);
-                    log.warn("param:{}",param);
-                    loanFileMapper.updateZipFileStatus(param);
-                }
-            }
+            boolean result= checkZipFileSize(apiCode, batchNumber, file);
+
+            log.warn("checkZipFileSize  result:{}",result);
         }catch (Exception e){
             log.error("校验压缩包文件出错",e);
         }
@@ -86,31 +74,26 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
         }
         long zipTrueSize = getZipTrueSize(fileName);
         long txtFileLength = getTxtFileLength(fileName, apiCode, batchNumber);
-        /*String txtFilePath = fileName.replace(".zip", ".txt");
-        File file = new File(txtFilePath);*/
         if(zipTrueSize!=txtFileLength){
             businessAlarmServiceImpl.zipFileErrorAlarm(fileName,apiCode);
             log.error("压缩包中文件大小与源文件大小不一致。zipFile：{}，压缩包中文件大小：{},源文件：{}，大小：{}",fileName,
                     zipTrueSize,path + "/" + apiCode + "/" + batchNumber + "/" + replace,txtFileLength);
         }else {
-            if(!apiCode.equals(Constants.APICODE_360)&&!apiCode.equals(Constants.APICODE_360_QA)){
-                String md5="";
-               // if(zipFile.length()>1073741824){
-                if(zipFile.length()>1){
-                    try {
-                        md5 = MyFileUtil.getMd5(new FileInputStream(fileName));
-                    } catch (IOException e) {
-                        log.error("获取文件MD5出错",e);
-                    }
+            String md5="";
+            if(zipFile.length()>1){
+                try {
+                    md5 = MyFileUtil.getMd5(new FileInputStream(fileName));
+                } catch (IOException e) {
+                    log.error("获取文件MD5出错",e);
                 }
-                Map<String,String> param=new HashMap<>();
-                param.put("apiCode",apiCode);
-                param.put("batchNumber",batchNumber);
-                param.put("fileName",s);
-                param.put("md5",md5);
-                log.warn("param:{}",param);
-                loanFileMapper.updateZipFileStatus(param);
             }
+            Map<String,String> param=new HashMap<>();
+            param.put("apiCode",apiCode);
+            param.put("batchNumber",batchNumber);
+            param.put("fileName",s);
+            param.put("md5",md5);
+            log.warn("param:{}",param);
+            loanFileMapper.updateZipFileStatus(param);
             log.info("压缩包中文件大小{}:源文件大小{}:{}",path + "/" + apiCode + "/" + batchNumber + "/" + replace,zipTrueSize,txtFileLength);
             flag=true;
         }
