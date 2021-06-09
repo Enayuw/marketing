@@ -1,10 +1,6 @@
 package com.br.marketing.check.controller;
 
-import com.br.marketing.check.task.FtpToSftpCheckTask;
 import com.br.marketing.check.task.SignFileCheckTask;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -30,8 +26,7 @@ public class AlarmController {
     EmailService businessAlarmServiceImpl;
     @Resource
     EmailService validDataAlarmServiceImpl;
-    @Resource
-    EmailService ppdNoticeServiceImpl;
+
     @Resource
     EmailService systemExceptionServiceImpl;
 
@@ -113,15 +108,5 @@ public class AlarmController {
         return "success";
     }
 
-
-
-
-
-    @GetMapping("/sendReport")
-    public String sendReport(String apiCode) {
-        log.info("alarm sendReport apiCode--{},",apiCode);
-        ppdNoticeServiceImpl.sendReport(apiCode);
-        return "success";
-    }
 
 }

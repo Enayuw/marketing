@@ -26,8 +26,7 @@ public class AlarmAndNoticeTest {
     EmailService businessAlarmServiceImpl;
     @Resource
     EmailService reportServiceImpl;
-    @Resource
-    EmailService ppdNoticeServiceImpl;
+
     @Resource
     EmailService validDataAlarmServiceImpl;
 
@@ -55,10 +54,7 @@ public class AlarmAndNoticeTest {
         }
 
     }
-    @Test
-    public void sendreportTest(){
-        ppdNoticeServiceImpl.sendReport("4200777");
-    }
+
     @Test
     public void resultVolumeCheckTest(){
         businessAlarmServiceImpl.resultVolumeCheck("4200333");
