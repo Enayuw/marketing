@@ -55,7 +55,7 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-//    @RabbitListener(queues = "Marketing_PreUser_Receive")
+    @RabbitListener(queues = "Marketing_PreUser_Receive")
     public void consumerPreUser(Channel channel, Message message){
         Long o = null;
         try {

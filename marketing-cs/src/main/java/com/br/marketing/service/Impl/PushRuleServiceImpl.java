@@ -36,6 +36,8 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,6 +53,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
+
+    private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
 
     @Autowired
     MarketingTaskMapper marketingTaskMapper;
@@ -434,6 +438,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());
             System.out.println("插入耗时"+(System.currentTimeMillis()-l));
+            log.error("文本插入耗时"+(System.currentTimeMillis()-l));
         }catch (DuplicateKeyException keyException){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
         }catch (Exception ex){
@@ -550,6 +555,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingSyncInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
 //            alarmApiClient.sendAlarm();
             System.out.println("耗时"+(System.currentTimeMillis()-l));
+        log.error("数据解析插入耗时"+(System.currentTimeMillis()-l));
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
