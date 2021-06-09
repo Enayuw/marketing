@@ -40,6 +40,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -433,12 +434,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());
             System.out.println("插入耗时"+(System.currentTimeMillis()-l));
+        }catch (DuplicateKeyException keyException){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的客户编号");
         }catch (Exception ex){
-            if(ex.getMessage().contains("IDX_taskId_custNum")){
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的客户编号");
-            }else{
-                throw ex;
-            }
+            throw ex;
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
