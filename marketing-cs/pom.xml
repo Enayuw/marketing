@@ -74,10 +74,22 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
+        <!-- es公共包 -->
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.7.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
