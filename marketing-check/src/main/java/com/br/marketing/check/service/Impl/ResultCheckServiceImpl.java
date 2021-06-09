@@ -133,12 +133,6 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             loanFileMapper.updateSignFileStatus(apiCode);
             businessAlarmServiceImpl.fileSizeException(apiCode,name+","+loanFile.getFileSize());
         }else {
-            if((apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))&&size>2097152){
-                log.error("360单个文件大小超过2M。{}:{}",name,loanFile.getFileSize());
-                loanFileMapper.updateSignFileStatus(apiCode);
-                businessAlarmServiceImpl.fileSizeException(apiCode,name+","+loanFile.getFileSize());
-            }
-
             File file = new File(loanFile.getFilePath() +"/"+ name);
             long length = file.length();
             if(length!=size){
@@ -153,7 +147,6 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     /**
      * 获取结果文件的信息
      * @param apiCode apiCode
-     * @param  batchNumberSet 记录360的文件批次
      * @param sftpATTRS sftp上的文件对象
      * @param name 文件名称
      * @return ResultFileInfo

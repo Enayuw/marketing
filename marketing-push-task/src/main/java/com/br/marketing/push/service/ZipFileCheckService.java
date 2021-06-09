@@ -1,6 +1,7 @@
 package com.br.marketing.push.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.LoanFile;
 
 /**
  * @Author: Bairong
@@ -12,7 +13,7 @@ public interface ZipFileCheckService {
 
     /**
      * 校验压缩包文件与源文件的大小
-     * @param jsonObject 文件信息
+     * @param file 文件信息
      */
-    public void zipFileCheck(JSONObject jsonObject);
+    public void zipFileCheck(LoanFile file);
 }
