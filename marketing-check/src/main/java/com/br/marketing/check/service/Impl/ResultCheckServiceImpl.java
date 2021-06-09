@@ -203,7 +203,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
 
     private  Map<String, SftpATTRS>  getFileList(String apiCode,String suffix) throws IOException {
         Map<String, SftpATTRS> stringSftpATTRSMap=new HashMap<>();
-        String dir="/UploadFiles/loanwarn/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
+        String dir="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
