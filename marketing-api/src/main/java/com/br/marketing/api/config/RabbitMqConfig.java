@@ -9,33 +9,37 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Configuration
 public class RabbitMqConfig {
     public static final int MQ_LISTENER = 2;
 
-    @Bean(name = "gate")
+    @Bean(name = MQConstants.MarketingexchangerName)
     public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.exchangerName,true,false);
+        return new TopicExchange(MQConstants.MarketingexchangerName,true,false);
     }
 
-    @Bean(name = "TaskQueue")
-    public Queue taskQueue() {
-        return new Queue(MQConstants.taskQueueName, true, false, false);
-    }
-    @Bean(name = "bindingTaskQueue")
-    public Binding bindingTaskQueue() {
-        return BindingBuilder.bind(taskQueue()).to(warningExchange()).with(MQConstants.taskRoutingKey);
+
+    @Bean(name = MQConstants.MarketingexchangerDeadName)
+    public DirectExchange deadLetterExchange(){
+        return new DirectExchange(MQConstants.MarketingexchangerDeadName);
     }
 
-    @Bean(name = "pushQueue")
-    public Queue pushQueue() {
-        return new Queue(MQConstants.pushQueueName, true, false, false);
-    }
-    @Bean(name = "bindingPushQueue")
-    public Binding bindingPushQueue() {
-        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.pushRoutingKey);
-    }
+//    @Bean("delayQueueA")
+//    public Queue delayQueueA(){
+//        Map<String, Object> args = new HashMap<>(2);
+//        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+//        args.put("x-dead-letter-exchange", MQConstants.MarketingexchangerDeadName);
+//        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+//        args.put("x-dead-letter-routing-key", MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+//        // x-message-ttl  声明队列的TTL
+//        args.put("x-message-ttl", 6000);
+//        return QueueBuilder.durable(DELAY_QUEUEA_NAME).withArguments(args).build();
+//    }
+
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
