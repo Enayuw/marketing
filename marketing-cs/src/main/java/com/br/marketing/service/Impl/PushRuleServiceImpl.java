@@ -2,13 +2,16 @@ package com.br.marketing.service.Impl;
 import java.util.Date;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.SendMailClint;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.dto.*;
 import com.br.marketing.entity.*;
@@ -18,11 +21,14 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 import java.util.*;
 
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.RabbitMqSenderUtils;
+import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.mapper.*;
@@ -30,10 +36,16 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.Valid;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -422,12 +434,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());
             System.out.println("插入耗时"+(System.currentTimeMillis()-l));
+        }catch (DuplicateKeyException keyException){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
         }catch (Exception ex){
-            if(ex.getMessage().contains("IDX_taskId_custNum")){
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的客户编号");
-            }else{
-                throw ex;
-            }
+            throw ex;
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
