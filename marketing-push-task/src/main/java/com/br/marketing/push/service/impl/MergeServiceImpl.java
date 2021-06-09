@@ -107,7 +107,14 @@ public class MergeServiceImpl implements MergeService {
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
             if("0".equals(blt.getFrequency())){
                 String zipName = mergeResultFile(blf);
-                blf.setZipFileName(zipName);
+                String[] split = zipName.split("/");
+                String name = split[split.length - 1];
+                blf.setZipFileName(name);
+                loanFileMapper.updateFile(blf);
+                TaskStatus bts = new TaskStatus();
+                bts.setBatchNumber(blf.getBatchNumber());
+                bts.setFileId(blf.getId());
+                taskStatusMapper.updateTaskStatus(bts);
                 incrFiles.add(blf);
                 // push(blf,files);
             }else if("1".equals(blt.getFrequency())){
@@ -130,7 +137,15 @@ public class MergeServiceImpl implements MergeService {
             if(StringUtils.isEmpty(zipName)){
                 continue;
             }
-            blf.setZipFileName(zipName);
+            String[] split = zipName.split("/");
+            String name = split[split.length - 1];
+            blf.setZipFileName(name);
+            loanFileMapper.updateFile(blf);
+            TaskStatus bts = new TaskStatus();
+            bts.setBatchNumber(blf.getBatchNumber());
+            bts.setFileId(blf.getId());
+            taskStatusMapper.updateTaskStatus(bts);
+
             pushList.add(blf);
         }
 //        if(allFiles.size()>0){

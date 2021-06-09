@@ -40,8 +40,6 @@ public class PushServiceImpl implements PushService {
     private String sftpPwd;
     @Resource
     ZipFileCheckService zipFileCheckServiceImpl;
-    @Resource
-    TaskStatusMapper taskStatusMapper;
 
     @Override
     public void push(List<LoanFile> files) {
@@ -49,16 +47,10 @@ public class PushServiceImpl implements PushService {
         pushToSftp(files);
 
     }
-
     private void checkZipFile(List<LoanFile> files){
-        String apiCode=files.get(0).getApiCode();
-        JSONObject json=new JSONObject();
-        json.put("apiCode",apiCode);
         for(LoanFile blf:files){
-            json.put("batchNumber",blf.getBatchNumber());
-            json.put("file",blf.getZipFileName());
             long l = System.currentTimeMillis();
-            zipFileCheckServiceImpl.zipFileCheck(json);
+            zipFileCheckServiceImpl.zipFileCheck(blf);
             log.warn("cost time :{}",System.currentTimeMillis()-l);
         }
 
@@ -71,13 +63,11 @@ public class PushServiceImpl implements PushService {
             sftpClient.connect();
             String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
             for(LoanFile blf:files){
-                String zipFileName = blf.getZipFileName();
-                String[] split = zipFileName.split("/");
-                String name = split[split.length - 1];
-                File file = new File(zipFileName);
+                String zipFilePathAndName=blf.getFilePath().concat("/").concat(blf.getZipFileName());
+                File file = new File(zipFilePathAndName);
                 if(file.exists()){
-                    log.warn("push zip to sftp :{}",zipFileName);
-                    boolean flag= sftpClient.uploadFile(remotePath, name, zipFileName);
+                    log.warn("push zip to sftp :{}",blf.getZipFileName());
+                    boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
                         File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
@@ -88,14 +78,6 @@ public class PushServiceImpl implements PushService {
                         }
                     }
                 }
-                blf.setZipFileName(name);
-//                blf.setErrorFile(errorFile);
-                loanFileMapper.updateFile(blf);
-                TaskStatus bts = new TaskStatus();
-                bts.setBatchNumber(blf.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.updateTaskStatus(bts);
-
             }
 
         } catch (Exception e) {

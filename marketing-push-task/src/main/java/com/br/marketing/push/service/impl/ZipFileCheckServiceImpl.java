@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.file.MyFileUtil;
+import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.push.service.ZipFileCheckService;
 import com.br.marketing.service.EmailService;
@@ -41,64 +42,44 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
     EmailService businessAlarmServiceImpl;
     private static final Pattern MYREGEX = Pattern.compile("/");
     @Override
-    public void zipFileCheck(JSONObject jsonObject) {
+    public void zipFileCheck(LoanFile file) {
         try {
-            log.warn("jsonObject :{}",jsonObject);
-            String apiCode = jsonObject.getString("apiCode");
-            String file = jsonObject.getString("file");
-            String batchNumber = jsonObject.getString("batchNumber");
-            boolean result= checkZipFileSize(apiCode, batchNumber, file);
-
-            log.warn("checkZipFileSize  result:{}",result);
+            String replace = file.getZipFileName().replace(".zip", ".txt");
+            String zipFilePathAndName=file.getFilePath().concat("/").concat(file.getZipFileName());
+            File zipFile=new File(zipFilePathAndName);
+            if(!zipFile.exists()){
+                log.error("压缩包中文件不存在。zipFilePathAndName：{}",zipFilePathAndName);
+            }
+            long zipTrueSize = getZipTrueSize(zipFilePathAndName);
+            long txtFileLength = getTxtFileLength(zipFilePathAndName);
+            if(zipTrueSize!=txtFileLength){
+                businessAlarmServiceImpl.zipFileErrorAlarm(zipFilePathAndName,file.getApiCode());
+                log.error("压缩包中文件大小与源文件大小不一致。zipFile：{}，压缩包中文件大小：{},源文件：{}，大小：{}",zipFilePathAndName,
+                        zipTrueSize,path + "/" + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,txtFileLength);
+            }else {
+                String md5="";
+                if(zipFile.length()>1){
+                    try {
+                        md5 = MyFileUtil.getMd5(new FileInputStream(zipFilePathAndName));
+                    } catch (IOException e) {
+                        log.error("获取文件MD5出错",e);
+                    }
+                }
+                Map<String,String> param=new HashMap<>();
+                param.put("apiCode",file.getApiCode());
+                param.put("batchNumber",file.getBatchNumber());
+                param.put("fileName",file.getZipFileName());
+                param.put("md5",md5);
+                log.warn("param:{}",param);
+                loanFileMapper.updateZipFileStatus(param);
+                log.info("压缩包中文件大小{}:源文件大小{}:{}",path + "/" + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,zipTrueSize,txtFileLength);
+            }
         }catch (Exception e){
             log.error("校验压缩包文件出错",e);
         }
 
     }
 
-    /**
-     * 对比压缩文件中的文件与源文件的大小
-     * @param apiCode apiCode
-     * @param batchNumber 批次号
-     * @param fileName 文件名称
-     * @return 是否校验通过
-     */
-    private boolean checkZipFileSize(String apiCode, String batchNumber, String fileName) {
-        boolean flag=false;
-        String[] split = fileName.split("/");
-        String s = split[split.length - 1];
-        String replace = s.replace(".zip", ".txt");
-        File zipFile=new File(fileName);
-        if(!zipFile.exists()){
-            log.error("压缩包中文件不存在。zipFile：{}",fileName);
-        }
-        long zipTrueSize = getZipTrueSize(fileName);
-        long txtFileLength = getTxtFileLength(fileName, apiCode, batchNumber);
-        if(zipTrueSize!=txtFileLength){
-            businessAlarmServiceImpl.zipFileErrorAlarm(fileName,apiCode);
-            log.error("压缩包中文件大小与源文件大小不一致。zipFile：{}，压缩包中文件大小：{},源文件：{}，大小：{}",fileName,
-                    zipTrueSize,path + "/" + apiCode + "/" + batchNumber + "/" + replace,txtFileLength);
-        }else {
-            String md5="";
-            if(zipFile.length()>1){
-                try {
-                    md5 = MyFileUtil.getMd5(new FileInputStream(fileName));
-                } catch (IOException e) {
-                    log.error("获取文件MD5出错",e);
-                }
-            }
-            Map<String,String> param=new HashMap<>();
-            param.put("apiCode",apiCode);
-            param.put("batchNumber",batchNumber);
-            param.put("fileName",s);
-            param.put("md5",md5);
-            log.warn("param:{}",param);
-            loanFileMapper.updateZipFileStatus(param);
-            log.info("压缩包中文件大小{}:源文件大小{}:{}",path + "/" + apiCode + "/" + batchNumber + "/" + replace,zipTrueSize,txtFileLength);
-            flag=true;
-        }
-        return flag;
-    }
 
     /**
      * 获取压缩包文件中的源文件的大小
@@ -122,11 +103,9 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
     /**
      * 获取当前目录下的所有数据文件的大小的和
      * @param filePath 压缩包文件全路径
-     * @param apiCode apiCode
-     * @param batchNumber 批次号
      * @return txt文件的大小和
      */
-    private long getTxtFileLength(String filePath,String apiCode,String batchNumber){
+    private long getTxtFileLength(String filePath){
         String[] split = MYREGEX.split(filePath);
         String zipfileName = split[split.length - 1];
         String path = filePath.replace(zipfileName, "");

@@ -153,7 +153,11 @@ public class PushFinishServiceImpl implements PushFinishService {
                 if(file.exists()){
                     String successFileName=zipFileName+".success";
                     File successFile=new File(path+"/sftp_data/"+apiCode+"/"+successFileName);
-                    if(successFile.exists()){
+                    boolean newFile=true;
+                    if(!successFile.exists()){
+                        newFile= successFile.createNewFile();
+                    }
+                    if(newFile){
                         log.warn("push success to sftp :{}",successFileName);
                         sftpClient.uploadFile(remotePath, successFileName, path+"/sftp_data/"+apiCode+"/"+successFileName);
                     }
