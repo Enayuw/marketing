@@ -69,20 +69,9 @@ public class MarketingUserPreController {
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
         try {
             long l = System.currentTimeMillis();
-            RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
-            dto.setApiCode(apiCode);
-            try {
-                dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
-                }.getType()));
-            }catch (JSONException ex){
-                if(ex.getMessage().contains("not match")){
-                    return new ApiNoDataResult().setCode("100006").setMessage("请核实下是否jsonData过长，jsonData解析异常");
-                }else{
-                    return new ApiNoDataResult().setCode("100006").setMessage("jsonData解析异常");
-                }
-            }
-            System.out.println("第一步耗时："+(System.currentTimeMillis()-l));
-            return new ApiNoDataResult().fromResult(pushRuleService.insertMarketingPreUserText(dto));
+            Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
+            log.error("接入营销人员接口耗时："+(System.currentTimeMillis()-l));
+            return new ApiNoDataResult().fromResult(result);
         }catch (ParamValidErrorException ex){
             log.error(ex.getMessage());
             return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());

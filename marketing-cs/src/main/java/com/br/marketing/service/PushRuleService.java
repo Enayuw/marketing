@@ -47,10 +47,11 @@ public interface PushRuleService {
 
     /**
      * 接受异步推送人员文本信息
-     * @param dto
+     * @param apiCode
+     * @param jsonData
      * @return
      */
-    Result insertMarketingPreUserText(RequestCommonDTO<MarketingPreUserDTO> dto);
+    Result insertMarketingPreUserText(String apiCode,String jsonData);
 
     /**
      * 消费异步推送人员信息
