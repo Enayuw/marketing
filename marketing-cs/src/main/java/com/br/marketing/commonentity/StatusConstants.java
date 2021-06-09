@@ -5,4 +5,9 @@ public class StatusConstants {
     public final static Integer CustomerService_updateing=3;
     public final static Integer CustomerService_success=4;
     public final static Integer CustomerService_error=5;
+
+    public final static Integer MarketingPreUserStatus_running=1;
+    public final static Integer MarketingPreUserStatus_success=2;
+    public final static Integer MarketingPreUserStatus_fail=3;
+    public final static Integer MarketingPreUserStatus_success_part=4;
 }

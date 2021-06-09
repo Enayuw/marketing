@@ -5,9 +5,10 @@ import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 @Data
-public class MarketingPreUserDetailDTO {
+public class MarketingPreUserDetailDTO implements Serializable {
     @ApiModelProperty(value = "手机号")
     @NotNull(message = "cell必传")
     @NotEmpty(message = "cell必传")

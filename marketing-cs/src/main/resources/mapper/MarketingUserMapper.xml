@@ -304,4 +304,28 @@
 		)
 		</foreach>
 	</insert>
+	<insert id="insertBatchMarketingPreUserByDatas">
+		INSERT INTO b_marketing_sync_${apiCode} (
+			`api_code`,
+			`cus_batch`,
+		    `request_batch`,
+			`cust_num`,
+			`cell`,
+			`group_type`,
+			`register_date`,
+			`reserve_field1`,
+			`reserve_field2`,
+			`create_time`,
+			`update_time`
+		)
+		VALUES ${datas}
+	</insert>
+	<insert id="insertMarketingPreUserByText" parameterType="com.br.marketing.entity.MarketingSyncInfo">
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO `b_marketing_sync_info` (`api_code`, `cus_batch`, `request_batch`,
+		 `json_data`, `create_time`)
+		VALUES (#{apiCode}, #{cusBatch}, #{requestBatch}, #{jsonData},#{createTime});
+	</insert>
 </mapper>

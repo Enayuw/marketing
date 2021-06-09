@@ -288,13 +288,6 @@ public class LoanWarningThread implements Callable<String> {
 
         }catch (Exception e){
             log.error("生成文件出错。。。。",e);
-        }finally {
-            if(fw!=null){
-                fw.close();
-            }
-           if(errorFw!=null){
-               errorFw.close();
-           }
         }
       return null;
     }

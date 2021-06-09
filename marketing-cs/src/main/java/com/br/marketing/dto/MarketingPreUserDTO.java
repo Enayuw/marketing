@@ -1,21 +1,28 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class MarketingPreUserDTO {
+public class MarketingPreUserDTO  implements Serializable {
 
-    @NotNull(message = "taskId必传")
-    @NotEmpty(message = "taskId必传")
+    /**
+     * 任务id
+     */
     private String taskId;
 
-    @NotNull(message = "dataItems必传")
-    @Size(min = 1,message = "dataItems必传")
+    /**
+     * 请求批次号
+     */
+    private String requestId;
+
+    /**
+     * 客户数据
+     */
     private List<MarketingPreUserDetailDTO> dataItems;
 }

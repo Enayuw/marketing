@@ -49,6 +49,27 @@ public class ConsumerApp {
         consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search.Delay");
     }
 
+
+    /**
+     * 延迟消费 获取推送客服中心数据状态
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = "Marketing_PreUser_Receive")
+    public void consumerPreUser(Channel channel, Message message){
+        Long o = null;
+        try {
+            o = JSON.parseObject(new String(message.getBody(),"utf-8"), new TypeReference<Long>() {
+            }.getType());
+        } catch (UnsupportedEncodingException e) {
+            if(log.isErrorEnabled()) {
+                log.error(e.getMessage(), e);
+            }
+            e.printStackTrace();
+        }
+        consumerService.consumerRun(channel,message, pushRuleService::insertMarketingPreUserSync,o,null);
+    }
+
     /**
      * 测试消费 堆积消息
      * @param channel 通道

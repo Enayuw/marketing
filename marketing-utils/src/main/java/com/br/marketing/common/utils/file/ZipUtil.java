@@ -187,20 +187,10 @@ public class ZipUtil {
             return str;
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip = null;
-        try {
-            gzip = new GZIPOutputStream(out);
+        try(GZIPOutputStream gzip = new GZIPOutputStream(out);) {
             gzip.write(str.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            if (gzip != null) {
-                try {
-                    gzip.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
         return new sun.misc.BASE64Encoder().encode(out.toByteArray());
     }
@@ -216,14 +206,11 @@ public class ZipUtil {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayInputStream in = null;
-        GZIPInputStream ginzip = null;
-        byte[] compressed = null;
         String decompressed = null;
-        try {
-            compressed = new sun.misc.BASE64Decoder().decodeBuffer(compressedStr);
-            in = new ByteArrayInputStream(compressed);
-            ginzip = new GZIPInputStream(in);
+
+        try(ByteArrayInputStream in = new ByteArrayInputStream(new sun.misc.BASE64Decoder().decodeBuffer(compressedStr));
+            GZIPInputStream ginzip = new GZIPInputStream(in)) {
+
             byte[] buffer = new byte[1024];
             int offset = -1;
             while ((offset = ginzip.read(buffer)) != -1) {
@@ -233,18 +220,6 @@ public class ZipUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (ginzip != null) {
-                try {
-                    ginzip.close();
-                } catch (IOException e) {
-                }
-            }
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                }
-            }
             if (out != null) {
                 try {
                     out.close();

@@ -18,4 +18,11 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(50),new ThreadFactoryBuilder().setNameFormat("requestApi-pool-%d").build()
                 ,new ThreadPoolExecutor.AbortPolicy());
     }
+
+    @Bean("currentDbpool")
+    public ThreadPoolExecutor getcurrentDbpool(){
+        return new ThreadPoolExecutor(50,50,3L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("currentDb-pool-%d").build()
+                ,new ThreadPoolExecutor.AbortPolicy());
+    }
 }

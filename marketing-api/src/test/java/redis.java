@@ -1,12 +1,16 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.RandomUtils;
 import com.br.marketing.common.utils.ThreeDes;
 import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.ProInSys;
 import org.junit.Test;
 import org.junit.runner.Result;
@@ -15,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.Resource;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -63,6 +69,33 @@ public class redis {
         here: for (String s : strList) {
 
         }
+    }
+
+    @Test
+    public void testPool(){
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor threadPool2 = BrExecutors.getThreadPool(10, 10);
+        for (int i = 0; i < 10; i++) {
+            threadPool.submit(()->{System.out.println("threadPool==="+Thread.currentThread().getName()+Thread.currentThread().getId());});
+            threadPool2.submit(()->{System.out.println("threadPool2==="+Thread.currentThread().getName()+Thread.currentThread().getId());});
+        }
+    }
+
+    @Test
+    public void testDes(){
+        String s = "{\"taskId\":\"4ec94c9e2a61a05bf912a3b9f9684f1a\",\"dataItems\":[{\"cell\":\"67c3461a3ef7be453775cf9227fa60db\",\"groupType\":\"促首登\",\"caseNum\":\"1\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"1\",\"reserveField2\":\"1\"},{\"cell\":\"e01d4dc231b25fef9672b43408c4a496\",\"groupType\":\"促首登\",\"caseNum\":\"2\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"2\",\"reserveField2\":\"2\"},{\"cell\":\"d258d79465755613dc28fe28b71b13cd\",\"groupType\":\"促首登\",\"caseNum\":\"3\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"3\",\"reserveField2\":\"3\"},{\"cell\":\"feeba7577a2de1521619c4629b4123c1\",\"groupType\":\"促首登\",\"caseNum\":\"4\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"4\",\"reserveField2\":\"4\"},{\"cell\":\"a3627d465c9466abfe78ea8695733c27\",\"groupType\":\"促首登\",\"caseNum\":\"5\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"5\",\"reserveField2\":\"5\"},{\"cell\":\"6f86c136018169210d813093c0218fb8\",\"groupType\":\"促首登\",\"caseNum\":\"6\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"6\",\"reserveField2\":\"6\"},{\"cell\":\"5d11596a5966d1344ec7738ea0956256\",\"groupType\":\"促首登\",\"caseNum\":\"7\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"7\",\"reserveField2\":\"7\"},{\"cell\":\"368f5fe5a8544afe18745f1297a3f02d\",\"groupType\":\"促首登\",\"caseNum\":\"8\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"8\",\"reserveField2\":\"8\"},{\"cell\":\"2c284c58471060b8f61b338619ace49d\",\"groupType\":\"促首登\",\"caseNum\":\"9\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"9\",\"reserveField2\":\"9\"},{\"cell\":\"f4eae314a456eb2e49bff509131f52af\",\"groupType\":\"促首登\",\"caseNum\":\"10\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"10\",\"reserveField2\":\"10\"},{\"cell\":\"28ad5e6d5c0ab384634c17e465b23371\",\"groupType\":\"促首登\",\"caseNum\":\"11\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"11\",\"reserveField2\":\"11\"},{\"cell\":\"2874e8d6c8a24a76b3b90ff041e50a0a\",\"groupType\":\"促首登\",\"caseNum\":\"12\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"12\",\"reserveField2\":\"12\"},{\"cell\":\"9945ac42bad09b576048b03918a5f090\",\"groupType\":\"促首登\",\"caseNum\":\"13\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"13\",\"reserveField2\":\"13\"},{\"cell\":\"1a3d04d493e6554b5148907d36057b11\",\"groupType\":\"促首登\",\"caseNum\":\"14\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"14\",\"reserveField2\":\"14\"},{\"cell\":\"8a034fa1866f256cc589af717a4a705c\",\"groupType\":\"促首登\",\"caseNum\":\"15\",\"registerDate\":\"2021-06-04\",\"reserveField1\":\"15\",\"reserveField2\":\"15\"}]}";
+        MarketingPreUserDTO o = JSON.parseObject(s, new TypeReference<MarketingPreUserDTO>() {
+        }.getType());
+        System.out.println(o.toString());
+    }
+
+    @Test
+    public void randomTest(){
+        String s = RandomUtils.randomStr(2);
+        String s1 = RandomUtils.randomStr(2);
+        String s2 = RandomUtils.randomStr(2);
+        System.out.println(s+"__"+s1+"__"+s2);
+
     }
 
     @Test
@@ -116,6 +149,18 @@ public class redis {
         String s = ThreeDes.encryptByCbc("123", "abcddesds", "abcdefgh");
         String abcddesds = ThreeDes.decryptByCbc(s, "abcddesds","hhhhtttt");
         System.out.println(abcddesds);
+    }
+
+    @Test
+    public void indexTest(){
+        String s = "acd-acd-acd-acd";
+        int acd = s.indexOf("acd");
+        System.out.println(acd);
+        String s1 = "abd-acd-acd-acd";
+        int acd1 = s1.indexOf("acd");
+        System.out.println(acd1);
+        int abd = s.indexOf("abd");
+        System.out.println(abd);
     }
 
 /*@Resource

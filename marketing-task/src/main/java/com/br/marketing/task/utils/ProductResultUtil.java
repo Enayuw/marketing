@@ -225,8 +225,8 @@ public class ProductResultUtil {
 
     private static void deal(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap, String sep, String apiCode) {
         if(products.contains("stability_c")){
-            String stability_cFields = proFieldMap.get("Stability_c");
-            String[] split = stability_cFields.split(",");
+            String stabilityCFields = proFieldMap.get("Stability_c");
+            String[] split = stabilityCFields.split(",");
             for (int i=0;i<split.length;i++){
                 sb.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
                 sb.append(sep);

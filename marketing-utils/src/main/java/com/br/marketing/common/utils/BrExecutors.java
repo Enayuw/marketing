@@ -1,5 +1,6 @@
 package com.br.marketing.common.utils;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +21,15 @@ public class BrExecutors {
     }
 
     public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum) {
-        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS, new ArrayBlockingQueue(200), new ThreadPoolExecutor.CallerRunsPolicy());
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-statistic-pool-%d").build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     static {
-        other = new ThreadPoolExecutor(50, 50, 60L, TimeUnit.SECONDS, new ArrayBlockingQueue('썐'), new BrExecutors.CallerRunsPolicy2());
+        other = new ThreadPoolExecutor(50, 50, 60L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue('썐'),new ThreadFactoryBuilder().setNameFormat("br-statistic-other-pool-%d").build()
+                , new BrExecutors.CallerRunsPolicy2());
     }
 
     public static class CallerRunsPolicy2 implements RejectedExecutionHandler {

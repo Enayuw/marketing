@@ -437,15 +437,13 @@ public class MyFileUtil {
     public static char[] loadFile(String file) throws IOException {
         // read text file, auto recognize bom marker or use
         // system default if markers not found.
-        BufferedReader reader = null;
-        CharArrayWriter writer = null;
-        UnicodeReader r = new UnicodeReader(new FileInputStream(file), null);
 
         char[] buffer = new char[16 * 1024];   // 16k buffer
         int read;
-        try {
-            reader = new BufferedReader(r);
-            writer = new CharArrayWriter();
+        try(UnicodeReader r = new UnicodeReader(new FileInputStream(file), null);
+            BufferedReader reader = new BufferedReader(r);
+            CharArrayWriter writer = new CharArrayWriter();) {
+
             while( (read = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, read);
             }
@@ -453,10 +451,6 @@ public class MyFileUtil {
             return writer.toCharArray();
         } catch (IOException ex) {
             throw ex;
-        } finally {
-            try {
-                writer.close(); reader.close(); r.close();
-            } catch (Exception ex) { }
         }
     }
 
