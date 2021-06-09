@@ -1,7 +1,7 @@
 spring:
   application:
-    name: loan-warning-task
-  profiles.active: dev
+    name: marketing-push-task
+  profiles.active: pre
   aop:
    proxy-target-class: true
    auto: true
@@ -19,8 +19,6 @@ spring:
 server:
   port: 19703
 
-#生成结果文件目录
-result.file.path: /opt/data/inloan/warning
 
 mybatis:
   mapper-locations: mapper/*.xml

@@ -257,7 +257,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blf.setFilePath(descPath);
                 blf.setStatus(1);
                 blf.setType(2);
-                blf.setIsSec(0);
                 blf.setBatchNumber(blt.getBatchNumber());
                 blf.setExpectedNum(blt.getActualNumber());
                 Integer id=loanFileMapper.insertFile(blf);
@@ -301,7 +300,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setFilePath(descPath);
             blf.setStatus(1);
             blf.setType(1);
-            blf.setIsSec(0);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
             Integer id=loanFileMapper.insertFile(blf);
@@ -361,7 +359,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blf.setFilePath(descPath);
                 blf.setStatus(1);
                 blf.setType(0);
-                blf.setIsSec(0);
                 blf.setBatchNumber(blt.getBatchNumber());
                 blf.setExpectedNum(batctNum);
                 Integer id=loanFileMapper.insertFile(blf);

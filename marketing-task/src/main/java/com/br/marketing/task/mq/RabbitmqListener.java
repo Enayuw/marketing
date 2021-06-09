@@ -5,6 +5,7 @@ import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +48,7 @@ public class RabbitmqListener {
             log.warn("==========接收到的消息内容为:{},返回给rabbitmq的Consumer tag为:{}",msg,message.getMessageProperties().getConsumerTag());
 
             Customer customer =customerMapper.getCustomerByApiCode(msg);
-            Class serviceClass =Class.forName(customer.getTaskServiceName());
-            LoanWarningService loanWarningService=(LoanWarningService) Scheduler.ac.getBean(serviceClass);
+            LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
             loanWarningService.process(customer);
             //推送消息到pushQueue，进行下一流程处理
             RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());

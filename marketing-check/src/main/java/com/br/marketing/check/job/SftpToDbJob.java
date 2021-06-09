@@ -206,7 +206,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
-            RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.taskRoutingKey,apiCode);
+            //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.taskRoutingKey,apiCode);
         }
     }
 }

@@ -50,14 +50,10 @@ otherConfig:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing/
-    ftpHost: 192.168.23.34
-    ftpPort: 21
-    ftpUsername: lsyj
-    ftpPwd: kb8V@1Wtb
     sftpHost: 192.168.23.65
     sftpPort: 9999
-    sftpUser: loan_warning_pre
-    sftpPwd: 5Ge89rr8TKvVEiHvmrSL@_2020.11.05
+    sftpUser: BRmarketing_pre
+    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
   encodeMapping:
     appName: loan-warning
     appSecretKey: f15a1421ac95a284683688af14688b72

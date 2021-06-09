@@ -1,5 +1,6 @@
 package com.br.marketing.task.job;
 
+import IceInternal.Ex;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.common.utils.StringUtils;
@@ -56,31 +57,19 @@ public class TaskJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
-        String parameter = context.getJobParameter();
-        List<Customer> customers=new ArrayList<>();
-        if(StringUtils.isNotEmpty(parameter)){
-            Customer customer =customerMapper.getCustomerByApiCode(parameter);
-            if(customer !=null){
-                customers.add(customer);
-            }else {
-                log.error("apicode错误");
-                return;
-            }
-        }else {
-            customers =customerMapper.getAllCustomer();
-        }
+        List<Customer> customers=customerMapper.getAllCustomer();
         customers.forEach(customer -> {
             try {
-                Class loanWarningServiceClass =Class.forName(customer.getTaskServiceName());
-                LoanWarningService loanWarningService=(LoanWarningService)Scheduler.ac.getBean(loanWarningServiceClass);
-                loanWarningService.process(customer);
-                //推送消息到pushQueue，进行下一流程处理
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
-
-            } catch (ClassNotFoundException e) {
-                log.error("实现类未找到，apiCode={}",customer.getApiCode());
+                if(customer.getTaskTime()==1){
+                    log.warn("开始执行跑批任务，apicode={}",customer.getApiCode());
+                    LoanWarningService loanWarningService=Scheduler.ac.getBean(LoanWarningServiceImpl.class);
+                    loanWarningService.process(customer);
+                    //推送消息到pushQueue，进行下一流程处理
+                    RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
+                }
+            } catch (Exception e) {
+                log.error("程序跑批异常，apiCode={}",customer.getApiCode());
             }
-
         });
         Long end =System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{}",end-start);

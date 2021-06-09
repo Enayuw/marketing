@@ -108,6 +108,26 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+
+        <!-- es公共包 -->
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.7.1</version>
+        </dependency>
+
     </dependencies>
     <!-- 预发、生产环境打包方式-->
     <build>

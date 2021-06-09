@@ -32,26 +32,6 @@ public class PushApplication {
         ac= new SpringApplicationBuilder().sources(PushApplication.class).run(args);
         Long end =System.currentTimeMillis();
         log.warn("PushApplication启动结束，耗时{}",end-start);
-//        String arg = args[0];
-//        if(MonitorTypeEnum.CHG360.getType().equals(arg)){
-//            Push360ServiceImpl pushService=PushApplication.ac.getBean(Push360ServiceImpl.class);
-//            pushService.process(args[1]);
-//        }else  if(MonitorTypeEnum.PPD.getType().equals(arg)){
-//            PushPpdServiceImpl pushService=PushApplication.ac.getBean(PushPpdServiceImpl.class);
-//            pushService.process(args[1]);
-//        }else if(MonitorTypeEnum.MARKETING.getType().equals(arg)){
-//            PushServiceMarketingImpl pushService=PushApplication.ac.getBean(PushServiceMarketingImpl.class);
-//            pushService.process(args[1]);
-//        }else{
-//            PushServiceImpl pushService=PushApplication.ac.getBean(PushServiceImpl.class);
-//            if(args.length>0){
-//                String apiCode=args[0];
-//                pushService.process(apiCode);
-//            }
-//        }
-//
-//        ac.close();
-//        System.exit(0);
     }
 
 }

@@ -33,8 +33,6 @@ public class Customer {
     private String  apiCode;
     private String type;
     private Integer threadNum;
-    private String startDate;
-    private String taskServiceName;
-    private String mergeServiceName;
-    private String pushServiceName;
+    private Integer taskTime;
+    private Integer status;
 }
