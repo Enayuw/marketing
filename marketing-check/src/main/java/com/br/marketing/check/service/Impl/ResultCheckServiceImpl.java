@@ -51,8 +51,6 @@ public class ResultCheckServiceImpl implements ResultCheckService {
      */
     @Override
     public  void taskResultCheck(String apiCode){
-        Map<String,Integer> map=new HashMap<>();
-        Set<String> batchNumberSet=new HashSet<>();
         Map<String, SftpATTRS> stringSftpATTRSMap;
         Map<String, SftpATTRS> signFileList;
         try {
@@ -66,7 +64,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             String name = entry.getKey();
             SftpATTRS sftpATTRS = entry.getValue();
             if(name.endsWith(".zip")){
-                LoanFile loanFile = fileInfo(apiCode, batchNumberSet, sftpATTRS, name);
+                LoanFile loanFile = fileInfo(apiCode, sftpATTRS, name);
                 checkFileSize(apiCode, loanFile,name);
                 if(loanFile.isSkip()){
                     continue;
@@ -160,38 +158,22 @@ public class ResultCheckServiceImpl implements ResultCheckService {
      * @param name 文件名称
      * @return ResultFileInfo
      */
-    private  LoanFile fileInfo(String apiCode, Set<String> batchNumberSet,SftpATTRS sftpATTRS, String name) {
+    private  LoanFile fileInfo(String apiCode,SftpATTRS sftpATTRS, String name) {
         log.warn("sftpATTRS:{}",sftpATTRS);
         LoanFile loanFile;
         String uploadTime= DateHelper.timeStamp2Date(sftpATTRS.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
         String batchNumber="";
         boolean flag=false;
         String[] split = SPLIT_PATTERN.split(name);
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            if(split.length<6){
-                log.warn("name is error{}",name);
-            }else {
-                batchNumber=split[3]+"_"+split[4]+"_"+split[5];
-                if(batchNumberSet.contains(batchNumber)){
-                    flag=true;
-                }else {
-                    batchNumberSet.add(batchNumber);
-                }
-            }
+        if(split.length<5){
+            log.warn("name is error{}",name);
         }else {
-            if(split.length<5){
-                log.warn("name is error{}",name);
-            }else {
-                batchNumber=split[2]+"_"+split[3]+"_"+split[4];
-            }
+            batchNumber=split[2]+"_"+split[3]+"_"+split[4];
         }
 
         Map<String,String> param=new HashMap<>();
         param.put("batchNumber",batchNumber);
         param.put("apiCode",apiCode);
-        if(apiCode.equals(Constants.APICODE_PPD)||apiCode.equals(Constants.APICODE_PPD_QA)){
-            param.put("fileName",name);
-        }
         log.warn("param:{}",param);
         loanFile = loanFileMapper.queryFilePath(param);
         loanFile.setFileSize(String.valueOf(sftpATTRS.getSize()));
