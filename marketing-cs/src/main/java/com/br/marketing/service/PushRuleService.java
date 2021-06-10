@@ -53,6 +53,14 @@ public interface PushRuleService {
      */
     Result insertMarketingPreUserText(String apiCode,String jsonData);
 
+
+    /**
+     * 接受异步推送人员文本信息
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
+    Result insertMarketingPreUserMq(String apiCode,String jsonData);
     /**
      * 消费异步推送人员信息
      * @param infoId

@@ -33,12 +33,6 @@ eureka:
     service-url.defaultZone: http://192.168.162.193:1111/eureka/
 ##    service-url.defaultZone: http://192.168.23.121:18000/eureka/
 
-otherConfig:
-  huaXiangInterface:
-        getAllProductTypes: http://192.168.162.235:8080/SendBox/ProductTypes
-        getAllProducts: http://192.168.162.235:8080/SendBox/Products
-        getPorductByType: http://192.168.162.235:8080/SendBox/Products/
-        getReport: http://192.168.23.125:8080/huaxiang/v1/get_report
 spring:
   rabbitmq:
     addresses: 192.168.23.73:5672

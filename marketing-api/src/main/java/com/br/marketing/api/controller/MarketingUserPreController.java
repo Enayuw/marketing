@@ -69,7 +69,7 @@ public class MarketingUserPreController {
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
         try {
             long l = System.currentTimeMillis();
-            Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
+            Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
             log.error("接入营销人员接口耗时："+(System.currentTimeMillis()-l));
             return new ApiNoDataResult().fromResult(result);
         }catch (ParamValidErrorException ex){
@@ -84,6 +84,7 @@ public class MarketingUserPreController {
         try {
             MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData, new TypeReference<MarketingPreUserSyncStatusDTO>() {
             }.getType());
+            o.setApiCode(apiCode);
             return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
         }catch (ParamValidErrorException ex){
             log.error(ex.getMessage());

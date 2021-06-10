@@ -426,7 +426,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         String taskRedisKey = redisKey_apiCode_taskId.concat(apiCode).concat(":").concat(dto.getJsonData().getTaskId());
         if(redisChgService.exists(taskRedisKey)){
-            redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId());
+            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+                throw new ParamValidErrorException("requestId已存在");
+            }
         }else{
             MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
             syncInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCusBatchEqualTo(dto.getJsonData().getTaskId());
@@ -434,6 +436,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<String> requestBatchs = marketingSyncInfos.stream().map(t -> t.getRequestBatch()).collect(Collectors.toList());
             if(requestBatchs.size()>0) {
                 redisChgService.sadd(taskRedisKey, requestBatchs);
+            }
+            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+                throw new ParamValidErrorException("requestId已存在");
             }
         }
         if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
@@ -471,6 +476,87 @@ public class PushRuleServiceImpl implements PushRuleService {
         }catch (DuplicateKeyException keyException){
             log.error("文本插入耗时"+(System.currentTimeMillis()-l));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
+        }catch (Exception ex){
+            throw ex;
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    @Override
+    public Result insertMarketingPreUserMq(String apiCode, String jsonData) {
+        //region check
+        long l1 = System.currentTimeMillis();
+        RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
+        dto.setApiCode(apiCode);
+        try {
+            dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
+            }.getType()));
+        }catch (JSONException ex){
+            if(ex.getMessage().contains("not match")){
+                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常");
+            }else{
+                throw new ParamValidErrorException("jsonData解析异常");
+            }
+        }
+        log.error("反序列化耗时"+(System.currentTimeMillis()-l1));
+        if(!StringUtils.isNotBlank(dto.getApiCode())){
+            throw new ParamValidErrorException("apiCode必传");
+        }
+        if(dto.getJsonData() == null){
+            throw new ParamValidErrorException("jsonData必传");
+        }
+        String taskRedisKey = redisKey_apiCode_taskId.concat(apiCode).concat(":").concat(dto.getJsonData().getTaskId());
+        if(redisChgService.exists(taskRedisKey)){
+            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+                throw new ParamValidErrorException("requestId已存在");
+            }
+        }else{
+            MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
+            syncInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCusBatchEqualTo(dto.getJsonData().getTaskId());
+            List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
+            List<String> requestBatchs = marketingSyncInfos.stream().map(t -> t.getRequestBatch()).collect(Collectors.toList());
+            if(requestBatchs.size()>0) {
+                redisChgService.sadd(taskRedisKey, requestBatchs);
+            }
+            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+                throw new ParamValidErrorException("requestId已存在");
+            }
+        }
+        if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
+            throw new ParamValidErrorException("taskid必传");
+        }
+        if(!StringUtils.isNotBlank(dto.getJsonData().getRequestId())){
+            throw new ParamValidErrorException("requestId必传");
+        }
+//        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCaseNum())
+//                || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
+//        if(checkJson){
+//            throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+//        }
+        int size = dto.getJsonData().getDataItems().size();
+        if(size>2000){
+            throw new ParamValidErrorException("传输的数据不要超过2000条");
+        }
+        log.error("check耗时"+(System.currentTimeMillis()-l1));
+        //endregion
+        long l = System.currentTimeMillis();
+        try {
+//            String format = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+            MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+            syncInfo.setApiCode(dto.getApiCode());
+            syncInfo.setCusBatch(dto.getJsonData().getTaskId());
+            syncInfo.setRequestBatch(dto.getJsonData().getRequestId());
+            syncInfo.setCreateTime(new Date());
+            syncInfo.setJsonData(jsonData);
+//            marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+            redisChgService.saddMember(taskRedisKey,dto.getJsonData().getRequestId());
+            log.error("redis插入耗时"+(System.currentTimeMillis()-l));
+            long l4 = System.currentTimeMillis();
+            String s = JSON.toJSONString(syncInfo);
+            log.error("序列化耗时"+(System.currentTimeMillis()-l4));
+            long l3 = System.currentTimeMillis();
+            producter.send("Marketing.PreUser.ReceiveJson",s);
+            log.error("MQ推送耗时"+(System.currentTimeMillis()-l3));
         }catch (Exception ex){
             throw ex;
         }
