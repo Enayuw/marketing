@@ -424,23 +424,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(dto.getJsonData() == null){
             throw new ParamValidErrorException("jsonData必传");
         }
-        String taskRedisKey = redisKey_apiCode_taskId.concat(apiCode).concat(":").concat(dto.getJsonData().getTaskId());
-        if(redisChgService.exists(taskRedisKey)){
-            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
-                throw new ParamValidErrorException("requestId已存在");
-            }
-        }else{
-            MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
-            syncInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCusBatchEqualTo(dto.getJsonData().getTaskId());
-            List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
-            List<String> requestBatchs = marketingSyncInfos.stream().map(t -> t.getRequestBatch()).collect(Collectors.toList());
-            if(requestBatchs.size()>0) {
-                redisChgService.sadd(taskRedisKey, requestBatchs);
-            }
-            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
-                throw new ParamValidErrorException("requestId已存在");
-            }
-        }
+//        String taskRedisKey = redisKey_apiCode_taskId.concat(apiCode).concat(":").concat(dto.getJsonData().getTaskId());
+//        if(redisChgService.exists(taskRedisKey)){
+//            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+//                throw new ParamValidErrorException("requestId已存在");
+//            }
+//        }else{
+//            MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
+//            syncInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCusBatchEqualTo(dto.getJsonData().getTaskId());
+//            List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
+//            List<String> requestBatchs = marketingSyncInfos.stream().map(t -> t.getRequestBatch()).collect(Collectors.toList());
+//            if(requestBatchs.size()>0) {
+//                redisChgService.sadd(taskRedisKey, requestBatchs);
+//            }
+//            if(redisChgService.sismember(taskRedisKey,dto.getJsonData().getRequestId())){
+//                throw new ParamValidErrorException("requestId已存在");
+//            }
+//        }
         if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
             throw new ParamValidErrorException("taskid必传");
         }
@@ -468,7 +468,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
-            redisChgService.saddMember(taskRedisKey,dto.getJsonData().getRequestId());
+//            redisChgService.saddMember(taskRedisKey,dto.getJsonData().getRequestId());
             log.error("文本插入耗时"+(System.currentTimeMillis()-l));
             long l3 = System.currentTimeMillis();
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());

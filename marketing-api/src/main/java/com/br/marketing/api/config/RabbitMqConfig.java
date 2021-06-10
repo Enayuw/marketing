@@ -24,12 +24,12 @@ public class RabbitMqConfig {
 
 
     @Bean(name = MQConstants.MarketingexchangerDeadName)
-    public DirectExchange deadLetterExchange(){
-        return new DirectExchange(MQConstants.MarketingexchangerDeadName);
+    public TopicExchange deadLetterExchange(){
+        return new TopicExchange(MQConstants.MarketingexchangerDeadName,true,false);
     }
 
-//    @Bean("delayQueueA")
-//    public Queue delayQueueA(){
+    @Bean("delayQueueA")
+    public Queue delayQueueA(){
 //        Map<String, Object> args = new HashMap<>(2);
 //        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
 //        args.put("x-dead-letter-exchange", MQConstants.MarketingexchangerDeadName);
@@ -38,7 +38,7 @@ public class RabbitMqConfig {
 //        // x-message-ttl  声明队列的TTL
 //        args.put("x-message-ttl", 6000);
 //        return QueueBuilder.durable(DELAY_QUEUEA_NAME).withArguments(args).build();
-//    }
+    }
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
