@@ -34,7 +34,7 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_Push_CustomerService_Search",containerFactory = "containerFactory")
+    @RabbitListener(queues = "Marketing_Push_CustomerService_Search",containerFactory = "primaryContainerFactory")
     public void consumerUserStatus(Channel channel, Message message){
         Long o = null;
         try {
@@ -55,7 +55,7 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_PreUser_Receive",containerFactory = "containerFactory")
+    @RabbitListener(queues = "Marketing_PreUser_Receive",containerFactory = "primaryContainerFactory")
     public void consumerPreUser(Channel channel, Message message){
         Long o = null;
         try {

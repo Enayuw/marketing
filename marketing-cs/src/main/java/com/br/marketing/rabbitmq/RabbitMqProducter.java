@@ -8,6 +8,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,7 @@ public class RabbitMqProducter {
     private static final String exchange = "gate";
 
     @Autowired
+    @Qualifier(value = "primaryRabbitTemplate")
     private RabbitTemplate rabbitTemplate;
 
     @PostConstruct
