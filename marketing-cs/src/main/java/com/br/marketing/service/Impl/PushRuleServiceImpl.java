@@ -662,13 +662,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<MarketingPreUserSyncDetailVO> getMarketingPreUserSyncStatus(MarketingPreUserSyncStatusDTO dto) {
+        Result<MarketingPreUserSyncDetailVO> marketingPreUserSyncDetailVOResult = new Result<>();
         MarketingPreUserSyncDetailVO vo = new MarketingPreUserSyncDetailVO();
         MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
         syncInfoExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andCusBatchEqualTo(dto.getTaskId())
                 .andRequestBatchEqualTo(dto.getRequestId());
         List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
         if(marketingSyncInfos.size()<=0){
-            return new Result<MarketingPreUserSyncDetailVO>().setCode(ResultCode.FAIL.getValue()).setMessage("该批次信息不存在");
+            return marketingPreUserSyncDetailVOResult.setCode(ResultCode.FAIL.getValue()).setMessage("该批次信息不存在");
         }
         MarketingSyncInfo syncInfo = marketingSyncInfos.get(0);
         vo.setApiCode(syncInfo.getApiCode());
@@ -683,6 +684,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                 vo.setErrorInfo(errorInfo.getErrorInfo());
             }
         }
-        return new Result<MarketingPreUserSyncDetailVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
+        switch (syncInfo.getStatus()){
+            case 1:
+                marketingPreUserSyncDetailVOResult.setMessage("运行中");
+                break;
+            case 2:
+                marketingPreUserSyncDetailVOResult.setMessage("全部成功");
+                break;
+            case 3:
+                marketingPreUserSyncDetailVOResult.setMessage("全部失败");
+                break;
+            case 4:
+                marketingPreUserSyncDetailVOResult.setMessage("部分成功");
+                break;
+            default:
+        }
+        return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
     }
 }
