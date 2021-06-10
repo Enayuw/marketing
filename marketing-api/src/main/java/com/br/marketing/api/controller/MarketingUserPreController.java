@@ -96,7 +96,8 @@ public class MarketingUserPreController {
     @PostMapping("/getMarketingPreUserStauts")
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
         try {
-            MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData, new TypeReference<MarketingPreUserSyncStatusDTO>() {
+            MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData,
+                    new TypeReference<MarketingPreUserSyncStatusDTO>() {
             }.getType());
             o.setApiCode(apiCode);
             return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
