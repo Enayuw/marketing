@@ -78,6 +78,20 @@ public class MarketingUserPreController {
         }
     }
 
+    @ApiOperation(value = "批量接入营销人员数据")
+    @PostMapping("/receiveMarketingPreUserMq")
+    public ApiNoDataResult receiveMarketingPreUserMq(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
+        try {
+            long l = System.currentTimeMillis();
+            Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
+            log.error("接入营销人员接口耗时："+(System.currentTimeMillis()-l));
+            return new ApiNoDataResult().fromResult(result);
+        }catch (ParamValidErrorException ex){
+            log.error(ex.getMessage());
+            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+        }
+    }
+
     @ApiOperation(value = "获取营销人员数据状态")
     @PostMapping("/getMarketingPreUserStauts")
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
