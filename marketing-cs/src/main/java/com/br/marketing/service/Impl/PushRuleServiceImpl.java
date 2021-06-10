@@ -653,7 +653,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
             }else if(errorSize==futures.size()){
                 updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
-                updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success_part);
                 MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
                 errorInfo.setApiCode(marketingSyncInfo.getApiCode());
                 errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
