@@ -57,7 +57,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: $CONF_CLUSTER}
+  flag: ${CONF_CLUSTER}
 api:
   intelligentCustomerService:
     baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
