@@ -401,7 +401,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (ex.getMessage().contains("not match")) {
                 throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常", ex);
             } else {
-                throw new ParamValidErrorException("jsonData解析异常");
+                throw new ParamValidErrorException("jsonData解析异常", ex);
             }
         }
         if(log.isInfoEnabled()) {
@@ -492,7 +492,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if(ex.getMessage().contains("not match")){
                 throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常", ex);
             }else{
-                throw new ParamValidErrorException("jsonData解析异常");
+                throw new ParamValidErrorException("jsonData解析异常", ex);
             }
         }
         if(log.isInfoEnabled()) {

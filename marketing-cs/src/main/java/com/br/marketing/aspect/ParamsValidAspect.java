@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
 import javax.validation.executable.ExecutableValidator;
 import java.util.Set;
 
@@ -21,9 +20,6 @@ import java.util.Set;
 @Order(-998) // 异常处理之内
 @Component
 public class ParamsValidAspect {
-    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    private final ExecutableValidator validator = factory.getValidator().forExecutables();
-
 
     private static final Logger log = LoggerFactory.getLogger(ParamsValidAspect.class);
 
@@ -35,20 +31,18 @@ public class ParamsValidAspect {
         }
         final Signature signature = jp.getSignature();
         final MethodSignature methodSignature = (MethodSignature) signature;
+        ExecutableValidator validator = Validation.buildDefaultValidatorFactory().getValidator().forExecutables();
         Set<ConstraintViolation<Object>> validResult = validator.validateParameters(jp.getThis(), methodSignature.getMethod(), args);
         if (!validResult.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (ConstraintViolation<Object> constraintViolation : validResult) {
                 sb.append(constraintViolation.getMessage() + ",");
             }
-            String result=sb.toString();
-            if(result!=null&&result.length()>0)
-            {
-                result=result.substring(0,result.length()-1);
+            String result = sb.toString();
+            if (result != null && result.length() > 0) {
+                result = result.substring(0, result.length() - 1);
             }
             throw new ParamValidErrorException(result);
         }
-
-
     }
 }
