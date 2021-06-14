@@ -351,33 +351,6 @@ public class MyFileUtil {
         }
         return -1;
     }
-    /**
-     * 获取文件的编码格式
-     * @param fileName
-     * @return
-     * @throws IOException
-     */
-    private String getCharset(String fileName) throws IOException{
-
-        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(fileName));
-        int p = (bin.read() << 8) +bin.read();
-
-        String code = null;
-        switch (p) {
-            case 0xefbb:
-                code = "UTF-8";
-                break;
-            case 0xfffe:
-                code = "Unicode";
-                break;
-            case 0xfeff:
-                code = "UTF-16BE";
-                break;
-            default:
-                code = "GBK";
-        }
-        return code;
-    }
 
     /**
      * 读取流中前面的字符，看是否有bom，如果有bom，将bom头先读掉丢弃
@@ -404,54 +377,4 @@ public class MyFileUtil {
         return testin;
 
     }
-
-    /**
-     * 根据一个文件名，读取完文件，干掉bom头。
-     *
-     * @param fileName
-     * @throws java.io.IOException
-     */
-    public static void trimBom(String fileName) throws IOException {
-
-        FileInputStream fin = new FileInputStream(fileName);
-        // 开始写临时文件
-        InputStream in = getInputStream(fin);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte b[] = new byte[4096];
-
-        int len = 0;
-        while (in.available() > 0) {
-            len = in.read(b, 0, 4096);
-            //out.write(b, 0, len);
-            bos.write(b, 0, len);
-        }
-        in.close();
-        fin.close();
-        bos.close();
-        //临时文件写完，开始将临时文件写回本文件。
-        FileOutputStream out = new FileOutputStream(fileName);
-        out.write(bos.toByteArray());
-        out.close();
-    }
-
-    public static char[] loadFile(String file) throws IOException {
-        // read text file, auto recognize bom marker or use
-        // system default if markers not found.
-
-        char[] buffer = new char[16 * 1024];   // 16k buffer
-        int read;
-        try(UnicodeReader r = new UnicodeReader(new FileInputStream(file), null);
-            BufferedReader reader = new BufferedReader(r);
-            CharArrayWriter writer = new CharArrayWriter();) {
-
-            while( (read = reader.read(buffer)) != -1) {
-                writer.write(buffer, 0, read);
-            }
-            writer.flush();
-            return writer.toCharArray();
-        } catch (IOException ex) {
-            throw ex;
-        }
-    }
-
 }
