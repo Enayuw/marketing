@@ -398,10 +398,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
             }.getType()));
         }catch (JSONException ex){
-            log.error("插入jsonData异常", ex);
-            if(ex.getMessage().contains("not match")){
-                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常");
-            }else{
+            if (ex.getMessage().contains("not match")) {
+                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常", ex);
+            } else {
                 throw new ParamValidErrorException("jsonData解析异常");
             }
         }
@@ -490,9 +489,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
             }.getType()));
         }catch (JSONException ex){
-            log.error("插入jsonData异常", ex);
             if(ex.getMessage().contains("not match")){
-                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常");
+                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常", ex);
             }else{
                 throw new ParamValidErrorException("jsonData解析异常");
             }
@@ -574,99 +572,96 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Boolean> insertMarketingPreUserSync(Long infoId) {
-        Boolean isContinue = false;
+        Boolean isContinue = Boolean.FALSE;
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         MarketingPreUserDTO dto = JSON.parseObject(marketingSyncInfo.getJsonData(), new TypeReference<MarketingPreUserDTO>() {
         }.getType());
         long l = System.currentTimeMillis();
-        List<Future<Result>> results = new ArrayList<>();
         ArrayList<Callable<Result>> list = new ArrayList<>();
-            for (int i = 0; i < dto.getDataItems().size(); i++) {
-                MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
-                list.add(() -> {
-                    if(!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCaseNum())){
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("无客户编号");
-                    }
-                    if(!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
-                    ||!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())){
+        for (int i = 0; i < dto.getDataItems().size(); i++) {
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
+            list.add(() -> {
+                if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCaseNum())) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("无客户编号");
+                }
+                if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
+                        || !StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
+                            .concat(":无grouptype或cell"));
+                }
+                String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+                String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s')"
+                        , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
+                        , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCaseNum()
+                        , marketingPreUserDetailDTO.getCell(), marketingPreUserDetailDTO.getGroupType()
+                        , marketingPreUserDetailDTO.getRegisterDate()
+                        , marketingPreUserDetailDTO.getReserveField1()
+                        , marketingPreUserDetailDTO.getReserveField2()
+                        , date, date);
+                try {
+                    marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
+                } catch (Exception ex) {
+                    if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
-                                .concat(":无grouptype或cell"));
+                                .concat("重复客户编号"));
+                    } else {
+                        throw ex;
                     }
-                    String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
-                    String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s')"
-                            , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
-                            ,marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCaseNum()
-                            , marketingPreUserDetailDTO.getCell(), marketingPreUserDetailDTO.getGroupType()
-                            , marketingPreUserDetailDTO.getRegisterDate()
-                            , marketingPreUserDetailDTO.getReserveField1()
-                            , marketingPreUserDetailDTO.getReserveField2()
-                            , date, date);
-                    try {
-                        marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
-                    } catch (Exception ex) {
-                        if (ex.getMessage().contains("IDX_taskId_custNum")) {
-                            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
-                                    .concat("重复客户编号"));
-                        } else {
-                            throw ex;
-                        }
-                    }
-                    return new Result().setCode(ResultCode.SUCCESS.getValue());
-                });
-            }
-            StringBuilder errorBuild = new StringBuilder();
-            Integer errorSize = 0;
+                }
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            });
+        }
+        StringBuilder errorBuild = new StringBuilder();
+        Integer errorSize = 0;
         List<Future<Result>> futures = null;
         try {
             futures = currentDbPoolExecutor.invokeAll(list);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        for (int i = 0; i < futures.size(); i++) {
-            Result result = null;
-            try {
-                result = futures.get(i).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            if(ResultCode.FAIL.getValue().equals(result.getCode())){
-                    errorSize++;
-                    errorBuild.append(result.getMessage().concat(","));
+        if (futures != null && !futures.isEmpty()) {
+            for (int i = 0; i < futures.size(); i++) {
+                try {
+                    Result result = futures.get(i).get();
+                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                        errorSize++;
+                        errorBuild.append(result.getMessage().concat(","));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-            MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
-            updateSyncInfo.setId(marketingSyncInfo.getId());
-            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
-            if(errorSize==0){
-                updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
-            }else if(errorSize==futures.size()){
-                updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
-                MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
-                errorInfo.setApiCode(marketingSyncInfo.getApiCode());
-                errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
-                errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-                errorInfo.setCreateTime(new Date());
-                errorInfo.setErrorInfo(errorBuild.toString());
-                marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
-                updateSyncInfo.setErrorId(errorInfo.getId());
-            }else if(errorSize<futures.size()){
-                updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success_part);
-                MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
-                errorInfo.setApiCode(marketingSyncInfo.getApiCode());
-                errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
-                errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-                errorInfo.setCreateTime(new Date());
-                errorInfo.setErrorInfo(errorBuild.toString());
-                marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
-                updateSyncInfo.setErrorId(errorInfo.getId());
-            }
-            marketingSyncInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
+        }
+        MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
+        updateSyncInfo.setId(marketingSyncInfo.getId());
+        updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
+        if (errorSize == 0) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
+        } else if (errorSize == futures.size()) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
+            MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
+            errorInfo.setApiCode(marketingSyncInfo.getApiCode());
+            errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
+            errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
+            errorInfo.setCreateTime(new Date());
+            errorInfo.setErrorInfo(errorBuild.toString());
+            marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
+            updateSyncInfo.setErrorId(errorInfo.getId());
+        } else if (errorSize < futures.size()) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success_part);
+            MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
+            errorInfo.setApiCode(marketingSyncInfo.getApiCode());
+            errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
+            errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
+            errorInfo.setCreateTime(new Date());
+            errorInfo.setErrorInfo(errorBuild.toString());
+            marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
+            updateSyncInfo.setErrorId(errorInfo.getId());
+        }
+        marketingSyncInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
 //            alarmApiClient.sendAlarm();
 //            System.out.println("耗时"+(System.currentTimeMillis()-l));
-        if(log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");

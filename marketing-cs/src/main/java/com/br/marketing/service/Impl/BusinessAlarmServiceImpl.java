@@ -219,9 +219,9 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     @Override
     public void closeDateAlarm() {
-        List<ApiCodeTask> list = marketingTaskMapper.queryCloseBlt(DateHelper.getDateAdd(0));
-        log.info("list:{}", list);
         String dateAdd = DateHelper.getDateAdd(0);
+        List<ApiCodeTask> list = marketingTaskMapper.queryCloseBlt(dateAdd);
+        log.info("list:{}", list);
         for (ApiCodeTask alt : list) {
             List<MarketingTask> marketingTaskList = alt.getMarketingTaskList();
             String apiCode = alt.getApiCode();
