@@ -256,25 +256,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushMarketingUserTaskInfoDTO.getAccessNumber());});
         }
 
-        List<Future<Result>>  futures = null;
+        List<Future<Result>> failFutures = null;
         try {
-            futures = threadPoolExecutor.invokeAll(listCall);
+            List<Future<Result>> futures = threadPoolExecutor.invokeAll(listCall);
+            failFutures = futures.stream().filter(t -> {
+                try {
+                    return !ResultCode.SUCCESS.getValue().equals(t.get().getCode());
+                } catch (Exception e) {
+                    return true;
+                }
+            }).collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        List<Future<Result>> failFutures = futures.stream().filter(t -> {
-            try {
-                return !ResultCode.SUCCESS.getValue().equals(t.get().getCode());
-            } catch (Exception e) {
-                return true;
-            }
-        }).collect(Collectors.toList());
-
         //endregion
 
         //region 校验结果
-        if (failFutures.size() > 0) {
+        if (failFutures != null && !failFutures.isEmpty()) {
             Future<Result> resultFuture = failFutures.get(0);
             try {
                 Result result = resultFuture.get();
@@ -309,7 +308,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushLogExample logExample = new CustomerInfoPushLogExample();
         logExample.createCriteria().andMIdEqualTo(mId).andRealStautsIn(Arrays.asList("1","900013"));
         List<CustomerInfoPushLog> customerInfoPushLogs = customerInfoPushLogMapper.selectByExample(logExample);
-        Boolean isContinue = false;
+        Boolean isContinue = Boolean.FALSE;
         for (CustomerInfoPushLog t : customerInfoPushLogs) {
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(main.getmApiCode());
@@ -323,12 +322,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 CustomerInfoPushLog updateLog = new CustomerInfoPushLog();
                 updateLog.setId(t.getId());
                 if("900013".equals(userStatus.getData())){
-                    isContinue=true;
+                    isContinue=Boolean.TRUE;
                 }
                 updateLog.setRealStauts(userStatus.getData());
                 customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
             }else{
-                isContinue = true;
+                isContinue = Boolean.TRUE;
             }
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
@@ -399,6 +398,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
             }.getType()));
         }catch (JSONException ex){
+            log.error("插入jsonData异常", ex);
             if(ex.getMessage().contains("not match")){
                 throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常");
             }else{
@@ -406,7 +406,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         if(log.isInfoEnabled()) {
-            log.info("反序列化耗时" + (System.currentTimeMillis() - l1));
+            log.info("反序列化耗时:{}", (System.currentTimeMillis() - l1));
         }
         if(!StringUtils.isNotBlank(dto.getApiCode())){
             throw new ParamValidErrorException("apiCode必传");
@@ -447,7 +447,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new ParamValidErrorException("传输的数据不要超过2000条");
         }
         if(log.isInfoEnabled()) {
-            log.info("check耗时" + (System.currentTimeMillis() - l1));
+            log.info("check耗时:{}", (System.currentTimeMillis() - l1));
         }
         //endregion
         long l = System.currentTimeMillis();
@@ -462,16 +462,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
 //            redisChgService.saddMember(taskRedisKey,dto.getJsonData().getRequestId());
             if(log.isInfoEnabled()) {
-                log.info("文本插入耗时" + (System.currentTimeMillis() - l));
+                log.info("文本插入耗时:{}", (System.currentTimeMillis() - l));
             }
             long l3 = System.currentTimeMillis();
             producter.send("Marketing.PreUser.Receive",syncInfo.getId().toString());
             if(log.isInfoEnabled()) {
-                log.info("MQ推送耗时" + (System.currentTimeMillis() - l3));
+                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
             }
         }catch (DuplicateKeyException keyException){
             if(log.isInfoEnabled()) {
-                log.error("文本插入耗时" + (System.currentTimeMillis() - l));
+                log.error("文本插入耗时:{}", (System.currentTimeMillis() - l));
             }
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
         }catch (Exception ex){
@@ -490,6 +490,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
             }.getType()));
         }catch (JSONException ex){
+            log.error("插入jsonData异常", ex);
             if(ex.getMessage().contains("not match")){
                 throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常");
             }else{
@@ -497,7 +498,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         if(log.isInfoEnabled()) {
-            log.info("反序列化耗时" + (System.currentTimeMillis() - l1));
+            log.info("反序列化耗时:{}", (System.currentTimeMillis() - l1));
         }
         if(!StringUtils.isNotBlank(dto.getApiCode())){
             throw new ParamValidErrorException("apiCode必传");
@@ -538,7 +539,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new ParamValidErrorException("传输的数据不要超过2000条");
         }
         if(log.isInfoEnabled()) {
-            log.info("check耗时" + (System.currentTimeMillis() - l1));
+            log.info("check耗时:{}", (System.currentTimeMillis() - l1));
         }
         //endregion
         long l = System.currentTimeMillis();
@@ -553,17 +554,17 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             redisChgService.saddMember(taskRedisKey,dto.getJsonData().getRequestId());
             if(log.isInfoEnabled()) {
-                log.info("redis插入耗时" + (System.currentTimeMillis() - l));
+                log.info("redis插入耗时:{}", (System.currentTimeMillis() - l));
             }
             long l4 = System.currentTimeMillis();
             String s = JSON.toJSONString(syncInfo);
             if(log.isInfoEnabled()) {
-                log.info("序列化耗时" + (System.currentTimeMillis() - l4));
+                log.info("序列化耗时:{}", (System.currentTimeMillis() - l4));
             }
             long l3 = System.currentTimeMillis();
             producter.send("Marketing.PreUser.ReceiveJson",s);
             if(log.isInfoEnabled()) {
-                log.info("MQ推送耗时" + (System.currentTimeMillis() - l3));
+                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
             }
         }catch (Exception ex){
             throw ex;
@@ -666,7 +667,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            alarmApiClient.sendAlarm();
 //            System.out.println("耗时"+(System.currentTimeMillis()-l));
         if(log.isInfoEnabled()) {
-            log.info("数据解析插入耗时" + (System.currentTimeMillis() - l));
+            log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
@@ -253,19 +254,20 @@ public class SftpClient extends BaseFtpClient{
 
     /**
      * 递归创建目录
+     *
      * @param path 目录
      * @throws SftpException
      */
     public void mkdir(String path) throws Exception {
         log.warn("ftp mkdir {}", path);
         String[] split = path.split("/");
-        String realPath = "";
+        StringBuilder realPath = new StringBuilder();
         for (int i = 0; i < split.length; i++) {
             String s = split[i];
             if (StringUtils.isNotEmpty(s)) {
-                realPath = new StringBuilder().append(realPath).append("/").append(s).toString();
-                if (!isExist(realPath)) {
-                    sftp.mkdir(realPath);
+                realPath.append("/").append(s);
+                if (!isExist(realPath.toString())) {
+                    sftp.mkdir(realPath.toString());
                 }
             }
         }
@@ -327,7 +329,7 @@ public class SftpClient extends BaseFtpClient{
     public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) {
         boolean success = false;
         File localFile = new File(localFileName);
-        try (InputStream fis = Files.newInputStream(localFile.toPath())) {
+        try (InputStream fis = Files.newInputStream(Paths.get(localFile.getPath()))) {
             if (!isExist(remotePath)) {
                 mkdir(remotePath);
             }
@@ -353,7 +355,7 @@ public class SftpClient extends BaseFtpClient{
     public boolean downloadFile(String remotePath, String remoteFilename, String localFilename) {
         File localFile = new File(localFilename);
         boolean success = false;
-        try (OutputStream output = Files.newOutputStream(localFile.toPath())) {
+        try (OutputStream output = Files.newOutputStream(Paths.get(localFile.getPath()))) {
             if (null != remotePath && !"".equals(remotePath.trim())) {
                 sftp.cd(remotePath);
             }

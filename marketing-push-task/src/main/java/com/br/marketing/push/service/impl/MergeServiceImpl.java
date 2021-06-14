@@ -234,38 +234,38 @@ public class MergeServiceImpl implements MergeService {
         return zipFile;
     }
 
-    private ArrayList<String> standard(String fileName,String separator,Integer total){
-        ArrayList<String> fileNameList=new ArrayList<>();
-        StringBuilder head=null;
+    private ArrayList<String> standard(String fileName, String separator, Integer total) {
+        ArrayList<String> fileNameList = new ArrayList<>();
         try {
-            head= MyFileUtil.gethead(fileName);
-        } catch (IOException e) {
-            log.error("获取文件头异常",e);
-        }
-        String headStr=head.toString();
-        String[] headArray=headStr.split(separator);
-        Set<String> products=new HashSet<>();
-        for(String pro:proFieldMap.keySet()){
-            log.info("pro:{}",pro);
-            products.add(pro.toLowerCase());
-        }
-        String countFileHead="scoring_range,sample_capacity,proportion,cumulative_proportion";
-        countFileHead=countFileHead.replace(",",separator);
-        for (String product : products) {
-            if(headStr.contains(product)){
-                ArrayList<Score> scores=initScoreList(300,1000,25);
-                int i =findIndex(headArray,product);
-                readFile(fileName,scores,i,separator);
-                count(scores,total);
-                StringBuilder end=new StringBuilder();
-                end.append("_bi_").append(product).append(".txt");
-                String countFileName=fileName.replace(".txt",end.toString());
-               FileUtil.writeFile(countFileHead,countFileName,scores,separator);
-                fileNameList.add(countFileName);
+            StringBuilder head = MyFileUtil.gethead(fileName);
+            String headStr = head.toString();
+            String[] headArray = headStr.split(separator);
+            Set<String> products = new HashSet<>();
+            for (String pro : proFieldMap.keySet()) {
+                log.info("pro:{}", pro);
+                products.add(pro.toLowerCase());
             }
+            String countFileHead = "scoring_range,sample_capacity,proportion,cumulative_proportion";
+            countFileHead = countFileHead.replace(",", separator);
+            for (String product : products) {
+                if (headStr.contains(product)) {
+                    ArrayList<Score> scores = initScoreList(300, 1000, 25);
+                    int i = findIndex(headArray, product);
+                    readFile(fileName, scores, i, separator);
+                    count(scores, total);
+                    StringBuilder end = new StringBuilder();
+                    end.append("_bi_").append(product).append(".txt");
+                    String countFileName = fileName.replace(".txt", end.toString());
+                    FileUtil.writeFile(countFileHead, countFileName, scores, separator);
+                    fileNameList.add(countFileName);
+                }
+            }
+        } catch (IOException e) {
+            log.error("获取文件头异常", e);
         }
         return fileNameList;
     }
+
     private void count(ArrayList<Score> scores,Integer total){
         if(total !=null &&total.compareTo(0)==0){
             total=total+1;

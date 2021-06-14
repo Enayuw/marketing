@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -222,6 +221,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
     public void closeDateAlarm() {
         List<ApiCodeTask> list = marketingTaskMapper.queryCloseBlt(DateHelper.getDateAdd(0));
         log.info("list:{}", list);
+        String dateAdd = DateHelper.getDateAdd(0);
         for (ApiCodeTask alt : list) {
             List<MarketingTask> marketingTaskList = alt.getMarketingTaskList();
             String apiCode = alt.getApiCode();
@@ -240,7 +240,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                         .append(marketingTaskList.size())
                         .append("<br/>")
                         .append("&nbsp;&nbsp;&nbsp;监控截止日期：[")
-                        .append(DateHelper.getDateAdd(0))
+                        .append(dateAdd)
                         .append("]")
                         .append("<br/><br/>")
                         .append("备注：具体的今日到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");

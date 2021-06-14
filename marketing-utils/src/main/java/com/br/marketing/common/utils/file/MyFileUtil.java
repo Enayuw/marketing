@@ -222,11 +222,11 @@ public class MyFileUtil {
                 log.error("mkdir error");
             }
         }
-        File distinctedFile=new File(distinctFilePath.concat(distinctFileName));
+        String concat = distinctFilePath.concat(distinctFileName);
+        File distinctedFile = new File(concat);
         if(distinctedFile.exists()){
             try {
-                Files.delete(Paths.get(distinctFilePath.concat(distinctFileName)));
-                distinctFilePath.concat(distinctFileName);
+                Files.delete(Paths.get(concat));
             } catch (IOException e) {
                 e.printStackTrace();
             }

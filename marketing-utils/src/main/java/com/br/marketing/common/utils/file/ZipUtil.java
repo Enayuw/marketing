@@ -113,15 +113,13 @@ public class ZipUtil {
     }
 
     public static void compress(String zipFile, List<String> pathNames) {
-        ZipOutputStream out = null;
-        try (OutputStream os = Files.newOutputStream(new File(zipFile).toPath())) {
-            CheckedOutputStream cos = new CheckedOutputStream(os, new CRC32());
-            out = new ZipOutputStream(cos);
+        try (OutputStream os = Files.newOutputStream(Paths.get(zipFile));
+             CheckedOutputStream cos = new CheckedOutputStream(os, new CRC32());
+             ZipOutputStream out = new ZipOutputStream(cos);) {
             String basedir = "";
             for (String pathName : pathNames) {
                 compress(new File(pathName), out, basedir);
             }
-            out.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
