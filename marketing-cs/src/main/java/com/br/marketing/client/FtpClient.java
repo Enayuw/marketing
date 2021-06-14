@@ -171,7 +171,7 @@ public class FtpClient extends BaseFtpClient {
         for(int i=0;i<split.length;i++){
             String s = split[i];
             if(StringUtils.isNotEmpty(s)){
-                realPath=realPath+"/"+s;
+                realPath = new StringBuilder().append(realPath).append("/").append(s).toString();
                 if(!isExist(realPath)){
                     log.info("ftp mkdir realPath {} ",realPath);
                     boolean b = ftp.makeDirectory(realPath);

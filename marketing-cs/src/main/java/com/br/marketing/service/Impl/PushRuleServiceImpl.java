@@ -6,11 +6,8 @@ import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.SendMailClint;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
-import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.dto.*;
 import com.br.marketing.entity.*;
@@ -20,14 +17,11 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 import java.util.*;
 
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.mapper.*;
@@ -37,16 +31,12 @@ import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -223,14 +213,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 //人员信息
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
-                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_").concat(String.valueOf(System.currentTimeMillis())));
+                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_")
+                        .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
                         && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
 
                 //人员的变量信息
                 PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
-                pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(marketingHistory.getRequestTime(),"yyyy-MM-dd")));
+                pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(
+                        marketingHistory.getRequestTime(),"yyyy-MM-dd")));
                 pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
                 pushMarketingUserDetailVariablesDTO.setUpdate("");
                 if(first.isPresent()){
@@ -260,22 +252,21 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
-            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),pushMarketingUserTaskInfoDTO.getAccessNumber());});
+            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),
+                    pushMarketingUserTaskInfoDTO.getAccessNumber());});
         }
 
         List<Future<Result>>  futures = null;
         try {
             futures = threadPoolExecutor.invokeAll(listCall);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         List<Future<Result>> failFutures = futures.stream().filter(t -> {
             try {
                 return !ResultCode.SUCCESS.getValue().equals(t.get().getCode());
-            } catch (InterruptedException e) {
-                return true;
-            } catch (ExecutionException e) {
+            } catch (Exception e) {
                 return true;
             }
         }).collect(Collectors.toList());
@@ -283,22 +274,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region 校验结果
-        if(failFutures.size()>0){
+        if (failFutures.size() > 0) {
             Future<Result> resultFuture = failFutures.get(0);
-            Result result = null;
             try {
-                result = resultFuture.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+                Result result = resultFuture.get();
+                CustomerInfoPushMain main = new CustomerInfoPushMain();
+                main.setId(customerInfoPushMain.getId());
+                main.setmStatus(3);
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(result.getMessage());
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            CustomerInfoPushMain main = new CustomerInfoPushMain();
-            main.setId(customerInfoPushMain.getId());
-            main.setmStatus(3);
-            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(result.getMessage());
-        }else{
+        } else {
             CustomerInfoPushMain main = new CustomerInfoPushMain();
             main.setId(customerInfoPushMain.getId());
             main.setmStatus(2);
@@ -600,7 +588,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                     if(!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
                     ||!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())){
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum().concat(":无grouptype或cell"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
+                                .concat(":无grouptype或cell"));
                     }
                     String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                     String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s')"
@@ -615,7 +604,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                     } catch (Exception ex) {
                         if (ex.getMessage().contains("IDX_taskId_custNum")) {
-                            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum().concat("重复客户编号"));
+                            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
+                                    .concat("重复客户编号"));
                         } else {
                             throw ex;
                         }

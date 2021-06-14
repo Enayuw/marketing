@@ -6,6 +6,7 @@ import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
@@ -149,31 +150,30 @@ public class SftpClient extends BaseFtpClient{
      * @return 需要同步的文件名称和文件属性
      * @throws SftpException
      */
-    public Map<String,SftpATTRS> listFiles(String srcPath, String suffix)  {
-        Map<String,SftpATTRS> ftpFileMap = new HashMap();
-        if(!isExist(srcPath)){
+    public Map<String, SftpATTRS> listFiles(String srcPath, String suffix) {
+        Map<String, SftpATTRS> ftpFileMap = new HashMap();
+        if (!isExist(srcPath)) {
             return ftpFileMap;
         }
-        Vector<ChannelSftp.LsEntry> sftpFile = null;
         try {
-            sftpFile = sftp.ls(srcPath);
-        } catch (SftpException e) {
-           log.error("srcPath:{}",srcPath,e);
-        }
-        ChannelSftp.LsEntry isEntity;
-        String fileName;
-        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
-        while (sftpFileNames.hasNext()) {
-            isEntity = sftpFileNames.next();
-            SftpATTRS attrs = isEntity.getAttrs();
-            fileName = isEntity.getFilename();
-            String[] split = suffix.split(",");
-            for(int i=0;i<split.length;i++){
-                if(fileName.endsWith(split[i])){
-                    ftpFileMap.put(fileName,attrs);
-                    break;
+            Vector<ChannelSftp.LsEntry> sftpFile = sftp.ls(srcPath);
+            Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+            ChannelSftp.LsEntry isEntity;
+            String fileName;
+            while (sftpFileNames.hasNext()) {
+                isEntity = sftpFileNames.next();
+                SftpATTRS attrs = isEntity.getAttrs();
+                fileName = isEntity.getFilename();
+                String[] split = suffix.split(",");
+                for (int i = 0; i < split.length; i++) {
+                    if (fileName.endsWith(split[i])) {
+                        ftpFileMap.put(fileName, attrs);
+                        break;
+                    }
                 }
             }
+        } catch (SftpException e) {
+            log.error("srcPath:{}", srcPath, e);
         }
         return ftpFileMap;
     }
@@ -184,62 +184,63 @@ public class SftpClient extends BaseFtpClient{
      * @return 需要同步的文件名称和文件属性
      * @throws SftpException
      */
-    public Map<String,SftpATTRS> listFiles(String srcPath)  {
-        Map<String,SftpATTRS> ftpFileMap = new HashMap();
-        if(!isExist(srcPath)){
+    public Map<String, SftpATTRS> listFiles(String srcPath) {
+        Map<String, SftpATTRS> ftpFileMap = new HashMap();
+        if (!isExist(srcPath)) {
             return ftpFileMap;
         }
-        Vector<ChannelSftp.LsEntry> sftpFile = null;
         try {
-            sftpFile = sftp.ls(srcPath);
+            Vector<ChannelSftp.LsEntry> sftpFile = sftp.ls(srcPath);
+            ChannelSftp.LsEntry isEntity;
+            String fileName;
+            Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+            while (sftpFileNames.hasNext()) {
+                isEntity = sftpFileNames.next();
+                SftpATTRS attrs = isEntity.getAttrs();
+                fileName = isEntity.getFilename();
+                ftpFileMap.put(fileName, attrs);
+            }
         } catch (SftpException e) {
-            log.error("srcPath:{}",srcPath,e);
-        }
-        ChannelSftp.LsEntry isEntity;
-        String fileName;
-        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
-        while (sftpFileNames.hasNext()) {
-            isEntity = sftpFileNames.next();
-            SftpATTRS attrs = isEntity.getAttrs();
-            fileName = isEntity.getFilename();
-            ftpFileMap.put(fileName,attrs);
+            log.error("srcPath:{}", srcPath, e);
         }
         return ftpFileMap;
     }
+
     /**
      * 获取源目录下需要同步的文件名称和文件属性
+     *
      * @param srcPath 原路径
-     * @param suffix 文件类型
+     * @param suffix  文件类型
      * @return 对应文件类型的文件列表
      * @throws SftpException
      */
-    public List<String> listFileName(String srcPath, String suffix)  {
-        List<String> list=new ArrayList<>();
-        if(!isExist(srcPath)){
+    public List<String> listFileName(String srcPath, String suffix) {
+        List<String> list = new ArrayList<>();
+        if (!isExist(srcPath)) {
             return list;
         }
-        Vector<ChannelSftp.LsEntry> sftpFile = null;
         try {
-            sftpFile = sftp.ls(srcPath);
-        } catch (SftpException e) {
-            log.error("srcPath:{}",srcPath,e);
-        }
-        ChannelSftp.LsEntry isEntity = null;
-        String fileName = null;
-        Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
-        while (sftpFileNames.hasNext()) {
-            isEntity = (ChannelSftp.LsEntry) sftpFileNames.next();
-            fileName = isEntity.getFilename();
-            String[] split = suffix.split(",");
-            for(int i=0;i<split.length;i++){
-                if(fileName.endsWith(split[i])){
-                    list.add(fileName);
-                    break;
+            ChannelSftp.LsEntry isEntity;
+            String fileName;
+            Vector<ChannelSftp.LsEntry> sftpFile = sftp.ls(srcPath);
+            Iterator<ChannelSftp.LsEntry> sftpFileNames = sftpFile.iterator();
+            while (sftpFileNames.hasNext()) {
+                isEntity = sftpFileNames.next();
+                fileName = isEntity.getFilename();
+                String[] split = suffix.split(",");
+                for (int i = 0; i < split.length; i++) {
+                    if (fileName.endsWith(split[i])) {
+                        list.add(fileName);
+                        break;
+                    }
                 }
             }
+        } catch (SftpException e) {
+            log.error("srcPath:{}", srcPath, e);
         }
         return list;
     }
+
     /**
      * 获取文件属性
      * @param filePath 文件路径
@@ -256,19 +257,20 @@ public class SftpClient extends BaseFtpClient{
      * @throws SftpException
      */
     public void mkdir(String path) throws Exception {
-        log.warn("ftp mkdir {}",path);
+        log.warn("ftp mkdir {}", path);
         String[] split = path.split("/");
-        String realPath="";
-        for(int i=0;i<split.length;i++){
+        String realPath = "";
+        for (int i = 0; i < split.length; i++) {
             String s = split[i];
-            if(StringUtils.isNotEmpty(s)){
-                realPath=realPath+"/"+s;
-                if(!isExist(realPath)){
+            if (StringUtils.isNotEmpty(s)) {
+                realPath = new StringBuilder().append(realPath).append("/").append(s).toString();
+                if (!isExist(realPath)) {
                     sftp.mkdir(realPath);
                 }
             }
         }
     }
+
     /**
      * 判断文件是否存在
      *
@@ -325,33 +327,20 @@ public class SftpClient extends BaseFtpClient{
     public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) {
         boolean success = false;
         File localFile = new File(localFileName);
-        try (FileInputStream fis = new FileInputStream(localFile)){
-            if(!isExist(remotePath)){
+        try (InputStream fis = Files.newInputStream(localFile.toPath())) {
+            if (!isExist(remotePath)) {
                 mkdir(remotePath);
             }
             sftp.cd(remotePath);
             sftp.put(fis, remoteFilename);
             success = true;
         } catch (SftpException e) {
-           log.error("SftpException",e);
+            log.error("SftpException", e);
         } catch (Exception e) {
-            log.error("Exception",e);
+            log.error("Exception", e);
         }
         return success;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * 下载远程sftp服务器文件
@@ -361,26 +350,21 @@ public class SftpClient extends BaseFtpClient{
      * @param localFilename
      * @return
      */
-    public boolean downloadFile(String remotePath, String remoteFilename, String localFilename){
+    public boolean downloadFile(String remotePath, String remoteFilename, String localFilename) {
         File localFile = new File(localFilename);
         boolean success = false;
-        try (FileOutputStream output= new FileOutputStream(localFile); ){
-            if (null != remotePath && remotePath.trim() != "") {
+        try (OutputStream output = Files.newOutputStream(localFile.toPath())) {
+            if (null != remotePath && !"".equals(remotePath.trim())) {
                 sftp.cd(remotePath);
             }
             sftp.get(remoteFilename, output);
             success = true;
-            log.info("成功接收文件,本地路径：" + localFilename);
+            log.info("成功接收文件,本地路径：{}", localFilename);
         } catch (SftpException e) {
-            log.error("接收文件时有SftpException异常!",e);
-            return success;
+            log.error("接收文件时有SftpException异常!", e);
         } catch (IOException e) {
-            log.error("接收文件时有I/O异常!",e);
-            return success;
+            log.error("接收文件时有I/O异常!", e);
         }
         return success;
     }
-
-
-
 }

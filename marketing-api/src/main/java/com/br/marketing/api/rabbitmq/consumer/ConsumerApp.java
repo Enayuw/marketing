@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * rabbitmq 消费端
@@ -34,40 +34,26 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_Push_CustomerService_Search",containerFactory = "primaryContainerFactory")
-    public void consumerUserStatus(Channel channel, Message message){
-        Long o = null;
-        try {
-            o = JSON.parseObject(new String(message.getBody(),"utf-8"), new TypeReference<Long>() {
-            }.getType());
-        } catch (UnsupportedEncodingException e) {
-            if(log.isErrorEnabled()) {
-                log.error(e.getMessage(), e);
-            }
-            e.printStackTrace();
-        }
-        consumerService.consumerRun(channel,message, pushRuleService::getCustomerStatus,o,"Marketing.Push.CustomerService.Search.Delay");
+    @RabbitListener(queues = "Marketing_Push_CustomerService_Search", containerFactory = "primaryContainerFactory")
+    public void consumerUserStatus(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::getCustomerStatus, o,
+                "Marketing.Push.CustomerService.Search.Delay");
     }
 
 
     /**
      * 延迟消费 获取推送客服中心数据状态
+     *
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_PreUser_Receive",containerFactory = "primaryContainerFactory")
-    public void consumerPreUser(Channel channel, Message message){
-        Long o = null;
-        try {
-            o = JSON.parseObject(new String(message.getBody(),"utf-8"), new TypeReference<Long>() {
-            }.getType());
-        } catch (UnsupportedEncodingException e) {
-            if(log.isErrorEnabled()) {
-                log.error(e.getMessage(), e);
-            }
-            e.printStackTrace();
-        }
-        consumerService.consumerRun(channel,message, pushRuleService::insertMarketingPreUserSync,o,null);
+    @RabbitListener(queues = "Marketing_PreUser_Receive", containerFactory = "primaryContainerFactory")
+    public void consumerPreUser(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
     }
 
     /**

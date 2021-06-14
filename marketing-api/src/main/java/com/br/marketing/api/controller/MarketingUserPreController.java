@@ -71,7 +71,7 @@ public class MarketingUserPreController {
             long l = System.currentTimeMillis();
             Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
             if(log.isInfoEnabled()) {
-                log.info("接入营销人员接口耗时：" + (System.currentTimeMillis() - l));
+                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
             return new ApiNoDataResult().fromResult(result);
         }catch (ParamValidErrorException ex){
@@ -87,7 +87,7 @@ public class MarketingUserPreController {
             long l = System.currentTimeMillis();
             Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
             if(log.isInfoEnabled()) {
-                log.info("接入营销人员接口耗时：" + (System.currentTimeMillis() - l));
+                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
             return new ApiNoDataResult().fromResult(result);
         }catch (ParamValidErrorException ex){

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 @Service
@@ -18,7 +19,7 @@ public class ConsumerService {
     @Autowired
     private RabbitMqProducter producter;
 
-    public <T>void consumerRun(Channel channel, Message message, Function<T,Result<Boolean>> method,T t,String retryRouteKey){
+    public <T> void consumerRun(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
         Result<Boolean> apply = method.apply(t);
         try {
             /**
@@ -26,24 +27,24 @@ public class ConsumerService {
              *      根据返回结果来判断是否需要重新推送队列 false-不需要；true需要
              * code 为False 任务消费失败，重推队列
              */
-            if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
+            if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-                if(apply.getData()){
-                    if(!StringUtils.isBlank(retryRouteKey)){
-                      producter.send(retryRouteKey,new String(message.getBody()));
-                    }else{
-                      producter.send(message.getMessageProperties().getReceivedRoutingKey(),new String(message.getBody()));
+                if (apply.getData()) {
+                    if (StringUtils.isNotBlank(retryRouteKey)) {
+                        producter.send(retryRouteKey, new String(message.getBody(), StandardCharsets.UTF_8));
+                    } else {
+                        producter.send(message.getMessageProperties().getReceivedRoutingKey(), new String(message.getBody(), StandardCharsets.UTF_8));
                     }
                 }
-            }else{
-                channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,true);
+            } else {
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public Result<Boolean> test(String s){
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+    public Result<Boolean> test(String s) {
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }
