@@ -84,7 +84,7 @@ public class SftpToDbService extends AbstractDataToDbService {
         log.info("================去重结束============");
 
 
-        boolean b = fileCheckService.checkSmallDataFile(context);
+        fileCheckService.checkSmallDataFile(context);
 
         dealErrorResultFile(context);
         log.info("parseConfigFile done");

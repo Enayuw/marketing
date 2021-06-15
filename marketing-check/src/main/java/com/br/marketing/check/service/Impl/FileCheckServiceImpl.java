@@ -176,12 +176,12 @@ public class FileCheckServiceImpl implements FileCheckService {
                 break;
             default:
         }
-        LoadResult loadResult=LoadResult.builder().apiCode(context.getTask().getApiCode())
-                .cusBatch(context.getTask().getCusBatch())
+        LoadResult loadResult=LoadResult.builder().apiCode(context.getApiCode())
+                .cusBatch(context.getCusBatch())
                 .fileName(fileName)
                 .message(errorMessage)
                 .status("0")
-                .batchNumber(context.getTask().getBatchNumber())
+                .batchNumber(context.getBatchNumber())
                 .taskNumber(0).actualNumber(0).type("").build();
         loadResultMapper.insertLoadResult(loadResult);
     }
@@ -212,7 +212,7 @@ public class FileCheckServiceImpl implements FileCheckService {
         if(fileList[0].getName().equals(context.getTxtFileName())){
             File file1 = fileList[0];
             String name = file1.getName();
-            flag = SftpToDbUtils.vaildFileName(name, context.getTask().getApiCode(), errorMessage,false);
+            flag = SftpToDbUtils.vaildFileName(name, context.getTask().getApiCode(), errorMessage);
         }else {
             flag=false;
         }

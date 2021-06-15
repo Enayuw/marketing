@@ -10,6 +10,7 @@ import com.br.marketing.check.utils.UploadDataFileUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.LoadResult;
@@ -94,7 +95,6 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
-            log.info("======登录成功=====");
             SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,false,sftpClient);
             if(!map.isEmpty()){
                 log.info("----------SftpToDb开始处理新上传的数据文件-------------");
@@ -128,66 +128,64 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                 log.error("vaildApicode error {}",sftpzipFilePash);
                 continue;
             }
-            String callMethod = merchantParam.getCallMethod();
-            int monitorType;
-            if("1".equals(callMethod)){
-                monitorType=3;
-            }else if("3".equals(callMethod)){
-                monitorType=1;
-            }else{
-                monitorType=Integer.parseInt(callMethod);
-            }
-
+            int monitorType = Integer.parseInt(merchantParam.getCallMethod());
             String apiCode = merchantParam.getApiCode();
             String tableName="b_marketing_user_"+apiCode;
             marketingUserMapper.createUserTable(tableName);
-            StringBuilder localFile=new StringBuilder(path)
-                    .append("sftp_data")
-                    .append("/")
-                    .append(apiCode)
-                    .append("/");
+            String localZipFilePath=path.concat("sftp_data/").concat(apiCode).concat("/");
+            String localDeleteFilePath= path.concat("delete/").concat(apiCode).concat("/");
             //初始化参数对象
             FileContext context = new FileContext();
             context.setBaseFtpClient(sftpClient);
             context.setMerchantParam(merchantParam);
             context.setSftpZipFilePath(sftpzipFilePash);
-            context.setLocalZipFilePath(localFile.toString());
-
+            context.setLocalZipFilePath(localZipFilePath);
+            context.setLocalDeleteFilePath(localDeleteFilePath);
+            context.setApiCode(apiCode);
             for(String zipFileName:zipFileNameSet){
                 if(zipFileName.endsWith(".zip")){
                     //设置zip文件名
                     context.setZipFileName(zipFileName);
-
                     String successFile=zipFileName+".success";
                     if(zipFileNameSet.contains(successFile)){
                         StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                        String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
-                        MarketingTask task =new MarketingTask();
-                        task.setApiCode(apiCode);
-                        task.setBatchNumber(batchNumber);
-                        task.setMonitorType(monitorType);
-                        task.setMonitorStatus(0);
-                        task.setStatus(2);
-                        task.setFileName(zipFileName);
-                        marketingTaskMapper.insertTask(task);
-                        context.setTask(task);
-                        context.init();
-                        if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage,false)){
-                            sftpToDbService.execute(context);
-                        }else{
-                            fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
+                        if(zipFileName.contains("DeleteMonitor")){
+                            if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage)){
+                                sftpToDbService.execute(context);
+                            }else{
+                                fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
+                            }
+                        }else {
+                            String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
+                            MarketingTask task =new MarketingTask();
+                            task.setApiCode(apiCode);
+                            task.setBatchNumber(batchNumber);
+                            task.setMonitorType(monitorType);
+                            task.setMonitorStatus(0);
+                            task.setStatus(2);
+                            task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
+                            marketingTaskMapper.insertTask(task);
+                            context.setTask(task);
+                            context.init();
+                            if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage)){
+                                sftpToDbService.execute(context);
+                            }else{
+                                fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
+                            }
+
+                            String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM +batchNumber );
+                            String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
+                            task.setTableName("b_marketing_user_"+apiCode);
+                            Integer actualNumber = marketingUserMapper.queryCount(task);
+                            log.info("taskNumber:{},FailNumber:{}, actualNumber:{}",taskNumber,failNumber,actualNumber);
+                            task.setTaskNumber(StringUtils.isNotEmpty(taskNumber)?Integer.parseInt(taskNumber):0);
+                            task.setActualNumber(actualNumber);
+                            log.info("LoanTask:{}",task);
+                            marketingTaskMapper.modifyTask(task);
+                            validDataAlarmService.fileUpload(apiCode,batchNumber);
                         }
 
-                        String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM +batchNumber );
-                        String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
-                        task.setTableName("b_marketing_user_"+apiCode);
-                        Integer actualNumber = marketingUserMapper.queryCount(task);
-                        log.info("taskNumber:{},FailNumber:{}, actualNumber:{}",taskNumber,failNumber,actualNumber);
-                        task.setTaskNumber(StringUtils.isNotEmpty(taskNumber)?Integer.parseInt(taskNumber):0);
-                        task.setActualNumber(actualNumber);
-                        log.info("LoanTask:{}",task);
-                        marketingTaskMapper.modifyTask(task);
-                        validDataAlarmService.fileUpload(apiCode,batchNumber);
+
                         String path = Constants.SFTP_IN_INPUT_PATH.replace("apiCode",apiCode);
                         try {
                             sftpClient.rename(path+successFile,path+successFile+".bak");
