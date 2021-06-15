@@ -232,7 +232,7 @@ public class ResultUtil {
                   strategyInfo=jsonData.getJSONObject("strategyJson");
                   sb.append(strategyInfo.getString("useVersion")).append(sep);
                   mh.setVersion(strategyInfo.getString("useVersion"));
-              }else if(strategyId.startsWith("DTB")){
+              }else if(strategyId.startsWith("DTM")){
                   mh.setVersion("");
                   sb.append(sep);
                   flagJson = resultJson.getJSONObject("Flag");

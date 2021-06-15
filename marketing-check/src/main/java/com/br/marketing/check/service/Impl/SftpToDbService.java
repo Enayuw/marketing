@@ -3,7 +3,6 @@ package com.br.marketing.check.service.Impl;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.service.AbstractDataToDbService;
-import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;

@@ -157,7 +157,7 @@ public class ProFieldsClient {
             }
             log.info("productJson {}",productJson);
             setFields(productJson,apiCode,proFieldMap,strategyId,stmtKey);
-        }else if(strategyId.startsWith("DTB")){
+        }else if(strategyId.startsWith("DTM")){
             log.info("strategyStr:{}",strategyStr);
             JSONArray dtbArray=JSONArray.parseArray(strategyStr);
             for(int i=0;i<dtbArray.size();i++){

@@ -11,6 +11,7 @@ public class Constants {
     public static final String SFTP_IN_ERROR_PATH="/UploadFiles/marketing/apiCode/error/";
     public static final String SFTP_IN_INPUT_PATH="/UploadFiles/marketing/apiCode/input/";
     public static final  Pattern FREQUENCY= Pattern.compile("^[0-5]{1}$");
+    public static final String MYREGEX1="\\p{C}";
 
     public static Map<String,Integer> riskMap = new HashMap<>();
                                                  //cus_num,id,cell,name,loan_maturity_date,approve_result,linkman_cell,time_range,home_addr,tel_home,mail
@@ -56,14 +57,6 @@ public class Constants {
     public static final String UPLOAD_DATA_NUM="UPLOAD_DATA_NUM_";
     public static final String UPLOAD_FAILDATA_NUM="UPLOAD_FAILDATA_NUM_";
 
-    public static final String FILE_DATA_RESULT="result.txt";
-
-    public static final String STRATEGY_ID_360="DTB0000001";
-    public static final String CLOSE_DATE_360="2021-06-15";
-
-    public static final String STRATEGY_ID_PPD="DTB0000001";
-    public static final String STRATEGY_ID_PPD_SEC="DTB0000003:002";
-    public static final String CLOSE_DATE_PPD="2021-10-31";
 
     public static final String INSERT_DB_NUMBER="INSERT_DB_NUMBER_";
     public static final String HX_FLAG_98_NUM="HX_FLAG_98_NUM_";

@@ -264,7 +264,7 @@ public class LoanWarningThread implements Callable<String> {
                 jsonData.put("batch_number", blu.getBatchNumber());
                 param.put("jsonData", jsonData.toString());
                 String s="";
-                if (strategyId.startsWith("DTB")){
+                if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
@@ -299,13 +299,16 @@ public class LoanWarningThread implements Callable<String> {
      */
     private boolean checkRedisNumber() {
         boolean flag=true;
+        if(apiCode.equals("7410431")){
+            return flag;
+        }
         try{
             String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
             Map<String,String> dayNumMap =new HashMap<>();
             List<String> typeNoList=new ArrayList<>();
             if(strategyId.startsWith("STRB")){
                 addSTRBPro(typeNoList);
-            }else if(strategyId.startsWith("DTB")){
+            }else if(strategyId.startsWith("DTM")){
                 addDTBPro(typeNoList);
             }
             MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);

@@ -140,7 +140,6 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
             context.setMerchantParam(merchantParam);
             context.setSftpZipFilePath(sftpzipFilePash);
             context.setLocalZipFilePath(localZipFilePath);
-            context.setLocalDeleteFilePath(localDeleteFilePath);
             context.setApiCode(apiCode);
             for(String zipFileName:zipFileNameSet){
                 if(zipFileName.endsWith(".zip")){
@@ -150,6 +149,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     if(zipFileNameSet.contains(successFile)){
                         StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
                         if(zipFileName.contains("DeleteMonitor")){
+                            context.setType("delete");
                             if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage)){
                                 sftpToDbService.execute(context);
                             }else{
@@ -157,6 +157,8 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }
                         }else {
                             String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
+                            context.setBatchNumber(batchNumber);
+                            context.setType("data");
                             MarketingTask task =new MarketingTask();
                             task.setApiCode(apiCode);
                             task.setBatchNumber(batchNumber);

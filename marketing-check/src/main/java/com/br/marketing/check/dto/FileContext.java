@@ -1,6 +1,7 @@
 package com.br.marketing.check.dto;
 
 import com.br.marketing.client.BaseFtpClient;
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -48,10 +49,6 @@ public class FileContext {
      * 本地数据文件路径
      */
     private String localZipFilePath;
-    /**
-     * 本地剔除文件路径
-     */
-    private String localDeleteFilePath;
     /**
      * 任务实体对象
      */
@@ -107,6 +104,7 @@ public class FileContext {
 
     private String batchNumber;
     private String cusBatch;
+    private String type;
 
     public void init(){
         if(StringUtils.isNotBlank(localZipFilePath) &&StringUtils.isNotBlank(zipFileName)){
