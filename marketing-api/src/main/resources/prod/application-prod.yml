@@ -58,6 +58,10 @@ spring:
   sql.source: prod
 cluster:
   flag: ${CONF_CLUSTER}
+otherConfig:
+  alarm:
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
 api:
   intelligentCustomerService:
     baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api

@@ -37,7 +37,10 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
-
+otherConfig:
+  alarm:
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
 api:
   intelligentCustomerService:
     baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api

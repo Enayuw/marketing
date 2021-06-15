@@ -3,6 +3,8 @@ package com.br.marketing.api.aspect;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -26,6 +28,9 @@ public class ErrorControllerAspect {
 
     @Value("${spring.profiles.active}")
     private String env;
+
+    @Autowired
+    EmailService systemExceptionServiceImpl;
 
     /**
      * 捕获Reuslt 形式输出的接口异常
@@ -106,6 +111,7 @@ public class ErrorControllerAspect {
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(String.format("\r\n%s", e.getStackTrace()[i].toString()));
         }
+        systemExceptionServiceImpl.sendAlarm(stringBuilder.toString(),"Marketing-Api");
         if(log.isErrorEnabled()){
             log.error(stringBuilder.toString());
         }
