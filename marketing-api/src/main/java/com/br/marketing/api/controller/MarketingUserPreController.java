@@ -29,34 +29,6 @@ public class MarketingUserPreController {
     @Autowired
     PushRuleService pushRuleService;
 
-    /**
-     * 批量接入营销人员数据
-     * @param apiCode
-     * @param jsonData
-     * @return
-     */
-//    @ApiOperation(value = "批量接入营销人员数据")
-////    @PostMapping("/receiveMarketingPreUser")
-//    public ApiNoDataResult receiveMarketingPreUser(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
-//        try {
-//            RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
-//            dto.setApiCode(apiCode);
-//            try {
-//                dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
-//                }.getType()));
-//            }catch (JSONException ex){
-//                if(ex.getMessage().contains("not match")){
-//                    return new ApiNoDataResult().setCode("100006").setMessage("请核实下是否jsonData过长，jsonData解析异常");
-//                }else{
-//                    return new ApiNoDataResult().setCode("100006").setMessage("jsonData解析异常");
-//                }
-//            }
-//            return new ApiNoDataResult().fromResult(pushRuleService.insertMarketingPreUser(dto));
-//        }catch (ParamValidErrorException ex){
-//            log.error(ex.getMessage());
-//            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
-//        }
-//    }
 
     /**
      * 批量接入营销人员数据
