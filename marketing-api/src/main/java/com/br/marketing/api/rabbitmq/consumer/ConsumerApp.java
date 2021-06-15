@@ -44,7 +44,7 @@ public class ConsumerApp {
 
 
     /**
-     * 延迟消费 获取推送客服中心数据状态
+     * 消费 营销平台数据导入异步处理
      *
      * @param channel 通道
      * @param message 消息体
@@ -56,20 +56,4 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
     }
 
-    /**
-     * 测试消费 堆积消息
-     * @param channel 通道
-     * @param message 消息体
-     */
-//    @RabbitListener(queues = "Marketing_Push_CustomerService_Search")
-    public void consumerRemoveMessage(Channel channel, Message message){
-        try {
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
-        } catch (IOException e) {
-            if(log.isErrorEnabled()) {
-                log.error(e.getMessage(), e);
-            }
-            e.printStackTrace();
-        }
-    }
 }
