@@ -170,24 +170,9 @@ public class MergeServiceImpl implements MergeService {
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
             String s ="";
             if(blt==null){
-                if((blf.getApiCode().equals(Constants.APICODE_HNNX)||blf.getApiCode().equals(Constants.APICODE_APICODE_HNNX_QA))){
-                    blt=new MarketingTask();
-                    blt.setStart(0);
-                    blt.setLimit(1);
-                    blt.setApiCode(blf.getApiCode());
-                    blt.setMonitorStatus(1);
-                    List<MarketingTask> list = marketingTaskMapper.queryList(blt);
-                    if(list==null||list.size()==0){
-                        blt.setStrategyId("STRB0000001");
-                    }else {
-                        String strategyId = list.get(0).getStrategyId();
-                        blt.setStrategyId(strategyId);
-                    }
+                log.error("不存在的批次：{}",blf);
+                return zipFile;
 
-                }else {
-                    log.error("不存在的批次：{}",blf);
-                    return zipFile;
-                }
             }else {
                 String fileName1 = blt.getFileName();
                 fileName1=fileName1.replace(".txt","");
