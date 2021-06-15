@@ -24,7 +24,7 @@ public class EsConstants {
     /**
      * builderMarketingWithList
      */
-    public static final String ALL_MARKETING_KEY = "api_code,id_card,cell,name,request_time,batch_number,swift_number," +
+    public static final String ALL_MARKETING_KEY = "api_code,id_card,cell,name,request_time,cus_batch_number,batch_number,swift_number," +
             "cus_num,strategy_id,version,product";
 
 
