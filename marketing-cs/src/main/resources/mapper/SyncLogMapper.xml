@@ -13,7 +13,7 @@
 			`end_time`,
 			`create_time`,
 			`status`,
-			`cus_batch_number`,
+			`cus_batch_number`
 		)
 		VALUES
 			(
