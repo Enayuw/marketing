@@ -64,5 +64,5 @@ otherConfig:
     appName: marketing
 api:
   intelligentCustomerService:
-    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+    baseUrl:  http://k8s.brapp.com/openapi2/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
