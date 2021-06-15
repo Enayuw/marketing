@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.bean.Score;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.PropertiesUtil;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.*;
@@ -205,6 +202,10 @@ public class MergeServiceImpl implements MergeService {
             Integer total =MyFileUtil.getTotalLines(new File(fileName))-1;
             blf.setExpectedNum(total);
             ArrayList<String> countFileNameList =standard(fileName,separator,total);
+
+            //统计文件上传fastdfs
+            uploadFastDfs(countFileNameList,blf);
+
             countFileNameList.add(fileName);
             ZipUtil.compress(zipFile,countFileNameList);
         }catch (Exception e){
@@ -214,7 +215,37 @@ public class MergeServiceImpl implements MergeService {
         }
         return zipFile;
     }
+    private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf){
+        try{
+            String filePath=blf.getFilePath().concat("/fastdfs/");
+            File dir=new File(filePath);
+            if(!dir.exists()||!dir.isDirectory()){
+                boolean mkdirs = dir.mkdirs();
+                if(!mkdirs){
+                    log.error("创建文件夹失败-{}",filePath);
+                    return ;
+                }
+            }
+            String fileName=filePath.concat("result.zip");
+            ZipUtil.compress(fileName,countFileNameList);
 
+            byte[] buffer;
+            FileInputStream in=new FileInputStream(new File(fileName));
+            OutputStream outputStream = new ByteArrayOutputStream();
+            byte[] b = new byte[1024];
+            int n = 0;
+            while ((n = in.read(b)) != -1){
+                outputStream.write(b, 0, n);
+            }
+            buffer = ((ByteArrayOutputStream) outputStream).toByteArray();
+            String  url = FastdfsUtils.uploadDFSFileByte(buffer,fileName);
+            blf.setStatisticFilePath(url);
+            blf.setScoreStatus(2);
+
+        }catch (Exception e){
+            log.error("上传fastdfs异常，{}",blf.getFilePath());
+        }
+    }
     private ArrayList<String> standard(String fileName, String separator, Integer total) {
         ArrayList<String> fileNameList = new ArrayList<>();
         try {

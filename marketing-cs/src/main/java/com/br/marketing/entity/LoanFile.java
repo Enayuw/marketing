@@ -37,6 +37,8 @@ public class LoanFile extends BaseRowModel {
     private String md5;
     private Integer dataType;
     private List<String> zipFileNames;
+    private String statisticFilePath;
+    private Integer scoreStatus;
 
     @Override
     public String toString() {

@@ -309,7 +309,9 @@
 		SET status =0,
 		zipFile_name=#{zipFileName},
 		error_file=#{errorFile},
-		update_time=now()
+		update_time=now(),
+		statistic_file_path=#{statisticFilePath},
+		score_status=#{scoreStatus}
 		<if test="expectedNum!=null">
 		,expected_num=#{expectedNum}
 		</if>

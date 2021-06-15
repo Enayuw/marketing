@@ -70,6 +70,19 @@
             <artifactId>springfox-swagger-ui</artifactId>
             <version>${io.springfox.springfox-swagger-ui}</version>
         </dependency>
+
+        <!-- fastdfs -->
+        <dependency>
+            <groupId>com.br.fastdfs</groupId>
+            <artifactId>FastdfsClient</artifactId>
+            <version>1.5.10-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-jdk14</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>

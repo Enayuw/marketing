@@ -134,6 +134,9 @@ public class CopyFileJoinAspect {
             lsl.setFileSize(size);
             lsl.setCreateFileTime(createFileTime);
             lsl.setStartTime(DateUtils.parseDateTimeByDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+            if(loanSyncConfig.getType()==1){
+                lsl.setCusBatchNumber(Constants.MYREGEX.split(fileName)[0]);
+            }
         } catch (Exception e) {
             log.error("记录文件同步日志出错",e);
         }
