@@ -177,10 +177,153 @@ public class PushRuleServiceImpl implements PushRuleService {
         });
         //endregion
 
+//        //region push Intelligent Customer Service
+//
+//        //调用es查询接口
+//        Integer minTop = dto.getMinTop();
+//        int startPageYushu = minTop % 10000;
+//        Integer startPage = minTop/10000+(startPageYushu >0?1:0);
+//        String searchAfterStr = "";
+//        for (int i = 1; i <=startPage; i++) {
+//
+//            if(i==startPage&&startPageYushu>0){
+//                queryBaseBean.setPageSize(startPageYushu);
+//            }else {
+//                queryBaseBean.setPageSize(10000);
+//            }
+//            if(i==startPage){
+//                queryBaseBean.setPageSize(queryBaseBean.getPageSize()-1);
+//            }
+//            queryBaseBean.setSearchAfter(searchAfterStr);
+//            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
+//            searchAfterStr = s;
+//        }
+//        int totalYuShu = total % 2000;
+//        int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
+//        List<Callable<Result>> listCall = new ArrayList<>();
+//        for (int i = 1; i <= totalPage; i++) {
+//            String sn = String.valueOf(i);
+//            queryBaseBean.setSearchAfter(searchAfterStr);
+//            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+//
+//            List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
+//            for (int k = 0; k < marketingHistories.size(); k++) {
+//                MarketingHistory marketingHistory = marketingHistories.get(k);
+//
+//                //人员信息
+//                PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
+////                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
+//                if(log.isWarnEnabled()){
+//                    log.warn("人员信息：cusnum:"+marketingHistory.getCusNum()+";cusbatchnumber:"
+//                            +(StringUtils.isNotBlank(marketingHistory.getCusBatchNumber())?marketingHistory.getCusBatchNumber():""));
+//                }
+//                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_")
+//                        .concat(String.valueOf(System.currentTimeMillis())));
+//                dto1.setPhone(marketingHistory.getCell());
+//                Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
+//                        && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
+//
+//                //人员的变量信息
+//                PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
+//                pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime()==null?"":(DateUtils.format(
+//                        marketingHistory.getRequestTime(),"yyyy-MM-dd")));
+//                pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
+//                pushMarketingUserDetailVariablesDTO.setUpdate("");
+//                if(first.isPresent()){
+//                    pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
+//                }
+//                dto1.setVariables(pushMarketingUserDetailVariablesDTO);
+//                userDetailDTOS.add(dto1);
+//            }
+//
+//            //推送任务基础信息
+//            PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+//            pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+//            pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+////                pushMarketingUserTaskInfoDTO.setStrategyCode("");
+//            pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
+//            PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
+//            extendDataDTO.setScoreName(dto.getProductName());
+//            extendDataDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+//            extendDataDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
+//            extendDataDTO.setSampleTotal(sn);
+//            pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
+//            pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
+//
+//            //传输参数信息
+//            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+//            pushMarketingUserDTO.setApiCode(dto.getApiCode());
+//            pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
+//            pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+//
+//            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),
+//                    pushMarketingUserTaskInfoDTO.getAccessNumber());});
+//        }
+//
+//        List<Future<Result>> failFutures = null;
+//        try {
+//            List<Future<Result>> futures = threadPoolExecutor.invokeAll(listCall);
+//            failFutures = futures.stream().filter(t -> {
+//                try {
+//                    return !ResultCode.SUCCESS.getValue().equals(t.get().getCode());
+//                } catch (Exception e) {
+//                    return true;
+//                }
+//            }).collect(Collectors.toList());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        //endregion
+//
+//        //region 校验结果
+//        if (failFutures != null && !failFutures.isEmpty()) {
+//            Future<Result> resultFuture = failFutures.get(0);
+//            try {
+//                Result result = resultFuture.get();
+//                CustomerInfoPushMain main = new CustomerInfoPushMain();
+//                main.setId(customerInfoPushMain.getId());
+//                main.setmStatus(3);
+//                customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+//                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(result.getMessage());
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            CustomerInfoPushMain main = new CustomerInfoPushMain();
+//            main.setId(customerInfoPushMain.getId());
+//            main.setmStatus(2);
+//            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+//        }
+//        //endregion
+
+        //region push mq
+        producter.send("Marketing.Push.CustomerService",customerInfoPushMain.getId().toString());
+        //endregion
+
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Boolean> consumerPushCustomer(Long id) {
+
+        CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
+        CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
+        searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
+        List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
+        List<String> collect = customerInfoPushBatches.stream().map(t -> t.getmBatchNumber()).collect(Collectors.toList());
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(collect));
+        queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
+        queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
+        queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+        queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+        int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         //region push Intelligent Customer Service
 
         //调用es查询接口
-        Integer minTop = dto.getMinTop();
+        Integer minTop = customerInfoPushMain.getmNumMin();
         int startPageYushu = minTop % 10000;
         Integer startPage = minTop/10000+(startPageYushu >0?1:0);
         String searchAfterStr = "";
@@ -243,17 +386,17 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                pushMarketingUserTaskInfoDTO.setStrategyCode("");
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
             PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
-            extendDataDTO.setScoreName(dto.getProductName());
-            extendDataDTO.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
-            extendDataDTO.setAmountTop(Convert.toStr(dto.getMaxTop() - dto.getMinTop()));
+            extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
+            extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+            extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
             extendDataDTO.setSampleTotal(sn);
             pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
             //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(dto.getApiCode());
-            pushMarketingUserDTO.setPlatApiCode(dto.getApiCode());
+            pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+            pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
             listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),
@@ -297,11 +440,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         //endregion
 
-        //region push mq
-        producter.send("Marketing.Push.CustomerService",customerInfoPushMain.getId().toString());
-        //endregion
-
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
     }
 
     @Override
