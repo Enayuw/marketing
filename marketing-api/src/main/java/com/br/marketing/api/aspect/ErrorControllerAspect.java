@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /**
  * 对外接口的异常捕获
  */
@@ -102,8 +104,10 @@ public class ErrorControllerAspect {
                 params.append(String.format("Index:%d,Data:%s \r\n",i,args[i]));
             }
         }
+        UUID uuid = UUID.randomUUID();
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(String.format("\r\n环境：%s" ,env));
+        stringBuilder.append(String.format("\r\nlogId：%s" , uuid));
         stringBuilder.append(String.format("\r\n方法：%s.%s",typeName,methodName));
         stringBuilder.append(String.format("\r\n参数：%s",params.toString()));
         stringBuilder.append(String.format("\r\nException：%s", e.toString()));
