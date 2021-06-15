@@ -162,7 +162,7 @@ public class RabbitMqConfig {
     }
 
 
-    @Bean(name = "primaryRabbitTemplate")
+    @Bean
     @Primary
     public RabbitTemplate primaryRabbitTemplate(
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {

@@ -23,7 +23,6 @@ public class RabbitMqProducter {
     private static final String exchange = "gate";
 
     @Autowired
-    @Qualifier(value = "primaryRabbitTemplate")
     private RabbitTemplate rabbitTemplate;
 
     @PostConstruct
