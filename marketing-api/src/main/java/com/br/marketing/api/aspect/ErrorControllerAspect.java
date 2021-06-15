@@ -115,7 +115,7 @@ public class ErrorControllerAspect {
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(String.format("\r\n%s", e.getStackTrace()[i].toString()));
         }
-        systemExceptionServiceImpl.sendAlarm(stringBuilder.toString(),"Marketing-Api");
+        systemExceptionServiceImpl.sendAlarm(String.format("报错logId：%s",uuid.toString()),"Marketing-Api");
         if(log.isErrorEnabled()){
             log.error(stringBuilder.toString());
         }
