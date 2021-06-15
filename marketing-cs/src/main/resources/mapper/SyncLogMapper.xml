@@ -12,7 +12,8 @@
 			`start_time`,
 			`end_time`,
 			`create_time`,
-			`status`
+			`status`,
+			`cus_batch_number`,
 		)
 		VALUES
 			(
@@ -25,7 +26,8 @@
 				#{startTime},
 				#{endTime},
 				now(),
-				#{status}
+				#{status},
+				#{cusBatchNumber}
 			);
 	</insert>
 

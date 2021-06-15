@@ -166,6 +166,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setMonitorStatus(0);
                             task.setStatus(2);
                             task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
+                            task.setCusBatch(task.getFileName());
                             marketingTaskMapper.insertTask(task);
                             context.setTask(task);
                             context.init();

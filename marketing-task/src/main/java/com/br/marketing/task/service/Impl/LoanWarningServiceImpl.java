@@ -1,5 +1,7 @@
 package com.br.marketing.task.service.Impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.*;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -7,10 +9,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
-import com.br.marketing.mapper.LoanFileMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.LoanWarningThread;
@@ -65,7 +64,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     private Map<String,String> map=new HashMap<>();
     @Resource
     RedisChgService redisChgService;
-
+    @Resource
+    MarketingStrategyProductMapper marketingStrategyProductMapper;
 
     @Override
     public void process(Customer customer){
@@ -237,6 +237,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             return;
         }
         for (MarketingTask blt : list) {
+            if(blt.getActualNumber()<=0){
+                log.error("该批次监控人数为空，跳过执行:apiCode:{} batch_number：{}",blt.getApiCode(), blt.getBatchNumber());
+                continue;
+            }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
                 if(StringUtils.isEmpty(strategyStr)){
                     log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
@@ -247,6 +251,19 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
+            JSONArray dtbArray=JSONArray.parseArray(strategyStr);
+            for(int i=0;i<dtbArray.size();i++){
+                JSONObject jsonObject = dtbArray.getJSONObject(i);
+                MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
+                marketingStrategyProduct.setApiCode(blt.getApiCode());
+                marketingStrategyProduct.setBatchNumber(blt.getBatchNumber());
+                marketingStrategyProduct.setCreateTime(new Date());
+                marketingStrategyProduct.setCusBatchNumber(blt.getFileName());
+                marketingStrategyProduct.setProductName(jsonObject.getString("code"));
+                marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
+                marketingStrategyProduct.setStrategyId(blt.getStrategyId());
+                marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
+            }
                 core(blt, descPath,false,strategyStr,warrningExecutor);
 
                 /**
@@ -282,6 +299,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             return;
         }
         for(MarketingTask blt:list){
+            if(blt.getActualNumber()<=0){
+                log.error("该批次监控人数为空，跳过执行:apiCode:{} batch_number：{}",blt.getApiCode(), blt.getBatchNumber());
+                continue;
+            }
            String  strategyStr=strategyCS.strategyIdCheck(blt.getApiCode(),blt.getStrategyId());
             if(StringUtils.isEmpty(strategyStr)){
                 log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
