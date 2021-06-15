@@ -43,7 +43,7 @@ public class IntelligentCustomerServiceClient {
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
         if(logger.isErrorEnabled()){
-            logger.error("任务流水号:"+mId+"===="+ s);
+            logger.error("任务流水号:{},s:{}", mId, s);
         }
         log.setParam(s.length()>4999?s.substring(0,4999):s);
 //        log.setParam("");

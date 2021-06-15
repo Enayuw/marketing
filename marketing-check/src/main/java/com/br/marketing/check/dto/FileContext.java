@@ -36,22 +36,77 @@ import lombok.Data;
  **/
 @Data
 public class FileContext {
+    /**
+     * 内部sftp上文件路径
+     */
     private String  sftpZipFilePath;
+    /**
+     * zip文件名字，包括数据文件和剔除文件
+     */
     private String zipFileName;
+    /**
+     * 本地数据文件路径
+     */
     private String localZipFilePath;
+    /**
+     * 本地剔除文件路径
+     */
+    private String localDeleteFilePath;
+    /**
+     * 任务实体对象
+     */
     private MarketingTask task;
+    /**
+     * sftp客户端
+     */
     private BaseFtpClient baseFtpClient;
+    /**
+     * apiCode账号信息
+     */
     private MerchantParam merchantParam;
+    /**
+     * txt文件名字
+     */
     private String txtFileName;
+    /**
+     * config文件名字
+     */
     private String configFileName;
+    /**
+     * 本地txt文件路径
+     */
     private String localTxtFilePath;
+    /**
+     * 本地txt文件去重后名字
+     */
     private String distinctTxtFileName;
+    /**
+     * 本地txt文件去重后路径
+     */
     private String distinctTxtFilePath;
+    /**
+     * 错误文件名称，文件校验错误
+     */
     private String errorFileName;
+    /**
+     * 数据校验错误的错误文件名称
+     */
     private String errorDataFileName;
+    /**
+     * 错误文件路径
+     */
     private String errorFilePath;
+    /**
+     * 错误配置文件名称
+     */
     private String errorConfigFileName;
+    /**
+     * apicode
+     */
+    private String apiCode;
 
+    private String batchNumber;
+    private String cusBatch;
 
     public void init(){
         if(StringUtils.isNotBlank(localZipFilePath) &&StringUtils.isNotBlank(zipFileName)){

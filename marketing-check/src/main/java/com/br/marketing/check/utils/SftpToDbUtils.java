@@ -76,7 +76,9 @@ public class SftpToDbUtils {
         } catch (Exception e) {
             log.error("遍历sftp文件出错", e);
         }
-        log.warn("map :{}", map);
+        if(!map.isEmpty()){
+            log.warn("map :{}", map);
+        }
     }
 
     /**
@@ -114,7 +116,7 @@ public class SftpToDbUtils {
      *                    其他：4000100_2020080401001_DeleteMonitor_20200710.zip
      * @param apiCode     apiCode
      */
-    public static boolean vaildFileName(String zipFileName, String apiCode, StringBuilder errorMessage, boolean isDelete) {
+    public static boolean vaildFileName(String zipFileName, String apiCode, StringBuilder errorMessage) {
         if (StringUtils.isNotEmpty(zipFileName)) {
             String[] zipFileNameArr = zipFileName.split("\\.");
             if (zipFileNameArr.length < 2) {
@@ -123,6 +125,7 @@ public class SftpToDbUtils {
             }
             String name = zipFileNameArr[0];
             String[] s1 = name.split("_");
+            boolean isDelete=name.contains("DeleteMonitor");
             int length = isDelete ? 4 : 3;
             if (s1.length != length) {
                 errorMessage.append("文件名称命名异常");
@@ -369,7 +372,7 @@ public class SftpToDbUtils {
         }
         if (errorFile.isFile()) {
             try {
-                String remotePath = Constants.SFTP_IN_ERROR_PATH.replace("apiCode", context.getTask().getApiCode());
+                String remotePath = Constants.SFTP_IN_ERROR_PATH.replace("apiCode", context.getApiCode());
                 boolean upload = client.uploadFile(remotePath, errorFileName, errorFilePathAndName);
                 if (upload) {
                     File successFile = new File(errorFilePathAndName + ".success");

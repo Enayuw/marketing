@@ -1,15 +1,13 @@
 package com.br.marketing.dto;
 
 import lombok.Data;
-import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class MarketingPreUserDTO  implements Serializable {
+public class MarketingPreUserDTO implements Serializable {
+    private static final long serialVersionUID = 1;
 
     /**
      * 任务id

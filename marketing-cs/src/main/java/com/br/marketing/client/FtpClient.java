@@ -165,24 +165,23 @@ public class FtpClient extends BaseFtpClient {
 
     @Override
     public void mkdir(String realTargetPath) throws IOException {
-        log.info("ftp mkdir {}",realTargetPath);
+        log.info("ftp mkdir {}", realTargetPath);
         String[] split = realTargetPath.split("/");
-        String realPath="";
-        for(int i=0;i<split.length;i++){
+        StringBuilder realPath = new StringBuilder();
+        for (int i = 0; i < split.length; i++) {
             String s = split[i];
-            if(StringUtils.isNotEmpty(s)){
-                realPath=realPath+"/"+s;
-                if(!isExist(realPath)){
-                    log.info("ftp mkdir realPath {} ",realPath);
-                    boolean b = ftp.makeDirectory(realPath);
-                    if(!b){
-                        log.warn("ftp mkdir {} error",realPath);
+            if (StringUtils.isNotEmpty(s)) {
+                realPath.append("/").append(s);
+                if (!isExist(realPath.toString())) {
+                    log.info("ftp mkdir realPath {} ", realPath);
+                    boolean b = ftp.makeDirectory(realPath.toString());
+                    if (!b) {
+                        log.warn("ftp mkdir {} error", realPath);
                     }
                 }
             }
         }
     }
-
 
     /**
      * 连接ftp时保存刚登陆ftp时的路径

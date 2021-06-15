@@ -416,7 +416,7 @@ public class LoanWarningThread implements Callable<String> {
 
     private String getLimitNumFromUserCenter( String proCode, MerchantParam merchantParam ) {
         String limitNum = null;
-            String meal = merchantParam.getMeal();
+            String meal = merchantParam.getMealJson();
             if(!org.springframework.util.StringUtils.isEmpty(meal)){
                 JSONObject mealJson = JSON.parseObject(meal);
                 String proCodeString = mealJson.getString(proCode);
@@ -431,7 +431,7 @@ public class LoanWarningThread implements Callable<String> {
         return limitNum;
     }
     private void getDayNumMap(Map<String,String> dayNumMap, MerchantParam merchantParam){
-            String meal = merchantParam.getMeal();
+            String meal = merchantParam.getMealJson();
             if(!org.springframework.util.StringUtils.isEmpty(meal)){
                 JSONObject mealJson =JSON.parseObject(meal) ;
                 Set<String> strings = mealJson.keySet();

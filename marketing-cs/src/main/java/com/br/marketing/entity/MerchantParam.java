@@ -32,85 +32,123 @@ import lombok.Data;
 @Data
 public class MerchantParam {
 
-    private Integer id;
-
-    //客户apiCode
+    /**
+     * 客户apiCode
+     */
     private String apiCode;
 
-    //公司名字
-    private String companyName;
-
-    //(0测试账号，1 正式账号，-1 停用)
-    @JSONField(name = "account_type")
-    private Integer accountType;
-
-    //请求编码(00/md5)
-    @JSONField(name = "request_code")
-    private String requestCode;
-
-    //响应编码（1004）
-    @JSONField(name = "response_code")
-    private String responseCode;
-
-    //是否返回数据详情(1 返回，0 不返回)
-    @JSONField(name = "return_data")
-    private Integer returnData;
-
-    //测试开始时间
-    @JSONField(name = "start_time")
-    private String startTime;
-
-    //测试结束时间
-    @JSONField(name = "end_time")
-    private String endTime;
-
-     //(1 在线查询，0 定期监控)
-     @JSONField(name = "service_mode")
-    private String serviceMode;
-
-    //对接方式(1,网页 0 api)
-    @JSONField(name = "link_type")
-    private String linkType;
-
-    //电话虫优先级
-    private Integer dhcpriority;
-
-    //贷前策略重审
-    private Integer recheck;
-
-    //转正时间
-    @JSONField(name = "formal_time")
-    private String formalTime;
-
-    //日访问次数
-    @JSONField(name = "day_limit")
-    private String dayLimit;
-
-    //是否校验key
+    /**
+     * 是否需要校验请求key值（0:不需要,1:需要,2:不需要(通用强校验),3:需要(通用强校验),4:不需要(通用弱校验),5:需要(通用弱校验)）
+     */
     @JSONField(name = "is_check")
     private Integer isCheck;
 
-    //商户的产品套餐
-    private String meal;
+    /**
+     * 是否计费（不计：0，计费：1）
+     */
+    @JSONField(name = "is_charging")
+    private Integer isCharging;
+
+    /**
+     * (0测试账号，1 正式账号，-1 停用)
+     */
+    @JSONField(name = "account_type")
+    private Integer accountType;
+
+    /**
+     * 请求编码(00/md5)
+     */
+    @JSONField(name = "request_code")
+    private String requestCode;
+
+    /**
+     * 响应编码（1004）
+     */
+    @JSONField(name = "response_code")
+    private String responseCode;
+
+    /**
+     * 账号状态：0禁用 1启用
+     */
+    @JSONField(name = "account_status")
+    private String accountSstatus;
+
+    /**
+     * 测试开始时间
+     */
+    @JSONField(name = "start_time")
+    private String startTime;
+
+    /**
+     * 测试结束时间
+     */
+    @JSONField(name = "end_time")
+    private String endTime;
+
+    /**
+     * 数据交互方式(0:API 1:SFTP)
+     */
+    @JSONField(name = "transport")
+    private Integer transport;
+
+    /**
+     * 是否返回数据详情(1 返回，0 不返回)
+     */
+    @JSONField(name = "is_output_data_product")
+    private Integer isOutputDataProduct;
+
+    /**
+     * 产品配置信息
+     */
+    @JSONField(name = "meal_json")
+    private String mealJson;
+
+    /**
+     * 备注信息
+     */
+    @JSONField(name = "remarks")
+    private String remarks;
+
+    /**
+     * 加密key
+     */
     @JSONField(name = "encryption_key")
     private String encryptionKey;
+
+    /**
+     * 解密key
+     */
     @JSONField(name = "decrypt_key")
     private String decryptKey;
-    //流水号版本
+
+    /**
+     * 流水号版本
+     */
     @JSONField(name = "sn_ver")
     private String snVer;
 
-    //是否增量监控 调用方式：1 动态监控  2  风险扫描
+    /**
+     * 调用方式：1动态监控 2风险扫描与动态监控 3一次性查询 4定期全量监控
+     */
     @JSONField(name = "call_method")
     private String callMethod;
 
-    //file_encryption_methods,文件加密方式 0 不加密 ，1 流加密 ，2 压缩加密
+    /**
+     * 文件加密方式 0 不加密 ，1 流加密 ，2 压缩加密
+     */
     @JSONField(name = "file_encryption_methods")
     private String fileEncryptionMethods;
-    //file_encryption_algorithm int(2) DEFAULT NULL COMMENT '文件加密算法 0 AES-128-CBC ，1 AES-256-CBC'
+
+    /**
+     * 文件加密算法 0 AES-128-CBC ，1 AES-256-CBC
+     */
     @JSONField(name = "file_encryption_algorithm")
     private String fileEncryptionAlgorithm;
-    //file_encryption_key varchar(256) DEFAULT NULL COMMENT '文件加密key'
+
+    /**
+     * 文件加密key
+     */
     @JSONField(name = "file_encryption_key")
     private String fileEncryptionKey;
+
 }

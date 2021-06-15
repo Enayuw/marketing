@@ -46,12 +46,11 @@ public class IceClient {
     private static String appName;
     private static String appSecretKey;
     //用户中心-商户套餐表详细字段
-    private static final String COLUMNS = "id,api_code,day_limit,is_check,request_code," +
-            "response_code,account_type,update_time,update_user,remark,meal,return_data," +
-            "start_time,end_time,service_mode,recheck,dhcpriority,link_type,encryption_key,decrypt_key,sn_ver," +
-            "call_method,file_encryption_methods,file_encryption_algorithm,file_encryption_key";
+    private static final String COLUMNS = "api_code,is_charging,is_check,request_code," +
+            "response_code,account_type,account_status,start_time,end_time,transport,meal_json,remarks,encryption_key," +
+            "decrypt_key,sn_ver,call_method,file_encryption_methods,file_encryption_algorithm,file_encryption_key,encryption_key,is_output_data_product";
     //用户中心-商户套餐数据库标识
-    private static final String DB = "DZdb";
+    private static final String DB = "YXdb";
 
 
     /**

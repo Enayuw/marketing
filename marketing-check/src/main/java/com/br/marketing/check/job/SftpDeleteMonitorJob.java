@@ -78,20 +78,14 @@ public class SftpDeleteMonitorJob extends AbstractSimpleElasticJob {
         Map<String, Set<String>> map=new HashMap<>();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
-            boolean connect = sftpClient.connect();
-            if(connect){
-                log.warn("======登录成功===开始剔除文件处理======");
-            }else{
-                log.warn("======登录失败=========");
-                return ;
-            }
-            //SftpToDbUtils.listFtpFile("/UploadFiles/loanwarn/",map,true,sftpClient);
+            sftpClient.connect();
+            SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,true,sftpClient);
             if(!map.isEmpty()){
                 log.warn("----------SftpToDb开始处理新上传的剔除文件-------------");
                 dealDeleteMonitorFile(map,sftpClient);
             }
         } catch (Exception e) {
-            log.error("获取ftp上的剔除文件列表出错",e);
+            log.error("获取sftp上的剔除文件列表出错",e);
         }finally {
             try {
                 sftpClient.disconnect();
@@ -131,7 +125,7 @@ public class SftpDeleteMonitorJob extends AbstractSimpleElasticJob {
                         String[] split = MYREGEX.split(fileName);
                         String zipName = split[0];
                         StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
-                        if(SftpToDbUtils.vaildFileName(fileName, apiCode,errorMessage,true)){
+                        if(SftpToDbUtils.vaildFileName(fileName, apiCode,errorMessage)){
                             //fileCheckServiceImpl.parsingDeleteFile(key,fileName,localFile.toString(),apiCode,merchantParam,zipName,sftpClient);
                         }else{
                             SftpToDbUtils.returnDeleteErrorFile(apiCode, localFile.toString(), fileName, errorMessage,sftpClient);

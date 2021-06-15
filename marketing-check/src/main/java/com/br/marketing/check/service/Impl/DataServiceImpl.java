@@ -61,7 +61,7 @@ public class DataServiceImpl implements DataService {
                         String apiCode = blt.getApiCode();
                         String strategy = StrategyClient.getStrategy(apiCode, strategyId);
                         MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
-                        String meal = merchantParam.getMeal();
+                        String meal = merchantParam.getMealJson();
                         if(StringUtils.isNotEmpty(meal)){
                             DocumentContext parseMeal = JsonPath.parse(meal);
                             //校验策略可用性
