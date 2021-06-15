@@ -129,8 +129,8 @@ public class DeleteMonitorServiceImpl implements DeleteMonitorService {
                         linenumber++;
                         if((linenumber / BATCHSIZE) > (num - 1)){
                             num ++ ;
-                            validatorExecutor.submit(new ValidatorDeleteMonitorFileThread(list, apiCode, marketingDirtyUserMapper
-                                    , merchantParam, headIndexMap, fw,redisChgService,name));
+//                            validatorExecutor.submit(new ValidatorDeleteMonitorFileThread(list, apiCode, marketingDirtyUserMapper
+//                                    , merchantParam, headIndexMap, fw,redisChgService,name));
                             list=new HashSet<>();
                         }
                         list.add(trim);
@@ -140,11 +140,11 @@ public class DeleteMonitorServiceImpl implements DeleteMonitorService {
             /**
              * 处理文件中最后的不够2000条的数据
              */
-            if(list!=null&&list.size()>0){
-                validatorExecutor.submit(new ValidatorDeleteMonitorFileThread(list,apiCode, marketingDirtyUserMapper
-                        ,merchantParam,headIndexMap,fw,redisChgService,name));
-
-            }
+//            if(list!=null&&list.size()>0){
+//                validatorExecutor.submit(new ValidatorDeleteMonitorFileThread(list,apiCode, marketingDirtyUserMapper
+//                        ,merchantParam,headIndexMap,fw,redisChgService,name));
+//
+//            }
 
             if(!checkTxtContent(linenumber+1,localFilePath+"/"+name,errorMessage,apiCode,fileName,head.toString(),cusBatch,ftp)){
                 return;

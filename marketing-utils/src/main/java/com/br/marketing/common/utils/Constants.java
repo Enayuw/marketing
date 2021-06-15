@@ -11,6 +11,7 @@ public class Constants {
     public static final String SFTP_IN_ERROR_PATH="/UploadFiles/marketing/apiCode/error/";
     public static final String SFTP_IN_INPUT_PATH="/UploadFiles/marketing/apiCode/input/";
     public static final  Pattern FREQUENCY= Pattern.compile("^[0-5]{1}$");
+    public static final String MYREGEX1="\\p{C}";
 
     public static Map<String,Integer> riskMap = new HashMap<>();
                                                  //cus_num,id,cell,name,loan_maturity_date,approve_result,linkman_cell,time_range,home_addr,tel_home,mail

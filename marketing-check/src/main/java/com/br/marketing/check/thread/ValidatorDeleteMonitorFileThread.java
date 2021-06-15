@@ -5,6 +5,9 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.encryption.Sm3Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.dto.FileContext;
+import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingUser;
@@ -29,18 +32,18 @@ public class ValidatorDeleteMonitorFileThread implements Runnable {
     private  Writer fw;
     private RedisChgService redisChgService;
     private String fileName;
+    private DecodeClient decodeClient;
 
-    public ValidatorDeleteMonitorFileThread(Set<String> list, String apiCode, MarketingDirtyUserMapper marketingDirtyUserMapper,
-                                            MerchantParam merchantParam, Map<String,Integer> headIndexMap,
-                                            Writer fw, RedisChgService redisChgService, String fileName) {
+    public ValidatorDeleteMonitorFileThread(Set<String> list, FileContext context, Map<String,Integer> headIndexMap, Writer fw, DecodeClient decodeClient) {
         this.list = list;
-        this.apiCode = apiCode;
-        this.marketingDirtyUserMapper = marketingDirtyUserMapper;
-        this.merchantParam = merchantParam;
+        this.apiCode = context.getApiCode();
+        this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);
+        this.merchantParam = context.getMerchantParam();
         this.headIndexMap = headIndexMap;
         this.fw=fw;
-        this.redisChgService=redisChgService;
-        this.fileName=fileName;
+        this.redisChgService= CkeckApplication.ac.getBean(RedisChgService.class);
+        this.fileName=context.getDistinctTxtFileName();
+        this.decodeClient=decodeClient;
     }
 
 
