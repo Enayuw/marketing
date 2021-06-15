@@ -213,6 +213,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 //人员信息
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
+                if(log.isWarnEnabled()){
+                    log.warn("人员信息：cusnum:"+marketingHistory.getCusNum()+";cusbatchnumber:"
+                            +(StringUtils.isNotBlank(marketingHistory.getCusBatchNumber())?marketingHistory.getCusBatchNumber():""));
+                }
                 dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_")
                         .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
