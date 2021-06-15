@@ -81,6 +81,7 @@ public final class CallUtils {
         }
 
         String encodedQueryStr = "";
+        StringBuilder encodedQuery = new StringBuilder();
         if (StringUtils.isNotEmpty(rawQueryStr)) {
             String[] keyValues = StringUtils.split(rawQueryStr, '&');
             if (keyValues != null) {
@@ -94,13 +95,12 @@ public final class CallUtils {
                         } catch (UnsupportedEncodingException e) {
                             throw new RuntimeException(e);
                         }
-                        encodedQueryStr += String.format("&%s=%s", oneKeyVal[0], encodeStr);
+                        encodedQuery.append(String.format("&%s=%s", oneKeyVal[0], encodeStr));
                     }
                 }
-                encodedQueryStr = encodedQueryStr.substring(1, encodedQueryStr.length());
+                encodedQueryStr = encodedQuery.toString().substring(1);
             }
         }
-
         return encodedQueryStr;
     }
 
@@ -119,49 +119,6 @@ public final class CallUtils {
         }
 
         return (JSONObject) JSON.toJSON(javaBean);
-    }
-
-    /**
-     * 反序列化xml
-     */
-    public static <T> T deserializeXml(Class<T> clazz, String xml, String encodeName) {
-        try {
-            if (clazz.isAssignableFrom(String.class)) {
-                return (T) xml;
-            }
-
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(encodeName));
-            JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
-
-            //private final ConcurrentHashMap<Class, JAXBContext>        jaxbContexts =       new ConcurrentHashMap<Class, JAXBContext>(64);
-            //此处应该缓存一下JAXBContext , 参考原因: spring源码中有缓存,feign源码中有缓存
-//            https://stackoverflow.com/questions/7400422/jaxb-creating-context-and-marshallers-cost
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            return (T) unmarshaller.unmarshal(byteArrayInputStream);
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 序列化xml
-     */
-    public static <T> String serializeXml(T bean, String encodeName) {
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            JAXBContext jaxbContext = JAXBContext.newInstance(bean.getClass());
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(bean, byteArrayOutputStream);
-            String xmlResult = byteArrayOutputStream.toString(encodeName);
-
-            return xmlResult;
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -189,7 +146,7 @@ public final class CallUtils {
 
         if (javaBean instanceof Map) {
             form.setAll((Map<String, Object>) javaBean);
-        }else{
+        } else {
             form.setAll(BeanUtils.transBean2Map(javaBean));
         }
 

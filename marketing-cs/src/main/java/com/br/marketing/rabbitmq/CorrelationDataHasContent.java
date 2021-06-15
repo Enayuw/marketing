@@ -7,8 +7,8 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 public class CorrelationDataHasContent extends CorrelationData {
     private Object message;
 
-    public CorrelationDataHasContent(String id,Object message){
+    public CorrelationDataHasContent(String id, Object message) {
         super(id);
-        this.setMessage(message);
+        this.message = message;
     }
 }

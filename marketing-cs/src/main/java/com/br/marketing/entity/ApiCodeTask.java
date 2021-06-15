@@ -19,7 +19,7 @@ public class ApiCodeTask {
     public String toString() {
         return "ApiCodeTask{" +
                 "apiCode='" + apiCode + '\'' +
-                ", loanTaskList=" + marketingTaskList.toString() +
+                ", loanTaskList=" + marketingTaskList +
                 '}';
     }
 }

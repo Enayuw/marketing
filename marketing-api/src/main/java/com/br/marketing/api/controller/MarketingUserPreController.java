@@ -69,20 +69,27 @@ public class MarketingUserPreController {
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
         try {
             long l = System.currentTimeMillis();
-            RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
-            dto.setApiCode(apiCode);
-            try {
-                dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
-                }.getType()));
-            }catch (JSONException ex){
-                if(ex.getMessage().contains("not match")){
-                    return new ApiNoDataResult().setCode("100006").setMessage("请核实下是否jsonData过长，jsonData解析异常");
-                }else{
-                    return new ApiNoDataResult().setCode("100006").setMessage("jsonData解析异常");
-                }
+            Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
+            if(log.isInfoEnabled()) {
+                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
-            System.out.println("第一步耗时："+(System.currentTimeMillis()-l));
-            return new ApiNoDataResult().fromResult(pushRuleService.insertMarketingPreUserText(dto));
+            return new ApiNoDataResult().fromResult(result);
+        }catch (ParamValidErrorException ex){
+            log.error(ex.getMessage());
+            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "批量接入营销人员数据直接推送mq")
+    @PostMapping("/receiveMarketingPreUserMq")
+    public ApiNoDataResult receiveMarketingPreUserMq(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
+        try {
+            long l = System.currentTimeMillis();
+            Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
+            if(log.isInfoEnabled()) {
+                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
+            }
+            return new ApiNoDataResult().fromResult(result);
         }catch (ParamValidErrorException ex){
             log.error(ex.getMessage());
             return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
@@ -93,8 +100,10 @@ public class MarketingUserPreController {
     @PostMapping("/getMarketingPreUserStauts")
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
         try {
-            MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData, new TypeReference<MarketingPreUserSyncStatusDTO>() {
+            MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData,
+                    new TypeReference<MarketingPreUserSyncStatusDTO>() {
             }.getType());
+            o.setApiCode(apiCode);
             return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
         }catch (ParamValidErrorException ex){
             log.error(ex.getMessage());

@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -220,28 +219,33 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     @Override
     public void closeDateAlarm() {
-        List<ApiCodeTask> list= marketingTaskMapper.queryCloseBlt(DateHelper.getDateAdd(0));
-        log.info("list:{}",list);
-        for(ApiCodeTask alt:list){
+        String dateAdd = DateHelper.getDateAdd(0);
+        List<ApiCodeTask> list = marketingTaskMapper.queryCloseBlt(dateAdd);
+        log.info("list:{}", list);
+        for (ApiCodeTask alt : list) {
             List<MarketingTask> marketingTaskList = alt.getMarketingTaskList();
             String apiCode = alt.getApiCode();
-            String compShortName="";
-            if(marketingTaskList.size()>0){
+            String compShortName = "";
+            if (marketingTaskList.size() > 0) {
                 String companyMsg = IceClient.getCompanyMsg(apiCode);
-                if(StringUtils.isNotEmpty(companyMsg)){
+                if (StringUtils.isNotEmpty(companyMsg)) {
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
-                    compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
+                    compShortName = companyJSONObj.getString("COMP_SHORT_NAME");
                 }
-                StringBuilder content = new StringBuilder();
-                content.append("&nbsp;&nbsp;&nbsp;您好:  【")
+                StringBuilder content = new StringBuilder()
+                        .append("&nbsp;&nbsp;&nbsp;您好:  【")
                         .append(compShortName)
                         .append("】存量客户监控-监控时间今日到期，请及时跟进：<br/><br/>")
-                        .append("&nbsp;&nbsp;&nbsp;监控时间今日到期批次数：").append(marketingTaskList.size()).append("<br/>")
-                        .append("&nbsp;&nbsp;&nbsp;监控截止日期：[").append(DateHelper.getDateAdd(0)).append("]")
-                .append("<br/><br/>")
-                .append("备注：具体的今日到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
-                String title="【紧急报警】【"+compShortName+"-"+apiCode+"】存量客户监控-监控时间今日到期";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("fileUploadFtp"));
+                        .append("&nbsp;&nbsp;&nbsp;监控时间今日到期批次数：")
+                        .append(marketingTaskList.size())
+                        .append("<br/>")
+                        .append("&nbsp;&nbsp;&nbsp;监控截止日期：[")
+                        .append(dateAdd)
+                        .append("]")
+                        .append("<br/><br/>")
+                        .append("备注：具体的今日到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
+                String title = "【紧急报警】【" + compShortName + "-" + apiCode + "】存量客户监控-监控时间今日到期";
+                alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("fileUploadFtp"));
 
             }
         }
@@ -249,34 +253,36 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     @Override
     public void monitoringExpirationAlarm() {
-        List<ApiCodeTask> list= marketingTaskMapper.queryCloseBltSoon(DateHelper.getDateAdd(14));
-        String dateAdd = DateHelper.getDateAdd(0);
-        log.info("list:{}",list);
-        for(ApiCodeTask alt:list){
+        List<ApiCodeTask> list = marketingTaskMapper.queryCloseBltSoon(DateHelper.getDateAdd(14));
+        log.info("list:{}", list);
+        Set<String> set = new HashSet<>();
+        for (ApiCodeTask alt : list) {
             List<MarketingTask> marketingTaskList = alt.getMarketingTaskList();
             String apiCode = alt.getApiCode();
-            String compShortName="";
-            if(marketingTaskList.size()>0){
-                Set<String> set=new HashSet<>();
-                for(MarketingTask lt: marketingTaskList){
+            String compShortName = "";
+            if (marketingTaskList.size() > 0) {
+                for (MarketingTask lt : marketingTaskList) {
                     set.add(lt.getCloseDate());
                 }
                 String companyMsg = IceClient.getCompanyMsg(apiCode);
-                if(StringUtils.isNotEmpty(companyMsg)){
+                if (StringUtils.isNotEmpty(companyMsg)) {
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
-                    compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
+                    compShortName = companyJSONObj.getString("COMP_SHORT_NAME");
                 }
-                StringBuilder content = new StringBuilder();
-                content.append("&nbsp;&nbsp;&nbsp;您好:  【")
+                StringBuilder content = new StringBuilder()
+                        .append("&nbsp;&nbsp;&nbsp;您好:  【")
                         .append(compShortName)
                         .append("】存量客户监控-监控时间即将到期，请及时跟进：<br/><br/>")
-                        .append("&nbsp;&nbsp;&nbsp;监控时间即将到期批次数:").append(marketingTaskList.size()).append("<br/>")
-                        .append("&nbsp;&nbsp;&nbsp;监控截止日期：").append(set.toString())
+                        .append("&nbsp;&nbsp;&nbsp;监控时间即将到期批次数:")
+                        .append(marketingTaskList.size()).append("<br/>")
+                        .append("&nbsp;&nbsp;&nbsp;监控截止日期：")
+                        .append(set)
                         .append("<br/><br/>")
                         .append("备注：具体的即将到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
-                String title="【紧急报警】【"+compShortName+"-"+apiCode+"】存量客户监控-监控时间即将到期";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("fileUploadFtp"));
+                String title = "【紧急报警】【" + compShortName + "-" + apiCode + "】存量客户监控-监控时间即将到期";
+                alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("fileUploadFtp"));
             }
+            set.clear();
         }
     }
 

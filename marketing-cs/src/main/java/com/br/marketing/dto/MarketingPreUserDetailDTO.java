@@ -9,6 +9,8 @@ import java.io.Serializable;
 
 @Data
 public class MarketingPreUserDetailDTO implements Serializable {
+    private static final long serialVersionUID = 1;
+
     @ApiModelProperty(value = "手机号")
     @NotNull(message = "cell必传")
     @NotEmpty(message = "cell必传")
