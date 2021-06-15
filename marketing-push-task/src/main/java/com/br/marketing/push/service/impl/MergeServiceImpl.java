@@ -202,15 +202,11 @@ public class MergeServiceImpl implements MergeService {
             FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
 
             zipFile=fileName.replace(".txt",".zip");
-            if(Constants.APICODE_SHAZI.contains(blf.getApiCode())){
-                Integer total =MyFileUtil.getTotalLines(new File(fileName))-1;
-                blf.setExpectedNum(total);
-                ArrayList<String> countFileNameList =standard(fileName,separator,total);
-                countFileNameList.add(fileName);
-                ZipUtil.compress(zipFile,countFileNameList);
-            }else{
-                ZipUtil.compress(fileName,zipFile);
-            }
+            Integer total =MyFileUtil.getTotalLines(new File(fileName))-1;
+            blf.setExpectedNum(total);
+            ArrayList<String> countFileNameList =standard(fileName,separator,total);
+            countFileNameList.add(fileName);
+            ZipUtil.compress(zipFile,countFileNameList);
         }catch (Exception e){
             log.error("合并文件出错",e);
         }finally {
@@ -507,267 +503,21 @@ public class MergeServiceImpl implements MergeService {
 
     private void appendProInfo(StringBuilder head, String apiCode, String sep, Set<String> products) {
         log.info("需要返回的数据产品--{}",products);
-        ProductField pf=new ProductField();
-        if(Constants.APICODE_DAAS.contains(apiCode)||Constants.APICODE_DAAS_QA.contains(apiCode)){
-            if(products.contains("applyloanstr")){
-                String fields = PropertiesUtil.getProperty("ApplyLoanStr_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("applyloan_d")){
-                String fields = PropertiesUtil.getProperty("ApplyLoan_d_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("keyattribution")){
-                String fields = PropertiesUtil.getProperty("KeyAttribution_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("scorecashon")){
-                String fields = PropertiesUtil.getProperty("scorecashon_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            return;
-        }
-        if(Constants.APICODE_SHAZI.contains(apiCode)){
-            if(products.contains("scorencashonszyxxy")){
-                String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("scoremcashonxhqbdzcd")){
-                String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            return;
-        }
-        if(products.contains("speciallist_c")){
-            String speciallistcFields = proFieldMap.get("SpecialList_c");
-            String[] split = speciallistcFields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("inforelation")){
-            String fields = proFieldMap.get("InfoRelation");
+        if(products.contains("scorencashonszyxxy")){
+            String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);
             }
         }
-        if(products.contains("applyloanstr")){
-            String fields = proFieldMap.get("ApplyLoanStr");
+        if(products.contains("scoremcashonxhqbdzcd")){
+            String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);
             }
-        }
-        if(products.contains("applyloanusury")){
-            String fields = proFieldMap.get("ApplyLoanUsury");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("executionlimited")){
-            String fields = proFieldMap.get("ExecutionLimited");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("consumptionfeature")){
-            String fields = proFieldMap.get("ConsumptionFeature");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("netshopping")){
-            String fields = proFieldMap.get("NetShopping");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_OPERATION_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_OPERATION_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremconsonsncfclxmodel")){
-            List<String> scoreField = pf.getScoreField();
-            for(String field:scoreField){
-                head.append(field).append(sep);
-            }
-        }
-        if(products.contains("scorecust")){
-            List<String> scoreField = pf.getScoreField();
-            for(String field:scoreField){
-                head.append(field).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_RISK_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_RISK_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremixuals")&&products.contains("scorebcashonsndzysbl")){
-            String s= PropertiesUtil.getProperty("sn");
-            String[] split = s.split(",");
-            for(String field:split){
-                head.append(field).append(sep);
-            }
-            String fields = PropertiesUtil.getProperty("scorecust1");
-            String[] split1 = fields.split(",");
-            for (int i=0;i<split1.length;i++){
-                head.append(split1[i]).append(sep);
-            }
-        }
-        if(products.contains("scoredata")){
-            String fields =proFieldMap.get("ScoreData");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scorecust1")){
-            String fields =PropertiesUtil.getProperty("scorecust1");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 稳定性指数
-         */
-        if(products.contains("stability_c")){
-            String fields = proFieldMap.get("Stability_c");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 借贷意向衍生特征
-         */
-        if(products.contains("applyfeature")){
-            String fields = proFieldMap.get("ApplyFeature");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 借贷行为验证
-         */
-        if(products.contains("totalloan")){
-            String fields = proFieldMap.get("TotalLoan");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 反欺诈风险识别-信用卡（类信用卡）
-         */
-        if(products.contains("scoreafrevoloan")){
-            List<String> scoreafrevoloan = pf.getScoreafrevoloanField();
-            for (String field:scoreafrevoloan){
-                head.append(field);
-                head.append(sep);
-            }
-        }
-        /**
-         * 灰名单衍生
-         */
-        if(products.contains("graylistexpand")){
-            String fields = proFieldMap.get("GrayListExpand");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 人口衍生
-         */
-        if(products.contains("populationderivation")){
-            String fields = proFieldMap.get("PopulationDerivation");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 团伙欺诈排查
-         */
-        if(products.contains("fraudrelation_g")){
-            String fields = proFieldMap.get("FraudRelation_g");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 客制化评分2
-         */
-        if(products.contains("scorecust2")){
-            String fields =PropertiesUtil.getProperty("scorecust2");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_RISK_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_RISK_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremixuals")&&products.contains("scorebcashonsndzysbl")){
-            String fields =PropertiesUtil.getProperty("scorecust2");
-            String[] split1 = fields.split(",");
-            for (int i=0;i<split1.length;i++){
-                head.append(split1[i]).append(sep);
-            }
-        }
-        if(products.contains("scoredzminsu")){
-            head.append("flag_scoremdzinsu").append(sep).append("smi_score").append(sep);
-        }
-        if(products.contains("mobcheag")){
-            head.append("flag_mobcheag").append(sep).append("mca_age").append(sep);
         }
 
-        if(products.contains("specialgdwph")){
-            String specialgdwph = proFieldMap.get("SpecialGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("applyloanstrgdwph")){
-            String specialgdwph = proFieldMap.get("ApplyloanstrGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("fraudrelationgdwph")){
-            String specialgdwph = proFieldMap.get("FraudrelationGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scorecashongdwph")){
-            String specialgdwph = proFieldMap.get("ScoreCashonGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
     }
 
     /**
