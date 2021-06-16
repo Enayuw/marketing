@@ -77,6 +77,10 @@ public class MarketingHistory implements Serializable {
      */
     private String version;
     /**
+     * 滚动搜索值
+     */
+    private String searchAfter;
+    /**
      * 策略版本
      */
     private List<Product> product;

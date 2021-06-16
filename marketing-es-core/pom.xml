@@ -6,7 +6,8 @@
 
     <groupId>com.br.marketing.es</groupId>
     <artifactId>marketing-es-core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <!--<version>0.0.1-SNAPSHOT</version>-->
+    <version>0.0.1-RELEASE</version>
 
     <properties>
         <elasticsearch.version>7.7.1</elasticsearch.version>

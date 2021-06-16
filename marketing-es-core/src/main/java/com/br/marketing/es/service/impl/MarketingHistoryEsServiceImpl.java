@@ -213,10 +213,16 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
                 SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
                 if (hits != null) {
-                    for (SearchHit hit : hits) {
+                    int last = hits.getHits().length - 1;
+                    for (int i = 0; i < hits.getHits().length; i++) {
+                        SearchHit hit = hits.getHits()[i];
                         String sourceAsString = hit.getSourceAsString();
                         MarketingHistory history = JSON.parseObject(sourceAsString, MarketingHistory.class);
                         historyJsonColumnHandle(history);
+                        //插入滚动搜索值
+                        if(last == i){
+                            history.setSearchAfter(JSON.toJSONString(hit.getSortValues()));
+                        }
                         result.add(history);
                     }
                     return result;
