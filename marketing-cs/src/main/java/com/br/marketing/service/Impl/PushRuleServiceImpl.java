@@ -236,9 +236,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             }else {
                 queryBaseBean.setPageSize(10000);
             }
-            if(i==startPage){
-                queryBaseBean.setPageSize(queryBaseBean.getPageSize()-1);
-            }
             queryBaseBean.setSearchAfter(searchAfterStr);
             String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
             searchAfterStr = s;
