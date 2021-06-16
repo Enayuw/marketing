@@ -48,7 +48,7 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-//    @RabbitListener(queues = "Marketing_Push_CustomerService", containerFactory = "primaryContainerFactory")
+    @RabbitListener(queues = "Marketing_Push_CustomerService", containerFactory = "primaryContainerFactory")
     public void consumerPushUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
