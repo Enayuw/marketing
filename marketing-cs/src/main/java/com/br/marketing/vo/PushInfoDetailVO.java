@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.util.Date;
 
-@Data
 public class PushInfoDetailVO {
 
     @ApiModelProperty(value = "任务流水号")
@@ -52,5 +51,93 @@ public class PushInfoDetailVO {
         }else{
             return "执行失败";
         }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getmBatchNumber() {
+        return mBatchNumber;
+    }
+
+    public void setmBatchNumber(String mBatchNumber) {
+        this.mBatchNumber = mBatchNumber;
+    }
+
+    public String getmModel() {
+        return mModel;
+    }
+
+    public void setmModel(String mModel) {
+        this.mModel = mModel;
+    }
+
+    public String getmModelVersion() {
+        return mModelVersion;
+    }
+
+    public void setmModelVersion(String mModelVersion) {
+        this.mModelVersion = mModelVersion;
+    }
+
+    public Integer getmNumMin() {
+        return mNumMin;
+    }
+
+    public void setmNumMin(Integer mNumMin) {
+        this.mNumMin = mNumMin;
+    }
+
+    public Integer getmNumMax() {
+        return mNumMax;
+    }
+
+    public void setmNumMax(Integer mNumMax) {
+        this.mNumMax = mNumMax;
+    }
+
+    public Integer getmScoreMin() {
+        return mScoreMin;
+    }
+
+    public void setmScoreMin(Integer mScoreMin) {
+        this.mScoreMin = mScoreMin;
+    }
+
+    public Integer getmScoreMax() {
+        return mScoreMax;
+    }
+
+    public void setmScoreMax(Integer mScoreMax) {
+        this.mScoreMax = mScoreMax;
+    }
+
+    public Integer getmRealyNum() {
+        return mRealyNum;
+    }
+
+    public void setmRealyNum(Integer mRealyNum) {
+        this.mRealyNum = mRealyNum;
+    }
+
+    public Integer getmStatus() {
+        return mStatus;
+    }
+
+    public void setmStatus(Integer mStatus) {
+        this.mStatus = mStatus;
     }
 }
