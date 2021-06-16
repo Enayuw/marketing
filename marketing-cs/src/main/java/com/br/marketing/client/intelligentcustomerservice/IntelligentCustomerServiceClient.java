@@ -34,7 +34,7 @@ public class IntelligentCustomerServiceClient {
     RestTemplate restTemplate;
 
 
-    public Result pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
+    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch,Integer realNum){
 //        System.out.println("SERVICE===="+apiCaller);
 //        System.out.println("SERVICE===="+JSON.toJSONString(dto));
         Result result = new Result();
@@ -66,6 +66,7 @@ public class IntelligentCustomerServiceClient {
         }
         log.setCreateTime(new Date());
         customerInfoPushLogMapper.insertSelective(log);
+        result.setDate(realNum);
         return result;
     }
 

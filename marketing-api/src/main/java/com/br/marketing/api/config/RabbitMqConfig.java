@@ -86,7 +86,9 @@ public class RabbitMqConfig {
      */
     @Bean
     public Binding customerSearchDelayBinding(){
-        return BindingBuilder.bind(customerSearchDelayQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_topic);
+        return BindingBuilder.bind(customerSearchDelayQueue())
+                .to(gateExchange())
+                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
     }
 
     /**
@@ -104,7 +106,9 @@ public class RabbitMqConfig {
      */
     @Bean
     public Binding customerSearchBinding(){
-        return BindingBuilder.bind(customerSearchQueue()).to(deadGateExchange()).with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+        return BindingBuilder.bind(customerSearchQueue())
+                .to(deadGateExchange())
+                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
     }
 
 
