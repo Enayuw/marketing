@@ -34,7 +34,7 @@ public class IntelligentCustomerServiceClient {
     RestTemplate restTemplate;
 
 
-    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch,Integer realNum){
+    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
 //        System.out.println("SERVICE===="+apiCaller);
 //        System.out.println("SERVICE===="+JSON.toJSONString(dto));
         Result result = new Result();
@@ -42,9 +42,6 @@ public class IntelligentCustomerServiceClient {
         log.setmId(mId);
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
-        if(logger.isErrorEnabled()){
-            logger.error("任务流水号:{},s:{}", mId, s);
-        }
         log.setParam(s.length()>4999?s.substring(0,4999):s);
 //        log.setParam("");
         try{
@@ -66,7 +63,6 @@ public class IntelligentCustomerServiceClient {
         }
         log.setCreateTime(new Date());
         customerInfoPushLogMapper.insertSelective(log);
-        result.setDate(realNum);
         return result;
     }
 

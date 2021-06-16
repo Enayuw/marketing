@@ -243,9 +243,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
             searchAfterStr = s;
         }
+        Integer realTotalNum = 0;
+        CustomerInfoPushMain main = new CustomerInfoPushMain();
+        main.setmStatus(2);
         int totalYuShu = total % 2000;
         int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
-        List<Callable<Result<Integer>>> listCall = new ArrayList<>();
         for (int i = 1; i <= totalPage; i++) {
             String sn = String.valueOf(i);
             if(i==totalPage&&totalYuShu>0){
@@ -308,37 +310,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
-            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),
-                    pushMarketingUserTaskInfoDTO.getAccessNumber(),realNum);});
-        }
-
-
-        List<Future<Result<Integer>>> futures = null;
-        try {
-            futures = threadPoolExecutor.invokeAll(listCall);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Integer realNum = 0;
-        CustomerInfoPushMain main = new CustomerInfoPushMain();
-        main.setmStatus(2);
-        for (int i = 0; i < futures.size(); i++) {
-            Future<Result<Integer>> resultFuture = futures.get(i);
-            try {
-                if(!ResultCode.SUCCESS.getValue().equals(resultFuture.get().getCode())){
-                    main.setmStatus(3);
-                }else{
-                    realNum += resultFuture.get().getData();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                    pushMarketingUserTaskInfoDTO.getAccessNumber());
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                main.setmStatus(3);
+            }else{
+                realTotalNum += realNum;
             }
         }
-        main.setmRealyNum(realNum);
+        main.setmRealyNum(realTotalNum);
         main.setId(customerInfoPushMain.getId());
-        main.setmStatus(2);
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
 
