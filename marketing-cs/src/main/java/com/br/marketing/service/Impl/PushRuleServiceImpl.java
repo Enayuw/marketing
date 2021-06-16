@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.text.ParseException;
 import java.util.Date;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.*;
@@ -65,16 +66,35 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
+        Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
+        dto.setScoreEndTime(DateUtils.format(date,"yyyy-MM-dd"));
+
+        Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
+        dto.setScoreEndTime(DateUtils.format(dateUpdate,"yyyy-MM-dd"));
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreDetailVos);
     }
 
     @Override
     public Result<List<PushInfoDetailVO>> getPushInfos(RequestPushInfoDTO dto) {
+        Date date = addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd");
+        dto.setPushEndTime(DateUtils.format(date,"yyyy-MM-dd"));
         List<PushInfoDetailVO> pushInfos = customerInfoPushMainMapper.getPushInfos(dto);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushInfos);
     }
 
+    private Date addDay(String date,Integer addDays,String format){
+        try {
+            Calendar c = Calendar.getInstance();
+            Date endTime = DateUtils.parse(date, format);
+            c.setTime(endTime);
+            c.add(Calendar.DAY_OF_MONTH,addDays);
+            Date time = c.getTime();
+            return time;
+        } catch (ParseException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
     @Autowired
     RabbitMqProducter producter;
 
@@ -122,7 +142,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region check
         MarketingStrategyProductExample productExample = new MarketingStrategyProductExample();
         productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andBatchNumberIn(dto.getBatchNumberList())
-                .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion()).andIsDelEqualTo(Constants.DATA_VALID);
+                .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion())
+                .andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductMapper.selectByExample(productExample);
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
@@ -188,7 +209,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
-
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
