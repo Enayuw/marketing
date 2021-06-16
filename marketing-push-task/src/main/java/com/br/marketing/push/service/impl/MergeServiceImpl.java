@@ -190,23 +190,24 @@ public class MergeServiceImpl implements MergeService {
                 startTime= DateHelper.getDateAddYyMmDd(0);
             }
             String  strategyId=blt.getStrategyId();
-            String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
-                    +strategyId.split(":")[0]+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
+            String fileName=blf.getApiCode().concat("_").concat(s).concat("_").concat(blf.getBatchNumber()).concat("_").concat(strategyId.split(":")[0])
+                    .concat("_").concat(startTime).concat("_").concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
+            String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
             initHead(head,blt.getApiCode(),strategyId,separator);
-            FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
+            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
 
-            zipFile=fileName.replace(".txt",".zip");
-            Integer total =MyFileUtil.getTotalLines(new File(fileName))-1;
+            zipFile=filePathAndName.replace(".txt",".zip");
+            Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
-            ArrayList<String> countFileNameList =standard(fileName,separator,total);
+            ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 
             //统计文件上传fastdfs
-            uploadFastDfs(countFileNameList,blf);
+            uploadFastDfs(countFileNameList,blf,fileName);
 
-            countFileNameList.add(fileName);
+            countFileNameList.add(filePathAndName);
             ZipUtil.compress(zipFile,countFileNameList);
         }catch (Exception e){
             log.error("合并文件出错",e);
@@ -215,8 +216,9 @@ public class MergeServiceImpl implements MergeService {
         }
         return zipFile;
     }
-    private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf){
+    private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf,String fileName){
         try{
+            fileName=fileName.replace(".txt",".zip");
             String filePath=blf.getFilePath().concat("/fastdfs/");
             File dir=new File(filePath);
             if(!dir.exists()||!dir.isDirectory()){
@@ -226,11 +228,12 @@ public class MergeServiceImpl implements MergeService {
                     return ;
                 }
             }
-            String fileName=filePath.concat("result.zip");
-            ZipUtil.compress(fileName,countFileNameList);
+
+            String filePathAndName=filePath.concat(fileName);
+            ZipUtil.compress(filePathAndName,countFileNameList);
 
             byte[] buffer;
-            FileInputStream in=new FileInputStream(new File(fileName));
+            FileInputStream in=new FileInputStream(new File(filePathAndName));
             OutputStream outputStream = new ByteArrayOutputStream();
             byte[] b = new byte[1024];
             int n = 0;
