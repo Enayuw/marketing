@@ -31,6 +31,8 @@ public interface PushRuleService {
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
+    Result<Boolean> consumerPushCustomer(Long id);
+
     /**
      * 查询推送结果
      * @param mId

@@ -32,8 +32,8 @@
 ////        demo.insert();
 ////        demo.delete("deda9fed6a8142be887bc33b77705c9a","request_marketing_history_202105_03");
 ////        demo.selectCount();
-////        demo.builderMarketingWithSearchAfter();
-//        demo.builderMarketingWithList();
+//        demo.builderMarketingWithSearchAfter();
+////        demo.builderMarketingWithList();
 ////        demo.builderMarketingWithList("cell,product");
 //        System.exit(0);
 //    }
@@ -88,7 +88,7 @@
 //    }
 //
 //    public void builderMarketingWithSearchAfter() {
-//        String apiCode = "7410480";
+//        String apiCode = "7410431";
 //        String batchNumber = "7410480_20210526210400_4077";
 //        QueryBaseBean qb = new QueryBaseBean();
 //        qb.setApiCode(apiCode);
@@ -96,8 +96,8 @@
 //        qb.setModelCode("scoremcashonxhqbdzcd");
 //        qb.setModelVersion("S1_0");
 //        qb.setScoreRange("100,900");
-//        qb.setSearchAfter("[\"456.0\",\"7410480_20210526200801_13010063A39\"]");
-//        qb.setPageSize(1);
+//        qb.setSearchAfter("[\"896.0\",\"7410480_20210528180032_53070063A39\"]");
+//        qb.setPageSize(5);
 //        MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
 //        String searchAfter = service.builderMarketingWithSearchAfter(qb);
 //        System.out.println(searchAfter);
