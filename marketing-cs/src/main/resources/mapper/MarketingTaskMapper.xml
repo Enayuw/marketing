@@ -447,7 +447,7 @@
 		and status=1
 	</update>
 	<select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO" resultType="com.br.marketing.vo.ScoreDetailVo">
-		select mt.cus_batch as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath
+		select distinct mt.cus_batch as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath
 		from b_marketing_task as mt
 		left join b_marketing_strategy_product as msp on mt.api_code = msp.api_code and mt.batch_number = msp.batch_number
 		left join b_sync_log as sl on mt.api_code = sl.api_code and mt.cus_batch = sl.cus_batch_number
