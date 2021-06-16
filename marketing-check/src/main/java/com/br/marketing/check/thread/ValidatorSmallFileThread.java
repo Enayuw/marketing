@@ -40,7 +40,6 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private String batchNumber;
     private RedisChgService redisChgService;
     private String fileName;
-    private MerchantParam merchantParam;
     public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw) {
         this.row=param.get("row");
         this.head=param.get("head");
@@ -52,7 +51,6 @@ public class ValidatorSmallFileThread implements Callable<String> {
         this.batchNumber=context.getTask().getBatchNumber();
         this.redisChgService=CkeckApplication.ac.getBean(RedisChgService.class);
         this.fileName=context.getDistinctTxtFileName();
-        this.merchantParam=context.getMerchantParam();
 
     }
 
@@ -60,34 +58,13 @@ public class ValidatorSmallFileThread implements Callable<String> {
     public String call() throws Exception {
         try{
             StringBuilder sb=new StringBuilder();
-            BrCipherMaker instance = BrCipherMaker.getInstance();
-            UserValidator userValidator = new UserValidator(merchantParam.getIsCheck());
             boolean b = CheckDataUtil.checkData(head,row, apiCode, errorfw, sb,decodeClient);
             if(b){
+
                     String[] split = sb.toString().split(",",14);
-                    if(Constants.APICODE_SHAZI.contains(apiCode)){
-                        String cell=split[3];
-                        if(StringUtils.isNotEmpty(cell)){
-                            String decodeCell =instance.decode(cell);
-                            String originCell;
-                            if(userValidator.validatePhone(decodeCell)){
-                                originCell = encode(merchantParam.getRequestCode(), decodeCell);
-                            }else {
-                                originCell=decodeCell;
-                            }
-                            MarketingUser user=new MarketingUser();
-                            user.setApiCode(apiCode);
-                            ArrayList<String> cellArray = new ArrayList<>();
-                            cellArray.add(originCell);
-                            cellArray.add(originCell.toLowerCase());
-                            cellArray.add(originCell.toUpperCase());
-                            user.setCellArray(cellArray);
-                            List<MarketingUser> loanDirtyUserList= marketingDirtyUserMapper.queryDirtyUser(user);
-                            if (loanDirtyUserList.size()>0){
-                                log.warn("数据符合剔除条件，apicode--{}，cell--{}",apiCode,cell);
-                                return null;
-                            }
-                        }
+
+                    if(isHitBlackList()){
+                        return null;
                     }
                     MarketingUser lu=new MarketingUser();
                     lu.setApiCode(apiCode);
@@ -119,28 +96,22 @@ public class ValidatorSmallFileThread implements Callable<String> {
         }
         return null;
     }
-    /**
-     * 按照客户的加密配置进行加密
-     * @param requestCode 加密方式
-     * @param param 明文
-     * @return 加密后的值
-     */
-    private String encode(String requestCode,String param){
-        String result="";
-        if("1001".equals(requestCode)){
-            result= SecureUtil.md5(param);
-        }
-        if("1002".equals(requestCode)){
-            result= Sha256Util.getSHA256Encrypt(param);
-        }
-        if("1003".equals(requestCode)){
-            try {
-                result = Sm3Util.getSM3Value(param);
-            } catch (IOException e) {
-                log.error("getSm3 error",e);
-                result=param;
+
+    private Boolean isHitBlackList(){
+        String[] columns = head.split(",");
+        String[] rows = row.split(",");
+        int cellIndex = CheckDataUtil.findIndex(columns, "cell");
+        String cell=rows[cellIndex];
+        if(StringUtils.isNotEmpty(cell)){
+            MarketingUser user=new MarketingUser();
+            user.setApiCode(apiCode);
+            user.setCell(cell);
+            List<MarketingUser> loanDirtyUserList= marketingDirtyUserMapper.queryDirtyUser(user);
+            if (loanDirtyUserList.size()>0){
+                log.warn("数据符合剔除条件，apicode--{}，cell--{}",apiCode,cell);
+                return true;
             }
         }
-        return result;
+        return false;
     }
 }

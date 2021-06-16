@@ -32,7 +32,7 @@ public class MyFileUtil {
      * @param splitSize 将目标文件切割成多少份hash取模的小文件个数
      * @return
      */
-    public static File[] splitFile(String targetFile,int splitSize,StringBuilder head){
+    public static File[] splitFile(String targetFile,int splitSize){
         File file = new File(targetFile);
         PrintWriter[] pws = new PrintWriter[splitSize];
         File[] littleFiles = new File[splitSize];
@@ -68,7 +68,6 @@ public class MyFileUtil {
                 if(StringUtils.isNotEmpty(tempString)){
                     if(tempString.indexOf("cus_num")!=-1&&(tempString.indexOf("id")!=-1
                             ||tempString.indexOf("name")!=-1||tempString.indexOf("cell")!=-1)){
-                        head.append(tempString);
                     }else{
                         //关键是将每行数据hash取模之后放到对应取模值的文件中，确保hash值相同的字符串都在同一个文件里面
                         int index = Math.abs(tempString.hashCode() % splitSize);
@@ -126,13 +125,20 @@ public class MyFileUtil {
      * @param littleFiles 切割之后的小文件数组
      * @param distinctFilePath 去重之后的文件路径
      * @param splitSize 小文件大小
-     * @param head
      */
-    public static void distinct(File[] littleFiles, String distinctFilePath, int splitSize, StringBuilder head){
-        File distinctedFile = new File(distinctFilePath);
+    public static void distinct(File[] littleFiles, String distinctFilePath,String distinctFileName, int splitSize){
+        File dir = new File(distinctFilePath);
+        if(!dir.exists()){
+            boolean mkdir = dir.mkdir();
+            if(!mkdir){
+                log.error("mkdir error");
+            }
+        }
+        String concat = distinctFilePath.concat(distinctFileName);
+        File distinctedFile = new File(concat);
         if(distinctedFile.exists()){
             try {
-                Files.delete(Paths.get(distinctFilePath));
+                Files.delete(Paths.get(concat));
             } catch (IOException e) {
                 e.printStackTrace();
             }

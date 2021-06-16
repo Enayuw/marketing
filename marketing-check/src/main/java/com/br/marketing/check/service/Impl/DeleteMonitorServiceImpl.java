@@ -99,8 +99,8 @@ public class DeleteMonitorServiceImpl implements DeleteMonitorService {
         int hash=0;
             int totalLines = MyFileUtil.getTotalLines(new File(localFilePath + "/" + name + "/" + txtFileName));
             hash= (totalLines + SPLITSIZE-1) /SPLITSIZE;
-        File[] files = MyFileUtil.splitFile(localFilePath+"/"+name+"/"+txtFileName,hash,head);
-        MyFileUtil.distinct(files,localFilePath+"/"+name+"/"+"result-"+txtFileName,hash, head);
+        File[] files = MyFileUtil.splitFile(localFilePath+"/"+name+"/"+txtFileName,hash);
+        MyFileUtil.distinct(files,localFilePath+"/"+name+"/","result-"+txtFileName,hash);
         log.info("================去重结束============");
         try (Writer fw= new BufferedWriter(
                 new OutputStreamWriter(

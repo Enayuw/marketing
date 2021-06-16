@@ -3,6 +3,7 @@ package com.br.marketing.check.job;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.service.FileCheckService;
+import com.br.marketing.check.service.Impl.DeleteService;
 import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
 import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
@@ -82,20 +83,19 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     RedisChgService redisChgService;
     @Resource
     MarketingUserMapper marketingUserMapper;
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
     @Resource
     ValidDataAlarmServiceImpl validDataAlarmService;
     @Resource
     FileCheckServiceImpl fileCheckService;
+    @Resource
+    DeleteService deleteService;
     @Override
-
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Map<String, Set<String>> map=new HashMap<>();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
-            SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,false,sftpClient);
+            SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,sftpClient);
             if(!map.isEmpty()){
                 log.info("----------SftpToDb开始处理新上传的数据文件-------------");
                 dealDataFile(map,sftpClient);
@@ -132,14 +132,11 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
             String apiCode = merchantParam.getApiCode();
             String tableName="b_marketing_user_"+apiCode;
             marketingUserMapper.createUserTable(tableName);
-            String localZipFilePath=path.concat("sftp_data/").concat(apiCode).concat("/");
-            String localDeleteFilePath= path.concat("delete/").concat(apiCode).concat("/");
             //初始化参数对象
             FileContext context = new FileContext();
             context.setBaseFtpClient(sftpClient);
             context.setMerchantParam(merchantParam);
             context.setSftpZipFilePath(sftpzipFilePash);
-            context.setLocalZipFilePath(localZipFilePath);
             context.setApiCode(apiCode);
             for(String zipFileName:zipFileNameSet){
                 if(zipFileName.endsWith(".zip")){
@@ -149,13 +146,17 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     if(zipFileNameSet.contains(successFile)){
                         StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
                         if(zipFileName.contains("DeleteMonitor")){
+                            context.setLocalZipFilePath(path.concat("delete/").concat(apiCode).concat("/"));
                             context.setType("delete");
+                            context.init();
                             if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage)){
-                                sftpToDbService.execute(context);
+                                deleteService.execute(context);
                             }else{
                                 fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
                             }
+                            validDataAlarmService.deleteMonitorFileUpload(apiCode,context.getZipFileName());
                         }else {
+                            context.setLocalZipFilePath(path.concat("sftp_data/").concat(apiCode).concat("/"));
                             String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
                             context.setBatchNumber(batchNumber);
                             context.setType("data");
@@ -207,7 +208,6 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
-            //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.taskRoutingKey,apiCode);
         }
     }
 }

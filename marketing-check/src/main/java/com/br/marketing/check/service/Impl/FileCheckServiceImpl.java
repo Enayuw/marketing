@@ -182,7 +182,7 @@ public class FileCheckServiceImpl implements FileCheckService {
                 .message(errorMessage)
                 .status("0")
                 .batchNumber(context.getBatchNumber())
-                .taskNumber(0).actualNumber(0).type("").build();
+                .taskNumber(0).actualNumber(0).type(context.getType()).build();
         loadResultMapper.insertLoadResult(loadResult);
     }
 
@@ -212,7 +212,7 @@ public class FileCheckServiceImpl implements FileCheckService {
         if(fileList[0].getName().equals(context.getTxtFileName())){
             File file1 = fileList[0];
             String name = file1.getName();
-            flag = SftpToDbUtils.vaildFileName(name, context.getTask().getApiCode(), errorMessage);
+            flag = SftpToDbUtils.vaildFileName(name, context.getApiCode(), errorMessage);
         }else {
             flag=false;
         }

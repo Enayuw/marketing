@@ -31,7 +31,6 @@ public class MarketingUser {
     private String userDate;
     private Integer status;
     private String decodeFailType;
-    private List<String> cellArray;
 
     public MarketingUser() {
     }
