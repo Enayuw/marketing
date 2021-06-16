@@ -202,7 +202,7 @@ public class CheckDataUtil {
      * @param decodeClient 解密客户端
      * @return 校验结果
      */
-    private static Map<String, String> checkColumn(String data, String column, MerchantParam merchantParam, DecodeClient decodeClient) {
+    public static Map<String, String> checkColumn(String data, String column, MerchantParam merchantParam, DecodeClient decodeClient) {
         //log.info("column:{},data:{}",column,data);
         Map<String, String> map = new HashMap<>();
         String result = "";

@@ -39,10 +39,9 @@ public class SftpToDbUtils {
      *
      * @param path       sftp目录
      * @param map        结果
-     * @param isDelete   是否是剔除文件
      * @param sftpClient sftp连接
      */
-    public static void listStpFile(String path, Map<String, Set<String>> map, final boolean isDelete, SftpClient sftpClient) {
+    public static void listStpFile(String path, Map<String, Set<String>> map, SftpClient sftpClient) {
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(path);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
@@ -52,7 +51,7 @@ public class SftpToDbUtils {
                     log.debug("fileName:{}", fileName);
                     if (FILE_NAME_REGEX.matcher(fileName).matches() || "input".equals(fileName)) {
                         log.debug("isDirectory file:{}", fileName);
-                        listStpFile(path + fileName + "/", map, isDelete, sftpClient);
+                        listStpFile(path + fileName + "/", map, sftpClient);
                     }
                 } else {
                     String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
@@ -61,8 +60,7 @@ public class SftpToDbUtils {
                         log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理");
                         continue;
                     }
-                    boolean containDelete = fileName.indexOf("DeleteMonitor") >= 0;
-                    if ((isDelete == containDelete) && StringUtils.isNotEmpty(fileName) && (fileName.endsWith(".zip")
+                    if (StringUtils.isNotEmpty(fileName) && (fileName.endsWith(".zip")
                             || fileName.endsWith(".finish") || fileName.endsWith(".success"))) {
                         Set<String> set = map.get(path);
                         if (set == null) {
@@ -407,6 +405,19 @@ public class SftpToDbUtils {
                 if (!list.contains("id") || !list.contains("cell") || !list.contains("name")) {
                     headFlag = false;
                 }
+            }
+        }
+        return headFlag;
+    }
+    public static boolean checkDeleteFileHead(String head) {
+        boolean headFlag = true;
+        if (StringUtils.isEmpty(head)) {
+            headFlag = false;
+        } else {
+            String[] headSplit = head.split(",");
+            List<String> list = Arrays.asList(headSplit);
+            if (!list.contains("cus_num")||(!list.contains("id")&&!list.contains("cell")&&!list.contains("name"))) {
+                headFlag = false;
             }
         }
         return headFlag;

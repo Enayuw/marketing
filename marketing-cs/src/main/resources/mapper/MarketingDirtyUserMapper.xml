@@ -55,10 +55,7 @@
 		b_marketing_dirty_user
 		WHERE
 		api_code = #{apiCode}
-		and cell in
-		<foreach collection="cellArray" index="index" item="item" open="(" close=")" separator=",">
-			#{item}
-		</foreach>
+		and cell=#{cell}
 	</select>
 
 </mapper>

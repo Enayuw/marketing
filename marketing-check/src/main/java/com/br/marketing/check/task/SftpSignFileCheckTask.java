@@ -56,13 +56,8 @@ public class SftpSignFileCheckTask implements Runnable {
             if(connect){
                 log.info("======登录成功===开始数据文件处理======");
             }
-            String signFileName="";
-            if(Constants.APICODE_360.equals(apiCode)||Constants.APICODE_360_QA.equals(apiCode)){
-                signFileName=apiCode+"_UploadCustomFileName"+today+"_"+today+".finish";
-            }else{
-                signFileName=apiCode+"_ReturnCompleted_"+today+".finish";
-            }
-            boolean exsits = sftpClient.isExistFile("/UploadFiles/loanwarn/"+apiCode+"/output/"+today+"/"+signFileName);
+            String signFileName=apiCode+"_ReturnCompleted_"+today+".finish";
+            boolean exsits = sftpClient.isExistFile("/UploadFiles/marketing/"+apiCode+"/output/"+today+"/"+signFileName);
             String compShortName="";
             String companyMsg = IceClient.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
