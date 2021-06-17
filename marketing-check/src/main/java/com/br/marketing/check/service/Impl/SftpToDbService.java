@@ -74,6 +74,7 @@ public class SftpToDbService extends AbstractDataToDbService {
             log.error("文件表头异常-文件名-{}，head-{}",context.getTxtFileName(),head);
             errorMessage.append("文件表头异常");
             fileCheckService.errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
+            return false;
         }
 
         log.info("================开始去重============");
