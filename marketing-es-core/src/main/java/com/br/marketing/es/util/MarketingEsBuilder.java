@@ -91,16 +91,19 @@ public class MarketingEsBuilder {
             List<String> fileIdList = Arrays.asList(fileIds.split(","));
             params.put("file_id", JSON.toJSONString(fileIdList));
         }
-        //分值区间
+        //模型
         String modelCode = queryBaseBean.getModelCode();
         String modelVersion = queryBaseBean.getModelVersion();
         if (StringUtils.isBlank(modelVersion)) {
             modelVersion = "";
         }
-        String scoreRange = queryBaseBean.getScoreRange();
-        if (StringUtils.isNotBlank(modelCode) && StringUtils.isNotBlank(scoreRange)) {
+        if (StringUtils.isNotBlank(modelCode)) {
             String cv = String.format(EsConstants.CODEVERSION_KEY, modelCode, modelVersion);
             params.put("code_version", cv);
+        }
+        //分值区间
+        String scoreRange = queryBaseBean.getScoreRange();
+        if (StringUtils.isNotBlank(scoreRange)) {
             String[] split = scoreRange.split(",");
             if (split != null && split.length > 0) {
                 Double begin = 0D;
@@ -137,7 +140,7 @@ public class MarketingEsBuilder {
         params.put("size", pageSize);
         //滚动搜索值
         String searchAfter = queryBaseBean.getSearchAfter();
-        if(StringUtils.isNotBlank(searchAfter)){
+        if (StringUtils.isNotBlank(searchAfter)) {
             params.put("searchAfter", searchAfter);
         }
         //条件
@@ -168,7 +171,7 @@ public class MarketingEsBuilder {
         params.put("size", pageSize);
         //滚动搜索值
         String searchAfter = queryBaseBean.getSearchAfter();
-        if(StringUtils.isNotBlank(searchAfter)){
+        if (StringUtils.isNotBlank(searchAfter)) {
             params.put("searchAfter", searchAfter);
         }
         //条件
