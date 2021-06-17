@@ -12,6 +12,7 @@
     <result column="m_score_max" property="mScoreMax" jdbcType="INTEGER" />
     <result column="m_plan_num" property="mPlanNum" jdbcType="INTEGER" />
     <result column="m_realy_num" property="mRealyNum" jdbcType="INTEGER" />
+    <result column="m_cus_batch_number_list" property="mCusBatchNumberList" jdbcType="VARCHAR" />
     <result column="m_status" property="mStatus" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -78,7 +79,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
-    m_plan_num, m_realy_num, m_status, is_del, create_time, update_time, finish_time
+    m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
+    update_time, finish_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     select
@@ -117,13 +119,15 @@
     insert into b_customer_info_push_main (m_api_code, m_model, m_model_version, 
       m_num_min, m_num_max, m_score_min, 
       m_score_max, m_plan_num, m_realy_num, 
-      m_status, is_del, create_time, 
-      update_time, finish_time)
+      m_cus_batch_number_list, m_status, is_del, 
+      create_time, update_time, finish_time
+      )
     values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
       #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
-      #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP})
+      #{mCusBatchNumberList,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -157,6 +161,9 @@
       </if>
       <if test="mRealyNum != null" >
         m_realy_num,
+      </if>
+      <if test="mCusBatchNumberList != null" >
+        m_cus_batch_number_list,
       </if>
       <if test="mStatus != null" >
         m_status,
@@ -201,6 +208,9 @@
       </if>
       <if test="mRealyNum != null" >
         #{mRealyNum,jdbcType=INTEGER},
+      </if>
+      <if test="mCusBatchNumberList != null" >
+        #{mCusBatchNumberList,jdbcType=VARCHAR},
       </if>
       <if test="mStatus != null" >
         #{mStatus,jdbcType=INTEGER},
@@ -258,6 +268,9 @@
       <if test="record.mRealyNum != null" >
         m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
       </if>
+      <if test="record.mCusBatchNumberList != null" >
+        m_cus_batch_number_list = #{record.mCusBatchNumberList,jdbcType=VARCHAR},
+      </if>
       <if test="record.mStatus != null" >
         m_status = #{record.mStatus,jdbcType=INTEGER},
       </if>
@@ -290,6 +303,7 @@
       m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
       m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
       m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
+      m_cus_batch_number_list = #{record.mCusBatchNumberList,jdbcType=VARCHAR},
       m_status = #{record.mStatus,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -329,6 +343,9 @@
       <if test="mRealyNum != null" >
         m_realy_num = #{mRealyNum,jdbcType=INTEGER},
       </if>
+      <if test="mCusBatchNumberList != null" >
+        m_cus_batch_number_list = #{mCusBatchNumberList,jdbcType=VARCHAR},
+      </if>
       <if test="mStatus != null" >
         m_status = #{mStatus,jdbcType=INTEGER},
       </if>
@@ -358,6 +375,7 @@
       m_score_max = #{mScoreMax,jdbcType=INTEGER},
       m_plan_num = #{mPlanNum,jdbcType=INTEGER},
       m_realy_num = #{mRealyNum,jdbcType=INTEGER},
+      m_cus_batch_number_list = #{mCusBatchNumberList,jdbcType=VARCHAR},
       m_status = #{mStatus,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},

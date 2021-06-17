@@ -211,6 +211,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
+        List<String> cusList = marketingStrategyProducts.stream().map(t -> t.getCusBatchNumber()).collect(Collectors.toList());
+        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(cusList));
         customerInfoPushMain.setmStatus(1);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
@@ -336,8 +338,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
             PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
             extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
-            extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
-            extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
+            if(customerInfoPushMain.getmScoreMin() != null&&customerInfoPushMain.getmScoreMax()!=null){
+                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+            }
+            if(customerInfoPushMain.getmNumMin() != null&&customerInfoPushMain.getmNumMax()!=null) {
+                extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
+            }
             extendDataDTO.setSampleTotal(sn);
             pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);

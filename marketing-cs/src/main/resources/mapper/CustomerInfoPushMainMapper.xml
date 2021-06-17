@@ -2,9 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapper" >
     <select id="getPushInfos" resultType="com.br.marketing.vo.PushInfoDetailVO" parameterType="com.br.marketing.dto.RequestPushInfoDTO">
-        select *
+        select bcipm.id,bcipm.create_time,bcipm.m_cus_batch_number_list as m_cus_batch_number
+             ,bcipm.m_model,bcipm.m_model_version,bcipm.m_num_min,bcipm.m_num_max
+             ,bcipm.m_score_min,bcipm.m_score_max,bcipm.m_realy_num,bcipm.m_status
         from b_customer_info_push_main bcipm
-        left join b_customer_info_push_batch bcipb on bcipm .id = bcipb .m_id and bcipb .is_del =1
+        <if test="cusBatchNumber != null and cusBatchNumber!=''">
+            left join b_customer_info_push_batch bcipb on bcipm .id = bcipb .m_id and bcipb .is_del =1
+        </if>
         where bcipm .m_api_code = #{mApiCode}
             <if test="mStatus !=null and mStatus>0">
               and bcipm .m_status = #{mStatus}
