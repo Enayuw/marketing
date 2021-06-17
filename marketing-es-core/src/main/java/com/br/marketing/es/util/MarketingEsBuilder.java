@@ -79,12 +79,6 @@ public class MarketingEsBuilder {
         if (StringUtils.isNotBlank(apiCode)) {
             params.put("api_code", apiCode);
         }
-        //查询批次
-        String batchNumber = queryBaseBean.getBatchNumbers();
-        if (StringUtils.isNotBlank(batchNumber)) {
-            List<String> batchNumberList = Arrays.asList(batchNumber.split(","));
-            params.put("batch_number", JSON.toJSONString(batchNumberList));
-        }
         //查询跑分记录
         String fileIds = queryBaseBean.getFileIds();
         if (StringUtils.isNotBlank(fileIds)) {
