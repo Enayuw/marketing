@@ -24,6 +24,10 @@ public class QueryBaseBean {
      */
     private String batchNumbers;
     /**
+     * 多个跑分记录
+     */
+    private String fileIds;
+    /**
      * 模型名称
      */
     private String modelCode;

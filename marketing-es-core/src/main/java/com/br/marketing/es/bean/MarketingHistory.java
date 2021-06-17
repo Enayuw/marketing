@@ -84,5 +84,10 @@ public class MarketingHistory implements Serializable {
      * 策略版本
      */
     private List<Product> product;
+    /**
+     * 跑分记录唯一标识
+     */
+    @JSONField(name = "file_id")
+    private String fileId;
 
 }

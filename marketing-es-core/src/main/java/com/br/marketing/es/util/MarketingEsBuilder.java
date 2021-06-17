@@ -1,8 +1,6 @@
 package com.br.marketing.es.util;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.util.es.EsHandleUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +84,12 @@ public class MarketingEsBuilder {
         if (StringUtils.isNotBlank(batchNumber)) {
             List<String> batchNumberList = Arrays.asList(batchNumber.split(","));
             params.put("batch_number", JSON.toJSONString(batchNumberList));
+        }
+        //查询跑分记录
+        String fileIds = queryBaseBean.getFileIds();
+        if (StringUtils.isNotBlank(fileIds)) {
+            List<String> fileIdList = Arrays.asList(fileIds.split(","));
+            params.put("file_id", JSON.toJSONString(fileIdList));
         }
         //分值区间
         String modelCode = queryBaseBean.getModelCode();
