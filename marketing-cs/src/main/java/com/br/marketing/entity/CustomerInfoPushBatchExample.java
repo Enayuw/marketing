@@ -435,6 +435,66 @@ public class CustomerInfoPushBatchExample {
             return (Criteria) this;
         }
 
+        public Criteria andMFileIdIsNull() {
+            addCriterion("m_file_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdIsNotNull() {
+            addCriterion("m_file_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdEqualTo(Long value) {
+            addCriterion("m_file_id =", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdNotEqualTo(Long value) {
+            addCriterion("m_file_id <>", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdGreaterThan(Long value) {
+            addCriterion("m_file_id >", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("m_file_id >=", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdLessThan(Long value) {
+            addCriterion("m_file_id <", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdLessThanOrEqualTo(Long value) {
+            addCriterion("m_file_id <=", value, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdIn(List<Long> values) {
+            addCriterion("m_file_id in", values, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdNotIn(List<Long> values) {
+            addCriterion("m_file_id not in", values, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdBetween(Long value1, Long value2) {
+            addCriterion("m_file_id between", value1, value2, "mFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMFileIdNotBetween(Long value1, Long value2) {
+            addCriterion("m_file_id not between", value1, value2, "mFileId");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;
