@@ -148,23 +148,41 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
         }
-        int planNum = dto.getMaxTop() - dto.getMinTop();
-        if(planNum<=0){
+        Integer planNum = 0;
+        if(dto.getMinTop()!=null&&dto.getMaxTop()!=null){
+            planNum = dto.getMaxTop() - dto.getMinTop();
+            if(planNum<=0){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的top区间不合理");
+            }
+        }else if(dto.getMinTop()==null&&dto.getMaxTop()==null){
+
+        }else{
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的top区间不合理");
         }
-        int scoreDvalue = dto.getMaxScore() - dto.getMinScore();
 
-        if(scoreDvalue<0){
+        if(dto.getMinScore()!=null&&dto.getMaxScore()!=null){
+            int scoreDvalue = dto.getMaxScore() - dto.getMinScore();
+            if(scoreDvalue<=0){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
+            }
+        }else if(dto.getMinScore()==null&&dto.getMaxScore()==null){
+
+        }else{
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
         }
+
 
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setModelCode(dto.getProductName());
         queryBaseBean.setModelVersion(dto.getProductVersion());
-        queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
-        queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
+        if(dto.getMaxScore() !=null &&dto.getMinScore() != null) {
+            queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+        }
+        if(dto.getMinTop()!=null&& dto.getMaxTop()!=null) {
+            queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
+        }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if(total<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
@@ -193,6 +211,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmId(customerInfoPushMain.getId());
             customerInfoPushBatch.setmApiCode(dto.getApiCode());
             customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
+            customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
@@ -219,13 +238,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(collect));
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
         queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
-        queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
-        queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+        if(customerInfoPushMain.getmScoreMin()!=null&&customerInfoPushMain.getmScoreMax()!=null) {
+            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+        }
+        if(customerInfoPushMain.getmNumMin()!=null&&customerInfoPushMain.getmNumMax()!=null) {
+            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+        }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         //region push Intelligent Customer Service
 
         //调用es查询接口
-        Integer minTop = customerInfoPushMain.getmNumMin();
+        Integer minTop = (customerInfoPushMain.getmNumMin()==null)?0:customerInfoPushMain.getmNumMin();
         int startPageYushu = minTop % 10000;
         Integer startPage = minTop/10000+(startPageYushu >0?1:0);
         String searchAfterStr = "";

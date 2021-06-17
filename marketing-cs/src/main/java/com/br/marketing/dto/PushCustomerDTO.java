@@ -47,23 +47,15 @@ public class PushCustomerDTO {
     private List<String> batchNumberList;
 
     @ApiModelProperty(value = "最小分数")
-    @NotNull(message = "最小分数不能为空")
-    @Min(value = 0,message = "最小分数大于等于0")
     private Integer minScore;
 
     @ApiModelProperty(value = "最大分数")
-    @NotNull(message = "最大分数不能为空")
-    @Min(value = 0,message = "最大分数大于等于0")
     private Integer maxScore;
 
     @ApiModelProperty(value = "最小top值")
-    @NotNull(message = "最小top值不能为空")
-    @Min(value = 0,message = "最小top值大于等于0")
     private Integer minTop;
 
     @ApiModelProperty(value = "最大top值")
-    @NotNull(message = "最大top值不能为空")
-    @Min(value = 0,message = "最大top值大于等于0")
     private Integer maxTop;
 
 
