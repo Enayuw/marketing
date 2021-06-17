@@ -111,7 +111,12 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 int count = (int) EsUtil.selectByTemplateCount(indexArr, EsConstants.PAGE_TEMPLATE, paramsCount);
                 log.info("ES builderMarketingCount indexSet:{},paramsCount:{},count:{}",
                         JSON.toJSONString(indexSet), JSON.toJSONString(paramsCount), count);
-                return amountTopHandle(queryBaseBean.getAmountTop(), count);
+                String amountTop = queryBaseBean.getAmountTop();
+                if (StringUtils.isNotBlank(amountTop)) {
+                    return amountTopHandle(queryBaseBean.getAmountTop(), count);
+                } else {
+                    return count;
+                }
             }
         } catch (Exception e) {
             log.error("ES builderMarketingCount error,params:{}", JSON.toJSONString(queryBaseBean), e);
@@ -220,7 +225,7 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                         MarketingHistory history = JSON.parseObject(sourceAsString, MarketingHistory.class);
                         historyJsonColumnHandle(history);
                         //插入滚动搜索值
-                        if(last == i){
+                        if (last == i) {
                             history.setSearchAfter(JSON.toJSONString(hit.getSortValues()));
                         }
                         result.add(history);

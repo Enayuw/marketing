@@ -24,6 +24,11 @@ public class CustomerInfoPushBatch {
     private String mBatchNumber;
 
     /**
+     * 客户批次号
+     */
+    private String mCusBatchNumber;
+
+    /**
      * 逻辑删除 1-有效；9-无效
      */
     private Integer isDel;
@@ -68,6 +73,14 @@ public class CustomerInfoPushBatch {
 
     public void setmBatchNumber(String mBatchNumber) {
         this.mBatchNumber = mBatchNumber == null ? null : mBatchNumber.trim();
+    }
+
+    public String getmCusBatchNumber() {
+        return mCusBatchNumber;
+    }
+
+    public void setmCusBatchNumber(String mCusBatchNumber) {
+        this.mCusBatchNumber = mCusBatchNumber == null ? null : mCusBatchNumber.trim();
     }
 
     public Integer getIsDel() {

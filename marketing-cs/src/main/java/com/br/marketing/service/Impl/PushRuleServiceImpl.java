@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.text.ParseException;
 import java.util.Date;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.*;
@@ -65,16 +66,35 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
+        Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
+        dto.setScoreEndTime(DateUtils.format(date,"yyyy-MM-dd"));
+
+        Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
+        dto.setUploadEndTime(DateUtils.format(dateUpdate,"yyyy-MM-dd"));
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreDetailVos);
     }
 
     @Override
     public Result<List<PushInfoDetailVO>> getPushInfos(RequestPushInfoDTO dto) {
+        Date date = addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd");
+        dto.setPushEndTime(DateUtils.format(date,"yyyy-MM-dd"));
         List<PushInfoDetailVO> pushInfos = customerInfoPushMainMapper.getPushInfos(dto);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushInfos);
     }
 
+    private Date addDay(String date,Integer addDays,String format){
+        try {
+            Calendar c = Calendar.getInstance();
+            Date endTime = DateUtils.parse(date, format);
+            c.setTime(endTime);
+            c.add(Calendar.DAY_OF_MONTH,addDays);
+            Date time = c.getTime();
+            return time;
+        } catch (ParseException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
     @Autowired
     RabbitMqProducter producter;
 
@@ -122,28 +142,47 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region check
         MarketingStrategyProductExample productExample = new MarketingStrategyProductExample();
         productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andBatchNumberIn(dto.getBatchNumberList())
-                .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion()).andIsDelEqualTo(Constants.DATA_VALID);
+                .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion())
+                .andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductMapper.selectByExample(productExample);
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
         }
-        int planNum = dto.getMaxTop() - dto.getMinTop();
-        if(planNum<=0){
+        Integer planNum = 0;
+        if(dto.getMinTop()!=null&&dto.getMaxTop()!=null){
+            planNum = dto.getMaxTop() - dto.getMinTop();
+            if(planNum<=0){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的top区间不合理");
+            }
+        }else if(dto.getMinTop()==null&&dto.getMaxTop()==null){
+
+        }else{
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的top区间不合理");
         }
-        int scoreDvalue = dto.getMaxScore() - dto.getMinScore();
 
-        if(scoreDvalue<0){
+        if(dto.getMinScore()!=null&&dto.getMaxScore()!=null){
+            int scoreDvalue = dto.getMaxScore() - dto.getMinScore();
+            if(scoreDvalue<=0){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
+            }
+        }else if(dto.getMinScore()==null&&dto.getMaxScore()==null){
+
+        }else{
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("所选的分值区间不合理");
         }
+
 
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setModelCode(dto.getProductName());
         queryBaseBean.setModelVersion(dto.getProductVersion());
-        queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
-        queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
+        if(dto.getMaxScore() !=null &&dto.getMinScore() != null) {
+            queryBaseBean.setScoreRange(dto.getMinScore().toString().concat(",").concat(dto.getMaxScore().toString()));
+        }
+        if(dto.getMinTop()!=null&& dto.getMaxTop()!=null) {
+            queryBaseBean.setAmountTop(dto.getMinTop().toString().concat(",").concat(dto.getMaxTop().toString()));
+        }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if(total<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
@@ -172,6 +211,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmId(customerInfoPushMain.getId());
             customerInfoPushBatch.setmApiCode(dto.getApiCode());
             customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
+            customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
@@ -188,7 +228,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
-
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
@@ -199,13 +238,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(collect));
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
         queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
-        queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
-        queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+        if(customerInfoPushMain.getmScoreMin()!=null&&customerInfoPushMain.getmScoreMax()!=null) {
+            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+        }
+        if(customerInfoPushMain.getmNumMin()!=null&&customerInfoPushMain.getmNumMax()!=null) {
+            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+        }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         //region push Intelligent Customer Service
 
         //调用es查询接口
-        Integer minTop = customerInfoPushMain.getmNumMin();
+        Integer minTop = (customerInfoPushMain.getmNumMin()==null)?0:customerInfoPushMain.getmNumMin();
         int startPageYushu = minTop % 10000;
         Integer startPage = minTop/10000+(startPageYushu >0?1:0);
         String searchAfterStr = "";
@@ -216,16 +259,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             }else {
                 queryBaseBean.setPageSize(10000);
             }
-            if(i==startPage){
-                queryBaseBean.setPageSize(queryBaseBean.getPageSize()-1);
-            }
             queryBaseBean.setSearchAfter(searchAfterStr);
             String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
             searchAfterStr = s;
         }
+        Integer realTotalNum = 0;
+        CustomerInfoPushMain main = new CustomerInfoPushMain();
+        main.setmStatus(2);
         int totalYuShu = total % 2000;
         int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
-        List<Callable<Result<Integer>>> listCall = new ArrayList<>();
         for (int i = 1; i <= totalPage; i++) {
             String sn = String.valueOf(i);
             if(i==totalPage&&totalYuShu>0){
@@ -288,37 +330,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
-            listCall.add(()->{return intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO,customerInfoPushMain.getId(),
-                    pushMarketingUserTaskInfoDTO.getAccessNumber(),realNum);});
-        }
-
-
-        List<Future<Result<Integer>>> futures = null;
-        try {
-            futures = threadPoolExecutor.invokeAll(listCall);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Integer realNum = 0;
-        CustomerInfoPushMain main = new CustomerInfoPushMain();
-        main.setmStatus(2);
-        for (int i = 0; i < futures.size(); i++) {
-            Future<Result<Integer>> resultFuture = futures.get(i);
-            try {
-                if(!ResultCode.SUCCESS.getValue().equals(resultFuture.get().getCode())){
-                    main.setmStatus(3);
-                }else{
-                    realNum += resultFuture.get().getData();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                    pushMarketingUserTaskInfoDTO.getAccessNumber());
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                main.setmStatus(3);
+            }else{
+                realTotalNum += realNum;
             }
         }
-        main.setmRealyNum(realNum);
+        main.setmRealyNum(realTotalNum);
         main.setId(customerInfoPushMain.getId());
-        main.setmStatus(2);
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
 

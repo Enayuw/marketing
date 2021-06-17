@@ -39,7 +39,7 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::getCustomerStatus, o,
-                "Marketing.Push.CustomerService.Lookup");
+                "Marketing.Push.CustomerService.Search.Delay");
     }
 
 

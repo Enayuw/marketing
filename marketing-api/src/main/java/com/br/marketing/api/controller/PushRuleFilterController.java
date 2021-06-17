@@ -87,6 +87,12 @@ public class PushRuleFilterController {
         }
     }
 
+    @ApiOperation(value = "测试消费")
+    @GetMapping("/testConsumerCustomer")
+    public Result testConsumerCustomer(Long id){
+        return pushRuleService.consumerPushCustomer(id);
+    }
+
     /**
      * 测试MQ
      * @return

@@ -16,7 +16,7 @@
             <![CDATA[  and bcipm .create_time <=#{pushEndTime} ]]>
             </if>
             <if test="cusBatchNumber !=null and cusBatchNumber!= ''">
-              and bcipb .m_batch_number =#{cusBatchNumber}
+              and bcipb .m_cus_batch_number =#{cusBatchNumber}
             </if>
             and bcipm .is_del =1
     </select>

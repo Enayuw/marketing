@@ -115,7 +115,12 @@ public class ErrorControllerAspect {
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(String.format("\r\n%s", e.getStackTrace()[i].toString()));
         }
-        systemExceptionServiceImpl.sendAlarm(String.format("报错logId：%s",uuid.toString()),"Marketing-Api");
+        StringBuilder stringBuilderMail = new StringBuilder();
+        stringBuilderMail.append(String.format("\r\n环境：%s" ,env));
+        stringBuilderMail.append(String.format("\r\nlogId：%s" , uuid));
+        stringBuilderMail.append(String.format("\r\n方法：%s.%s",typeName,methodName));
+        stringBuilderMail.append(String.format("\r\n参数：%s",params.toString()));
+        systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(),"Marketing-Api");
         if(log.isErrorEnabled()){
             log.error(stringBuilder.toString());
         }

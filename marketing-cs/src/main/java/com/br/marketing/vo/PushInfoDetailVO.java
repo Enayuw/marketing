@@ -13,8 +13,11 @@ public class PushInfoDetailVO {
     @ApiModelProperty(value = "推送时间")
     private Date createTime;
 
-    @ApiModelProperty(value = "客户批次号")
+    @ApiModelProperty(value = "内部批次号")
     private String mBatchNumber;
+
+    @ApiModelProperty(value = "客户批次号")
+    private String mCusBatchNumber;
 
     @ApiModelProperty(value = "模型名称")
     private String mModel;
@@ -139,5 +142,13 @@ public class PushInfoDetailVO {
 
     public void setmStatus(Integer mStatus) {
         this.mStatus = mStatus;
+    }
+
+    public String getmCustBatchNumber() {
+        return mCusBatchNumber;
+    }
+
+    public void setmCustBatchNumber(String mCustBatchNumber) {
+        this.mCusBatchNumber = mCustBatchNumber;
     }
 }
