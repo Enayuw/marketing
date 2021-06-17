@@ -46,6 +46,12 @@ public class PushCustomerDTO {
     @Size(min = 1,message = "批次号不能为空")
     private List<String> batchNumberList;
 
+    @ApiModelProperty(value = "跑分记录id")
+    @NotNull(message = "fileIdList不能为空")
+    @NotEmpty(message = "fileIdList不能为空")
+    @Size(min = 1,message = "fileIdList不能为空")
+    private List<Integer> fileIdList;
+
     @ApiModelProperty(value = "最小分数")
     private Integer minScore;
 
