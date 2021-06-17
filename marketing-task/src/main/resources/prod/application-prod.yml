@@ -3,11 +3,9 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://mysql-loanwarning-vip.brapp.com:3306/loan_warning?useUnicode=true&characterEncoding=UTF-8
-        #username: loan_warning
-        #password: loan_warning20200424
-         username: u_pd_l_warning
-         password: pb4WgQCCY/pwIwe/6/HS
+         url: jdbc:mysql://mysql-loanwarning-vip.brapp.com:3306/marketing?useUnicode=true&characterEncoding=UTF-8
+         username: u_pd_marketing
+         password: qTODziGYQsq11aw8Js2V
          type: com.alibaba.druid.pool.DruidDataSource
          driver-class-name: com.mysql.jdbc.Driver
          filters: stat
@@ -33,7 +31,7 @@ sharding:
  #             sql.show: true
 logging:
     level:
-        com.br.off.mapper: debug
+        com.br.off.mapper: info
     file: ./logs/core.log
     root: INFO
 otherConfig:
@@ -54,7 +52,7 @@ otherConfig:
         pageSize: 5000
         apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
         onlineUrl: http://k8s.brapp.com/compass-api/api/loan-strategy-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/warning
+        path: /opt/data/inloan/download/marketing
         #path: /opt/data/inloan/download/360
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   encodeMapping:
