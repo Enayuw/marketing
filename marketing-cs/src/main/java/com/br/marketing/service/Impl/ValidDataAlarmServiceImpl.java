@@ -39,8 +39,6 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     @Resource
     MarketingTaskMapper marketingTaskMapper;
     @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
     LoadResultMapper loadResultMapper;
 
     @Override

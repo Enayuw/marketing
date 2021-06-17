@@ -159,7 +159,7 @@ public class DeleteService extends AbstractDataToDbService {
             if(org.apache.commons.lang.StringUtils.isNotEmpty(s1)){
                 actualNum=Integer.parseInt(s1);
             }
-            LoadResult lr=new LoadResult(context.getApiCode(),"",context.getZipFileName(),"","1","",actualNum,linenumber,"delete");
+            LoadResult lr=new LoadResult(context.getApiCode(),context.getCusBatch(),context.getZipFileName(),"","1","",actualNum,linenumber,"delete");
             log.info("LoadResult :{}",lr);
             loadResultMapper.insertLoadResult(lr);
             redisChgService.del(Constants.DELETE_MONITOR_SUCCESS + s2);

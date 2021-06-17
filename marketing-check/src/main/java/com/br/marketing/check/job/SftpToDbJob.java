@@ -148,6 +148,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                         if(zipFileName.contains("DeleteMonitor")){
                             context.setLocalZipFilePath(path.concat("delete/").concat(apiCode).concat("/"));
                             context.setType("delete");
+                            context.setCusBatch(Constants.MYREGEX.split(zipFileName)[0]);
                             context.init();
                             if(SftpToDbUtils.vaildFileName(zipFileName, apiCode,errorMessage)){
                                 deleteService.execute(context);
@@ -168,6 +169,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setStatus(2);
                             task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
                             task.setCusBatch(task.getFileName());
+                            context.setCusBatch(task.getFileName());
                             marketingTaskMapper.insertTask(task);
                             context.setTask(task);
                             context.init();
@@ -178,6 +180,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }
 
                             String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM +batchNumber );
+                            redisChgService.expire(Constants.UPLOAD_DATA_NUM + batchNumber,60);
                             String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
                             task.setTableName("b_marketing_user_"+apiCode);
                             Integer actualNumber = marketingUserMapper.queryCount(task);
@@ -186,6 +189,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setActualNumber(actualNumber);
                             log.info("LoanTask:{}",task);
                             marketingTaskMapper.modifyTask(task);
+                            fileCheckService.volidatorDataVolume(task.getDataVolume(),task.getTaskNumber(),context.getApiCode(),context.getTxtFileName());
                             validDataAlarmService.fileUpload(apiCode,batchNumber);
                         }
 

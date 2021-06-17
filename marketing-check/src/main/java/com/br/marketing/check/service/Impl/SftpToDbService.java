@@ -82,13 +82,19 @@ public class SftpToDbService extends AbstractDataToDbService {
         MyFileUtil.distinctByCusNum(files,context.getDistinctTxtFilePath(),context.getDistinctTxtFileName(),pageSize,head);
         log.info("================去重结束============");
 
+        if(totalLines>1&& StringUtils.isNotEmpty(head)){
+            log.warn(" txtFileName:{} totalLines:{} head:{}",context.getTxtFileName(),totalLines,head);
+            String s = Constants.UPLOAD_DATA_NUM + context.getBatchNumber();
+            String s1 = redisChgService.get(s);
+            Integer value=StringUtils.isNotEmpty(s1)?((totalLines-1)+Integer.parseInt(s1)):(totalLines-1);
+            redisChgService.setex(s,value.toString(),172800);
+        }
 
         fileCheckService.checkSmallDataFile(context);
 
         dealErrorResultFile(context);
         log.info("parseConfigFile done");
         String s = redisChgService.get(Constants.INSERT_DB_NUMBER + context.getTxtFileName());
-        redisChgService.expire(Constants.INSERT_DB_NUMBER + context.getTxtFileName(),60);
         Integer actualNumber =StringUtils.isNotEmpty(s)?Integer.parseInt(s):0 ;
         LoadResult lr=new LoadResult();
         lr.setApiCode(context.getTask().getApiCode());
@@ -98,9 +104,6 @@ public class SftpToDbService extends AbstractDataToDbService {
         lr.setActualNumber(actualNumber);
         lr.setTaskNumber(totalLines-1);
         loadResultMapper.insertLoadResult(lr);
-
-        fileCheckService.volidatorDataVolume(context.getTask().getDataVolume(),totalLines-1,context.getTask().getApiCode(),context.getTxtFileName());
-
         return true;
     }
 
@@ -122,6 +125,15 @@ public class SftpToDbService extends AbstractDataToDbService {
                             if(split.length>=2){
                                 configMap.put(split[0],split[1]);
                             }
+                        }
+                    }
+                    String dataVolume=configMap.get("dataVolume");
+                    if(StringUtils.isNotEmpty(StringUtils.isNotEmpty(dataVolume))){
+                        try{
+                            int count = Integer.parseInt(dataVolume);
+                            task.setDataVolume(count);
+                        }catch (Exception e){
+                            log.error("dataVolume error",e);
                         }
                     }
                     log.warn("{}，内容为{}",context.getConfigFileName(),configMap);
