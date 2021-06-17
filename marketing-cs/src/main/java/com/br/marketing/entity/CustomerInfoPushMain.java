@@ -54,6 +54,11 @@ public class CustomerInfoPushMain {
     private Integer mRealyNum;
 
     /**
+     * 客户批次号冗余字段
+     */
+    private String mCusBatchNumberList;
+
+    /**
      * 执行状态 1-执行中；2-执行成功；3-执行失败
      */
     private Integer mStatus;
@@ -156,6 +161,14 @@ public class CustomerInfoPushMain {
 
     public void setmRealyNum(Integer mRealyNum) {
         this.mRealyNum = mRealyNum;
+    }
+
+    public String getmCusBatchNumberList() {
+        return mCusBatchNumberList;
+    }
+
+    public void setmCusBatchNumberList(String mCusBatchNumberList) {
+        this.mCusBatchNumberList = mCusBatchNumberList == null ? null : mCusBatchNumberList.trim();
     }
 
     public Integer getmStatus() {

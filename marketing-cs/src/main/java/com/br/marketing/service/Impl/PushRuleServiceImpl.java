@@ -125,6 +125,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     RedisChgService redisChgService;
 
+    @Autowired
+    StraHisFileMapper straHisFileMapper;
+
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
@@ -148,6 +151,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
         }
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+
         Integer planNum = 0;
         if(dto.getMinTop()!=null&&dto.getMaxTop()!=null){
             planNum = dto.getMaxTop() - dto.getMinTop();
@@ -175,6 +182,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
+        queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
         queryBaseBean.setModelCode(dto.getProductName());
         queryBaseBean.setModelVersion(dto.getProductVersion());
         if(dto.getMaxScore() !=null &&dto.getMinScore() != null) {
@@ -203,6 +211,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
+        List<String> cusList = marketingStrategyProducts.stream().map(t -> t.getCusBatchNumber()).collect(Collectors.toList());
+        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(cusList));
         customerInfoPushMain.setmStatus(1);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
@@ -214,6 +224,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
+            Optional<StraHisFile> first = straHisFiles.stream().filter(k -> t.getBatchNumber().equals(k.getBatchNumber())).findFirst();
+            if(first.isPresent()){
+                customerInfoPushBatch.setmFileId(Long.valueOf(first.get().getId()));
+            }
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
         //endregion
@@ -232,10 +246,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
-        List<String> collect = customerInfoPushBatches.stream().map(t -> t.getmBatchNumber()).collect(Collectors.toList());
+        List<String> numList = new ArrayList<>();
+        List<Long> fileIds = new ArrayList<>();
+        for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
+            numList.add(customerInfoPushBatch.getmBatchNumber());
+            fileIds.add(customerInfoPushBatch.getmFileId());
+        }
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(collect));
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
+        queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
         queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
         if(customerInfoPushMain.getmScoreMin()!=null&&customerInfoPushMain.getmScoreMax()!=null) {
@@ -318,8 +338,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId()+"_"+ sn);
             PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
             extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
-            extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
-            extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
+            if(customerInfoPushMain.getmScoreMin() != null&&customerInfoPushMain.getmScoreMax()!=null){
+                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+            }
+            if(customerInfoPushMain.getmNumMin() != null&&customerInfoPushMain.getmNumMax()!=null) {
+                extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
+            }
             extendDataDTO.setSampleTotal(sn);
             pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);

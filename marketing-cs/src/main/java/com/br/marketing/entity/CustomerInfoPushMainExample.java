@@ -64,10 +64,10 @@ public class CustomerInfoPushMainExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -735,6 +735,76 @@ public class CustomerInfoPushMainExample {
             return (Criteria) this;
         }
 
+        public Criteria andMCusBatchNumberListIsNull() {
+            addCriterion("m_cus_batch_number_list is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListIsNotNull() {
+            addCriterion("m_cus_batch_number_list is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListEqualTo(String value) {
+            addCriterion("m_cus_batch_number_list =", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListNotEqualTo(String value) {
+            addCriterion("m_cus_batch_number_list <>", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListGreaterThan(String value) {
+            addCriterion("m_cus_batch_number_list >", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListGreaterThanOrEqualTo(String value) {
+            addCriterion("m_cus_batch_number_list >=", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListLessThan(String value) {
+            addCriterion("m_cus_batch_number_list <", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListLessThanOrEqualTo(String value) {
+            addCriterion("m_cus_batch_number_list <=", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListLike(String value) {
+            addCriterion("m_cus_batch_number_list like", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListNotLike(String value) {
+            addCriterion("m_cus_batch_number_list not like", value, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListIn(List<String> values) {
+            addCriterion("m_cus_batch_number_list in", values, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListNotIn(List<String> values) {
+            addCriterion("m_cus_batch_number_list not in", values, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListBetween(String value1, String value2) {
+            addCriterion("m_cus_batch_number_list between", value1, value2, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMCusBatchNumberListNotBetween(String value1, String value2) {
+            addCriterion("m_cus_batch_number_list not between", value1, value2, "mCusBatchNumberList");
+            return (Criteria) this;
+        }
+
         public Criteria andMStatusIsNull() {
             addCriterion("m_status is null");
             return (Criteria) this;
@@ -1036,7 +1106,7 @@ public class CustomerInfoPushMainExample {
         }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

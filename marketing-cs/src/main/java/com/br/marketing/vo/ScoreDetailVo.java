@@ -12,6 +12,9 @@ public class ScoreDetailVo {
     @ApiModelProperty(value = "内部客户批次号")
     private String batchNumber;
 
+    @ApiModelProperty(value = "跑分文件id")
+    private Long fileId;
+
     @ApiModelProperty(value = "统计下载路径")
     private String statisticFilePath;
 }

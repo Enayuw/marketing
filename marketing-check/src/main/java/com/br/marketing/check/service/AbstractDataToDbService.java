@@ -86,6 +86,7 @@ public abstract class AbstractDataToDbService implements BaseDataToDbService {
         }catch (Exception e){
             StringBuilder errorMessage=new StringBuilder("压缩文件异常,");
             errorMessage.append("压缩文件解密异常");
+            fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
             log.error("压缩文件解密异常",e);
             return false;
         }

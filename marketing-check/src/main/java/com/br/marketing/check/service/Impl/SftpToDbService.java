@@ -74,6 +74,7 @@ public class SftpToDbService extends AbstractDataToDbService {
             log.error("文件表头异常-文件名-{}，head-{}",context.getTxtFileName(),head);
             errorMessage.append("文件表头异常");
             fileCheckService.errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
+            return false;
         }
 
         log.info("================开始去重============");
@@ -107,6 +108,7 @@ public class SftpToDbService extends AbstractDataToDbService {
         return true;
     }
 
+
     @Override
     public void checkConfigFile(FileContext context) {
         MarketingTask task =context.getTask();
@@ -128,7 +130,7 @@ public class SftpToDbService extends AbstractDataToDbService {
                         }
                     }
                     String dataVolume=configMap.get("dataVolume");
-                    if(StringUtils.isNotEmpty(StringUtils.isNotEmpty(dataVolume))){
+                    if(StringUtils.isNotEmpty(dataVolume)){
                         try{
                             int count = Integer.parseInt(dataVolume);
                             task.setDataVolume(count);

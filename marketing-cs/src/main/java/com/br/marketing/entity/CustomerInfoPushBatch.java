@@ -29,6 +29,11 @@ public class CustomerInfoPushBatch {
     private String mCusBatchNumber;
 
     /**
+     * 跑分记录id
+     */
+    private Long mFileId;
+
+    /**
      * 逻辑删除 1-有效；9-无效
      */
     private Integer isDel;
@@ -81,6 +86,14 @@ public class CustomerInfoPushBatch {
 
     public void setmCusBatchNumber(String mCusBatchNumber) {
         this.mCusBatchNumber = mCusBatchNumber == null ? null : mCusBatchNumber.trim();
+    }
+
+    public Long getmFileId() {
+        return mFileId;
+    }
+
+    public void setmFileId(Long mFileId) {
+        this.mFileId = mFileId;
     }
 
     public Integer getIsDel() {

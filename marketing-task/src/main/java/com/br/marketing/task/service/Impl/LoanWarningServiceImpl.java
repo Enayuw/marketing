@@ -251,6 +251,27 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
+            /**
+             * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
+             */
+            LoanFile blf = new LoanFile();
+            blf.setApiCode(blt.getApiCode());
+            blf.setFilePath(descPath);
+            blf.setStatus(1);
+            blf.setType(2);
+            blf.setBatchNumber(blt.getBatchNumber());
+            blf.setExpectedNum(blt.getActualNumber());
+            Integer fileId=loanFileMapper.insertFile(blf);
+
+            /**
+             * 一次性任务提交后，在b_task_status表中插入一条数据（标识一次性任务已执行）
+             */
+            TaskStatus bts = new TaskStatus();
+            bts.setOnceStatus(1);
+            bts.setApiCode(blt.getApiCode());
+            bts.setBatchNumber(blt.getBatchNumber());
+            bts.setFileId(blf.getId());
+            taskStatusMapper.insertTaskStatus(bts);
             JSONArray dtbArray=JSONArray.parseArray(strategyStr);
             for(int i=0;i<dtbArray.size();i++){
                 JSONObject jsonObject = dtbArray.getJSONObject(i);
@@ -264,29 +285,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 marketingStrategyProduct.setStrategyId(blt.getStrategyId());
                 marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
             }
-                core(blt, descPath,false,strategyStr,warrningExecutor);
+                core(blt, descPath,false,strategyStr,warrningExecutor,fileId.toString());
 
-                /**
-                 * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
-                 */
-                LoanFile blf = new LoanFile();
-                blf.setApiCode(blt.getApiCode());
-                blf.setFilePath(descPath);
-                blf.setStatus(1);
-                blf.setType(2);
-                blf.setBatchNumber(blt.getBatchNumber());
-                blf.setExpectedNum(blt.getActualNumber());
-                Integer id=loanFileMapper.insertFile(blf);
 
-                /**
-                 * 一次性任务提交后，在b_task_status表中插入一条数据（标识一次性任务已执行）
-                 */
-                TaskStatus bts = new TaskStatus();
-                bts.setOnceStatus(1);
-                bts.setApiCode(blt.getApiCode());
-                bts.setBatchNumber(blt.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.insertTaskStatus(bts);
         }
     }
 
@@ -323,7 +324,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setType(1);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
-            Integer id=loanFileMapper.insertFile(blf);
+            Integer fileId=loanFileMapper.insertFile(blf);
 
             /**
              * 全量任务提交前，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
@@ -335,9 +336,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             bts.setFileId(blf.getId());
             taskStatusMapper.insertTaskStatus(bts);
 
-
-
-            core(blt,descPath,false,strategyStr,warrningExecutor);
+            core(blt,descPath,false,strategyStr,warrningExecutor,fileId.toString());
 
         }
 
@@ -382,7 +381,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blf.setType(0);
                 blf.setBatchNumber(blt.getBatchNumber());
                 blf.setExpectedNum(batctNum);
-                Integer id=loanFileMapper.insertFile(blf);
+                Integer fileId=loanFileMapper.insertFile(blf);
 
                 /**
                  * 增量任务提交后，在b_task_status表中插入一条数据（标识当天增量任务已执行）
@@ -394,9 +393,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 bts.setBatchNumber(blt.getBatchNumber());
                 bts.setFileId(blf.getId());
                 taskStatusMapper.insertTaskStatus(bts);
-
-
-                core(blt, descPath,true,strategyStr,warrningExecutor);
+                core(blt, descPath,true,strategyStr,warrningExecutor,fileId.toString());
 
 
 
@@ -410,7 +407,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param blt
      * @param descPath
      */
-    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor){
+    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,String fileId){
         try {
                 Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
                 String separator=Constants.sepMap.get(sep);
@@ -443,6 +440,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         param.put("url",url);
                         param.put("appSecretKey",appSecretKey);
                         param.put("isRepair",blt.getIsRepair());
+                        param.put("fileId",fileId);
                         warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
                                 redisService, proFieldsClient,isIncr,map,redisChgService));
                         Thread.sleep(100);
