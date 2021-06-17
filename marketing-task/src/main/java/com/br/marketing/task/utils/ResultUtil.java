@@ -192,7 +192,7 @@ public class ResultUtil {
      *     }
      * }
      * * */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw,  String  sep ,Map<String,String> proFieldMap,MarketingUser user,JSONObject meal,String cusBatchNumber) throws IOException {
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw,  String  sep ,Map<String,String> proFieldMap,MarketingUser user,JSONObject meal,String cusBatchNumber,String fileId) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
@@ -275,6 +275,7 @@ public class ResultUtil {
             mh.setName(user.getName());
             mh.setCell(user.getCell());
             mh.setCusBatchNumber(cusBatchNumber);
+            mh.setFileId(fileId);
             writeEs(mh,meal,hxJson);
         }
     }
