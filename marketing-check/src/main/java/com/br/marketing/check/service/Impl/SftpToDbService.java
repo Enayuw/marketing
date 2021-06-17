@@ -108,6 +108,7 @@ public class SftpToDbService extends AbstractDataToDbService {
         return true;
     }
 
+
     @Override
     public void checkConfigFile(FileContext context) {
         MarketingTask task =context.getTask();
@@ -129,7 +130,7 @@ public class SftpToDbService extends AbstractDataToDbService {
                         }
                     }
                     String dataVolume=configMap.get("dataVolume");
-                    if(StringUtils.isNotEmpty(StringUtils.isNotEmpty(dataVolume))){
+                    if(StringUtils.isNotEmpty(dataVolume)){
                         try{
                             int count = Integer.parseInt(dataVolume);
                             task.setDataVolume(count);
