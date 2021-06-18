@@ -197,6 +197,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if(total<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
+        }else {
+            if(planNum==0){
+                planNum=total;
+            }
         }
 
         //endregion

@@ -9,6 +9,11 @@ public class MarketingStrategyProduct {
     private Long id;
 
     /**
+     * 跑分记录唯一id
+     */
+    private Long fileId;
+
+    /**
      * 
      */
     private String apiCode;
@@ -54,6 +59,14 @@ public class MarketingStrategyProduct {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(Long fileId) {
+        this.fileId = fileId;
     }
 
     public String getApiCode() {

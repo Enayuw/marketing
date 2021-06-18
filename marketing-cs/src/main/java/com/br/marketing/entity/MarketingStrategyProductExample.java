@@ -64,10 +64,10 @@ public class MarketingStrategyProductExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -162,6 +162,66 @@ public class MarketingStrategyProductExample {
 
         public Criteria andIdNotBetween(Long value1, Long value2) {
             addCriterion("id not between", value1, value2, "id");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdIsNull() {
+            addCriterion("file_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdIsNotNull() {
+            addCriterion("file_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdEqualTo(Long value) {
+            addCriterion("file_id =", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdNotEqualTo(Long value) {
+            addCriterion("file_id <>", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdGreaterThan(Long value) {
+            addCriterion("file_id >", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("file_id >=", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdLessThan(Long value) {
+            addCriterion("file_id <", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdLessThanOrEqualTo(Long value) {
+            addCriterion("file_id <=", value, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdIn(List<Long> values) {
+            addCriterion("file_id in", values, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdNotIn(List<Long> values) {
+            addCriterion("file_id not in", values, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdBetween(Long value1, Long value2) {
+            addCriterion("file_id between", value1, value2, "fileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileIdNotBetween(Long value1, Long value2) {
+            addCriterion("file_id not between", value1, value2, "fileId");
             return (Criteria) this;
         }
 
@@ -706,7 +766,7 @@ public class MarketingStrategyProductExample {
         }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

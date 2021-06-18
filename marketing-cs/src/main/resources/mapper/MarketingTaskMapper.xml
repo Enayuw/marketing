@@ -448,9 +448,9 @@
 	</update>
 	<select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO" resultType="com.br.marketing.vo.ScoreDetailVo">
 		select  mt.cus_batch as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath,shf.id as fileId
-		from b_marketing_task as mt
-		left join b_marketing_strategy_product as msp on mt.api_code = msp.api_code and mt.batch_number = msp.batch_number
-		left join stra_his_file as shf on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
+		from stra_his_file as shf
+		left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
+		left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
 		where mt.api_code = #{apiCode}
 		and msp.product_name = #{productName}
 		and msp.product_version =#{productVersion}
