@@ -283,6 +283,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 marketingStrategyProduct.setProductName(jsonObject.getString("code"));
                 marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
                 marketingStrategyProduct.setStrategyId(blt.getStrategyId());
+                marketingStrategyProduct.setFileId(blf.getId());
                 marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
             }
                 core(blt, descPath,false,strategyStr,warrningExecutor,blf.getId().toString());
