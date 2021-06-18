@@ -145,7 +145,7 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 }
                 if (topBegin > esTotal) {
                     return 0;
-                } else if (topBegin < esTotal && topEnd > esTotal) {
+                } else if (topBegin < esTotal && topEnd >= esTotal) {
                     return esTotal - topBegin;
                 } else if (topBegin < esTotal && topEnd < esTotal) {
                     return topEnd - topBegin;

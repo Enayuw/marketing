@@ -79,28 +79,25 @@ public class MarketingEsBuilder {
         if (StringUtils.isNotBlank(apiCode)) {
             params.put("api_code", apiCode);
         }
-        //查询批次
-        String batchNumber = queryBaseBean.getBatchNumbers();
-        if (StringUtils.isNotBlank(batchNumber)) {
-            List<String> batchNumberList = Arrays.asList(batchNumber.split(","));
-            params.put("batch_number", JSON.toJSONString(batchNumberList));
-        }
         //查询跑分记录
         String fileIds = queryBaseBean.getFileIds();
         if (StringUtils.isNotBlank(fileIds)) {
             List<String> fileIdList = Arrays.asList(fileIds.split(","));
             params.put("file_id", JSON.toJSONString(fileIdList));
         }
-        //分值区间
+        //模型
         String modelCode = queryBaseBean.getModelCode();
         String modelVersion = queryBaseBean.getModelVersion();
         if (StringUtils.isBlank(modelVersion)) {
             modelVersion = "";
         }
-        String scoreRange = queryBaseBean.getScoreRange();
-        if (StringUtils.isNotBlank(modelCode) && StringUtils.isNotBlank(scoreRange)) {
+        if (StringUtils.isNotBlank(modelCode)) {
             String cv = String.format(EsConstants.CODEVERSION_KEY, modelCode, modelVersion);
             params.put("code_version", cv);
+        }
+        //分值区间
+        String scoreRange = queryBaseBean.getScoreRange();
+        if (StringUtils.isNotBlank(scoreRange)) {
             String[] split = scoreRange.split(",");
             if (split != null && split.length > 0) {
                 Double begin = 0D;
@@ -137,7 +134,7 @@ public class MarketingEsBuilder {
         params.put("size", pageSize);
         //滚动搜索值
         String searchAfter = queryBaseBean.getSearchAfter();
-        if(StringUtils.isNotBlank(searchAfter)){
+        if (StringUtils.isNotBlank(searchAfter)) {
             params.put("searchAfter", searchAfter);
         }
         //条件
@@ -168,7 +165,7 @@ public class MarketingEsBuilder {
         params.put("size", pageSize);
         //滚动搜索值
         String searchAfter = queryBaseBean.getSearchAfter();
-        if(StringUtils.isNotBlank(searchAfter)){
+        if (StringUtils.isNotBlank(searchAfter)) {
             params.put("searchAfter", searchAfter);
         }
         //条件
