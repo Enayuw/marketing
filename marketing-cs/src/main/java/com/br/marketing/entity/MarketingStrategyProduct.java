@@ -11,7 +11,7 @@ public class MarketingStrategyProduct {
     /**
      * 跑分记录唯一id
      */
-    private Long fileId;
+    private Integer fileId;
 
     /**
      * 
@@ -61,11 +61,11 @@ public class MarketingStrategyProduct {
         this.id = id;
     }
 
-    public Long getFileId() {
+    public Integer getFileId() {
         return fileId;
     }
 
-    public void setFileId(Long fileId) {
+    public void setFileId(Integer fileId) {
         this.fileId = fileId;
     }
 

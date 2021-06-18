@@ -175,52 +175,52 @@ public class MarketingStrategyProductExample {
             return (Criteria) this;
         }
 
-        public Criteria andFileIdEqualTo(Long value) {
+        public Criteria andFileIdEqualTo(Integer value) {
             addCriterion("file_id =", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotEqualTo(Long value) {
+        public Criteria andFileIdNotEqualTo(Integer value) {
             addCriterion("file_id <>", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdGreaterThan(Long value) {
+        public Criteria andFileIdGreaterThan(Integer value) {
             addCriterion("file_id >", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdGreaterThanOrEqualTo(Long value) {
+        public Criteria andFileIdGreaterThanOrEqualTo(Integer value) {
             addCriterion("file_id >=", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdLessThan(Long value) {
+        public Criteria andFileIdLessThan(Integer value) {
             addCriterion("file_id <", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdLessThanOrEqualTo(Long value) {
+        public Criteria andFileIdLessThanOrEqualTo(Integer value) {
             addCriterion("file_id <=", value, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdIn(List<Long> values) {
+        public Criteria andFileIdIn(List<Integer> values) {
             addCriterion("file_id in", values, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotIn(List<Long> values) {
+        public Criteria andFileIdNotIn(List<Integer> values) {
             addCriterion("file_id not in", values, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdBetween(Long value1, Long value2) {
+        public Criteria andFileIdBetween(Integer value1, Integer value2) {
             addCriterion("file_id between", value1, value2, "fileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotBetween(Long value1, Long value2) {
+        public Criteria andFileIdNotBetween(Integer value1, Integer value2) {
             addCriterion("file_id not between", value1, value2, "fileId");
             return (Criteria) this;
         }

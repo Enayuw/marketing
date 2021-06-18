@@ -147,16 +147,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         MarketingStrategyProductExample productExample = new MarketingStrategyProductExample();
-        productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andBatchNumberIn(dto.getBatchNumberList())
-                .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion())
+        productExample.createCriteria().andFileIdIn(dto.getFileIdList())
                 .andIsDelEqualTo(Constants.DATA_VALID);
-        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductMapper.selectByExample(productExample);
+        List<MarketingStrategyProduct> marketingStrategyProductsDb = marketingStrategyProductMapper.selectByExample(productExample);
+        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t -> dto.getProductName().equals(t.getCusBatchNumber())
+                && dto.getProductVersion().equals(t.getProductVersion())).collect(Collectors.toList());
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
         }
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
 
         Integer planNum = 0;
         if(dto.getMinTop()!=null&&dto.getMaxTop()!=null){
@@ -231,10 +229,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
-            Optional<StraHisFile> first = straHisFiles.stream().filter(k -> t.getBatchNumber().equals(k.getBatchNumber())).findFirst();
-            if(first.isPresent()){
-                customerInfoPushBatch.setmFileId(Long.valueOf(first.get().getId()));
-            }
+            customerInfoPushBatch.setmFileId(Long.valueOf(t.getFileId()));
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
         //endregion
