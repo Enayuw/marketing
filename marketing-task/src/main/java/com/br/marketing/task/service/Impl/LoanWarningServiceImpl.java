@@ -261,7 +261,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setType(2);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
-            Integer fileId=loanFileMapper.insertFile(blf);
+            loanFileMapper.insertFile(blf);
 
             /**
              * 一次性任务提交后，在b_task_status表中插入一条数据（标识一次性任务已执行）
@@ -285,7 +285,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 marketingStrategyProduct.setStrategyId(blt.getStrategyId());
                 marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
             }
-                core(blt, descPath,false,strategyStr,warrningExecutor,fileId.toString());
+                core(blt, descPath,false,strategyStr,warrningExecutor,blf.getId().toString());
 
 
         }
@@ -324,7 +324,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setType(1);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
-            Integer fileId=loanFileMapper.insertFile(blf);
+            loanFileMapper.insertFile(blf);
 
             /**
              * 全量任务提交前，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
@@ -336,7 +336,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             bts.setFileId(blf.getId());
             taskStatusMapper.insertTaskStatus(bts);
 
-            core(blt,descPath,false,strategyStr,warrningExecutor,fileId.toString());
+            core(blt,descPath,false,strategyStr,warrningExecutor,blf.getId().toString());
 
         }
 
@@ -381,7 +381,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blf.setType(0);
                 blf.setBatchNumber(blt.getBatchNumber());
                 blf.setExpectedNum(batctNum);
-                Integer fileId=loanFileMapper.insertFile(blf);
+                loanFileMapper.insertFile(blf);
+
 
                 /**
                  * 增量任务提交后，在b_task_status表中插入一条数据（标识当天增量任务已执行）
@@ -393,7 +394,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 bts.setBatchNumber(blt.getBatchNumber());
                 bts.setFileId(blf.getId());
                 taskStatusMapper.insertTaskStatus(bts);
-                core(blt, descPath,true,strategyStr,warrningExecutor,fileId.toString());
+                core(blt, descPath,true,strategyStr,warrningExecutor,blf.getId().toString());
 
 
 
