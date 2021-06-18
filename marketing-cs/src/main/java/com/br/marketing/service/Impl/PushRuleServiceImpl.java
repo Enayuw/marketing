@@ -141,8 +141,11 @@ public class PushRuleServiceImpl implements PushRuleService {
          * 先校验下 传过来的批次和 模型是否匹配
          * 推送mq
          */
-
         //region check
+        if(dto.getBatchNumberList().size()>50){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");
+        }
+
         MarketingStrategyProductExample productExample = new MarketingStrategyProductExample();
         productExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andBatchNumberIn(dto.getBatchNumberList())
                 .andProductNameEqualTo(dto.getProductName()).andProductVersionEqualTo(dto.getProductVersion())
