@@ -150,7 +150,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         productExample.createCriteria().andFileIdIn(dto.getFileIdList())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingStrategyProduct> marketingStrategyProductsDb = marketingStrategyProductMapper.selectByExample(productExample);
-        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t -> dto.getProductName().equals(t.getCusBatchNumber())
+        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t -> dto.getProductName().equals(t.getProductName())
                 && dto.getProductVersion().equals(t.getProductVersion())).collect(Collectors.toList());
         if(marketingStrategyProducts.size()<=0){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
