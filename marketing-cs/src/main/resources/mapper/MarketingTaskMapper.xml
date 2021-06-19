@@ -459,5 +459,6 @@
 		<![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
 		<![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
 		and shf.score_status = 2
+		order by shf.id desc
 	</select>
 </mapper>
