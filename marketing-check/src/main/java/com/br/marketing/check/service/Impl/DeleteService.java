@@ -168,7 +168,7 @@ public class DeleteService extends AbstractDataToDbService {
             String remotePath=Constants.SFTP_IN_ERROR_PATH.replace("apiCode",context.getApiCode());
             if(StringUtils.isNotEmpty(s)&&Integer.parseInt(s)>0){
                 log.warn("匹配出错条数：{}",s);
-                sftpClient.uploadFile(remotePath,context.getErrorFileName(),errorFilePathAndName);
+                sftpClient.uploadFile(remotePath,context.getErrorDataFileName(),errorFilePathAndName);
                 File successFile=new File( errorFilePathAndName+".success");
                 successFile.createNewFile();
                 if(successFile.exists()){
