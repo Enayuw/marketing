@@ -97,7 +97,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                                 .append(alarmDate)
                                 .append(" &nbsp;上传数据量：")
                                 .append(lr.getTaskNumber())
-                                .append("&nbsp;剔除数据量：")
+                                .append("&nbsp;入库数据量：")
                                 .append(lr.getActualNumber())
                                 .append("&nbsp;异常数据量：")
                                 .append((lr.getTaskNumber()-lr.getActualNumber()))
