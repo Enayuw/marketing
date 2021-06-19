@@ -115,7 +115,7 @@ public class FileContext {
             this.distinctTxtFileName=this.txtFileName;
             this.distinctTxtFilePath=this.localTxtFilePath.concat("distinct/");
             this.errorFilePath=this.localTxtFilePath.concat("error/");
-            this.errorFileName=this.getApiCode().concat("_").concat(name).concat(Constants.ERRORFILE).concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
+            this.errorFileName=this.getApiCode().concat("_").concat(name).concat(Constants.ERRORFILE).concat(DateHelper.getDateAddYyMmDdHhMmSs(0)).concat(".txt");
             this.errorConfigFileName=this.errorFileName;
             String[] split =name.split("_");
             if(split.length>=3){
