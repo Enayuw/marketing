@@ -176,102 +176,97 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                 }
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】存量客户监控-文件校验失败";
                 alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
-        }else {
-            param.put("status","1");
-            List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
-            if(successList!=null&&successList.size()>0){
-                StringBuilder content = new StringBuilder();
-                content.append("<br/>您好：【")
-                        .append(compShortName)
-                        .append("-")
-                        .append(apiCode)
-                        .append("】上传文件成功<br/>")
-                       .append("&nbsp;&nbsp;<br/>");
-                for (LoadResult lr:successList){
-                    if(lr.getFileName().endsWith(".txt")){
-                        content.append("&nbsp;&nbsp;&nbsp;文件名称：")
-                                .append(lr.getFileName())
-                                .append(" &nbsp;上传时间：")
-                                .append(alarmDate)
-                                .append(" &nbsp;上传数据量：")
-                                .append(lr.getTaskNumber())
-                                .append("&nbsp;入库数据量：")
-                                .append(lr.getActualNumber())
-                                .append("&nbsp;异常数据量：")
-                                .append((lr.getTaskNumber()-lr.getActualNumber()))
-                                .append("<br/>");
-                    }else if(lr.getFileName().endsWith(".bean")){
-                        content.append("&nbsp;&nbsp;&nbsp;文件名称：")
-                                .append(lr.getFileName())
-                                .append(" &nbsp;上传时间：")
-                                .append(alarmDate)
-                                .append("<br/>");
-                    }
+        }
+        param.put("status","1");
+        List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
+        if(successList!=null&&successList.size()>0){
+            StringBuilder content = new StringBuilder();
+            content.append("<br/>您好：【")
+                    .append(compShortName)
+                    .append("-")
+                    .append(apiCode)
+                    .append("】上传文件成功<br/>")
+                   .append("&nbsp;&nbsp;<br/>");
+            for (LoadResult lr:successList){
+                if(lr.getFileName().endsWith(".txt")){
+                    content.append("&nbsp;&nbsp;&nbsp;文件名称：")
+                            .append(lr.getFileName())
+                            .append(" &nbsp;上传时间：")
+                            .append(alarmDate)
+                            .append(" &nbsp;上传数据量：")
+                            .append(lr.getTaskNumber())
+                            .append("&nbsp;入库数据量：")
+                            .append(lr.getActualNumber())
+                            .append("&nbsp;异常数据量：")
+                            .append((lr.getTaskNumber()-lr.getActualNumber()))
+                            .append("<br/>");
+                }else if(lr.getFileName().endsWith(".config")){
+                    content.append("&nbsp;&nbsp;&nbsp;文件名称：")
+                            .append(lr.getFileName())
+                            .append(" &nbsp;上传时间：")
+                            .append(alarmDate)
+                            .append("<br/>");
                 }
-
-                String monitorType="";
-                switch (marketingTask.getMonitorType()){
-                    case 1:
-                        monitorType="一次性";
-                        break;
-                    case 2:
-                        monitorType="首次全量,再定期变动";
-                        break;
-                    case 3:
-                        monitorType="定期变动";
-                        break;
-                    case 4:
-                        monitorType="全量定期查询";
-                        break;
-                    default:
-                        break;
-
-                }
-                String monitorStatus="";
-                switch (marketingTask.getMonitorStatus()){
-                    case 1:
-                        monitorStatus="监控中";
-                        break;
-                    case 2:
-                        monitorStatus="停止监控";
-                        break;
-                    case 3:
-                        monitorStatus="监控任务配置异常";
-                        break;
-                    case 4:
-                        monitorStatus="监控到期";
-                        break;
-                    case 0:
-                        monitorStatus="监控任务待配置";
-                        break;
-                    default:
-                        break;
-                }
-                StringBuilder sb1=new StringBuilder();
-                sb1.append(content);
-                sb1.append("&nbsp;&nbsp;&nbsp;任务信息：")
-                        .append(" &nbsp;批次号：")
-                        .append(marketingTask.getBatchNumber()==null?"": marketingTask.getBatchNumber())
-                        .append(" &nbsp;策略编号：")
-                        .append(marketingTask.getStrategyId()==null?"": marketingTask.getStrategyId())
-                        .append("&nbsp;监控模式：")
-                        .append(monitorType)
-                        .append("&nbsp;监控开始时间：")
-                        .append(marketingTask.getStartDate()==null?"": marketingTask.getStartDate())
-                        .append("&nbsp;监控截止时间：")
-                        .append(marketingTask.getCloseDate()==null?"": marketingTask.getCloseDate())
-                        .append("&nbsp;监控状态：")
-                        .append(monitorStatus);;
-//                if(apiCode.equals(Constants.APICODE_PPD_QA)||apiCode.equals(Constants.APICODE_PPD)){
-//                    sb1.append("&nbsp;重点字段策略编号：")
-//                            .append(marketingTask.getSecStrategyId()==null?"": marketingTask.getSecStrategyId());
-//                }
-                sb1.append("<br/>");
-                log.error("任务信息：{}",sb1);
-                content.append("<br/>");
-                String title="【上传通知】【"+compShortName+"-"+apiCode+"】存量客户监控-文件上传结果通知";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
             }
+
+            String monitorType="";
+            switch (marketingTask.getMonitorType()){
+                case 1:
+                    monitorType="一次性";
+                    break;
+                case 2:
+                    monitorType="首次全量,再定期变动";
+                    break;
+                case 3:
+                    monitorType="定期变动";
+                    break;
+                case 4:
+                    monitorType="全量定期查询";
+                    break;
+                default:
+                    break;
+
+            }
+            String monitorStatus="";
+            switch (marketingTask.getMonitorStatus()){
+                case 1:
+                    monitorStatus="监控中";
+                    break;
+                case 2:
+                    monitorStatus="停止监控";
+                    break;
+                case 3:
+                    monitorStatus="监控任务配置异常";
+                    break;
+                case 4:
+                    monitorStatus="监控到期";
+                    break;
+                case 0:
+                    monitorStatus="监控任务待配置";
+                    break;
+                default:
+                    break;
+            }
+            StringBuilder sb1=new StringBuilder();
+            sb1.append(content);
+            sb1.append("&nbsp;&nbsp;&nbsp;任务信息：")
+                    .append(" &nbsp;批次号：")
+                    .append(marketingTask.getBatchNumber()==null?"": marketingTask.getBatchNumber())
+                    .append(" &nbsp;策略编号：")
+                    .append(marketingTask.getStrategyId()==null?"": marketingTask.getStrategyId())
+                    .append("&nbsp;监控模式：")
+                    .append(monitorType)
+                    .append("&nbsp;监控开始时间：")
+                    .append(marketingTask.getStartDate()==null?"": marketingTask.getStartDate())
+                    .append("&nbsp;监控截止时间：")
+                    .append(marketingTask.getCloseDate()==null?"": marketingTask.getCloseDate())
+                    .append("&nbsp;监控状态：")
+                    .append(monitorStatus);
+            sb1.append("<br/>");
+            log.error("任务信息：{}",sb1);
+            content.append("<br/>");
+            String title="【上传通知】【"+compShortName+"-"+apiCode+"】存量客户监控-文件上传结果通知";
+            alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
         }
     }
 

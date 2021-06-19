@@ -155,7 +155,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }else{
                                 fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
                             }
-                            validDataAlarmService.deleteMonitorFileUpload(apiCode,context.getZipFileName());
+                            validDataAlarmService.deleteMonitorFileUpload(apiCode,Constants.MYREGEX.split(context.getZipFileName())[0]);
                         }else {
                             context.setLocalZipFilePath(path.concat("sftp_data/").concat(apiCode).concat("/"));
                             String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);

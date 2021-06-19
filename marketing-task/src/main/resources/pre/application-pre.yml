@@ -69,6 +69,6 @@ MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
 corn:
-  taskJob: 00 00 01 * * ?
+  taskJob: 0 0 11 1/1 1/1 ? 2055-2056
 # 用来测试配置文件是否加载正确
 myenv: pre
