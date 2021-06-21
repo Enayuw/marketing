@@ -283,12 +283,9 @@ public class FileCheckServiceImpl implements FileCheckService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date dateFirst = new Date();
         Date dateLast = dateFormat.parse(value);
-        if(!Constants.APICODE_DAAS.contains(apiCode)&&!Constants.APICODE_DAAS_QA.contains(apiCode)){
-            if(!dateFirst.before(dateLast)){
-                return false;
-            }
+        if(!dateFirst.before(dateLast)){
+            return false;
         }
-
         return true;
     }
 

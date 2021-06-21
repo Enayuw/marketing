@@ -59,12 +59,7 @@ public class SignFileCheckTask implements Runnable {
                 log.error("获取ftp链接出错");
                 return;
             }
-            String signFileName="";
-            if(Constants.APICODE_360.equals(apiCode)||Constants.APICODE_360_QA.equals(apiCode)){
-                signFileName=apiCode+"_UploadCustomFileName"+today+"_"+today+".finish";
-            }else{
-                signFileName=apiCode+"_ReturnCompleted_"+today+".finish";
-            }
+            String signFileName=apiCode+"_ReturnCompleted_"+today+".finish";
             boolean exsits = ftp.isExsits(signFileName);
             String compShortName="";
             String companyMsg = IceClient.getCompanyMsg(apiCode);

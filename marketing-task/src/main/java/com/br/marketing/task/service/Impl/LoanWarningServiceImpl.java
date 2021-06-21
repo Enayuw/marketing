@@ -148,10 +148,17 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 log.error("重新处理异常数据出错",e);
             }
 
+            allList.addAll(onceList);
+            for (MarketingTask task : allList) {
+                Map<String,String> param =new HashedMap();
+                param.put("apiCode",apiCode);
+                param.put("batchNumber",task.getBatchNumber());
+                loanFileMapper.updateFileComplete(param);
+            }
+
             try {
                 String hkey= Constants.HX_FLAG_98_NUM+":"+apiCode;
                 Set<String> hkeys = redisChgService.hkeys(hkey);
-                allList.addAll(onceList);
                 Integer sum=0;
                 for (String batchNumber : hkeys) {
                     for (MarketingTask task : allList) {
