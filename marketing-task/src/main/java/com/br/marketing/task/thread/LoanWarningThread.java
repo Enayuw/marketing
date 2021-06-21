@@ -251,7 +251,7 @@ public class LoanWarningThread implements Callable<String> {
      */
     private boolean checkRedisNumber() {
         boolean flag=true;
-        if(apiCode.equals("7410431")){
+        if(apiCode.equals("7410431")||apiCode.equals("7410433")){
             return flag;
         }
         try{
