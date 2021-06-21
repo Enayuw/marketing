@@ -65,7 +65,7 @@ public class QaTaskJob extends AbstractSimpleElasticJob {
         }
         try {
             LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
-            loanWarningService.process(customer);
+            loanWarningService.process(customer,context);
             //推送消息到pushQueue，进行下一流程处理
             RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
 
