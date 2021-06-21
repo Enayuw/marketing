@@ -60,7 +60,7 @@ public class TaskJob extends AbstractSimpleElasticJob {
                     LoanWarningService loanWarningService=Scheduler.ac.getBean(LoanWarningServiceImpl.class);
                     loanWarningService.process(customer,context);
                     //推送消息到pushQueue，进行下一流程处理
-                    RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
+                    //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
                 }
             } catch (Exception e) {
                 log.error("程序跑批异常，apiCode={}",customer.getApiCode());

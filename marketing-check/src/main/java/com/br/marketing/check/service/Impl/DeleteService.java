@@ -172,7 +172,7 @@ public class DeleteService extends AbstractDataToDbService {
                 File successFile=new File( errorFilePathAndName+".success");
                 successFile.createNewFile();
                 if(successFile.exists()){
-                    sftpClient.uploadFile(remotePath,context.getTxtFileName()+".success",errorFilePathAndName+".success");
+                    sftpClient.uploadFile(remotePath,context.getErrorDataFileName()+".success",errorFilePathAndName+".success");
                 }
                 redisChgService.del(Constants.DELETE_MONITOR_ERROR + s2);
             }

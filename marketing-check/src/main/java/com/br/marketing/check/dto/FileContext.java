@@ -119,7 +119,12 @@ public class FileContext {
             this.errorConfigFileName=this.errorFileName;
             String[] split =name.split("_");
             if(split.length>=3){
-                errorDataFileName=split[0].concat("_").concat(split[1]).concat("_error_").concat(split[2]).concat(".txt");
+                if(StringUtils.isNotEmpty(this.type)&&"delete".equals(this.type)){
+                    errorDataFileName=apiCode.concat("_").concat(name).concat("_error_").concat( DateHelper.getDateAddYyMmDd(0)).concat(".txt");
+                }else {
+                    errorDataFileName=split[0].concat("_").concat(split[1]).concat("_error_").concat(split[2]).concat(".txt");
+                }
+
             }
         }
     }
