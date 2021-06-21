@@ -13,7 +13,7 @@
                         http://www.dangdang.com/schema/ddframe/job 
                         http://www.dangdang.com/schema/ddframe/job/job.xsd 
                         ">
-    <context:component-scan base-package="com.br.marketing.task.job"/>
+    <context:component-scan base-package="com.br.marketing.push.job"/>
 
     <reg:zookeeper id="regCenter"
                    server-lists="${SERVER_LISTS}"
@@ -26,29 +26,29 @@
                    connection-timeout-milliseconds="60000"/>
 
 
-    <job:simple id="taskJob"
-                class="com.br.marketing.task.job.TaskJob"
-                cron="0 0/30 * * * ? "
-                description="跑批任务"
+    <job:simple id="mergeJob"
+                class="com.br.marketing.push.job.MergeJob"
+                cron="0 0/10 * * * ? "
+                description="合并任务"
                 registry-center-ref="regCenter"
-                sharding-total-count="2"
-                sharding-item-parameters="0=A,1=B"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
                 monitor-execution="true"
-                failover="true"
+                failover="false"
                 misfire="false"
                 disabled="true"
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="taskJob-QA"
-                class="com.br.marketing.task.job.TaskJob"
+    <job:simple id="mergeJob-QA"
+                class="com.br.marketing.push.job.QaMergeJob"
                 cron="0 0 11 1/1 1/1 ? 2055-2056"
-                description="跑批任务-测试专用"
+                description="合并任务-测试专用"
                 registry-center-ref="regCenter"
-                sharding-total-count="2"
-                sharding-item-parameters="0=A,1=B"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
                 monitor-execution="true"
-                failover="true"
+                failover="false"
                 misfire="false"
                 disabled="true"
                 overwrite="true"

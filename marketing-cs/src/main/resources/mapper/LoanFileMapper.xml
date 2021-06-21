@@ -12,7 +12,7 @@
 		<if test="batchNumber!=null">
 		AND batch_number = #{batchNumber}
 		</if>
-		AND create_time > CURDATE()
+		AND create_time >date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 		AND zipFile_name=#{fileName}
 		</if>
@@ -30,7 +30,7 @@
 		WHERE
 			api_code = #{apiCode}
 			AND status=0
-		AND create_time >= CURDATE()
+		AND create_time >= date_add(curdate(), interval -1 day)
 	</select>
 
 	
@@ -100,7 +100,7 @@
 		api_code = #{apiCode}
 		AND status=0
 		AND
-		create_time >=CURDATE();
+		create_time >=date_add(curdate(), interval -1 day);
 	</select>
 
 
@@ -121,9 +121,9 @@
  		 WHERE
  		 api_code=#{apiCode}
  		 AND
-		 create_time>curdate()
+		 create_time>date_add(curdate(), interval -1 day)
 		 AND
-		 status &lt;&gt; 2
+		 status =0
 	</select>
 
 	<select id="queryBlf" parameterType="java.lang.String" resultType="com.br.marketing.entity.LoanFile">
@@ -176,7 +176,7 @@
 		stra_his_file
 		WHERE
 		`status` = 0
-		AND create_time>curdate()
+		AND create_time>date_add(curdate(), interval -1 day)
 		<if test="_parameter!=null">
 			AND `api_code` =#{apiCode}
 		</if>
@@ -189,7 +189,7 @@
 			stra_his_file
 		WHERE
 			api_code = #{apiCode}
-		AND create_time >= CURDATE()
+		AND create_time >= date_add(curdate(), interval -1 day)
 		AND (sign_file_status=2
 		OR zip_status=2)
 	</select>
@@ -202,7 +202,7 @@
 		where
 		api_code=#{apiCode}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 			AND zipFile_name=#{fileName}
 		</if>
@@ -221,7 +221,7 @@
 		where
 		api_code=#{apiCode}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 			AND zipFile_name=#{fileName}
 		</if>
@@ -254,7 +254,7 @@
 	</update>
 
 	<update id="updateSignFileStatus" parameterType="java.lang.String">
-		update stra_his_file set sign_file_status=2 where api_code=#{apiCode} and   create_time>=CURDATE()
+		update stra_his_file set sign_file_status=2 where api_code=#{apiCode} and   create_time>=date_add(curdate(), interval -1 day)
 	</update>
 	<update id="updateFtpFileInfo" parameterType="com.br.marketing.entity.LoanFile">
 		UPDATE  stra_his_file
@@ -267,7 +267,7 @@
 		AND
 		batch_number=#{batchNumber}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 
 	</update>
 
@@ -301,7 +301,7 @@
 		where
 		api_code=#{apiCode}
 		AND batch_number=#{batchNumber}
-		AND create_time>DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 DAY),'%Y-%m-%d')
+		AND create_time>date_add(curdate(), interval -1 day)
 
 	</update>
 	<select id="selectFileComplete" parameterType="map" resultType="com.br.marketing.entity.LoanFile">
@@ -312,7 +312,7 @@
 		where
 		api_code=#{apiCode}
 		AND batch_number=#{batchNumber}
-		AND create_time>DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 DAY),'%Y-%m-%d')
+		AND create_time>date_add(curdate(), interval -1 day)
 
 	</select>
 </mapper>

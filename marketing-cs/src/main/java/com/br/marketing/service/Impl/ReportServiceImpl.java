@@ -105,13 +105,13 @@ public  class ReportServiceImpl implements EmailService {
                     status="已开始,正在生成结果文件";
                     progress="30%";
                 }else if(statusList.size()==1&&statusList.get(0)==1){
-                    status="进行中,文件已上传至内部ftp,等待同步到客户sftp";
+                    status="进行中,文件已上传至内部sftp,等待同步到客户sftp";
                     progress="60%";
                 }else if(statusList.size()==1&&statusList.get(0)==2){
                     status="已结束,文件已回传至客户sftp";
                     progress="100%";
                 }else if(statusList.size()==2&&statusList.contains(1)&&statusList.contains(0)){
-                    status="进行中,文件正在上传至内部ftp";
+                    status="进行中,文件正在上传至内部sftp";
                     progress="50%";
                 }else if(statusList.size()==2&&statusList.contains(1)&&statusList.contains(2)){
                     status="进行中,文件正在同步至客户sftp";
