@@ -190,6 +190,7 @@
 		WHERE
 			api_code = #{apiCode}
 		AND create_time >= date_add(curdate(), interval -1 day)
+		AND status=0
 		AND (sign_file_status=2
 		OR zip_status=2)
 	</select>
