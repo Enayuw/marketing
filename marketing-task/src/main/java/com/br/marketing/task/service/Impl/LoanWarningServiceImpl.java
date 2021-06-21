@@ -13,7 +13,9 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.LoanWarningThread;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,12 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     private Integer pageSize;
     @Value("${otherConfig.warning.path:00}")
     private String path;
+    @Value("${otherConfig.mom.appSecretKey:00}")
+    private String appSecretKey;
+
+    @Value("${otherConfig.huaXiangInterface.getReport:00}")
+    private String url;
+
     @Resource
     MarketingTaskMapper marketingTaskMapper;
     @Resource
@@ -56,20 +64,15 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     ProFieldsClient proFieldsClient;
 
-    @Value("${otherConfig.mom.appSecretKey:00}")
-    private String appSecretKey;
-
-    @Value("${otherConfig.huaXiangInterface.getReport:00}")
-    private String url;
-    private Map<String,String> map=new HashMap<>();
     @Resource
     RedisChgService redisChgService;
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
     @Override
-    public void process(Customer customer){
-
+    public void process(Customer customer, JobExecutionMultipleShardingContext context){
+        int count=context.getShardingTotalCount();
+        List<Integer> itemList =context.getShardingItems();
         String type=customer.getType();
         ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
@@ -79,13 +82,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             warrningExecutor = BrExecutors.getThreadPool(20,20);
         }
         try{
-            List<MarketingTask> incrList=new ArrayList<>();
             List<MarketingTask> allList=new ArrayList<>();
             List<MarketingTask> onceList=new ArrayList<>();
-            initBatchNumList(incrList,allList,onceList,apiCode);
-            if("incr".equals(type)){
-                this.generateIncreTask(incrList,warrningExecutor);
-            }
+            initBatchNumList(allList,onceList,apiCode,context);
             if("all".equals(type)){
                 this.generateAllTask(allList,warrningExecutor);
             }
@@ -119,44 +118,65 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i);
                         i++;
-                        redisChgService.hdel(hkey,errorFile);
                     }
-                    redisChgService.del(hkey);
+                    warrningExecutor.shutdown();
+                    while (true){
+                        if(warrningExecutor.isTerminated()){
+                            log.warn("重试任务所有线程都执行结束");
+                            break;
+                        }
+                        try {
+                            Thread.sleep(3000);
+                            log.warn("waiting-----------");
+                        }catch (Exception e){
+                        }
+                    }
+
+                    for(String errorFile:hkeys){
+                        String batchNumber = redisChgService.hget(hkey, errorFile);
+                        MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
+                        if(itemList.contains(task.getId()%count)) {
+                            Map<String,String> param =new HashedMap();
+                            param.put("apiCode",apiCode);
+                            param.put("batchNumber",batchNumber);
+                            loanFileMapper.updateFileComplete(param);
+                            redisChgService.hdel(hkey,errorFile);
+                        }
+                    }
                 }
             }catch (Exception e){
                 log.error("重新处理异常数据出错",e);
             }
 
-
-            /**
-             * 等待所有任务都执行完成
-             **/
-            warrningExecutor.shutdown();
-            while (true){
-                if(warrningExecutor.isTerminated()){
-                    log.warn("所有线程都执行结束");
-                    break;
-                }
-                try {
-                    Thread.sleep(3000);
-                }catch (Exception e){
-                }
-            }
-
             try {
-                String flagKey=Constants.HX_FLAG_98_NUM+ apiCode+"_"+DateHelper.getDateAddYyMmDd(0);
-                String s = redisChgService.get(flagKey);
-                if(StringUtils.isNotEmpty(s)&&Integer.parseInt(s)>0){
+                String hkey= Constants.HX_FLAG_98_NUM+":"+apiCode;
+                Set<String> hkeys = redisChgService.hkeys(hkey);
+                allList.addAll(onceList);
+                Integer sum=0;
+                for (String batchNumber : hkeys) {
+                    for (MarketingTask task : allList) {
+                        if(task.getBatchNumber().equals(batchNumber)){
+                            if(itemList.contains(task.getId()%count)) {
+                                String flagKey=Constants.HX_FLAG_98_NUM+ batchNumber+"_"+DateHelper.getDateAddYyMmDd(0);
+                                String num = redisChgService.get(flagKey);
+                                if(StringUtils.isNotEmpty(num)&&Integer.parseInt(num)>0){
+                                    sum+=Integer.parseInt(num);
+                                }
+                                redisChgService.expire(flagKey,172800);
+                            }
+                        }
+                    }
+                }
+                if(sum>0){
                     HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                             String.format("【紧急报警】【%s】存量客户监控- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
-                                    ,apiCode,s));
+                                    ,apiCode,sum));
                     log.error("hxResult product flag error",hxResultRuntimeException);
                 }
-                redisChgService.expire(flagKey,172800);
+
             }catch (Exception e){
                 log.error("发送报警出错",e);
             }
-
         }catch (Exception e){
             log.error("预警调度出错",e);
         }
@@ -173,6 +193,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      */
     private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num){
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
+        Map<String,String> paramMap =new HashedMap();
+        paramMap.put("apiCode",apiCode);
+        paramMap.put("batchNumber",batchNumber);
+        LoanFile  file =loanFileMapper.selectFileComplete(paramMap);
         String  strategyStr=strategyCS.strategyIdCheck(apiCode, marketingTask.getStrategyId());
         if(StringUtils.isEmpty(strategyStr)){
             log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",apiCode, marketingTask.getStrategyId());
@@ -222,8 +246,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("url",url);
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
+            param.put("fileId",file.getId().toString());
             warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                    redisService, proFieldsClient,flag,map,redisChgService));
+                    redisService, proFieldsClient,flag,redisChgService));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -242,14 +267,13 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 continue;
             }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
-                if(StringUtils.isEmpty(strategyStr)){
-                    log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
-                    continue;
-                }
-                log.warn("batchNumber:{}", blt.getBatchNumber());
-                blt.setTableName("b_marketing_user_"+blt.getApiCode());
-                String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
-                        + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            if(StringUtils.isEmpty(strategyStr)){
+                log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
+                continue;
+            }
+            blt.setTableName("b_marketing_user_"+blt.getApiCode());
+            String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
+                    + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
             /**
              * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
@@ -257,7 +281,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             LoanFile blf = new LoanFile();
             blf.setApiCode(blt.getApiCode());
             blf.setFilePath(descPath);
-            blf.setStatus(1);
+            blf.setStatus(3);
             blf.setType(2);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
@@ -321,7 +345,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             LoanFile blf=new LoanFile();
             blf.setApiCode(blt.getApiCode());
             blf.setFilePath(descPath);
-            blf.setStatus(1);
+            blf.setStatus(3);
             blf.setType(1);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
@@ -341,67 +365,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
 
         }
 
-    }
-    /**
-     * 提交增量监控任务
-     * @param list
-     */
-    private void generateIncreTask(List<MarketingTask> list, ExecutorService warrningExecutor){
-        if(list==null||list.size()==0) {
-            return;
-        }
-        Integer totalNum= marketingUserMapper.getTotalNum(list);
-        if(totalNum==0){
-            log.error("流失预警当天增量监控总数为0，请关注");
-        }
-        log.warn("当天增量监控总数:{}",totalNum);
-        String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(1);
-        for (MarketingTask blt : list) {
-            String  strategyStr=strategyCS.strategyIdCheck(blt.getApiCode(),blt.getStrategyId());
-            if(StringUtils.isEmpty(strategyStr)){
-                log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
-                continue;
-            }
-                List<MarketingTask> batctList=new ArrayList<>();
-                blt.setHitDate(dateAddYyMmDd);
-                batctList.add(blt);
-                Integer batctNum= marketingUserMapper.getTotalNum(batctList);
-            if(batctNum>0) {
-                log.warn("batchNumber:{}", blt.getBatchNumber());
-                blt.setTableName("b_marketing_user_chg");
-                String descPath = path + "/incr/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
-                        + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-                /**
-                 * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
-                 */
-                LoanFile blf = new LoanFile();
-                blf.setApiCode(blt.getApiCode());
-                blf.setFilePath(descPath);
-                blf.setStatus(1);
-                blf.setType(0);
-                blf.setBatchNumber(blt.getBatchNumber());
-                blf.setExpectedNum(batctNum);
-                loanFileMapper.insertFile(blf);
-
-
-                /**
-                 * 增量任务提交后，在b_task_status表中插入一条数据（标识当天增量任务已执行）
-                 */
-                TaskStatus bts = new TaskStatus();
-                bts.setIncrStatus(1);
-                bts.setIncrDate(DateHelper.getDateAdd(0));
-                bts.setApiCode(blt.getApiCode());
-                bts.setBatchNumber(blt.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.insertTaskStatus(bts);
-                core(blt, descPath,true,strategyStr,warrningExecutor,blf.getId().toString());
-
-
-
-
-            }
-        }
     }
 
     /**
@@ -444,7 +407,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         param.put("isRepair",blt.getIsRepair());
                         param.put("fileId",fileId);
                         warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                                redisService, proFieldsClient,isIncr,map,redisChgService));
+                                redisService, proFieldsClient,isIncr,redisChgService));
                         Thread.sleep(100);
                     }
                     i++;
@@ -456,51 +419,37 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     }
 
     /**
-     * 初始化当日需要监控的任务信息，并将增量监控和全量监控区分开来
-     * @param incrList
+     * 初始化当日需要监控的任务信息
      * @param allList
      */
-    private void initBatchNumList(List<MarketingTask> incrList, List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode){
+    private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,JobExecutionMultipleShardingContext context){
+        int count=context.getShardingTotalCount();
+        List<Integer> itemList =context.getShardingItems();
         try{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
             log.warn("当日批次数量--{}",list.size());
             for(MarketingTask blt:list) {
-                if (1 == blt.getMonitorType()) {
-                    List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
-                    if (bts.size()==0) {
-                        onceList.add(blt);
-                    }
-                } else if (2 == blt.getMonitorType()) {
-                    TaskStatus bts = taskStatusMapper.queryBts(blt.getBatchNumber());
-                    if (bts == null) {
-                        allList.add(blt);
-                    } else {
-                        //如果第一次全量执行结束时间早于今天，则该批次任务今天按增量处理
-                        String updateTime = bts.getUpdateTime();
-                        if (DateHelper.daysBetween(updateTime) > 0) {
-                            TaskStatus bts1 = taskStatusMapper.queryTodayIncrBts(blt.getBatchNumber());
-                            if (bts1 == null) {
-                                incrList.add(blt);
-                            } else {
-                                log.warn("当日已处理--{}", blt.getBatchNumber());
-                            }
+                if(itemList.contains(blt.getId()%count)){
+                    if (1 == blt.getMonitorType()) {
+                        List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
+                        if (bts.size()==0) {
+                            onceList.add(blt);
+                        }
+                    }else if(4 == blt.getMonitorType()){
+                        int days = 0;
+                        try {
+                            days = DateHelper.daysBetween(blt.getStartDate());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        if(days%Constants.frequencyMap.get(blt.getFrequency())==0){
+                            allList.add(blt);
                         }
                     }
-                }else if(3 == blt.getMonitorType()){
-                    incrList.add(blt);
-                }else if(4 == blt.getMonitorType()){
-                    int days = 0;
-                    try {
-                        days = DateHelper.daysBetween(blt.getStartDate());
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    if(days%Constants.frequencyMap.get(blt.getFrequency())==0){
-                        allList.add(blt);
-                    }
                 }
+
             }
-            log.warn("当日增量批次数量--{}、全量批次数量--{}，一次性数量--{}",incrList.size(),allList.size(),onceList.size());
+            log.warn("当日全量批次数量--{}，一次性数量--{}",allList.size(),onceList.size());
         }catch (Exception e){
             log.error("初始化任务出错",e);
         }

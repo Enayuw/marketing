@@ -18,8 +18,6 @@ public interface LoanFileMapper {
 
     void updateFile(LoanFile blf);
 
-    List<LoanFile> queryFileName(String date);
-
     void update(LoanFile blf);
 
     LoanFile queryBlf(String batchNumber);
@@ -30,14 +28,6 @@ public interface LoanFileMapper {
      * @return
      */
     List<LoanFile> queryTodayFile(String apiCode);
-
-    List<LoanFile> query360File();
-
-    List<LoanFile> queryPpdBlf(String batchNumber);
-
-    List<String> queryApiCodes();
-
-    void updateExpectedNum(LoanFile blf);
 
     List<LoanFile> queryResultByApiCode(String apiCode);
 
@@ -99,16 +89,9 @@ public interface LoanFileMapper {
      */
     void updateZipFileStatus(Map<String, String> param);
 
-    /**
-     * 查询新增数据的文件结果
-     * @param apiCode apiCode
-     * @return 文建结果对象
-     */
-    LoanFile queryIncrLf(String apiCode);
 
-    /**
-     * 更新记录中的压缩包名称
-     * @param blf
-     */
-    void updateHnnxFile(LoanFile blf);
+
+    void updateFileComplete(Map<String, String> param);
+
+    LoanFile selectFileComplete(Map<String, String> param);
 }

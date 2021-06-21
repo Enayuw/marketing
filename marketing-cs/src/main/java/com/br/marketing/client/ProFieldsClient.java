@@ -26,8 +26,6 @@ public class ProFieldsClient {
     RedisService redisService;
     @Resource
     RedisTemplate redisTemplate;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
     @Value("${otherConfig.warning.ruleList:00}")
     private String rules;
 

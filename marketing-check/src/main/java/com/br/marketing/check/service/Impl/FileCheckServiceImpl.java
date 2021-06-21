@@ -203,18 +203,16 @@ public class FileCheckServiceImpl implements FileCheckService {
             return false;
         });
 
-        boolean flag;
+        boolean flag=true;
         if(fileList.length!=1){
             errorMessage.append("压缩文件找不到上传数据文件");
             errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
             return false;
         }
-        if(fileList[0].getName().equals(context.getTxtFileName())){
+        if(!fileList[0].getName().equals(context.getTxtFileName())){
             File file1 = fileList[0];
             String name = file1.getName();
             flag = SftpToDbUtils.vaildFileName(name, context.getApiCode(), errorMessage);
-        }else {
-            flag=false;
         }
         if(!flag){
             errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
