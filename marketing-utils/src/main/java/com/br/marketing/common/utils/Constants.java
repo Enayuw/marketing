@@ -18,7 +18,7 @@ public class Constants {
     public static Map<String,String> headMap = new HashMap<>();
     public static final String PUBLIC_APICODE="4002511";
 
-    public static final String  APICODE_SHAZI="4002823,7410431";
+    public static final String  APICODE_SHAZI="4002823,7410431,7410433";
 
     public static final String  TMP_FILE_PATH="/opt/data/inloan/download/marketing/tmp/";
 
