@@ -20,7 +20,7 @@ public class Constants {
 
     public static final String  APICODE_SHAZI="4002823,7410431";
 
-    public static final String  TMP_FILE_PATH="/opt/data/inloan/download/warning/tmp/";
+    public static final String  TMP_FILE_PATH="/opt/data/inloan/download/marketing/tmp/";
 
 
     public static final String  DELETE_MONITOR_ERROR= "DELETE_MONITOR_ERROR";
