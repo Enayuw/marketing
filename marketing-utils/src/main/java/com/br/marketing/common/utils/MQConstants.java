@@ -22,6 +22,7 @@ public class MQConstants {
     public static final String Marketing_PreUser_Receive = "Marketing_PreUser_Receive";
     public static final String Marketing_Push_CustomerService_Search_Delay = "Marketing_Push_CustomerService_Search_Delay";
     public static final String Marketing_Push_CustomerService_Search = "Marketing_Push_CustomerService_Search";
+    public static final String Marketing_Push_CustomerService = "Marketing_Push_CustomerService";
 
     /**
      * routingkey
@@ -34,6 +35,7 @@ public class MQConstants {
     public static final String RoutingKey_Marketing_Push_CustomerService_Search_topic = "Marketing.Push.CustomerService.Search.#";
     public static final String RoutingKey_Marketing_Push_CustomerService_Search_Delay = "Marketing.Push.CustomerService.Search.Delay";
     public static final String RoutingKey_Marketing_Push_CustomerService_Search = "Marketing.Push.CustomerService.Search";
+    public static final String RoutingKey_Marketing_Push_CustomerService = "Marketing.Push.CustomerService";
 
 
 
