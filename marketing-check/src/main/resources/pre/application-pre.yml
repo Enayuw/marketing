@@ -75,13 +75,4 @@ MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
-corn:
-  closeDateAlarmJob: 00 00 10 * * ?
-  sftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  ftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  finishPutJob: 00 00 10 * * ?
-  ftpToDbJob: 00 0/2 00-23 * * ?
-  sftpToDbJob: 00 0/2 00-23 * * ?
-  monitoringExpirationAlarmJob: 00 00 10 * * ?
-  progressReportJob: 00 00 09 * * ?
-  reportJob: 00 00 18 * * ?
+

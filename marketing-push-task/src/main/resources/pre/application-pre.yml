@@ -54,8 +54,6 @@ otherConfig:
     sftpPort: 9999
     sftpUser: BRmarketing_pre
     sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
-    email:
-      notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
 
 spring:
   rabbitmq:
