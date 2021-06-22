@@ -1,3 +1,28 @@
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.DecimalFormat;
+import java.util.Date;
+
+import com.br.marketing.entity.MarketingStrategyProduct;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.es.bean.Product;
+import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.mapper.MarketingStrategyProductMapper;
+import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
+import com.google.common.collect.Lists;
+
+import java.util.*;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -12,6 +37,8 @@ import com.br.marketing.common.utils.ThreeDes;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.ProInSys;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.bean.QueryBaseBean;
 import org.junit.Test;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
@@ -21,9 +48,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.*;
 
 
@@ -161,6 +185,181 @@ public class redis {
         System.out.println(acd1);
         int abd = s.indexOf("abd");
         System.out.println(abd);
+    }
+
+    @Autowired
+    StraHisFileMapper straHisFileMapper;
+
+    @Autowired
+    MarketingHistoryEsService marketingHistoryEsService;
+
+    @Autowired
+    MarketingTaskMapper marketingTaskMapper;
+
+    @Autowired
+    MarketingStrategyProductMapper productMapper;
+
+    DecimalFormat df = new DecimalFormat("######0.000");
+    @Test
+    public void testScript(){
+//        Date date = new Date();
+//        String apiCode = "7410431";
+//        for (int k = 0; k < 10; k++) {
+//            final Integer m = k;
+//            new Thread(()->{
+//            //region 跑测试数据
+//            double scoreA = 0.001;
+//            double scoreB = 0.001;
+//
+//            String number = "7410431_20210621172100_yp_test6_" + String.valueOf(m);
+//            StraHisFile file = new StraHisFile();
+//            file.setApiCode(apiCode);
+//            file.setBatchNumber(number);
+//            Date date1 = new Date();
+//            file.setCreateTime(date1);
+//            file.setUpdateTime(date1);
+//            file.setStatus(2);
+//            file.setZipStatus(1);
+//            file.setScoreStatus(2);
+//            file.setFilePath("");
+//            file.setFileSize("0");
+//            file.setType(1);
+//            straHisFileMapper.insertSelective(file);
+//
+//            MarketingStrategyProduct product1 = new MarketingStrategyProduct();
+//            product1.setFileId(file.getId());
+//            product1.setApiCode(apiCode);
+//            product1.setCusBatchNumber(number);
+//            product1.setBatchNumber(number);
+//            product1.setStrategyId("DTM_BR0000005");
+//            product1.setProductName("scorencashonszyxxy");
+//            product1.setProductVersion("S1_0");
+//            product1.setIsDel(1);
+//            product1.setCreateTime(date1);
+//
+//            MarketingStrategyProduct product2 = new MarketingStrategyProduct();
+//            product2.setFileId(file.getId());
+//            product2.setApiCode(apiCode);
+//            product2.setCusBatchNumber(number);
+//            product2.setBatchNumber(number);
+//            product2.setStrategyId("DTM_BR0000005");
+//            product2.setProductName("scoremcashonxhqbdzcd");
+//            product2.setProductVersion("S1_0");
+//            product2.setIsDel(1);
+//            product2.setCreateTime(date1);
+//            productMapper.insertSelective(product1);
+//            productMapper.insertSelective(product2);
+//
+//            MarketingTask task = new MarketingTask();
+//            task.setApiCode(apiCode);
+//            task.setBatchNumber(number);
+//            task.setFileName("1");
+//            task.setStrategyId("DTM_BR0000005");
+//            task.setFrequency("1");
+//            task.setCreateTime("2021-06-19 00:00:00");
+//            task.setUpdateTime("2021-06-19 01:00:00");
+//            task.setMonitorStatus(1);
+//            task.setStatus(2);
+//            task.setTaskNumber(0);
+//            task.setActualNumber(0);
+//            task.setIncrement(0);
+//            task.setBegin(0);
+//            task.setEnd(0);
+//            task.setTableName("1");
+//            task.setStrategyName("1");
+//            task.setStartDate("2021-06-19");
+//            task.setCloseDate("2021-06-20");
+//            task.setMonitorModel(0);
+//            task.setIsCheck(0);
+//            task.setHitDate("");
+//            task.setErrorMessage("");
+//            task.setCusBatch(number);
+//            task.setMonitorType(0);
+//            task.setQueryBeginDate("2021-06-19");
+//            task.setQueryEndDate("2021-06-20");
+//            task.setStart(0);
+//            task.setLimit(0);
+//            task.setStrategyType("1");
+//            task.setIsRepair("1");
+//            task.setDataVolume(0);
+//            marketingTaskMapper.insertTask(task);
+//
+//            String filePath = "D:\\data\\test\\"+number+".text";
+//            File file1 = new File(filePath);
+//            Path path = Paths.get(filePath);
+//            if(!file1.getParentFile().exists()){
+//                file1.getParentFile().mkdirs();
+//            }
+//            if(!file1.exists()){
+//                try {
+//                    file1.createNewFile();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            try(BufferedWriter writer =
+//                        Files.newBufferedWriter(path, StandardCharsets.UTF_8,
+//                                StandardOpenOption.APPEND)) {
+//                writer.write("batchNumber,cusNum,scorencashonszyxxy_score,scoremcashonxhqbdzcd_score\r\n");
+//                ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(50, 50, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000));
+//                for (int i = 0; i < 1000000; i++) {
+//                    threadPoolExecutor.submit(()->{
+//                        //region 处理 数据入es和文件
+//                        String cusNum = "yp_b_" + String.valueOf(m)+"s_"+ i;
+//                        MarketingHistory bean = new MarketingHistory();
+//                        bean.setApiCode(apiCode);
+//                        bean.setIdCard("120222199" + String.valueOf(m) + i);
+//                        bean.setCell("188" + String.valueOf(m) + i);
+//                        bean.setName("燕萍_" + String.valueOf(m) + i);
+//                        bean.setRequestTime(date);
+//                        bean.setBatchNumber(number);
+//                        bean.setCusBatchNumber(number);
+//                        bean.setCusNum(cusNum);
+//                        bean.setStrategyId("DTM_BR0000005");
+//                        bean.setVersion("1");
+//                        bean.setFileId(file.getId().toString());
+//                        List<Product> products = new ArrayList<>();
+//                        for (int j = 0; j < 2; j++) {
+//                            Product product = new Product();
+//                            if (j == 0) {
+//                                product.setCode("scorencashonszyxxy");
+//                                product.setVersion("S1_0");
+//                                product.setCodeVersion("scorencashonszyxxy_S1_0");
+//                                scoreA = new BigDecimal(scoreA + 0.001).setScale(2,BigDecimal.ROUND_DOWN).doubleValue();
+//                                product.setScore(scoreA);
+//                            } else {
+//                                product.setCode("scoremcashonxhqbdzcd");
+//                                product.setVersion("S1_0");
+//                                product.setCodeVersion("scoremcashonxhqbdzcd_S1_0");
+//                                scoreB = new BigDecimal(scoreB + 0.001).setScale(2,BigDecimal.ROUND_DOWN).doubleValue();
+//                                product.setScore(scoreB);
+//                            }
+//                            product.setFlag("1");
+//                            products.add(product);
+//                        }
+//                        bean.setProduct(products);
+//                        marketingHistoryEsService.insert(bean, UUID.randomUUID().toString());
+//                        writer.write(number.concat(",").concat(cusNum).concat(",").concat(String.valueOf(scoreA))
+//                                .concat(",").concat(String.valueOf(scoreB)).concat("\r\n"));
+//                        //endregion
+//                    });
+//
+//                }
+//            }catch(Exception ex){
+//                System.out.println(ex.getMessage());
+//            }
+//            //endregion
+//            }).start();
+//        }
+//
+//        while(true){
+//            try {
+//                Thread.sleep(10000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
     }
 
 /*@Resource

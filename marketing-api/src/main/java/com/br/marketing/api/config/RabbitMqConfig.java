@@ -111,6 +111,25 @@ public class RabbitMqConfig {
                 .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
     }
 
+    /**
+     * 消费队列-推送智能客服
+     * @return
+     */
+    @Bean(name = MQConstants.Marketing_Push_CustomerService)
+    public Queue pushCustomerSearchQueue(){
+        return new Queue(MQConstants.Marketing_Push_CustomerService, true);
+    }
+
+    /**
+     * 绑定交换机- 消费队列-推送智能客服
+     * @return
+     */
+    @Bean
+    public Binding pushCustomerSearchBinding(){
+        return BindingBuilder.bind(pushCustomerSearchQueue())
+                .to(gateExchange())
+                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService);
+    }
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
