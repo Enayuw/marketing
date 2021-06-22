@@ -421,10 +421,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(!StringUtils.isNotBlank(dto.getJsonData().getTaskId())){
             throw new ParamValidErrorException("taskid必传");
         }
-        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCaseNum())
+        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCustNum())
                 || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
         if(checkJson){
-            throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+            throw new ParamValidErrorException("有用户数据的cell或custNum或groupType没有传输");
         }
         int size = dto.getJsonData().getDataItems().size();
         if(size>2000){
@@ -442,11 +442,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                MarketingPreUserDetailDTO t = dto.getJsonData().getDataItems().get(i);
 //                String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
 //                sqlSb.append(String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s')",dto.getApiCode()
-//                        ,dto.getJsonData().getTaskId(),t.getCaseNum(),t.getCell(),t.getGroupType(),t.getRegisterDate()
+//                        ,dto.getJsonData().getTaskId(),t.getCustNum(),t.getCell(),t.getGroupType(),t.getRegisterDate()
 //                        ,t.getReserveField1(),t.getReserveField2(),date,date)
 //                        .concat((i==dto.getJsonData().getDataItems().size()-1)?"":","));
 ////                String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s')", dto.getApiCode()
-////                        , dto.getJsonData().getTaskId(), t.getCaseNum(), t.getCell(), t.getGroupType(), t.getRegisterDate()
+////                        , dto.getJsonData().getTaskId(), t.getCustNum(), t.getCell(), t.getGroupType(), t.getRegisterDate()
 ////                        , t.getReserveField1(), t.getReserveField2(), date, date);
 ////                marketingUserMapper.insertBatchMarketingPreUserByDatas(dto.getApiCode(),dataStr);
 //            }
@@ -512,10 +512,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(!StringUtils.isNotBlank(dto.getJsonData().getRequestId())){
             throw new ParamValidErrorException("requestId必传");
         }
-//        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCaseNum())
+//        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCustNum())
 //                || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
 //        if(checkJson){
-//            throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+//            throw new ParamValidErrorException("有用户数据的cell或custNum或groupType没有传输");
 //        }
         int size = dto.getJsonData().getDataItems().size();
         if(size>2000){
@@ -603,10 +603,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(!StringUtils.isNotBlank(dto.getJsonData().getRequestId())){
             throw new ParamValidErrorException("requestId必传");
         }
-//        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCaseNum())
+//        boolean checkJson = dto.getJsonData().getDataItems().stream().anyMatch(t -> !StringUtils.isNotBlank(t.getCustNum())
 //                || !StringUtils.isNotBlank(t.getCell()) || !StringUtils.isNotBlank(t.getGroupType()));
 //        if(checkJson){
-//            throw new ParamValidErrorException("有用户数据的cell或caseNum或groupType没有传输");
+//            throw new ParamValidErrorException("有用户数据的cell或custNum或groupType没有传输");
 //        }
         int size = dto.getJsonData().getDataItems().size();
         if(size>2000){
@@ -657,18 +657,18 @@ public class PushRuleServiceImpl implements PushRuleService {
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             list.add(() -> {
-                if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCaseNum())) {
+                if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("无客户编号");
                 }
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
                         || !StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum()
                             .concat(":无grouptype或cell"));
                 }
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s')"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
-                        , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCaseNum()
+                        , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
                         , marketingPreUserDetailDTO.getCell(), marketingPreUserDetailDTO.getGroupType()
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
@@ -678,7 +678,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCaseNum()
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum()
                                 .concat("重复客户编号"));
                     } else {
                         throw ex;

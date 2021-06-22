@@ -280,7 +280,7 @@
 		VALUES
 		       <foreach collection="dataItems" separator="," item="data">
 		(
-			#{apiCode},#{tasdId},#{data.caseNum},#{data.cell},#{data.groupType}
+			#{apiCode},#{tasdId},#{data.custNum},#{data.cell},#{data.groupType}
 			<if test="data.registerDate != null">
 			,#{data.registerDate}
 			</if>

@@ -20,9 +20,9 @@ public class MarketingPreUserDetailDTO implements Serializable {
     private String groupType;
 
     @ApiModelProperty(value = "用户唯一编号，回调时用到")
-    @NotNull(message = "caseNum必传")
-    @NotEmpty(message = "caseNum必传")
-    private String caseNum;
+    @NotNull(message = "custNum必传")
+    @NotEmpty(message = "custNum必传")
+    private String custNum;
 
     @ApiModelProperty(value = "")
     private String registerDate;
