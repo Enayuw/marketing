@@ -58,7 +58,7 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
         long startTime = System.currentTimeMillis();
         boolean insert = false;
         for (int i = 0; i < 3; i++) {
-            JSONObject params = (JSONObject) JSONObject.toJSON(marketing);
+            JSONObject params = JSON.parseObject(JSON.toJSONString(marketing));
             params.put("_id", uuid);
             try {
                 String date = EsHandleUtil.getDateFromBatchNumber(batchNumber);
