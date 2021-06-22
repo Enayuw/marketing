@@ -43,9 +43,9 @@ otherConfig:
         sanxiang_url: http://zh-service/v1/getData
         haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: a9c57e4138807a9e18b439cd9dab275b
+        secretKey: b58783d4b67f942166f2ffad298080e4
         appName: marketing
-        outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
         outsideAppName: marketing-out
   userCenter:
         appName: loan-strategy
