@@ -116,8 +116,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     int i=1;
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
-                        this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i);
-                        i++;
+                        MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
+                        if(itemList.contains(task.getId()%count)) {
+                            this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i);
+                            i++;
+                        }
                     }
                     warrningExecutor.shutdown();
                     while (true){
@@ -136,10 +139,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
                         if(itemList.contains(task.getId()%count)) {
-                            Map<String,String> param =new HashedMap();
-                            param.put("apiCode",apiCode);
-                            param.put("batchNumber",batchNumber);
-                            loanFileMapper.updateFileComplete(param);
                             redisChgService.hdel(hkey,errorFile);
                         }
                     }
