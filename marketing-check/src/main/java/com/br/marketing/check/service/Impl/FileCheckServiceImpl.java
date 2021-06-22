@@ -203,18 +203,16 @@ public class FileCheckServiceImpl implements FileCheckService {
             return false;
         });
 
-        boolean flag;
+        boolean flag=true;
         if(fileList.length!=1){
             errorMessage.append("压缩文件找不到上传数据文件");
             errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
             return false;
         }
-        if(fileList[0].getName().equals(context.getTxtFileName())){
+        if(!fileList[0].getName().equals(context.getTxtFileName())){
             File file1 = fileList[0];
             String name = file1.getName();
             flag = SftpToDbUtils.vaildFileName(name, context.getApiCode(), errorMessage);
-        }else {
-            flag=false;
         }
         if(!flag){
             errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
@@ -285,12 +283,9 @@ public class FileCheckServiceImpl implements FileCheckService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date dateFirst = new Date();
         Date dateLast = dateFormat.parse(value);
-        if(!Constants.APICODE_DAAS.contains(apiCode)&&!Constants.APICODE_DAAS_QA.contains(apiCode)){
-            if(!dateFirst.before(dateLast)){
-                return false;
-            }
+        if(!dateFirst.before(dateLast)){
+            return false;
         }
-
         return true;
     }
 

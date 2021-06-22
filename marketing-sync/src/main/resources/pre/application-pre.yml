@@ -48,7 +48,6 @@ otherConfig:
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/warning/
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72

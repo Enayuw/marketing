@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.TaskStatusMapper">
-
-	<update id="updateTaskStatus" parameterType="com.br.marketing.entity.TaskStatus">
-		UPDATE  b_task_status
-		SET update_time=now()
-		WHERE
-		batch_number=#{batchNumber}
-		AND
-		file_id=#{fileId}
-	</update>
 	<insert id="insertTaskStatus" parameterType="com.br.marketing.entity.TaskStatus">
 			INSERT INTO  b_task_status (
 			`api_code`,
@@ -44,46 +35,5 @@
 		 AND
 		 once_status=1
 	</select>
-	<select id="queryTodayIncrBts" parameterType="java.lang.String" resultType="com.br.marketing.entity.TaskStatus">
-		SELECT
-		api_code,batch_number,all_status,create_time,update_time,incr_date,incr_status
-		 FROM
-		 b_task_status
-		 WHERE
-		 batch_number=#{batchNumber}
-		  AND
-		 incr_status=1
-		 AND
-		 create_time>curdate()
-	</select>
-	<select id="queryBts" parameterType="java.lang.String" resultType="com.br.marketing.entity.TaskStatus">
-		SELECT
-		api_code,batch_number,all_status,create_time,update_time,incr_date,incr_status
-		 FROM
-		 b_task_status
-		 WHERE
-		 batch_number=#{batchNumber}
-		  AND
-		 all_status=1
-	</select>
-	<select id="queryBtsList" parameterType="java.lang.String" resultType="com.br.marketing.entity.TaskStatus">
-		SELECT
-		api_code,batch_number,all_status,create_time,update_time,incr_date,incr_status
-		FROM
-		b_task_status
-		WHERE
-		batch_number=#{batchNumber}
-		AND
-		all_status=1
-	</select>
-	<select id="queryNewestBts" parameterType="java.lang.String" resultType="com.br.marketing.entity.TaskStatus">
-		SELECT
-		api_code,batch_number,all_status,create_time,update_time,incr_date,incr_status
-		 FROM
-		 b_task_status
-		 WHERE
-		 batch_number=#{batchNumber}
-		 order by id desc
-		 LIMIT 1
-	</select>
+
 </mapper>

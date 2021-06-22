@@ -101,7 +101,11 @@ public class ValidatorSmallFileThread implements Callable<String> {
         String[] columns = head.split(",");
         String[] rows = row.split(",");
         int cellIndex = CheckDataUtil.findIndex(columns, "cell");
-        String cell=rows[cellIndex];
+        String cell="";
+        try{
+            cell=rows[cellIndex];
+        }catch (ArrayIndexOutOfBoundsException e){
+        }
         if(StringUtils.isNotEmpty(cell)){
             MarketingUser user=new MarketingUser();
             user.setApiCode(apiCode);

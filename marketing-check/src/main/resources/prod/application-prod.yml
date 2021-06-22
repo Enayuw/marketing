@@ -3,9 +3,9 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.23.110:3306/marketing?useUnicode=true&characterEncoding=UTF-8
+         url: jdbc:mysql://mysql-loanwarning-vip.brapp.com:3306/marketing?useUnicode=true&characterEncoding=UTF-8
          username: u_pd_marketing
-         password: M6teKbFVl1odfOCkC1JA
+         password: qTODziGYQsq11aw8Js2V
          type: com.alibaba.druid.pool.DruidDataSource
          driver-class-name: com.mysql.jdbc.Driver
          filters: stat
@@ -21,10 +21,16 @@ sharding:
          testOnReturn: false
          poolPreparedStatements: true
          maxOpenPreparedStatements: 20
-  config:
-        sharding:
-          props:
-            sql.show: true
+    config:
+      sharding:
+        props:
+          sql.show: false
+        tables:
+          b_marketing_user:
+            table-strategy:
+              inline:
+                sharding-column: api_code
+                algorithm-expression: b_marketing_user_${api_code}
 logging:
     level:
         com.br.off.mapper: info
@@ -32,7 +38,7 @@ logging:
     root: INFO
 otherConfig:
   huaXiangInterface:
-        getReport: http://batch-hxapi.100credit.cn/batch-hxapi/v1/get_report
+        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
   sanxiangzhiliInterface:
         sanxiang_url: http://zh-service/v1/getData
         haina_url: http://HAINA-SERVICE/query
@@ -43,30 +49,33 @@ otherConfig:
         outsideAppName: marketing-out
   userCenter:
         appName: loan-strategy
-        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+        appSecretKey: 7357430aa11febfe81d45945c02706b3
   warning:
-        pageSize: 1000
-        apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/marketing
-        ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
-  mom:
-      appSecretKey: 7275188179f59e233f4964e40d76e121
+        pageSize: 5000
+        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+        path: /opt/data/inloan/download/marketing/
+        sftpHost: brsftp.brapp.com
+        sftpPort: 9999
+        sftpUser: BRmarketing
+        sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: a938d0e974746651a11ddcdbcea31404
+
 spring:
   rabbitmq:
-    addresses: 192.168.23.73:5672
+    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
     username: strategy_distribute
-    password: strategy_distribute
+    password: Rz453hoEjUb37j8v
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
 
 #elastic-job配置
-SERVER_LISTS: 192.168.23.78:2181,192.168.23.79:2181,192.168.23.80:2181
+SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
-# 用来测试配置文件是否加载正确
-myenv: pre

@@ -44,19 +44,17 @@ import java.util.List;
 @Service
 @Slf4j
 public class FlowService {
-    @Resource
-    CustomerMapper customerMapper;
+
     @Resource(name = "rabbitTemplate")
     private RabbitTemplate rabbitTemplate;
     public void flow(String apiCode){
-        Customer customer=customerMapper.getCustomerByApiCode(apiCode);
         List<LoanFile> pushList;
         try {
             /**
              * 文件合并
              */
             MergeService mergeService= PushApplication.ac.getBean(MergeServiceImpl.class);
-             pushList =mergeService.process(customer.getApiCode());
+             pushList =mergeService.process(apiCode);
 
 //
             /**
@@ -71,7 +69,7 @@ public class FlowService {
             }
 
         } catch (Exception e) {
-            log.error("推送服务异常，apiCode={},",customer.getApiCode(),e);
+            log.error("推送服务异常，apiCode={},",apiCode,e);
         }
 
     }

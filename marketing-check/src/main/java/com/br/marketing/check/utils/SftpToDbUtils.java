@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class SftpToDbUtils {
-    private static final Pattern MYREGEX = Pattern.compile("\\.");
     private static final Pattern REMARK_REGEX = Pattern.compile(Constants.DELETE_MONIZTOR_REMARK);
     private static final Pattern FILE_NAME_REGEX = Pattern.compile("^[0-9]{7}");
 
@@ -153,181 +152,6 @@ public class SftpToDbUtils {
         return true;
     }
 
-
-    /**
-     * 是否含有finish文件
-     *
-     * @param value 文件名称集合
-     * @return
-     */
-    public static List<String> isFinish(Set<String> value) {
-        List<String> list = new ArrayList<>();
-        for (String key : value) {
-            if (key.endsWith(".finish")) {
-                String[] split = MYREGEX.split(key);
-                if (split.length > 2) {
-                    continue;
-                }
-                String finishName = split[0];
-                list.add(finishName);
-            }
-        }
-        return list;
-    }
-
-    /**
-     * 校验txt文件内容
-     *
-     * @param linenumber    文件行数
-     * @param localFilePath 当前路径
-     * @param errorMessage  错误信息
-     * @param apiCode       客户编号
-     * @param fileName      压缩包文件名称
-     * @param head          表头
-     * @param sftpClient
-     * @return 校验成功或者失败
-     */
-    public static boolean checkDeleteTxtContent(int linenumber, String localFilePath, StringBuilder errorMessage,
-                                                String apiCode, String fileName, String head, String cusBatch, SftpClient sftpClient, LoadResultMapper loadResultMapper) {
-        if (linenumber == 0) {
-            errorMessage.append("文件内容为空");
-            returnDeleteErrorFile(apiCode, localFilePath, fileName, errorMessage, sftpClient);
-            LoadResult lr = new LoadResult(apiCode, cusBatch, fileName, errorMessage.toString(), "0", "", 0, 0, "delete");
-            loadResultMapper.insertLoadResult(lr);
-            log.error("txt 文件内容为空 ");
-            return false;
-        } else {
-            boolean headFlag = true;
-            if (com.br.marketing.common.utils.StringUtils.isEmpty(head)) {
-                headFlag = false;
-            } else {
-                int cusNum = head.indexOf("cus_num");
-                int id = head.indexOf("id");
-                int cell = head.indexOf("cell");
-                int name = head.indexOf("name");
-                if (cusNum == -1 || (id == -1 && cell == -1 && name == -1)) {
-                    headFlag = false;
-                }
-            }
-            if (!headFlag) {
-                errorMessage.append("文件表头异常");
-                returnDeleteErrorFile(apiCode, localFilePath, fileName, errorMessage, sftpClient);
-                LoadResult lr = new LoadResult(apiCode, cusBatch, fileName, errorMessage.toString(), "0", "", 0, 0, "delete");
-                loadResultMapper.insertLoadResult(lr);
-                log.error("txt 文件表头异常:{} ", head);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 校验txt文件格式
-     *
-     * @param fileName      压缩包文件名
-     * @param apiCode       客户编号
-     * @param localFilePath 当前路径
-     * @param txtFileName   应有的txt文件名称
-     * @param errorMessage  错误信息
-     * @param sftpClient
-     * @return 校验成功或者失败
-     */
-    public static boolean checkDeleteTxtfile(String fileName, String apiCode, String localFilePath,
-                                             String txtFileName, StringBuilder errorMessage, String cusBatch, SftpClient sftpClient, LoadResultMapper loadResultMapper) {
-        File dir = new File(localFilePath);
-        File[] fileList = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathName) {
-                String name = pathName.getName();
-                if (name.endsWith(".txt")) {
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        boolean flag = true;
-        if (fileList == null || fileList.length == 0) {
-            errorMessage.append("压缩文件找不到上传数据文件");
-            returnDeleteErrorFile(apiCode, localFilePath, fileName, errorMessage, sftpClient);
-            LoadResult lr = new LoadResult(apiCode, cusBatch, fileName, errorMessage.toString(), "0", "", 0, 0, "delete");
-            loadResultMapper.insertLoadResult(lr);
-            return false;
-        }
-        if (fileList.length != 1) {
-            errorMessage.append("压缩文件找不到上传数据文件");
-            flag = false;
-        } else if (!fileList[0].getName().equals(txtFileName)) {
-            File file1 = fileList[0];
-            String name = file1.getName();
-            flag = DeleteFileUtil.vaildFileName(name, apiCode, errorMessage);
-        }
-
-        if (!flag) {
-            returnDeleteErrorFile(apiCode, localFilePath, fileName, errorMessage, sftpClient);
-            LoadResult lr = new LoadResult(apiCode, cusBatch, fileName, errorMessage.toString(), "0", "", 0, 0, "delete");
-            loadResultMapper.insertLoadResult(lr);
-            log.error("txt 文件名称错误 txt :{},zip:{}", fileList[0].getName(), fileName);
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * 返回文件校验失败错误文件
-     *
-     * @param apiCode      客户编号
-     * @param localFile    本地路径
-     * @param fileName     客户上传的文件名称
-     * @param errorMessage 校验出错提示信息
-     */
-    public static void returnDeleteErrorFile(String apiCode, String localFile, String fileName, StringBuilder errorMessage, SftpClient sftpClient) {
-        StringBuilder errorFileName = new StringBuilder();
-        String s = MYREGEX.split(fileName)[0];
-        File dir = new File(localFile);
-        if (!dir.isDirectory()) {
-            dir.mkdirs();
-        }
-        errorFileName
-                .append(apiCode)
-                .append("_")
-                .append(s)
-                .append(Constants.ERRORFILE)
-                .append(DateHelper.getDateAddYyMmDdHhMmSs(0))
-                .append(".txt");
-        log.info("localFile:{},errorFileName：{}", localFile, errorFileName);
-        File deleteErrorFile = new File(localFile + errorFileName.toString());
-        try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        Files.newOutputStream(Paths.get(localFile + errorFileName.toString())), StandardCharsets.UTF_8));) {
-
-            fw.append("errorType,message\n");
-            fw.append(errorMessage + "\n");
-        } catch (Exception e) {
-            log.error("生成错误文件出错", e);
-        }
-        if (deleteErrorFile.isFile()) {
-            try {
-                boolean upload = sftpClient.uploadFile("/UploadFiles/loanwarn/" + apiCode + "/error/", errorFileName.toString(), localFile + errorFileName.toString());
-                File successFile = new File(localFile + errorFileName.toString() + ".success");
-                successFile.createNewFile();
-                if (successFile.exists()) {
-                    sftpClient.uploadFile("/UploadFiles/loanwarn/" + apiCode + "/error/", errorFileName + ".success", localFile + errorFileName.toString() + ".success");
-                }
-            } catch (Exception e) {
-                log.error("上传错误文件到ftp出错", e);
-            }
-        }
-        try {
-            String sftpPath = "/UploadFiles/loanwarn/" + apiCode + "/input/";
-            sftpClient.rename(sftpPath + fileName, sftpPath + fileName + ".bak");
-            sftpClient.rename(sftpPath + fileName + ".success", sftpPath + fileName + ".success.bak");
-        } catch (Exception e) {
-            log.error("重命名ftp上文件出错", e);
-        }
-
-    }
-
     /**
      * 返回文件校验失败错误文件
      *
@@ -421,5 +245,10 @@ public class SftpToDbUtils {
             }
         }
         return headFlag;
+    }
+    public static String getBatchNumber(String apiCode) {
+        String dateAddYyMmDdHhMmSs = DateHelper.getDateAddYyMmDdHhMmSs(0);
+        int i = (int) ((Math.random()*9+1)*1000);
+        return apiCode+"_"+dateAddYyMmDdHhMmSs+"_"+i;
     }
 }

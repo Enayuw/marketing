@@ -1,20 +1,16 @@
-package com.br.marketing.task.job;
+package com.br.marketing.push.job;
 
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
-import com.br.marketing.task.Scheduler;
-import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
-import com.br.marketing.task.service.LoanWarningService;
+import com.br.marketing.push.service.FlowService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * //				    _ooOoo_
@@ -39,39 +35,39 @@ import javax.annotation.Resource;
  * //			  Buddha Bless, No Bug !
  *
  * @Author xiaoxin.pang
- * @Date 2021/5/7 13:05
+ * @Date 2021/6/21 15:01
  * @Description:
  **/
 @Component
 @Slf4j
-public class QaTaskJob extends AbstractSimpleElasticJob {
+public class QaMergeJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
+    @Resource
+    private FlowService flowService;
     @Override
-    public void process(JobExecutionMultipleShardingContext context) {
+    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Long start=System.currentTimeMillis();
-        log.warn("【跑批任务】调度开始");
-        String parameter = context.getJobParameter();
+        log.warn("【合并任务】调度开始");
+
+        String parameter = jobExecutionMultipleShardingContext.getJobParameter();
         if(StringUtils.isEmpty(parameter)){
             return;
         }
-        log.warn("手动触发跑批任务,apiCode={}",parameter);
+        log.warn("手动触发合并任务,apiCode={}",parameter);
         Customer customer =customerMapper.getCustomerByApiCode(parameter);
         if(customer ==null){
             log.error("apicode错误");
             return;
         }
         try {
-            LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
-            loanWarningService.process(customer,context);
-            //推送消息到pushQueue，进行下一流程处理
-            //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
+            log.warn("开始执行合并任务，apicode={}",customer.getApiCode());
+            flowService.flow(customer.getApiCode());
 
         } catch (Exception e) {
-            log.error("跑批异常，apiCode={}",customer.getApiCode());
+            log.error("程序跑批异常，apiCode={}",customer.getApiCode());
         }
+
         Long end =System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{}",end-start);
     }

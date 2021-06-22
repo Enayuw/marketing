@@ -49,7 +49,7 @@ public class RabbitmqListener {
 
             Customer customer =customerMapper.getCustomerByApiCode(msg);
             LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
-            loanWarningService.process(customer);
+            //loanWarningService.process(customer);
             //推送消息到pushQueue，进行下一流程处理
             RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
             // 手动ack消息

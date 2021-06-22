@@ -20,8 +20,6 @@ spring:
 server:
   port: 19701
 
-#生成结果文件目录
-result.file.path: /opt/data/inloan/warning
 mybatis:
   mapper-locations: mapper/*.xml
   configuration:

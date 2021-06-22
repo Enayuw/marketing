@@ -2,22 +2,15 @@ package com.br.marketing.check.job;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.service.Impl.DeleteService;
 import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
 import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.check.utils.UploadDataFileUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
-import com.br.marketing.entity.LoadResult;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
@@ -26,12 +19,12 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -155,10 +148,10 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }else{
                                 fileCheckService.errorDetail(context,errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
                             }
-                            validDataAlarmService.deleteMonitorFileUpload(apiCode,context.getZipFileName());
+                            validDataAlarmService.deleteMonitorFileUpload(apiCode,Constants.MYREGEX.split(context.getZipFileName())[0]);
                         }else {
                             context.setLocalZipFilePath(path.concat("sftp_data/").concat(apiCode).concat("/"));
-                            String batchNumber=UploadDataFileUtil.getBatchNumber(apiCode);
+                            String batchNumber=SftpToDbUtils.getBatchNumber(apiCode);
                             context.setBatchNumber(batchNumber);
                             context.setType("data");
                             MarketingTask task =new MarketingTask();

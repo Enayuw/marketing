@@ -10,17 +10,8 @@ import java.util.List;
  */
 @Repository
 public interface TaskStatusMapper extends TaskStatusMapperBase {
-    TaskStatus queryBts(String batchNumber);
 
     void insertTaskStatus(TaskStatus bts);
 
     List<TaskStatus> queryOnceBts(String batchNumber);
-
-    TaskStatus queryNewestBts(String batchNumber);
-
-    void updateTaskStatus(TaskStatus bts);
-
-    TaskStatus queryTodayIncrBts(String batchNumber);
-
-    List<TaskStatus> queryBtsList(String batchNumber);
 }

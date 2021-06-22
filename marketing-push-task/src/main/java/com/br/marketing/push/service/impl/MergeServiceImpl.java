@@ -80,11 +80,9 @@ public class MergeServiceImpl implements MergeService {
         List<LoanFile> pushList =new ArrayList<>();
         try{
             if(StringUtils.isNotEmpty(apiCode)){
-                List<LoanFile> incrList=new ArrayList<>();
                 List<LoanFile> allList=new ArrayList<>();
                 List<LoanFile> onceList=new ArrayList<>();
-                initBatchNumList(incrList,allList,onceList,apiCode);
-                pushList.addAll(mergeIncr(incrList));
+                initBatchNumList(allList,onceList,apiCode);
                 pushList.addAll(mergeAllOrOnce(allList));
                 pushList.addAll(mergeAllOrOnce(onceList));
             }
@@ -95,37 +93,7 @@ public class MergeServiceImpl implements MergeService {
         return pushList;
     }
 
-    /**
-     * 推送增量结果
-     */
-    private List<LoanFile> mergeIncr(List<LoanFile> incrList){
-        List<LoanFile> incrFiles=new ArrayList<>();
-        for(LoanFile blf:incrList){
-            MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
-            if("0".equals(blt.getFrequency())){
-                String zipName = mergeResultFile(blf);
-                String[] split = zipName.split("/");
-                String name = split[split.length - 1];
-                blf.setZipFileName(name);
-                loanFileMapper.updateFile(blf);
-                TaskStatus bts = new TaskStatus();
-                bts.setBatchNumber(blf.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.updateTaskStatus(bts);
-                incrFiles.add(blf);
-                // push(blf,files);
-            }else if("1".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 7);
-            }else if("2".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 30);
-            }else if("3".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 15);
-            }else if("4".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 90);
-            }
-        }
-        return incrFiles;
-    }
+
 
     private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList) {
         List<LoanFile> pushList=new ArrayList<>();
@@ -138,16 +106,9 @@ public class MergeServiceImpl implements MergeService {
             String name = split[split.length - 1];
             blf.setZipFileName(name);
             loanFileMapper.updateFile(blf);
-            TaskStatus bts = new TaskStatus();
-            bts.setBatchNumber(blf.getBatchNumber());
-            bts.setFileId(blf.getId());
-            taskStatusMapper.updateTaskStatus(bts);
 
             pushList.add(blf);
         }
-//        if(allFiles.size()>0){
-//            pushService.push(allFiles,apiCode);
-//        }
        return pushList;
     }
 
@@ -180,15 +141,9 @@ public class MergeServiceImpl implements MergeService {
                 return zipFile;
             }
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
+            String startTime = blf.getCreateTime();
+            startTime=startTime.split(" ")[0].replace("-","");
 
-            TaskStatus bts= taskStatusMapper.queryNewestBts(blf.getBatchNumber());
-            String startTime = bts.getCreateTime();
-            if(!StringUtils.isEmpty(startTime)){
-                startTime=startTime.split(" ")[0];
-                startTime=startTime.replace("-","");
-            }else{
-                startTime= DateHelper.getDateAddYyMmDd(0);
-            }
             String  strategyId=blt.getStrategyId();
             String fileName=blf.getApiCode().concat("_").concat(s).concat("_").concat(blf.getBatchNumber()).concat("_").concat(strategyId.split(":")[0])
                     .concat("_").concat(startTime).concat("_").concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
@@ -299,7 +254,6 @@ public class MergeServiceImpl implements MergeService {
     private void readFile(String fileName,ArrayList<Score> scores,int index,String separator){
         try(FileReader read = new FileReader(fileName);
             BufferedReader br = new BufferedReader(read)) {
-
             String row;
             while ((row = br.readLine()) != null) {
                 row = row.trim();
@@ -316,12 +270,10 @@ public class MergeServiceImpl implements MergeService {
                     }
                 }
             }
-            br.close();
-            read.close();
         } catch (FileNotFoundException e) {
             log.error("FileNotFoundException ",e);
         } catch (IOException e) {
-            log.error("FileNotFoundException ",e);
+            log.error("IOException ",e);
         }
     }
 
@@ -381,17 +333,12 @@ public class MergeServiceImpl implements MergeService {
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
-            TaskStatus bts= taskStatusMapper.queryNewestBts(blf.getBatchNumber());
             String fileName1 = blt.getFileName();
             fileName1=fileName1.replace(".txt","");
             String s = fileName1.split("_")[1];
-            String startTime = bts.getCreateTime();
-            if(!StringUtils.isEmpty(startTime)){
-                startTime=startTime.split(" ")[0];
-                startTime=startTime.replace("-","");
-            }else{
-                startTime= DateHelper.getDateAddYyMmDd(0);
-            }
+            String startTime = blf.getCreateTime();
+            startTime=startTime.split(" ")[0].replace("-","");
+
             String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
                     +blt.getStrategyId()+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
             StringBuilder head= new StringBuilder();
@@ -414,46 +361,6 @@ public class MergeServiceImpl implements MergeService {
         return result;
     }
 
-
-    private void mergeByFrequency(MarketingTask blt, LoanFile blf, int frequency){
-        int days=0;
-        try {
-            days= DateHelper.daysBetween(blt.getStartDate());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //按15天
-        if(days%frequency==0){
-            List<String> result=new ArrayList<>();
-            Map<String,List<String>> fileMap=new HashMap<>();
-            for(int i=0;i<frequency;i++){
-                String date = DateHelper.getDateAdd(i);
-                List<String> files = mergeResultFile(blf, date);
-                log.info("date:{},files:{}",date,files.toString());
-                fileMap.put(date,files);
-            }
-            StringBuilder targetPath=new StringBuilder();
-            targetPath.append(path)
-                    .append("/incr/")
-                    .append(blt.getApiCode())
-                    .append("/")
-                    .append(blt.getBatchNumber())
-                    .append("/");
-            String fileName1 = blt.getFileName();
-            fileName1=fileName1.replace(".txt","");
-            String s = fileName1.split("_")[1];
-            String startTime= DateHelper.getDateAddYyMmDd(frequency-1);
-            String fileName = targetPath + blt.getApiCode() + "_"+s+ "_" + blt.getBatchNumber() + "_"
-                    + blt.getStrategyId() +"_"+startTime+ "_" + DateHelper.getDateAddYyMmDd(0) + ".txt";
-            String errorFileName = targetPath + blt.getApiCode() + "_"+s+ "_error_"+DateHelper.getDateAddYyMmDd(0)+".txt";
-            FileUtil.merge(fileMap, fileName, errorFileName);
-            String zipFile=fileName.replace(".txt",".zip");
-            ZipUtil.compress(fileName,zipFile);
-            result.add(zipFile);
-            // push(blf,result);
-        }
-    }
-
     /**
      * 初始化表头
      * @param head
@@ -464,7 +371,7 @@ public class MergeServiceImpl implements MergeService {
     .append(",")
      */
     private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep){
-        List<String> list = null;
+        List<String> list;
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(strategyId.startsWith("STRB")){
@@ -494,7 +401,7 @@ public class MergeServiceImpl implements MergeService {
             log.info("pro:{}",pro);
             products.add(pro.toLowerCase());
         }
-        appendProInfo(head, apiCode, sep, products);
+        appendProInfo(head,sep, products);
     }
 
 
@@ -535,7 +442,7 @@ public class MergeServiceImpl implements MergeService {
         return result;
     }
 
-    private void appendProInfo(StringBuilder head, String apiCode, String sep, Set<String> products) {
+    private void appendProInfo(StringBuilder head,String sep, Set<String> products) {
         log.info("需要返回的数据产品--{}",products);
         if(products.contains("scorencashonszyxxy")){
             String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
@@ -556,10 +463,9 @@ public class MergeServiceImpl implements MergeService {
 
     /**
      * 初始化当日需要监控的任务信息，并将增量监控和全量监控区分开来
-     * @param incrList
      * @param allList
      */
-    private void initBatchNumList(List<LoanFile> incrList, List<LoanFile> allList, List<LoanFile> onceList, String apiCode){
+    private void initBatchNumList( List<LoanFile> allList, List<LoanFile> onceList, String apiCode){
 
         List<LoanFile> list= loanFileMapper.queryFile(apiCode);
         for(LoanFile blf :list){
@@ -567,11 +473,9 @@ public class MergeServiceImpl implements MergeService {
                 onceList.add(blf);
             }else if(blf.getType()==1){
                 allList.add(blf);
-            }else if(blf.getType()==0){
-                incrList.add(blf);
             }
         }
-        log.info("[PUSH] incr size:{},all size:{},once size:{}",incrList.size(),allList.size(),onceList.size());
+        log.info("[PUSH]all size:{},once size:{}",allList.size(),onceList.size());
     }
 
 }

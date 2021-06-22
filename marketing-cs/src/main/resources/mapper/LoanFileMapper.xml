@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.LoanFileMapper">
-	<select id="queryIncrLf" parameterType="java.lang.String" resultType="com.br.marketing.entity.LoanFile">
-		SELECT
-		*
-		FROM
-		stra_his_file
-		WHERE
-		api_code = #{apiCode}
-		AND create_time > CURDATE()
-		AND data_type=2
-	</select>
+
 	<select id="queryFilePath" parameterType="map" resultType="com.br.marketing.entity.LoanFile">
 		SELECT
 			*
@@ -21,7 +12,7 @@
 		<if test="batchNumber!=null">
 		AND batch_number = #{batchNumber}
 		</if>
-		AND create_time > CURDATE()
+		AND create_time >date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 		AND zipFile_name=#{fileName}
 		</if>
@@ -39,7 +30,7 @@
 		WHERE
 			api_code = #{apiCode}
 			AND status=0
-		AND create_time >= CURDATE()
+		AND create_time >= date_add(curdate(), interval -1 day)
 	</select>
 
 	
@@ -109,13 +100,11 @@
 		api_code = #{apiCode}
 		AND status=0
 		AND
-		create_time >=CURDATE();
+		create_time >=date_add(curdate(), interval -1 day);
 	</select>
 
 
-	<select id="queryApiCodes" resultType="java.lang.String">
-		select api_code from stra_his_file where status=1 group by api_code
-	</select>
+
 	<select id="queryTodayFile" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.String">
 		SELECT
 		 id,
@@ -132,31 +121,11 @@
  		 WHERE
  		 api_code=#{apiCode}
  		 AND
-		 create_time>curdate()
+		 create_time>date_add(curdate(), interval -1 day)
 		 AND
-		 status &lt;&gt; 2
+		 status =0
 	</select>
-	<select id="queryPpdBlf" parameterType="java.lang.String" resultType="com.br.marketing.entity.LoanFile">
-		SELECT
-		id,
-		api_code,
-		batch_number,
-		file_path,
-		create_time,
-		update_time,
-		status,
-		`type`,
-		zipFile_name,
-		error_file
-		FROM
-		stra_his_file
-		WHERE
-		api_code='3004761'
-		AND
-		batch_number=#{batchNumber}
-		AND
-		create_time>curdate()
-	</select>
+
 	<select id="queryBlf" parameterType="java.lang.String" resultType="com.br.marketing.entity.LoanFile">
 		SELECT
 		 id,
@@ -178,28 +147,6 @@
 		 create_time>curdate()
 	</select>
 
-	<select id="queryFileName" parameterType="java.lang.String" resultType="com.br.marketing.entity.LoanFile">
-		SELECT id,api_code,zipFile_name
-		FROM stra_his_file
-		WHERE
-		update_time>#{date}
-	</select>
-
-
-	<select id="query360File" resultType="com.br.marketing.entity.LoanFile">
-		SELECT
-		id,
-		batch_number,
-		api_code,
-		`type`,
-		file_path
-		FROM
-		stra_his_file
-		WHERE
-		`status` = 1
-		AND api_code='3005390'
-		AND create_time>'2020-04-22 00:30:29'
-	</select>
     <select id="queryFile" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.String">
 		SELECT
 			id,
@@ -229,7 +176,7 @@
 		stra_his_file
 		WHERE
 		`status` = 0
-		AND create_time>curdate()
+		AND create_time>date_add(curdate(), interval -1 day)
 		<if test="_parameter!=null">
 			AND `api_code` =#{apiCode}
 		</if>
@@ -242,7 +189,8 @@
 			stra_his_file
 		WHERE
 			api_code = #{apiCode}
-		AND create_time >= CURDATE()
+		AND create_time >= date_add(curdate(), interval -1 day)
+		AND status=0
 		AND (sign_file_status=2
 		OR zip_status=2)
 	</select>
@@ -255,7 +203,7 @@
 		where
 		api_code=#{apiCode}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 			AND zipFile_name=#{fileName}
 		</if>
@@ -274,7 +222,7 @@
 		where
 		api_code=#{apiCode}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 		<if test="fileName!=null">
 			AND zipFile_name=#{fileName}
 		</if>
@@ -283,20 +231,7 @@
 		</if>
 
 	</update>
-	<update id="updateHnnxFile" parameterType="com.br.marketing.entity.LoanFile">
-		UPDATE stra_his_file
-		SET zipFile_name=#{zipFileName},
-		status=0,
-		file_path=#{filePath},
-		update_time=now()
-		WHERE
-		api_code=#{apiCode}
-		AND
-		batch_number=#{batchNumber}
-		AND
-		create_time>curdate()
-		AND data_type=2
-	</update>
+
 	<update id="update" parameterType="com.br.marketing.entity.LoanFile">
 		UPDATE stra_his_file
 		SET is_delete =1,
@@ -318,18 +253,9 @@
 		WHERE
 		id =#{id}
 	</update>
-	<update id="updateExpectedNum" parameterType="com.br.marketing.entity.LoanFile">
-		UPDATE  stra_his_file
-		SET  expected_num=#{expectedNum}
-		where
-		api_code=#{apiCode}
-		AND
-		batch_number=#{batchNumber}
-		AND
-		create_time>curdate()
-	</update>
+
 	<update id="updateSignFileStatus" parameterType="java.lang.String">
-		update stra_his_file set sign_file_status=2 where api_code=#{apiCode} and   create_time>=CURDATE()
+		update stra_his_file set sign_file_status=2 where api_code=#{apiCode} and   create_time>=date_add(curdate(), interval -1 day)
 	</update>
 	<update id="updateFtpFileInfo" parameterType="com.br.marketing.entity.LoanFile">
 		UPDATE  stra_his_file
@@ -342,7 +268,7 @@
 		AND
 		batch_number=#{batchNumber}
 		AND
-		create_time>curdate()
+		create_time>date_add(curdate(), interval -1 day)
 
 	</update>
 
@@ -369,5 +295,25 @@
         	 #{expectedNum}
         	 )
 	</insert>
+	<update id="updateFileComplete" parameterType="map">
+		UPDATE  stra_his_file
+		SET  status=1,
+		update_time=now()
+		where
+		api_code=#{apiCode}
+		AND batch_number=#{batchNumber}
+		AND create_time>date_add(curdate(), interval -1 day)
 
+	</update>
+	<select id="selectFileComplete" parameterType="map" resultType="com.br.marketing.entity.LoanFile">
+		select
+		id,batch_number
+		 from
+		 stra_his_file
+		where
+		api_code=#{apiCode}
+		AND batch_number=#{batchNumber}
+		AND create_time>date_add(curdate(), interval -1 day)
+
+	</select>
 </mapper>

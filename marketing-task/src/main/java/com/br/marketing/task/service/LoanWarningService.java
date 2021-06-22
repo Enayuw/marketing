@@ -1,6 +1,7 @@
 package com.br.marketing.task.service;
 
 import com.br.marketing.entity.Customer;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -16,6 +17,6 @@ public interface LoanWarningService {
      *
      * @param customer
      */
-     void process(Customer customer);
+     void process(Customer customer,JobExecutionMultipleShardingContext context);
 
 }

@@ -27,7 +27,7 @@
 
     <job:simple id="GetFromSftpJob"
                 class="com.br.marketing.sync.job.GetFromSftpJob"
-                cron="${corn.getFromSftp}"
+                cron="0 0/10 * * * ? "
                 description="从客户sftp同步文件到内部sftp"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -41,7 +41,7 @@
     />
     <job:simple id="PutToSftpJob"
                 class="com.br.marketing.sync.job.PutToSftpJob"
-                cron="${corn.putToSftp}"
+                cron="0 0/10 * * * ? "
                 description="回传结果文件"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

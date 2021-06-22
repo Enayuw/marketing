@@ -26,56 +26,9 @@ public class ProFieldsClient {
     RedisService redisService;
     @Resource
     RedisTemplate redisTemplate;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
     @Value("${otherConfig.warning.ruleList:00}")
     private String rules;
 
-    /**
-     *获取需要返回的产品字段
-     * "{"SINGLE_TASK":"[{\"infiniteType\":\"身份证号+手机号+姓名\",\"orderNumber\":1,\"productionVersion\":\"V1_0\",\"variableName\":\"flag_ApplyFeature\",\"isDelete\":0,\"length\":30,\"description\":\"1(输出成功),0(未匹配上无输出),98(用户输入信息不足),99(系统异常)\",\"insideDesp\":\"\",\"remark\":\"\",\"interfaceType\":\"[\\\"C4\\\",\\\"C2\\\",\\\"C3\\\"]\",\"productionNameAndVersion\":\"ApplyFeature_V1_0\",\"keyChName\":\"借贷意向衍生特征产品输出标识\",\"checked\":true,\"id\":754423,\"isInside\":1,\"keyType\":\"string\",\"productionName\":\"ApplyFeature\",\"group\":\"1\"},{\"infiniteType\":\"身份证号+手机号+姓名\",\"orderNumber\":2,\"productionVersion\":\"V1_0\",\"variableName\":\"alf_apirisk_all_mean\",\"isDelete\":0,\"length\":30,\"description\":\"取\\\"空/F\\\"；空：无输出数值；F：衍生变量数值\",\"insideDesp\":\"\",\"remark\":\"\",\"interfaceType\":\"[\\\"C4\\\",\\\"C2\\\",\\\"C3\\\"]\",\"productionNameAndVersion\":\"ApplyFeature_V1_0\",\"keyChName\":\"过往全部申请的申请机构风险等级均值\",\"checked\":true,\"id\":754424,\"isInside\":1,\"keyType\":\"string\",\"productionName\":\"ApplyFeature\",\"group\":\"1\"}]","MULTI_TASK":"[{\"useTypeValue\":\"003\",\"detail\":\"[{\\\"interfaceType\\\":\\\"[\\\\\\\"C4\\\\\\\",\\\\\\\"C2\\\\\\\"]\\\",\\\"updateTime\\\":1570710323000,\\\"remark\\\":\\\"\\\",\\\"insideDesp\\\":\\\"\\\",\\\"variableName\\\":\\\"flag_ApplyFeature\\\",\\\"productionNameAndVersion\\\":\\\"ApplyFeature_V1_0\\\",\\\"infiniteType\\\":\\\"身份证号+手机号+姓名\\\",\\\"isInside\\\":1,\\\"id\\\":360051,\\\"isDelete\\\":0,\\\"keyType\\\":\\\"number\\\",\\\"description\\\":\\\"1(输出成功),0(未匹配上无输出),98(用户输入信息不足),99(系统异常)\\\",\\\"orderNumber\\\":1,\\\"productionVersion\\\":\\\"V1_0\\\",\\\"keyChName\\\":\\\"借贷意向衍生特征产品输出标识\\\",\\\"productionName\\\":\\\"ApplyFeature\\\",\\\"length\\\":30,\\\"group\\\":\\\"1\\\",\\\"checked\\\":true,\\\"changeType\\\":\\\"仍保留\\\"},{\\\"interfaceType\\\":\\\"[\\\\\\\"C4\\\\\\\",\\\\\\\"C2\\\\\\\"]\\\",\\\"updateTime\\\":1570710323000,\\\"remark\\\":\\\"\\\",\\\"insideDesp\\\":\\\"\\\",\\\"variableName\\\":\\\"alf_apirisk_all_mean\\\",\\\"productionNameAndVersion\\\":\\\"ApplyFeature_V1_0\\\",\\\"infiniteType\\\":\\\"身份证号+手机号+姓名\\\",\\\"isInside\\\":1,\\\"id\\\":360052,\\\"isDelete\\\":0,\\\"keyType\\\":\\\"number\\\",\\\"description\\\":\\\"取\\\\\\\"空/F\\\\\\\"；空：无输出数值；F：衍生变量数值\\\",\\\"orderNumber\\\":2,\\\"productionVersion\\\":\\\"V1_0\\\",\\\"keyChName\\\":\\\"过往全部申请的申请机构风险等级均值\\\",\\\"productionName\\\":\\\"ApplyFeature\\\",\\\"length\\\":30,\\\"group\\\":\\\"1\\\",\\\"checked\\\":true,\\\"changeType\\\":\\\"新增\\\"}]\",\"useType\":2},{\"useTypeValue\":\"004\",\"detail\":\"[{\\\"interfaceType\\\":\\\"[\\\\\\\"C4\\\\\\\",\\\\\\\"C2\\\\\\\"]\\\",\\\"updateTime\\\":1570710323000,\\\"remark\\\":\\\"\\\",\\\"insideDesp\\\":\\\"\\\",\\\"variableName\\\":\\\"flag_ApplyFeature\\\",\\\"productionNameAndVersion\\\":\\\"ApplyFeature_V1_0\\\",\\\"infiniteType\\\":\\\"身份证号+手机号+姓名\\\",\\\"isInside\\\":1,\\\"id\\\":360051,\\\"isDelete\\\":0,\\\"keyType\\\":\\\"number\\\",\\\"description\\\":\\\"1(输出成功),0(未匹配上无输出),98(用户输入信息不足),99(系统异常)\\\",\\\"orderNumber\\\":1,\\\"productionVersion\\\":\\\"V1_0\\\",\\\"keyChName\\\":\\\"借贷意向衍生特征产品输出标识\\\",\\\"productionName\\\":\\\"ApplyFeature\\\",\\\"length\\\":30,\\\"group\\\":\\\"1\\\",\\\"checked\\\":true,\\\"changeType\\\":\\\"仍保留\\\"},{\\\"interfaceType\\\":\\\"[\\\\\\\"C4\\\\\\\",\\\\\\\"C2\\\\\\\"]\\\",\\\"updateTime\\\":1570710323000,\\\"remark\\\":\\\"\\\",\\\"insideDesp\\\":\\\"\\\",\\\"variableName\\\":\\\"alf_apirisk_all_mean\\\",\\\"productionNameAndVersion\\\":\\\"ApplyFeature_V1_0\\\",\\\"infiniteType\\\":\\\"身份证号+手机号+姓名\\\",\\\"isInside\\\":1,\\\"id\\\":360052,\\\"isDelete\\\":0,\\\"keyType\\\":\\\"number\\\",\\\"description\\\":\\\"取\\\\\\\"空/F\\\\\\\"；空：无输出数值；F：衍生变量数值\\\",\\\"orderNumber\\\":2,\\\"productionVersion\\\":\\\"V1_0\\\",\\\"keyChName\\\":\\\"过往全部申请的申请机构风险等级均值\\\",\\\"productionName\\\":\\\"ApplyFeature\\\",\\\"length\\\":30,\\\"group\\\":\\\"1\\\",\\\"checked\\\":true,\\\"changeType\\\":\\\"新增\\\"}]\",\"useType\":2}]"}"
-     * @param pro
-     * @param version
-     * @param apiCode
-     * @param stmtKey
-     * @return
-     */
-    public String getProFields(String pro,String version,String apiCode,String stmtKey){
-        String key= Constants.REDIS_STMT_PREFIX+apiCode+"_"+pro+"_"+(version==null?"":version);
-       log.info("getProFields key ---{}",key);
-        String s = redisService.get(key);
-        //log.info("ProFields:{}",s);
-        if(StringUtils.isEmpty(s)||"[]".equals(s)){
-            log.info("isEmpty---");
-            return "";
-        }
-        JSONArray jsonArray=new JSONArray();
-        if(StringUtils.isNotEmpty(stmtKey)){
-            JSONObject jsonObject=JSONObject.parseObject(s);
-            JSONArray multiTask = jsonObject.getJSONArray("MULTI_TASK");
-            for(int i=0;i<multiTask.size();i++){
-                JSONObject jsonObject1 = multiTask.getJSONObject(i);
-                if(stmtKey.equals(jsonObject1.getString("useTypeValue"))){
-                   // log.info("MULTI_TASK:{}",jsonObject1);
-                    jsonArray=jsonObject1.getJSONArray("detail");
-                    break;
-                }
-            }
-        }else {
-            if(Constants.APICODE_PPD.equals(apiCode)||Constants.APICODE_PPD_QA.equals(apiCode)){
-                return "";
-            }
-            JSONObject jsonObject=JSONObject.parseObject(s);
-            jsonArray= jsonObject.getJSONArray("SINGLE_TASK");
-        }
-
-        DocumentContext parse = JsonPath.parse(jsonArray);
-        Object read = parse.read("$.[*].variableName");
-        if("[]".equals(read.toString())){
-            return "";
-        }
-        return read.toString();
-    }
 
     /**
      * 设置贷中产品

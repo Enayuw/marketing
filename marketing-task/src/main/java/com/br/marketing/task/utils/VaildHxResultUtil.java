@@ -66,8 +66,10 @@ public class VaildHxResultUtil {
             String string = resultJson.getString(flag);
           if(!"0".equals(string)&&!"1".equals(string)){
                 if("98".equals(string)){
-                    String flagKey=Constants.HX_FLAG_98_NUM+ apiCode+"_"+DateHelper.getDateAddYyMmDd(0);
+                    String flagKey=Constants.HX_FLAG_98_NUM+ lu.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0);
                     redisChgService.incr(flagKey);
+                    String hkey= Constants.HX_FLAG_98_NUM+":"+apiCode;
+                    redisChgService.hset(hkey,lu.getBatchNumber(),"1");
                 }else {
                     /**
                      * ScoreData未命中时不返回flag

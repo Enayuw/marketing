@@ -34,7 +34,7 @@ public class LoanWarningThread implements Callable<String> {
     private RedisService redisService;
     private String   message;
     private boolean isIncr;
-    private Map<String,String> map;
+
     /**
      * [
      {
@@ -107,8 +107,7 @@ public class LoanWarningThread implements Callable<String> {
     private String isRepair;
     private String fileId;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
-                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,
-                             Map map, RedisChgService redisChgService){
+                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -118,7 +117,6 @@ public class LoanWarningThread implements Callable<String> {
         this.strategyStr=param.get("strategyStr");
         this.redisService=redisService;
         this.isIncr=isIncr;
-        this.map=map;
         this.appSecretKey=param.get("appSecretKey");
         this.url=param.get("url");
         this.sep=param.get("sep");
@@ -132,18 +130,7 @@ public class LoanWarningThread implements Callable<String> {
 
 
 
-    /**
-     * 检查策略是否配置了流失预警支持的变动产品，只针对增量的任务
-     * @return
-     */
-    private boolean checkStrategy(){
-        for(String key:proFieldMap.keySet()){
-            if(map.get("al").indexOf(key)!=-1||map.get("sp").indexOf(key)!=-1||map.get("fy").indexOf(key)!=-1){
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     @Override
     public String call() throws Exception {
@@ -154,13 +141,6 @@ public class LoanWarningThread implements Callable<String> {
         }
 
         boolean check=this.checkRedisNumber();
-        if(isIncr){
-            boolean b = this.checkStrategy();
-            if(!b){
-                log.error("策略没有配置流失预警产品支持的变动产品.apiCode:{},strategyId:{}",apiCode,strategyId);
-                return null;
-            }
-        }
         log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
         String descPath = path ;
 
@@ -194,36 +174,6 @@ public class LoanWarningThread implements Callable<String> {
                 }
                 RequestLog  requestLog=new RequestLog();
                 requestLog.setRequestTime(new Date());
-                if(isIncr) {
-                    String proChange = "";
-                    String hitData = blu.getHitData();
-                    JSONObject jsonObject = JSONObject.parseObject(hitData);
-                    Set<String> strings = jsonObject.keySet();
-                    for (String key : strings) {
-                        String string = jsonObject.getString(key);
-                        String[] split = string.split("\\|");
-                        for(int i=0;i<split.length;i++){
-                            String sValue = split[i];
-                            String s = sValue.split(":")[0];
-                            String s1 = map.get(s);
-                            proChange += s1;
-                        }
-
-                    }
-                    //只要数据的变动产品有一个在配置的策略里面，就正常处理
-                    boolean flag = false;
-                    for (String key : proFieldMap.keySet()) {
-                        if (proChange.indexOf(key) != -1) {
-                            flag = true;
-                            break;
-                        }
-                    }
-
-                    //当前数据变动的产品都不再配置的策略里面，则跳过该条
-                    if (!flag) {
-                        continue;
-                    }
-                }
 
                 JSONObject jsonData = new JSONObject();
                 jsonData.put("cusNum", blu.getCusNum());
@@ -301,7 +251,7 @@ public class LoanWarningThread implements Callable<String> {
      */
     private boolean checkRedisNumber() {
         boolean flag=true;
-        if(apiCode.equals("7410431")){
+        if(apiCode.equals("7410431")||apiCode.equals("7410433")){
             return flag;
         }
         try{
