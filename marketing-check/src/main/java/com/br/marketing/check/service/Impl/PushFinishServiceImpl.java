@@ -109,12 +109,7 @@ public class PushFinishServiceImpl implements PushFinishService {
                 log.error("创建目录失败{}",finishPath);
             }
         }
-        String finishFileName="";
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            finishFileName=apiCode+"_UploadCustomFileName"+dateAddYyMmDd+"_"+dateAddYyMmDd+".finish";
-        }else{
-            finishFileName=apiCode+"_ReturnCompleted_"+dateAddYyMmDd+".finish";
-        }
+        String finishFileName=apiCode+"_ReturnCompleted_"+dateAddYyMmDd+".finish";
         File finishFile=new File(finishPath+finishFileName);
         log.warn("exists:{},path:{}",finishFile.exists(),finishFile.getAbsolutePath());
 
@@ -126,8 +121,8 @@ public class PushFinishServiceImpl implements PushFinishService {
             log.warn("exists:{},path:{}",finishFile.exists(),finishFile.getAbsolutePath());
             if(newFile){
                 sftpClient.connect();
-                sftpClient.uploadFile("/UploadFiles/loanwarn/"+apiCode+"/output/"+dateAddYyMmDd+"/",finishFileName,finishPath+finishFileName);
-                boolean existFile = sftpClient.isExistFile("/UploadFiles/loanwarn/"+apiCode+"/output/"+dateAddYyMmDd+"/" + finishFileName);
+                sftpClient.uploadFile("/UploadFiles/marketing/"+apiCode+"/output/"+dateAddYyMmDd+"/",finishFileName,finishPath+finishFileName);
+                boolean existFile = sftpClient.isExistFile("/UploadFiles/marketing/"+apiCode+"/output/"+dateAddYyMmDd+"/" + finishFileName);
                 if(existFile){
                     ftpToSftpCheck(apiCode);
                 }else{
@@ -148,7 +143,7 @@ public class PushFinishServiceImpl implements PushFinishService {
     }
     private void pushSuccess(String apiCode,SftpClient sftpClient){
         List<LoanFile> loanFiles = loanFileMapper.queryUploadFile(apiCode);
-        String remotePath="/UploadFiles/loanwarn/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
+        String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
         try {
             sftpClient.connect();
             for (LoanFile loanFile : loanFiles) {
@@ -157,10 +152,14 @@ public class PushFinishServiceImpl implements PushFinishService {
                 File file = new File(filePath+"/"+zipFileName);
                 if(file.exists()){
                     String successFileName=zipFileName+".success";
-                    File successFile=new File(path+"/ftp_data/"+apiCode+"/"+successFileName);
-                    if(successFile.exists()){
+                    File successFile=new File(path+"/sftp_data/"+apiCode+"/"+successFileName);
+                    boolean newFile=true;
+                    if(!successFile.exists()){
+                        newFile= successFile.createNewFile();
+                    }
+                    if(newFile){
                         log.warn("push success to sftp :{}",successFileName);
-                        sftpClient.uploadFile(remotePath, successFileName, path+"/ftp_data/"+apiCode+"/"+successFileName);
+                        sftpClient.uploadFile(remotePath, successFileName, path+"/sftp_data/"+apiCode+"/"+successFileName);
                     }
                 }
             }

@@ -32,7 +32,7 @@ public class MyFileUtil {
      * @param splitSize 将目标文件切割成多少份hash取模的小文件个数
      * @return
      */
-    public static File[] splitFile(String targetFile,int splitSize,StringBuilder head){
+    public static File[] splitFile(String targetFile,int splitSize){
         File file = new File(targetFile);
         PrintWriter[] pws = new PrintWriter[splitSize];
         File[] littleFiles = new File[splitSize];
@@ -68,7 +68,6 @@ public class MyFileUtil {
                 if(StringUtils.isNotEmpty(tempString)){
                     if(tempString.indexOf("cus_num")!=-1&&(tempString.indexOf("id")!=-1
                             ||tempString.indexOf("name")!=-1||tempString.indexOf("cell")!=-1)){
-                        head.append(tempString);
                     }else{
                         //关键是将每行数据hash取模之后放到对应取模值的文件中，确保hash值相同的字符串都在同一个文件里面
                         int index = Math.abs(tempString.hashCode() % splitSize);
@@ -126,13 +125,20 @@ public class MyFileUtil {
      * @param littleFiles 切割之后的小文件数组
      * @param distinctFilePath 去重之后的文件路径
      * @param splitSize 小文件大小
-     * @param head
      */
-    public static void distinct(File[] littleFiles, String distinctFilePath, int splitSize, StringBuilder head){
-        File distinctedFile = new File(distinctFilePath);
+    public static void distinct(File[] littleFiles, String distinctFilePath,String distinctFileName, int splitSize){
+        File dir = new File(distinctFilePath);
+        if(!dir.exists()){
+            boolean mkdir = dir.mkdir();
+            if(!mkdir){
+                log.error("mkdir error");
+            }
+        }
+        String concat = distinctFilePath.concat(distinctFileName);
+        File distinctedFile = new File(concat);
         if(distinctedFile.exists()){
             try {
-                Files.delete(Paths.get(distinctFilePath));
+                Files.delete(Paths.get(concat));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -214,19 +220,22 @@ public class MyFileUtil {
      * @param splitSize 小文件大小
      * @param head
      */
-    public static void distinctByCusNum(File[] littleFiles, String distinctFilePath, int splitSize, StringBuilder head){
-        File distinctedFile = new File(distinctFilePath);
+    public static void distinctByCusNum(File[] littleFiles, String distinctFilePath,String distinctFileName, int splitSize, StringBuilder head){
+        File dir = new File(distinctFilePath);
+        if(!dir.exists()){
+            boolean mkdir = dir.mkdir();
+            if(!mkdir){
+                log.error("mkdir error");
+            }
+        }
+        String concat = distinctFilePath.concat(distinctFileName);
+        File distinctedFile = new File(concat);
         if(distinctedFile.exists()){
             try {
-                Files.delete(Paths.get(distinctFilePath));
+                Files.delete(Paths.get(concat));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        try {
-            distinctedFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         try (PrintWriter pw =new PrintWriter(distinctedFile);){
 
@@ -348,33 +357,6 @@ public class MyFileUtil {
         }
         return -1;
     }
-    /**
-     * 获取文件的编码格式
-     * @param fileName
-     * @return
-     * @throws IOException
-     */
-    private String getCharset(String fileName) throws IOException{
-
-        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(fileName));
-        int p = (bin.read() << 8) +bin.read();
-
-        String code = null;
-        switch (p) {
-            case 0xefbb:
-                code = "UTF-8";
-                break;
-            case 0xfffe:
-                code = "Unicode";
-                break;
-            case 0xfeff:
-                code = "UTF-16BE";
-                break;
-            default:
-                code = "GBK";
-        }
-        return code;
-    }
 
     /**
      * 读取流中前面的字符，看是否有bom，如果有bom，将bom头先读掉丢弃
@@ -401,60 +383,4 @@ public class MyFileUtil {
         return testin;
 
     }
-
-    /**
-     * 根据一个文件名，读取完文件，干掉bom头。
-     *
-     * @param fileName
-     * @throws java.io.IOException
-     */
-    public static void trimBom(String fileName) throws IOException {
-
-        FileInputStream fin = new FileInputStream(fileName);
-        // 开始写临时文件
-        InputStream in = getInputStream(fin);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte b[] = new byte[4096];
-
-        int len = 0;
-        while (in.available() > 0) {
-            len = in.read(b, 0, 4096);
-            //out.write(b, 0, len);
-            bos.write(b, 0, len);
-        }
-        in.close();
-        fin.close();
-        bos.close();
-        //临时文件写完，开始将临时文件写回本文件。
-        FileOutputStream out = new FileOutputStream(fileName);
-        out.write(bos.toByteArray());
-        out.close();
-    }
-
-    public static char[] loadFile(String file) throws IOException {
-        // read text file, auto recognize bom marker or use
-        // system default if markers not found.
-        BufferedReader reader = null;
-        CharArrayWriter writer = null;
-        UnicodeReader r = new UnicodeReader(new FileInputStream(file), null);
-
-        char[] buffer = new char[16 * 1024];   // 16k buffer
-        int read;
-        try {
-            reader = new BufferedReader(r);
-            writer = new CharArrayWriter();
-            while( (read = reader.read(buffer)) != -1) {
-                writer.write(buffer, 0, read);
-            }
-            writer.flush();
-            return writer.toCharArray();
-        } catch (IOException ex) {
-            throw ex;
-        } finally {
-            try {
-                writer.close(); reader.close(); r.close();
-            } catch (Exception ex) { }
-        }
-    }
-
 }

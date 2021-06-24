@@ -4,6 +4,7 @@
         <artifactId>marketing</artifactId>
         <groupId>com.br.marketing</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -72,6 +73,23 @@
             <artifactId>marketing-utils</artifactId>
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
+        </dependency>
+        <!-- es公共包 -->
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.7.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -156,10 +174,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>UTF-8</encoding>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>

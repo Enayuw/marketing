@@ -3,42 +3,24 @@ package com.br.marketing.common.utils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class Constants {
+    public static final Pattern MYREGEX = Pattern.compile("\\.");
+    public static final String ERRORFILE="_FileVerification_error_";
+    public static final String SFTP_IN_ERROR_PATH="/UploadFiles/marketing/apiCode/error/";
+    public static final String SFTP_IN_INPUT_PATH="/UploadFiles/marketing/apiCode/input/";
+    public static final  Pattern FREQUENCY= Pattern.compile("^[0-5]{1}$");
+    public static final String MYREGEX1="\\p{C}";
 
     public static Map<String,Integer> riskMap = new HashMap<>();
-                                                 //cus_num,id,cell,name,loan_maturity_date,approve_result,linkman_cell,time_range,home_addr,tel_home,mail
     public static final String[] DEFAULT_CLOUMN={"cus_num","name","id","cell","pass_date","user_date","loan_maturity_date","approve_result","linkman_cell","time_range","home_addr","tel_home","mail"};
-    public static final String[] DEFAULT_CLOUMN_DEL={"name","id","cell"};
-    public static final Integer PPDFREQUENCY=5;
-    public static final Integer FREQUENCY360=7;
-    public static final Integer FREQUENCYHNNX=7;
-    public static final String LOAN_WARNING_CHF_KEY="POINT_LOAN_WARNING_CHG_";
-    public static final String LOAN_WARNING_CHF_CNT_KEY="LOAN_WARNING_CHG_CNT_";
     public static Map<String,String> headMap = new HashMap<>();
     public static final String PUBLIC_APICODE="4002511";
 
-    public static final String  APICODE_SN_OPERATION_DEPARTMENT = "3005913";
-    public static final String  APICODE_SN_OPERATION_DEPARTMENT_QA = "7410104";
-    public static final String  APICODE_PPD = "3004761";
-    public static final String  APICODE_PPD_QA = "1";
-    public static final String  APICODE_360= "3005390";
-    public static final String  APICODE_360_QA= "7410101";
-    public static final String  APICODE_360_MARKET= "3007130";
-    public static final String  APICODE_360_MARKET_QA= "7410106,7410998";
-    public static final String  APICODE_SN_RISK_DEPARTMENT = "3005538";
-    public static final String  APICODE_SN_RISK_DEPARTMENT_QA = "7410103";
-    public static final String  APICODE_HNNX = "3006722";
-    public static final String  APICODE_APICODE_HNNX_QA = "7410105";
-    public static final String  APICODE_DAAS= "4002758,4002759";
-    public static final String  APICODE_DAAS_QA= "7410102,7410356";
-    public static final String  APICODE_SHAZI="7410480,7410481";
-    public static final String  TMP_FILE_PATH="/opt/data/inloan/download/warning/tmp/";
+    public static final String  APICODE_SHAZI="4002823,7410431,7410433";
 
-
-
-
-
+    public static final String  TMP_FILE_PATH="/opt/data/inloan/download/marketing/tmp/";
 
 
     public static final String  DELETE_MONITOR_ERROR= "DELETE_MONITOR_ERROR";
@@ -50,25 +32,13 @@ public class Constants {
     public static final String UPLOAD_DATA_NUM="UPLOAD_DATA_NUM_";
     public static final String UPLOAD_FAILDATA_NUM="UPLOAD_FAILDATA_NUM_";
 
-    public static final String FILE_DATA_RESULT="result.txt";
-
-    public static final String STRATEGY_ID_360="DTB0000001";
-    public static final String CLOSE_DATE_360="2021-06-15";
-
-    public static final String STRATEGY_ID_PPD="DTB0000001";
-    public static final String STRATEGY_ID_PPD_SEC="DTB0000003:002";
-    public static final String CLOSE_DATE_PPD="2021-10-31";
 
     public static final String INSERT_DB_NUMBER="INSERT_DB_NUMBER_";
     public static final String HX_FLAG_98_NUM="HX_FLAG_98_NUM_";
 
-    public static final String SFTP_PWD_SECRET_KEY="s%^*K%)l*R(a20201105";
-    public static final String SYNC_FILENUM="SYNC_FILENUM_";
+    public static final String SFTP_P_SECRET_KEY ="s%^*K%)l*R(a20201105";
     public static final String LOAN_WARNING_FTP="ftp";
     public static final String LOAN_WARNING_SFTP="sftp";
-    public static final String MQ_EXCHANGE="loan.warning.exchange";
-    public static final String MQ_QUEUE="loan.warning.queue";
-    public static final String MQ_ROUTINGKEY="loan.warning.routingkey";
     /**
      * 报警发送码
      */
@@ -148,36 +118,28 @@ public class Constants {
         riskMap.put("Exception", 0);
     }
     static {
-        sendCodeMap.put("sysError","66618706");
-        sendCodeMap.put("resultVolume01","400001");
-        sendCodeMap.put("resultVolume02","400002");
-        sendCodeMap.put("ftpToSftp","400005");
-        sendCodeMap.put("fileSize","400004");
-        sendCodeMap.put("dataFileUploadFail","400006");
-        sendCodeMap.put("dataFileVolumn","400007");
-        sendCodeMap.put("uploadSuccess","400008");
-        sendCodeMap.put("fileUploadFtp","400003");
+        sendCodeMap.put("sysError","60000");
+        sendCodeMap.put("resultVolume01","50005");
+        sendCodeMap.put("ftpToSftp","50004");
+        sendCodeMap.put("dataFileUploadFail","50001");
+        sendCodeMap.put("dataFileVolumn","50002");
+        sendCodeMap.put("uploadSuccess","50000");
+        sendCodeMap.put("fileUploadFtp","50003");
     }
-    public static final String REDIS_STMT_PREFIX="redisProduct_loan_";
     public static final String REDIS_STMT_RULE_PREFIX="redisMonitor_";
 
-    public static final String ID_CARD_REGEX = "^[1-9]\\d{7}((0\\d)|(1[0-2]))(([0|1|2]\\d)|3[0-1])\\d{3}$|^[1-9]\\d{5}[1-9]\\d{3}((0\\d)|(1[0-2]))(([0|1|2]\\d)|3[0-1])\\d{3}([0-9]|X)$";
     public static final String CELL_REGEX = "^1[2-9][0-9]\\d{8}$";
-    public static final String NAME_REGEX = "^[\\u4E00-\\u9FA5]{2,10}(?:·[\\u4E00-\\u9FA5]{2,10})*$";
-    public static final String BANK_ID_REGEX = "\\d{16,21}";
-    public static final String MD5_REGEX = "^([a-fA-F0-9]{32})$";
     public static final String TEL_HOME_REGEX = "^[0-9]{2,4}-[0-9]{7,8}$";
-    public static final String MAIL_REGEX ="^\\w+@[a-z0-9]+\\.[a-z]{2,4}$";
     public static final String CUS_NUM_REGEX = "^([a-zA-Z0-9]{1,64})$";
 
     public static final String DELETE_MONIZTOR_REMARK="^[0-9a-zA-Z_.]{1,100}$";
-    public static final String DELETE_MONIZTOR_SERIALNUMBER="^[0-9]{1,10}$";
     public static final String REDIS_RADAR_PREFIX = "cnt_loan";
     public static final String REDIS_RADAR_TEST_PREFIX = "cnt_loan_test";
     public static final String REDIS_RADAR_TOTALCOUNT = "totalCount";
 
-    public static final String ERRORFILE="_FileVerification_error_";
+
 
 
     public static final String LOAN_BUSINESSTYPECODE="A202";
+    public static final Integer DATA_VALID = 1;
 }

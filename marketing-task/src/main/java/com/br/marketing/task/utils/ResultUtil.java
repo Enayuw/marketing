@@ -3,7 +3,13 @@ package com.br.marketing.task.utils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.entity.RuleField;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.bean.Product;
+import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.br.marketing.es.util.BrCipherMaker;
+import com.br.marketing.es.util.UuidUtils;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
@@ -186,9 +192,8 @@ public class ResultUtil {
      *     }
      * }
      * * */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw,  String  sep ,
-                                    String cusNum,String batchNumber,Map<String,String> proFieldMap,String apiCode) throws IOException {
-        log.info("cus_num：{} 画像流水:{}",cusNum,resultJson);
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw,  String  sep ,Map<String,String> proFieldMap,MarketingUser user,JSONObject meal,String cusBatchNumber,String fileId) throws IOException {
+        log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
         JSONObject jsonData;
@@ -196,6 +201,7 @@ public class ResultUtil {
         JSONObject flagJson =new JSONObject();
 
         JSONObject strategyInfo;
+        MarketingHistory mh = new MarketingHistory();
         /**
          * 调用画像打平接口，将数据产品详情打平
          */
@@ -204,11 +210,16 @@ public class ResultUtil {
 
         /**
          * 添加基本信息
-         */
-              sb.append(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).append(sep)
-                .append(batchNumber).append(sep)
-                .append(cusNum).append(sep)
+         */ Date requestTime=new Date();
+              sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
+                .append(user.getBatchNumber()).append(sep)
+                .append(user.getCusNum()).append(sep)
                 .append(strategyId).append(sep);
+              mh.setRequestTime(requestTime);
+              mh.setBatchNumber(user.getBatchNumber());
+              mh.setCusNum(user.getCusNum());
+              mh.setApiCode(user.getApiCode());
+              mh.setStrategyId(strategyId);
               if(strategyId.startsWith("STRB")){
                   String hxResult1 = resultJson.getString("hxResult");
                   if(StringUtils.isNotEmpty(hxResult1)){
@@ -220,7 +231,9 @@ public class ResultUtil {
                   flagJson = resultJson.getJSONObject("flag");
                   strategyInfo=jsonData.getJSONObject("strategyJson");
                   sb.append(strategyInfo.getString("useVersion")).append(sep);
-              }else if(strategyId.startsWith("DTB")){
+                  mh.setVersion(strategyInfo.getString("useVersion"));
+              }else if(strategyId.startsWith("DTM")){
+                  mh.setVersion("");
                   sb.append(sep);
                   flagJson = resultJson.getJSONObject("Flag");
                   hxJson=resultJson;
@@ -234,16 +247,16 @@ public class ResultUtil {
             if(!strategyJson.isEmpty()){
                 sb.append(strategyJson.getString("strategyDecision")).append(sep);
                 RuleField rf=new RuleField();
-                String rule_type="Rule_W_SpecialList_c_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleSpecialListField(),sb,sep);
-                rule_type="Rule_W_InfoRelation_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleInfoRelationField(),sb,sep);
-                rule_type="Rule_W_ApplyLoanStr_mix_c";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleApplyloanstrField(),sb,sep);
-                rule_type="Rule_W_ApplyLoanUsury_mix";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleApplyloanusuryField(),sb,sep);
-                rule_type="Rule_W_ExecutionLimited_mix";
-                ruleInfo(flagJson,strategyJson,rule_type,rf.getRuleExecutionlimitedField(),sb,sep);
+                String ruleType="Rule_W_SpecialList_c_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleSpecialListField(),sb,sep);
+                ruleType="Rule_W_InfoRelation_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleInfoRelationField(),sb,sep);
+                ruleType="Rule_W_ApplyLoanStr_mix_c";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleApplyloanstrField(),sb,sep);
+                ruleType="Rule_W_ApplyLoanUsury_mix";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleApplyloanusuryField(),sb,sep);
+                ruleType="Rule_W_ExecutionLimited_mix";
+                ruleInfo(flagJson,strategyJson,ruleType,rf.getRuleExecutionlimitedField(),sb,sep);
 
             }
 
@@ -254,26 +267,49 @@ public class ResultUtil {
         for(String pro:proFieldMap.keySet()){
             products.add(pro.toLowerCase());
         }
-        log.info("batch_number:{} products:{}",batchNumber,products);
-        ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,apiCode);
+        log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
+        ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
         if(sb.toString().split(",").length>5){
             fw.append(sb + "\r\n");
+            mh.setIdCard(user.getIdCard());
+            mh.setName(user.getName());
+            mh.setCell(user.getCell());
+            mh.setCusBatchNumber(cusBatchNumber);
+            mh.setFileId(fileId);
+            writeEs(mh,meal,hxJson);
         }
     }
 
+    private static void writeEs(MarketingHistory mh,JSONObject meal,JSONObject hxJson){
+        List<Product> list = new ArrayList<>();
+
+        for (String product : meal.keySet()) {
+            Product p =new Product();
+            p.setCode(product);
+            p.setVersion(meal.getJSONObject(product).getString("version"));
+            p.setCodeVersion(p.getCode().concat("_").concat(p.getVersion()));
+            p.setFlag(hxJson.get("flag_score")==null?"":hxJson.getString("flag_score"));
+            p.setScore(new Double(hxJson.get(product)==null?0:hxJson.getDoubleValue(product)));
+            list.add(p);
+        }
+        mh.setProduct(list);
+        String id = UuidUtils.getUuid();
+        MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
+        service.insert(mh, id);
+    }
     /**
      * 追加规则信息
      * @param flagJson
      * @param strategyJson
-     * @param rule_type
+     * @param ruleType
      * @param ruleField
      * @param sb
      */
-    private static void ruleInfo(JSONObject flagJson,JSONObject strategyJson,String rule_type,List<String> ruleField,StringBuilder sb,String sep){
-        if(flagJson.containsKey(rule_type)){
-            sb.append(flagJson.getString(rule_type)).append(sep);
+    private static void ruleInfo(JSONObject flagJson,JSONObject strategyJson,String ruleType,List<String> ruleField,StringBuilder sb,String sep){
+        if(flagJson.containsKey(ruleType)){
+            sb.append(flagJson.getString(ruleType)).append(sep);
             ReadContext context = JsonPath.parse(strategyJson);
-            Object object = context.read("$..ruleArray[?(@.ruleType=='"+rule_type+"')]");
+            Object object = context.read("$..ruleArray[?(@.ruleType=='"+ruleType+"')]");
             if(object!=null){
                 JSONArray array=JSONArray.parseArray(object.toString());
                 if(!array.isEmpty()&&array.size()>0){
@@ -281,9 +317,9 @@ public class ResultUtil {
                         JSONObject jsonObject = array.getJSONObject(i);
                         sb.append(jsonObject.getString("rulerisk")).append(sep);
                         sb.append(jsonObject.getString("ruleWeight")).append(sep);
-                        ReadContext RuleContext = JsonPath.parse(jsonObject);
+                        ReadContext ruleContext = JsonPath.parse(jsonObject);
                         for(String ruleCode:ruleField){
-                            Object rule = RuleContext.read("$..loanRule[?(@.ruleCode=='" + ruleCode + "')]");
+                            Object rule = ruleContext.read("$..loanRule[?(@.ruleCode=='" + ruleCode + "')]");
                             if(rule!=null){
                                 JSONArray ruleArray=JSONArray.parseArray(rule.toString());
                                 if(ruleArray!=null&&ruleArray.size()>0){

@@ -1,10 +1,12 @@
 package com.br.marketing.client;
 
 import com.br.redisengin.MultiRedisClusterUtil;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -107,5 +109,25 @@ public class RedisChgService {
         JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         boolean flag = jedis.exists(key);
         return flag;
+    }
+
+    public Long sadd(String key, List<String> value){
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        String[] values = new String[]{};
+        String[] vals = value.toArray(values);
+        Long result = jedis.sadd(key, vals);
+        return result;
+    }
+
+    public Long saddMember(String key,String... member){
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        Long result = jedis.sadd(key, member);
+        return result;
+    }
+
+    public Boolean sismember(String key,String member){
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        Boolean result = jedis.sismember(key, member);
+        return result;
     }
 }

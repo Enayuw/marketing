@@ -1,7 +1,7 @@
 spring:
   application:
-    name: loan-warning-task
-  profiles.active: dev
+    name: marketing-push-task
+  profiles.active: pre
   aop:
    proxy-target-class: true
    auto: true

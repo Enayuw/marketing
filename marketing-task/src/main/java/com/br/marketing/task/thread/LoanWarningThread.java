@@ -34,7 +34,7 @@ public class LoanWarningThread implements Callable<String> {
     private RedisService redisService;
     private String   message;
     private boolean isIncr;
-    private Map<String,String> map;
+
     /**
      * [
      {
@@ -103,10 +103,11 @@ public class LoanWarningThread implements Callable<String> {
     private List<MarketingUser> errorList=new ArrayList<>();
     private RedisChgService redisChgService;
     private String batchNumber;
+    private String cusBatchNumber;
     private String isRepair;
+    private String fileId;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
-                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,
-                             Map map, RedisChgService redisChgService){
+                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -116,30 +117,20 @@ public class LoanWarningThread implements Callable<String> {
         this.strategyStr=param.get("strategyStr");
         this.redisService=redisService;
         this.isIncr=isIncr;
-        this.map=map;
         this.appSecretKey=param.get("appSecretKey");
         this.url=param.get("url");
         this.sep=param.get("sep");
         this.redisChgService=redisChgService;
         this.batchNumber=param.get("batchNumber");
+        this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
+        this.fileId=param.get("fileId");
         proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
 
 
-    /**
-     * 检查策略是否配置了流失预警支持的变动产品，只针对增量的任务
-     * @return
-     */
-    private boolean checkStrategy(){
-        for(String key:proFieldMap.keySet()){
-            if(map.get("al").indexOf(key)!=-1||map.get("sp").indexOf(key)!=-1||map.get("fy").indexOf(key)!=-1){
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     @Override
     public String call() throws Exception {
@@ -148,20 +139,10 @@ public class LoanWarningThread implements Callable<String> {
             log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
             return null;
         }
-        Writer fw=null;
-        Writer errorFw =null;
-        try {
-            boolean check=this.checkRedisNumber();
-            if(isIncr){
-                boolean b = this.checkStrategy();
-                if(!b){
-                    log.error("策略没有配置流失预警产品支持的变动产品.apiCode:{},strategyId:{}",apiCode,strategyId);
-                    return null;
-                }
-            }
 
-            log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
-            String descPath = path ;
+        boolean check=this.checkRedisNumber();
+        log.warn("开始执行监控任务。。{}。。{}",currentPage,list.size());
+        String descPath = path ;
 
         File writeName = new File(descPath );
         if (!writeName.exists()) {
@@ -169,19 +150,21 @@ public class LoanWarningThread implements Callable<String> {
         }
 
         File errorFile = new File(descPath + "/error"+ currentPage + ".txt");
-         errorFw = new BufferedWriter(
+        File file1 = new File(descPath + "/" + currentPage + ".txt");
+
+        try(Writer errorFw = new BufferedWriter(
                 new OutputStreamWriter(
-                        new FileOutputStream(errorFile), "UTF-8"));
-        if(!check){
-            log.error("条数不足--{}",message);
-            dealResult(message,errorFw);
-            errorFw.close();
-            return null;
-        }
-            File file1 = new File(descPath + "/" + currentPage + ".txt");
-             fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file1), "UTF-8"));
+                new FileOutputStream(errorFile), "UTF-8"));
+            Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file1), "UTF-8"));) {
+
+            if(!check){
+                log.error("条数不足--{}",message);
+                dealResult(message,errorFw);
+                errorFw.close();
+                return null;
+            }
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
@@ -191,36 +174,6 @@ public class LoanWarningThread implements Callable<String> {
                 }
                 RequestLog  requestLog=new RequestLog();
                 requestLog.setRequestTime(new Date());
-                if(isIncr) {
-                    String pro_change = "";
-                    String hitData = blu.getHitData();
-                    JSONObject jsonObject = JSONObject.parseObject(hitData);
-                    Set<String> strings = jsonObject.keySet();
-                    for (String key : strings) {
-                        String string = jsonObject.getString(key);
-                        String[] split = string.split("\\|");
-                        for(int i=0;i<split.length;i++){
-                            String s_value = split[i];
-                            String s = s_value.split(":")[0];
-                            String s1 = map.get(s);
-                            pro_change += s1;
-                        }
-
-                    }
-                    //只要数据的变动产品有一个在配置的策略里面，就正常处理
-                    boolean flag = false;
-                    for (String key : proFieldMap.keySet()) {
-                        if (pro_change.indexOf(key) != -1) {
-                            flag = true;
-                            break;
-                        }
-                    }
-
-                    //当前数据变动的产品都不再配置的策略里面，则跳过该条
-                    if (!flag) {
-                        continue;
-                    }
-                }
 
                 JSONObject jsonData = new JSONObject();
                 jsonData.put("cusNum", blu.getCusNum());
@@ -263,12 +216,12 @@ public class LoanWarningThread implements Callable<String> {
                 jsonData.put("batch_number", blu.getBatchNumber());
                 param.put("jsonData", jsonData.toString());
                 String s="";
-                if (strategyId.startsWith("DTB")){
+                if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
-                        MomUtil.send_mom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
                     }
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
@@ -287,13 +240,6 @@ public class LoanWarningThread implements Callable<String> {
 
         }catch (Exception e){
             log.error("生成文件出错。。。。",e);
-        }finally {
-            if(fw!=null){
-                fw.close();
-            }
-           if(errorFw!=null){
-               errorFw.close();
-           }
         }
       return null;
     }
@@ -305,13 +251,16 @@ public class LoanWarningThread implements Callable<String> {
      */
     private boolean checkRedisNumber() {
         boolean flag=true;
+        if(apiCode.equals("7410431")||apiCode.equals("7410433")){
+            return flag;
+        }
         try{
             String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
             Map<String,String> dayNumMap =new HashMap<>();
             List<String> typeNoList=new ArrayList<>();
             if(strategyId.startsWith("STRB")){
                 addSTRBPro(typeNoList);
-            }else if(strategyId.startsWith("DTB")){
+            }else if(strategyId.startsWith("DTM")){
                 addDTBPro(typeNoList);
             }
             MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
@@ -348,17 +297,17 @@ public class LoanWarningThread implements Callable<String> {
                 if (min >= list.size()) {
                     addRedisNum(Constants.REDIS_RADAR_TEST_PREFIX+":"+apiCode, typeNoList, list.size());
                     for(String proCode:typeNoList){
-                        String key_test = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ proCode +":"+ date;
-                        String currentNum = redisService.get(key_test);
+                        String keyTest = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ proCode +":"+ date;
+                        String currentNum = redisService.get(keyTest);
                         String dayNum = dayNumMap.get(proCode);
                         if(currentNum==null){
-                            redisService.set(key_test,null,604800);
+                            redisService.set(keyTest,null,604800);
                             if(list.size() > Integer.parseInt(dayNum)){
                                 message="可用条数不足，请确认，若需要请联系客服";
                                 log.error("message--{}",message);
                                 flag = false;
                             }else{
-                                addRedisNumForDayNum(key_test,null,list.size());
+                                addRedisNumForDayNum(keyTest,null,list.size());
                             }
                         }else {
                             if (Integer.parseInt(currentNum) + list.size() > Integer.parseInt(dayNum)) {
@@ -366,7 +315,7 @@ public class LoanWarningThread implements Callable<String> {
                                 log.error("message--{}",message);
                                 flag = false;
                             } else {
-                                addRedisNumForDayNum(key_test, null, list.size());
+                                addRedisNumForDayNum(keyTest, null, list.size());
                             }
                         }
                     }
@@ -395,8 +344,8 @@ public class LoanWarningThread implements Callable<String> {
     private String getMinNum(String apiCode, List<String> typeNoList,MerchantParam merchantParam) {
         List<Long> numList = new ArrayList<>();
         for (String typeNo : typeNoList) {
-            String key_test = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ typeNo+":"+Constants.REDIS_RADAR_TOTALCOUNT;
-            String str = redisService.get(key_test);
+            String keyTest = Constants.REDIS_RADAR_TEST_PREFIX +":"+ apiCode +":"+ typeNo+":"+Constants.REDIS_RADAR_TOTALCOUNT;
+            String str = redisService.get(keyTest);
             long num = 0;
             if (!org.springframework.util.StringUtils.isEmpty(str)) {
                 num = Long.parseLong(str);
@@ -422,7 +371,7 @@ public class LoanWarningThread implements Callable<String> {
 
     private String getLimitNumFromUserCenter( String proCode, MerchantParam merchantParam ) {
         String limitNum = null;
-            String meal = merchantParam.getMeal();
+            String meal = merchantParam.getMealJson();
             if(!org.springframework.util.StringUtils.isEmpty(meal)){
                 JSONObject mealJson = JSON.parseObject(meal);
                 String proCodeString = mealJson.getString(proCode);
@@ -437,7 +386,7 @@ public class LoanWarningThread implements Callable<String> {
         return limitNum;
     }
     private void getDayNumMap(Map<String,String> dayNumMap, MerchantParam merchantParam){
-            String meal = merchantParam.getMeal();
+            String meal = merchantParam.getMealJson();
             if(!org.springframework.util.StringUtils.isEmpty(meal)){
                 JSONObject mealJson =JSON.parseObject(meal) ;
                 Set<String> strings = mealJson.keySet();
@@ -513,17 +462,17 @@ public class LoanWarningThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTB")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
+            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,cusNum,batchNumber,proFieldMap,apiCode);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,cusNum,batchNumber,proFieldMap,apiCode);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);

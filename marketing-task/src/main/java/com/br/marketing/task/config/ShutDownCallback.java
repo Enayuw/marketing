@@ -37,7 +37,7 @@ public class ShutDownCallback implements ISpeedAppendPipeline {
                 String status = JSONObject.parseObject(value, AgentItem.class).getStatus();
                 if("off".equals(status)){
                     log.info("Scheduler close.....");
-                    System.exit(0);
+//                    System.exit(0);
                 }
                 break;
             }

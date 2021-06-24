@@ -51,8 +51,6 @@ public class ResultCheckServiceImpl implements ResultCheckService {
      */
     @Override
     public  void taskResultCheck(String apiCode){
-        Map<String,Integer> map=new HashMap<>();
-        Set<String> batchNumberSet=new HashSet<>();
         Map<String, SftpATTRS> stringSftpATTRSMap;
         Map<String, SftpATTRS> signFileList;
         try {
@@ -62,29 +60,11 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             log.error("获取ftp上结果文件信息出错",e);
             return;
         }
-        Set<String> strings = stringSftpATTRSMap.keySet();
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            for(String  name:strings){
-                String[] split = SPLIT_PATTERN.split(name);
-                if(split.length<6){
-                    log.warn("name is error{}",name);
-                    continue;
-                }
-                String batchNumber=split[3]+"_"+split[4]+"_"+split[5];
-                    if(map.containsKey(batchNumber)){
-                        int i = map.get(batchNumber) + 1;
-                        map.put(batchNumber,i);
-                    }else {
-                        map.put(batchNumber,1);
-                    }
-            }
-        }
-
         for(Map.Entry<String,SftpATTRS> entry :stringSftpATTRSMap.entrySet()){
             String name = entry.getKey();
             SftpATTRS sftpATTRS = entry.getValue();
             if(name.endsWith(".zip")){
-                LoanFile loanFile = fileInfo(apiCode, batchNumberSet, sftpATTRS, name);
+                LoanFile loanFile = fileInfo(apiCode, sftpATTRS, name);
                 checkFileSize(apiCode, loanFile,name);
                 if(loanFile.isSkip()){
                     continue;
@@ -95,17 +75,12 @@ public class ResultCheckServiceImpl implements ResultCheckService {
                  * 3005390_3005390_20201024120005_2014_20201029.complete
                  * 校验内部标识文件是否正常上传
                  */
-                String signFileName="";
-                if(Constants.APICODE_PPD_QA.equals(apiCode)||Constants.APICODE_PPD.equals(apiCode)){
-                    signFileName=apiCode+"_"+loanFile.getBatchNumber()+"_"+loanFile.getIsSec()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                }else{
-                    signFileName=apiCode+"_"+loanFile.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                }
+                String signFileName=apiCode+"_"+loanFile.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
                 if(!signFileList.keySet().contains(signFileName)){
                     log.error("批次对应的内部标识文件未上传，请关注:{},{}",signFileList.keySet(),signFileName);
                     loanFileMapper.updateSignFileStatus(apiCode);
                 }
-                checkFileline(apiCode, map, name, loanFile);
+                checkFileline(loanFile);
             }
         }
         businessAlarmServiceImpl.resultVolumeCheck(apiCode);
@@ -114,70 +89,35 @@ public class ResultCheckServiceImpl implements ResultCheckService {
 
     /**
      * 校验结果文件行数和当前批次应该返回的行数是否一致
-     * @param apiCode apiCode
-     * @param map 批次号和对应的文件个数
-     * @param name 文件名称
      * @param loanFile 文件信息
      */
-    private void checkFileline(String apiCode, Map<String, Integer> map, String name, LoanFile loanFile) {
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            File dir=new File(loanFile.getFilePath());
-            File[] files = dir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if (name.endsWith(".txt") && name.contains(loanFile.getBatchNumber())) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
-            int sum=0;
-            for(int i=0;i<files.length;i++){
-                sum =sum+(MyFileUtil.getTotalLines(files[i])-1);
-            }
-            Integer expectedNum = loanFile.getExpectedNum();
-            if(expectedNum==null){
-                MarketingTask marketingTask = new MarketingTask();
-                marketingTask.setTableName("b_marketing_user_"+apiCode);
-                marketingTask.setApiCode(apiCode);
-                marketingTask.setBatchNumber(loanFile.getBatchNumber());
-                expectedNum = marketingUserMapper.queryCount(marketingTask);
-            }
-            if(sum!=expectedNum){
-                log.error("{}该批次实际返回数据量{}和应该返回数据量{}不一致",loanFile.getBatchNumber(),sum,expectedNum);
-            }
-            loanFile.setFileNum(map.get(loanFile.getBatchNumber()));
-            loanFile.setActualNum(sum);
-            loanFileMapper.updateFtpFileInfo(loanFile);
-        }else {
-            int sum = getTxtFileLines(loanFile.getFilePath(), loanFile.getApiCode(), loanFile.getBatchNumber());
-           /* String txtFileName = name.replace(".zip", ".txt");
-            int totalLines = MyFileUtil.getTotalLines(new File(loanFile.getFilePath() +"/"+ txtFileName));*/
-            String[] split = SPLIT_PATTERN_PATH.split(loanFile.getFilePath());
-            if(split.length<7){
-                log.warn("loanFile.getFilePath() is error{}",loanFile.getFilePath());
-                return;
-            }
-            String type = split[6];
-            MarketingTask marketingTask = new MarketingTask();
-            marketingTask.setApiCode(apiCode);
-            marketingTask.setBatchNumber(loanFile.getBatchNumber());
-            if("incr".equals(type)){
-                marketingTask.setTableName("b_marketing_user_chg");
-            }else if("all".equals(type)||"once".equals(type)){
-                marketingTask.setTableName("b_marketing_user_"+apiCode);
-            }
-            Integer expectedNum = loanFile.getExpectedNum();
-            if(expectedNum==null){
-                expectedNum = marketingUserMapper.queryCount(marketingTask);
-            }
-            if(sum!=expectedNum){
-                log.warn("{}该批次实际返回数据量{}和应该返回数据量{}不一致",loanFile.getBatchNumber(),sum,expectedNum);
-            }
-            loanFile.setFileNum(1);
-            loanFile.setActualNum(sum);
-            loanFileMapper.updateFtpFileInfo(loanFile);
+    private void checkFileline( LoanFile loanFile) {
+        int sum = getTxtFileLines(loanFile.getFilePath(), loanFile.getApiCode(), loanFile.getBatchNumber());
+        String[] split = SPLIT_PATTERN_PATH.split(loanFile.getFilePath());
+        if(split.length<7){
+            log.warn("loanFile.getFilePath() is error{}",loanFile.getFilePath());
+            return;
         }
+        String type = split[6];
+        MarketingTask marketingTask = new MarketingTask();
+        marketingTask.setApiCode(loanFile.getApiCode());
+        marketingTask.setBatchNumber(loanFile.getBatchNumber());
+        if("incr".equals(type)){
+            marketingTask.setTableName("b_marketing_user_chg");
+        }else if("all".equals(type)||"once".equals(type)){
+            marketingTask.setTableName("b_marketing_user_"+loanFile.getApiCode());
+        }
+        Integer expectedNum = loanFile.getExpectedNum();
+        if(expectedNum==null){
+            expectedNum = marketingUserMapper.queryCount(marketingTask);
+        }
+        if(sum!=expectedNum){
+            log.warn("{}该批次实际返回数据量{}和应该返回数据量{}不一致",loanFile.getBatchNumber(),sum,expectedNum);
+        }
+        loanFile.setFileNum(1);
+        loanFile.setActualNum(sum);
+        loanFileMapper.updateFtpFileInfo(loanFile);
+
     }
 
     /**
@@ -193,12 +133,6 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             loanFileMapper.updateSignFileStatus(apiCode);
             businessAlarmServiceImpl.fileSizeException(apiCode,name+","+loanFile.getFileSize());
         }else {
-            if((apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA))&&size>2097152){
-                log.error("360单个文件大小超过2M。{}:{}",name,loanFile.getFileSize());
-                loanFileMapper.updateSignFileStatus(apiCode);
-                businessAlarmServiceImpl.fileSizeException(apiCode,name+","+loanFile.getFileSize());
-            }
-
             File file = new File(loanFile.getFilePath() +"/"+ name);
             long length = file.length();
             if(length!=size){
@@ -213,43 +147,26 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     /**
      * 获取结果文件的信息
      * @param apiCode apiCode
-     * @param  batchNumberSet 记录360的文件批次
      * @param sftpATTRS sftp上的文件对象
      * @param name 文件名称
      * @return ResultFileInfo
      */
-    private  LoanFile fileInfo(String apiCode, Set<String> batchNumberSet,SftpATTRS sftpATTRS, String name) {
+    private  LoanFile fileInfo(String apiCode,SftpATTRS sftpATTRS, String name) {
         log.warn("sftpATTRS:{}",sftpATTRS);
         LoanFile loanFile;
         String uploadTime= DateHelper.timeStamp2Date(sftpATTRS.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
         String batchNumber="";
         boolean flag=false;
         String[] split = SPLIT_PATTERN.split(name);
-        if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-            if(split.length<6){
-                log.warn("name is error{}",name);
-            }else {
-                batchNumber=split[3]+"_"+split[4]+"_"+split[5];
-                if(batchNumberSet.contains(batchNumber)){
-                    flag=true;
-                }else {
-                    batchNumberSet.add(batchNumber);
-                }
-            }
+        if(split.length<5){
+            log.warn("name is error{}",name);
         }else {
-            if(split.length<5){
-                log.warn("name is error{}",name);
-            }else {
-                batchNumber=split[2]+"_"+split[3]+"_"+split[4];
-            }
+            batchNumber=split[2]+"_"+split[3]+"_"+split[4];
         }
 
         Map<String,String> param=new HashMap<>();
         param.put("batchNumber",batchNumber);
         param.put("apiCode",apiCode);
-        if(apiCode.equals(Constants.APICODE_PPD)||apiCode.equals(Constants.APICODE_PPD_QA)){
-            param.put("fileName",name);
-        }
         log.warn("param:{}",param);
         loanFile = loanFileMapper.queryFilePath(param);
         loanFile.setFileSize(String.valueOf(sftpATTRS.getSize()));
@@ -261,7 +178,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
 
     private  Map<String, SftpATTRS>  getFileList(String apiCode,String suffix) throws IOException {
         Map<String, SftpATTRS> stringSftpATTRSMap=new HashMap<>();
-        String dir="/UploadFiles/loanwarn/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
+        String dir="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();

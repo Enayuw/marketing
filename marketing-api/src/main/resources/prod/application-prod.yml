@@ -1,28 +1,69 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://mysql-loanwarning-vip.brapp.com/marketing?useUnicode=true&characterEncoding=UTF-8
+        username: u_pd_marketing
+        password: qTODziGYQsq11aw8Js2V
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 5
+        maxWait: 60000
+        minIdle: 5
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
 eureka:
   client:
     service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/
 
+spring:
+  rabbitmq:
+    zw:
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
 otherConfig:
-  huaXiangInterface:
-        getAllProductTypes: http://192.168.162.235:8080/SendBox/ProductTypes
-        getAllProducts: http://192.168.162.235:8080/SendBox/Products
-        getPorductByType: http://192.168.162.235:8080/SendBox/Products/
-        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
-  sanxiangzhiliInterface:
-        sanxiang_url: http://zh-service/v1/getData
-        haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: f72b7def3d3c5e2d93d4c0f3be664f21
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        sendCode: 66618706
-  mq:
-        destinationName: loan_warning_query_log
-        appName: loan_warning_query_producer
-        appSecretKey: 1579f7d582f16d0030bd37537aadb78a
-  userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
-  encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
 

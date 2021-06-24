@@ -1,8 +1,10 @@
 package com.br.marketing.mapper;
 import com.br.marketing.entity.SyncConfig;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface SyncConfigMapper extends SyncConfigMapperBase {
     /**
      * 插入文件同步配置

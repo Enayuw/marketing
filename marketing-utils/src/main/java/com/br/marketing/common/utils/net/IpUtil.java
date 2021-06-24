@@ -4,6 +4,7 @@ package com.br.marketing.common.utils.net;
  * @author Wang Weiwei
  * @since 2018/1/17
  */
+
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +28,7 @@ public class IpUtil {
         }
 
         ip = request.getHeader("x-forwarded-for");
-        if (ip != null && ip.indexOf(',') > 0) {
+        if (ip != null && ip.contains(",")) {
             String[] tmp = ip.split("[,]");
             for (int i = 0; tmp != null && i < tmp.length; i++) {
                 if (tmp[i] != null && tmp[i].length() > 0
@@ -49,14 +50,14 @@ public class IpUtil {
         return ip;
     }
 
-    public static String getHostName(){
-        String hostName="unknown";
+    public static String getHostName() {
+        String hostName = "unknown";
         try {
             hostName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        log.debug("HostName:{}",hostName);
+        log.debug("HostName:{}", hostName);
         return hostName;
     }
 

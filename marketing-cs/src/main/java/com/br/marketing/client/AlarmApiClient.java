@@ -57,9 +57,14 @@ public class AlarmApiClient implements ApplicationContextAware {
         }else{
             title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
         }
-        BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
-        service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-        sendMailData(content,title,appName,secretKey,exceptionCode,service);
+        try{
+            BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
+            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
+            sendMailData(content,title,appName,secretKey,exceptionCode,service);
+        }catch (Exception e){
+//            log.error("发送邮件异常",e);e
+        }
+
     }
 
     /**
@@ -143,7 +148,7 @@ public class AlarmApiClient implements ApplicationContextAware {
             config.put("requestData",requestData);
             BrSendAlarmNewServicePrx service= (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
             service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-            log.info("config--{}",config);
+            log.info("bean--{}",config);
             result = service.sendMessageToPresonal(config.toJSONString(),mailContent);
             log.info("【mail send result】:{}",result);
         } catch (Exception e) {

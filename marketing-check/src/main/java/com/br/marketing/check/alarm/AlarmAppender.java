@@ -25,7 +25,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             }
             try {
                 EmailService emailService=CkeckApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "LOAN-WARNING-CHECK");
+                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-CHECK");
             } catch (Exception e) {
                 log.warn("Exception",e);
             }

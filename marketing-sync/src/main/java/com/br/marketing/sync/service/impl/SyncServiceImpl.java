@@ -30,7 +30,7 @@ import java.util.*;
 @Slf4j
 public class SyncServiceImpl implements SyncService {
     /**
-     * The Loan sync config mapper.
+     * The Loan sync bean mapper.
      */
     @Resource
     SyncConfigMapper loanSyncConfigMapper;
@@ -43,35 +43,43 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void getFromSftp() {
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfig("1");
-        for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            log.info("LoanSyncConfig:{}",loanSyncConfig);
-            Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
-            syncFile(loanSyncConfig,stringListMap);
-        }
+        sync(loanSyncConfigs);
     }
 
     @Override
     public void putToSftp() {
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfig("2");
-        for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            log.info("LoanSyncConfig:{}",loanSyncConfig);
-            Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
-            syncFile(loanSyncConfig,stringListMap);
-        }
+        sync(loanSyncConfigs);
     }
 
     @Override
     public void insertConfig(SyncConfig loanSyncConfig) {
         String srcSftpPwd = loanSyncConfig.getSrcSftpPwd();
         String targetSftpPwd = loanSyncConfig.getTargetSftpPwd();
-        String encryptSrcSftpPwd = AESAlgorithmUtil.encrypt(srcSftpPwd, Constants.SFTP_PWD_SECRET_KEY);
-        String encryptTargetSftpPwd = AESAlgorithmUtil.encrypt(targetSftpPwd, Constants.SFTP_PWD_SECRET_KEY);
+        String encryptSrcSftpPwd = AESAlgorithmUtil.encrypt(srcSftpPwd, Constants.SFTP_P_SECRET_KEY);
+        String encryptTargetSftpPwd = AESAlgorithmUtil.encrypt(targetSftpPwd, Constants.SFTP_P_SECRET_KEY);
         loanSyncConfig.setSrcSftpPwd(encryptSrcSftpPwd);
         loanSyncConfig.setTargetSftpPwd(encryptTargetSftpPwd);
         log.warn("loanSyncConfig:{}",loanSyncConfig);
         loanSyncConfigMapper.insertConfig(loanSyncConfig);
     }
 
+    private void sync(List<SyncConfig> loanSyncConfigs){
+        //当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
+        Set<String> dateSet =new HashSet<>();
+        dateSet.add(DateHelper.getDateByMinute(-60));
+        dateSet.add(DateHelper.getDateAddYyMmDd(0));
+        for(SyncConfig loanSyncConfig:loanSyncConfigs){
+            log.info("LoanSyncConfig:{}",loanSyncConfig);
+            for (String date : dateSet) {
+                loanSyncConfig.setSrcPath(loanSyncConfig.getSrcPath().replace("yyyyMMdd", date));
+                loanSyncConfig.setTargetPath(loanSyncConfig.getTargetPath().replace("yyyyMMdd", date));
+                Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
+                syncFile(loanSyncConfig,stringListMap,date);
+            }
+
+        }
+    }
     /**
      * 同步文件
      * 根据文件类型同步文件
@@ -82,7 +90,7 @@ public class SyncServiceImpl implements SyncService {
      * @param loanSyncConfig 文件同步配置
      * @param stringListMap 文件名称和文件属性
      */
-    private void syncFile(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap) {
+    private void syncFile(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap,String date) {
         BaseFtpClient srcClient = getClient(loanSyncConfig,true);
         BaseFtpClient targetClient = getClient(loanSyncConfig,false);
         if(srcClient==null||targetClient==null){
@@ -98,15 +106,16 @@ public class SyncServiceImpl implements SyncService {
         List<String> finishList = stringListMap.get("finish");
         SyncServiceImpl bean = SyncApplication.ac.getBean(SyncServiceImpl.class);
         if(suffixStr.contains(".txt")){
-            log.debug("--------------开始同步txt文件---------------");
+            log.info("--------------开始同步txt文件---------------");
             List<String> txtList = stringListMap.get("txt");
             if(txtList!=null){
                 for(String fileName:txtList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList)){
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
                         bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
                         if(suffixStr.contains(".success")){
-                            log.debug("--------------开始同步success文件---------------");
+                            log.info("--------------开始同步success文件---------------");
                             String successFile=fileName+".success";
+
                             bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
                         }
                     }
@@ -116,14 +125,14 @@ public class SyncServiceImpl implements SyncService {
 
         boolean flag=false;
         if(suffixStr.contains(".zip")){
-            log.debug("--------------开始同步zip文件---------------");
+            log.info("--------------开始同步zip文件---------------");
             List<String> zipList = stringListMap.get("zip");
             if(zipList!=null){
                 for(String fileName:zipList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList)){
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
                         bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
                         if(suffixStr.contains(".success")){
-                            log.debug("--------------开始同步success文件---------------");
+                            log.info("--------------开始同步success文件---------------");
                             String successFile=fileName+".success";
                             bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
                         }
@@ -134,7 +143,7 @@ public class SyncServiceImpl implements SyncService {
         }
 
         if(suffixStr.contains(".finish")&&flag){
-            log.debug("--------------开始同步finish文件---------------");
+            log.info("--------------开始同步finish文件---------------");
             if(finishList!=null){
                 for(String fileName:finishList){
                     bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
@@ -192,16 +201,14 @@ public class SyncServiceImpl implements SyncService {
      * @param fileName 文件名称
      */
     public void copyFile(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient, BaseFtpClient targetClient){
-        String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
+
         String srcPath = loanSyncConfig.getSrcPath();
-        String realSrcPath = srcPath.replace("yyyyMMdd", dateAddYyMmDd);
         String targetPath = loanSyncConfig.getTargetPath();
-        String realTargetPath = targetPath.replace("yyyyMMdd", dateAddYyMmDd);
         InputStream inputStream=null;
         try{
-            targetClient.mkdir(realTargetPath);
-            inputStream = srcClient.getInputStream(realSrcPath, fileName);
-            targetClient.uploadFile(inputStream,realTargetPath,fileName);
+            targetClient.mkdir(targetPath);
+            inputStream = srcClient.getInputStream(srcPath, fileName);
+            targetClient.uploadFile(inputStream,targetPath,fileName);
         }catch (Exception e){
             log.error("拷贝文件出错",e);
         }finally {
@@ -223,55 +230,32 @@ public class SyncServiceImpl implements SyncService {
      * @param finishList finish标识文件列表
      * @return 校验是否通过
      */
-    private boolean checkFinishSuccess(SyncConfig loanSyncConfig, String fileName, List<String> successList, List<String> finishList){
+    private boolean checkFinishSuccess(SyncConfig loanSyncConfig, String fileName, List<String> successList, List<String> finishList,String date){
         boolean flag=true;
-        boolean deleteMonitor = fileName.indexOf("DeleteMonitor") >= 0;
         if(loanSyncConfig.getCheckFinish()==1) {
             if(finishList==null){
                 return false;
             }
             String apiCode = loanSyncConfig.getApiCode();
-            String finishFilename="";
+
             String[] s = fileName.split("\\.");
             if(s.length<2){
                 return false;
             }
+            String finishName="";
             String[] names = s[0].split("_");
             log.warn("checkFinishSuccess fileName:{}",fileName);
-            String dateAdd = DateHelper.getDateAddYyMmDd(0);
-            if(deleteMonitor){
-                if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-                    if(names.length<5){
-                        log.warn("checkFinishSuccess fileName:{}",fileName);
-                        return false;
-                    }
-                    finishFilename=names[0]+"_"+names[1]+"_"+names[3]+"_"+names[4]+".finish";
+            if(1==loanSyncConfig.getType()){
+                if(names.length<3){
+                    log.warn("checkFinishSuccess fileName:{}",fileName);
+                    return false;
                 }
-            }else{
-                if(apiCode.equals(Constants.APICODE_360)||apiCode.equals(Constants.APICODE_360_QA)){
-                    if(1==loanSyncConfig.getType()){
-                        if(names.length<4){
-                            log.warn("checkFinishSuccess fileName:{}",fileName);
-                            return false;
-                        }
-                        finishFilename=names[0]+"_"+names[1]+"_"+names[3]+".finish";
-                    }else if(2==loanSyncConfig.getType()){
-                        finishFilename=apiCode+"_UploadCustomFileName"+dateAdd+"_"+dateAdd+".finish";
-                    }
-                }else{
-                    if(1==loanSyncConfig.getType()){
-                        if(names.length<3){
-                            log.warn("checkFinishSuccess fileName:{}",fileName);
-                            return false;
-                        }
-                        finishFilename=names[0]+"_ReturnCompleted_"+names[2]+".finish";
-                    }else if(2==loanSyncConfig.getType()){
-                        finishFilename=apiCode+"_ReturnCompleted_"+dateAdd+".finish";
-                    }
-                }
+                finishName=names[0]+"_ReturnCompleted_"+names[2]+".finish";
+            }else if(2==loanSyncConfig.getType()){
+                finishName=apiCode + "_ReturnCompleted_" + date + ".finish";
             }
-            if(!finishList.contains(finishFilename)){
-                log.warn("finishFilename:{} finishList:{}",finishFilename,finishList);
+            if(!finishList.contains(finishName)){
+                log.warn("finishFilename:{} finishList:{}",finishName,finishList);
                 flag= false;
             }
         }
@@ -303,7 +287,7 @@ public class SyncServiceImpl implements SyncService {
         String apiCode = loanSyncConfig.getApiCode();
         BaseFtpClient client = getClient(loanSyncConfig,true);
         if(client==null){
-            log.error("client is null");
+            log.error("config is null");
             return resultMap;
         }
         if(!client.isConnected()){
@@ -315,7 +299,6 @@ public class SyncServiceImpl implements SyncService {
         }else if(Constants.LOAN_WARNING_FTP.equals(loanSyncConfig.getSrcType())){
             ftpFileList(resultMap,loanSyncConfig, (FtpClient) client,apiCode);
         }
-
         try {
             client.disconnect();
         } catch (Exception e) {
@@ -328,58 +311,19 @@ public class SyncServiceImpl implements SyncService {
     private void ftpFileList(Map<String, List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode) {
         try {
             String srcPath = loanSyncConfig.getSrcPath();
-            String realSrcPath = srcPath.replace("yyyyMMdd", DateHelper.getDateAddYyMmDd(0));
-            FTPFile[] ftpFiles = client.listFiles(realSrcPath);
-            log.warn("realSrcPath{},ftpFiles {}",realSrcPath,ftpFiles.length);
-        for(FTPFile file:ftpFiles){
-            String fileName = file.getName();
-            Calendar timestamp = file.getTimestamp();
-            String createFileTime = DateUtils.parseDateTimeByDate( timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
-            log.info("fileName:{},size:{},time:{}",fileName,file.getSize(),createFileTime);
-            if(vaildExclusionTime(createFileTime,loanSyncConfig)){
-                log.info("历史文件，不处理{},{}",fileName,createFileTime);
-                continue;
-            }
-            String s1 = DateUtils.parseDateTimeByDate(new Date(), "yyyy-MM-dd HH:mm:ss");
-            long[] distanceTimes = DateHelper.getDistanceTimes(createFileTime, s1);
-            long day = 0;
-            long hour = 0;
-            long min = 0;
-            for(int i=0;i<distanceTimes.length;i++){
-                if(i==0){
-                    day = distanceTimes[i];
+            FTPFile[] ftpFiles = client.listFiles(srcPath);
+            log.warn("FTP同步路径:{},该路径下文件有:{}个",srcPath,ftpFiles.length);
+            for(FTPFile file:ftpFiles){
+                String fileName = file.getName();
+                Calendar timestamp = file.getTimestamp();
+                String createFileTime = DateUtils.parseDateTimeByDate( timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
+                log.info("fileName:{},size:{},time:{}",fileName,file.getSize(),createFileTime);
+                if(vaildExclusionTime(createFileTime,loanSyncConfig)){
+                    log.info("历史文件，不处理{},{}",fileName,createFileTime);
+                    continue;
                 }
-                if(i==1){
-                    hour = distanceTimes[i];
-                }
-                if(i==2){
-                    min = distanceTimes[i];
-                }
+                validateIsSync(createFileTime,fileName,apiCode,resultMap);
             }
-            if(day==0&&hour==0&&min<1){
-                log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
-                continue;
-            }
-            Map<String,String> params=new HashMap<>();
-            params.put("apiCode",apiCode);
-            params.put("fileName",fileName);
-            params.put("createFileTime",createFileTime);
-            List<SyncLog> syncLogs=  loanSyncLogMapper.querySyncLog(params);
-            if(syncLogs==null||syncLogs.size()<=0){
-                String[] split = fileName.split("\\.");
-                if(split.length>1){
-                    String suf = split[split.length-1];
-                    List<String> list = resultMap.get(suf);
-                    if(list==null){
-                        list=new ArrayList<>();
-                        resultMap.put(suf,list);
-                    }
-                    list.add(fileName);
-                }else {
-                    log.warn("error fileName :{}",fileName);
-                }
-            }
-        }
         } catch (Exception e) {
             log.error("遍历ftp文件出错",e);
         }
@@ -387,70 +331,56 @@ public class SyncServiceImpl implements SyncService {
 
 
     private void sftpFileList(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, SftpClient client, String apiCode){
-        try {
-            String srcPath = loanSyncConfig.getSrcPath();
-            String realSrcPath = srcPath.replace("yyyyMMdd", DateHelper.getDateAddYyMmDd(0));
-            Map<String, SftpATTRS> map = client.listFiles(realSrcPath);
-            log.warn("realSrcPath:{} map key:{}",realSrcPath,map.keySet());
-            for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
-                String fileName = entry.getKey();
-                SftpATTRS attrs = entry.getValue();
-
-                log.info("sftp filename：{} Atime:{},size:{},atTime:{},Extended:{},Flags:{},gid:{},mTime:{},MtimeString:{}," +
-                                "Permissions:{},PermissionsString:{},uid:{}"
-                        ,fileName,attrs.getAtimeString(),attrs.getSize(),attrs.getATime()
-                        ,attrs.getExtended(),attrs.getFlags(),attrs.getGId(),attrs.getMTime()
-                        ,attrs.getMtimeString(),attrs.getPermissions(),attrs.getPermissionsString(),attrs.getUId());
-
-                String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
-                if(vaildExclusionTime(createFileTime,loanSyncConfig)){
-                    log.warn("历史文件，不处理{},{}",fileName,createFileTime);
-                    continue;
-                }
-                String s1 = DateUtils.parseDateTimeByDate(new Date(), "yyyy-MM-dd HH:mm:ss");
-                long[] distanceTimes = DateHelper.getDistanceTimes(createFileTime, s1);
-                long day = 0;
-                long hour = 0;
-                long min = 0;
-                for(int i=0;i<distanceTimes.length;i++){
-                    if(i==0){
-                        day = distanceTimes[i];
+            try {
+                String srcPath = loanSyncConfig.getSrcPath();
+                Map<String, SftpATTRS> map = client.listFiles(srcPath);
+                log.warn("SFTP同步路径:{},该路径下文件有:{}个",srcPath,map.keySet().size());
+                for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
+                    String fileName = entry.getKey();
+                    SftpATTRS attrs = entry.getValue();
+                    String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
+                    if(vaildExclusionTime(createFileTime,loanSyncConfig)){
+                        log.warn("历史文件，不处理{},{}",fileName,createFileTime);
+                        continue;
                     }
-                    if(i==1){
-                        hour = distanceTimes[i];
-                    }
-                    if(i==2){
-                        min = distanceTimes[i];
-                    }
+                    validateIsSync(createFileTime,fileName,apiCode,resultMap);
                 }
-                if(day==0&&hour==0&&min<1){
-                    log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
-                    continue;
-                }
-
-                Map<String,String> params=new HashMap<>();
-                params.put("apiCode",apiCode);
-                params.put("fileName",fileName);
-                params.put("createFileTime",createFileTime);
-                List<SyncLog> syncLogs=  loanSyncLogMapper.querySyncLog(params);
-                //log.warn("params:{},syncLogs:{}",params,syncLogs.size());
-                if(syncLogs==null||syncLogs.size()<=0){
-                    String[] split = fileName.split("\\.");
-                    if(split.length>1){
-                        String suf = split[split.length-1];
-                        List<String> list = resultMap.get(suf);
-                        if(list==null){
-                            list=new ArrayList<>();
-                            resultMap.put(suf,list);
-                        }
-                        list.add(fileName);
-                    }else {
-                        log.warn("error fileName :{}",fileName);
-                    }
-                }
+            } catch (Exception e) {
+                log.error("遍历sftp文件出错",e);
             }
-        } catch (Exception e) {
-            log.error("遍历sftp文件出错",e);
+    }
+
+    /**
+     * 校验文件是否需要同步，如果需要，检查是否已经同步过，然后放到map中
+     * @param createFileTime 文件创建时间
+     * @param fileName 文件名
+     * @param apiCode apiCode
+     * @param resultMap  文件数据集合
+     */
+    private void validateIsSync(String createFileTime,String fileName,String apiCode,Map<String, List<String>> resultMap){
+        long minutes = DateHelper.getDistanceMinutes(createFileTime);
+        if(minutes<1){
+            log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
+            return;
+        }
+        Map<String,String> params=new HashMap<>();
+        params.put("apiCode",apiCode);
+        params.put("fileName",fileName);
+        params.put("createFileTime",createFileTime);
+        List<SyncLog> syncLogs=  loanSyncLogMapper.querySyncLog(params);
+        if(syncLogs==null||syncLogs.size()<=0){
+            String[] split = fileName.split("\\.");
+            if(split.length>1){
+                String suf = split[split.length-1];
+                List<String> list = resultMap.get(suf);
+                if(list==null){
+                    list=new ArrayList<>();
+                    resultMap.put(suf,list);
+                }
+                list.add(fileName);
+            }else {
+                log.warn("error fileName :{}",fileName);
+            }
         }
     }
 
@@ -475,8 +405,5 @@ public class SyncServiceImpl implements SyncService {
         }
         return false;
     }
-    public static void main(String[] args) {
-      BaseFtpClient  client = new FtpClient(new SyncConfig(), false);
-        System.out.println(client);
-    }
+
 }

@@ -24,7 +24,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             }
             try {
                 EmailService emailService= SyncApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "LOAN-WARNING-SYNC");
+                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-SYNC");
             } catch (Exception e) {
                 log.warn("Exception",e);
             }

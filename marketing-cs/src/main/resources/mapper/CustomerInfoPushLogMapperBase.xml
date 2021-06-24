@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomerInfoPushLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerInfoPushLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="m_id" property="mId" jdbcType="BIGINT" />
+    <result column="batch" property="batch" jdbcType="VARCHAR" />
+    <result column="param" property="param" jdbcType="VARCHAR" />
+    <result column="result_content" property="resultContent" jdbcType="VARCHAR" />
+    <result column="http_status" property="httpStatus" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="error_content" property="errorContent" jdbcType="VARCHAR" />
+    <result column="real_stauts" property="realStauts" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, m_id, batch, param, result_content, http_status, code, create_time, error_content, 
+    real_stauts
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_customer_info_push_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_customer_info_push_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_customer_info_push_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerInfoPushLogExample" >
+    delete from b_customer_info_push_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_customer_info_push_log (m_id, batch, param, 
+      result_content, http_status, code, 
+      create_time, error_content, real_stauts
+      )
+    values (#{mId,jdbcType=BIGINT}, #{batch,jdbcType=VARCHAR}, #{param,jdbcType=VARCHAR}, 
+      #{resultContent,jdbcType=VARCHAR}, #{httpStatus,jdbcType=VARCHAR}, #{code,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{errorContent,jdbcType=VARCHAR}, #{realStauts,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_customer_info_push_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="mId != null" >
+        m_id,
+      </if>
+      <if test="batch != null" >
+        batch,
+      </if>
+      <if test="param != null" >
+        param,
+      </if>
+      <if test="resultContent != null" >
+        result_content,
+      </if>
+      <if test="httpStatus != null" >
+        http_status,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="errorContent != null" >
+        error_content,
+      </if>
+      <if test="realStauts != null" >
+        real_stauts,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="mId != null" >
+        #{mId,jdbcType=BIGINT},
+      </if>
+      <if test="batch != null" >
+        #{batch,jdbcType=VARCHAR},
+      </if>
+      <if test="param != null" >
+        #{param,jdbcType=VARCHAR},
+      </if>
+      <if test="resultContent != null" >
+        #{resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="httpStatus != null" >
+        #{httpStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errorContent != null" >
+        #{errorContent,jdbcType=VARCHAR},
+      </if>
+      <if test="realStauts != null" >
+        #{realStauts,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CustomerInfoPushLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_customer_info_push_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_customer_info_push_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.mId != null" >
+        m_id = #{record.mId,jdbcType=BIGINT},
+      </if>
+      <if test="record.batch != null" >
+        batch = #{record.batch,jdbcType=VARCHAR},
+      </if>
+      <if test="record.param != null" >
+        param = #{record.param,jdbcType=VARCHAR},
+      </if>
+      <if test="record.resultContent != null" >
+        result_content = #{record.resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.httpStatus != null" >
+        http_status = #{record.httpStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.code != null" >
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.errorContent != null" >
+        error_content = #{record.errorContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.realStauts != null" >
+        real_stauts = #{record.realStauts,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_customer_info_push_log
+    set id = #{record.id,jdbcType=BIGINT},
+      m_id = #{record.mId,jdbcType=BIGINT},
+      batch = #{record.batch,jdbcType=VARCHAR},
+      param = #{record.param,jdbcType=VARCHAR},
+      result_content = #{record.resultContent,jdbcType=VARCHAR},
+      http_status = #{record.httpStatus,jdbcType=VARCHAR},
+      code = #{record.code,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      error_content = #{record.errorContent,jdbcType=VARCHAR},
+      real_stauts = #{record.realStauts,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
+    update b_customer_info_push_log
+    <set >
+      <if test="mId != null" >
+        m_id = #{mId,jdbcType=BIGINT},
+      </if>
+      <if test="batch != null" >
+        batch = #{batch,jdbcType=VARCHAR},
+      </if>
+      <if test="param != null" >
+        param = #{param,jdbcType=VARCHAR},
+      </if>
+      <if test="resultContent != null" >
+        result_content = #{resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="httpStatus != null" >
+        http_status = #{httpStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errorContent != null" >
+        error_content = #{errorContent,jdbcType=VARCHAR},
+      </if>
+      <if test="realStauts != null" >
+        real_stauts = #{realStauts,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushLog" >
+    update b_customer_info_push_log
+    set m_id = #{mId,jdbcType=BIGINT},
+      batch = #{batch,jdbcType=VARCHAR},
+      param = #{param,jdbcType=VARCHAR},
+      result_content = #{resultContent,jdbcType=VARCHAR},
+      http_status = #{httpStatus,jdbcType=VARCHAR},
+      code = #{code,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      error_content = #{errorContent,jdbcType=VARCHAR},
+      real_stauts = #{realStauts,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

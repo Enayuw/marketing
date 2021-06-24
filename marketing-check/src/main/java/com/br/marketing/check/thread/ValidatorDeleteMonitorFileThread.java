@@ -5,6 +5,10 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.encryption.Sm3Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.dto.FileContext;
+import com.br.marketing.check.utils.CheckDataUtil;
+import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingUser;
@@ -29,18 +33,18 @@ public class ValidatorDeleteMonitorFileThread implements Runnable {
     private  Writer fw;
     private RedisChgService redisChgService;
     private String fileName;
+    private DecodeClient decodeClient;
 
-    public ValidatorDeleteMonitorFileThread(Set<String> list, String apiCode, MarketingDirtyUserMapper marketingDirtyUserMapper,
-                                            MerchantParam merchantParam, Map<String,Integer> headIndexMap,
-                                            Writer fw, RedisChgService redisChgService, String fileName) {
+    public ValidatorDeleteMonitorFileThread(Set<String> list, FileContext context, Map<String,Integer> headIndexMap, Writer fw, DecodeClient decodeClient) {
         this.list = list;
-        this.apiCode = apiCode;
-        this.marketingDirtyUserMapper = marketingDirtyUserMapper;
-        this.merchantParam = merchantParam;
+        this.apiCode = context.getApiCode();
+        this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);
+        this.merchantParam = context.getMerchantParam();
         this.headIndexMap = headIndexMap;
         this.fw=fw;
-        this.redisChgService=redisChgService;
-        this.fileName=fileName;
+        this.redisChgService= CkeckApplication.ac.getBean(RedisChgService.class);
+        this.fileName=context.getDistinctTxtFileName();
+        this.decodeClient=decodeClient;
     }
 
 
@@ -48,13 +52,8 @@ public class ValidatorDeleteMonitorFileThread implements Runnable {
     public void run() {
         log.info("ValidatorDeleteMonitorFileThread list:{}headIndexMap:{}",list,headIndexMap);
         List<MarketingUser> insertList=new ArrayList<>();
-        List<MarketingUser> updateList=new ArrayList<>();
-        checkDeleteData(insertList,updateList);
+        checkDeleteDataV2(insertList);
         try {
-            if (updateList.size()>0){
-                marketingDirtyUserMapper.updateUser(updateList);
-            }
-
             if (insertList.size()>0){
                 marketingDirtyUserMapper.insertDirtyUser(insertList);
             }
@@ -187,7 +186,68 @@ public class ValidatorDeleteMonitorFileThread implements Runnable {
         }
     }
 
-
+    /**
+     * 校验黑名单数据
+     * @param insertList 匹配后的需要插入剔除表的数据
+     */
+    private void checkDeleteDataV2(List<MarketingUser> insertList) {
+        for(String row:list){
+            Boolean flag=false;
+            log.debug("checkDeleteData :row {}",row);
+            if(StringUtils.isEmpty(row)){
+                log.warn("空行");
+                continue;
+            }
+            String[] rowArray = row.split(",");
+            String cell="";
+            String cusNum="";
+            if(headIndexMap.get("cusNumIndex")==-1){
+                log.info("客户编号不存在");
+                continue;
+            }
+            if(headIndexMap.get("cusNumIndex")!=-1){
+                try {
+                    cusNum = rowArray[headIndexMap.get("cusNumIndex")];
+                }catch (ArrayIndexOutOfBoundsException e){
+                    log.warn("客户编号不存在 cusNumIndex：{}",headIndexMap.get("cusNumIndex"));
+                    continue;
+                }
+            }
+            if(headIndexMap.get("cellIndex")!=-1){
+                try {
+                    cell = rowArray[headIndexMap.get("cellIndex")];
+                }catch (ArrayIndexOutOfBoundsException e){
+                    log.warn("cellIndex：{}",headIndexMap.get("cellIndex"));
+                }
+            }
+            try {
+                if(StringUtils.isNotEmpty(cell)){
+                    Map<String, String> resultMap = CheckDataUtil.checkColumn(cell,"cell",merchantParam,decodeClient);
+                    String result = resultMap.get("result");
+                    if (StringUtils.isNotEmpty(result)) {
+                        flag=true;
+                    }
+                }
+                String s = fileName.toUpperCase();
+                if(flag){
+                    MarketingUser dirtyUser=new MarketingUser(apiCode,"",cusNum,"","",cell);
+                    insertList.add(dirtyUser);
+                    String key = Constants.DELETE_MONITOR_SUCCESS + s;
+                    redisChgService.incr(key);
+                }else {
+                    log.warn("校验失败:{}",row);
+                    StringBuilder errorSb = new StringBuilder();
+                    String s1 = Constants.headMap.get("cell");
+                    errorSb.append(s1 + "错误,").append(row + "\n");
+                    fw.append(errorSb);
+                    String key = Constants.DELETE_MONITOR_ERROR + s;
+                    redisChgService.incr(key);
+                }
+            }catch (Exception e){
+                log.error("checkDeleteData error ",e);
+            }
+        }
+    }
     /**
      * 按照客户的加密配置进行加密
      * @param requestCode 加密方式

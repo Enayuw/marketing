@@ -46,7 +46,7 @@ public class HxUtil {
         /**
          * 0不留存，1留存
          */
-        if(notSaveLog){
+        if(notSaveLog ||Constants.APICODE_SHAZI.contains(apiCode)){
             extDataJson.put("isSaveLog","0");
         }else{
             extDataJson.put("isSaveLog","1");

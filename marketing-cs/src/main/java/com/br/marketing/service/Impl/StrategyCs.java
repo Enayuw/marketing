@@ -38,7 +38,7 @@ public class StrategyCs {
                     return "";
                 }
             }
-        }else if(strategyId.startsWith("DTB")){
+        }else if(strategyId.startsWith("DTM")){
             String str = dtbStrategyClient.getStrategy(apiCode, strategyId);
             if (StringUtils.isEmpty(str)) {
                 log.error("数据策略查询结果为空-{}-{}",apiCode,strategyId);

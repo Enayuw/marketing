@@ -44,7 +44,7 @@ import java.util.Map;
 @Configuration
 @Slf4j
 public class RabbitMqConfig {
-    public static final int MQ_LISTENER = 2;
+    public static final int MQ_LISTENER = 1;
 
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {

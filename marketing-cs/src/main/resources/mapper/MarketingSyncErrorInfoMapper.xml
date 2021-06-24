@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSyncErrorInfoMapper" >
+    <insert id="insertMarketingSigle" parameterType="com.br.marketing.entity.MarketingSyncErrorInfo">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO `b_marketing_sync_error_info` (`api_code`, `cus_batch`, `request_batch`, `error_info`, `create_time`)
+        VALUES (#{apiCode}, #{cusBatch}, #{requestBatch}, #{errorInfo}, #{createTime});
+    </insert>
+</mapper>

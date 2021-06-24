@@ -1,0 +1,68 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://192.168.23.110:3306/marketing?useUnicode=true&characterEncoding=UTF-8
+        username: u_pd_marketing
+        password: M6teKbFVl1odfOCkC1JA
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 5
+        maxWait: 60000
+        minIdle: 5
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
+eureka:
+  client:
+    service-url.defaultZone: http://192.168.23.121:18000/eureka/
+
+spring:
+  rabbitmq:
+    zw:
+      addresses: 192.168.23.73:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: 192.168.23.73:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: k8s-prod-a
+otherConfig:
+  alarm:
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
+api:
+  intelligentCustomerService:
+    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+      pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口

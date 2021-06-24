@@ -2,7 +2,6 @@ package com.br.marketing.task.job;
 
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
@@ -13,11 +12,8 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * //				    _ooOoo_
@@ -56,31 +52,19 @@ public class TaskJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
-        String parameter = context.getJobParameter();
-        List<Customer> customers=new ArrayList<>();
-        if(StringUtils.isNotEmpty(parameter)){
-            Customer customer =customerMapper.getCustomerByApiCode(parameter);
-            if(customer !=null){
-                customers.add(customer);
-            }else {
-                log.error("apicode错误");
-                return;
-            }
-        }else {
-            customers =customerMapper.getAllCustomer();
-        }
+        List<Customer> customers=customerMapper.getAllCustomer();
         customers.forEach(customer -> {
             try {
-                Class loanWarningServiceClass =Class.forName(customer.getTaskServiceName());
-                LoanWarningService loanWarningService=(LoanWarningService)Scheduler.ac.getBean(loanWarningServiceClass);
-                loanWarningService.process(customer);
-                //推送消息到pushQueue，进行下一流程处理
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
-
-            } catch (ClassNotFoundException e) {
-                log.error("实现类未找到，apiCode={}",customer.getApiCode());
+                if(customer.getTaskTime()==1){
+                    log.warn("开始执行跑批任务，apicode={}",customer.getApiCode());
+                    LoanWarningService loanWarningService=Scheduler.ac.getBean(LoanWarningServiceImpl.class);
+                    loanWarningService.process(customer,context);
+                    //推送消息到pushQueue，进行下一流程处理
+                    //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
+                }
+            } catch (Exception e) {
+                log.error("程序跑批异常，apiCode={}",customer.getApiCode());
             }
-
         });
         Long end =System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{}",end-start);

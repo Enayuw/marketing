@@ -59,19 +59,19 @@ public class MarketingUserDBTest {
         loanSyncConfig.setSrcSftpHost("192.168.23.65");
         loanSyncConfig.setSrcSftpPort(9999);
         loanSyncConfig.setSrcSftpUser("loan_warning_pre_qa");
-        loanSyncConfig.setSrcSftpPwd(AESAlgorithmUtil.encrypt("ZXL3DkzZjtNsd0rO3T2w@_2020.11.05", Constants.SFTP_PWD_SECRET_KEY));
+        loanSyncConfig.setSrcSftpPwd(AESAlgorithmUtil.encrypt("ZXL3DkzZjtNsd0rO3T2w@_2020.11.05", Constants.SFTP_P_SECRET_KEY));
         loanSyncConfig.setTargetSftpHost("192.168.23.65");
         loanSyncConfig.setTargetSftpPort(9999);
         loanSyncConfig.setTargetSftpUser("loan_warning_pre");
-        loanSyncConfig.setTargetSftpPwd(AESAlgorithmUtil.encrypt("5Ge89rr8TKvVEiHvmrSL@_2020.11.05",Constants.SFTP_PWD_SECRET_KEY));
+        loanSyncConfig.setTargetSftpPwd(AESAlgorithmUtil.encrypt("5Ge89rr8TKvVEiHvmrSL@_2020.11.05",Constants.SFTP_P_SECRET_KEY));
         loanSyncConfigMapper.insertConfig(loanSyncConfig);
     }
     @Test
     public void testQuery(){
        List<SyncConfig> list= loanSyncConfigMapper.queryConfig("1");
        for(SyncConfig loanSyncConfig:list){
-           String srcSftpPwd = AESAlgorithmUtil.decrypt(loanSyncConfig.getSrcSftpPwd(), Constants.SFTP_PWD_SECRET_KEY);
-           String targetSftpPwd = AESAlgorithmUtil.decrypt(loanSyncConfig.getTargetSftpPwd(), Constants.SFTP_PWD_SECRET_KEY);
+           String srcSftpPwd = AESAlgorithmUtil.decrypt(loanSyncConfig.getSrcSftpPwd(), Constants.SFTP_P_SECRET_KEY);
+           String targetSftpPwd = AESAlgorithmUtil.decrypt(loanSyncConfig.getTargetSftpPwd(), Constants.SFTP_P_SECRET_KEY);
            System.out.println(srcSftpPwd+"------"+targetSftpPwd);
        }
     }

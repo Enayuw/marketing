@@ -29,9 +29,9 @@ public class ReturnDataRepository {
             log.warn("Exception",e);
             log.error("从用户中心请求用户信息出错--{}--apiCode:{}",e.getMessage(),apiCode);
         }
-        if(merchantParam!=null&&merchantParam.getReturnData()!=null&&merchantParam.getReturnData()==1){
+        if(merchantParam!=null&&merchantParam.getIsOutputDataProduct()!=null&&merchantParam.getIsOutputDataProduct()==1){
             log.info("merchantParam {}",merchantParam);
-            String meal = merchantParam.getMeal();
+            String meal = merchantParam.getMealJson();
             if(StringUtils.isNotEmpty(meal)){
                 JSONObject mealJson= JSON.parseObject(meal);
                 Set<String> keySet = mealJson.keySet();

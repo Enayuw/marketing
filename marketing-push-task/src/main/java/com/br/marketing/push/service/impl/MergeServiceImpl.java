@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.bean.Score;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.PropertiesUtil;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.*;
@@ -83,11 +80,9 @@ public class MergeServiceImpl implements MergeService {
         List<LoanFile> pushList =new ArrayList<>();
         try{
             if(StringUtils.isNotEmpty(apiCode)){
-                List<LoanFile> incrList=new ArrayList<>();
                 List<LoanFile> allList=new ArrayList<>();
                 List<LoanFile> onceList=new ArrayList<>();
-                initBatchNumList(incrList,allList,onceList,apiCode);
-                pushList.addAll(mergeIncr(incrList));
+                initBatchNumList(allList,onceList,apiCode);
                 pushList.addAll(mergeAllOrOnce(allList));
                 pushList.addAll(mergeAllOrOnce(onceList));
             }
@@ -98,30 +93,7 @@ public class MergeServiceImpl implements MergeService {
         return pushList;
     }
 
-    /**
-     * 推送增量结果
-     */
-    private List<LoanFile> mergeIncr(List<LoanFile> incrList){
-        List<LoanFile> incrFiles=new ArrayList<>();
-        for(LoanFile blf:incrList){
-            MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
-            if("0".equals(blt.getFrequency())){
-                String zipName = mergeResultFile(blf);
-                blf.setZipFileName(zipName);
-                incrFiles.add(blf);
-                // push(blf,files);
-            }else if("1".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 7);
-            }else if("2".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 30);
-            }else if("3".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 15);
-            }else if("4".equals(blt.getFrequency())){
-                mergeByFrequency(blt,blf, 90);
-            }
-        }
-        return incrFiles;
-    }
+
 
     private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList) {
         List<LoanFile> pushList=new ArrayList<>();
@@ -130,12 +102,13 @@ public class MergeServiceImpl implements MergeService {
             if(StringUtils.isEmpty(zipName)){
                 continue;
             }
-            blf.setZipFileName(zipName);
+            String[] split = zipName.split("/");
+            String name = split[split.length - 1];
+            blf.setZipFileName(name);
+            loanFileMapper.updateFile(blf);
+
             pushList.add(blf);
         }
-//        if(allFiles.size()>0){
-//            pushService.push(allFiles,apiCode);
-//        }
        return pushList;
     }
 
@@ -155,24 +128,9 @@ public class MergeServiceImpl implements MergeService {
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
             String s ="";
             if(blt==null){
-                if((blf.getApiCode().equals(Constants.APICODE_HNNX)||blf.getApiCode().equals(Constants.APICODE_APICODE_HNNX_QA))){
-                    blt=new MarketingTask();
-                    blt.setStart(0);
-                    blt.setLimit(1);
-                    blt.setApiCode(blf.getApiCode());
-                    blt.setMonitorStatus(1);
-                    List<MarketingTask> list = marketingTaskMapper.queryList(blt);
-                    if(list==null||list.size()==0){
-                        blt.setStrategyId("STRB0000001");
-                    }else {
-                        String strategyId = list.get(0).getStrategyId();
-                        blt.setStrategyId(strategyId);
-                    }
+                log.error("不存在的批次：{}",blf);
+                return zipFile;
 
-                }else {
-                    log.error("不存在的批次：{}",blf);
-                    return zipFile;
-                }
             }else {
                 String fileName1 = blt.getFileName();
                 fileName1=fileName1.replace(".txt","");
@@ -183,39 +141,29 @@ public class MergeServiceImpl implements MergeService {
                 return zipFile;
             }
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
+            String startTime = blf.getCreateTime();
+            startTime=startTime.split(" ")[0].replace("-","");
 
-            TaskStatus bts= taskStatusMapper.queryNewestBts(blf.getBatchNumber());
-            String startTime = bts.getCreateTime();
-            if(!StringUtils.isEmpty(startTime)){
-                startTime=startTime.split(" ")[0];
-                startTime=startTime.replace("-","");
-            }else{
-                startTime= DateHelper.getDateAddYyMmDd(0);
-            }
-            String strategyId="";
-            if(blf.getIsSec()==1){
-//                strategyId=blt.getSecStrategyId();
-            }else if (blf.getIsSec()==0){
-                strategyId=blt.getStrategyId();
-            }
-            String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
-                    +strategyId.split(":")[0]+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
+            String  strategyId=blt.getStrategyId();
+            String fileName=blf.getApiCode().concat("_").concat(s).concat("_").concat(blf.getBatchNumber()).concat("_").concat(strategyId.split(":")[0])
+                    .concat("_").concat(startTime).concat("_").concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
+            String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
             initHead(head,blt.getApiCode(),strategyId,separator);
-            FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
+            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
 
-            zipFile=fileName.replace(".txt",".zip");
-            if(Constants.APICODE_SHAZI.contains(blf.getApiCode())){
-                Integer total =MyFileUtil.getTotalLines(new File(fileName))-1;
-                blf.setExpectedNum(total);
-                ArrayList<String> countFileNameList =standard(fileName,separator,total);
-                countFileNameList.add(fileName);
-                ZipUtil.compress(zipFile,countFileNameList);
-            }else{
-                ZipUtil.compress(fileName,zipFile);
-            }
+            zipFile=filePathAndName.replace(".txt",".zip");
+            Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
+            blf.setExpectedNum(total);
+            ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
+
+            //统计文件上传fastdfs
+            uploadFastDfs(countFileNameList,blf,fileName);
+
+            countFileNameList.add(filePathAndName);
+            ZipUtil.compress(zipFile,countFileNameList);
         }catch (Exception e){
             log.error("合并文件出错",e);
         }finally {
@@ -223,39 +171,71 @@ public class MergeServiceImpl implements MergeService {
         }
         return zipFile;
     }
-
-    private ArrayList<String> standard(String fileName,String separator,Integer total){
-        ArrayList<String> fileNameList=new ArrayList<>();
-        StringBuilder head=null;
-        try {
-            head= MyFileUtil.gethead(fileName);
-        } catch (IOException e) {
-            log.error("获取文件头异常",e);
-        }
-        String headStr=head.toString();
-        String[] headArray=headStr.split(separator);
-        Set<String> products=new HashSet<>();
-        for(String pro:proFieldMap.keySet()){
-            log.info("pro:{}",pro);
-            products.add(pro.toLowerCase());
-        }
-        String countFileHead="scoring_range,sample_capacity,proportion,cumulative_proportion";
-        countFileHead=countFileHead.replace(",",separator);
-        for (String product : products) {
-            if(headStr.contains(product)){
-                ArrayList<Score> scores=initScoreList(300,1000,25);
-                int i =findIndex(headArray,product);
-                readFile(fileName,scores,i,separator);
-                count(scores,total);
-                StringBuilder end=new StringBuilder();
-                end.append("_bi_").append(product).append(".txt");
-                String countFileName=fileName.replace(".txt",end.toString());
-               FileUtil.writeFile(countFileHead,countFileName,scores,separator);
-                fileNameList.add(countFileName);
+    private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf,String fileName){
+        try{
+            fileName=fileName.replace(".txt",".zip");
+            String filePath=blf.getFilePath().concat("/fastdfs/");
+            File dir=new File(filePath);
+            if(!dir.exists()||!dir.isDirectory()){
+                boolean mkdirs = dir.mkdirs();
+                if(!mkdirs){
+                    log.error("创建文件夹失败-{}",filePath);
+                    return ;
+                }
             }
+
+            String filePathAndName=filePath.concat(fileName);
+            ZipUtil.compress(filePathAndName,countFileNameList);
+
+            byte[] buffer;
+            FileInputStream in=new FileInputStream(new File(filePathAndName));
+            OutputStream outputStream = new ByteArrayOutputStream();
+            byte[] b = new byte[1024];
+            int n = 0;
+            while ((n = in.read(b)) != -1){
+                outputStream.write(b, 0, n);
+            }
+            buffer = ((ByteArrayOutputStream) outputStream).toByteArray();
+            String  url = FastdfsUtils.uploadDFSFileByte(buffer,fileName);
+            blf.setStatisticFilePath(url);
+            blf.setScoreStatus(2);
+
+        }catch (Exception e){
+            log.error("上传fastdfs异常，{}",blf.getFilePath());
+        }
+    }
+    private ArrayList<String> standard(String fileName, String separator, Integer total) {
+        ArrayList<String> fileNameList = new ArrayList<>();
+        try {
+            StringBuilder head = MyFileUtil.gethead(fileName);
+            String headStr = head.toString();
+            String[] headArray = headStr.split(separator);
+            Set<String> products = new HashSet<>();
+            for (String pro : proFieldMap.keySet()) {
+                log.info("pro:{}", pro);
+                products.add(pro.toLowerCase());
+            }
+            String countFileHead = "scoring_range,sample_capacity,proportion,cumulative_proportion";
+            countFileHead = countFileHead.replace(",", separator);
+            for (String product : products) {
+                if (headStr.contains(product)) {
+                    ArrayList<Score> scores = initScoreList(300, 1000, 25);
+                    int i = findIndex(headArray, product);
+                    readFile(fileName, scores, i, separator);
+                    count(scores, total);
+                    StringBuilder end = new StringBuilder();
+                    end.append("_bi_").append(product).append(".txt");
+                    String countFileName = fileName.replace(".txt", end.toString());
+                    FileUtil.writeFile(countFileHead, countFileName, scores, separator);
+                    fileNameList.add(countFileName);
+                }
+            }
+        } catch (IOException e) {
+            log.error("获取文件头异常", e);
         }
         return fileNameList;
     }
+
     private void count(ArrayList<Score> scores,Integer total){
         if(total !=null &&total.compareTo(0)==0){
             total=total+1;
@@ -272,11 +252,8 @@ public class MergeServiceImpl implements MergeService {
     }
 
     private void readFile(String fileName,ArrayList<Score> scores,int index,String separator){
-        FileReader read=null;
-        BufferedReader br=null;
-        try {
-            read = new FileReader(fileName);
-            br = new BufferedReader(read);
+        try(FileReader read = new FileReader(fileName);
+            BufferedReader br = new BufferedReader(read)) {
             String row;
             while ((row = br.readLine()) != null) {
                 row = row.trim();
@@ -293,27 +270,10 @@ public class MergeServiceImpl implements MergeService {
                     }
                 }
             }
-            br.close();
-            read.close();
         } catch (FileNotFoundException e) {
             log.error("FileNotFoundException ",e);
         } catch (IOException e) {
-            log.error("FileNotFoundException ",e);
-        } finally {
-            if(br!=null){
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    log.error("IOException ",e);
-                }
-            }
-            if(read!=null){
-                try {
-                    read.close();
-                } catch (IOException e) {
-                    log.error("IOException ",e);
-                }
-            }
+            log.error("IOException ",e);
         }
     }
 
@@ -373,17 +333,12 @@ public class MergeServiceImpl implements MergeService {
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
-            TaskStatus bts= taskStatusMapper.queryNewestBts(blf.getBatchNumber());
             String fileName1 = blt.getFileName();
             fileName1=fileName1.replace(".txt","");
             String s = fileName1.split("_")[1];
-            String startTime = bts.getCreateTime();
-            if(!StringUtils.isEmpty(startTime)){
-                startTime=startTime.split(" ")[0];
-                startTime=startTime.replace("-","");
-            }else{
-                startTime= DateHelper.getDateAddYyMmDd(0);
-            }
+            String startTime = blf.getCreateTime();
+            startTime=startTime.split(" ")[0].replace("-","");
+
             String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
                     +blt.getStrategyId()+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
             StringBuilder head= new StringBuilder();
@@ -406,46 +361,6 @@ public class MergeServiceImpl implements MergeService {
         return result;
     }
 
-
-    private void mergeByFrequency(MarketingTask blt, LoanFile blf, int frequency){
-        int days=0;
-        try {
-            days= DateHelper.daysBetween(blt.getStartDate());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //按15天
-        if(days%frequency==0){
-            List<String> result=new ArrayList<>();
-            Map<String,List<String>> fileMap=new HashMap<>();
-            for(int i=0;i<frequency;i++){
-                String date = DateHelper.getDateAdd(i);
-                List<String> files = mergeResultFile(blf, date);
-                log.info("date:{},files:{}",date,files.toString());
-                fileMap.put(date,files);
-            }
-            StringBuilder targetPath=new StringBuilder();
-            targetPath.append(path)
-                    .append("/incr/")
-                    .append(blt.getApiCode())
-                    .append("/")
-                    .append(blt.getBatchNumber())
-                    .append("/");
-            String fileName1 = blt.getFileName();
-            fileName1=fileName1.replace(".txt","");
-            String s = fileName1.split("_")[1];
-            String startTime= DateHelper.getDateAddYyMmDd(frequency-1);
-            String fileName = targetPath + blt.getApiCode() + "_"+s+ "_" + blt.getBatchNumber() + "_"
-                    + blt.getStrategyId() +"_"+startTime+ "_" + DateHelper.getDateAddYyMmDd(0) + ".txt";
-            String errorFileName = targetPath + blt.getApiCode() + "_"+s+ "_error_"+DateHelper.getDateAddYyMmDd(0)+".txt";
-            FileUtil.merge(fileMap, fileName, errorFileName);
-            String zipFile=fileName.replace(".txt",".zip");
-            ZipUtil.compress(fileName,zipFile);
-            result.add(zipFile);
-            // push(blf,result);
-        }
-    }
-
     /**
      * 初始化表头
      * @param head
@@ -456,7 +371,7 @@ public class MergeServiceImpl implements MergeService {
     .append(",")
      */
     private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep){
-        List<String> list = null;
+        List<String> list;
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(strategyId.startsWith("STRB")){
@@ -486,7 +401,7 @@ public class MergeServiceImpl implements MergeService {
             log.info("pro:{}",pro);
             products.add(pro.toLowerCase());
         }
-        appendProInfo(head, apiCode, sep, products);
+        appendProInfo(head,sep, products);
     }
 
 
@@ -527,277 +442,30 @@ public class MergeServiceImpl implements MergeService {
         return result;
     }
 
-    private void appendProInfo(StringBuilder head, String apiCode, String sep, Set<String> products) {
+    private void appendProInfo(StringBuilder head,String sep, Set<String> products) {
         log.info("需要返回的数据产品--{}",products);
-        ProductField pf=new ProductField();
-        if(Constants.APICODE_DAAS.contains(apiCode)||Constants.APICODE_DAAS_QA.contains(apiCode)){
-            if(products.contains("applyloanstr")){
-                String fields = PropertiesUtil.getProperty("ApplyLoanStr_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("applyloan_d")){
-                String fields = PropertiesUtil.getProperty("ApplyLoan_d_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("keyattribution")){
-                String fields = PropertiesUtil.getProperty("KeyAttribution_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("scorecashon")){
-                String fields = PropertiesUtil.getProperty("scorecashon_DAAS");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            return;
-        }
-        if(Constants.APICODE_SHAZI.contains(apiCode)){
-            if(products.contains("scorencashonszyxxy")){
-                String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            if(products.contains("scoremcashonxhqbdzcd")){
-                String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
-                String[] split = fields.split(",");
-                for (int i=0;i<split.length;i++){
-                    head.append(split[i]).append(sep);
-                }
-            }
-            return;
-        }
-        if(products.contains("speciallist_c")){
-            String speciallistcFields = proFieldMap.get("SpecialList_c");
-            String[] split = speciallistcFields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("inforelation")){
-            String fields = proFieldMap.get("InfoRelation");
+        if(products.contains("scorencashonszyxxy")){
+            String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);
             }
         }
-        if(products.contains("applyloanstr")){
-            String fields = proFieldMap.get("ApplyLoanStr");
+        if(products.contains("scoremcashonxhqbdzcd")){
+            String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);
             }
-        }
-        if(products.contains("applyloanusury")){
-            String fields = proFieldMap.get("ApplyLoanUsury");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("executionlimited")){
-            String fields = proFieldMap.get("ExecutionLimited");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("consumptionfeature")){
-            String fields = proFieldMap.get("ConsumptionFeature");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("netshopping")){
-            String fields = proFieldMap.get("NetShopping");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_OPERATION_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_OPERATION_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremconsonsncfclxmodel")){
-            List<String> scoreField = pf.getScoreField();
-            for(String field:scoreField){
-                head.append(field).append(sep);
-            }
-        }
-        if(products.contains("scorecust")){
-            List<String> scoreField = pf.getScoreField();
-            for(String field:scoreField){
-                head.append(field).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_RISK_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_RISK_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremixuals")&&products.contains("scorebcashonsndzysbl")){
-            String s= PropertiesUtil.getProperty("sn");
-            String[] split = s.split(",");
-            for(String field:split){
-                head.append(field).append(sep);
-            }
-            String fields = PropertiesUtil.getProperty("scorecust1");
-            String[] split1 = fields.split(",");
-            for (int i=0;i<split1.length;i++){
-                head.append(split1[i]).append(sep);
-            }
-        }
-        if(products.contains("scoredata")){
-            String fields =proFieldMap.get("ScoreData");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scorecust1")){
-            String fields =PropertiesUtil.getProperty("scorecust1");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 稳定性指数
-         */
-        if(products.contains("stability_c")){
-            String fields = proFieldMap.get("Stability_c");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 借贷意向衍生特征
-         */
-        if(products.contains("applyfeature")){
-            String fields = proFieldMap.get("ApplyFeature");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 借贷行为验证
-         */
-        if(products.contains("totalloan")){
-            String fields = proFieldMap.get("TotalLoan");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 反欺诈风险识别-信用卡（类信用卡）
-         */
-        if(products.contains("scoreafrevoloan")){
-            List<String> scoreafrevoloan = pf.getScoreafrevoloanField();
-            for (String field:scoreafrevoloan){
-                head.append(field);
-                head.append(sep);
-            }
-        }
-        /**
-         * 灰名单衍生
-         */
-        if(products.contains("graylistexpand")){
-            String fields = proFieldMap.get("GrayListExpand");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 人口衍生
-         */
-        if(products.contains("populationderivation")){
-            String fields = proFieldMap.get("PopulationDerivation");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 团伙欺诈排查
-         */
-        if(products.contains("fraudrelation_g")){
-            String fields = proFieldMap.get("FraudRelation_g");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        /**
-         * 客制化评分2
-         */
-        if(products.contains("scorecust2")){
-            String fields =PropertiesUtil.getProperty("scorecust2");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if((Constants.APICODE_SN_RISK_DEPARTMENT.equals(apiCode)||Constants.APICODE_SN_RISK_DEPARTMENT_QA.equals(apiCode))
-                &&products.contains("scoremixuals")&&products.contains("scorebcashonsndzysbl")){
-            String fields =PropertiesUtil.getProperty("scorecust2");
-            String[] split1 = fields.split(",");
-            for (int i=0;i<split1.length;i++){
-                head.append(split1[i]).append(sep);
-            }
-        }
-        if(products.contains("scoredzminsu")){
-            head.append("flag_scoremdzinsu").append(sep).append("smi_score").append(sep);
-        }
-        if(products.contains("mobcheag")){
-            head.append("flag_mobcheag").append(sep).append("mca_age").append(sep);
         }
 
-        if(products.contains("specialgdwph")){
-            String specialgdwph = proFieldMap.get("SpecialGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("applyloanstrgdwph")){
-            String specialgdwph = proFieldMap.get("ApplyloanstrGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("fraudrelationgdwph")){
-            String specialgdwph = proFieldMap.get("FraudrelationGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scorecashongdwph")){
-            String specialgdwph = proFieldMap.get("ScoreCashonGdWph");
-            String[] split = specialgdwph.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
     }
 
     /**
      * 初始化当日需要监控的任务信息，并将增量监控和全量监控区分开来
-     * @param incrList
      * @param allList
      */
-    private void initBatchNumList(List<LoanFile> incrList, List<LoanFile> allList, List<LoanFile> onceList, String apiCode){
+    private void initBatchNumList( List<LoanFile> allList, List<LoanFile> onceList, String apiCode){
 
         List<LoanFile> list= loanFileMapper.queryFile(apiCode);
         for(LoanFile blf :list){
@@ -805,11 +473,9 @@ public class MergeServiceImpl implements MergeService {
                 onceList.add(blf);
             }else if(blf.getType()==1){
                 allList.add(blf);
-            }else if(blf.getType()==0){
-                incrList.add(blf);
             }
         }
-        log.info("[PUSH] incr size:{},all size:{},once size:{}",incrList.size(),allList.size(),onceList.size());
+        log.info("[PUSH]all size:{},once size:{}",allList.size(),onceList.size());
     }
 
 }

@@ -20,6 +20,8 @@
     <result column="sign_file_status" property="signFileStatus" jdbcType="INTEGER" />
     <result column="zip_status" property="zipStatus" jdbcType="INTEGER" />
     <result column="md5" property="md5" jdbcType="VARCHAR" />
+    <result column="score_status" property="scoreStatus" jdbcType="INTEGER" />
+    <result column="statistic_file_path" property="statisticFilePath" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -82,7 +84,7 @@
   <sql id="Base_Column_List" >
     id, api_code, batch_number, file_path, create_time, update_time, status, type, zipFile_name, 
     error_file, expected_num, upload_time, file_size, actual_num, file_num, sign_file_status, 
-    zip_status, md5
+    zip_status, md5, score_status, statistic_file_path
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.StraHisFileExample" >
     select
@@ -123,13 +125,15 @@
       type, zipFile_name, error_file, 
       expected_num, upload_time, file_size, 
       actual_num, file_num, sign_file_status, 
-      zip_status, md5)
+      zip_status, md5, score_status, 
+      statistic_file_path)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
       #{type,jdbcType=INTEGER}, #{zipfileName,jdbcType=VARCHAR}, #{errorFile,jdbcType=VARCHAR}, 
       #{expectedNum,jdbcType=INTEGER}, #{uploadTime,jdbcType=VARCHAR}, #{fileSize,jdbcType=VARCHAR}, 
       #{actualNum,jdbcType=INTEGER}, #{fileNum,jdbcType=INTEGER}, #{signFileStatus,jdbcType=INTEGER}, 
-      #{zipStatus,jdbcType=INTEGER}, #{md5,jdbcType=VARCHAR})
+      #{zipStatus,jdbcType=INTEGER}, #{md5,jdbcType=VARCHAR}, #{scoreStatus,jdbcType=INTEGER}, 
+      #{statisticFilePath,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.StraHisFile" >
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
@@ -188,6 +192,12 @@
       <if test="md5 != null" >
         md5,
       </if>
+      <if test="scoreStatus != null" >
+        score_status,
+      </if>
+      <if test="statisticFilePath != null" >
+        statistic_file_path,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -240,6 +250,12 @@
       </if>
       <if test="md5 != null" >
         #{md5,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreStatus != null" >
+        #{scoreStatus,jdbcType=INTEGER},
+      </if>
+      <if test="statisticFilePath != null" >
+        #{statisticFilePath,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -306,6 +322,12 @@
       <if test="record.md5 != null" >
         md5 = #{record.md5,jdbcType=VARCHAR},
       </if>
+      <if test="record.scoreStatus != null" >
+        score_status = #{record.scoreStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.statisticFilePath != null" >
+        statistic_file_path = #{record.statisticFilePath,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -330,7 +352,9 @@
       file_num = #{record.fileNum,jdbcType=INTEGER},
       sign_file_status = #{record.signFileStatus,jdbcType=INTEGER},
       zip_status = #{record.zipStatus,jdbcType=INTEGER},
-      md5 = #{record.md5,jdbcType=VARCHAR}
+      md5 = #{record.md5,jdbcType=VARCHAR},
+      score_status = #{record.scoreStatus,jdbcType=INTEGER},
+      statistic_file_path = #{record.statisticFilePath,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -389,6 +413,12 @@
       <if test="md5 != null" >
         md5 = #{md5,jdbcType=VARCHAR},
       </if>
+      <if test="scoreStatus != null" >
+        score_status = #{scoreStatus,jdbcType=INTEGER},
+      </if>
+      <if test="statisticFilePath != null" >
+        statistic_file_path = #{statisticFilePath,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -410,7 +440,9 @@
       file_num = #{fileNum,jdbcType=INTEGER},
       sign_file_status = #{signFileStatus,jdbcType=INTEGER},
       zip_status = #{zipStatus,jdbcType=INTEGER},
-      md5 = #{md5,jdbcType=VARCHAR}
+      md5 = #{md5,jdbcType=VARCHAR},
+      score_status = #{scoreStatus,jdbcType=INTEGER},
+      statistic_file_path = #{statisticFilePath,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

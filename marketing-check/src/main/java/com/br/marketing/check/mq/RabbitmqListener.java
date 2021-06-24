@@ -45,9 +45,7 @@ public class RabbitmqListener {
             log.warn("==========接收到的消息内容为:{},返回给rabbitmq的Consumer tag为:{}",msg,message.getMessageProperties().getConsumerTag());
             resultCheckServiceImpl.taskResultCheck(msg);
 
-            if(Constants.APICODE_SHAZI.contains(msg)){
-                pushFinishServiceImpl.pushFinish(msg);
-            }
+             pushFinishServiceImpl.pushFinish(msg);
 
             // 手动ack消息
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);

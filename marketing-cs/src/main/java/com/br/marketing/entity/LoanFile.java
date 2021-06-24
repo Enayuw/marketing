@@ -22,7 +22,6 @@ public class LoanFile extends BaseRowModel {
     private String batchNumber;
     private String zipFileName;
     private String errorFile;
-    private Integer isSec;
     @ExcelProperty(value = "应返回数据量" ,index = 1)
     private Integer expectedNum;
     @ExcelProperty(value = "文件实际数据量" ,index = 2)
@@ -38,6 +37,8 @@ public class LoanFile extends BaseRowModel {
     private String md5;
     private Integer dataType;
     private List<String> zipFileNames;
+    private String statisticFilePath;
+    private Integer scoreStatus;
 
     @Override
     public String toString() {
@@ -52,7 +53,6 @@ public class LoanFile extends BaseRowModel {
                 ", batchNumber='" + batchNumber + '\'' +
                 ", zipFileName='" + zipFileName + '\'' +
                 ", errorFile='" + errorFile + '\'' +
-                ", isSec=" + isSec +
                 ", expectedNum=" + expectedNum +
                 ", actualNum=" + actualNum +
                 ", fileNum=" + fileNum +

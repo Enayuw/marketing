@@ -44,7 +44,7 @@ otherConfig:
         path: D:/test
         ftpHost: 192.168.23.65
         ftpPort: 21
-        ftpUsername: dev-web
+        ftpUsername: dev-controller
         ftpPwd: 9PdaRcMRphcNctRy
         email:
           notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com

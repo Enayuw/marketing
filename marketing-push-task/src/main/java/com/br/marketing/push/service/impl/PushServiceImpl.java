@@ -1,11 +1,16 @@
 package com.br.marketing.push.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.file.FtpUtil2;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.push.service.PushService;
+import com.br.marketing.push.service.ZipFileCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,109 +30,66 @@ public class PushServiceImpl implements PushService {
     LoanFileMapper loanFileMapper;
     @Value("${otherConfig.warning.path:00}")
     private String path;
-    @Value("${otherConfig.warning.ruleList:00}")
-    private String rules;
-    @Value("${otherConfig.warning.ftpHost:00}")
-    private String ftpHost;
-    @Value("${otherConfig.warning.ftpPort:00}")
-    private Integer ftpPort;
-    @Value("${otherConfig.warning.ftpUsername:00}")
-    private String ftpUsername;
-    @Value("${otherConfig.warning.ftpPwd:00}")
-    private String ftpPwd;
-
+    @Value("${otherConfig.warning.sftpHost:00}")
+    private String sftpHost;
+    @Value("${otherConfig.warning.sftpPort:00}")
+    private Integer sftpPort;
+    @Value("${otherConfig.warning.sftpUser:00}")
+    private String sftpUsername;
+    @Value("${otherConfig.warning.sftpPwd:00}")
+    private String sftpPwd;
     @Resource
-    TaskStatusMapper taskStatusMapper;
+    ZipFileCheckService zipFileCheckServiceImpl;
 
     @Override
     public void push(List<LoanFile> files) {
-        log.info("start push files api_code:{}--{}",files.size());
-        String zipFileName="";
-        String errorFile="";
-        FtpUtil2 ftp=new FtpUtil2();
-        if(files ==null||files.isEmpty()){
-            return;
+        checkZipFile(files);
+        pushToSftp(files);
+
+    }
+    private void checkZipFile(List<LoanFile> files){
+        for(LoanFile blf:files){
+            long l = System.currentTimeMillis();
+            zipFileCheckServiceImpl.zipFileCheck(blf);
+            log.warn("cost time :{}",System.currentTimeMillis()-l);
         }
-        String apiCode =files.get(0).getApiCode();
+
+    }
+
+    public void pushToSftp(List<LoanFile> files){
+        String apiCode=files.get(0).getApiCode();
+        SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
-            String today = DateHelper.getDateAddYyMmDd(0);
-            boolean connect = ftp.connect( "/loanwarn/" + apiCode + "/output/"+today+"/", ftpHost, ftpPort, ftpUsername, ftpPwd);
-            if(!connect){
-                log.error("获取ftp链接出错");
-                return ;
-            }
+            sftpClient.connect();
+            String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0);
             for(LoanFile blf:files){
-                String fileName = blf.getZipFileName();
-                log.info("filename:{}",fileName);
-                File file = new File(fileName);
+                String zipFilePathAndName=blf.getFilePath().concat("/").concat(blf.getZipFileName());
+                File file = new File(zipFilePathAndName);
                 if(file.exists()){
-                    boolean upload = ftp.upload(file);
-                    if(upload){
-                        successUpLoad(blf,ftp);
-                    }else {
-                        log.error("上传文件到ftp失败");
+                    log.warn("push zip to sftp :{}",blf.getZipFileName());
+                    boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
+                    if(flag){
+                        String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
+                        File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
+                        completeFile.createNewFile();
+                        if(completeFile.exists()){
+                            log.warn("push complete to sftp :{}",completeFileaName);
+                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/sftp_data/"+apiCode+"/"+completeFileaName);
+                        }
                     }
-
-                    String[] split = fileName.split("/");
-                    String name = split[split.length - 1];
-                    if(name.indexOf("error")>-1){
-                        errorFile=name;
-                    }else {
-                        zipFileName=name;
-                    }
-                    log.info("zipFile_name:{}",zipFileName);
                 }
-
-                blf.setZipFileName(zipFileName);
-                blf.setErrorFile(errorFile);
-                loanFileMapper.updateFile(blf);
-                TaskStatus bts = new TaskStatus();
-                bts.setBatchNumber(blf.getBatchNumber());
-                bts.setFileId(blf.getId());
-                taskStatusMapper.updateTaskStatus(bts);
             }
 
         } catch (Exception e) {
-            log.error("上传文件到ftp出错",e);
+            log.error("Exception",e);
         }finally {
-            ftp.closeFtp();
+            try {
+                sftpClient.disconnect();
+            } catch (Exception e) {
+                log.error("Exception",e);
+            }
         }
     }
-
-    private void successUpLoad(LoanFile blf, FtpUtil2 ftp){
-        try{
-            String apiCode=blf.getApiCode();
-            String batchNumber=blf.getBatchNumber();
-            String[] split = blf.getZipFileName().split("/");
-            String name = split[split.length - 1];
-            String successFileName=name+".success";
-            String destPath=path+"/ftp_data/"+apiCode+"/";
-            File writePath = new File(destPath);
-            if (!writePath.exists()) {
-                writePath.mkdirs();
-            }
-            String fileaName=destPath+apiCode+"_"+batchNumber+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-            File completeFile=new File(fileaName);
-            boolean newFile = completeFile.createNewFile();
-            String s = destPath + successFileName;
-            File successFile=new File(s);
-            boolean newFile1 = successFile.createNewFile();
-            log.info("客户批次回传标识文件---success:{}---create{}---complete:{}-----create:{}",successFileName,newFile1,fileaName,newFile);
-            if(successFile.exists()){
-                ftp.upload(successFile);
-            }
-            if(completeFile.exists()){
-                ftp.upload(completeFile);
-            }
-        }catch (Exception e){
-            log.error("上传周期日回传标识文件文件出错---{}",e);
-        }
-
-    }
-
-
-
-
 
 
 

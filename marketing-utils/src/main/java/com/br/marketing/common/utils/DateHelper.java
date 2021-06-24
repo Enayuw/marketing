@@ -56,7 +56,7 @@ public class DateHelper {
     public static  String getDateAdd(int days){
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
-        c.add(Calendar.DAY_OF_MONTH, -days);
+        c.add(Calendar.DAY_OF_MONTH, days);
         return sf.format(c.getTime());
     }
 
@@ -70,6 +70,12 @@ public class DateHelper {
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMddHHmmss");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
+        return sf.format(c.getTime());
+    }
+    public static  String getDateByMinute(int minute){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MINUTE, minute);
         return sf.format(c.getTime());
     }
 
@@ -91,19 +97,21 @@ public class DateHelper {
 
     /**
      * 时间戳转换成日期格式字符串
+     *
      * @param seconds 精确到秒的字符串
      * @return
      */
-    public static String timeStamp2Date(String seconds,String format) {
-        if(seconds == null || seconds.isEmpty() || seconds.equals("null")){
+    public static String timeStamp2Date(String seconds, String format) {
+        if (seconds == null || seconds.isEmpty() || seconds.equals("null")) {
             return "";
         }
-        if(format == null || format.isEmpty()){
+        if (format == null || format.isEmpty()) {
             format = "yyyy-MM-dd HH:mm:ss";
         }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
-        return sdf.format(new Date(Long.valueOf(seconds+"000")));
+        return sdf.format(new Date(Long.parseLong(seconds + "000")));
     }
+
     /**
      * 日期格式字符串转换成时间戳
      * @param format 如：yyyy-MM-dd HH:mm:ss
@@ -139,6 +147,26 @@ public class DateHelper {
             e.printStackTrace();
         }
         return days;
+    }
+
+    /**
+     * 和当前日期相差多少分钟
+     * @param str 时间参数  格式：2009-01-01 12:00:00
+     * @return long
+     */
+    public static long getDistanceMinutes(String str) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long now=System.currentTimeMillis();
+        long min = 0;
+        try {
+            Date two = df.parse(str);
+            long time = two.getTime();
+            long diff =time - now;
+            min = diff / (60 * 1000);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return min>0?min:min*-1;
     }
 
     /**

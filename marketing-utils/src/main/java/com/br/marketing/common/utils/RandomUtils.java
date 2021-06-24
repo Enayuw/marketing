@@ -1,8 +1,11 @@
 package com.br.marketing.common.utils;
 
+
 import java.util.Random;
 
 public class RandomUtils {
+
+    private final static Random rand = new Random();
 
     /**
      * 生成随机数
@@ -10,10 +13,9 @@ public class RandomUtils {
      * @return
      */
     public static String randomStr(int n){
-        Random random = new Random();
         StringBuilder sb = new StringBuilder();
         for(int i=0;i<n;i++){
-            sb.append(random.nextInt(9));
+            sb.append(rand.nextInt(9));
         }
         return sb.toString();
     }

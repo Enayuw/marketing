@@ -105,13 +105,13 @@ public  class ReportServiceImpl implements EmailService {
                     status="已开始,正在生成结果文件";
                     progress="30%";
                 }else if(statusList.size()==1&&statusList.get(0)==1){
-                    status="进行中,文件已上传至内部ftp,等待同步到客户sftp";
+                    status="进行中,文件已上传至内部sftp,等待同步到客户sftp";
                     progress="60%";
                 }else if(statusList.size()==1&&statusList.get(0)==2){
                     status="已结束,文件已回传至客户sftp";
                     progress="100%";
                 }else if(statusList.size()==2&&statusList.contains(1)&&statusList.contains(0)){
-                    status="进行中,文件正在上传至内部ftp";
+                    status="进行中,文件正在上传至内部sftp";
                     progress="50%";
                 }else if(statusList.size()==2&&statusList.contains(1)&&statusList.contains(2)){
                     status="进行中,文件正在同步至客户sftp";
@@ -264,22 +264,9 @@ public  class ReportServiceImpl implements EmailService {
         .append("<table border=\"5\" style=\"border:solid 1px #E8F2F9;font-size=14px;;font-size:12px;\">");
         for (Map.Entry<String,List<LoanFile>> entry : map.entrySet()) {
             String key = entry.getKey();
-            List<LoanFile> value = entry.getValue();
             String apiCode= key.split("-")[0];
-            int i = 0;
-            int size =0;
-            if(Constants.APICODE_360.equals(apiCode)||Constants.APICODE_360_QA.equals(apiCode)){
-                for(LoanFile blf:value){
-                    size=size+blf.getFileNum();
-                    Integer expectedNum = blf.getExpectedNum();
-                    int num= expectedNum % SIZE == 0 ? (expectedNum / SIZE ): (expectedNum / SIZE + 1);
-                    i=i+num;
-                }
-            }else{
-                size=map.get(key).size();
-                i = expectedFileNum(apiCode);
-            }
-
+            int i= expectedFileNum(apiCode);
+            int size=map.get(key).size();
             if(i!=size||(dataNumDiffMap!=null&&dataNumDiffMap.size()>0)
                     ||(emptyFileMap!=null&&emptyFileMap.size()>0)){
                 List<LoanFile> bLoanResults = dataNumDiffMap.get(key);
@@ -320,12 +307,7 @@ public  class ReportServiceImpl implements EmailService {
                                .append("<td>" )
                                .append(blf.getApiCode())
                                .append("</td>");
-                        String str="";
-                        if(Constants.APICODE_360.equals(apiCode)||Constants.APICODE_360_QA.equals(apiCode)){
-                            str=blf.getBatchNumber();
-                        }else{
-                            str=blf.getZipFileName();
-                        }
+                        String str=blf.getZipFileName();
                         content.append("<td>" )
                                .append(str)
                                .append("</td>")
@@ -373,40 +355,22 @@ public  class ReportServiceImpl implements EmailService {
     private int expectedFileNum(String apiCode){
         int count=0;
         List<MarketingTask> marketingTasks = marketingTaskMapper.queryBatchNumByapiCode(apiCode);
-        if(Constants.APICODE_PPD.equals(apiCode)||Constants.APICODE_PPD_QA.equals(apiCode)){
-            for(MarketingTask blt: marketingTasks){
-                int num=0;
-                int days = 0;
-                try {
-                    days = DateHelper.daysBetween(blt.getStartDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                if(days % Constants.PPDFREQUENCY == 0){
-                    num=2;
-                }else {
-                    num=1;
-                }
-                count=count+num;
+        for(MarketingTask blt: marketingTasks){
+            log.info("BLoanTask:{}",blt);
+            int num=0;
+            int days = 0;
+            try {
+                days = DateHelper.daysBetween(blt.getStartDate());
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-        }else{
-            for(MarketingTask blt: marketingTasks){
-                log.info("BLoanTask:{}",blt);
-                int num=0;
-                int days = 0;
-                try {
-                    days = DateHelper.daysBetween(blt.getStartDate());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                if(StringUtils.isNotEmpty(blt.getFrequency())&&(days%Constants.frequencyMap.get(blt.getFrequency())==0)){
-                        num=1;
-                }
-                if(StringUtils.isEmpty(blt.getFrequency())&&blt.getMonitorType()==1){
+            if(StringUtils.isNotEmpty(blt.getFrequency())&&(days%Constants.frequencyMap.get(blt.getFrequency())==0)){
                     num=1;
-                }
-                count=count+num;
             }
+            if(StringUtils.isEmpty(blt.getFrequency())&&blt.getMonitorType()==1){
+                num=1;
+            }
+            count=count+num;
         }
         return count;
     }

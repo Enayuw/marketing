@@ -54,4 +54,5 @@ public class SyncController {
         syncServiceImpl.insertConfig(loanSyncConfig);
         return "success";
     }
+
 }

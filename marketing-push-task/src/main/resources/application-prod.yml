@@ -21,7 +21,7 @@ sharding:
          testOnReturn: false
          poolPreparedStatements: true
          maxOpenPreparedStatements: 20
- #   config:
+ #   bean:
  #         sharding:
  #           props:
  #             sql.show: true
