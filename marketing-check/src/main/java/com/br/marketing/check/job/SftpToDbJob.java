@@ -91,7 +91,12 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
             SftpToDbUtils.listStpFile("/UploadFiles/marketing/",map,sftpClient);
             if(!map.isEmpty()){
                 log.info("----------SftpToDb开始处理新上传的数据文件-------------");
+                long start = System.currentTimeMillis();
                 dealDataFile(map,sftpClient);
+                long end = System.currentTimeMillis();
+                if(log.isWarnEnabled()){
+                    log.warn(String.format("数据入库时间:%d",end-start));
+                }
             }
         } catch (JSchException e){
             log.error("SftpToDbJob,sftp连接失败",e);

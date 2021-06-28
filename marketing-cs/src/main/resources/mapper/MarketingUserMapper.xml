@@ -89,13 +89,13 @@
 		FROM
 		${tableName}
 		WHERE
-		id &gt;= #{begin}
-		AND id &lt; #{end}
+		id &gt; #{begin}
 		AND api_code = #{apiCode}
 		AND batch_number = #{batchNumber}
 		<if test="tableName=='b_marketing_user_chg'">
 			AND 	hit_date=#{hitDate}
 		</if>
+		order by id asc limit 5000;
 	</select>
 	<select id="queryHnnxMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
 		SELECT

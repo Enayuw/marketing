@@ -6,6 +6,7 @@ import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.thread.ValidatorThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.DecodeClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.entity.LoadResult;
@@ -13,6 +14,7 @@ import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.StrategyCs;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,6 +40,11 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Resource
     EmailService validDataAlarmServiceImpl;
 
+    @Autowired
+    RedisChgService redisChgService;
+
+    final static String dbPoolKey = "DB:Pool:Num";
+
     private Calendar calendar =Calendar.getInstance();
     private final static Integer SPLITNUM=5000;
     @Override
@@ -48,7 +55,9 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Override
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
-        ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
+        String s = redisChgService.get(dbPoolKey);
+        Integer dbPoolNum = !StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
+        ExecutorService validatorExecutor = BrExecutors.getThreadPool(dbPoolNum,dbPoolNum);
         File errorPathFile=new File(context.getErrorFilePath());
         if(!errorPathFile.exists()){
             errorPathFile.mkdirs();
