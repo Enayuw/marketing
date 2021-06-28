@@ -41,7 +41,7 @@ public class VaildHxResultUtil {
             String code = resultJson.getString("code");
             String codeMessage="画像code异常";
             HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                    String.format("【紧急报警】【%s】存量客户监控-%s \001 您好:  【%s】%s，请及时跟进",
+                    String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
                             apiCode, codeMessage, apiCode, codeMessage + "-" + code));
             log.error("hxResult code error",hxResultRuntimeException);
             return false;
@@ -89,7 +89,7 @@ public class VaildHxResultUtil {
                         result=false;
                     }
                     HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                            String.format("【紧急报警】【%s】存量客户监控- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
+                            String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
                                     ,apiCode,apiCode,flag,string));
                     log.error("hxResult product flag error",hxResultRuntimeException);
                 }

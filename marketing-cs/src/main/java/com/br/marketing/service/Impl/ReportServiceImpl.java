@@ -58,7 +58,7 @@ public  class ReportServiceImpl implements EmailService {
         StringBuilder content = new StringBuilder("<html><head></head><body>");
         String compShortName="";
         if(list!=null&&list.size()>0){
-            content.append("<h2>存量客户监控昨日上传任务统计</h2>")
+            content.append("<h2>智能营销平台昨日上传任务统计</h2>")
             .append( "<table border=\"5\"  width=\"650\" style=\"border:solid 1px #E8F2F9;font-size=14px;;font-size:12px;\">")
             .append("<tr style=\"background-color: #428BCA; color:#ffffff\"><th>客户名称</th><th>批次号</th><th>上传时间</th><th>上传数据量</th><th>入库数据量</th></tr>");
             for (MarketingTask blt:list){
@@ -84,7 +84,7 @@ public  class ReportServiceImpl implements EmailService {
             content.append("</table>");
         }
 
-        content.append("<h2>存量客户监控今日任务进度</h2>")
+        content.append("<h2>智能营销平台今日任务进度</h2>")
         .append( "<table border=\"5\"  width=\"650\" style=\"border:solid 1px #E8F2F9;font-size=14px;;font-size:12px;\">")
         .append("<tr style=\"background-color: #428BCA; color:#ffffff\"><th>客户名称</th><th>任务状态</th><th>任务进度</th></tr>");
         List<String> strings = marketingTaskMapper.queryApiCode();
@@ -132,7 +132,7 @@ public  class ReportServiceImpl implements EmailService {
         }
 
         content.append("</body></html>");
-        String title="存量客户监控昨日上传任务统计&当日任务进度统计";
+        String title="智能营销平台昨日上传任务统计&当日任务进度统计";
         alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("sysError"));
     }
 
@@ -237,7 +237,7 @@ public  class ReportServiceImpl implements EmailService {
         export(map,fileName,s);
 
         String receive="xiaoxin.pang@brgroup.com,song.wang@brgroup.com,penghui.cheng@brgroup.com,xiangru.meng@brgroup.com,yanping.fu@brgroup.com";
-        String subject ="存量客户监控当日任务结果统计报告";
+        String subject ="智能营销平台当日任务结果统计报告";
         String msg =mailContent(map,emptyFileMap,dataNumDiffMap,today);
         try {
             SendMailClint.sendMail(receive, subject, msg, s,fileName);
@@ -257,7 +257,7 @@ public  class ReportServiceImpl implements EmailService {
 
     private String mailContent(Map<String,List<LoanFile>> map, Map<String,List<LoanFile>> emptyFileMap,
                                Map<String,List<LoanFile>> dataNumDiffMap, String today){
-        StringBuilder content = new StringBuilder("<html><head></head><body><h2>存量客户监控当日任务结果统计</h2>");
+        StringBuilder content = new StringBuilder("<html><head></head><body><h2>智能营销平台当日任务结果统计</h2>");
         content.append("&nbsp;&nbsp;&nbsp;&nbsp;附件内容是每个客户当日监控任务返回结果的详细信息，包括任务批次号、" +
                 "对应批次应该返回给客户的数据量、对应批次实际返回给客户的数据量、\r\n 对应批次实际返回文件数、" +
                 "结果文件总大小以及结果文件的上传时间。如果有异常情况，会在邮件内容中以表格的形式展示。")

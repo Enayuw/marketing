@@ -32,8 +32,8 @@ public class MarketingTask {
     private Integer actualNumber;
     private Integer increment;
 
-    private Integer begin;
-    private Integer end;
+    private Long begin;
+    private Long end;
     private String tableName;
 
     /**
