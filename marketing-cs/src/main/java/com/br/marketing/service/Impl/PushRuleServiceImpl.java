@@ -767,6 +767,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     private void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
+        user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
         //规则校验
         UserValidator userValidator = new UserValidator(isCheck);
         String cell = user.getCell();
