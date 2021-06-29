@@ -32,4 +32,13 @@ public class MarketingPreUserDetailDTO implements Serializable {
 
     @ApiModelProperty(value = "业务保留字段2")
     private String reserveField2;
+
+    @ApiModelProperty(value = "执行日期")
+    private String appletDate;
+
+    @ApiModelProperty(value = "类型 MD5、Sha256")
+    private String failType;
+
+    @ApiModelProperty(value = "预留剔除状态字段 1：正常，2：剔除")
+    private Integer status;
 }

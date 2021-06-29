@@ -1,6 +1,5 @@
 package com.br.marketing.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
@@ -14,6 +13,7 @@ public interface PushRuleService {
 
     /**
      * 获取批次信息
+     *
      * @param dto
      * @return
      */
@@ -26,6 +26,7 @@ public interface PushRuleService {
 
     /**
      * 推送客服
+     *
      * @param dto
      * @return
      */
@@ -35,6 +36,7 @@ public interface PushRuleService {
 
     /**
      * 查询推送结果
+     *
      * @param mId
      * @return
      */
@@ -42,6 +44,7 @@ public interface PushRuleService {
 
     /**
      * 批量推送人员
+     *
      * @param dto
      * @return
      */
@@ -49,27 +52,37 @@ public interface PushRuleService {
 
     /**
      * 接受异步推送人员文本信息
+     *
      * @param apiCode
      * @param jsonData
      * @return
      */
-    Result insertMarketingPreUserText(String apiCode,String jsonData);
+    Result insertMarketingPreUserText(String apiCode, String jsonData);
 
 
     /**
      * 接受异步推送人员文本信息
+     *
      * @param apiCode
      * @param jsonData
      * @return
      */
-    Result insertMarketingPreUserMq(String apiCode,String jsonData);
+    Result insertMarketingPreUserMq(String apiCode, String jsonData);
+
     /**
      * 消费异步推送人员信息
+     *
      * @param infoId
      * @return
      */
     Result<Boolean> insertMarketingPreUserSync(Long infoId);
 
 
+    /**
+     * 获取营销人员数据状态
+     *
+     * @param dto
+     * @return
+     */
     Result<MarketingPreUserSyncDetailVO> getMarketingPreUserSyncStatus(@Valid MarketingPreUserSyncStatusDTO dto);
 }

@@ -5,9 +5,7 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
-import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
-import com.br.marketing.dto.RequestCommonDTO;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,63 +30,71 @@ public class MarketingUserPreController {
 
     /**
      * 批量接入营销人员数据
+     *
      * @param apiCode
      * @param jsonData
      * @return
      */
     @ApiOperation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
-    public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
+    public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             long l = System.currentTimeMillis();
             Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
-            if(log.isInfoEnabled()) {
+            if (log.isInfoEnabled()) {
                 log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
             return new ApiNoDataResult().fromResult(result);
-        }catch (ParamValidErrorException ex){
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
         }
     }
 
-    @ApiOperation(value = "批量接入营销人员数据直接推送mq")
-    @PostMapping("/receiveMarketingPreUserMq")
-    public ApiNoDataResult receiveMarketingPreUserMq(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
-        try {
-            long l = System.currentTimeMillis();
-            Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
-            if(log.isInfoEnabled()) {
-                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
-            }
-            return new ApiNoDataResult().fromResult(result);
-        }catch (ParamValidErrorException ex){
-            log.error(ex.getMessage());
-            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
-        }
-    }
-
+    /**
+     * 获取营销人员数据状态
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @ApiOperation(value = "获取营销人员数据状态")
     @PostMapping("/getMarketingPreUserStauts")
-    public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData") String jsonData){
+    public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData,
                     new TypeReference<MarketingPreUserSyncStatusDTO>() {
-            }.getType());
+                    }.getType());
             o.setApiCode(apiCode);
             return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
-        }catch (ParamValidErrorException ex){
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new ApiResult().setCode("100006").setMessage(ex.getMessage());
-        }catch (JSONException ex){
+        } catch (JSONException ex) {
 
             return new ApiResult().setCode("100006").setMessage("jsonData解析异常");
 
         }
     }
 
+    @ApiOperation(value = "批量接入营销人员数据直接推送mq")
+    @PostMapping("/receiveMarketingPreUserMq")
+    public ApiNoDataResult receiveMarketingPreUserMq(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        try {
+            long l = System.currentTimeMillis();
+            Result result = pushRuleService.insertMarketingPreUserMq(apiCode, jsonData);
+            if (log.isInfoEnabled()) {
+                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
+            }
+            return new ApiNoDataResult().fromResult(result);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+        }
+    }
+
     @GetMapping("/syncConsumer")
-    public Result syncConsumer(@RequestParam("infoId") Long infoId){
+    public Result syncConsumer(@RequestParam("infoId") Long infoId) {
         return pushRuleService.insertMarketingPreUserSync(infoId);
     }
 

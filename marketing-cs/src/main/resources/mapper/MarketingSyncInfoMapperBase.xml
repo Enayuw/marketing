@@ -10,6 +10,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="error_id" property="errorId" jdbcType="BIGINT" />
+    <result column="actual_num" property="actualNum" jdbcType="INTEGER" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingSyncInfo" extends="BaseResultMap" >
     <result column="json_data" property="jsonData" jdbcType="LONGVARCHAR" />
@@ -73,7 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cus_batch, request_batch, status, create_time, update_time, error_id
+    id, api_code, cus_batch, request_batch, status, create_time, update_time, error_id, 
+    actual_num
   </sql>
   <sql id="Blob_Column_List" >
     json_data
@@ -132,10 +134,12 @@
     </selectKey>
     insert into b_marketing_sync_info (api_code, cus_batch, request_batch, 
       status, create_time, update_time, 
-      error_id, json_data)
+      error_id, actual_num, json_data
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{cusBatch,jdbcType=VARCHAR}, #{requestBatch,jdbcType=VARCHAR}, 
       #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{errorId,jdbcType=BIGINT}, #{jsonData,jdbcType=LONGVARCHAR})
+      #{errorId,jdbcType=BIGINT}, #{actualNum,jdbcType=INTEGER}, #{jsonData,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -164,6 +168,9 @@
       <if test="errorId != null" >
         error_id,
       </if>
+      <if test="actualNum != null" >
+        actual_num,
+      </if>
       <if test="jsonData != null" >
         json_data,
       </if>
@@ -189,6 +196,9 @@
       </if>
       <if test="errorId != null" >
         #{errorId,jdbcType=BIGINT},
+      </if>
+      <if test="actualNum != null" >
+        #{actualNum,jdbcType=INTEGER},
       </if>
       <if test="jsonData != null" >
         #{jsonData,jdbcType=LONGVARCHAR},
@@ -228,6 +238,9 @@
       <if test="record.errorId != null" >
         error_id = #{record.errorId,jdbcType=BIGINT},
       </if>
+      <if test="record.actualNum != null" >
+        actual_num = #{record.actualNum,jdbcType=INTEGER},
+      </if>
       <if test="record.jsonData != null" >
         json_data = #{record.jsonData,jdbcType=LONGVARCHAR},
       </if>
@@ -246,6 +259,7 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       error_id = #{record.errorId,jdbcType=BIGINT},
+      actual_num = #{record.actualNum,jdbcType=INTEGER},
       json_data = #{record.jsonData,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -260,7 +274,8 @@
       status = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      error_id = #{record.errorId,jdbcType=BIGINT}
+      error_id = #{record.errorId,jdbcType=BIGINT},
+      actual_num = #{record.actualNum,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -289,6 +304,9 @@
       <if test="errorId != null" >
         error_id = #{errorId,jdbcType=BIGINT},
       </if>
+      <if test="actualNum != null" >
+        actual_num = #{actualNum,jdbcType=INTEGER},
+      </if>
       <if test="jsonData != null" >
         json_data = #{jsonData,jdbcType=LONGVARCHAR},
       </if>
@@ -304,6 +322,7 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       error_id = #{errorId,jdbcType=BIGINT},
+      actual_num = #{actualNum,jdbcType=INTEGER},
       json_data = #{jsonData,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -315,7 +334,8 @@
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      error_id = #{errorId,jdbcType=BIGINT}
+      error_id = #{errorId,jdbcType=BIGINT},
+      actual_num = #{actualNum,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

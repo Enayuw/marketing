@@ -64,10 +64,10 @@ public class MarketingSyncInfoExample {
         distinct = false;
     }
 
-    protected abstract static class BaseGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected BaseGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -614,9 +614,69 @@ public class MarketingSyncInfoExample {
             addCriterion("error_id not between", value1, value2, "errorId");
             return (Criteria) this;
         }
+
+        public Criteria andActualNumIsNull() {
+            addCriterion("actual_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumIsNotNull() {
+            addCriterion("actual_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumEqualTo(Integer value) {
+            addCriterion("actual_num =", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumNotEqualTo(Integer value) {
+            addCriterion("actual_num <>", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumGreaterThan(Integer value) {
+            addCriterion("actual_num >", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("actual_num >=", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumLessThan(Integer value) {
+            addCriterion("actual_num <", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumLessThanOrEqualTo(Integer value) {
+            addCriterion("actual_num <=", value, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumIn(List<Integer> values) {
+            addCriterion("actual_num in", values, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumNotIn(List<Integer> values) {
+            addCriterion("actual_num not in", values, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumBetween(Integer value1, Integer value2) {
+            addCriterion("actual_num between", value1, value2, "actualNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("actual_num not between", value1, value2, "actualNum");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends BaseGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();
