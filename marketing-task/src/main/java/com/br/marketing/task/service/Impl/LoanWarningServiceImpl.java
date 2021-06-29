@@ -414,7 +414,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     }
                     long endtime = System.currentTimeMillis();
                     if (log.isWarnEnabled()) {
-                        log.warn("查询总耗时：".concat(String.valueOf(endtime - start)).concat("~~轮询总次数：").concat(String.valueOf(i)));
+                        log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时：".concat(String.valueOf(endtime - start)).concat("~~轮询总次数：").concat(String.valueOf(i))));
                     }
                 }else{
                     log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
