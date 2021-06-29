@@ -667,6 +667,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         ArrayList<Callable<Result>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
+            Integer finalIsCheck = isCheck;
             list.add(() -> {
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("无客户编号");
@@ -678,7 +679,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //解密、规则校验
                 String cell = marketingPreUserDetailDTO.getCell();
-                encodeMapping(marketingPreUserDetailDTO, isCheck);
+                encodeMapping(marketingPreUserDetailDTO, finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(new Date(), "yyyy-MM-dd");
                 String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
@@ -765,7 +766,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param isCheck
      * @return
      */
-    public void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
+    private void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
         //规则校验
         UserValidator userValidator = new UserValidator(isCheck);
         String cell = user.getCell();
