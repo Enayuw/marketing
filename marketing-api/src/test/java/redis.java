@@ -11,6 +11,8 @@ import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.util.Date;
 
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.MarketingStrategyProduct;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.StraHisFile;
@@ -30,10 +32,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.RandomUtils;
-import com.br.marketing.common.utils.ThreeDes;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.ProInSys;
@@ -77,6 +75,18 @@ public class redis {
 //        }
 //        System.out.println(array);
 //    }
+
+    @Autowired
+    RedisChgService redisChgService;
+
+    @Test
+    public void testRedis(){
+        String s = redisChgService.get("acb:");
+        boolean notBlank = StringUtils.isNotBlank(s);
+        boolean notBlank2 = StringUtils.isNotBlank(null);
+        boolean notBlank1 = StringUtils.isNotBlank("");
+        System.out.println("test");
+    }
 
     @Test
     public void serTest(){
