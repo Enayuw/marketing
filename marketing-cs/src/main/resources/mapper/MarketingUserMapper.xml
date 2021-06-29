@@ -108,7 +108,7 @@
 		id DESC
 		LIMIT 1;
 	</select>
-	<select id="queryMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+	<select id="queryMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Long">
 		SELECT
 		id
 		FROM
@@ -134,7 +134,7 @@
 		id ASC
 		LIMIT 1;
 	</select>
-	<select id="queryMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+	<select id="queryMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Long">
 		SELECT
 			id
 		FROM
