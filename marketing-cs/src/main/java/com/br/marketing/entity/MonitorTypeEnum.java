@@ -15,7 +15,8 @@ public enum MonitorTypeEnum {
     STATUS_1(1, "正常"),
     STATUS_2(2, "剔除"),
     FAIL_TYPE_1(1, "MD5"),
-    FAIL_TYPE_2(2, "Sha256");
+    FAIL_TYPE_2(2, "Sha256"),
+    FAIL_TYPE_3(3, "IsCheck");
     private int typeCode;
     private String type;
 

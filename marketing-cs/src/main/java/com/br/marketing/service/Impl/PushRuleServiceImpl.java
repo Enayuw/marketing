@@ -660,7 +660,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("从用户中心请求用户信息出错--apiCode:{}--{}", apiCode, e);
         }
         Integer isCheck = 0;
-        if(merchantParam != null){
+        if (merchantParam != null) {
             isCheck = merchantParam.getIsCheck();
         }
         long l = System.currentTimeMillis();
@@ -768,29 +768,31 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
         user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-        //规则校验
-        UserValidator userValidator = new UserValidator(isCheck);
         String cell = user.getCell();
         if (decodeClient.isMd5(cell)) {
             //cell md5
             cell = decodeClient.query(cell, "cell", "md5", "");
-            if (StringUtils.isBlank(cell) || !userValidator.validatePhone(cell)) {
-                log.warn("cusNum:{},cell:{}", user.getCustNum(), cell);
+            if (StringUtils.isBlank(cell)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             } else {
                 user.setCell(BrCipherMaker.getInstance().encode(cell));
             }
         } else if (cell.length() == 64) {
-            log.warn("cusNum:{},cell:{}", user.getCustNum(), cell);
             //cell sha256
             cell = decodeClient.query(cell, "cell", "sha", "");
-            if (StringUtils.isBlank(cell) || !userValidator.validatePhone(cell)) {
+            if (StringUtils.isBlank(cell)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             } else {
                 user.setCell(BrCipherMaker.getInstance().encode(cell));
             }
+        }
+        //明文规则校验
+        UserValidator userValidator = new UserValidator(isCheck);
+        if (StringUtils.isNotBlank(cell) && !userValidator.validatePhone(cell)) {
+            user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
+            user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
         }
     }
 
