@@ -786,11 +786,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         //明文规则校验
         UserValidator userValidator = new UserValidator(isCheck);
-        if (StringUtils.isNotBlank(cell) && !userValidator.validatePhone(cell)) {
-            user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
-            user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-        }
         if (StringUtils.isNotBlank(cell)) {
+            if (!userValidator.validatePhone(cell)) {
+                user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
+                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }
             user.setCell(BrCipherMaker.getInstance().encode(cell));
         }
     }
