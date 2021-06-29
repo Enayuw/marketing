@@ -775,8 +775,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isBlank(cell)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-            } else {
-                user.setCell(BrCipherMaker.getInstance().encode(cell));
             }
         } else if (cell.length() == 64) {
             //cell sha256
@@ -784,8 +782,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isBlank(cell)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-            } else {
-                user.setCell(BrCipherMaker.getInstance().encode(cell));
             }
         }
         //明文规则校验
@@ -793,6 +789,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isNotBlank(cell) && !userValidator.validatePhone(cell)) {
             user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
             user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+        }
+        if (StringUtils.isNotBlank(cell)) {
+            user.setCell(BrCipherMaker.getInstance().encode(cell));
         }
     }
 
