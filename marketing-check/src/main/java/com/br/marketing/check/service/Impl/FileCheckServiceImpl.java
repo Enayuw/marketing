@@ -56,7 +56,7 @@ public class FileCheckServiceImpl implements FileCheckService {
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
         String s = redisChgService.get(dbPoolKey);
-        Integer dbPoolNum = !StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
+        Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(dbPoolNum,dbPoolNum);
         File errorPathFile=new File(context.getErrorFilePath());
         if(!errorPathFile.exists()){
@@ -104,7 +104,7 @@ public class FileCheckServiceImpl implements FileCheckService {
         }catch (Exception e){
             log.error("checkSmallFile error",e);
         }
-        log.warn("cost time :{}",System.currentTimeMillis()-l);
+        log.warn(String.format("check耗时--batchNumber:%s~~time:%d~~poolSize:%d",context.getTask().getBatchNumber(),System.currentTimeMillis()-l),dbPoolNum);
         return true;
     }
 
