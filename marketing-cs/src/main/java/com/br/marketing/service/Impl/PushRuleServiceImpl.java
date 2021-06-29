@@ -775,12 +775,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             //cell md5
             cell = decodeClient.query(cell, "cell", "md5", "");
             if (StringUtils.isBlank(cell) || !userValidator.validatePhone(cell)) {
+                log.warn("cusNum:{},cell:{}", user.getCustNum(), cell);
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             } else {
                 user.setCell(BrCipherMaker.getInstance().encode(cell));
             }
         } else if (cell.length() == 64) {
+            log.warn("cusNum:{},cell:{}", user.getCustNum(), cell);
             //cell sha256
             cell = decodeClient.query(cell, "cell", "sha", "");
             if (StringUtils.isBlank(cell) || !userValidator.validatePhone(cell)) {
