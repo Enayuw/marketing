@@ -16,6 +16,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -106,8 +107,9 @@ public class LoanWarningThread implements Callable<String> {
     private String cusBatchNumber;
     private String isRepair;
     private String fileId;
+    private AtomicLong desTime;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
-                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService){
+                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService,AtomicLong desTime){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -125,6 +127,7 @@ public class LoanWarningThread implements Callable<String> {
         this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         this.fileId=param.get("fileId");
+        this.desTime = desTime;
         proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
@@ -226,7 +229,7 @@ public class LoanWarningThread implements Callable<String> {
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
                 }
-                dealResult(s, fw,errorFw,blu.getCusNum(),blu.getBatchNumber(),apiCode, blu);
+                dealResult(s, fw,errorFw,blu.getCusNum(),blu.getBatchNumber(),apiCode, blu,desTime);
             }
 
             if(errorList.size()>0){
@@ -460,19 +463,19 @@ public class LoanWarningThread implements Callable<String> {
      * 用流失预警api的返回生成结果文件
      * @param s
      */
-    private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu) throws IOException {
+    private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu,AtomicLong desTime) throws IOException {
         try {
             if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,desTime);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,desTime);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
