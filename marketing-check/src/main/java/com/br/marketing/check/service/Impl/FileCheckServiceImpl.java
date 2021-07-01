@@ -116,7 +116,7 @@ public class FileCheckServiceImpl implements FileCheckService {
             log.error("checkSmallFile error",e);
         }
         log.warn(String.format("check耗时--batchNumber:%s~~time:%d~~desTime:%d~~开启check:%s~~poolSize:%d"
-                ,context.getTask().getBatchNumber(),0,desTime.get(),dbPoolCheckOpenMark.equals(1)?"开":"关",dbPoolNum));
+                ,context.getTask().getBatchNumber(),System.currentTimeMillis()-l,desTime.get(),dbPoolCheckOpenMark.equals(1)?"开":"关",dbPoolNum));
         return true;
     }
 
