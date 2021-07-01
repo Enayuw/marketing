@@ -277,12 +277,9 @@ public class ResultUtil {
             mh.setCell(user.getCell());
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setFileId(fileId);
-            long l = System.currentTimeMillis();
             if(esOpen.equals(1)){
                 writeEs(mh,meal,hxJson);
             }
-            long end = System.currentTimeMillis();
-            desTime.getAndAdd(end-l);
         }
     }
 

@@ -62,10 +62,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
     public String call() throws Exception {
         try{
             StringBuilder sb=new StringBuilder();
-            long start = System.currentTimeMillis();
             boolean b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
-            long end = System.currentTimeMillis();
-            desTime.getAndAdd(end-start);
             if(b&&checkOpen.equals(1)){
                     String[] split = sb.toString().split(",",14);
 
