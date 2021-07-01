@@ -48,6 +48,8 @@ public class FileCheckServiceImpl implements FileCheckService {
 
     final static String dbPoolQueueKey = "DB:Pool:Num:Queue:Num";
 
+    final static String dbPoolCheckOpen = "DB:Pool:checkopen";
+
     private Calendar calendar =Calendar.getInstance();
     private final static Integer SPLITNUM=5000;
     @Override
@@ -62,6 +64,8 @@ public class FileCheckServiceImpl implements FileCheckService {
         Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
         String s1 = redisChgService.get(dbPoolQueueKey);
         Integer dbPoolQueueNum = StringUtils.isNotBlank(s1)?Integer.valueOf(s1):200;
+        String s2 = redisChgService.get(dbPoolCheckOpen);
+        Integer dbPoolCheckOpenMark = StringUtils.isNotBlank(s2)?Integer.valueOf(s2):1;
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(dbPoolNum,dbPoolNum,dbPoolQueueNum);
         File errorPathFile=new File(context.getErrorFilePath());
         if(!errorPathFile.exists()){
@@ -86,7 +90,8 @@ public class FileCheckServiceImpl implements FileCheckService {
                         Map<String,String> param=new HashMap<>();
                         param.put("row",row);
                         param.put("head",head);
-                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime));
+
+                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime,dbPoolCheckOpenMark));
                     }
                 }
             }
@@ -110,7 +115,8 @@ public class FileCheckServiceImpl implements FileCheckService {
         }catch (Exception e){
             log.error("checkSmallFile error",e);
         }
-        log.warn(String.format("check耗时--batchNumber:%s~~time:%d~~desTime:%d~~poolSize:%d",context.getTask().getBatchNumber(),System.currentTimeMillis()-l,desTime.get(),dbPoolNum));
+        log.warn(String.format("check耗时--batchNumber:%s~~time:%d~~desTime:%d~~开启check:%s~~poolSize:%d"
+                ,context.getTask().getBatchNumber(),0,desTime.get(),dbPoolCheckOpenMark.equals(1)?"开":"关",dbPoolNum));
         return true;
     }
 

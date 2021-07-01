@@ -42,7 +42,8 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private RedisChgService redisChgService;
     private String fileName;
     private AtomicLong desTime;
-    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime) {
+    private Integer checkOpen=1;
+    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime,Integer checkOpen) {
         this.row=param.get("row");
         this.head=param.get("head");
         this.apiCode=context.getTask().getApiCode();
@@ -54,6 +55,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
         this.redisChgService=CkeckApplication.ac.getBean(RedisChgService.class);
         this.fileName=context.getDistinctTxtFileName();
         this.desTime = desTime;
+        this.checkOpen = checkOpen;
     }
 
     @Override
@@ -61,7 +63,10 @@ public class ValidatorSmallFileThread implements Callable<String> {
         try{
             StringBuilder sb=new StringBuilder();
             long start = System.currentTimeMillis();
-            boolean b = CheckDataUtil.checkData(head,row, apiCode, errorfw, sb,decodeClient);
+            boolean b = true;
+            if(checkOpen.equals(1)) {
+                 b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
+            }
             long end = System.currentTimeMillis();
             desTime.getAndAdd(end-start);
             if(b){
