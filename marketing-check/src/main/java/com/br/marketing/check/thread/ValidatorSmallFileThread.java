@@ -63,14 +63,10 @@ public class ValidatorSmallFileThread implements Callable<String> {
         try{
             StringBuilder sb=new StringBuilder();
             long start = System.currentTimeMillis();
-            boolean b = true;
-            if(checkOpen.equals(1)) {
-                 b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
-            }
+            boolean b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
             long end = System.currentTimeMillis();
             desTime.getAndAdd(end-start);
-            if(b){
-
+            if(b&&checkOpen.equals(1)){
                     String[] split = sb.toString().split(",",14);
 
                     if(isHitBlackList()){

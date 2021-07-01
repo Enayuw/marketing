@@ -70,6 +70,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
+    private final static String RedisEsOpen="es:open";
+
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
         int count=context.getShardingTotalCount();
@@ -240,6 +242,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             if("incr".equals(s1)){
                 flag=true;
             }
+            String redisOpen = redisChgService.get(RedisEsOpen);
+            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
             String descPath=path+"/"+s1+"/"+ marketingTask.getApiCode()+"/"+ marketingTask.getBatchNumber()+"/"+
                     new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             log.info("{},list:{}",errorFile,list.size());
@@ -256,7 +260,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId",file.getId().toString());
             warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                    redisService, proFieldsClient,flag,redisChgService,desTime));
+                    redisService, proFieldsClient,flag,redisChgService,desTime,EsOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -382,6 +386,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      */
     private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor, String fileId, AtomicLong desTime){
         try {
+            String redisOpen = redisChgService.get(RedisEsOpen);
+            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
                 String separator=Constants.sepMap.get(sep);
                 Long minId= marketingUserMapper.queryMinId(blt);
@@ -409,14 +415,16 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
                             warrningExecutor.submit(new LoanWarningThread(list, param, loanWarningClient, i,
-                                    redisService, proFieldsClient, isIncr, redisChgService,desTime));
+                                    redisService, proFieldsClient, isIncr, redisChgService,desTime,EsOpenMark));
                             Thread.sleep(100);
                         }
                         i++;
                     }
                     long endtime = System.currentTimeMillis();
                     if (log.isWarnEnabled()) {
-                        log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时：".concat(String.valueOf(endtime - start)).concat("~~轮询总次数：").concat(String.valueOf(i))));
+                        log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
+                                .concat(String.valueOf(endtime - start)).concat("~~轮询总次数：")
+                                .concat(String.valueOf(i).concat("~~esOpen:").concat(EsOpenMark.toString()))));
                     }
                 }else{
                     log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
