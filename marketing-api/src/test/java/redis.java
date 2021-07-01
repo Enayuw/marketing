@@ -37,6 +37,7 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.ProInSys;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.junit.Test;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
@@ -121,6 +122,44 @@ public class redis {
         MarketingPreUserDTO o = JSON.parseObject(s, new TypeReference<MarketingPreUserDTO>() {
         }.getType());
         System.out.println(o.toString());
+    }
+
+    @Test
+    public void testThread(){
+        ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30,60L,TimeUnit.SECONDS
+                ,new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100000; i++) {
+            final int a = i;
+            threadPoolExecutor.submit(()->{
+                try {
+                    Thread.sleep(200L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                String name = Thread.currentThread().getName();
+                System.out.println(name.concat(":").concat(String.valueOf(a)));
+            });
+        }
+        threadPoolExecutor.shutdown();
+        Boolean b = true;
+        while (b){
+            if(threadPoolExecutor.isTerminated()){
+                System.out.println("结束");
+                b=false;
+            }else{
+                System.out.println("休息");
+                try {
+                    Thread.sleep(3000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("结束:".concat(String.valueOf(end-start)));
+
     }
 
     @Test

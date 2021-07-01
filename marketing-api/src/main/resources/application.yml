@@ -2,7 +2,7 @@ spring:
   application:
     name: marketing-api
   profiles:
-    active: pre
+    active: dev
   aop:
     proxy-target-class: true
     auto: true
