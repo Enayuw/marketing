@@ -681,7 +681,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String cell = marketingPreUserDetailDTO.getCell();
                 encodeMapping(marketingPreUserDetailDTO, finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
-                String appletDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+                String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
                 String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
