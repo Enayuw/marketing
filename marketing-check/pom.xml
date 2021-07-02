@@ -72,6 +72,33 @@
             <artifactId>asm</artifactId>
             <version>1.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.br.common</groupId>
+            <artifactId>br-common</artifactId>
+            <version>1.0.6-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>json-lib</artifactId>
+                    <groupId>net.sf.json-lib</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-codec</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-web</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.br.bsf</groupId>
+                    <artifactId>bsf-ext</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
     <build>
         <resources>
