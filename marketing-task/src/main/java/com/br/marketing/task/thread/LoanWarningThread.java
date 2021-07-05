@@ -224,11 +224,12 @@ public class LoanWarningThread implements Callable<String> {
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
-                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+//                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
                     }
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
                 }
+                log.info("马上进入dealResult");
                 dealResult(s, fw,errorFw,blu.getCusNum(),blu.getBatchNumber(),apiCode, blu);
             }
 
@@ -465,9 +466,12 @@ public class LoanWarningThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu) throws IOException {
         try {
+            log.info("进入dealResult");
             if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
+                log.info("进入DTM");
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
+                    log.info("马上进入generate");
                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,esOpen);
                 }
             }
