@@ -218,7 +218,8 @@
 			close_date,
 			file_name,
 			actual_number,
-			is_repair
+			is_repair,
+			context_id
 		FROM
 			b_marketing_task
 		WHERE
