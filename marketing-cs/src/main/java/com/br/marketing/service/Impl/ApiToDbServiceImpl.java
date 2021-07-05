@@ -12,8 +12,14 @@ import com.br.marketing.service.IApiToDbService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {
@@ -26,16 +32,34 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     @Override
     public Result pushToDb() {
-//        String format = DateUtils.format(new Date(), "yyyy-MM-dd");
-//        MarketingCustomerExample customerExample = new MarketingCustomerExample();
-//        customerExample.createCriteria().andStatusEqualTo(new Byte("1"));
-//        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-//        MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
-//        syncInfoExample.createCriteria().andCreateTimeGreaterThanOrEqualTo().andCreateTimeLessThan(DateUtils.)
-//        syncInfoMapper.selectByExample()
-//        for (MarketingCustomer marketingCustomer : marketingCustomers) {
-//
-//        }
+        Date date = new Date();
+        String nowDate = DateUtils.format(date, "yyyy-MM-dd");
+        Date preDate = DateUtils.getDate2(LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andStatusEqualTo(new Byte("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+
+        MarketingSyncInfoExample syncInfoExample = new MarketingSyncInfoExample();
+        syncInfoExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(preDate)
+                .andCreateTimeLessThan(DateUtils.getDate2(nowDate));
+        List<MarketingSyncInfo> marketingSyncInfos = syncInfoMapper.selectByExample(syncInfoExample);
+
+        for (MarketingCustomer marketingCustomer : marketingCustomers) {
+            boolean b = marketingSyncInfos.stream().anyMatch(t -> t.getApiCode().equals(marketingCustomer.getApiCode())
+                    && t.getStatus().equals(1));
+            if(b){
+                // 该apicode还有清洗未完成的数据
+                continue;
+            }
+            List<MarketingSyncInfo> syncInfos = marketingSyncInfos.stream()
+                    .filter(t -> t.getApiCode().equals(marketingCustomer.getApiCode())
+                            && Arrays.asList(2, 4).contains(t.getStatus())).collect(Collectors.toList());
+            for (MarketingSyncInfo syncInfo : syncInfos) {
+                String requestBatch = syncInfo.getRequestBatch();
+                String apiCode = syncInfo.getApiCode();
+            }
+        }
         return null;
     }
 }
