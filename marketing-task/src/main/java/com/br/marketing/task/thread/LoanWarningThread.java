@@ -224,7 +224,11 @@ public class LoanWarningThread implements Callable<String> {
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
-//                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                        try {
+                            MomUtil.sendMom(s, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+                        }catch (Throwable throwable){
+                            log.error(throwable.getMessage());
+                        }
                     }
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
