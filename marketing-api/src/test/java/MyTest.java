@@ -13,6 +13,7 @@ import com.br.marketing.mapper.MarketingStrategyProductMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@Slf4j
 public class MyTest {
 
     @Test
@@ -99,5 +103,13 @@ public class MyTest {
 
         System.out.println("耗时l:"+l.get());
         System.out.println("耗时b:"+b);
+    }
+
+    @Test
+    public void testLog(){
+        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+        objectObjectHashMap.put("a",123);
+        objectObjectHashMap.put("b", Arrays.asList(1,2,3,4));
+        log.warn("【跑批任务】调度结束，耗时：{},分片：{}",1,objectObjectHashMap);
     }
 }

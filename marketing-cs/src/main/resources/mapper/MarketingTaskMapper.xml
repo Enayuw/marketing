@@ -355,7 +355,8 @@
 			`start_date`,
 			`cus_batch`,
 			`monitor_type`,
-			is_repair
+			`is_repair`,
+			`context_id`
 		)
 		VALUES (
 			#{apiCode},
@@ -374,7 +375,8 @@
 			#{startDate},
 			#{cusBatch},
 			#{monitorType},
-			#{isRepair}
+			#{isRepair},
+			#{contextId}
 		);
 	</insert>
 

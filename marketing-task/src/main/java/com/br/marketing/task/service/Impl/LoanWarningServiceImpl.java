@@ -444,7 +444,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
             log.warn("当日批次数量--{}",list.size());
             for(MarketingTask blt:list) {
-                if(itemList.contains(blt.getId()%count)){
+                if(itemList.contains(blt.getContextId()%count)){
                     if (1 == blt.getMonitorType()) {
                         List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
                         if (bts.size()==0) {

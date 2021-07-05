@@ -84,6 +84,9 @@ public class MarketingTask {
      */
     private String isRepair;
 
+    @JSONField(name = "context_id")
+    private Long contextId;
+
     private Integer dataVolume;
 
     @Override
@@ -120,7 +123,8 @@ public class MarketingTask {
                 ", limit=" + limit +
                 ", strategyType='" + strategyType + '\'' +
                 ", isRepair='" + isRepair + '\'' +
-                ", dataVolume=" + dataVolume +
+                ", dataVolume=" + dataVolume +'\'' +
+                ", context_id=" + contextId +
                 '}';
     }
 }

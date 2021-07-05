@@ -82,6 +82,8 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     FileCheckServiceImpl fileCheckService;
     @Resource
     DeleteService deleteService;
+
+    private final static String redisElasticJobKey = "elasticjob:contextid";
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Map<String, Set<String>> map=new HashMap<>();
@@ -167,6 +169,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setStatus(2);
                             task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
                             task.setCusBatch(task.getFileName());
+                            task.setContextId(redisChgService.incr(redisElasticJobKey));
                             context.setCusBatch(task.getFileName());
                             marketingTaskMapper.insertTask(task);
                             context.setTask(task);
