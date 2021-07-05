@@ -75,13 +75,13 @@ public interface MarketingUserMapper {
          * @param blt
          * @return
          */
-        int queryMinId(MarketingTask blt);
+        Long queryMinId(MarketingTask blt);
         /**
          * 查询最大id
          * @param blt
          * @return
          */
-        int queryMaxId(MarketingTask blt);
+        Long queryMaxId(MarketingTask blt);
 
         /**
          * 查询user 列表

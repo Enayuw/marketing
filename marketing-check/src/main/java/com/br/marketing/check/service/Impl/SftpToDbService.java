@@ -90,9 +90,12 @@ public class SftpToDbService extends AbstractDataToDbService {
             Integer value=StringUtils.isNotEmpty(s1)?((totalLines-1)+Integer.parseInt(s1)):(totalLines-1);
             redisChgService.setex(s,value.toString(),172800);
         }
-
+        long start = System.currentTimeMillis();
         fileCheckService.checkSmallDataFile(context);
-
+        long end = System.currentTimeMillis();
+        if(log.isWarnEnabled()){
+            log.warn(String.format("数据入库时长:%d",end-start));
+        }
         dealErrorResultFile(context);
         log.info("parseConfigFile done");
         String s = redisChgService.get(Constants.INSERT_DB_NUMBER + context.getTxtFileName());

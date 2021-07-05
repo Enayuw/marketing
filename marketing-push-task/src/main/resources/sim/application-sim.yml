@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.40.100:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         url: jdbc:mysql://192.168.40.100:4000/marketing/marketing?useUnicode=true&characterEncoding=UTF-8
          username: u_pd_marketing
          password: qTODziGYQsq11aw8Js2V
          type: com.alibaba.druid.pool.DruidDataSource
@@ -21,19 +21,10 @@ sharding:
          testOnReturn: false
          poolPreparedStatements: true
          maxOpenPreparedStatements: 20
-    config:
-      sharding:
-        props:
-          sql.show: false
-        tables:
-          b_marketing_user:
-            table-strategy:
-              inline:
-                sharding-column: api_code
-                algorithm-expression: b_marketing_user_${api_code}
+
 logging:
     level:
-        com.br.off.mapper: debug
+        com.br.off.mapper: info
     file: ./logs/core.log
     root: INFO
 otherConfig:
@@ -53,15 +44,27 @@ otherConfig:
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-  encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
+        path: /opt/data/inloan/download/marketing/
+        ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix
+        sftpHost: brsftp.brapp.com
+        sftpPort: 9999
+        sftpUser: BRmarketing
+        sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+
+spring:
+  rabbitmq:
+    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+    username: strategy_distribute
+    password: Rz453hoEjUb37j8v
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow-sim
 
 #elastic-job配置
 SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
-NAMESPACE: marketing-job
+NAMESPACE: marketing-job-sim
 BASE_SLEEP_TIME_MILLISECONDS: 1000
-MAX_SLEEP_TIME_MILLISECONDS: 6000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
