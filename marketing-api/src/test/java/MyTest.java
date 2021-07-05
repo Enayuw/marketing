@@ -112,4 +112,19 @@ public class MyTest {
         objectObjectHashMap.put("b", Arrays.asList(1,2,3,4));
         log.warn("【跑批任务】调度结束，耗时：{},分片：{}",1,objectObjectHashMap);
     }
+
+    @Test
+    public void testLong(){
+        Long a = 2L;
+        Integer b = 2;
+        ArrayList<Integer> objects = new ArrayList<>();
+        objects.add(0);
+        objects.add(1);
+        boolean contains = Arrays.asList(0, 1).contains(a % 2);
+        System.out.println("输出："+contains+"ceshi:"+a % 2);
+        boolean containsb = objects.contains(a % 2);
+        System.out.println("输出2："+containsb+"ceshi:"+a % 2);
+        boolean containsc = objects.contains(b % 2);
+        System.out.println("输出3："+containsc+"ceshi:"+a % 2);
+    }
 }
