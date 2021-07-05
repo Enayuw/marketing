@@ -46,8 +46,6 @@ import java.util.List;
 public class TaskJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
@@ -55,12 +53,10 @@ public class TaskJob extends AbstractSimpleElasticJob {
         List<Customer> customers=customerMapper.getAllCustomer();
         customers.forEach(customer -> {
             try {
-                if(customer.getTaskTime()==1){
+                if(customer.getStatus() ==1 && customer.getTaskTime()==1){
                     log.warn("开始执行跑批任务，apicode={}",customer.getApiCode());
                     LoanWarningService loanWarningService=Scheduler.ac.getBean(LoanWarningServiceImpl.class);
                     loanWarningService.process(customer,context);
-                    //推送消息到pushQueue，进行下一流程处理
-                    //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
                 }
             } catch (Exception e) {
                 log.error("程序跑批异常，apiCode={}",customer.getApiCode());

@@ -76,15 +76,15 @@ public class MergeServiceImpl implements MergeService {
     @Value("${otherConfig.warning.path:00}")
     private String path;
     @Override
-    public List<LoanFile> process(String apiCode) {
+    public List<LoanFile> process(Customer customer) {
         List<LoanFile> pushList =new ArrayList<>();
         try{
-            if(StringUtils.isNotEmpty(apiCode)){
+            if(customer !=null){
                 List<LoanFile> allList=new ArrayList<>();
                 List<LoanFile> onceList=new ArrayList<>();
-                initBatchNumList(allList,onceList,apiCode);
-                pushList.addAll(mergeAllOrOnce(allList));
-                pushList.addAll(mergeAllOrOnce(onceList));
+                initBatchNumList(allList,onceList,customer.getApiCode());
+                pushList.addAll(mergeAllOrOnce(allList,customer));
+                pushList.addAll(mergeAllOrOnce(onceList,customer));
             }
 
         }catch (Exception e){
@@ -95,10 +95,10 @@ public class MergeServiceImpl implements MergeService {
 
 
 
-    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList) {
+    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList,Customer customer) {
         List<LoanFile> pushList=new ArrayList<>();
         for(LoanFile blf:loanFileList){
-            String zipName = mergeResultFile(blf);
+            String zipName = mergeResultFile(blf,customer);
             if(StringUtils.isEmpty(zipName)){
                 continue;
             }
@@ -118,7 +118,7 @@ public class MergeServiceImpl implements MergeService {
      * @param blf
      * @return
      */
-    private String mergeResultFile(LoanFile blf){
+    private String mergeResultFile(LoanFile blf,Customer customer){
         String zipFile="";
         try{
             List<String> result=new ArrayList<>();
@@ -157,13 +157,18 @@ public class MergeServiceImpl implements MergeService {
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
-            ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
+            if(customer.getPushCustomer()==1){
+                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 
-            //统计文件上传fastdfs
-            uploadFastDfs(countFileNameList,blf,fileName);
+                //统计文件上传fastdfs
+                uploadFastDfs(countFileNameList,blf,fileName);
 
-            countFileNameList.add(filePathAndName);
-            ZipUtil.compress(zipFile,countFileNameList);
+                countFileNameList.add(filePathAndName);
+                ZipUtil.compress(zipFile,countFileNameList);
+            }else {
+                ZipUtil.compress(zipFile,filePathAndName);
+            }
+
         }catch (Exception e){
             log.error("合并文件出错",e);
         }finally {
@@ -453,6 +458,20 @@ public class MergeServiceImpl implements MergeService {
         }
         if(products.contains("scoremcashonxhqbdzcd")){
             String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
+            String[] split = fields.split(",");
+            for (int i=0;i<split.length;i++){
+                head.append(split[i]).append(sep);
+            }
+        }
+        if(products.contains("scoremcashon360xktwo")){
+            String fields = PropertiesUtil.getProperty("scoremcashon360xktwo");
+            String[] split = fields.split(",");
+            for (int i=0;i<split.length;i++){
+                head.append(split[i]).append(sep);
+            }
+        }
+        if(products.contains("scorebrevoloanmszd3")){
+            String fields = PropertiesUtil.getProperty("scorebrevoloanmszd3");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);

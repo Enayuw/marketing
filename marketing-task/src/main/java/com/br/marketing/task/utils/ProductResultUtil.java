@@ -1,7 +1,6 @@
 package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.PropertiesUtil;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +49,22 @@ public class ProductResultUtil {
                     return;
                 }
                 String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
+                String[] split = fields.split(",");
+                for (int i=0;i<split.length;i++){
+                    result.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
+                    result.append(sep);
+                }
+            }
+            if(products.contains("scoremcashon360xktwo")){
+                String fields = PropertiesUtil.getProperty("scoremcashon360xktwo");
+                String[] split = fields.split(",");
+                for (int i=0;i<split.length;i++){
+                    result.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
+                    result.append(sep);
+                }
+            }
+            if(products.contains("scorebrevoloanmszd3")){
+                String fields = PropertiesUtil.getProperty("scorebrevoloanmszd3");
                 String[] split = fields.split(",");
                 for (int i=0;i<split.length;i++){
                     result.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));

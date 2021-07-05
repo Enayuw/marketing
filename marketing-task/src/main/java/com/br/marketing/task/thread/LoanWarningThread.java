@@ -106,6 +106,7 @@ public class LoanWarningThread implements Callable<String> {
     private String cusBatchNumber;
     private String isRepair;
     private String fileId;
+    private String pushCustomer;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
                              RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService){
         this.list=list;
@@ -125,6 +126,7 @@ public class LoanWarningThread implements Callable<String> {
         this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         this.fileId=param.get("fileId");
+        this.pushCustomer=param.get("pushCustomer");
         proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
@@ -410,7 +412,7 @@ public class LoanWarningThread implements Callable<String> {
     }
     private void addRedisNumForDayNum(String apiCode, String typeNo, int num) {
         long l = System.currentTimeMillis();
-        Long aLong = redisService.incrBy(apiCode, typeNo, num);
+         redisService.incrBy(apiCode, typeNo, num);
     }
     private void addRedisNum(String apiCode, List<String> typeNoList, int num) {
         long l = System.currentTimeMillis();
@@ -465,14 +467,14 @@ public class LoanWarningThread implements Callable<String> {
             if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,pushCustomer);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,pushCustomer);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
