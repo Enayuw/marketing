@@ -253,9 +253,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId",file.getId().toString());
-            param.put("pushCustomer",customer.getPushCustomer().toString());
-            warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                    redisService, proFieldsClient,flag,redisChgService));
+            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -416,9 +414,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         param.put("appSecretKey",appSecretKey);
                         param.put("isRepair",blt.getIsRepair());
                         param.put("fileId",fileId);
-                        param.put("pushCustomer",customer.getPushCustomer().toString());
-                        warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                                redisService, proFieldsClient,isIncr,redisChgService));
+                        warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer));
                         Thread.sleep(100);
                     }
                     i++;

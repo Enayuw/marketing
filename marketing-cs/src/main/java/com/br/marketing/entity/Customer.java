@@ -43,4 +43,6 @@ public class Customer {
     private Integer sort;
     private Integer status;
     private Integer checkBlackList;
+    private Integer checkRedisNumber;
+    private Integer saveLog;
 }

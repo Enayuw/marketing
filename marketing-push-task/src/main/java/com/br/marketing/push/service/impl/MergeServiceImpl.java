@@ -121,7 +121,6 @@ public class MergeServiceImpl implements MergeService {
     private String mergeResultFile(LoanFile blf,Customer customer){
         String zipFile="";
         try{
-            List<String> result=new ArrayList<>();
             StringBuilder targetPath=new StringBuilder();
             targetPath.append(blf.getFilePath())
                     .append("/");
@@ -166,7 +165,7 @@ public class MergeServiceImpl implements MergeService {
                 countFileNameList.add(filePathAndName);
                 ZipUtil.compress(zipFile,countFileNameList);
             }else {
-                ZipUtil.compress(zipFile,filePathAndName);
+                ZipUtil.compress(filePathAndName,zipFile);
             }
 
         }catch (Exception e){
