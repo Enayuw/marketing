@@ -127,12 +127,16 @@ public interface MarketingUserMapper {
          */
         List<MarketingUser> queryPpd(Map<String, String> param);
 
-        int insertBatchMarketingPreUser(@Param("apiCode") String apiCode,@Param("tasdId") String taskId,@Param("dateTime")String dateTime,@Param("dataItems")List<MarketingPreUserDetailDTO> dataItems);
+        int insertBatchMarketingPreUser(@Param("apiCode") String apiCode,@Param("tasdId") String taskId
+                ,@Param("dateTime")String dateTime,@Param("dataItems")List<MarketingPreUserDetailDTO> dataItems);
 
         int insertBatchMarketingPreUserByDatas(@Param("apiCode") String apiCode,@Param("datas") String datas);
 
         int insertMarketingPreUserByText(MarketingSyncInfo syncInfo);
 
+        int insertSelectByRequestId(@Param("apiCode") String apiCode,@Param("batchNumber") String batchNumber
+                ,@Param("time") String time,@Param("requestId")String requestId);
 
+        void createMarketingPreUserTable(@Param("tableName") String tableName);
 }
 
