@@ -42,5 +42,5 @@ public class Customer {
     private Integer pushCustomer;
     private Integer sort;
     private Integer status;
-    private Integer checkBlactList;
+    private Integer checkBlackList;
 }

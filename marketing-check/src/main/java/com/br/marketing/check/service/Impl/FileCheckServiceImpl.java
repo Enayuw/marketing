@@ -75,7 +75,7 @@ public class FileCheckServiceImpl implements FileCheckService {
                         Map<String,String> param=new HashMap<>();
                         param.put("row",row);
                         param.put("head",head);
-                        param.put("checkBlackList",customer.getCheckBlactList().toString());
+                        param.put("checkBlackList",customer.getCheckBlackList().toString());
                         validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw ));
                     }
                 }
