@@ -699,7 +699,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } else if (ex.getMessage().contains("uk_taskId_cell")) {
                         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("重复电话"));
                     } else {
-                        throw ex;
+                        log.error(ex.getMessage(),ex);
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("入库异常"));
                     }
                 }
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -711,7 +712,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             futures = currentDbPoolExecutor.invokeAll(list);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
         }
         if (futures != null && !futures.isEmpty()) {
             for (int i = 0; i < futures.size(); i++) {
@@ -722,7 +723,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorBuild.append(result.getMessage().concat(","));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(),e);
                 }
             }
         }
