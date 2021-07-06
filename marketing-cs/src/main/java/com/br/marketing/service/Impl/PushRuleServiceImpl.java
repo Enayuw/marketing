@@ -143,6 +143,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final static Integer errorIdMark = 1;
 
+    final static String marketingPreUserTable = "b_marketing_sync_";
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -664,6 +665,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             isCheck = merchantParam.getIsCheck();
         }
         long l = System.currentTimeMillis();
+        marketingUserMapper.createMarketingPreUserTable(marketingPreUserTable.concat(marketingSyncInfo.getApiCode()));
         ArrayList<Callable<Result>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
