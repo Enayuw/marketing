@@ -3,6 +3,7 @@ package com.br.marketing.task.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.Customer;
 import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -20,7 +21,7 @@ import java.text.DecimalFormat;
 public class HxUtil {
     private static RestTemplate restTemplate = Scheduler.ac.getBean(RestTemplate.class);
 
-    public static String getReport( String apiCode, JSONObject jsonData,JSONObject jsonMeal,boolean notSaveLog,String url) {
+    public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean notSaveLog, String url) {
         log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
@@ -38,7 +39,7 @@ public class HxUtil {
         if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
             json.put("decodeFailType", jsonData.getString("decodeFailType"));
         }
-        json.put("originApiCode",apiCode);
+        json.put("originApiCode",customer.getApiCode());
         JSONObject extDataJson=new JSONObject();
         if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
             extDataJson.put("isRepair",jsonData.getString("isRepair"));
@@ -46,7 +47,7 @@ public class HxUtil {
         /**
          * 0不留存，1留存
          */
-        if(notSaveLog ||Constants.APICODE_SHAZI.contains(apiCode)){
+        if(notSaveLog ||customer.getSaveLog()==0){
             extDataJson.put("isSaveLog","0");
         }else{
             extDataJson.put("isSaveLog","1");

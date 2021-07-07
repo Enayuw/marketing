@@ -1,5 +1,6 @@
 package com.br.marketing.push.service;
 
+import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 
 import java.util.List;
@@ -31,5 +32,5 @@ import java.util.List;
  * @Description:
  **/
 public interface MergeService {
-     List<LoanFile> process(String apiCode);
+     List<LoanFile> process(Customer customer);
 }

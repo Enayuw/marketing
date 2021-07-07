@@ -9,7 +9,9 @@ import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.check.service.FileCheckService;
+import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoadResult;
+import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.StrategyCs;
@@ -50,6 +52,8 @@ public class FileCheckServiceImpl implements FileCheckService {
 
     final static String dbPoolCheckOpen = "DB:Pool:checkopen";
 
+    @Resource
+    CustomerMapper customerMapper;
     private Calendar calendar =Calendar.getInstance();
     private final static Integer SPLITNUM=5000;
     @Override
@@ -60,6 +64,8 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Override
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
+        Customer customer = customerMapper.getCustomerByApiCode(context.getApiCode());
+        ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
         String s = redisChgService.get(dbPoolKey);
         Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
         String s1 = redisChgService.get(dbPoolQueueKey);
@@ -92,6 +98,8 @@ public class FileCheckServiceImpl implements FileCheckService {
                         param.put("head",head);
 
                         validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime,dbPoolCheckOpenMark));
+                        param.put("checkBlackList",customer.getCheckBlackList().toString());
+                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw ));
                     }
                 }
             }

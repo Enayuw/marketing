@@ -89,10 +89,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             List<MarketingTask> onceList=new ArrayList<>();
             initBatchNumList(allList,onceList,apiCode,context);
             if("all".equals(type)){
-                this.generateAllTask(allList,warrningExecutor);
+                this.generateAllTask(allList,warrningExecutor,customer);
             }
             if("once".equals(type)){
-                this.generateOnceTask(onceList,warrningExecutor);
+                this.generateOnceTask(onceList,warrningExecutor,customer);
             }
 
           /**
@@ -121,7 +121,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
                         if(itemList.contains(task.getId()%count)) {
-                            this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i);
+                            this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i,customer);
                             i++;
                         }
                     }
@@ -170,14 +170,14 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                                 if(StringUtils.isNotEmpty(num)&&Integer.parseInt(num)>0){
                                     sum+=Integer.parseInt(num);
                                 }
-                                redisChgService.expire(flagKey,172800);
+                                redisChgService.expire(flagKey,5);
                             }
                         }
                     }
                 }
                 if(sum>0){
                     HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                            String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
+                            String.format("【紧急报警】【%s】营销平台客户监控- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
                                     ,apiCode,sum));
                     log.error("hxResult product flag error",hxResultRuntimeException);
                 }
@@ -199,7 +199,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param warrningExecutor 线程池
      * @param num 文件编号
      */
-    private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num){
+    private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num,Customer customer){
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
         Map<String,String> paramMap =new HashedMap();
         paramMap.put("apiCode",apiCode);
@@ -257,8 +257,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId",file.getId().toString());
-            warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                    redisService, proFieldsClient,flag,redisChgService,EsOpenMark));
+            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,EsOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -267,7 +266,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * 提交一次性任务
      * @param list
      */
-    private void generateOnceTask(List<MarketingTask> list, ExecutorService warrningExecutor) {
+    private void generateOnceTask(List<MarketingTask> list, ExecutorService warrningExecutor,Customer customer) {
         if(list==null||list.size()==0) {
             return;
         }
@@ -306,21 +305,24 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             bts.setBatchNumber(blt.getBatchNumber());
             bts.setFileId(blf.getId());
             taskStatusMapper.insertTaskStatus(bts);
-            JSONArray dtbArray=JSONArray.parseArray(strategyStr);
-            for(int i=0;i<dtbArray.size();i++){
-                JSONObject jsonObject = dtbArray.getJSONObject(i);
-                MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
-                marketingStrategyProduct.setApiCode(blt.getApiCode());
-                marketingStrategyProduct.setBatchNumber(blt.getBatchNumber());
-                marketingStrategyProduct.setCreateTime(new Date());
-                marketingStrategyProduct.setCusBatchNumber(blt.getFileName());
-                marketingStrategyProduct.setProductName(jsonObject.getString("code"));
-                marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
-                marketingStrategyProduct.setStrategyId(blt.getStrategyId());
-                marketingStrategyProduct.setFileId(blf.getId());
-                marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
+
+            if(customer.getPushCustomer()==1){
+                JSONArray dtbArray=JSONArray.parseArray(strategyStr);
+                for(int i=0;i<dtbArray.size();i++){
+                    JSONObject jsonObject = dtbArray.getJSONObject(i);
+                    MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
+                    marketingStrategyProduct.setApiCode(blt.getApiCode());
+                    marketingStrategyProduct.setBatchNumber(blt.getBatchNumber());
+                    marketingStrategyProduct.setCreateTime(new Date());
+                    marketingStrategyProduct.setCusBatchNumber(blt.getFileName());
+                    marketingStrategyProduct.setProductName(jsonObject.getString("code"));
+                    marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
+                    marketingStrategyProduct.setStrategyId(blt.getStrategyId());
+                    marketingStrategyProduct.setFileId(blf.getId());
+                    marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
+                }
             }
-                core(blt, descPath,false,strategyStr,warrningExecutor,blf.getId().toString());
+                core(blt, descPath,false,strategyStr,warrningExecutor,blf.getId().toString(),customer);
 
 
         }
@@ -330,7 +332,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * 提交全量监控任务
      * @param list
      */
-    private void generateAllTask(List<MarketingTask> list, ExecutorService warrningExecutor){
+    private void generateAllTask(List<MarketingTask> list, ExecutorService warrningExecutor,Customer customer){
         if(list==null||list.size()==0) {
             return;
         }
@@ -371,7 +373,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             bts.setFileId(blf.getId());
             taskStatusMapper.insertTaskStatus(bts);
 
-            core(blt,descPath,false,strategyStr,warrningExecutor,blf.getId().toString());
+            core(blt,descPath,false,strategyStr,warrningExecutor,blf.getId().toString(),customer);
 
         }
 
@@ -382,7 +384,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param blt
      * @param descPath
      */
-    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor, String fileId){
+
+    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,String fileId,Customer customer){
         try {
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
@@ -412,8 +415,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("appSecretKey", appSecretKey);
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
-                            warrningExecutor.submit(new LoanWarningThread(list, param, loanWarningClient, i,
-                                    redisService, proFieldsClient, isIncr, redisChgService,EsOpenMark));
+                            warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,EsOpenMark));
                             Thread.sleep(100);
                         }
                         i++;

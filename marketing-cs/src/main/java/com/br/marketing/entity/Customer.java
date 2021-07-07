@@ -31,8 +31,18 @@ import lombok.Data;
 @Data
 public class Customer {
     private String  apiCode;
+    private String message;
+    /**
+     *
+     */
     private String type;
     private Integer threadNum;
     private Integer taskTime;
+    private Integer finishDate;
+    private Integer pushCustomer;
+    private Integer sort;
     private Integer status;
+    private Integer checkBlackList;
+    private Integer checkRedisNumber;
+    private Integer saveLog;
 }

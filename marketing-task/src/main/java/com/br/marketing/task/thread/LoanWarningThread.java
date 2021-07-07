@@ -8,6 +8,7 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.client.*;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,28 +108,31 @@ public class LoanWarningThread implements Callable<String> {
     private String cusBatchNumber;
     private String isRepair;
     private String fileId;
+    private Customer customer;
+    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, int currentPage,boolean isIncr,Customer customer){
     private Integer esOpen=1;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
                              RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService,Integer esOpen){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
-        this.loanWarningClient=loanWarningClient;
+        this.loanWarningClient= Scheduler.ac.getBean(LoanWarningClient.class);
         this.currentPage=currentPage;
         this.path=param.get("path");
         this.strategyStr=param.get("strategyStr");
-        this.redisService=redisService;
+        this.redisService=Scheduler.ac.getBean(RedisService.class);
         this.isIncr=isIncr;
         this.appSecretKey=param.get("appSecretKey");
         this.url=param.get("url");
         this.sep=param.get("sep");
-        this.redisChgService=redisChgService;
+        this.redisChgService=Scheduler.ac.getBean(RedisChgService.class);
         this.batchNumber=param.get("batchNumber");
         this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         this.fileId=param.get("fileId");
         this.esOpen = esOpen;
-        proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
+        this.customer=customer;
+        Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
 
@@ -221,7 +225,7 @@ public class LoanWarningThread implements Callable<String> {
                 String s="";
                 if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
-                    s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
+                    s= HxUtil.getReport(customer,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
                         try {
@@ -259,7 +263,7 @@ public class LoanWarningThread implements Callable<String> {
      */
     private boolean checkRedisNumber() {
         boolean flag=true;
-        if(apiCode.equals("7410431")||apiCode.equals("7410433")){
+        if(customer.getCheckRedisNumber()==0){
             return flag;
         }
         try{
@@ -418,7 +422,7 @@ public class LoanWarningThread implements Callable<String> {
     }
     private void addRedisNumForDayNum(String apiCode, String typeNo, int num) {
         long l = System.currentTimeMillis();
-        Long aLong = redisService.incrBy(apiCode, typeNo, num);
+         redisService.incrBy(apiCode, typeNo, num);
     }
     private void addRedisNum(String apiCode, List<String> typeNoList, int num) {
         long l = System.currentTimeMillis();
@@ -476,14 +480,14 @@ public class LoanWarningThread implements Callable<String> {
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
                     log.info("马上进入generate");
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,esOpen);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),esOpen);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,esOpen);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),esOpen);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
