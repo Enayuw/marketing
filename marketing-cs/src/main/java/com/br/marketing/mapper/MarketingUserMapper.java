@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.StrategyOfGroupDTO;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
@@ -134,9 +135,17 @@ public interface MarketingUserMapper {
 
         int insertMarketingPreUserByText(MarketingSyncInfo syncInfo);
 
-        int insertSelectByRequestId(@Param("apiCode") String apiCode,@Param("batchNumber") String batchNumber
+        int insertSelectByRequestId(@Param("apiCode") String apiCode,@Param("batchNumbers")String batchNumbers
                 ,@Param("time") String time,@Param("requestId")String requestId);
 
+        List<String> selectGroupByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("beginTime")String endTime);
+
+        List<String> selectCusBatchByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("beginTime")String endTime);
+
         void createMarketingPreUserTable(@Param("tableName") String tableName);
+
+        int countByPreUser(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("groupType")String groupType,@Param("beginTime")String beginTime,@Param("beginTime")String endTime);
+
+        int countBySureUser(@Param("apiCode") String apiCode,@Param("batchNumber")String batchNumber);
 }
 

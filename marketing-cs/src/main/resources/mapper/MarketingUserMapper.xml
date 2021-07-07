@@ -226,6 +226,29 @@
 		batch_number = #{batch_number}
 		AND  hit_date &gt;= #{hit_date}
 	</select>
+	<select id="selectGroupByCodeAndTime" resultType="java.lang.String">
+		select distinct group_type
+		from b_marketing_sync_${apiCode}
+		where <![CDATA[ create_time>= #{beginTime} and create_time < #{endTime}]]>
+	</select>
+	<select id="selectCusBatchByCodeAndTime" resultType="java.lang.String">
+		select distinct group_type
+		from b_marketing_sync_info
+		where api_code = #{api_code}
+	  <![CDATA[ and create_time>= #{beginTime} and create_time < #{endTime}]]>
+	</select>
+	<select id="countByPreUser" resultType="java.lang.Integer">
+		select count(1)
+		from  b_marketing_sync_${apiCode}
+		where cus_batch = #{cusBatch}
+		and group_type = #{groupType}
+<![CDATA[ and create_time>= #{beginTime} and create_time < #{endTime}]]>
+	</select>
+	<select id="countBySureUser" resultType="java.lang.Integer">
+		select count(1)
+		from  b_marketing_user_${apiCode}
+		where batch_number = #{batchNumber}
+	</select>
 	<insert id="insertLoanUser" parameterType="map">
     INSERT INTO b_marketing_user (
         	`api_code`,
@@ -334,7 +357,8 @@
 	<insert id="insertSelectByRequestId">
 		insert into
 			b_marketing_user_#{apiCode} (api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType)
-		select api_code ,#{batchNumber},cust_num as cus_num,cell,#{time},#{time},fail_type as decodeFailType
+		select api_code ,${batchNumber}
+		       ,cust_num as cus_num,cell,#{time},#{time},fail_type as decodeFailType
 		from b_marketing_sync_#{apiCode}
 		where request_batch = #{requestId};
 	</insert>
