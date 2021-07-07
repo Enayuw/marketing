@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-        url: jdbc:mysql://mysql-loanwarning-vip.brapp.com/marketing?useUnicode=true&characterEncoding=UTF-8
+        url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
         password: qTODziGYQsq11aw8Js2V
         type: com.alibaba.druid.pool.DruidDataSource
@@ -62,6 +62,12 @@ otherConfig:
   alarm:
     secretKey: b58783d4b67f942166f2ffad298080e4
     appName: marketing
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  userCenter:
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api

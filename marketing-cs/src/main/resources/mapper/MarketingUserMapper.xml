@@ -4,7 +4,7 @@
 	<update id="createUserTable" parameterType="java.lang.String">
 		CREATE TABLE
 		IF NOT EXISTS ${tableName} (
-			`id` INT (11) NOT NULL AUTO_INCREMENT,
+			`id` bigint (20) NOT NULL AUTO_INCREMENT,
 			`api_code` VARCHAR (10) NOT NULL COMMENT '商户编号',
 			`batch_number` VARCHAR (100) NOT NULL COMMENT '批次号',
 			`cus_num` VARCHAR (128) DEFAULT NULL,
@@ -28,7 +28,7 @@
 			KEY `index_api_code` (`api_code`, `batch_number`) USING BTREE,
 			KEY `index_create_time` (`create_time`) USING BTREE,
 			KEY `index_cus_num` (`cus_num`) USING HASH
-		) ENGINE = INNODB AUTO_INCREMENT = 1681 DEFAULT CHARSET = utf8
+		) ENGINE = INNODB DEFAULT CHARSET = utf8
 	</update>
 	<insert id="insertUser" parameterType="com.br.marketing.entity.MarketingUser">
 		    INSERT INTO b_marketing_user (
@@ -89,13 +89,13 @@
 		FROM
 		${tableName}
 		WHERE
-		id &gt;= #{begin}
-		AND id &lt; #{end}
+		id &gt; #{begin}
 		AND api_code = #{apiCode}
 		AND batch_number = #{batchNumber}
 		<if test="tableName=='b_marketing_user_chg'">
 			AND 	hit_date=#{hitDate}
 		</if>
+		order by id asc limit 5000;
 	</select>
 	<select id="queryHnnxMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
 		SELECT
@@ -108,7 +108,7 @@
 		id DESC
 		LIMIT 1;
 	</select>
-	<select id="queryMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+	<select id="queryMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Long">
 		SELECT
 		id
 		FROM
@@ -134,7 +134,7 @@
 		id ASC
 		LIMIT 1;
 	</select>
-	<select id="queryMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
+	<select id="queryMinId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Long">
 		SELECT
 			id
 		FROM
@@ -316,16 +316,19 @@
 			`reserve_field1`,
 			`reserve_field2`,
 			`create_time`,
-			`update_time`
+			`update_time`,
+			`applet_date`,
+			`fail_type`,
+			`status`
 		)
 		VALUES ${datas}
 	</insert>
 	<insert id="insertMarketingPreUserByText" parameterType="com.br.marketing.entity.MarketingSyncInfo">
-		<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
 			SELECT LAST_INSERT_ID()
 		</selectKey>
 		INSERT INTO `b_marketing_sync_info` (`api_code`, `cus_batch`, `request_batch`,
-		 `json_data`, `create_time`)
-		VALUES (#{apiCode}, #{cusBatch}, #{requestBatch}, #{jsonData},#{createTime});
+		`json_data`, `create_time`, `actual_num`)
+		VALUES (#{apiCode}, #{cusBatch}, #{requestBatch}, #{jsonData},#{createTime},#{actualNum});
 	</insert>
 </mapper>

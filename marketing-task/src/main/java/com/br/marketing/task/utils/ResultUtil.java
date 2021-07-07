@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/21.
@@ -192,7 +193,7 @@ public class ResultUtil {
      *     }
      * }
      * * */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw,  String  sep ,Map<String,String> proFieldMap,MarketingUser user,JSONObject meal,String cusBatchNumber,String fileId) throws IOException {
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,Integer esOpen) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
@@ -269,14 +270,20 @@ public class ResultUtil {
         }
         log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
         ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+        if(log.isWarnEnabled()){
+            log.warn("sb信息--"+sb.toString());
+        }
         if(sb.toString().split(",").length>5){
+            log.warn("sb写入fw--"+sb.toString());
             fw.append(sb + "\r\n");
             mh.setIdCard(user.getIdCard());
             mh.setName(user.getName());
             mh.setCell(user.getCell());
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setFileId(fileId);
-            writeEs(mh,meal,hxJson);
+            if(esOpen.equals(1)){
+                writeEs(mh,meal,hxJson);
+            }
         }
     }
 

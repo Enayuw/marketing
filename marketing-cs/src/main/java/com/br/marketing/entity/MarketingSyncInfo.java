@@ -44,6 +44,11 @@ public class MarketingSyncInfo {
     private Long errorId;
 
     /**
+     * 数据实际条数
+     */
+    private Integer actualNum;
+
+    /**
      * 数据
      */
     private String jsonData;
@@ -110,6 +115,14 @@ public class MarketingSyncInfo {
 
     public void setErrorId(Long errorId) {
         this.errorId = errorId;
+    }
+
+    public Integer getActualNum() {
+        return actualNum;
+    }
+
+    public void setActualNum(Integer actualNum) {
+        this.actualNum = actualNum;
     }
 
     public String getJsonData() {

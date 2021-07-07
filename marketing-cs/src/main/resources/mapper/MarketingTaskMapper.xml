@@ -218,7 +218,8 @@
 			close_date,
 			file_name,
 			actual_number,
-			is_repair
+			is_repair,
+			context_id
 		FROM
 			b_marketing_task
 		WHERE
@@ -355,7 +356,8 @@
 			`start_date`,
 			`cus_batch`,
 			`monitor_type`,
-			is_repair
+			`is_repair`,
+			`context_id`
 		)
 		VALUES (
 			#{apiCode},
@@ -374,7 +376,8 @@
 			#{startDate},
 			#{cusBatch},
 			#{monitorType},
-			#{isRepair}
+			#{isRepair},
+			#{contextId}
 		);
 	</insert>
 

@@ -112,6 +112,9 @@ public class FtpClient extends BaseFtpClient {
         log.warn("path:{},fileName:{}",path,fileName);
         String localPath= Constants.TMP_FILE_PATH;
         File tmpFile = new File(localPath + fileName);
+        if(!tmpFile.getParentFile().exists()){
+            tmpFile.getParentFile().mkdirs();
+        }
         boolean download = download(path + fileName, tmpFile);
         InputStream input=null;
         if(download){

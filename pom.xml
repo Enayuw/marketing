@@ -95,6 +95,10 @@
                     <artifactId>spring-web</artifactId>
                     <groupId>org.springframework</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.br.bsf</groupId>
+                    <artifactId>bsf-ext</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- elasticJob -->

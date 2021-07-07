@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Data
 public class MarketingUser {
-    private int id;
+    private Long id;
     private String apiCode;
     private String batchNumber;
     private String cusNum;

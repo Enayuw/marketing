@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2020/5/16.
@@ -40,7 +41,9 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private String batchNumber;
     private RedisChgService redisChgService;
     private String fileName;
-    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw) {
+    private AtomicLong desTime;
+    private Integer checkOpen=1;
+    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime,Integer checkOpen) {
         this.row=param.get("row");
         this.head=param.get("head");
         this.apiCode=context.getTask().getApiCode();
@@ -51,16 +54,16 @@ public class ValidatorSmallFileThread implements Callable<String> {
         this.batchNumber=context.getTask().getBatchNumber();
         this.redisChgService=CkeckApplication.ac.getBean(RedisChgService.class);
         this.fileName=context.getDistinctTxtFileName();
-
+        this.desTime = desTime;
+        this.checkOpen = checkOpen;
     }
 
     @Override
     public String call() throws Exception {
         try{
             StringBuilder sb=new StringBuilder();
-            boolean b = CheckDataUtil.checkData(head,row, apiCode, errorfw, sb,decodeClient);
-            if(b){
-
+            boolean b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
+            if(b&&checkOpen.equals(1)){
                     String[] split = sb.toString().split(",",14);
 
                     if(isHitBlackList()){

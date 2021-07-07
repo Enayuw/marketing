@@ -16,6 +16,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -106,8 +107,9 @@ public class LoanWarningThread implements Callable<String> {
     private String cusBatchNumber;
     private String isRepair;
     private String fileId;
+    private Integer esOpen=1;
     public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
-                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService){
+                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService,Integer esOpen){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -125,6 +127,7 @@ public class LoanWarningThread implements Callable<String> {
         this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         this.fileId=param.get("fileId");
+        this.esOpen = esOpen;
         proFieldsClient.setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
@@ -221,11 +224,16 @@ public class LoanWarningThread implements Callable<String> {
                     s= HxUtil.getReport(apiCode,jsonData,meal,isIncr,url);
                     requestLog.setResponseTime(new Date());
                     if(!isIncr) {
-                        MomUtil.sendMom(s,jsonData,requestLog,apiCode,strategyId,appSecretKey);
+                        try {
+                            MomUtil.sendMom(s, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+                        }catch (Throwable throwable){
+                            log.error(throwable.getMessage());
+                        }
                     }
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
                 }
+                log.info("马上进入dealResult");
                 dealResult(s, fw,errorFw,blu.getCusNum(),blu.getBatchNumber(),apiCode, blu);
             }
 
@@ -462,17 +470,20 @@ public class LoanWarningThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu) throws IOException {
         try {
+            log.info("进入dealResult");
             if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
+                log.info("进入DTM");
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                    log.info("马上进入generate");
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,esOpen);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,esOpen);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);

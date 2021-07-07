@@ -26,6 +26,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -68,6 +69,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     RedisChgService redisChgService;
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
+
+    private final static String RedisEsOpen="es:open";
 
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
@@ -146,7 +149,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             }catch (Exception e){
                 log.error("重新处理异常数据出错",e);
             }
-
             allList.addAll(onceList);
             for (MarketingTask task : allList) {
                 Map<String,String> param =new HashedMap();
@@ -175,7 +177,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 }
                 if(sum>0){
                     HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                            String.format("【紧急报警】【%s】存量客户监控- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
+                            String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
                                     ,apiCode,sum));
                     log.error("hxResult product flag error",hxResultRuntimeException);
                 }
@@ -238,6 +240,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             if("incr".equals(s1)){
                 flag=true;
             }
+            String redisOpen = redisChgService.get(RedisEsOpen);
+            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
             String descPath=path+"/"+s1+"/"+ marketingTask.getApiCode()+"/"+ marketingTask.getBatchNumber()+"/"+
                     new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             log.info("{},list:{}",errorFile,list.size());
@@ -254,7 +258,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId",file.getId().toString());
             warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                    redisService, proFieldsClient,flag,redisChgService));
+                    redisService, proFieldsClient,flag,redisChgService,EsOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -378,45 +382,50 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param blt
      * @param descPath
      */
-    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,String fileId){
+    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor, String fileId){
         try {
+            String redisOpen = redisChgService.get(RedisEsOpen);
+            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
                 String separator=Constants.sepMap.get(sep);
-                int minId= marketingUserMapper.queryMinId(blt);
-                int maxId= marketingUserMapper.queryMaxId(blt);
+                Long minId= marketingUserMapper.queryMinId(blt);
+                Long maxId= marketingUserMapper.queryMaxId(blt);
                 log.warn("min_id--{},max_id--{},pageSize--{}",minId,maxId,pageSize);
-
-                int end=0;
-                int i=1;
-                while (end<maxId){
-                    int begin = (i - 1) * pageSize + minId;
-                    end=begin+pageSize;
-                    if(end>=maxId){
-                        end=maxId+1;
+                if(minId !=null && minId>0L) {
+                    Long begin = minId - 1;
+                    int i = 1;
+                    long start = System.currentTimeMillis();
+                    while (begin < maxId) {
+                        blt.setBegin(begin);
+                        List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
+                        if (list.size() > 0) {
+                            begin = list.get(list.size() - 1).getId();
+                            Map<String, String> param = new HashMap<>();
+                            param.put("apiCode", blt.getApiCode());
+                            param.put("strategyId", blt.getStrategyId());
+                            param.put("path", descPath);
+                            param.put("strategyStr", strategyStr);
+                            param.put("sep", separator);
+                            param.put("batchNumber", blt.getBatchNumber());
+                            param.put("cusBatchNumber", blt.getFileName());
+                            param.put("url", url);
+                            param.put("appSecretKey", appSecretKey);
+                            param.put("isRepair", blt.getIsRepair());
+                            param.put("fileId", fileId);
+                            warrningExecutor.submit(new LoanWarningThread(list, param, loanWarningClient, i,
+                                    redisService, proFieldsClient, isIncr, redisChgService,EsOpenMark));
+                            Thread.sleep(100);
+                        }
+                        i++;
                     }
-
-                    blt.setBegin(begin);
-                    blt.setEnd(end);
-
-                    List<MarketingUser> list= marketingUserMapper.queryUserByid(blt);
-                    if(list.size()>0){
-                        Map<String,String> param=new HashMap<>();
-                        param.put("apiCode", blt.getApiCode());
-                        param.put("strategyId",blt.getStrategyId());
-                        param.put("path",descPath);
-                        param.put("strategyStr",strategyStr);
-                        param.put("sep",separator);
-                        param.put("batchNumber",blt.getBatchNumber());
-                        param.put("cusBatchNumber",blt.getFileName());
-                        param.put("url",url);
-                        param.put("appSecretKey",appSecretKey);
-                        param.put("isRepair",blt.getIsRepair());
-                        param.put("fileId",fileId);
-                        warrningExecutor.submit(new LoanWarningThread(list, param,loanWarningClient, i,
-                                redisService, proFieldsClient,isIncr,redisChgService));
-                        Thread.sleep(100);
+                    long endtime = System.currentTimeMillis();
+                    if (log.isWarnEnabled()) {
+                        log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
+                                .concat(String.valueOf(endtime - start)).concat("~~轮询总次数：")
+                                .concat(String.valueOf(i).concat("~~esOpen:").concat(EsOpenMark.toString()))));
                     }
-                    i++;
+                }else{
+                    log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
                 }
 
         }catch (Exception e){
@@ -435,7 +444,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
             log.warn("当日批次数量--{}",list.size());
             for(MarketingTask blt:list) {
-                if(itemList.contains(blt.getId()%count)){
+                if(blt.getContextId()==null){
+                    continue;
+                }
+                if(itemList.contains(Integer.valueOf(blt.getContextId().toString())%count)){
                     if (1 == blt.getMonitorType()) {
                         List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
                         if (bts.size()==0) {

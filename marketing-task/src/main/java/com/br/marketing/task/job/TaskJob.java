@@ -67,6 +67,6 @@ public class TaskJob extends AbstractSimpleElasticJob {
             }
         });
         Long end =System.currentTimeMillis();
-        log.warn("【跑批任务】调度结束，耗时：{}",end-start);
+        log.warn("【跑批任务】调度结束，耗时：{},分片：{}",end-start,context.getShardingItemParameters());
     }
 }

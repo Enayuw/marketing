@@ -6,6 +6,7 @@ import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.thread.ValidatorThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.DecodeClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.entity.LoadResult;
@@ -13,6 +14,7 @@ import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.StrategyCs;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,6 +23,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2020/1/15.
@@ -38,6 +41,15 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Resource
     EmailService validDataAlarmServiceImpl;
 
+    @Autowired
+    RedisChgService redisChgService;
+
+    final static String dbPoolKey = "DB:Pool:Num";
+
+    final static String dbPoolQueueKey = "DB:Pool:Num:Queue:Num";
+
+    final static String dbPoolCheckOpen = "DB:Pool:checkopen";
+
     private Calendar calendar =Calendar.getInstance();
     private final static Integer SPLITNUM=5000;
     @Override
@@ -48,12 +60,19 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Override
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
-        ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
+        String s = redisChgService.get(dbPoolKey);
+        Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
+        String s1 = redisChgService.get(dbPoolQueueKey);
+        Integer dbPoolQueueNum = StringUtils.isNotBlank(s1)?Integer.valueOf(s1):200;
+        String s2 = redisChgService.get(dbPoolCheckOpen);
+        Integer dbPoolCheckOpenMark = StringUtils.isNotBlank(s2)?Integer.valueOf(s2):1;
+        ExecutorService validatorExecutor = BrExecutors.getThreadPool(dbPoolNum,dbPoolNum,dbPoolQueueNum);
         File errorPathFile=new File(context.getErrorFilePath());
         if(!errorPathFile.exists()){
             errorPathFile.mkdirs();
         }
         File file1 = new File(context.getErrorFilePath().concat(context.getErrorDataFileName()));
+        AtomicLong desTime = new AtomicLong();
         try(Writer errorfw = new BufferedWriter(
                 new OutputStreamWriter(
                 new FileOutputStream(file1), "UTF-8"));
@@ -71,7 +90,8 @@ public class FileCheckServiceImpl implements FileCheckService {
                         Map<String,String> param=new HashMap<>();
                         param.put("row",row);
                         param.put("head",head);
-                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw ));
+
+                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime,dbPoolCheckOpenMark));
                     }
                 }
             }
@@ -95,7 +115,8 @@ public class FileCheckServiceImpl implements FileCheckService {
         }catch (Exception e){
             log.error("checkSmallFile error",e);
         }
-        log.warn("cost time :{}",System.currentTimeMillis()-l);
+        log.warn(String.format("check耗时--batchNumber:%s~~time:%d~~desTime:%d~~开启check:%s~~poolSize:%d"
+                ,context.getTask().getBatchNumber(),System.currentTimeMillis()-l,desTime.get(),dbPoolCheckOpenMark.equals(1)?"开":"关",dbPoolNum));
         return true;
     }
 
