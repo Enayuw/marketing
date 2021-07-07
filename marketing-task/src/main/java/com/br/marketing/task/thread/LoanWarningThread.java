@@ -17,7 +17,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -36,67 +35,6 @@ public class LoanWarningThread implements Callable<String> {
     private RedisService redisService;
     private String   message;
     private boolean isIncr;
-
-    /**
-     * [
-     {
-     "platformCode":"",
-     "interfaceType":"C4,C3",
-     "additionInfo":"{}",
-     "priceWay":"1",
-     "sceneCode":"lend",
-     "version":"S1.0",
-     "serviceName":"1",
-     "description":"",
-     "businessTypeCode":"A101,A202",
-     "compatibleVersion":"",
-     "productionName":"scorebmix",
-     "customerGroupCode":"100080",
-     "dtsStatus":"1,2",
-     "dependDataProduction":"{"InfoRelation":"V1.0","SpecialList_c":"V1.0","Consumption_c":"V2.0","Stability_c":"V2.0","ApplyLoanStr":"V2.0"}",
-     "cost":"0",
-     "productionTypeCode":"B303",
-     "prerequisite":"0",
-     "dtsThread":"5",
-     "crmStatus":"1",
-     "spreadStatus":"2",
-     "productionChineseName":"贷中行为模型-通用客群",
-     "dataDescription":"",
-     "crmCustomer":"1",
-     "abutmentWay":"3",
-     "introduction":"适用于通用客群的贷中风险识别。"
-     },
-     {
-     "platformCode":"",
-     "interfaceType":"C3",
-     "additionInfo":"{}",
-     "priceWay":"1",
-     "sceneCode":"",
-     "version":"V1.0",
-     "serviceName":"",
-     "description":"",
-     "businessTypeCode":"A202",
-     "compatibleVersion":"",
-     "productionName":"Rule_W_SpecialList_c_revoloan",
-     "customerGroupCode":"100084",
-     "dtsStatus":"0",
-     "dependDataProduction":"{"SpecialList_c":"V1.0"}",
-     "cost":"0",
-     "productionTypeCode":"B201",
-     "prerequisite":"0",
-     "dtsThread":"0",
-     "crmStatus":"1",
-     "spreadStatus":"2",
-     "productionChineseName":"贷中预警全量规则-特殊名单验证-信用卡（类信用卡）",
-     "dataDescription":"",
-     "crmCustomer":"1",
-     "abutmentWay":"3",
-     "introduction":"信用卡/类信用卡客群特殊名单验证贷中预警全量规则"
-     }
-     ]
-     */
-   // private JSONArray loanProAray;
-
     private JSONObject meal=new JSONObject();
     private String appSecretKey;
     private String url;
@@ -109,10 +47,8 @@ public class LoanWarningThread implements Callable<String> {
     private String isRepair;
     private String fileId;
     private Customer customer;
-    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, int currentPage,boolean isIncr,Customer customer){
     private Integer esOpen=1;
-    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, LoanWarningClient loanWarningClient, int currentPage,
-                             RedisService redisService, ProFieldsClient proFieldsClient, boolean isIncr,RedisChgService redisChgService,Integer esOpen){
+    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, int currentPage,boolean isIncr,Customer customer,Integer esOpen){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");

@@ -43,9 +43,8 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private String fileName;
     private AtomicLong desTime;
     private Integer checkOpen=1;
-    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime,Integer checkOpen) {
     private Boolean checkBlackList;
-    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw) {
+    public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime,Integer checkOpen) {
         this.row=param.get("row");
         this.head=param.get("head");
         this.apiCode=context.getTask().getApiCode();

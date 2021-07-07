@@ -65,7 +65,6 @@ public class FileCheckServiceImpl implements FileCheckService {
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
         Customer customer = customerMapper.getCustomerByApiCode(context.getApiCode());
-        ExecutorService validatorExecutor = BrExecutors.getThreadPool(40,40);
         String s = redisChgService.get(dbPoolKey);
         Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
         String s1 = redisChgService.get(dbPoolQueueKey);
@@ -96,10 +95,8 @@ public class FileCheckServiceImpl implements FileCheckService {
                         Map<String,String> param=new HashMap<>();
                         param.put("row",row);
                         param.put("head",head);
-
-                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime,dbPoolCheckOpenMark));
                         param.put("checkBlackList",customer.getCheckBlackList().toString());
-                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw ));
+                        validatorExecutor.submit(new ValidatorSmallFileThread(context,param,errorfw,desTime,dbPoolCheckOpenMark ));
                     }
                 }
             }
