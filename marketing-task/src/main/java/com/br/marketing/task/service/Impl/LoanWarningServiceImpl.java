@@ -98,6 +98,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
           /**
            * 等待所有任务都执行完成
            **/
+          log.warn("所有任务已加入队列，等待结束-----");
             warrningExecutor.shutdown();
             while (true){
                 if(warrningExecutor.isTerminated()){
@@ -105,8 +106,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     break;
                 }
                 try {
-                    Thread.sleep(3000);
-                    log.warn("waiting-----------");
+                    Thread.sleep(6000);
                 }catch (Exception e){
                 }
             }
@@ -125,6 +125,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             i++;
                         }
                     }
+                    log.warn("所有重试任务已加入队列，等待结束-----");
                     warrningExecutor.shutdown();
                     while (true){
                         if(warrningExecutor.isTerminated()){
@@ -132,8 +133,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             break;
                         }
                         try {
-                            Thread.sleep(3000);
-                            log.warn("waiting-----------");
+                            Thread.sleep(6000);
                         }catch (Exception e){
                         }
                     }
