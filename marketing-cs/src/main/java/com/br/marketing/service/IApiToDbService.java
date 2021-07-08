@@ -4,4 +4,6 @@ import com.br.marketing.common.commondto.Result;
 
 public interface IApiToDbService {
     Result  pushToDb();
+
+    Long getTaskContextId();
 }

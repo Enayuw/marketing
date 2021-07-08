@@ -3,6 +3,8 @@ package com.br.marketing.task.service.Impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.*;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
@@ -10,12 +12,14 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.LoanWarningThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -70,12 +74,22 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
+    @Autowired
+    StrategyProductConfigMapper strategyProductConfigMapper;
+    
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
+
+    @Autowired
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
+
     private final static String RedisEsOpen="es:open";
 
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
-        int count=context.getShardingTotalCount();
-        List<Integer> itemList =context.getShardingItems();
+        //todo 预发需要去掉这个逻辑
+        int count=context==null?1:context.getShardingTotalCount();
+        List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
         String type=customer.getType();
         ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
@@ -384,10 +398,36 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      */
     private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor, String fileId){
         try {
+            Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
+            String separator=Constants.sepMap.get(sep);
+            StringBuilder baseHeadInfo = new StringBuilder();
+            Long id = Long.valueOf(blt.getId().toString());
+            MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
+            taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
+            List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
+            if(marketingTaskExtends.size()>0){
+                MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
+                Result<String> headInfo = iProductResultSimpleService.getBaseHeadInfo(taskExtend.getApiCode(), taskExtend.getGroupType());
+                if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
+                    String[] split = headInfo.getData().split(",");
+                    for (String s : split) {
+                        switch (s){
+                            case "groupType":
+                                baseHeadInfo.append(taskExtend.getGroupType()+separator);
+                                break;
+                            case "taskId":
+                                baseHeadInfo.append(taskExtend.getTaskId()+separator);
+                                break;
+                            case "cell":
+                                baseHeadInfo.append("{cell}"+separator);
+                                break;
+                        }
+                    }
+                }
+            }
+
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
-                Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
-                String separator=Constants.sepMap.get(sep);
                 Long minId= marketingUserMapper.queryMinId(blt);
                 Long maxId= marketingUserMapper.queryMaxId(blt);
                 log.warn("min_id--{},max_id--{},pageSize--{}",minId,maxId,pageSize);
@@ -412,6 +452,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("appSecretKey", appSecretKey);
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
+                            param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo.toString())
+                                    ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
                             warrningExecutor.submit(new LoanWarningThread(list, param, loanWarningClient, i,
                                     redisService, proFieldsClient, isIncr, redisChgService,EsOpenMark));
                             Thread.sleep(100);
@@ -438,8 +480,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param allList
      */
     private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,JobExecutionMultipleShardingContext context){
-        int count=context.getShardingTotalCount();
-        List<Integer> itemList =context.getShardingItems();
+        int count=context==null?1:context.getShardingTotalCount();
+        List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
         try{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
             log.warn("当日批次数量--{}",list.size());
@@ -447,7 +489,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 if(blt.getContextId()==null){
                     continue;
                 }
-                if(itemList.contains(Integer.valueOf(blt.getContextId().toString())%count)){
+                if(itemList.contains(Integer.valueOf(blt.getContextId().toString())%count)||context==null){
                     if (1 == blt.getMonitorType()) {
                         List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
                         if (bts.size()==0) {

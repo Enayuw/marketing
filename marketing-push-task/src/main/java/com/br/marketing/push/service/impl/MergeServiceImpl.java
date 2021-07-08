@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.bean.Score;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
@@ -14,10 +16,12 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
+import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +71,9 @@ public class MergeServiceImpl implements MergeService {
     TaskStatusMapper taskStatusMapper;
     @Resource
     LoanFileMapper loanFileMapper;
+
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
 
     private Map<String,String> proFieldMap=new HashMap<>();
     private static final Pattern MYREGEX1 = Pattern.compile("_");
@@ -136,6 +143,16 @@ public class MergeServiceImpl implements MergeService {
                 fileName1=fileName1.replace(".txt","");
                 s = MYREGEX1.split(fileName1)[1];
             }
+            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
+            String baseHeadInfo = "";
+            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
+                baseHeadInfo = baseHeadInfoByTaskId.getData();
+            }
+            String dataInfo = "";
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsInfo(blt.getApiCode(), blt.getStrategyId());
+            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                dataInfo = fieldsInfo.getData();
+            }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             if(StringUtils.isEmpty(strategyStr)){
                 return zipFile;
@@ -151,7 +168,7 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
-            initHead(head,blt.getApiCode(),strategyId,separator);
+            initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
             FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
 
             zipFile=filePathAndName.replace(".txt",".zip");
@@ -331,6 +348,16 @@ public class MergeServiceImpl implements MergeService {
             targetPath.append(filePath).append(date)
                     .append("/");
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
+            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
+            String baseHeadInfo = "";
+            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
+                baseHeadInfo = baseHeadInfoByTaskId.getData();
+            }
+            String dataInfo = "";
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsInfo(blt.getApiCode(), blt.getStrategyId());
+            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                dataInfo = fieldsInfo.getData();
+            }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
             String fileName1 = blt.getFileName();
@@ -344,7 +371,7 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
-            initHead(head,blt.getApiCode(),blt.getStrategyId(),separator);
+            initHead(head,blt.getApiCode(),blt.getStrategyId(),separator,baseHeadInfo,dataInfo);
             FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
             result.add(fileName);
             String errorFileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_error_"+DateHelper.getDateAddYyMmDd(0)+".txt";
@@ -370,10 +397,11 @@ public class MergeServiceImpl implements MergeService {
      * .append("姓名").append(",").append("身份证号").append(",").append("证书号").append(",").append("手机号")
     .append(",")
      */
-    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep){
+    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep,String baseHeadInfo,String dataInfo){
         List<String> list;
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
+        head.append(baseHeadInfo).append(sep);
         if(strategyId.startsWith("STRB")){
             head.append("strategyDecision").append(sep);
             String strategy = StrategyClient.getStrategy(apiCode, strategyId);
@@ -401,7 +429,11 @@ public class MergeServiceImpl implements MergeService {
             log.info("pro:{}",pro);
             products.add(pro.toLowerCase());
         }
-        appendProInfo(head,sep, products);
+        if(StringUtils.isNotBlank(dataInfo)){
+            head.append(dataInfo);
+        }else {
+            appendProInfo(head, sep, products);
+        }
     }
 
 

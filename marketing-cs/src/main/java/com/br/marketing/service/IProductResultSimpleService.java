@@ -1,0 +1,20 @@
+package com.br.marketing.service;
+
+
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public interface IProductResultSimpleService {
+    Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb,
+                       Map<String, String> proFieldMap, String sep, String apiCode,String strategyId);
+
+    Result<String> getFieldsInfo(String apiCode,String strategyId);
+
+    Result<String> getBaseHeadInfo(String apiCode, String groupType);
+
+    Result<String> getBaseHeadInfoByTaskId(Long taskId);
+}

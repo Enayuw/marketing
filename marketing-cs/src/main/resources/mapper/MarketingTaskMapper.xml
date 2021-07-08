@@ -339,6 +339,9 @@
 
 
 	<insert id="insertTask" parameterType="com.br.marketing.entity.MarketingTask">
+		<selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+			SELECT LAST_INSERT_ID()
+		</selectKey>
 		INSERT INTO b_marketing_task (
 			`api_code`,
 			`batch_number`,

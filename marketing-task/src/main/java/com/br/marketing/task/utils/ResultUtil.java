@@ -2,6 +2,8 @@ package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.entity.RuleField;
@@ -10,9 +12,13 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.task.Scheduler;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -28,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public class ResultUtil {
+
 
    // private  static String sep="\001";
     /**
@@ -193,7 +200,9 @@ public class ResultUtil {
      *     }
      * }
      * * */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,Integer esOpen) throws IOException {
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep
+            , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber
+            , String fileId,Integer esOpen,String baseHeadInfo) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
@@ -216,6 +225,9 @@ public class ResultUtil {
                 .append(user.getBatchNumber()).append(sep)
                 .append(user.getCusNum()).append(sep)
                 .append(strategyId).append(sep);
+              if(StringUtils.isNotBlank(baseHeadInfo)){
+                  sb.append(baseHeadInfo.replace("{cell}",user.getCell())).append(sep);
+              }
               mh.setRequestTime(requestTime);
               mh.setBatchNumber(user.getBatchNumber());
               mh.setCusNum(user.getCusNum());
@@ -269,7 +281,13 @@ public class ResultUtil {
             products.add(pro.toLowerCase());
         }
         log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
-        ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+
+        ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
+                getBean(ProductResultByConfigSimpleServiceImpl.class);
+        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId);
+        if(!ResultCode.SUCCESS.equals(result.getCode())){
+            ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+        }
         if(log.isWarnEnabled()){
             log.warn("sb信息--"+sb.toString());
         }

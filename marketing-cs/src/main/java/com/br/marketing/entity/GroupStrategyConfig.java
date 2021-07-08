@@ -24,6 +24,11 @@ public class GroupStrategyConfig {
     private String strategyId;
 
     /**
+     * 返回用户基本字段表头 字段用逗号分隔
+     */
+    private String baseInfo;
+
+    /**
      * 是否有效1-有效；9-无效；
      */
     private Integer isDel;
@@ -32,6 +37,16 @@ public class GroupStrategyConfig {
      * 入库时间
      */
     private Date createTime;
+
+    /**
+     * 任务执行策略 1-一次性全量；2-周期性全量
+     */
+    private Integer execType;
+
+    /**
+     * 周期天数
+     */
+    private Integer cycleDay;
 
     public Long getId() {
         return id;
@@ -65,6 +80,14 @@ public class GroupStrategyConfig {
         this.strategyId = strategyId == null ? null : strategyId.trim();
     }
 
+    public String getBaseInfo() {
+        return baseInfo;
+    }
+
+    public void setBaseInfo(String baseInfo) {
+        this.baseInfo = baseInfo == null ? null : baseInfo.trim();
+    }
+
     public Integer getIsDel() {
         return isDel;
     }
@@ -79,5 +102,21 @@ public class GroupStrategyConfig {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getExecType() {
+        return execType;
+    }
+
+    public void setExecType(Integer execType) {
+        this.execType = execType;
+    }
+
+    public Integer getCycleDay() {
+        return cycleDay;
+    }
+
+    public void setCycleDay(Integer cycleDay) {
+        this.cycleDay = cycleDay;
     }
 }

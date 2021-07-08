@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class GroupStrategyConfigExample {
+public class StrategyProductConfigExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public GroupStrategyConfigExample() {
+    public StrategyProductConfigExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -235,146 +235,6 @@ public class GroupStrategyConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andGroupTypeIsNull() {
-            addCriterion("group_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeIsNotNull() {
-            addCriterion("group_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeEqualTo(String value) {
-            addCriterion("group_type =", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeNotEqualTo(String value) {
-            addCriterion("group_type <>", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeGreaterThan(String value) {
-            addCriterion("group_type >", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("group_type >=", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeLessThan(String value) {
-            addCriterion("group_type <", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeLessThanOrEqualTo(String value) {
-            addCriterion("group_type <=", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeLike(String value) {
-            addCriterion("group_type like", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeNotLike(String value) {
-            addCriterion("group_type not like", value, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeIn(List<String> values) {
-            addCriterion("group_type in", values, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeNotIn(List<String> values) {
-            addCriterion("group_type not in", values, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeBetween(String value1, String value2) {
-            addCriterion("group_type between", value1, value2, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupTypeNotBetween(String value1, String value2) {
-            addCriterion("group_type not between", value1, value2, "groupType");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdIsNull() {
-            addCriterion("strategy_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdIsNotNull() {
-            addCriterion("strategy_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdEqualTo(String value) {
-            addCriterion("strategy_id =", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdNotEqualTo(String value) {
-            addCriterion("strategy_id <>", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdGreaterThan(String value) {
-            addCriterion("strategy_id >", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdGreaterThanOrEqualTo(String value) {
-            addCriterion("strategy_id >=", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdLessThan(String value) {
-            addCriterion("strategy_id <", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdLessThanOrEqualTo(String value) {
-            addCriterion("strategy_id <=", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdLike(String value) {
-            addCriterion("strategy_id like", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdNotLike(String value) {
-            addCriterion("strategy_id not like", value, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdIn(List<String> values) {
-            addCriterion("strategy_id in", values, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdNotIn(List<String> values) {
-            addCriterion("strategy_id not in", values, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdBetween(String value1, String value2) {
-            addCriterion("strategy_id between", value1, value2, "strategyId");
-            return (Criteria) this;
-        }
-
-        public Criteria andStrategyIdNotBetween(String value1, String value2) {
-            addCriterion("strategy_id not between", value1, value2, "strategyId");
-            return (Criteria) this;
-        }
-
         public Criteria andBaseInfoIsNull() {
             addCriterion("base_info is null");
             return (Criteria) this;
@@ -442,6 +302,76 @@ public class GroupStrategyConfigExample {
 
         public Criteria andBaseInfoNotBetween(String value1, String value2) {
             addCriterion("base_info not between", value1, value2, "baseInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonIsNull() {
+            addCriterion("strategy_product_json is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonIsNotNull() {
+            addCriterion("strategy_product_json is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonEqualTo(String value) {
+            addCriterion("strategy_product_json =", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotEqualTo(String value) {
+            addCriterion("strategy_product_json <>", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonGreaterThan(String value) {
+            addCriterion("strategy_product_json >", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_product_json >=", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLessThan(String value) {
+            addCriterion("strategy_product_json <", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLessThanOrEqualTo(String value) {
+            addCriterion("strategy_product_json <=", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLike(String value) {
+            addCriterion("strategy_product_json like", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotLike(String value) {
+            addCriterion("strategy_product_json not like", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonIn(List<String> values) {
+            addCriterion("strategy_product_json in", values, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotIn(List<String> values) {
+            addCriterion("strategy_product_json not in", values, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonBetween(String value1, String value2) {
+            addCriterion("strategy_product_json between", value1, value2, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotBetween(String value1, String value2) {
+            addCriterion("strategy_product_json not between", value1, value2, "strategyProductJson");
             return (Criteria) this;
         }
 
@@ -562,126 +492,6 @@ public class GroupStrategyConfigExample {
 
         public Criteria andCreateTimeNotBetween(Date value1, Date value2) {
             addCriterion("create_time not between", value1, value2, "createTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeIsNull() {
-            addCriterion("exec_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeIsNotNull() {
-            addCriterion("exec_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeEqualTo(Integer value) {
-            addCriterion("exec_type =", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeNotEqualTo(Integer value) {
-            addCriterion("exec_type <>", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeGreaterThan(Integer value) {
-            addCriterion("exec_type >", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("exec_type >=", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeLessThan(Integer value) {
-            addCriterion("exec_type <", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("exec_type <=", value, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeIn(List<Integer> values) {
-            addCriterion("exec_type in", values, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeNotIn(List<Integer> values) {
-            addCriterion("exec_type not in", values, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeBetween(Integer value1, Integer value2) {
-            addCriterion("exec_type between", value1, value2, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andExecTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("exec_type not between", value1, value2, "execType");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayIsNull() {
-            addCriterion("cycle_day is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayIsNotNull() {
-            addCriterion("cycle_day is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayEqualTo(Integer value) {
-            addCriterion("cycle_day =", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayNotEqualTo(Integer value) {
-            addCriterion("cycle_day <>", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayGreaterThan(Integer value) {
-            addCriterion("cycle_day >", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayGreaterThanOrEqualTo(Integer value) {
-            addCriterion("cycle_day >=", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayLessThan(Integer value) {
-            addCriterion("cycle_day <", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayLessThanOrEqualTo(Integer value) {
-            addCriterion("cycle_day <=", value, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayIn(List<Integer> values) {
-            addCriterion("cycle_day in", values, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayNotIn(List<Integer> values) {
-            addCriterion("cycle_day not in", values, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayBetween(Integer value1, Integer value2) {
-            addCriterion("cycle_day between", value1, value2, "cycleDay");
-            return (Criteria) this;
-        }
-
-        public Criteria andCycleDayNotBetween(Integer value1, Integer value2) {
-            addCriterion("cycle_day not between", value1, value2, "cycleDay");
             return (Criteria) this;
         }
     }
