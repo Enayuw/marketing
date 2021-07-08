@@ -107,11 +107,7 @@ public class ResultUtil {
         }
         log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
         ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
-        if(log.isWarnEnabled()){
-            log.warn("sb信息--"+sb.toString());
-        }
         if(sb.toString().split(",").length>5){
-            log.warn("sb写入fw--"+sb.toString());
             fw.append(sb + "\r\n");
             if("1".equals(pushCustomer)){
                 mh.setIdCard(user.getIdCard());
