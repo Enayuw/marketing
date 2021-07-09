@@ -5,16 +5,13 @@
 		SELECT
 		*
 		FROM
-		b_marketing_customer where
-		status=1
+		b_marketing_customer order by sort desc;
 	</select>
 	<select id="getCustomerByApiCode" parameterType="java.lang.String"  resultType="com.br.marketing.entity.Customer">
 		SELECT
 		*
 		FROM
-		b_marketing_customer where
-		status=1
-		and api_code=#{apiCode}
+		b_marketing_customer where api_code=#{apiCode}
 	</select>
 
 </mapper>

@@ -47,14 +47,14 @@ public class FlowService {
 
     @Resource(name = "rabbitTemplate")
     private RabbitTemplate rabbitTemplate;
-    public void flow(String apiCode){
+    public void flow(Customer customer){
         List<LoanFile> pushList;
         try {
             /**
              * 文件合并
              */
             MergeService mergeService= PushApplication.ac.getBean(MergeServiceImpl.class);
-             pushList =mergeService.process(apiCode);
+             pushList =mergeService.process(customer);
 
 //
             /**
@@ -65,11 +65,11 @@ public class FlowService {
                 pushService.push(pushList);
 
                 //推送消息到pushQueue，进行下一流程处理
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.checkRoutingKey,apiCode);
+                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.checkRoutingKey,customer.getApiCode());
             }
 
         } catch (Exception e) {
-            log.error("推送服务异常，apiCode={},",apiCode,e);
+            log.error("推送服务异常，apiCode={},",customer.getApiCode(),e);
         }
 
     }
