@@ -53,6 +53,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     MarketingTaskMapper marketingTaskMapper;
 
     @Autowired
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
+
+    @Autowired
     RedisChgService redisChgService;
 
     final SimpleDateFormat simpleDateFormatOfymd=new SimpleDateFormat("yyyy-MM-dd");
@@ -197,6 +200,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             String e = simpleDateFormatOfymd.format(addDay(new Date(),-1));
                             task.setCloseDate(e);
                         }else{
+                            task.setFrequency(strategyOfGroupDTO.getCycleDay().toString());
                             String e = simpleDateFormatOfymd.format(addDay(new Date(),strategyOfGroupDTO.getCycleDay()*10));
                             task.setCloseDate(e);
                         }
@@ -211,6 +215,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             taskExtend.setCusTaskId(taskId);
                             taskExtend.setGroupType(t);
                             taskExtend.setCreateTime(new Date());
+                            marketingTaskExtendMapper.insertSelective(taskExtend);
                         }
                     }
                 });
