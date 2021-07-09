@@ -11,7 +11,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
 
-//@ImportResource(locations = {"classpath:scheduler.xml"})
+@ImportResource(locations = {"classpath:scheduler.xml"})
 @SpringBootApplication(scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient
