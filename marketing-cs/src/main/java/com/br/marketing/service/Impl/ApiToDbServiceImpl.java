@@ -75,6 +75,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         Date date = new Date();
         String nowDate = DateUtils.format(date, "yyyy-MM-dd");
         String preDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String nextDate = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(new Byte("1"));
@@ -103,7 +104,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 continue;
             }
 
-            List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate, nowDate);
+            List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate, nextDate);
             GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
             configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
             List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
