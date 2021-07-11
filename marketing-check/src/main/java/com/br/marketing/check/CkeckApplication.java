@@ -18,7 +18,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")
-//@ImportResource(locations = {"classpath:scheduler.xml"})
+@ImportResource(locations = {"classpath:scheduler.xml"})
 public class CkeckApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
