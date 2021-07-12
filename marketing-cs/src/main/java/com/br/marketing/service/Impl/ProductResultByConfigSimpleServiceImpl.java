@@ -67,8 +67,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         for (int i = 0; i < strategyProductDetailVO.getFields().size(); i++) {
             String field = strategyProductDetailVO.getFields().get(i);
             String fieldRes = hxJson.getString(field);
-            result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"")
-                    .append(strategyProductDetailVO.getFields().size()-1==i?"":sep);
+            result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"").append(sep);
         }
         sb.append(result);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
