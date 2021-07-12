@@ -12,7 +12,9 @@ public interface IProductResultSimpleService {
     Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb,
                        Map<String, String> proFieldMap, String sep, String apiCode,String strategyId);
 
-    Result<String> getFieldsInfo(String apiCode,String strategyId);
+    Result<String> getFieldsStrInfo(String apiCode,String strategyId);
+
+    Result<List<String>> getFieldsInfo(String apiCode,String strategyId);
 
     Result<String> getBaseHeadInfo(String apiCode, String groupType);
 

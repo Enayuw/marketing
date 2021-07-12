@@ -118,7 +118,19 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<String> getFieldsInfo(String apiCode, String strategyId) {
+    public Result<String> getFieldsStrInfo(String apiCode, String strategyId) {
+        Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode, strategyId);
+        if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+            return new Result<String>().setCode(fieldsInfo.getCode())
+                    .setDate(Joiner.on(",").join(fieldsInfo.getData()));
+        }else{
+            return new Result<String>().setCode(fieldsInfo.getCode())
+                    .setMessage(fieldsInfo.getMessage());
+        }
+    }
+
+    @Override
+    public Result<List<String>> getFieldsInfo(String apiCode, String strategyId) {
         String strategyProductConfigStr = this.getStrategyProductConfigStr(apiCode);
         if(StringUtils.isNotBlank(strategyProductConfigStr)){
             List<StrategyProductDetailVO> strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
