@@ -49,6 +49,11 @@ public class MarketingSyncInfo {
     private Integer actualNum;
 
     /**
+     * 1未同步；2已同步
+     */
+    private Integer isUpload;
+
+    /**
      * 数据
      */
     private String jsonData;
@@ -123,6 +128,14 @@ public class MarketingSyncInfo {
 
     public void setActualNum(Integer actualNum) {
         this.actualNum = actualNum;
+    }
+
+    public Integer getIsUpload() {
+        return isUpload;
+    }
+
+    public void setIsUpload(Integer isUpload) {
+        this.isUpload = isUpload;
     }
 
     public String getJsonData() {

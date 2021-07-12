@@ -674,6 +674,66 @@ public class MarketingSyncInfoExample {
             addCriterion("actual_num not between", value1, value2, "actualNum");
             return (Criteria) this;
         }
+
+        public Criteria andIsUploadIsNull() {
+            addCriterion("is_upload is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadIsNotNull() {
+            addCriterion("is_upload is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadEqualTo(Integer value) {
+            addCriterion("is_upload =", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadNotEqualTo(Integer value) {
+            addCriterion("is_upload <>", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadGreaterThan(Integer value) {
+            addCriterion("is_upload >", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_upload >=", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadLessThan(Integer value) {
+            addCriterion("is_upload <", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadLessThanOrEqualTo(Integer value) {
+            addCriterion("is_upload <=", value, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadIn(List<Integer> values) {
+            addCriterion("is_upload in", values, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadNotIn(List<Integer> values) {
+            addCriterion("is_upload not in", values, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadBetween(Integer value1, Integer value2) {
+            addCriterion("is_upload between", value1, value2, "isUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUploadNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_upload not between", value1, value2, "isUpload");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

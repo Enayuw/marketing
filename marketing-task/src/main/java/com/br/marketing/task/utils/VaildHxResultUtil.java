@@ -54,8 +54,11 @@ public class VaildHxResultUtil {
             String flag;
             String s = Constants.flagMap.get(key.toLowerCase());
             if(StringUtils.isEmpty(s)){
-                if(key.indexOf("ScoreCust")>-1||key.indexOf("scorecashon")>-1||key.indexOf("scoremcashon360xkone")>-1||key.indexOf("scoremcashon360xktwo")>-1
-                ||key.indexOf("scorencashonszyxxy")>-1||key.indexOf("scoremcashonxhqbdzcd")>-1||key.indexOf("scorebrevoloanmszd3")>-1){
+                if(key.indexOf("ScoreCust")>-1||key.indexOf("scorecashon")>-1||key.indexOf("scoremcashon360xkone")>-1
+                        ||key.indexOf("scoremcashon360xktwo")>-1
+                ||key.indexOf("scorencashonszyxxy")>-1||key.indexOf("scoremcashonxhqbdzcd")>-1
+                        ||key.indexOf("scorebrevoloanmszd3")>-1
+                        ||key.indexOf("ScoreCust1")>-1||key.indexOf("ScoreCust2")>-1){
                     flag="flag_score";
                 }else {
                     flag="flag_"+key.toLowerCase();

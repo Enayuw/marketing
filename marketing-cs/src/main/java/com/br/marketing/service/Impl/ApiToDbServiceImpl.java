@@ -90,7 +90,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 syncInfoExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
                         .andCreateTimeGreaterThanOrEqualTo(simpleDateFormatOfymd.parse(preDate))
-                        .andCreateTimeLessThan(simpleDateFormatOfymd.parse(nowDate));
+                        .andCreateTimeLessThan(simpleDateFormatOfymd.parse(nowDate))
+                .andIsUploadEqualTo(1);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -154,6 +155,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             String s1 = valuesStr.toString();
                             if(StringUtils.isNotBlank(s1)){
                                 marketingUserMapper.insertByRequestId(apiCode, s1);
+                                MarketingSyncInfo updateSync = new MarketingSyncInfo();
+                                updateSync.setId(syncInfo.getId());
+                                updateSync.setIsUpload(2);
+                                syncInfoMapper.updateByPrimaryKeySelective(updateSync);
                             }
                         }catch(Exception ex){
                             log.error(ex.getMessage(),ex);
