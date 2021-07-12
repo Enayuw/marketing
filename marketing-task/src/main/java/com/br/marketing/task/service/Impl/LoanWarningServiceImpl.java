@@ -419,7 +419,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                                 baseHeadInfo.append(taskExtend.getGroupType()+separator);
                                 break;
                             case "taskId":
-                                baseHeadInfo.append(taskExtend.getTaskId()+separator);
+                                baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
                                 break;
                             case "cell":
                                 baseHeadInfo.append("{cell}"+separator);
