@@ -35,6 +35,7 @@ public class VaildHxResultUtil {
             log.error("hxResult isEmpty");
             return false;
         }
+        log.info("isPass画像result:"+hxResult);
         JSONObject resultJson=JSONObject.parseObject(hxResult);
         if(!"00".equals(resultJson.getString("code"))
                 &&!"100002".equals(resultJson.getString("code"))){
