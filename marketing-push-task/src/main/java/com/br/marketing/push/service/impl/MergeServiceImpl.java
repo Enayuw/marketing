@@ -148,7 +148,7 @@ public class MergeServiceImpl implements MergeService {
                 baseHeadInfo = baseHeadInfoByTaskId.getData();
             }
             String dataInfo = "";
-            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsInfo(blt.getApiCode(), blt.getStrategyId());
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
             if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
                 dataInfo = fieldsInfo.getData();
             }
@@ -358,7 +358,7 @@ public class MergeServiceImpl implements MergeService {
                 baseHeadInfo = baseHeadInfoByTaskId.getData();
             }
             String dataInfo = "";
-            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsInfo(blt.getApiCode(), blt.getStrategyId());
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
             if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
                 dataInfo = fieldsInfo.getData();
             }
