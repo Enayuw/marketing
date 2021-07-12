@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
-@RestController("test")
+@RestController("/test")
 public class TestController {
 
     @Resource
@@ -17,7 +17,7 @@ public class TestController {
     @Resource
     private FlowService flowService;
 
-    @GetMapping({"/ping"})
+    @GetMapping({"/testMerge"})
     public String testMerge() {
         Customer customerByApiCode = customerMapper.getCustomerByApiCode("7410433");
         flowService.flow(customerByApiCode);
