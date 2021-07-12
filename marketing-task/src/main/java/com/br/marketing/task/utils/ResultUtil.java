@@ -59,9 +59,6 @@ public class ResultUtil {
                 .append(user.getBatchNumber()).append(sep)
                 .append(user.getCusNum()).append(sep)
                 .append(strategyId).append(sep);
-              if(StringUtils.isNotBlank(baseHeadInfo)){
-                  sb.append(baseHeadInfo.replace("{cell}",user.getCell())).append(sep);
-              }
               mh.setRequestTime(requestTime);
               mh.setBatchNumber(user.getBatchNumber());
               mh.setCusNum(user.getCusNum());
@@ -85,6 +82,9 @@ public class ResultUtil {
                   flagJson = resultJson.getJSONObject("Flag");
                   hxJson=resultJson;
               }
+            if(StringUtils.isNotBlank(baseHeadInfo)){
+                sb.append(baseHeadInfo.replace("{cell}",user.getCell())).append(sep);
+            }
 
 
         /**
