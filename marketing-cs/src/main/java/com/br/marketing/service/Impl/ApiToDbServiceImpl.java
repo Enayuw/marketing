@@ -123,7 +123,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 groupStrategyConfigs.forEach(t->{
                     String yyyyMMddHHmmss = DateUtils.format(new Date(), "yyyyMMddHHmmss");
                     int i = (int) ((Math.random()*9+1)*1000);
-                    String batchNumber = String.format("%s_%s_%s_%d", apiCode, yyyyMMddHHmmss,taskId,i);
+                    String batchNumber = String.format("%s_%s_%d", apiCode, yyyyMMddHHmmss,i);
                     StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
                     BeanUtils.copyProperties(t,strategyOfGroupDTO);
                     strategyOfGroupDTO.setBatchNumber(batchNumber);
@@ -193,7 +193,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setMonitorStatus(1);
                         task.setStatus(1);
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
-                        task.setFileName(String.format("%s_%s_%s_%s",apiCode,taskId,strategyOfGroupDTO.getStrategyId(),strategyOfGroupDTO.getBatchNumber()));
+                        task.setFileName(String.format("%s_%s_%s",apiCode,strategyOfGroupDTO.getBatchNumber(),strategyOfGroupDTO.getGroupTypeShort()));
                         task.setCusBatch(taskId);
                         int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(), preDate, nowDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());

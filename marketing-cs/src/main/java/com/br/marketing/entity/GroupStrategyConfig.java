@@ -19,6 +19,11 @@ public class GroupStrategyConfig {
     private String groupType;
 
     /**
+     * 场景简拼 用于批次号生成使用
+     */
+    private String groupTypeShort;
+
+    /**
      * 策略
      */
     private String strategyId;
@@ -70,6 +75,14 @@ public class GroupStrategyConfig {
 
     public void setGroupType(String groupType) {
         this.groupType = groupType == null ? null : groupType.trim();
+    }
+
+    public String getGroupTypeShort() {
+        return groupTypeShort;
+    }
+
+    public void setGroupTypeShort(String groupTypeShort) {
+        this.groupTypeShort = groupTypeShort == null ? null : groupTypeShort.trim();
     }
 
     public String getStrategyId() {

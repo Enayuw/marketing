@@ -10,6 +10,11 @@ public class StrategyOfGroupDTO {
     private String groupType;
 
     /**
+     * 场景简拼
+     */
+    private String groupTypeShort;
+
+    /**
      * 策略
      */
     private String strategyId;

@@ -305,6 +305,76 @@ public class GroupStrategyConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andGroupTypeShortIsNull() {
+            addCriterion("group_type_short is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortIsNotNull() {
+            addCriterion("group_type_short is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortEqualTo(String value) {
+            addCriterion("group_type_short =", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortNotEqualTo(String value) {
+            addCriterion("group_type_short <>", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortGreaterThan(String value) {
+            addCriterion("group_type_short >", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortGreaterThanOrEqualTo(String value) {
+            addCriterion("group_type_short >=", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortLessThan(String value) {
+            addCriterion("group_type_short <", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortLessThanOrEqualTo(String value) {
+            addCriterion("group_type_short <=", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortLike(String value) {
+            addCriterion("group_type_short like", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortNotLike(String value) {
+            addCriterion("group_type_short not like", value, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortIn(List<String> values) {
+            addCriterion("group_type_short in", values, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortNotIn(List<String> values) {
+            addCriterion("group_type_short not in", values, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortBetween(String value1, String value2) {
+            addCriterion("group_type_short between", value1, value2, "groupTypeShort");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeShortNotBetween(String value1, String value2) {
+            addCriterion("group_type_short not between", value1, value2, "groupTypeShort");
+            return (Criteria) this;
+        }
+
         public Criteria andStrategyIdIsNull() {
             addCriterion("strategy_id is null");
             return (Criteria) this;
