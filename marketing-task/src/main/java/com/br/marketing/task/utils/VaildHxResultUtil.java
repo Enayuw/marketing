@@ -54,20 +54,21 @@ public class VaildHxResultUtil {
             }
             String flag;
             String s = Constants.flagMap.get(key.toLowerCase());
-            if(StringUtils.isEmpty(s)){
-                if(key.indexOf("ScoreCust")>-1||key.indexOf("scorecashon")>-1||key.indexOf("scoremcashon360xkone")>-1
-                        ||key.indexOf("scoremcashon360xktwo")>-1
-                ||key.indexOf("scorencashonszyxxy")>-1||key.indexOf("scoremcashonxhqbdzcd")>-1
-                        ||key.indexOf("scorebrevoloanmszd3")>-1
-                        ||key.indexOf("ScoreCust1")>-1||key.indexOf("ScoreCust2")>-1){
-                    flag="flag_score";
-                }else {
-                    flag="flag_"+key.toLowerCase();
-                }
-            }else {
+            String string = "";
+            if(StringUtils.isNotBlank(s)){
                 flag="flag_"+s;
+                string = resultJson.getString(flag);
+            }else{
+                flag = "flag_" + key.toLowerCase();
+                string = resultJson.getString(flag);
+                if(!StringUtils.isNotBlank(string)){
+                    flag="flag_score";
+                    string = resultJson.getString(flag);
+                }
             }
-            String string = resultJson.getString(flag);
+            if("100002".equals(resultJson.getString("code"))&&!StringUtils.isNotBlank(string)){
+                continue;
+            }
           if(!"0".equals(string)&&!"1".equals(string)){
                 if("98".equals(string)){
                     String flagKey=Constants.HX_FLAG_98_NUM+ lu.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0);
