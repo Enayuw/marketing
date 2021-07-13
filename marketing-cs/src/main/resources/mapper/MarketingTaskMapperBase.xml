@@ -26,6 +26,8 @@
     <result column="monitor_model" property="monitorModel" jdbcType="INTEGER" />
     <result column="is_check" property="isCheck" jdbcType="INTEGER" />
     <result column="is_repair" property="isRepair" jdbcType="INTEGER" />
+    <result column="context_id" property="contextId" jdbcType="BIGINT" />
+    <result column="cycle_day" property="cycleDay" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -89,7 +91,7 @@
     id, api_code, batch_number, file_name, file_id, request_code, strategy_id, frequency, 
     create_time, update_time, monitor_status, status, task_number, actual_number, strategy_name, 
     close_date, start_date, error_message, cus_batch, monitor_type, increment, monitor_model, 
-    is_check, is_repair
+    is_check, is_repair, context_id, cycle_day
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExample" >
     select
@@ -132,7 +134,8 @@
       actual_number, strategy_name, close_date, 
       start_date, error_message, cus_batch, 
       monitor_type, increment, monitor_model, 
-      is_check, is_repair)
+      is_check, is_repair, context_id, 
+      cycle_day)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
       #{fileId,jdbcType=INTEGER}, #{requestCode,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{frequency,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
@@ -140,7 +143,8 @@
       #{actualNumber,jdbcType=INTEGER}, #{strategyName,jdbcType=VARCHAR}, #{closeDate,jdbcType=VARCHAR}, 
       #{startDate,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{cusBatch,jdbcType=VARCHAR}, 
       #{monitorType,jdbcType=INTEGER}, #{increment,jdbcType=INTEGER}, #{monitorModel,jdbcType=INTEGER}, 
-      #{isCheck,jdbcType=INTEGER}, #{isRepair,jdbcType=INTEGER})
+      #{isCheck,jdbcType=INTEGER}, #{isRepair,jdbcType=INTEGER}, #{contextId,jdbcType=BIGINT}, 
+      #{cycleDay,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTask" >
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
@@ -217,6 +221,12 @@
       <if test="isRepair != null" >
         is_repair,
       </if>
+      <if test="contextId != null" >
+        context_id,
+      </if>
+      <if test="cycleDay != null" >
+        cycle_day,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -287,6 +297,12 @@
       </if>
       <if test="isRepair != null" >
         #{isRepair,jdbcType=INTEGER},
+      </if>
+      <if test="contextId != null" >
+        #{contextId,jdbcType=BIGINT},
+      </if>
+      <if test="cycleDay != null" >
+        #{cycleDay,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -371,6 +387,12 @@
       <if test="record.isRepair != null" >
         is_repair = #{record.isRepair,jdbcType=INTEGER},
       </if>
+      <if test="record.contextId != null" >
+        context_id = #{record.contextId,jdbcType=BIGINT},
+      </if>
+      <if test="record.cycleDay != null" >
+        cycle_day = #{record.cycleDay,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -401,7 +423,9 @@
       increment = #{record.increment,jdbcType=INTEGER},
       monitor_model = #{record.monitorModel,jdbcType=INTEGER},
       is_check = #{record.isCheck,jdbcType=INTEGER},
-      is_repair = #{record.isRepair,jdbcType=INTEGER}
+      is_repair = #{record.isRepair,jdbcType=INTEGER},
+      context_id = #{record.contextId,jdbcType=BIGINT},
+      cycle_day = #{record.cycleDay,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -478,6 +502,12 @@
       <if test="isRepair != null" >
         is_repair = #{isRepair,jdbcType=INTEGER},
       </if>
+      <if test="contextId != null" >
+        context_id = #{contextId,jdbcType=BIGINT},
+      </if>
+      <if test="cycleDay != null" >
+        cycle_day = #{cycleDay,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -505,7 +535,9 @@
       increment = #{increment,jdbcType=INTEGER},
       monitor_model = #{monitorModel,jdbcType=INTEGER},
       is_check = #{isCheck,jdbcType=INTEGER},
-      is_repair = #{isRepair,jdbcType=INTEGER}
+      is_repair = #{isRepair,jdbcType=INTEGER},
+      context_id = #{contextId,jdbcType=BIGINT},
+      cycle_day = #{cycleDay,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

@@ -144,7 +144,7 @@ public interface MarketingUserMapper {
 
         void createMarketingPreUserTable(@Param("tableName") String tableName);
 
-        int countByPreUser(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("groupType")String groupType,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
+        int countByPreUser(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("groupType")String groupType,@Param("appletDate")String appletDate);
 
         int countBySureUser(@Param("apiCode") String apiCode,@Param("batchNumber")String batchNumber);
 

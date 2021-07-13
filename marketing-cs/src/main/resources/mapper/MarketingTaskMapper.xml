@@ -467,4 +467,11 @@
 		and shf.score_status = 2
 		order by shf.id desc
 	</select>
+
+	<select id="selectCycleTopByApiCode" resultType="com.br.marketing.entity.MarketingTask">
+		select *
+		from b_marketing_task
+		where api_code = #{apiCode} and monitor_type = 4
+		order by create_time asc limit 1
+	</select>
 </mapper>

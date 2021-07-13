@@ -508,7 +508,16 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
-                        if(days%Constants.frequencyMap.get(blt.getFrequency())==0){
+                        Integer cycleDay = 0;
+                        if(StringUtils.isNotBlank(blt.getCycleDay())){
+                            cycleDay = Integer.valueOf(blt.getCycleDay());
+                        }else{
+                            cycleDay = Constants.frequencyMap.get(blt.getFrequency());
+                        }
+                        if(cycleDay == 0){
+                            continue;
+                        }
+                        if(days%cycleDay==0){
 
                             TaskStatusExample statusExample= new TaskStatusExample();
                             statusExample.createCriteria()

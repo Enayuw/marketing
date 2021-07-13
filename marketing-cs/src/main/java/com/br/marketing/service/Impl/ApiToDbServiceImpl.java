@@ -194,20 +194,26 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
                         task.setFileName(String.format("%s_%s_%s",apiCode,strategyOfGroupDTO.getBatchNumber(),strategyOfGroupDTO.getGroupTypeShort()));
                         task.setCusBatch(taskId);
-                        int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(), preDate, nowDate);
+                        int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());
                         task.setActualNumber(i1);
                         task.setTaskNumber(i);
                         String s = simpleDateFormatOfymd.format(new Date());
-                        task.setStartDate(s);
                         task.setMonitorType(strategyOfGroupDTO.getExecType());
                         if(new Integer(1).equals(strategyOfGroupDTO.getExecType())){
-                            String e = simpleDateFormatOfymd.format(addDay(new Date(),-1));
-                            task.setCloseDate(e);
+                            task.setStartDate(s);
+                            task.setCloseDate(s);
                         }else{
-                            task.setFrequency(strategyOfGroupDTO.getCycleDay().toString());
-                            String e = simpleDateFormatOfymd.format(addDay(new Date(),strategyOfGroupDTO.getCycleDay()*10));
-                            task.setCloseDate(e);
+                            MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
+                            if(task1 != null){
+                                task.setStartDate(task1.getStartDate());
+                                task.setCloseDate(task1.getCloseDate());
+                            }else {
+                                task.setStartDate(s);
+                                task.setCycleDay(strategyOfGroupDTO.getCycleDay().toString());
+                                String e = simpleDateFormatOfymd.format(addDay(new Date(), strategyOfGroupDTO.getCycleDay() * 10));
+                                task.setCloseDate(e);
+                            }
                         }
                         task.setContextId(getTaskContextId());
                         marketingTaskMapper.insertTask(task);

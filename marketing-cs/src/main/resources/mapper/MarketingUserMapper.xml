@@ -244,7 +244,7 @@
 		from  b_marketing_sync_${apiCode}
 		where cus_batch = #{cusBatch}
 		and group_type = #{groupType}
-<![CDATA[ and create_time>= #{beginTime} and create_time < #{endTime}]]>
+		and applet_date= #{appletDate}
 	</select>
 	<select id="countBySureUser" resultType="java.lang.Integer">
 		select count(1)
