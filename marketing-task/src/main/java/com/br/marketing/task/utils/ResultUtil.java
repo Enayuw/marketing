@@ -19,6 +19,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -83,7 +84,7 @@ public class ResultUtil {
                   hxJson=resultJson;
               }
             if(StringUtils.isNotBlank(baseHeadInfo)){
-                sb.append(baseHeadInfo.replace("{cell}",user.getCell())).append(sep);
+                sb.append(baseHeadInfo.replace("{cell}", DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(user.getCell()).getBytes()))).append(sep);
             }
 
 

@@ -2,6 +2,7 @@ package com.br.marketing.task.service.Impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -28,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -82,6 +84,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
 
     @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
+
+    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
 
@@ -505,7 +509,17 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             e.printStackTrace();
                         }
                         if(days%Constants.frequencyMap.get(blt.getFrequency())==0){
-                            allList.add(blt);
+
+                            TaskStatusExample statusExample= new TaskStatusExample();
+                            statusExample.createCriteria()
+                                    .andBatchNumberEqualTo(blt.getBatchNumber())
+                                    .andAllStatusEqualTo(1)
+                                    .andCreateTimeGreaterThanOrEqualTo(DateHelper.getDateAdd(0).concat(" 00:00:00"))
+                                    .andCreateTimeLessThan(DateHelper.getDateAdd(1).concat(" 00:00:00"));
+                            List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
+                            if(taskStatuses.size()<=0) {
+                                allList.add(blt);
+                            }
                         }
                     }
                 }

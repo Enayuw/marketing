@@ -405,7 +405,9 @@ public class MergeServiceImpl implements MergeService {
         List<String> list;
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
-        head.append(baseHeadInfo).append(sep);
+        if(StringUtils.isNotBlank(baseHeadInfo.trim())){
+            head.append(baseHeadInfo).append(sep);
+        }
         if(strategyId.startsWith("STRB")){
             head.append("strategyDecision").append(sep);
             String strategy = StrategyClient.getStrategy(apiCode, strategyId);
@@ -434,7 +436,7 @@ public class MergeServiceImpl implements MergeService {
             products.add(pro.toLowerCase());
         }
         if(StringUtils.isNotBlank(dataInfo)){
-            head.append(dataInfo);
+            head.append(dataInfo).append(sep);
         }else {
             appendProInfo(head, sep, products);
         }

@@ -189,7 +189,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setBatchNumber(strategyOfGroupDTO.getBatchNumber());
                         //todo 暂时去掉监控
 //                        task.setMonitorType(Integer.valueOf(IceClient.getMerchantParam(apiCode).getCallMethod()));
-                        task.setMonitorType(1);
                         task.setMonitorStatus(1);
                         task.setStatus(1);
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
