@@ -184,7 +184,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         .collect(Collectors.toList())
                         .forEach(t->{
                     Optional<StrategyOfGroupDTO> first = strategyOfGroupDTOS.stream()
-                            .filter(k -> k.getGroupType().equals(t)).findFirst();
+                            .filter(k -> k.getGroupType().equals(t.getGroupType())).findFirst();
                     if(first.isPresent()){
                         StrategyOfGroupDTO strategyOfGroupDTO = first.get();
                         MarketingTask task =new MarketingTask();
@@ -203,7 +203,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setMonitorType(strategyOfGroupDTO.getExecType());
                         if(new Integer(1).equals(strategyOfGroupDTO.getExecType())){
                             task.setStartDate(s);
-                            task.setCloseDate(simpleDateFormatOfymd.format(nextDate));
+                            task.setCloseDate(nextDate);
                         }else{
                             MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
                             if(task1 != null){
