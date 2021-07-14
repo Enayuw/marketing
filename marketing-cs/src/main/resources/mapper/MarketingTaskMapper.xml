@@ -362,6 +362,9 @@
 			`monitor_type`,
 			`is_repair`,
 			`context_id`
+		<if test="cycleDay != null" >
+			,`cycle_day`
+		</if>
 		)
 		VALUES (
 			#{apiCode},
@@ -382,6 +385,9 @@
 			#{monitorType},
 			#{isRepair},
 			#{contextId}
+		<if test="cycleDay != null" >
+			,#{cycleDay}
+		</if>
 		);
 	</insert>
 
