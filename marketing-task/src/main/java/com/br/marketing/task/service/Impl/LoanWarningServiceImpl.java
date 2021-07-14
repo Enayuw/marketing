@@ -106,10 +106,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             List<MarketingTask> allList=new ArrayList<>();
             List<MarketingTask> onceList=new ArrayList<>();
             initBatchNumList(allList,onceList,apiCode,context);
-            if("all".equals(type)){
+            if(type.contains("all")){
                 this.generateAllTask(allList,warrningExecutor,customer);
             }
-            if("once".equals(type)){
+            if(type.contains("once")){
                 this.generateOnceTask(onceList,warrningExecutor,customer);
             }
 
