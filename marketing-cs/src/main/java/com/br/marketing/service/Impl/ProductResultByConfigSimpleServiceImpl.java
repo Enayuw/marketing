@@ -8,10 +8,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.GroupStrategyConfigMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.StrategyProductConfigMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
@@ -37,6 +34,9 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
+
+    @Autowired
+    ProductFlagScoreMapper flagScoreMapper;
 
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
@@ -171,5 +171,18 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         redisChgService.set(key,strategyProductConfig.getStrategyProductJson());
         redisChgService.expire(key,60*60*24);
         return strategyProductConfig.getStrategyProductJson();
+    }
+
+    @Override
+    public Result<List<String>> getFlagProduct() {
+        ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
+        flagScoreExample.createCriteria().andIsDelEqualTo(1);
+        List<ProductFlagScore> productFlagScores = flagScoreMapper.selectByExample(flagScoreExample);
+        if(productFlagScores.size()<=0){
+            return new Result<List<String>>().setCode(ResultCode.FAIL.getValue());
+        }else{
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(Arrays.asList(productFlagScores.get(0).getFlagScoreProduct().split(",")));
+        }
     }
 }

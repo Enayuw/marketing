@@ -226,11 +226,11 @@
 		batch_number = #{batch_number}
 		AND  hit_date &gt;= #{hit_date}
 	</select>
-	<select id="selectGroupByCodeAndTime" resultType="java.lang.String">
-		select group_type
+	<select id="selectGroupByCodeAndTime" resultType="com.br.marketing.vo.CustGroupTempVO">
+		select cus_batch as cusBatch, group_type as groupType
 		from b_marketing_sync_${apiCode}
 		where applet_date = #{beginTime}
-		group by group_type
+		group by cus_batch,group_type
 	</select>
 	<select id="selectCusBatchByCodeAndTime" resultType="java.lang.String">
 		select cus_batch

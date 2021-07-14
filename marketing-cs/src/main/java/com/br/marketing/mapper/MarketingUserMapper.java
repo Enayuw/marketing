@@ -6,6 +6,7 @@ import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
+import com.br.marketing.vo.CustGroupTempVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -138,7 +139,7 @@ public interface MarketingUserMapper {
 
         void insertByRequestId(@Param("apiCode") String apiCode,@Param("valuesStr")String valuesStr);
 
-        List<String> selectGroupByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime);
+        List<CustGroupTempVO> selectGroupByCodeAndTime(@Param("apiCode") String apiCode, @Param("beginTime")String beginTime);
 
         List<String> selectCusBatchByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
 

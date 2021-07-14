@@ -14,6 +14,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.vo.CustGroupTempVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -105,7 +106,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 continue;
             }
 
-            List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate);
+            List<CustGroupTempVO> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate);
             GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
             configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
             List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
@@ -179,7 +180,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }
                 }
 
-                groupTypes.forEach(t->{
+                groupTypes.stream().filter(l->l.getCusBatch().equals(taskId))
+                        .collect(Collectors.toList())
+                        .forEach(t->{
                     Optional<StrategyOfGroupDTO> first = strategyOfGroupDTOS.stream()
                             .filter(k -> k.getGroupType().equals(t)).findFirst();
                     if(first.isPresent()){
@@ -187,8 +190,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         MarketingTask task =new MarketingTask();
                         task.setApiCode(apiCode);
                         task.setBatchNumber(strategyOfGroupDTO.getBatchNumber());
-                        //todo 暂时去掉监控
-//                        task.setMonitorType(Integer.valueOf(IceClient.getMerchantParam(apiCode).getCallMethod()));
                         task.setMonitorStatus(1);
                         task.setStatus(1);
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
@@ -210,21 +211,20 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 task.setCloseDate(task1.getCloseDate());
                             }else {
                                 task.setStartDate(s);
-                                String e = simpleDateFormatOfymd.format(addDay(new Date(), strategyOfGroupDTO.getCycleDay() * 10));
-                                task.setCloseDate(e);
+                                task.setCloseDate(strategyOfGroupDTO.getCycleEndDay());
                             }
                             task.setCycleDay(strategyOfGroupDTO.getCycleDay().toString());
                         }
                         task.setContextId(getTaskContextId());
                         marketingTaskMapper.insertTask(task);
 
-                        Result<String> baseHeadInfo = iProductResultSimpleService.getBaseHeadInfo(apiCode, t);
+                        Result<String> baseHeadInfo = iProductResultSimpleService.getBaseHeadInfo(apiCode, t.getGroupType());
                         if(ResultCode.SUCCESS.getValue().equals(baseHeadInfo.getCode())){
                             MarketingTaskExtend taskExtend = new MarketingTaskExtend();
                             taskExtend.setApiCode(apiCode);
                             taskExtend.setTaskId(Long.valueOf(task.getId()));
                             taskExtend.setCusTaskId(taskId);
-                            taskExtend.setGroupType(t);
+                            taskExtend.setGroupType(t.getGroupType());
                             taskExtend.setCreateTime(new Date());
                             marketingTaskExtendMapper.insertSelective(taskExtend);
                         }

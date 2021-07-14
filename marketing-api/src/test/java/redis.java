@@ -20,7 +20,9 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.mapper.MarketingStrategyProductMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.collect.Lists;
 
 import java.util.*;
@@ -409,6 +411,15 @@ public class redis {
 //            }
 //        }
 
+    }
+
+    @Autowired
+    MarketingUserMapper marketingUserMapper;
+
+    @Test
+    public void testGroup(){
+        List<CustGroupTempVO> groupTypes = marketingUserMapper.selectGroupByCodeAndTime("7410437", "2021-07-13");
+        System.out.println(groupTypes.toString());
     }
 
 /*@Resource

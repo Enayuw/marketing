@@ -754,6 +754,76 @@ public class GroupStrategyConfigExample {
             addCriterion("cycle_day not between", value1, value2, "cycleDay");
             return (Criteria) this;
         }
+
+        public Criteria andCycleEndDayIsNull() {
+            addCriterion("cycle_end_day is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayIsNotNull() {
+            addCriterion("cycle_end_day is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayEqualTo(String value) {
+            addCriterion("cycle_end_day =", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayNotEqualTo(String value) {
+            addCriterion("cycle_end_day <>", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayGreaterThan(String value) {
+            addCriterion("cycle_end_day >", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayGreaterThanOrEqualTo(String value) {
+            addCriterion("cycle_end_day >=", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayLessThan(String value) {
+            addCriterion("cycle_end_day <", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayLessThanOrEqualTo(String value) {
+            addCriterion("cycle_end_day <=", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayLike(String value) {
+            addCriterion("cycle_end_day like", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayNotLike(String value) {
+            addCriterion("cycle_end_day not like", value, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayIn(List<String> values) {
+            addCriterion("cycle_end_day in", values, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayNotIn(List<String> values) {
+            addCriterion("cycle_end_day not in", values, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayBetween(String value1, String value2) {
+            addCriterion("cycle_end_day between", value1, value2, "cycleEndDay");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleEndDayNotBetween(String value1, String value2) {
+            addCriterion("cycle_end_day not between", value1, value2, "cycleEndDay");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

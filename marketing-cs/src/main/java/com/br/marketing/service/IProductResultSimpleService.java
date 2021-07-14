@@ -19,4 +19,6 @@ public interface IProductResultSimpleService {
     Result<String> getBaseHeadInfo(String apiCode, String groupType);
 
     Result<String> getBaseHeadInfoByTaskId(Long taskId);
+
+    Result<List<String>> getFlagProduct();
 }

@@ -33,4 +33,9 @@ public class StrategyOfGroupDTO {
      * 周期天数
      */
     private Integer cycleDay;
+
+    /**
+     * 周期结束时间
+     */
+    private String cycleEndDay;
 }

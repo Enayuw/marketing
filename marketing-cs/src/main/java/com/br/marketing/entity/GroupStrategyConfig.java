@@ -53,6 +53,11 @@ public class GroupStrategyConfig {
      */
     private Integer cycleDay;
 
+    /**
+     * 周期结束时间
+     */
+    private String cycleEndDay;
+
     public Long getId() {
         return id;
     }
@@ -131,5 +136,13 @@ public class GroupStrategyConfig {
 
     public void setCycleDay(Integer cycleDay) {
         this.cycleDay = cycleDay;
+    }
+
+    public String getCycleEndDay() {
+        return cycleEndDay;
+    }
+
+    public void setCycleEndDay(String cycleEndDay) {
+        this.cycleEndDay = cycleEndDay == null ? null : cycleEndDay.trim();
     }
 }
