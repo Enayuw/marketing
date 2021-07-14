@@ -192,7 +192,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setMonitorStatus(1);
                         task.setStatus(1);
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
-                        task.setFileName(String.format("%s",strategyOfGroupDTO.getGroupTypeShort()));
+                        task.setFileName(String.format("%s_%s",taskId,strategyOfGroupDTO.getGroupTypeShort()));
                         task.setCusBatch(taskId);
                         int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());
@@ -202,7 +202,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setMonitorType(strategyOfGroupDTO.getExecType());
                         if(new Integer(1).equals(strategyOfGroupDTO.getExecType())){
                             task.setStartDate(s);
-                            task.setCloseDate(s);
+                            task.setCloseDate(simpleDateFormatOfymd.format(nextDate));
                         }else{
                             MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
                             if(task1 != null){
@@ -210,10 +210,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 task.setCloseDate(task1.getCloseDate());
                             }else {
                                 task.setStartDate(s);
-                                task.setCycleDay(strategyOfGroupDTO.getCycleDay().toString());
                                 String e = simpleDateFormatOfymd.format(addDay(new Date(), strategyOfGroupDTO.getCycleDay() * 10));
                                 task.setCloseDate(e);
                             }
+                            task.setCycleDay(strategyOfGroupDTO.getCycleDay().toString());
                         }
                         task.setContextId(getTaskContextId());
                         marketingTaskMapper.insertTask(task);
