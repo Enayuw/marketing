@@ -219,7 +219,8 @@
 			file_name,
 			actual_number,
 			is_repair,
-			context_id
+			context_id,
+		    cycle_day
 		FROM
 			b_marketing_task
 		WHERE

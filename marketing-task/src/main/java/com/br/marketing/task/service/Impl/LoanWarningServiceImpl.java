@@ -514,7 +514,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         }else{
                             cycleDay = Constants.frequencyMap.get(blt.getFrequency());
                         }
-                        if(cycleDay == 0){
+                        if(cycleDay==null||cycleDay == 0){
                             continue;
                         }
                         if(days%cycleDay==0){

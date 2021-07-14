@@ -16,7 +16,7 @@ public class Constants {
     public static Map<String,Integer> riskMap = new HashMap<>();
     public static final String[] DEFAULT_CLOUMN={"cus_num","name","id","cell","pass_date","user_date","loan_maturity_date","approve_result","linkman_cell","time_range","home_addr","tel_home","mail"};
     public static Map<String,String> headMap = new HashMap<>();
-    public static final String PUBLIC_APICODE="4002511";
+    public static final String PUBLIC_APICODE="4003434";
 
     public static final String  APICODE_SHAZI="4002823,7410431,7410433";
 
