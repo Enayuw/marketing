@@ -229,7 +229,7 @@
 	<select id="selectGroupByCodeAndTime" resultType="java.lang.String">
 		select group_type
 		from b_marketing_sync_${apiCode}
-		where <![CDATA[ create_time>= #{beginTime} and create_time < #{endTime}]]>
+		where applet_date = #{beginTime}
 		group by group_type
 	</select>
 	<select id="selectCusBatchByCodeAndTime" resultType="java.lang.String">

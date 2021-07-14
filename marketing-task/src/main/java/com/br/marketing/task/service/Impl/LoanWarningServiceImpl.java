@@ -138,7 +138,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
-                        if(itemList.contains(task.getId()%count)) {
+                        if(task!=null&&itemList.contains(task.getId()%count)) {
                             this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i,customer);
                             i++;
                         }
