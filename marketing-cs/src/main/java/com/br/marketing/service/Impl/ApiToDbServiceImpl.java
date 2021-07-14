@@ -192,7 +192,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         task.setMonitorStatus(1);
                         task.setStatus(1);
                         task.setStrategyId(strategyOfGroupDTO.getStrategyId());
-                        task.setFileName(String.format("%s_%s_%s",apiCode,strategyOfGroupDTO.getBatchNumber(),strategyOfGroupDTO.getGroupTypeShort()));
+                        task.setFileName(String.format("%s",strategyOfGroupDTO.getGroupTypeShort()));
                         task.setCusBatch(taskId);
                         int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());
