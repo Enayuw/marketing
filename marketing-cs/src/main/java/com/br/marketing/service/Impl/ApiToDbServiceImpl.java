@@ -105,7 +105,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 continue;
             }
 
-            List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate, nextDate);
+            List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndTime(apiCode, preDate);
             GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
             configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
             List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);

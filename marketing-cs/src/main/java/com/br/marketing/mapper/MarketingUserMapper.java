@@ -138,7 +138,7 @@ public interface MarketingUserMapper {
 
         void insertByRequestId(@Param("apiCode") String apiCode,@Param("valuesStr")String valuesStr);
 
-        List<String> selectGroupByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
+        List<String> selectGroupByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime);
 
         List<String> selectCusBatchByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
 
