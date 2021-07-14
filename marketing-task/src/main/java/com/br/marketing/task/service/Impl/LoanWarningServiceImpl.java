@@ -138,7 +138,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
-                        if(task!=null&&itemList.contains(task.getId()%count)) {
+                        if(task!=null&&itemList.contains(Integer.valueOf(task.getContextId().toString())%count)) {
                             this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i,customer);
                             i++;
                         }
@@ -159,7 +159,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
-                        if(itemList.contains(task.getId()%count)) {
+                        if(task!=null&&itemList.contains(Integer.valueOf(task.getContextId().toString())%count)) {
                             redisChgService.hdel(hkey,errorFile);
                         }
                     }
@@ -182,7 +182,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 for (String batchNumber : hkeys) {
                     for (MarketingTask task : allList) {
                         if(task.getBatchNumber().equals(batchNumber)){
-                            if(itemList.contains(task.getId()%count)) {
+                            if(task!=null&&itemList.contains(Integer.valueOf(task.getContextId().toString())%count)) {
                                 String flagKey=Constants.HX_FLAG_98_NUM+ batchNumber+"_"+DateHelper.getDateAddYyMmDd(0);
                                 String num = redisChgService.get(flagKey);
                                 if(StringUtils.isNotEmpty(num)&&Integer.parseInt(num)>0){
