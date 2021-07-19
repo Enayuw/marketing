@@ -219,6 +219,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      */
     private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num,Customer customer){
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
+        Integer sep= marketingTaskMapper.querySep(apiCode);
+        String separator= Constants.sepMap.get(sep);
+        String baseHeadInfo = this.getBaseHeadInfo(marketingTask.getId(), separator);
         Map<String,String> paramMap =new HashedMap();
         paramMap.put("apiCode",apiCode);
         paramMap.put("batchNumber",batchNumber);
@@ -234,9 +237,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         int i=Integer.parseInt(s);
         try(FileReader read = new FileReader(errorFile);
             BufferedReader br = new BufferedReader(read);){
-
-            Integer sep= marketingTaskMapper.querySep(apiCode);
-            String separator= Constants.sepMap.get(sep);
             List<MarketingUser> list=new ArrayList<>();
             while ((row = br.readLine()) != null) {
                 String[] split = row.split(",");
@@ -275,6 +275,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId",file.getId().toString());
+            param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
+                    ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
             warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,EsOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
@@ -407,32 +409,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         try {
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
-            StringBuilder baseHeadInfo = new StringBuilder();
-            Long id = Long.valueOf(blt.getId().toString());
-            MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-            taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
-            List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
-            if(marketingTaskExtends.size()>0){
-                MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-                Result<String> headInfo = iProductResultSimpleService.getBaseHeadInfo(taskExtend.getApiCode(), taskExtend.getGroupType());
-                if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
-                    String[] split = headInfo.getData().split(",");
-                    for (String s : split) {
-                        switch (s){
-                            case "groupType":
-                                baseHeadInfo.append(taskExtend.getGroupType()+separator);
-                                break;
-                            case "taskId":
-                                baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
-                                break;
-                            case "cell":
-                                baseHeadInfo.append("{cell}"+separator);
-                                break;
-                        }
-                    }
-                }
-            }
 
+            String baseHeadInfo = this.getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Long minId= marketingUserMapper.queryMinId(blt);
@@ -459,7 +437,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("appSecretKey", appSecretKey);
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
-                            param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo.toString())
+                            param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
                             warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,EsOpenMark));
                             Thread.sleep(100);
@@ -479,6 +457,35 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         }catch (Exception e){
             log.error("执行任务失败",e);
         }
+    }
+
+    private String getBaseHeadInfo(Integer taskId,String separator){
+        StringBuilder baseHeadInfo = new StringBuilder();
+        Long id = Long.valueOf(taskId.toString());
+        MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
+        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
+        if(marketingTaskExtends.size()>0){
+            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
+            Result<String> headInfo = iProductResultSimpleService.getBaseHeadInfo(taskExtend.getApiCode(), taskExtend.getGroupType());
+            if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
+                String[] split = headInfo.getData().split(",");
+                for (String s : split) {
+                    switch (s){
+                        case "groupType":
+                            baseHeadInfo.append(taskExtend.getGroupType()+separator);
+                            break;
+                        case "taskId":
+                            baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
+                            break;
+                        case "cell":
+                            baseHeadInfo.append("{cell}"+separator);
+                            break;
+                    }
+                }
+            }
+        }
+        return baseHeadInfo.toString();
     }
 
     /**

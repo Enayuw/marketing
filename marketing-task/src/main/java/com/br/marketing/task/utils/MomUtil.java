@@ -61,7 +61,7 @@ public class MomUtil {
                     long l = System.currentTimeMillis();
                     ResponseBean sender = service.sender(paramJson.toString());
                     //AsyncResult asyncResult = service.begin_sender(paramJson.toString());
-                     // log.info("MQ耗时--{}--{}---{}",System.currentTimeMillis()-l,sender.getResult(),sender.getCode());
+                      log.info("MQ耗时--{}--{}---{}",System.currentTimeMillis()-l,sender.getResult(),sender.getCode());
 
                 } catch (Exception e) {
                     log.error("日志信息写入消息队列异常", e);
