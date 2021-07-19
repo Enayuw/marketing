@@ -141,6 +141,8 @@ public interface MarketingUserMapper {
 
         List<CustGroupTempVO> selectGroupByCodeAndTime(@Param("apiCode") String apiCode, @Param("beginTime")String beginTime);
 
+        List<String> selectGroupByCodeAndCusAndTime(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch, @Param("beginTime")String beginTime);
+
         List<String> selectCusBatchByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
 
         void createMarketingPreUserTable(@Param("tableName") String tableName);

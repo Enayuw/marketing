@@ -45,8 +45,8 @@ public class MomUtil {
 
                 JSONObject paramJson = new JSONObject();
                 JSONObject requestData = new JSONObject();
-                requestData.put("destinationName", "loan_warning_query_log");
-                paramJson.put("appName", "loan_warning_query_producer");
+                requestData.put("destinationName", "marketing_query_log");
+                paramJson.put("appName", "marketing_query_producer");
                 paramJson.put("appSecretKey", appSecretKey);
                 BrokerLayerServicePrx service = (BrokerLayerServicePrx) Ice1BSFConsumerBean.getServiceProxy(BrokerLayerServicePrx.class, "V3.0.0");
                 service= (BrokerLayerServicePrx) service.ice_connectionCached(false);

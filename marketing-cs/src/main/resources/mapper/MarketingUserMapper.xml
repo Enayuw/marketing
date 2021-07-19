@@ -232,6 +232,12 @@
 		where applet_date = #{beginTime}
 		group by cus_batch,group_type
 	</select>
+	<select id="selectGroupByCodeAndCusAndTime" resultType="java.lang.String">
+		select group_type as groupType
+		from b_marketing_sync_${apiCode}
+		where cus_batch = #{cusBatch} and applet_date = #{beginTime}
+		group by group_type
+	</select>
 	<select id="selectCusBatchByCodeAndTime" resultType="java.lang.String">
 		select cus_batch
 		from b_marketing_sync_info

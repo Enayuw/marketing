@@ -50,7 +50,7 @@ otherConfig:
         path: /opt/data/inloan/download/marketing
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   mom:
-      appSecretKey: 7275188179f59e233f4964e40d76e121
+      appSecretKey: d42726322ba9bda57b74043be21aa2c4
 spring:
   rabbitmq:
     addresses: 192.168.23.73:5672
