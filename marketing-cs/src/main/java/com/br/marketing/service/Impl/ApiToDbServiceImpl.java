@@ -156,17 +156,20 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndCusAndTime(apiCode,taskId,preDate);
                 ArrayList<StrategyOfGroupDTO> strategyOfGroupDTOS = new ArrayList<>();
                 HashMap<String,String> strategyOfGroupHashMap = new HashMap();
-                groupStrategyConfigs.forEach(t->{
-                    Result<String> stringResult = buildBatchNumber(apiCode, taskId, t.getGroupType(), DateUtils.format(new Date(), "yyyy-MM-dd"));
-                    if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
-                        StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
-                        BeanUtils.copyProperties(t, strategyOfGroupDTO);
-                        strategyOfGroupDTO.setBatchNumber(stringResult.getData());
-                        strategyOfGroupDTOS.add(strategyOfGroupDTO);
-                        strategyOfGroupHashMap.put(t.getGroupType(), stringResult.getData());
+                groupTypes.forEach(t->{
+                    Optional<GroupStrategyConfig> first = groupStrategyConfigs.stream().filter(k -> k.getGroupType().equals(t)).findFirst();
+                    if (first.isPresent()) {
+                        Result<String> stringResult = buildBatchNumber(apiCode, taskId, t, DateUtils.format(new Date(), "yyyy-MM-dd"));
+                        if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                            StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
+                            BeanUtils.copyProperties(first.get(), strategyOfGroupDTO);
+                            strategyOfGroupDTO.setBatchNumber(stringResult.getData());
+                            strategyOfGroupDTOS.add(strategyOfGroupDTO);
+                            strategyOfGroupHashMap.put(t, stringResult.getData());
                     }
-
+                }
                 });
+
                 //region 处理marketingUser
                 Long aLong = syncInfoMapper.minSyncId(apiCode, taskId, preDate, nowDate);
                 boolean dbMark = true;
