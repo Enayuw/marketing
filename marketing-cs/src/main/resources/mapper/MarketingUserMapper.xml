@@ -260,7 +260,7 @@
 	<select id="selectSyncUser" resultType="com.br.marketing.entity.MarketingSyncUser">
 		select *
 		from b_marketing_sync_${apiCode}
-		where request_batch = #{requestId}
+		where request_batch = #{requestId} and status = 1
 	</select>
 	<insert id="insertLoanUser" parameterType="map">
     INSERT INTO b_marketing_user (
