@@ -9,6 +9,7 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * Created by Bairong on 2019/10/30.

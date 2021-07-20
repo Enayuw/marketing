@@ -260,7 +260,7 @@
 	<select id="selectSyncUser" resultType="com.br.marketing.entity.MarketingSyncUser">
 		select *
 		from b_marketing_sync_${apiCode}
-		where request_batch = #{requestId} and status = 1
+		where request_batch = #{requestId}
 	</select>
 	<insert id="insertLoanUser" parameterType="map">
     INSERT INTO b_marketing_user (
@@ -370,7 +370,7 @@
 	<insert id="insertByRequestId" parameterType="java.lang.String">
 		insert into
 		b_marketing_user_${apiCode}
-		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType)
+		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status)
 		values ${valuesStr}
 	</insert>
 	<update id="createMarketingPreUserTable" parameterType="java.lang.String">
@@ -389,7 +389,7 @@
 			`reserve_field1` text DEFAULT NULL COMMENT '预留字段1',
 			`reserve_field2` text DEFAULT NULL COMMENT '预留字段2',
 			`create_time` datetime DEFAULT NULL COMMENT '创建时间',
-			`update_time` datetime DEFAULT NULL COMMENT '修改时间',
+			`update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP  COMMENT '修改时间',
 			`applet_date` varchar(50) DEFAULT NULL COMMENT '执行日期',
 			`status` int(1) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
 			`fail_type` varchar(50) DEFAULT NULL COMMENT '类型 MD5、Sha256',

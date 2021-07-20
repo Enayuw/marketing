@@ -3,6 +3,7 @@ import java.util.Date;
 
 import com.br.common.util.BrExecutors;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -20,7 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -39,6 +42,14 @@ import java.util.stream.Stream;
 public class ApiToDbServiceImpl  implements IApiToDbService {
 
     private static final Logger log = LoggerFactory.getLogger(ApiToDbServiceImpl.class);
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
     @Autowired
     MarketingCustomerMapper marketingCustomerMapper;
 
@@ -146,17 +157,17 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 ArrayList<StrategyOfGroupDTO> strategyOfGroupDTOS = new ArrayList<>();
                 HashMap<String,String> strategyOfGroupHashMap = new HashMap();
                 groupStrategyConfigs.forEach(t->{
-                    String yyyyMMddHHmmss = DateUtils.format(new Date(), "yyyyMMddHHmmss");
-                    int i = (int) ((Math.random()*9+1)*1000);
-                    String batchNumber = String.format("%s_%s_%d", apiCode, yyyyMMddHHmmss,i);
-                    StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
-                    BeanUtils.copyProperties(t,strategyOfGroupDTO);
-                    strategyOfGroupDTO.setBatchNumber(batchNumber);
-                    strategyOfGroupDTOS.add(strategyOfGroupDTO);
-                    strategyOfGroupHashMap.put(t.getGroupType(),batchNumber);
+                    Result<String> stringResult = buildBatchNumber(apiCode, taskId, t.getGroupType(), DateUtils.format(new Date(), "yyyy-MM-dd"));
+                    if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                        StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
+                        BeanUtils.copyProperties(t, strategyOfGroupDTO);
+                        strategyOfGroupDTO.setBatchNumber(stringResult.getData());
+                        strategyOfGroupDTOS.add(strategyOfGroupDTO);
+                        strategyOfGroupHashMap.put(t.getGroupType(), stringResult.getData());
+                    }
 
                 });
-
+                //region 处理marketingUser
                 Long aLong = syncInfoMapper.minSyncId(apiCode, taskId, preDate, nowDate);
                 boolean dbMark = true;
                 while(dbMark){
@@ -177,9 +188,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                             continue;
                                         }
                                         // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType
-                                        valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s')"
+                                        valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s',%d)"
                                                 ,apiCode,batchNumber,marketingSyncUser.getCustNum()
-                                                ,marketingSyncUser.getCell(),s,s,marketingSyncUser.getFailType()));
+                                                ,marketingSyncUser.getCell(),s,s,marketingSyncUser.getFailType(),marketingSyncUser.getStatus()));
                                         if(i<list.size()-1){
                                             valuesStr.append(",");
                                         }
@@ -217,7 +228,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         }
                     }
                 }
+                //endregion
 
+                //region处理marketingTask
                 groupTypes.forEach(t->{
                     Optional<StrategyOfGroupDTO> first = strategyOfGroupDTOS.stream()
                             .filter(k -> k.getGroupType().equals(t)).findFirst();
@@ -265,9 +278,21 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 taskExtend.setCreateTime(new Date());
                                 marketingTaskExtendMapper.insertSelective(taskExtend);
                             }
+                            try{
+                                StringBuilder content = new StringBuilder();
+                                content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                                        .append("taskId：".concat(taskId).concat("\r\n"))
+                                        .append("groupType：".concat(t).concat("\r\n"))
+                                        .append("time：".concat(nowDate).concat("\r\n"))
+                                        .append("batchNumber：".concat(strategyOfGroupDTO.getBatchNumber()));
+                                alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,Constants.sendCodeMap.get("uploadSuccess"));
+                            }catch (Exception ex){
+                                log.error(ex.getMessage(),ex);
+                            }
                         }
                     }
                 });
+                //endregion
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
