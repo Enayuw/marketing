@@ -126,6 +126,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             List<String> taskIds = syncInfoMapper.getCusBatchByApiAndTime(apiCode, preDate, nowDate);
 
             for (String taskId : taskIds) {
+                //region 校验数据条数
                 MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
                 syncInfoIngExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
@@ -151,7 +152,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 if(i2<=0){
                     continue;
                 }
+                //endregion
 
+                //region 生成批次号
                 List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndCusAndTime(apiCode,taskId,preDate);
                 ArrayList<StrategyOfGroupDTO> strategyOfGroupDTOS = new ArrayList<>();
                 HashMap<String,String> strategyOfGroupHashMap = new HashMap();
@@ -168,6 +171,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }
                 }
                 });
+                //endregion
 
                 //region 处理marketingUser
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 20);
