@@ -66,11 +66,9 @@ public class VaildHxResultUtil {
             }else{
                 ProductResultByConfigSimpleServiceImpl bean = Scheduler.ac.getBean(ProductResultByConfigSimpleServiceImpl.class);
                 Result<List<String>> flagProduct = bean.getFlagProduct();
-                if(ResultCode.SUCCESS.getValue().equals(flagProduct.getCode())){
-                    if(flagProduct.getData().contains(key)){
+                if(ResultCode.SUCCESS.getValue().equals(flagProduct.getCode())&&flagProduct.getData().contains(key)){
                         flag="flag_score";
                         string = resultJson.getString(flag);
-                    }
                 }else{
                     flag = "flag_" + key.toLowerCase();
                     string = resultJson.getString(flag);
