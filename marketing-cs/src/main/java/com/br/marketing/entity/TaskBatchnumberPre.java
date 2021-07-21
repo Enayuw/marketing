@@ -48,6 +48,11 @@ public class TaskBatchnumberPre {
      */
     private Date createTime;
 
+    /**
+     * 1-未使用；2-已使用
+     */
+    private Integer status;
+
     public Long getId() {
         return id;
     }
@@ -118,5 +123,13 @@ public class TaskBatchnumberPre {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

@@ -83,6 +83,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
+    @Autowired
+    TaskBatchnumberPreMapper taskBatchnumberPreMapper;
+
     @Override
     public Long getTaskContextId(){
         return redisChgService.incr(redisElasticJobKey);
@@ -285,6 +288,13 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 taskExtend.setCreateTime(new Date());
                                 marketingTaskExtendMapper.insertSelective(taskExtend);
                             }
+
+                            TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
+                            updateBatchExample.createCriteria().andBatchNumberEqualTo(strategyOfGroupDTO.getBatchNumber());
+                            TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
+                            updateBatchnumber.setStatus(2);
+                            taskBatchnumberPreMapper.updateByExample(updateBatchnumber,updateBatchExample);
+
                             try{
                                 StringBuilder content = new StringBuilder();
                                 content.append("apiCode：".concat(apiCode).concat("\r\n"))

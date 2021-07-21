@@ -11,6 +11,7 @@
     <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -72,7 +73,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, cus_batch, group_type, record_date, strategy_id, batch_number, is_del, 
-    create_time
+    create_time, status
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TaskBatchnumberPreExample" >
     select
@@ -110,10 +111,12 @@
     </selectKey>
     insert into b_task_batchnumber_pre (api_code, cus_batch, group_type, 
       record_date, strategy_id, batch_number, 
-      is_del, create_time)
+      is_del, create_time, status
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{cusBatch,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, 
       #{recordDate,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TaskBatchnumberPre" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -145,6 +148,9 @@
       <if test="createTime != null" >
         create_time,
       </if>
+      <if test="status != null" >
+        status,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -170,6 +176,9 @@
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -209,6 +218,9 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -224,7 +236,8 @@
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      status = #{record.status,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -256,6 +269,9 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -268,7 +284,8 @@
       strategy_id = #{strategyId,jdbcType=VARCHAR},
       batch_number = #{batchNumber,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP}
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
