@@ -471,11 +471,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
                 String[] split = headInfo.getData().split(",");
                 for (String s : split) {
-                    switch (s){
-                        case "groupType":
+                    switch (s.toLowerCase()){
+                        case "grouptype":
                             baseHeadInfo.append(taskExtend.getGroupType()+separator);
                             break;
-                        case "taskId":
+                        case "taskid":
                             baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
                             break;
                         case "cell":
