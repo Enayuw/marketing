@@ -229,7 +229,7 @@ public class FileUtil {
                 br = new BufferedReader(read);
                 String row;
                 while ((row = br.readLine()) != null) {
-                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep));
+                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep,name));
                 }
                 br.close();
                 read.close();
@@ -315,12 +315,14 @@ public class FileUtil {
         private String row;
         private int headSepNum;
         private String sep;
+        private String name;
 
-        public CheckRowSep(Writer fw, String row, int headSepNum, String sep) {
+        public CheckRowSep(Writer fw, String row, int headSepNum, String sep,String name) {
             this.fw = fw;
             this.row = row;
             this.headSepNum = headSepNum;
             this.sep = sep;
+            this.name = name;
         }
 
         @Override
@@ -332,7 +334,7 @@ public class FileUtil {
                 if (headSepNum == i1) {
                     fw.append(row + "\r\n");
                 } else {
-                    log.error("分隔符校验失败 head:{},row:{}", headSepNum, i1);
+                    log.error("分隔符校验失败 number:{} head:{},row:{}",name, headSepNum, i1);
                     log.warn("Row--{}", row);
                 }
             } catch (Exception e) {
