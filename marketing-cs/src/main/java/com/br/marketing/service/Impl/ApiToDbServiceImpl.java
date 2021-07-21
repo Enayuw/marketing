@@ -125,7 +125,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
             List<String> taskIds = syncInfoMapper.getCusBatchByApiAndTime(apiCode, preDate, nowDate);
 
-            ExecutorService threadPool = BrExecutors.getThreadPool(20, 20);
             for (String taskId : taskIds) {
                 MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
                 syncInfoIngExample.createCriteria()
@@ -171,6 +170,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 });
 
                 //region 处理marketingUser
+                ExecutorService threadPool = BrExecutors.getThreadPool(20, 20);
                 Long aLong = syncInfoMapper.minSyncId(apiCode, taskId, preDate, nowDate);
                 boolean dbMark = true;
                 while(dbMark){
