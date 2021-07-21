@@ -34,6 +34,17 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MyTest {
 
     @Test
+    public void testStr(){
+        HashMap<String,String> hs = new HashMap();
+        hs.put("checkBlackList",new String("1"));
+        if(hs.get("checkBlackList")=="1"){
+            System.out.println("====");
+        }else{
+            System.out.println("////");
+        }
+    }
+
+    @Test
     public void testThread(){
         ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30,60L,TimeUnit.SECONDS
                 ,new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()

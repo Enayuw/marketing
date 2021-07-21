@@ -49,7 +49,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
         this.head=param.get("head");
         this.apiCode=context.getTask().getApiCode();
         this.errorfw=errorfw;
-        this.checkBlackList=param.get("checkBlackList")=="1"?true:false;
+        this.checkBlackList="1".equals(param.get("checkBlackList"))?true:false;
         this.decodeClient=CkeckApplication.ac.getBean(DecodeClient.class);
         this.marketingUserMapper = CkeckApplication.ac.getBean(MarketingUserMapper.class);
         this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);;
