@@ -83,9 +83,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
-    @Autowired
-    TaskBatchnumberPreMapper taskBatchnumberPreMapper;
-
     @Override
     public Long getTaskContextId(){
         return redisChgService.incr(redisElasticJobKey);
@@ -293,7 +290,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             updateBatchExample.createCriteria().andBatchNumberEqualTo(strategyOfGroupDTO.getBatchNumber());
                             TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
                             updateBatchnumber.setStatus(2);
-                            taskBatchnumberPreMapper.updateByExample(updateBatchnumber,updateBatchExample);
+                            taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber,updateBatchExample);
 
                             try{
                                 StringBuilder content = new StringBuilder();
