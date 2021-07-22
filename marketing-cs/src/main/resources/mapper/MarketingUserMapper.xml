@@ -396,7 +396,8 @@
 			PRIMARY KEY (`id`),
 			UNIQUE KEY `IDX_taskId_custNum` (`cus_batch`,`cust_num`),
 			UNIQUE KEY `uk_taskId_cell` (`cus_batch`,`cell`),
-			KEY `idx_appletDate` (`applet_date`)
+			KEY `idx_appletDate` (`applet_date`),
+		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
 	</update>
 
