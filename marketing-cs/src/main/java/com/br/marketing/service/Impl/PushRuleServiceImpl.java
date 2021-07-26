@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -351,7 +352,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
                 if(taskExtendInfoVO !=null){
                     pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
-                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
+                    try {
+                        String encode = URLEncoder.encode(taskExtendInfoVO.getGroupType(), "utf-8");
+                        pushMarketingUserDetailVariablesDTO.setGroupType(encode);
+                    }catch(Exception ex){
+                        log.error(ex.getMessage(),ex);
+                    }
                 }
 
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
