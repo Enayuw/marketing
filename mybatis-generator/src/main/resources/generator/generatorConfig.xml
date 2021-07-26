@@ -26,7 +26,7 @@
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
                         connectionURL="jdbc:mysql://10.100.151.104:4000/marketing"
                         userId="u_pd_marketing"
-                        password="f9daIYUIAXQkeyVbDoOI">
+                        password="M6teKbFVl1odfOCkC1JA">
         </jdbcConnection>
 
         <!-- 类型转换 -->
