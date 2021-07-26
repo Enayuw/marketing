@@ -3,6 +3,7 @@ package com.br.marketing.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.vo.ConfigByApiCodeVO;
 
 import java.util.List;
 import java.util.Map;
@@ -21,4 +22,6 @@ public interface IProductResultSimpleService {
     Result<String> getBaseHeadInfoByTaskId(Long taskId);
 
     Result<List<String>> getFlagProduct();
+
+    Result<ConfigByApiCodeVO> getConfigByApiCode(String apiCode);
 }

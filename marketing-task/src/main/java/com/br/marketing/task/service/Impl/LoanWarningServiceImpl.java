@@ -88,7 +88,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
-    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
+    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+
+    final static SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
 
@@ -576,10 +578,16 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 groupStr = groupStrategyConfig.getGroupTypeShort().concat("_");
             }
 
+            Date parse = null;
+            try {
+                parse = yyyy_MM_dd.parse(taskExtend.getUploadTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
             String showTitle = task.getApiCode().concat("_")
                                     .concat(groupStr)
                                     .concat(taskExtend.getCusTaskId()).concat("_")
-                                    .concat(taskExtend.getUploadTime()).concat("_")
+                                    .concat(yyyyMMdd.format(parse)).concat("_")
                                     .concat(yyyyMMdd.format(new Date()));
             return showTitle;
         }else{

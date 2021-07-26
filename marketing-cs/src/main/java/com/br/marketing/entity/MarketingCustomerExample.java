@@ -494,6 +494,366 @@ public class MarketingCustomerExample {
             return (Criteria) this;
         }
 
+        public Criteria andFinishDateIsNull() {
+            addCriterion("finish_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateIsNotNull() {
+            addCriterion("finish_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateEqualTo(Byte value) {
+            addCriterion("finish_date =", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateNotEqualTo(Byte value) {
+            addCriterion("finish_date <>", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateGreaterThan(Byte value) {
+            addCriterion("finish_date >", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateGreaterThanOrEqualTo(Byte value) {
+            addCriterion("finish_date >=", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateLessThan(Byte value) {
+            addCriterion("finish_date <", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateLessThanOrEqualTo(Byte value) {
+            addCriterion("finish_date <=", value, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateIn(List<Byte> values) {
+            addCriterion("finish_date in", values, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateNotIn(List<Byte> values) {
+            addCriterion("finish_date not in", values, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateBetween(Byte value1, Byte value2) {
+            addCriterion("finish_date between", value1, value2, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFinishDateNotBetween(Byte value1, Byte value2) {
+            addCriterion("finish_date not between", value1, value2, "finishDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerIsNull() {
+            addCriterion("push_customer is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerIsNotNull() {
+            addCriterion("push_customer is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerEqualTo(Byte value) {
+            addCriterion("push_customer =", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerNotEqualTo(Byte value) {
+            addCriterion("push_customer <>", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerGreaterThan(Byte value) {
+            addCriterion("push_customer >", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerGreaterThanOrEqualTo(Byte value) {
+            addCriterion("push_customer >=", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerLessThan(Byte value) {
+            addCriterion("push_customer <", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerLessThanOrEqualTo(Byte value) {
+            addCriterion("push_customer <=", value, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerIn(List<Byte> values) {
+            addCriterion("push_customer in", values, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerNotIn(List<Byte> values) {
+            addCriterion("push_customer not in", values, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerBetween(Byte value1, Byte value2) {
+            addCriterion("push_customer between", value1, value2, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushCustomerNotBetween(Byte value1, Byte value2) {
+            addCriterion("push_customer not between", value1, value2, "pushCustomer");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListIsNull() {
+            addCriterion("check_black_list is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListIsNotNull() {
+            addCriterion("check_black_list is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListEqualTo(Byte value) {
+            addCriterion("check_black_list =", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListNotEqualTo(Byte value) {
+            addCriterion("check_black_list <>", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListGreaterThan(Byte value) {
+            addCriterion("check_black_list >", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListGreaterThanOrEqualTo(Byte value) {
+            addCriterion("check_black_list >=", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListLessThan(Byte value) {
+            addCriterion("check_black_list <", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListLessThanOrEqualTo(Byte value) {
+            addCriterion("check_black_list <=", value, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListIn(List<Byte> values) {
+            addCriterion("check_black_list in", values, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListNotIn(List<Byte> values) {
+            addCriterion("check_black_list not in", values, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListBetween(Byte value1, Byte value2) {
+            addCriterion("check_black_list between", value1, value2, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckBlackListNotBetween(Byte value1, Byte value2) {
+            addCriterion("check_black_list not between", value1, value2, "checkBlackList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberIsNull() {
+            addCriterion("check_redis_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberIsNotNull() {
+            addCriterion("check_redis_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberEqualTo(Byte value) {
+            addCriterion("check_redis_number =", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberNotEqualTo(Byte value) {
+            addCriterion("check_redis_number <>", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberGreaterThan(Byte value) {
+            addCriterion("check_redis_number >", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberGreaterThanOrEqualTo(Byte value) {
+            addCriterion("check_redis_number >=", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberLessThan(Byte value) {
+            addCriterion("check_redis_number <", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberLessThanOrEqualTo(Byte value) {
+            addCriterion("check_redis_number <=", value, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberIn(List<Byte> values) {
+            addCriterion("check_redis_number in", values, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberNotIn(List<Byte> values) {
+            addCriterion("check_redis_number not in", values, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberBetween(Byte value1, Byte value2) {
+            addCriterion("check_redis_number between", value1, value2, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckRedisNumberNotBetween(Byte value1, Byte value2) {
+            addCriterion("check_redis_number not between", value1, value2, "checkRedisNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogIsNull() {
+            addCriterion("save_log is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogIsNotNull() {
+            addCriterion("save_log is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogEqualTo(Byte value) {
+            addCriterion("save_log =", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogNotEqualTo(Byte value) {
+            addCriterion("save_log <>", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogGreaterThan(Byte value) {
+            addCriterion("save_log >", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogGreaterThanOrEqualTo(Byte value) {
+            addCriterion("save_log >=", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogLessThan(Byte value) {
+            addCriterion("save_log <", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogLessThanOrEqualTo(Byte value) {
+            addCriterion("save_log <=", value, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogIn(List<Byte> values) {
+            addCriterion("save_log in", values, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogNotIn(List<Byte> values) {
+            addCriterion("save_log not in", values, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogBetween(Byte value1, Byte value2) {
+            addCriterion("save_log between", value1, value2, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveLogNotBetween(Byte value1, Byte value2) {
+            addCriterion("save_log not between", value1, value2, "saveLog");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortIsNull() {
+            addCriterion("sort is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortIsNotNull() {
+            addCriterion("sort is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortEqualTo(Byte value) {
+            addCriterion("sort =", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortNotEqualTo(Byte value) {
+            addCriterion("sort <>", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortGreaterThan(Byte value) {
+            addCriterion("sort >", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortGreaterThanOrEqualTo(Byte value) {
+            addCriterion("sort >=", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortLessThan(Byte value) {
+            addCriterion("sort <", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortLessThanOrEqualTo(Byte value) {
+            addCriterion("sort <=", value, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortIn(List<Byte> values) {
+            addCriterion("sort in", values, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortNotIn(List<Byte> values) {
+            addCriterion("sort not in", values, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortBetween(Byte value1, Byte value2) {
+            addCriterion("sort between", value1, value2, "sort");
+            return (Criteria) this;
+        }
+
+        public Criteria andSortNotBetween(Byte value1, Byte value2) {
+            addCriterion("sort not between", value1, value2, "sort");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;
@@ -551,6 +911,76 @@ public class MarketingCustomerExample {
 
         public Criteria andStatusNotBetween(Byte value1, Byte value2) {
             addCriterion("status not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoIsNull() {
+            addCriterion("extend_config_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoIsNotNull() {
+            addCriterion("extend_config_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoEqualTo(String value) {
+            addCriterion("extend_config_info =", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotEqualTo(String value) {
+            addCriterion("extend_config_info <>", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoGreaterThan(String value) {
+            addCriterion("extend_config_info >", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_config_info >=", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLessThan(String value) {
+            addCriterion("extend_config_info <", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLessThanOrEqualTo(String value) {
+            addCriterion("extend_config_info <=", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLike(String value) {
+            addCriterion("extend_config_info like", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotLike(String value) {
+            addCriterion("extend_config_info not like", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoIn(List<String> values) {
+            addCriterion("extend_config_info in", values, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotIn(List<String> values) {
+            addCriterion("extend_config_info not in", values, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoBetween(String value1, String value2) {
+            addCriterion("extend_config_info between", value1, value2, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotBetween(String value1, String value2) {
+            addCriterion("extend_config_info not between", value1, value2, "extendConfigInfo");
             return (Criteria) this;
         }
     }

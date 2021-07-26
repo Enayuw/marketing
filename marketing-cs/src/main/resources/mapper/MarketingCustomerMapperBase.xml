@@ -8,7 +8,14 @@
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="thread_num" property="threadNum" jdbcType="INTEGER" />
     <result column="task_time" property="taskTime" jdbcType="TINYINT" />
+    <result column="finish_date" property="finishDate" jdbcType="TINYINT" />
+    <result column="push_customer" property="pushCustomer" jdbcType="TINYINT" />
+    <result column="check_black_list" property="checkBlackList" jdbcType="TINYINT" />
+    <result column="check_redis_number" property="checkRedisNumber" jdbcType="TINYINT" />
+    <result column="save_log" property="saveLog" jdbcType="TINYINT" />
+    <result column="sort" property="sort" jdbcType="TINYINT" />
     <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -69,7 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, message, type, thread_num, task_time, status
+    id, api_code, message, type, thread_num, task_time, finish_date, push_customer, check_black_list, 
+    check_redis_number, save_log, sort, status, extend_config_info
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
     select
@@ -106,11 +114,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_customer (api_code, message, type, 
-      thread_num, task_time, status
-      )
+      thread_num, task_time, finish_date, 
+      push_customer, check_black_list, check_redis_number, 
+      save_log, sort, status, 
+      extend_config_info)
     values (#{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
-      #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, #{status,jdbcType=TINYINT}
-      )
+      #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, #{finishDate,jdbcType=TINYINT}, 
+      #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT}, #{checkRedisNumber,jdbcType=TINYINT}, 
+      #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT}, #{status,jdbcType=TINYINT}, 
+      #{extendConfigInfo,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -133,8 +145,29 @@
       <if test="taskTime != null" >
         task_time,
       </if>
+      <if test="finishDate != null" >
+        finish_date,
+      </if>
+      <if test="pushCustomer != null" >
+        push_customer,
+      </if>
+      <if test="checkBlackList != null" >
+        check_black_list,
+      </if>
+      <if test="checkRedisNumber != null" >
+        check_redis_number,
+      </if>
+      <if test="saveLog != null" >
+        save_log,
+      </if>
+      <if test="sort != null" >
+        sort,
+      </if>
       <if test="status != null" >
         status,
+      </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -153,8 +186,29 @@
       <if test="taskTime != null" >
         #{taskTime,jdbcType=TINYINT},
       </if>
+      <if test="finishDate != null" >
+        #{finishDate,jdbcType=TINYINT},
+      </if>
+      <if test="pushCustomer != null" >
+        #{pushCustomer,jdbcType=TINYINT},
+      </if>
+      <if test="checkBlackList != null" >
+        #{checkBlackList,jdbcType=TINYINT},
+      </if>
+      <if test="checkRedisNumber != null" >
+        #{checkRedisNumber,jdbcType=TINYINT},
+      </if>
+      <if test="saveLog != null" >
+        #{saveLog,jdbcType=TINYINT},
+      </if>
+      <if test="sort != null" >
+        #{sort,jdbcType=TINYINT},
+      </if>
       <if test="status != null" >
         #{status,jdbcType=TINYINT},
+      </if>
+      <if test="extendConfigInfo != null" >
+        #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -185,8 +239,29 @@
       <if test="record.taskTime != null" >
         task_time = #{record.taskTime,jdbcType=TINYINT},
       </if>
+      <if test="record.finishDate != null" >
+        finish_date = #{record.finishDate,jdbcType=TINYINT},
+      </if>
+      <if test="record.pushCustomer != null" >
+        push_customer = #{record.pushCustomer,jdbcType=TINYINT},
+      </if>
+      <if test="record.checkBlackList != null" >
+        check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
+      </if>
+      <if test="record.checkRedisNumber != null" >
+        check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
+      </if>
+      <if test="record.saveLog != null" >
+        save_log = #{record.saveLog,jdbcType=TINYINT},
+      </if>
+      <if test="record.sort != null" >
+        sort = #{record.sort,jdbcType=TINYINT},
+      </if>
       <if test="record.status != null" >
         status = #{record.status,jdbcType=TINYINT},
+      </if>
+      <if test="record.extendConfigInfo != null" >
+        extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -201,7 +276,14 @@
       type = #{record.type,jdbcType=VARCHAR},
       thread_num = #{record.threadNum,jdbcType=INTEGER},
       task_time = #{record.taskTime,jdbcType=TINYINT},
-      status = #{record.status,jdbcType=TINYINT}
+      finish_date = #{record.finishDate,jdbcType=TINYINT},
+      push_customer = #{record.pushCustomer,jdbcType=TINYINT},
+      check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
+      check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
+      save_log = #{record.saveLog,jdbcType=TINYINT},
+      sort = #{record.sort,jdbcType=TINYINT},
+      status = #{record.status,jdbcType=TINYINT},
+      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -224,8 +306,29 @@
       <if test="taskTime != null" >
         task_time = #{taskTime,jdbcType=TINYINT},
       </if>
+      <if test="finishDate != null" >
+        finish_date = #{finishDate,jdbcType=TINYINT},
+      </if>
+      <if test="pushCustomer != null" >
+        push_customer = #{pushCustomer,jdbcType=TINYINT},
+      </if>
+      <if test="checkBlackList != null" >
+        check_black_list = #{checkBlackList,jdbcType=TINYINT},
+      </if>
+      <if test="checkRedisNumber != null" >
+        check_redis_number = #{checkRedisNumber,jdbcType=TINYINT},
+      </if>
+      <if test="saveLog != null" >
+        save_log = #{saveLog,jdbcType=TINYINT},
+      </if>
+      <if test="sort != null" >
+        sort = #{sort,jdbcType=TINYINT},
+      </if>
       <if test="status != null" >
         status = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -237,7 +340,14 @@
       type = #{type,jdbcType=VARCHAR},
       thread_num = #{threadNum,jdbcType=INTEGER},
       task_time = #{taskTime,jdbcType=TINYINT},
-      status = #{status,jdbcType=TINYINT}
+      finish_date = #{finishDate,jdbcType=TINYINT},
+      push_customer = #{pushCustomer,jdbcType=TINYINT},
+      check_black_list = #{checkBlackList,jdbcType=TINYINT},
+      check_redis_number = #{checkRedisNumber,jdbcType=TINYINT},
+      save_log = #{saveLog,jdbcType=TINYINT},
+      sort = #{sort,jdbcType=TINYINT},
+      status = #{status,jdbcType=TINYINT},
+      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

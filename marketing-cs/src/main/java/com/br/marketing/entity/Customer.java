@@ -45,4 +45,5 @@ public class Customer {
     private Integer checkBlackList;
     private Integer checkRedisNumber;
     private Integer saveLog;
+    private String extendConfigInfo;
 }

@@ -36,7 +36,7 @@ public class TestController {
 
     @GetMapping("/task")
     public String task(){
-        Customer customerByApiCode = customerMapper.getCustomerByApiCode("7410437");
+        Customer customerByApiCode = customerMapper.getCustomerByApiCode("7410438");
         loanWarningService.process(customerByApiCode,null);
         return "";
     }

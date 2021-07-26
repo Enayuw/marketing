@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -29,6 +30,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     final static String redisKeyStrategyProduct = "strategyProductConfig:apiCode";
 
+    final static String redisKeyConfigByApiCode = "customer:apicode:config";
+
     @Autowired
     GroupStrategyConfigMapper groupStrategyConfigMapper;
 
@@ -37,6 +40,9 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Autowired
     ProductFlagScoreMapper flagScoreMapper;
+
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
 
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
@@ -184,5 +190,33 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             return new Result<>().setCode(ResultCode.SUCCESS.getValue())
                     .setDate(Arrays.asList(productFlagScores.get(0).getFlagScoreProduct().split(",")));
         }
+    }
+
+    @Override
+    public Result<ConfigByApiCodeVO> getConfigByApiCode(String apiCode) {
+        String key = redisKeyConfigByApiCode.concat(":").concat(apiCode);
+        String s = redisChgService.get(key);
+        if(StringUtils.isNotBlank(s)){
+            ConfigByApiCodeVO o = JSON.parseObject(s, new TypeReference<ConfigByApiCodeVO>() {
+            }.getType());
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(o);
+        }else{
+            MarketingCustomerExample customerExample = new MarketingCustomerExample();
+            customerExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode);
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+            if(marketingCustomers.size()>0){
+                MarketingCustomer marketingCustomer = marketingCustomers.get(0);
+                if(StringUtils.isNotBlank(marketingCustomer.getExtendConfigInfo())) {
+                    ConfigByApiCodeVO o = JSON.parseObject(marketingCustomer.getExtendConfigInfo(), new TypeReference<ConfigByApiCodeVO>() {
+                    }.getType());
+                    redisChgService.setex(key, marketingCustomer.getExtendConfigInfo(), 60 * 60);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(o);
+                }else{
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+            }
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 }

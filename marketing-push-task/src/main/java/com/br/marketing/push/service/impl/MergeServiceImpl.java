@@ -18,6 +18,7 @@ import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
@@ -173,7 +174,10 @@ public class MergeServiceImpl implements MergeService {
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
-            if(customer.getPushCustomer()==1){
+
+            Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
+            if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
+            &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
                 ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 
                 //统计文件上传fastdfs
