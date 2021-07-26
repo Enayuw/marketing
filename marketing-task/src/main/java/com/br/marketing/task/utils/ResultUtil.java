@@ -133,10 +133,9 @@ public class ResultUtil {
                 mh.setName(user.getName());
                 mh.setCell(user.getCell());
                 mh.setCusBatchNumber(cusBatchNumber);
+                mh.setBatchNumber(user.getBatchNumber());
                 mh.setFileId(fileId);
-                if(esOpen.equals(1)){
-                    writeEs(mh,meal,hxJson);
-                }
+                writeEs(mh,meal,hxJson);
             }
         }
     }

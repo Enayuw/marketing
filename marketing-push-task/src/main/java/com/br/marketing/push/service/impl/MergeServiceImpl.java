@@ -176,6 +176,9 @@ public class MergeServiceImpl implements MergeService {
             blf.setExpectedNum(total);
 
             Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
+            if(new Integer(1).equals(customer.getPushCustomer())){
+                blf.setScoreStatus(2);
+            }
             if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
             &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
                 ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
