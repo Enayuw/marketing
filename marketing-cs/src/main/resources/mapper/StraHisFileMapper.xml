@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.StraHisFileMapper" >
+
+    <select id="getExtendInfosByFileIds" resultType="com.br.marketing.vo.TaskExtendInfoVO">
+        select shf.id as fileId, bmte.cus_task_id as cusTaskId ,bmte.group_type as groupType
+            from stra_his_file shf
+            left join b_marketing_task bmt on shf.batch_number = bmt.batch_number
+            left join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+        WHERE shf.id in
+              <foreach collection="fileIds" open="(" separator="," close=")" item="fileId">
+                #{fileId}
+              </foreach>
+    </select>
 </mapper>

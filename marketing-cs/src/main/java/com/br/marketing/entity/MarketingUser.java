@@ -31,7 +31,7 @@ public class MarketingUser {
     private String userDate;
     private Integer status;
     private String decodeFailType;
-
+    private String extendJson;
     public MarketingUser() {
     }
 
@@ -74,6 +74,7 @@ public class MarketingUser {
                 ", userDate='" + userDate + '\'' +
                 ", status=" + status +
                 ", decodeFailType='" + decodeFailType + '\'' +
+                ", extendJson='" + extendJson + '\'' +
                 '}';
     }
 }

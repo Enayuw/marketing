@@ -64,10 +64,10 @@ public class StraHisFileExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -115,52 +115,52 @@ public class StraHisFileExample {
             return (Criteria) this;
         }
 
-        public Criteria andIdEqualTo(Integer value) {
+        public Criteria andIdEqualTo(Long value) {
             addCriterion("id =", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotEqualTo(Integer value) {
+        public Criteria andIdNotEqualTo(Long value) {
             addCriterion("id <>", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThan(Integer value) {
+        public Criteria andIdGreaterThan(Long value) {
             addCriterion("id >", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThanOrEqualTo(Integer value) {
+        public Criteria andIdGreaterThanOrEqualTo(Long value) {
             addCriterion("id >=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThan(Integer value) {
+        public Criteria andIdLessThan(Long value) {
             addCriterion("id <", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThanOrEqualTo(Integer value) {
+        public Criteria andIdLessThanOrEqualTo(Long value) {
             addCriterion("id <=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdIn(List<Integer> values) {
+        public Criteria andIdIn(List<Long> values) {
             addCriterion("id in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotIn(List<Integer> values) {
+        public Criteria andIdNotIn(List<Long> values) {
             addCriterion("id not in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdBetween(Integer value1, Integer value2) {
+        public Criteria andIdBetween(Long value1, Long value2) {
             addCriterion("id between", value1, value2, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotBetween(Integer value1, Integer value2) {
+        public Criteria andIdNotBetween(Long value1, Long value2) {
             addCriterion("id not between", value1, value2, "id");
             return (Criteria) this;
         }
@@ -1394,9 +1394,79 @@ public class StraHisFileExample {
             addCriterion("statistic_file_path not between", value1, value2, "statisticFilePath");
             return (Criteria) this;
         }
+
+        public Criteria andShowTitleIsNull() {
+            addCriterion("show_title is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleIsNotNull() {
+            addCriterion("show_title is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleEqualTo(String value) {
+            addCriterion("show_title =", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleNotEqualTo(String value) {
+            addCriterion("show_title <>", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleGreaterThan(String value) {
+            addCriterion("show_title >", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleGreaterThanOrEqualTo(String value) {
+            addCriterion("show_title >=", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleLessThan(String value) {
+            addCriterion("show_title <", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleLessThanOrEqualTo(String value) {
+            addCriterion("show_title <=", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleLike(String value) {
+            addCriterion("show_title like", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleNotLike(String value) {
+            addCriterion("show_title not like", value, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleIn(List<String> values) {
+            addCriterion("show_title in", values, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleNotIn(List<String> values) {
+            addCriterion("show_title not in", values, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleBetween(String value1, String value2) {
+            addCriterion("show_title between", value1, value2, "showTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andShowTitleNotBetween(String value1, String value2) {
+            addCriterion("show_title not between", value1, value2, "showTitle");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

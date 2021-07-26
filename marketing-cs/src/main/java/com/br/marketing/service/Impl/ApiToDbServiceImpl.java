@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 import java.util.Date;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrExecutors;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -194,10 +196,16 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                         if(!StringUtils.isNotBlank(batchNumber)){
                                             continue;
                                         }
-                                        // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType
-                                        valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s',%d)"
+                                        JSONObject extendJson = new JSONObject();
+                                        extendJson.put("groupType",marketingSyncUser.getGroupType());
+                                        extendJson.put("taskId",marketingSyncUser.getCusBatch());
+                                        // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
+                                        valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s',%d,'%s')"
                                                 ,apiCode,batchNumber,marketingSyncUser.getCustNum()
-                                                ,marketingSyncUser.getCell(),s,s,marketingSyncUser.getFailType(),marketingSyncUser.getStatus()));
+                                                ,marketingSyncUser.getCell(),s,s
+                                                ,marketingSyncUser.getFailType()==null?"":marketingSyncUser.getFailType()
+                                                ,marketingSyncUser.getStatus()
+                                                ,JSON.toJSONString(extendJson)));
                                         if(i<list.size()-1){
                                             valuesStr.append(",");
                                         }
@@ -283,6 +291,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 taskExtend.setCusTaskId(taskId);
                                 taskExtend.setGroupType(t);
                                 taskExtend.setCreateTime(new Date());
+                                taskExtend.setUploadTime(preDate);
                                 marketingTaskExtendMapper.insertSelective(taskExtend);
                             }
 

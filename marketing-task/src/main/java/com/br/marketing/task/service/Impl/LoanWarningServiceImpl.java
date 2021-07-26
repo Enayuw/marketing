@@ -83,11 +83,16 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     IProductResultSimpleService iProductResultSimpleService;
 
     @Autowired
+    GroupStrategyConfigMapper groupStrategyConfigMapper;
+
+    @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
     final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
+
+    final static Integer allMonitorType = 4;
 
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
@@ -314,6 +319,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setType(2);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
+            blf.setShowTitle(createShowTitle(blt));
             loanFileMapper.insertFile(blf);
 
             /**
@@ -381,6 +387,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setType(1);
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
+            blf.setShowTitle(createShowTitle(blt));
             loanFileMapper.insertFile(blf);
 
             /**
@@ -544,6 +551,42 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             log.warn("当日全量批次数量--{}，一次性数量--{}",allList.size(),onceList.size());
         }catch (Exception e){
             log.error("初始化任务出错",e);
+        }
+    }
+
+    private String createShowTitle(MarketingTask task){
+
+        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
+        extendExample.createCriteria()
+                .andTaskIdEqualTo(Long.valueOf(task.getId()))
+                .andIsDelEqualTo(1);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
+        if(marketingTaskExtends.size()>0){
+            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
+
+            String groupStr = "";
+            GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
+            configExample.createCriteria()
+                    .andApiCodeEqualTo(task.getApiCode())
+                    .andGroupTypeEqualTo(taskExtend.getGroupType())
+                    .andIsDelEqualTo(1);
+            List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
+            if(groupStrategyConfigs.size()>0){
+                GroupStrategyConfig groupStrategyConfig = groupStrategyConfigs.get(0);
+                groupStr = groupStrategyConfig.getGroupTypeShort().concat("_");
+            }
+
+            String showTitle = task.getApiCode().concat("_")
+                                    .concat(groupStr)
+                                    .concat(taskExtend.getCusTaskId()).concat("_")
+                                    .concat(taskExtend.getUploadTime()).concat("_")
+                                    .concat(yyyyMMdd.format(new Date()));
+            return showTitle;
+        }else{
+            if(allMonitorType.equals(task.getMonitorType())){
+                return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
+            }
+            return task.getCusBatch();
         }
     }
 }

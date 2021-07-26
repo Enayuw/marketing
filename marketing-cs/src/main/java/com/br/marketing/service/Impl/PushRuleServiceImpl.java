@@ -22,6 +22,7 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
+import com.br.marketing.vo.TaskExtendInfoVO;
 import com.google.common.base.Joiner;
 
 import java.util.*;
@@ -265,6 +266,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
+
+        HashMap<Long,TaskExtendInfoVO> hsTaskExtend = new HashMap<>();
+        List<TaskExtendInfoVO> extendInfosByFileIds = straHisFileMapper.getExtendInfosByFileIds(fileIds);
+        extendInfosByFileIds.forEach(t->{
+            hsTaskExtend.put(t.getFileId(),t);
+        });
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
@@ -272,10 +279,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
         queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
         if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
-            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString()
+                    .concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
         }
         if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
-            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
+                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
         }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         //region push Intelligent Customer Service
@@ -339,6 +348,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if (first.isPresent()) {
                     pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
+                TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
+                if(taskExtendInfoVO !=null){
+                    pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
+                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
+                }
+
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
             }
@@ -691,7 +706,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate, marketingPreUserDetailDTO.getFailType(), marketingPreUserDetailDTO.getStatus());
+                        , date, date, appletDate, marketingPreUserDetailDTO.getFailType()==null?"":marketingPreUserDetailDTO.getFailType(), marketingPreUserDetailDTO.getStatus());
                 try {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {

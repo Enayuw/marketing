@@ -38,6 +38,11 @@ public class MarketingTaskExtend {
      */
     private Date createTime;
 
+    /**
+     * 上传时间
+     */
+    private String uploadTime;
+
     public Long getId() {
         return id;
     }
@@ -92,5 +97,13 @@ public class MarketingTaskExtend {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public String getUploadTime() {
+        return uploadTime;
+    }
+
+    public void setUploadTime(String uploadTime) {
+        this.uploadTime = uploadTime == null ? null : uploadTime.trim();
     }
 }

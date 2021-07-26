@@ -370,7 +370,7 @@
 	<insert id="insertByRequestId" parameterType="java.lang.String">
 		insert into
 		b_marketing_user_${apiCode}
-		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status)
+		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json)
 		values ${valuesStr}
 	</insert>
 	<update id="createMarketingPreUserTable" parameterType="java.lang.String">

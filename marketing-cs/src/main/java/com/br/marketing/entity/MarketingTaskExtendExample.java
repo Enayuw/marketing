@@ -554,6 +554,76 @@ public class MarketingTaskExtendExample {
             addCriterion("create_time not between", value1, value2, "createTime");
             return (Criteria) this;
         }
+
+        public Criteria andUploadTimeIsNull() {
+            addCriterion("upload_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeIsNotNull() {
+            addCriterion("upload_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeEqualTo(String value) {
+            addCriterion("upload_time =", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeNotEqualTo(String value) {
+            addCriterion("upload_time <>", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeGreaterThan(String value) {
+            addCriterion("upload_time >", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("upload_time >=", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeLessThan(String value) {
+            addCriterion("upload_time <", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeLessThanOrEqualTo(String value) {
+            addCriterion("upload_time <=", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeLike(String value) {
+            addCriterion("upload_time like", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeNotLike(String value) {
+            addCriterion("upload_time not like", value, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeIn(List<String> values) {
+            addCriterion("upload_time in", values, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeNotIn(List<String> values) {
+            addCriterion("upload_time not in", values, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeBetween(String value1, String value2) {
+            addCriterion("upload_time between", value1, value2, "uploadTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadTimeNotBetween(String value1, String value2) {
+            addCriterion("upload_time not between", value1, value2, "uploadTime");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

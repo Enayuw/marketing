@@ -24,9 +24,9 @@
 
         <!-- 数据库链接URL，用户名、密码 -->
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://192.168.162.192:3306/test_loan"
-                        userId="rule_service"
-                        password="rule_service_2015-09-10">
+                        connectionURL="jdbc:mysql://10.100.151.104:4000/marketing"
+                        userId="u_pd_marketing"
+                        password="M6teKbFVl1odfOCkC1JA">
         </jdbcConnection>
 
         <!-- 类型转换 -->
@@ -54,7 +54,7 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_task_batchnumber_pre" domainObjectName="TaskBatchnumberPre" >
+        <table tableName="b_marketing_task_extend" domainObjectName="MarketingTaskExtend" >
             <property name="useActualColumnNames" value="false"/>
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>

@@ -461,7 +461,7 @@
 		and status=1
 	</update>
 	<select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO" resultType="com.br.marketing.vo.ScoreDetailVo">
-		select  mt.cus_batch as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath,shf.id as fileId
+		select  shf.show_title as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath,shf.id as fileId
 		from stra_his_file as shf
 		left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
 		left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number

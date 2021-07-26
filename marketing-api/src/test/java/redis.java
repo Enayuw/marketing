@@ -23,6 +23,7 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.vo.CustGroupTempVO;
+import com.br.marketing.vo.TaskExtendInfoVO;
 import com.google.common.collect.Lists;
 
 import java.util.*;
@@ -81,6 +82,10 @@ public class redis {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Autowired
+    StraHisFileMapper straHisFileMapper;
+
 
     @Test
     public void testRedis(){
@@ -237,9 +242,6 @@ public class redis {
         int abd = s.indexOf("abd");
         System.out.println(abd);
     }
-
-    @Autowired
-    StraHisFileMapper straHisFileMapper;
 
     @Autowired
     MarketingHistoryEsService marketingHistoryEsService;
