@@ -50,7 +50,7 @@ public class PushCustomerDTO {
     @NotNull(message = "fileIdList不能为空")
     @NotEmpty(message = "fileIdList不能为空")
     @Size(min = 1,message = "fileIdList不能为空")
-    private List<Integer> fileIdList;
+    private List<Long> fileIdList;
 
     @ApiModelProperty(value = "最小分数")
     private Integer minScore;

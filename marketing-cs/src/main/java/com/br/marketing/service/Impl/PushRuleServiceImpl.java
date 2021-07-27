@@ -217,6 +217,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region insert db
+
+        StraHisFileExample straHisFileExample= new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        List<String> showTitles = straHisFiles.stream().map(t -> t.getShowTitle()).collect(Collectors.toList());
         CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmModel(dto.getProductName());
@@ -229,8 +234,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
-        List<String> cusList = marketingStrategyProducts.stream().map(t -> t.getCusBatchNumber()).collect(Collectors.toList());
-        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(cusList));
+        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
         customerInfoPushMain.setmStatus(1);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
@@ -242,7 +246,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
-            customerInfoPushBatch.setmFileId(Long.valueOf(t.getFileId()));
+            customerInfoPushBatch.setmFileId(t.getFileId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
         //endregion
@@ -331,10 +335,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 if (log.isWarnEnabled()) {
-                    log.warn("人员信息：cusnum:" + marketingHistory.getCusNum() + ";cusbatchnumber:"
-                            + (StringUtils.isNotBlank(marketingHistory.getCusBatchNumber()) ? marketingHistory.getCusBatchNumber() : ""));
+                    log.warn("人员信息：cusnum:" + marketingHistory.getCusNum() + ";batchnumber:"
+                            + (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
-                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_")
+                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
                         .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
@@ -352,12 +356,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
                 if(taskExtendInfoVO !=null){
                     pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
-                    try {
-                        String encode = URLEncoder.encode(taskExtendInfoVO.getGroupType(), "utf-8");
-                        pushMarketingUserDetailVariablesDTO.setGroupType(encode);
-                    }catch(Exception ex){
-                        log.error(ex.getMessage(),ex);
-                    }
+                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
                 }
 
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);

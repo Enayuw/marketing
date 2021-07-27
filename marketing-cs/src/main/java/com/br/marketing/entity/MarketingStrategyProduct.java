@@ -4,14 +4,14 @@ import java.util.Date;
 
 public class MarketingStrategyProduct {
     /**
-     * 逐渐id
+     * 
      */
     private Long id;
 
     /**
      * 跑分记录唯一id
      */
-    private Integer fileId;
+    private Long fileId;
 
     /**
      * 
@@ -61,11 +61,11 @@ public class MarketingStrategyProduct {
         this.id = id;
     }
 
-    public Integer getFileId() {
+    public Long getFileId() {
         return fileId;
     }
 
-    public void setFileId(Integer fileId) {
+    public void setFileId(Long fileId) {
         this.fileId = fileId;
     }
 

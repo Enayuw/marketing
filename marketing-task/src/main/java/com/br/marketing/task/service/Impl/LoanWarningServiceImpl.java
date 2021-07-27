@@ -585,8 +585,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 e.printStackTrace();
             }
             String showTitle = task.getApiCode().concat("_")
-                                    .concat(groupStr)
                                     .concat(taskExtend.getCusTaskId()).concat("_")
+                                    .concat(groupStr)
                                     .concat(yyyyMMdd.format(parse)).concat("_")
                                     .concat(yyyyMMdd.format(new Date()));
             return showTitle;
