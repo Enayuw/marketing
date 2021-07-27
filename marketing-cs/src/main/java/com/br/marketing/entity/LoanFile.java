@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Data
 public class LoanFile extends BaseRowModel {
-    private Integer id;
+    private Long id;
     private String apiCode;
     private String filePath;
     private String createTime;
