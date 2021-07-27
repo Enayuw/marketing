@@ -216,6 +216,7 @@
 			start_date,
 			monitor_type,
 			close_date,
+			cus_batch,
 			file_name,
 			actual_number,
 			is_repair,

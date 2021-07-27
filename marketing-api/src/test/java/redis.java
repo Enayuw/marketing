@@ -94,7 +94,7 @@ public class redis {
 
     @Test
     public void testPushUser(){
-        String ss = BrCipherMaker.getInstance().decode("AAQGDgBRDFUEΒ8U1w");
+        String ss = BrCipherMaker.getInstance().decode("UwAKCQAFCVBXV1Β6M");
         System.out.println(ss);
 //        String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"123123_2\",\"batchNumber\":\"123123\",\"data\":[{\"caseNumber\":\"1_82021072601_csd_1627293995809\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";
 //        PushMarketingUserDTO o = JSON.parseObject(ab, new TypeReference<PushMarketingUserDTO>() {
