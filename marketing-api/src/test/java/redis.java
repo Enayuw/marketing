@@ -50,6 +50,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.DigestUtils;
+
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -94,6 +96,10 @@ public class redis {
 
     @Test
     public void testPushUser(){
+        String s = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("AgsNΒ7VlVSWwkAVwY").getBytes());
+        String s2 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("Uw0JDAoΒ6DBVRdXF0").getBytes());
+        System.out.println(s);
+        System.out.println(s2);
         String ss = BrCipherMaker.getInstance().decode("UwAKCQAFCVBXV1Β6M");
         System.out.println(ss);
 //        String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"123123_2\",\"batchNumber\":\"123123\",\"data\":[{\"caseNumber\":\"1_82021072601_csd_1627293995809\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";

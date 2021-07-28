@@ -70,5 +70,5 @@ otherConfig:
     appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
 api:
   intelligentCustomerService:
-    baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口

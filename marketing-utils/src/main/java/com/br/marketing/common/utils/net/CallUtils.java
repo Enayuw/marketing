@@ -33,7 +33,7 @@ public final class CallUtils {
         }
 
         Map<String, Object> paramKV = getPropertiesMap(javaBean);
-        return getFormUrlEncodedStr(paramKV, true, encodeName);
+        return getFormUrlEncodedStr(paramKV, false, encodeName);
     }
 
     /**

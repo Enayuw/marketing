@@ -46,7 +46,7 @@ public class IntelligentCustomerServiceClient {
 //        log.setParam("");
         try{
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
-                    .setContentType(MediaType.MULTIPART_FORM_DATA)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
             log.setResultContent(transfer.getResult().length()>4999?transfer.getResult().substring(0,4999):transfer.getResult());
             log.setHttpStatus(String.valueOf(transfer.getHttpCode()));

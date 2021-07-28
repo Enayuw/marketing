@@ -19,10 +19,12 @@ public class ApiCaller {
 
     public ApiCaller(){
         restTemplate = new RestTemplate();
+        this.httpHeaders = new HttpHeaders();
     }
 
     public ApiCaller(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
+        this.httpHeaders = new HttpHeaders();
     }
 
     private RestTemplate restTemplate;
@@ -94,11 +96,13 @@ public class ApiCaller {
 
     private HttpEntity createPostHttpEntity(){
         HttpEntity requestEntity;
+        httpHeaders.setContentType(contentType);
         if (requestParam instanceof String) {
             requestEntity = new HttpEntity<String>((String) requestParam, httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_JSON_UTF8)) {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
         } else if(contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)){
+//            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
             requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {
             requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
