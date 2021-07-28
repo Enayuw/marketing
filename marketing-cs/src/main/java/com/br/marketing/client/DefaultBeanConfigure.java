@@ -6,7 +6,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+
+import java.nio.charset.StandardCharsets;
 
 
 /** 默认bean配置器
@@ -24,6 +27,8 @@ public class DefaultBeanConfigure {
         httpRequestFactory.setConnectTimeout(1000);
         httpRequestFactory.setReadTimeout(5000);
         RestTemplate restTemplate =new RestTemplate(httpRequestFactory);
+        restTemplate.getMessageConverters()
+                .set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         return restTemplate;
     }
 
