@@ -123,8 +123,8 @@ public class ResultUtil {
         if(!ResultCode.SUCCESS.equals(result.getCode())){
             ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
         }
-        if(log.isWarnEnabled()){
-            log.warn("sb信息--"+sb.toString());
+        if(log.isInfoEnabled()){
+            log.info("sb信息--"+sb.toString());
         }
         if(sb.toString().split(",").length>5){
             fw.append(sb + "\r\n");

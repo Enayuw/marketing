@@ -24,6 +24,7 @@
 			`user_date` VARCHAR (50) DEFAULT NULL COMMENT '观察日期',
 			`decodeFailType` VARCHAR (50) DEFAULT NULL COMMENT '解密失败类型 MD5、Sha256、SM3',
 			`status` INT (10) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
+			`extend_json` varchar(1000) null comment '扩展信息字段',
 			PRIMARY KEY (`id`),
 			KEY `index_api_code` (`api_code`, `batch_number`) USING BTREE,
 			KEY `index_create_time` (`create_time`) USING BTREE,
