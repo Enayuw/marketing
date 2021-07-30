@@ -16,6 +16,6 @@ public class TaskStatus {
     private String incrDate;
     private Integer incrStatus;
     private Integer onceStatus;
-    private Integer fileId;
+    private Long fileId;
 
 }

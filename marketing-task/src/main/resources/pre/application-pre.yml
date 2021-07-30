@@ -3,8 +3,8 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.40.100:4000/marketing_test?useUnicode=true&characterEncoding=UTF-8
-         username: u_pd_marketing_yf
+         url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         username: u_pd_marketing
          password: M6teKbFVl1odfOCkC1JA
          type: com.alibaba.druid.pool.DruidDataSource
          driver-class-name: com.mysql.jdbc.Driver
@@ -50,7 +50,7 @@ otherConfig:
         path: /opt/data/inloan/download/marketing
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   mom:
-      appSecretKey: 7275188179f59e233f4964e40d76e121
+      appSecretKey: d42726322ba9bda57b74043be21aa2c4
 spring:
   rabbitmq:
     addresses: 192.168.23.73:5672

@@ -24,6 +24,7 @@
 			`user_date` VARCHAR (50) DEFAULT NULL COMMENT '观察日期',
 			`decodeFailType` VARCHAR (50) DEFAULT NULL COMMENT '解密失败类型 MD5、Sha256、SM3',
 			`status` INT (10) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
+			`extend_json` varchar(1000) null comment '扩展信息字段',
 			PRIMARY KEY (`id`),
 			KEY `index_api_code` (`api_code`, `batch_number`) USING BTREE,
 			KEY `index_create_time` (`create_time`) USING BTREE,
@@ -226,6 +227,42 @@
 		batch_number = #{batch_number}
 		AND  hit_date &gt;= #{hit_date}
 	</select>
+	<select id="selectGroupByCodeAndTime" resultType="com.br.marketing.vo.CustGroupTempVO">
+		select cus_batch as cusBatch, group_type as groupType
+		from b_marketing_sync_${apiCode}
+		where applet_date = #{beginTime}
+		group by cus_batch,group_type
+	</select>
+	<select id="selectGroupByCodeAndCusAndTime" resultType="java.lang.String">
+		select group_type as groupType
+		from b_marketing_sync_${apiCode}
+		where cus_batch = #{cusBatch} and applet_date = #{beginTime}
+		group by group_type
+	</select>
+	<select id="selectCusBatchByCodeAndTime" resultType="java.lang.String">
+		select cus_batch
+		from b_marketing_sync_info
+		where api_code = #{api_code}
+	  <![CDATA[ and create_time>= #{beginTime} and create_time < #{endTime}]]>
+		group by cus_batch
+	</select>
+	<select id="countByPreUser" resultType="java.lang.Integer">
+		select count(1)
+		from  b_marketing_sync_${apiCode}
+		where cus_batch = #{cusBatch}
+		and group_type = #{groupType}
+		and applet_date= #{appletDate}
+	</select>
+	<select id="countBySureUser" resultType="java.lang.Integer">
+		select count(1)
+		from  b_marketing_user_${apiCode}
+		where batch_number = #{batchNumber}
+	</select>
+	<select id="selectSyncUser" resultType="com.br.marketing.entity.MarketingSyncUser">
+		select *
+		from b_marketing_sync_${apiCode}
+		where request_batch = #{requestId}
+	</select>
 	<insert id="insertLoanUser" parameterType="map">
     INSERT INTO b_marketing_user (
         	`api_code`,
@@ -331,4 +368,38 @@
 		`json_data`, `create_time`, `actual_num`)
 		VALUES (#{apiCode}, #{cusBatch}, #{requestBatch}, #{jsonData},#{createTime},#{actualNum});
 	</insert>
+	<insert id="insertByRequestId" parameterType="java.lang.String">
+		insert into
+		b_marketing_user_${apiCode}
+		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json)
+		values ${valuesStr}
+	</insert>
+	<update id="createMarketingPreUserTable" parameterType="java.lang.String">
+		CREATE TABLE
+			IF NOT EXISTS ${tableName} (
+			`id` bigint(20) NOT NULL AUTO_INCREMENT,
+			`api_code` varchar(10) NOT NULL COMMENT '商户编号',
+			`cus_batch` varchar(100) NOT NULL COMMENT '客户批次号',
+			`request_batch` varchar(255) DEFAULT NULL COMMENT '请求批次',
+			`cust_num` varchar(100) DEFAULT NULL COMMENT '用户唯一编号',
+			`id_card` varchar(255) DEFAULT NULL COMMENT '身份证号',
+			`name` varchar(255) DEFAULT NULL COMMENT '姓名',
+			`cell` varchar(255) DEFAULT NULL COMMENT '电话',
+			`group_type` varchar(255) DEFAULT NULL COMMENT '场景',
+			`register_date` varchar(50) DEFAULT NULL COMMENT '日期',
+			`reserve_field1` text DEFAULT NULL COMMENT '预留字段1',
+			`reserve_field2` text DEFAULT NULL COMMENT '预留字段2',
+			`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+			`update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP  COMMENT '修改时间',
+			`applet_date` varchar(50) DEFAULT NULL COMMENT '执行日期',
+			`status` int(1) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
+			`fail_type` varchar(50) DEFAULT NULL COMMENT '类型 MD5、Sha256',
+			PRIMARY KEY (`id`),
+			UNIQUE KEY `IDX_taskId_custNum` (`cus_batch`,`cust_num`),
+			UNIQUE KEY `uk_taskId_cell` (`cus_batch`,`cell`),
+			KEY `idx_appletDate` (`applet_date`),
+		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
+	</update>
+
 </mapper>

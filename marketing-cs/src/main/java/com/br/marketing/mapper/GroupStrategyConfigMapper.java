@@ -6,6 +6,5 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface GroupStrategyConfigMapper extends GroupStrategyConfigMapperBase {
-
+public interface GroupStrategyConfigMapper extends GroupStrategyConfigMapperBase{
 }

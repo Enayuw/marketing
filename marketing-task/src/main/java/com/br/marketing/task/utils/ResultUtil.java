@@ -2,6 +2,8 @@ package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.entity.RuleField;
@@ -10,9 +12,14 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.task.Scheduler;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -29,171 +36,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class ResultUtil {
 
-   // private  static String sep="\001";
-    /**
-     * 生成文件
-     * @param resultJson
-     * {
-     *     "message":"成功",
-     *     "swift_number":"5200155_20190924162359_68649151",
-     *     "hxResult":{
-     *         "InfoRelation":{
-     *             "allmatch_days":"308",
-     *             "cell_x_name_cnt":"2",
-     *             "id_inlistwith_cell":"1",
-     *             "id_x_cell_notmat_days":"432",
-     *             "id_x_cell_lastchg_days":"308",
-     *             "id_x_name_cnt":"2",
-     *             "id_x_mail_cnt":"1",
-     *             "cell_x_mail_cnt":"1",
-     *             "cell_x_id_cnt":"1",
-     *             "cell_is_reabnormal":"0",
-     *             "cell_inlistwith_id":"1",
-     *             "cell_x_id_lastchg_days":"",
-     *             "id_x_cell_cnt":"2",
-     *             "id_is_reabnormal":"0",
-     *             "cell_x_id_notmat_days":"",
-     *             "m12":{
-     *                 "id_x_linkman_cell_cnt":"0",
-     *                 "cell_x_linkman_cell_cnt":"0",
-     *                 "cell_x_name_cnt":"1",
-     *                 "cell_x_home_addr_cnt":"0",
-     *                 "id_x_tel_home_cnt":"0",
-     *                 "cell_x_tel_biz_cnt":"0",
-     *                 "id_x_name_cnt":"1",
-     *                 "cell_x_tel_home_cnt":"0",
-     *                 "id_x_mail_cnt":"0",
-     *                 "cell_x_mail_cnt":"0",
-     *                 "id_x_device_cnt":"0",
-     *                 "cell_x_biz_addr_cnt":"0",
-     *                 "cell_x_id_cnt":"1",
-     *                 "id_x_home_addr_cnt":"0",
-     *                 "id_x_cell_cnt":"1",
-     *                 "id_x_tel_biz_cnt":"0",
-     *                 "id_x_biz_work_cnt":"0",
-     *                 "cell_x_device_cnt":"1",
-     *                 "id_x_biz_addr_cnt":"0",
-     *                 "cell_x_biz_work_cnt":"0"
-     *             }
-     *         },
-     *         "swift_number":"4000058_20190924162400_3397",
-     *         "Flag":{
-     *             "applyloanusury":"1",
-     *             "applyloanstr":"0",
-     *             "executionlimited":"0",
-     *             "specialList_c":"1",
-     *             "inforelation":"1"
-     *         },
-     *         "SpecialList_c":{
-     *             "id":{
-     *                 "nbank_bad":"0",
-     *                 "nbank_other_bad_time":"1",
-     *                 "nbank_bad_time":"1",
-     *                 "nbank_bad_allnum":"1",
-     *                 "nbank_other_bad_allnum":"1",
-     *                 "nbank_other_bad":"0"
-     *             },
-     *             "cell":{
-     *                 "nbank_bad":"0",
-     *                 "nbank_other_bad_time":"1",
-     *                 "nbank_bad_time":"1",
-     *                 "nbank_bad_allnum":"1",
-     *                 "nbank_other_bad_allnum":"1",
-     *                 "nbank_other_bad":"0"
-     *             },
-     *             "gid":{
-     *
-     *             },
-     *             "lm_cell":{
-     *
-     *             }
-     *         },
-     *         "code":"00",
-     *         "ApplyLoanStr":{
-     *
-     *         }
-     *     },
-     *     "flag":{
-     *         "Rule_W_InfoRelation_mix_c":"0",
-     *         "Rule_W_ApplyLoanUsury_mix":"0",
-     *         "applyloanstr":"0",
-     *         "applyloanusury":"1",
-     *         "executionlimited":"0",
-     *         "specialList_c":"1",
-     *         "Rule_W_SpecialList_c_mix_c":"1",
-     *         "Rule_W_ExecutionLimited_mix":"0",
-     *         "Rule_W_ApplyLoanStr_mix_c":"0",
-     *         "loanStrategy":"1",
-     *         "inforelation":"1"
-     *     },
-     *     "loanStrategy":{
-     *         "ruleArray":[
-     *             {
-     *                 "ruleType":"Rule_W_SpecialList_c_mix_c",
-     *                 "ruleWeight":80,
-     *                 "loanRule":[
-     *                     {
-     *                         "weight":80,
-     *                         "ruleName":"近两年本人命中非银中风险",
-     *                         "ruleCode":"SLM019",
-     *                         "ruleKeys":[
-     *                             "0",
-     *                             "1",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "0",
-     *                             "1",
-     *                             "0",
-     *                             "1",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "tempVar",
-     *                             "0",
-     *                             "1"
-     *                         ]
-     *                     }
-     *                 ],
-     *                 "rulerisk":"C",
-     *                 "rule_name":"贷中预警全量规则-特殊名单验证-通用客群-高级",
-     *                 "version":"1.0"
-     *             }
-     *         ],
-     *         "strategyName":"调用贷前安卓",
-     *         "customerType":"早期逾期客户",
-     *         "prodType":"通用",
-     *         "strategyId":"STRB0000006",
-     *         "strategyDecision":"C",
-     *         "ruleFinalRisk":"C",
-     *         "version":"1.0"
-     *     },
-     *     "code":"00",
-     *     "jsonData":{
-     *         "loanMaturityDate":"2020-06-13",
-     *         "idCard":"452622198510280026",
-     *         "approveResult":"1",
-     *         "name":"雨露",
-     *         "cell":"13977652939",
-     *         "passDate":"2017-09-18",
-     *         "cusNum":"12"
-     *     }
-     * }
-     * * */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,Integer esOpen) throws IOException {
+
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,Integer esOpen,String baseHeadInfo) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
@@ -239,6 +83,9 @@ public class ResultUtil {
                   flagJson = resultJson.getJSONObject("Flag");
                   hxJson=resultJson;
               }
+            if(StringUtils.isNotBlank(baseHeadInfo)){
+                sb.append(baseHeadInfo.replace("{cell}", DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(user.getCell()).getBytes()))).append(sep);
+            }
 
 
         /**
@@ -269,19 +116,25 @@ public class ResultUtil {
             products.add(pro.toLowerCase());
         }
         log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
-        ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
-        if(log.isWarnEnabled()){
-            log.warn("sb信息--"+sb.toString());
+
+        ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
+                getBean(ProductResultByConfigSimpleServiceImpl.class);
+        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId);
+        if(!ResultCode.SUCCESS.equals(result.getCode())){
+            ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+        }
+        if(log.isInfoEnabled()){
+            log.info("sb信息--"+sb.toString());
         }
         if(sb.toString().split(",").length>5){
-            log.warn("sb写入fw--"+sb.toString());
             fw.append(sb + "\r\n");
-            mh.setIdCard(user.getIdCard());
-            mh.setName(user.getName());
-            mh.setCell(user.getCell());
-            mh.setCusBatchNumber(cusBatchNumber);
-            mh.setFileId(fileId);
-            if(esOpen.equals(1)){
+            if("1".equals(pushCustomer)){
+                mh.setIdCard(user.getIdCard());
+                mh.setName(user.getName());
+                mh.setCell(user.getCell());
+                mh.setCusBatchNumber(cusBatchNumber);
+                mh.setBatchNumber(user.getBatchNumber());
+                mh.setFileId(fileId);
                 writeEs(mh,meal,hxJson);
             }
         }

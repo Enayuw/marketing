@@ -11,7 +11,7 @@ public interface StraHisFileMapperBase {
 
     int deleteByExample(StraHisFileExample example);
 
-    int deleteByPrimaryKey(Integer id);
+    int deleteByPrimaryKey(Long id);
 
     int insert(StraHisFile record);
 
@@ -19,7 +19,7 @@ public interface StraHisFileMapperBase {
 
     List<StraHisFile> selectByExample(StraHisFileExample example);
 
-    StraHisFile selectByPrimaryKey(Integer id);
+    StraHisFile selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") StraHisFile record, @Param("example") StraHisFileExample example);
 

@@ -12,15 +12,22 @@ import java.text.DecimalFormat;
 import java.util.Date;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.MarketingStrategyProduct;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.MarketingStrategyProductMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.vo.CustGroupTempVO;
+import com.br.marketing.vo.TaskExtendInfoVO;
 import com.google.common.collect.Lists;
 
 import java.util.*;
@@ -39,11 +46,12 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.DigestUtils;
+
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -79,6 +87,27 @@ public class redis {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Autowired
+    StraHisFileMapper straHisFileMapper;
+
+    @Autowired
+    IntelligentCustomerServiceClient intelligentCustomerServiceClient;
+
+    @Test
+    public void testPushUser(){
+        String s = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("AgsNΒ7VlVSWwkAVwY").getBytes());
+        String s2 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("Uw0JDAoΒ6DBVRdXF0").getBytes());
+        System.out.println(s);
+        System.out.println(s2);
+        String ss = BrCipherMaker.getInstance().decode("UwAKCQAFCVBXV1Β6M");
+        System.out.println(ss);
+//        String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"123123_2\",\"batchNumber\":\"123123\",\"data\":[{\"caseNumber\":\"1_82021072601_csd_1627293995809\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";
+//        PushMarketingUserDTO o = JSON.parseObject(ab, new TypeReference<PushMarketingUserDTO>() {
+//        }.getType());
+//        Result<Integer> integerResult = intelligentCustomerServiceClient.pushUser(o, 123L, "123");
+//        System.out.println(integerResult.getMessage());
+    }
 
     @Test
     public void testRedis(){
@@ -235,9 +264,6 @@ public class redis {
         int abd = s.indexOf("abd");
         System.out.println(abd);
     }
-
-    @Autowired
-    StraHisFileMapper straHisFileMapper;
 
     @Autowired
     MarketingHistoryEsService marketingHistoryEsService;
@@ -409,6 +435,15 @@ public class redis {
 //            }
 //        }
 
+    }
+
+    @Autowired
+    MarketingUserMapper marketingUserMapper;
+
+    @Test
+    public void testGroup(){
+        List<CustGroupTempVO> groupTypes = marketingUserMapper.selectGroupByCodeAndTime("7410437", "2021-07-13");
+        System.out.println(groupTypes.toString());
     }
 
 /*@Resource

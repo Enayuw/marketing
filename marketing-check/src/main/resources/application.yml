@@ -1,7 +1,7 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: loan-warning-check
+    name: marketing-check
   profiles.active: pre
   aop:
    proxy-target-class: true
@@ -25,7 +25,6 @@ result.file.path: /opt/data/inloan/warning
 
 mybatis:
   mapper-locations: mapper/*.xml
-
   configuration:
     map-underscore-to-camel-case: true
-
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

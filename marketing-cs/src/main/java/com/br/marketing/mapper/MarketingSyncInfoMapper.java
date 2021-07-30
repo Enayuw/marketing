@@ -1,6 +1,17 @@
 package com.br.marketing.mapper;
 
 
-public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
+import com.br.marketing.entity.MarketingSyncInfo;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
+public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
+    List<String> getCusBatchByApiAndTime(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime,@Param("endTime") String endTime);
+
+    Long minSyncId(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("beginTime") String beginTime,@Param("endTime") String endTime);
+
+    List<MarketingSyncInfo> getDatalimit(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch
+                                         ,@Param("id") Long id,@Param("beginTime") String beginTime
+                                         ,@Param("endTime") String endTime);
 }

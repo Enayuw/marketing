@@ -45,8 +45,8 @@ public class MomUtil {
 
                 JSONObject paramJson = new JSONObject();
                 JSONObject requestData = new JSONObject();
-                requestData.put("destinationName", "loan_warning_query_log");
-                paramJson.put("appName", "loan_warning_query_producer");
+                requestData.put("destinationName", "marketing_query_log");
+                paramJson.put("appName", "marketing_query_producer");
                 paramJson.put("appSecretKey", appSecretKey);
                 BrokerLayerServicePrx service = (BrokerLayerServicePrx) Ice1BSFConsumerBean.getServiceProxy(BrokerLayerServicePrx.class, "V3.0.0");
                 service= (BrokerLayerServicePrx) service.ice_connectionCached(false);
@@ -61,7 +61,7 @@ public class MomUtil {
                     long l = System.currentTimeMillis();
                     ResponseBean sender = service.sender(paramJson.toString());
                     //AsyncResult asyncResult = service.begin_sender(paramJson.toString());
-                     // log.info("MQ耗时--{}--{}---{}",System.currentTimeMillis()-l,sender.getResult(),sender.getCode());
+                      log.info("MQ耗时--{}--{}---{}",System.currentTimeMillis()-l,sender.getResult(),sender.getCode());
 
                 } catch (Exception e) {
                     log.error("日志信息写入消息队列异常", e);

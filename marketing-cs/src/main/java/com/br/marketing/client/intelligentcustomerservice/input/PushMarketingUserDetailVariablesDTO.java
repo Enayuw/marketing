@@ -28,4 +28,8 @@ public class PushMarketingUserDetailVariablesDTO implements Serializable {
      *上传日期
      */
     private String update;
+
+    private String taskId;
+
+    private String groupType;
 }

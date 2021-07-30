@@ -71,6 +71,9 @@ public class PushServiceImpl implements PushService {
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
                         File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
+                        if(!completeFile.getParentFile().exists()){
+                            completeFile.getParentFile().mkdirs();
+                        }
                         completeFile.createNewFile();
                         if(completeFile.exists()){
                             log.warn("push complete to sftp :{}",completeFileaName);

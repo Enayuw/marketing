@@ -8,6 +8,7 @@
         from b_customer_info_push_main bcipm
         <if test="cusBatchNumber != null and cusBatchNumber!=''">
             left join b_customer_info_push_batch bcipb on bcipm .id = bcipb .m_id and bcipb .is_del =1
+            left join stra_his_file shf on bcipb.m_file_id = shf.id
         </if>
         where bcipm .m_api_code = #{mApiCode}
             <if test="mStatus !=null and mStatus>0">
@@ -20,7 +21,7 @@
             <![CDATA[  and bcipm .create_time <=#{pushEndTime} ]]>
             </if>
             <if test="cusBatchNumber !=null and cusBatchNumber!= ''">
-              and bcipb .m_cus_batch_number =#{cusBatchNumber}
+              and shf .show_title =#{cusBatchNumber}
             </if>
             and bcipm .is_del =1
             order by bcipm.id desc

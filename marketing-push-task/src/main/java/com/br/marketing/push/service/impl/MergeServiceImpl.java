@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.bean.Score;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
@@ -14,10 +16,13 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
+import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +73,9 @@ public class MergeServiceImpl implements MergeService {
     @Resource
     LoanFileMapper loanFileMapper;
 
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
+
     private Map<String,String> proFieldMap=new HashMap<>();
     private static final Pattern MYREGEX1 = Pattern.compile("_");
 
@@ -76,15 +84,15 @@ public class MergeServiceImpl implements MergeService {
     @Value("${otherConfig.warning.path:00}")
     private String path;
     @Override
-    public List<LoanFile> process(String apiCode) {
+    public List<LoanFile> process(Customer customer) {
         List<LoanFile> pushList =new ArrayList<>();
         try{
-            if(StringUtils.isNotEmpty(apiCode)){
+            if(customer !=null){
                 List<LoanFile> allList=new ArrayList<>();
                 List<LoanFile> onceList=new ArrayList<>();
-                initBatchNumList(allList,onceList,apiCode);
-                pushList.addAll(mergeAllOrOnce(allList));
-                pushList.addAll(mergeAllOrOnce(onceList));
+                initBatchNumList(allList,onceList,customer.getApiCode());
+                pushList.addAll(mergeAllOrOnce(allList,customer));
+                pushList.addAll(mergeAllOrOnce(onceList,customer));
             }
 
         }catch (Exception e){
@@ -95,10 +103,10 @@ public class MergeServiceImpl implements MergeService {
 
 
 
-    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList) {
+    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList,Customer customer) {
         List<LoanFile> pushList=new ArrayList<>();
         for(LoanFile blf:loanFileList){
-            String zipName = mergeResultFile(blf);
+            String zipName = mergeResultFile(blf,customer);
             if(StringUtils.isEmpty(zipName)){
                 continue;
             }
@@ -118,10 +126,9 @@ public class MergeServiceImpl implements MergeService {
      * @param blf
      * @return
      */
-    private String mergeResultFile(LoanFile blf){
+    private String mergeResultFile(LoanFile blf,Customer customer){
         String zipFile="";
         try{
-            List<String> result=new ArrayList<>();
             StringBuilder targetPath=new StringBuilder();
             targetPath.append(blf.getFilePath())
                     .append("/");
@@ -135,6 +142,16 @@ public class MergeServiceImpl implements MergeService {
                 String fileName1 = blt.getFileName();
                 fileName1=fileName1.replace(".txt","");
                 s = MYREGEX1.split(fileName1)[1];
+            }
+            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
+            String baseHeadInfo = "";
+            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
+                baseHeadInfo = baseHeadInfoByTaskId.getData();
+            }
+            String dataInfo = "";
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
+            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                dataInfo = fieldsInfo.getData();
             }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             if(StringUtils.isEmpty(strategyStr)){
@@ -151,19 +168,30 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
-            initHead(head,blt.getApiCode(),strategyId,separator);
+            initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
             FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
 
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
-            ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 
-            //统计文件上传fastdfs
-            uploadFastDfs(countFileNameList,blf,fileName);
+            Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
+            if(new Integer(1).equals(customer.getPushCustomer())){
+                blf.setScoreStatus(2);
+            }
+            if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
+            &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
+                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 
-            countFileNameList.add(filePathAndName);
-            ZipUtil.compress(zipFile,countFileNameList);
+                //统计文件上传fastdfs
+                uploadFastDfs(countFileNameList,blf,fileName);
+
+                countFileNameList.add(filePathAndName);
+                ZipUtil.compress(zipFile,countFileNameList);
+            }else {
+                ZipUtil.compress(filePathAndName,zipFile);
+            }
+
         }catch (Exception e){
             log.error("合并文件出错",e);
         }finally {
@@ -331,6 +359,16 @@ public class MergeServiceImpl implements MergeService {
             targetPath.append(filePath).append(date)
                     .append("/");
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
+            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
+            String baseHeadInfo = "";
+            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
+                baseHeadInfo = baseHeadInfoByTaskId.getData();
+            }
+            String dataInfo = "";
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
+            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                dataInfo = fieldsInfo.getData();
+            }
             String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
             proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
             String fileName1 = blt.getFileName();
@@ -344,7 +382,7 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
-            initHead(head,blt.getApiCode(),blt.getStrategyId(),separator);
+            initHead(head,blt.getApiCode(),blt.getStrategyId(),separator,baseHeadInfo,dataInfo);
             FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
             result.add(fileName);
             String errorFileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_error_"+DateHelper.getDateAddYyMmDd(0)+".txt";
@@ -370,10 +408,13 @@ public class MergeServiceImpl implements MergeService {
      * .append("姓名").append(",").append("身份证号").append(",").append("证书号").append(",").append("手机号")
     .append(",")
      */
-    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep){
+    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep,String baseHeadInfo,String dataInfo){
         List<String> list;
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
+        if(StringUtils.isNotBlank(baseHeadInfo.trim())){
+            head.append(baseHeadInfo).append(sep);
+        }
         if(strategyId.startsWith("STRB")){
             head.append("strategyDecision").append(sep);
             String strategy = StrategyClient.getStrategy(apiCode, strategyId);
@@ -401,7 +442,11 @@ public class MergeServiceImpl implements MergeService {
             log.info("pro:{}",pro);
             products.add(pro.toLowerCase());
         }
-        appendProInfo(head,sep, products);
+        if(StringUtils.isNotBlank(dataInfo)){
+            head.append(dataInfo).append(sep);
+        }else {
+            appendProInfo(head, sep, products);
+        }
     }
 
 
@@ -453,6 +498,20 @@ public class MergeServiceImpl implements MergeService {
         }
         if(products.contains("scoremcashonxhqbdzcd")){
             String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
+            String[] split = fields.split(",");
+            for (int i=0;i<split.length;i++){
+                head.append(split[i]).append(sep);
+            }
+        }
+        if(products.contains("scoremcashon360xktwo")){
+            String fields = PropertiesUtil.getProperty("scoremcashon360xktwo");
+            String[] split = fields.split(",");
+            for (int i=0;i<split.length;i++){
+                head.append(split[i]).append(sep);
+            }
+        }
+        if(products.contains("scorebrevoloanmszd3")){
+            String fields = PropertiesUtil.getProperty("scorebrevoloanmszd3");
             String[] split = fields.split(",");
             for (int i=0;i<split.length;i++){
                 head.append(split[i]).append(sep);

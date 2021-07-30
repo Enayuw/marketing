@@ -58,7 +58,7 @@ otherConfig:
         appName: loan-warning
         appSecretKey: a938d0e974746651a11ddcdbcea31404
   mom:
-      appSecretKey: 1579f7d582f16d0030bd37537aadb78a
+      appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
 
 spring:
   rabbitmq:

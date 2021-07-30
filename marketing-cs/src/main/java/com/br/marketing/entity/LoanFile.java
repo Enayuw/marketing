@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Data
 public class LoanFile extends BaseRowModel {
-    private Integer id;
+    private Long id;
     private String apiCode;
     private String filePath;
     private String createTime;
@@ -39,7 +39,7 @@ public class LoanFile extends BaseRowModel {
     private List<String> zipFileNames;
     private String statisticFilePath;
     private Integer scoreStatus;
-
+    private String showTitle;
     @Override
     public String toString() {
         return "LoanFile{" +
@@ -62,6 +62,7 @@ public class LoanFile extends BaseRowModel {
                 ", skip=" + skip +
                 ", md5='" + md5 + '\'' +
                 ", dataType='" + dataType + '\'' +
+                ", showTitle='" + showTitle + '\'' +
                 '}';
     }
 }

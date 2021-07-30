@@ -3,8 +3,8 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.40.100:4000/marketing_test?useUnicode=true&characterEncoding=UTF-8
-         username: u_pd_marketing_yf
+         url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         username: u_pd_marketing
          password: M6teKbFVl1odfOCkC1JA
         # password: 9gEulsLRkXfzNMJSZMuq
          type: com.alibaba.druid.pool.DruidDataSource

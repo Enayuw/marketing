@@ -62,7 +62,7 @@ public class QaMergeJob extends AbstractSimpleElasticJob {
         }
         try {
             log.warn("开始执行合并任务，apicode={}",customer.getApiCode());
-            flowService.flow(customer.getApiCode());
+            flowService.flow(customer);
 
         } catch (Exception e) {
             log.error("程序跑批异常，apiCode={}",customer.getApiCode());

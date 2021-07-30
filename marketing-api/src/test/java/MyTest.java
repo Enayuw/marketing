@@ -21,10 +21,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -32,6 +32,26 @@ import java.util.concurrent.atomic.AtomicLong;
 @RunWith(SpringJUnit4ClassRunner.class)
 @Slf4j
 public class MyTest {
+
+    @Test
+    public void testStr(){
+
+        Date yyyyMMdd1 = null;
+        try {
+            yyyyMMdd1 = new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-26");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String yyyyMMdd = new SimpleDateFormat("yyyyMMdd").format(yyyyMMdd1);
+        System.out.println(yyyyMMdd);
+        HashMap<String,String> hs = new HashMap();
+        hs.put("checkBlackList",new String("1"));
+        if(hs.get("checkBlackList")=="1"){
+            System.out.println("====");
+        }else{
+            System.out.println("////");
+        }
+    }
 
     @Test
     public void testThread(){

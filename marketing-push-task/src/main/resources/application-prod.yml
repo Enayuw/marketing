@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.40.100:4000/marketing/loan_warning?useUnicode=true&characterEncoding=UTF-8
+         url: jdbc:mysql://tidb-w-brsms.brapp.com:4000/marketing/loan_warning?useUnicode=true&characterEncoding=UTF-8
          username: u_pd_l_warning
          password: pb4WgQCCY/pwIwe/6/HS
          type: com.alibaba.druid.pool.DruidDataSource

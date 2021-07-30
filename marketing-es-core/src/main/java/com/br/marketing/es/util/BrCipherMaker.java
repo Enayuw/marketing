@@ -2,6 +2,8 @@ package com.br.marketing.es.util;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -14,6 +16,7 @@ import java.util.Arrays;
  * @sine 2017/11/17
  */
 public class BrCipherMaker {
+    private static final Logger log = LoggerFactory.getLogger(BrCipherMaker.class);
     //	static final char sp = 31;  因放入json，会默认编码，\u001F 所以换成特殊 Α 升級版本換成 B
     private static final String SP = "Β";
     private static final String SP2 = "Α";
@@ -72,9 +75,12 @@ public class BrCipherMaker {
      */
     public String decode(String text) {
         if (StringUtils.isBlank(text) || !(StringUtils.contains(text, SP) || StringUtils.contains(text, SP2))) {
+            log.info("解密信息失败："+text+",SP："+SP+",SP2："+SP2);
             return text;
         } else if (StringUtils.contains(text, SP2)) {
-            return BrCipherMakerOld.getInstance().decode(text);
+            String decode = BrCipherMakerOld.getInstance().decode(text);
+            log.info("解密信息成功："+text+",解密信息："+decode+",SP2："+SP2);
+            return decode;
         }
         //先解析索引位置
         String[] txts = StringUtils.split(text, SP);
@@ -83,7 +89,9 @@ public class BrCipherMaker {
             String srcEnd = txts[1];
             int idx = Integer.parseInt(StringUtils.substring(srcEnd, 0, 1));
             src = new StringBuilder().append(src).append(StringUtils.substring(srcEnd, 1)).toString();
-            return decode(src, KEYS[idx]);
+            String decode = decode(src, KEYS[idx]);
+            log.info("解密信息成功："+text+",解密信息："+decode+",SP："+SP);
+            return decode;
         }
         return null;
     }

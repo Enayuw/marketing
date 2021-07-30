@@ -216,10 +216,12 @@
 			start_date,
 			monitor_type,
 			close_date,
+			cus_batch,
 			file_name,
 			actual_number,
 			is_repair,
-			context_id
+			context_id,
+		    cycle_day
 		FROM
 			b_marketing_task
 		WHERE
@@ -268,7 +270,8 @@
 		monitor_type,
 		actual_number,
 		task_number,
-		is_repair
+		is_repair,
+		context_id
 		FROM
 		b_marketing_task
 		WHERE
@@ -339,6 +342,9 @@
 
 
 	<insert id="insertTask" parameterType="com.br.marketing.entity.MarketingTask">
+		<selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+			SELECT LAST_INSERT_ID()
+		</selectKey>
 		INSERT INTO b_marketing_task (
 			`api_code`,
 			`batch_number`,
@@ -358,6 +364,9 @@
 			`monitor_type`,
 			`is_repair`,
 			`context_id`
+		<if test="cycleDay != null" >
+			,`cycle_day`
+		</if>
 		)
 		VALUES (
 			#{apiCode},
@@ -378,6 +387,9 @@
 			#{monitorType},
 			#{isRepair},
 			#{contextId}
+		<if test="cycleDay != null" >
+			,#{cycleDay}
+		</if>
 		);
 	</insert>
 
@@ -450,7 +462,7 @@
 		and status=1
 	</update>
 	<select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO" resultType="com.br.marketing.vo.ScoreDetailVo">
-		select  mt.cus_batch as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath,shf.id as fileId
+		select  shf.show_title as cusBatchNumber,mt.batch_number as batchNumber,shf.statistic_file_path as statisticFilePath,shf.id as fileId
 		from stra_his_file as shf
 		left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
 		left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
@@ -463,5 +475,12 @@
 		<![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
 		and shf.score_status = 2
 		order by shf.id desc
+	</select>
+
+	<select id="selectCycleTopByApiCode" resultType="com.br.marketing.entity.MarketingTask">
+		select *
+		from b_marketing_task
+		where api_code = #{apiCode} and monitor_type = 4
+		order by create_time asc limit 1
 	</select>
 </mapper>

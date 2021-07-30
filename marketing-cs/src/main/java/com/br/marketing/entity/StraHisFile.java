@@ -6,7 +6,7 @@ public class StraHisFile {
     /**
      * 
      */
-    private Integer id;
+    private Long id;
 
     /**
      * 
@@ -103,11 +103,16 @@ public class StraHisFile {
      */
     private String statisticFilePath;
 
-    public Integer getId() {
+    /**
+     * 
+     */
+    private String showTitle;
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -261,5 +266,13 @@ public class StraHisFile {
 
     public void setStatisticFilePath(String statisticFilePath) {
         this.statisticFilePath = statisticFilePath == null ? null : statisticFilePath.trim();
+    }
+
+    public String getShowTitle() {
+        return showTitle;
+    }
+
+    public void setShowTitle(String showTitle) {
+        this.showTitle = showTitle == null ? null : showTitle.trim();
     }
 }

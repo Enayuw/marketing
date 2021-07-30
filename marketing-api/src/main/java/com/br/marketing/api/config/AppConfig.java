@@ -99,10 +99,10 @@ public class AppConfig {
      * RestTemplate的单例
      * @return
      */
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setRequestFactory(getClientHttpRequestFactory());
-        return restTemplate;
-    }
+//    @Bean
+//    public RestTemplate restTemplate() {
+//        RestTemplate restTemplate = new RestTemplate();
+//        restTemplate.setRequestFactory(getClientHttpRequestFactory());
+//        return restTemplate;
+//    }
 }

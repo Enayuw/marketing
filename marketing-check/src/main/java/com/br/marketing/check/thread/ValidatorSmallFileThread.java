@@ -43,11 +43,13 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private String fileName;
     private AtomicLong desTime;
     private Integer checkOpen=1;
+    private Boolean checkBlackList;
     public ValidatorSmallFileThread(FileContext context,Map<String,String> param,Writer errorfw,AtomicLong desTime,Integer checkOpen) {
         this.row=param.get("row");
         this.head=param.get("head");
         this.apiCode=context.getTask().getApiCode();
         this.errorfw=errorfw;
+        this.checkBlackList="1".equals(param.get("checkBlackList"))?true:false;
         this.decodeClient=CkeckApplication.ac.getBean(DecodeClient.class);
         this.marketingUserMapper = CkeckApplication.ac.getBean(MarketingUserMapper.class);
         this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);;
@@ -65,8 +67,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
             boolean b = CheckDataUtil.checkData(head, row, apiCode, errorfw, sb, decodeClient);
             if(b&&checkOpen.equals(1)){
                     String[] split = sb.toString().split(",",14);
-
-                    if(isHitBlackList()){
+                    if(checkBlackList&&isHitBlackList()){
                         return null;
                     }
                     MarketingUser lu=new MarketingUser();

@@ -87,6 +87,12 @@ public class MarketingTask {
     @JSONField(name = "context_id")
     private Long contextId;
 
+    /**
+     * 周期天数
+     */
+    @JSONField(name = "cycle_day")
+    private String cycleDay;
+
     private Integer dataVolume;
 
     @Override

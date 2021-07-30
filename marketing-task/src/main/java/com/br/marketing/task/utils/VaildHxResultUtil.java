@@ -2,11 +2,16 @@ package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.exception.HxResultRuntimeException;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -35,6 +40,7 @@ public class VaildHxResultUtil {
             log.error("hxResult isEmpty");
             return false;
         }
+        log.info("isPass画像result:"+hxResult);
         JSONObject resultJson=JSONObject.parseObject(hxResult);
         if(!"00".equals(resultJson.getString("code"))
                 &&!"100002".equals(resultJson.getString("code"))){
@@ -51,19 +57,26 @@ public class VaildHxResultUtil {
             if(key.equalsIgnoreCase("mappingcust")||key.equalsIgnoreCase("mappingcust1")){
                 continue;
             }
-            String flag;
+            String flag = "";
             String s = Constants.flagMap.get(key.toLowerCase());
-            if(StringUtils.isEmpty(s)){
-                if(key.indexOf("ScoreCust")>-1||key.indexOf("scorecashon")>-1||key.indexOf("scoremcashon360xkone")>-1||key.indexOf("scoremcashon360xktwo")>-1
-                ||key.indexOf("scorencashonszyxxy")>-1||key.indexOf("scoremcashonxhqbdzcd")>-1){
-                    flag="flag_score";
-                }else {
-                    flag="flag_"+key.toLowerCase();
-                }
-            }else {
+            String string = "";
+            if(StringUtils.isNotBlank(s)){
                 flag="flag_"+s;
+                string = resultJson.getString(flag);
+            }else{
+                ProductResultByConfigSimpleServiceImpl bean = Scheduler.ac.getBean(ProductResultByConfigSimpleServiceImpl.class);
+                Result<List<String>> flagProduct = bean.getFlagProduct();
+                if(ResultCode.SUCCESS.getValue().equals(flagProduct.getCode())&&flagProduct.getData().contains(key)){
+                        flag="flag_score";
+                        string = resultJson.getString(flag);
+                }else{
+                    flag = "flag_" + key.toLowerCase();
+                    string = resultJson.getString(flag);
+                }
             }
-            String string = resultJson.getString(flag);
+            if("100002".equals(resultJson.getString("code"))&&!StringUtils.isNotBlank(string)){
+                continue;
+            }
           if(!"0".equals(string)&&!"1".equals(string)){
                 if("98".equals(string)){
                     String flagKey=Constants.HX_FLAG_98_NUM+ lu.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0);

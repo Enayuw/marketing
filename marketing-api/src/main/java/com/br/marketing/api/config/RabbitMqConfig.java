@@ -65,6 +65,24 @@ public class RabbitMqConfig {
     }
 
     /**
+     * marketing 跑批人员入队列
+     * @return
+     */
+    @Bean(name = MQConstants.Marketing_User_Receive)
+    public Queue UserQueue(){
+        return new Queue(MQConstants.Marketing_User_Receive, true);
+    }
+
+    /**
+     * 绑定——跑批人员队列
+     * @return
+     */
+    @Bean
+    public Binding UserBinding(){
+        return BindingBuilder.bind(UserQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_User_Receive);
+    }
+
+    /**
      * 延迟队列-查询推送智能客服状态
      * @return
      */

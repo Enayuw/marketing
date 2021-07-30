@@ -66,7 +66,7 @@ public class SftpClient extends BaseFtpClient{
             sftp = (ChannelSftp) channel;
             log.debug("登陆成功:{} 欢迎：{}" , sftp.getServerVersion(),userName);
         } catch (JSchException e) {
-            log.error("SSH方式连接FTP服务器时有JSchException异常!",e);
+            log.error("SSH方式连接FTP服务器时有JSchException异常!\r\n"+userName+","+hostName+":"+port,e);
             throw e;
         }
         return true;

@@ -35,6 +35,13 @@ public class RedisChgService {
         jedis.setex(key,seconds,value);
     }
 
+    public Long setnx(String key,String value,int seconds){
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        Long setnx = jedis.setnx(key, value);
+        jedis.expire(key,seconds);
+        return setnx;
+    }
+
     public String get(String key) {
         JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String str = jedis.get(key);

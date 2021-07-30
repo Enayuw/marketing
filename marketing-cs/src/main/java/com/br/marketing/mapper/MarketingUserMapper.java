@@ -1,9 +1,12 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.StrategyOfGroupDTO;
 import com.br.marketing.entity.MarketingSyncInfo;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
+import com.br.marketing.vo.CustGroupTempVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -127,12 +130,27 @@ public interface MarketingUserMapper {
          */
         List<MarketingUser> queryPpd(Map<String, String> param);
 
-        int insertBatchMarketingPreUser(@Param("apiCode") String apiCode,@Param("tasdId") String taskId,@Param("dateTime")String dateTime,@Param("dataItems")List<MarketingPreUserDetailDTO> dataItems);
+        int insertBatchMarketingPreUser(@Param("apiCode") String apiCode,@Param("tasdId") String taskId
+                ,@Param("dateTime")String dateTime,@Param("dataItems")List<MarketingPreUserDetailDTO> dataItems);
 
         int insertBatchMarketingPreUserByDatas(@Param("apiCode") String apiCode,@Param("datas") String datas);
 
         int insertMarketingPreUserByText(MarketingSyncInfo syncInfo);
 
+        void insertByRequestId(@Param("apiCode") String apiCode,@Param("valuesStr")String valuesStr);
 
+        List<CustGroupTempVO> selectGroupByCodeAndTime(@Param("apiCode") String apiCode, @Param("beginTime")String beginTime);
+
+        List<String> selectGroupByCodeAndCusAndTime(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch, @Param("beginTime")String beginTime);
+
+        List<String> selectCusBatchByCodeAndTime(@Param("apiCode") String apiCode,@Param("beginTime")String beginTime,@Param("endTime")String endTime);
+
+        void createMarketingPreUserTable(@Param("tableName") String tableName);
+
+        int countByPreUser(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("groupType")String groupType,@Param("appletDate")String appletDate);
+
+        int countBySureUser(@Param("apiCode") String apiCode,@Param("batchNumber")String batchNumber);
+
+        List<MarketingSyncUser> selectSyncUser(@Param("apiCode") String apiCode, @Param("requestId")String requestId);
 }
 

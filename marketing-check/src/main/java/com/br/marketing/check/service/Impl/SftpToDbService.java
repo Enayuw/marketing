@@ -44,9 +44,8 @@ public class SftpToDbService extends AbstractDataToDbService {
      */
     @Resource
     RedisChgService redisChgService;
+
     private final static Integer SPLITSIZE=5000;
-
-
 
     @Override
     public Boolean checkTxtFile(FileContext context) {
@@ -215,6 +214,7 @@ public class SftpToDbService extends AbstractDataToDbService {
             }
         task.setStatus(1);
     }
+
 
 
     /**

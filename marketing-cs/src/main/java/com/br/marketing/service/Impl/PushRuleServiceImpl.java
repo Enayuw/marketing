@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -22,6 +23,7 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
+import com.br.marketing.vo.TaskExtendInfoVO;
 import com.google.common.base.Joiner;
 
 import java.util.*;
@@ -143,6 +145,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final static Integer errorIdMark = 1;
 
+    final static String marketingPreUserTable = "b_marketing_sync_";
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -214,6 +217,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region insert db
+
+        StraHisFileExample straHisFileExample= new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        List<String> showTitles = straHisFiles.stream().map(t -> t.getShowTitle()).collect(Collectors.toList());
         CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmModel(dto.getProductName());
@@ -226,8 +234,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
-        List<String> cusList = marketingStrategyProducts.stream().map(t -> t.getCusBatchNumber()).collect(Collectors.toList());
-        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(cusList));
+        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
         customerInfoPushMain.setmStatus(1);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
@@ -239,7 +246,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmCusBatchNumber(t.getCusBatchNumber());
             customerInfoPushBatch.setCreateTime(date);
             customerInfoPushBatch.setUpdateTime(date);
-            customerInfoPushBatch.setmFileId(Long.valueOf(t.getFileId()));
+            customerInfoPushBatch.setmFileId(t.getFileId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
         //endregion
@@ -264,6 +271,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
+
+        HashMap<Long,TaskExtendInfoVO> hsTaskExtend = new HashMap<>();
+        List<TaskExtendInfoVO> extendInfosByFileIds = straHisFileMapper.getExtendInfosByFileIds(fileIds);
+        extendInfosByFileIds.forEach(t->{
+            hsTaskExtend.put(t.getFileId(),t);
+        });
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
@@ -271,10 +284,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
         queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
         if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
-            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString()
+                    .concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
         }
         if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
-            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString().concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
+            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
+                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
         }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         //region push Intelligent Customer Service
@@ -320,10 +335,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 if (log.isWarnEnabled()) {
-                    log.warn("人员信息：cusnum:" + marketingHistory.getCusNum() + ";cusbatchnumber:"
-                            + (StringUtils.isNotBlank(marketingHistory.getCusBatchNumber()) ? marketingHistory.getCusBatchNumber() : ""));
+                    log.warn("人员信息：cusnum:" + marketingHistory.getCusNum() + ";batchnumber:"
+                            + (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
-                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getCusBatchNumber()).concat("_")
+                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
                         .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 Optional<Product> first = marketingHistory.getProduct().stream().filter(t -> customerInfoPushMain.getmModel().equals(t.getCode())
@@ -338,6 +353,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if (first.isPresent()) {
                     pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
+                TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
+                if(taskExtendInfoVO !=null){
+                    pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
+                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
+                }
+
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
             }
@@ -664,6 +685,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             isCheck = merchantParam.getIsCheck();
         }
         long l = System.currentTimeMillis();
+        marketingUserMapper.createMarketingPreUserTable(marketingPreUserTable.concat(marketingSyncInfo.getApiCode()));
         ArrayList<Callable<Result>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
@@ -681,7 +703,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String cell = marketingPreUserDetailDTO.getCell();
                 encodeMapping(marketingPreUserDetailDTO, finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
-                String appletDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+                String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
                 String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
@@ -689,7 +711,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate, marketingPreUserDetailDTO.getFailType(), marketingPreUserDetailDTO.getStatus());
+                        , date, date, appletDate, marketingPreUserDetailDTO.getFailType()==null?"":marketingPreUserDetailDTO.getFailType(), marketingPreUserDetailDTO.getStatus());
                 try {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {

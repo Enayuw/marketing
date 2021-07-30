@@ -13,12 +13,15 @@ import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.Impl.ApiToDbServiceImpl;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -83,7 +86,9 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     @Resource
     DeleteService deleteService;
 
-    private final static String redisElasticJobKey = "elasticjob:contextid";
+    @Autowired
+    IApiToDbService iApiToDbService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Map<String, Set<String>> map=new HashMap<>();
@@ -169,7 +174,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setStatus(2);
                             task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
                             task.setCusBatch(task.getFileName());
-                            task.setContextId(redisChgService.incr(redisElasticJobKey));
+                            task.setContextId(iApiToDbService.getTaskContextId());
                             context.setCusBatch(task.getFileName());
                             marketingTaskMapper.insertTask(task);
                             context.setTask(task);

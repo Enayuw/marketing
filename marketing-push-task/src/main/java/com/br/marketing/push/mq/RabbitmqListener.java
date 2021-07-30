@@ -2,6 +2,8 @@ package com.br.marketing.push.mq;
 
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.Customer;
+import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.push.service.FlowService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,8 @@ import java.nio.charset.StandardCharsets;
 public class RabbitmqListener {
     @Resource
     private FlowService flowService;
-
+    @Resource
+    CustomerMapper customerMapper;
     /**
      * 文件校验
      * @param channel
@@ -39,7 +42,12 @@ public class RabbitmqListener {
                 return;
             }
             log.warn("==========接收到的消息内容为:{},返回给rabbitmq的Consumer tag为:{}",msg,message.getMessageProperties().getConsumerTag());
-            flowService.flow(msg);
+            Customer customer=customerMapper.getCustomerByApiCode(msg);
+            if(customer==null){
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
+                return;
+            }
+            flowService.flow(customer);
             // 手动ack消息
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
             log.warn("接收消息耗时：{}", (System.currentTimeMillis() - startTime));

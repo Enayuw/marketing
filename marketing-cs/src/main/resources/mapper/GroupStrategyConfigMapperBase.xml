@@ -5,9 +5,14 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="group_type" property="groupType" jdbcType="VARCHAR" />
+    <result column="group_type_short" property="groupTypeShort" jdbcType="VARCHAR" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
+    <result column="base_info" property="baseInfo" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="exec_type" property="execType" jdbcType="INTEGER" />
+    <result column="cycle_day" property="cycleDay" jdbcType="INTEGER" />
+    <result column="cycle_end_day" property="cycleEndDay" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -68,7 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, group_type, strategy_id, is_del, create_time
+    id, api_code, group_type, group_type_short, strategy_id, base_info, is_del, create_time, 
+    exec_type, cycle_day, cycle_end_day
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.GroupStrategyConfigExample" >
     select
@@ -104,10 +110,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_group_strategy_config (api_code, group_type, strategy_id, 
-      is_del, create_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
+    insert into b_group_strategy_config (api_code, group_type, group_type_short, 
+      strategy_id, base_info, is_del, 
+      create_time, exec_type, cycle_day, 
+      cycle_end_day)
+    values (#{apiCode,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, #{groupTypeShort,jdbcType=VARCHAR}, 
+      #{strategyId,jdbcType=VARCHAR}, #{baseInfo,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{execType,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, 
+      #{cycleEndDay,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.GroupStrategyConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -121,14 +131,29 @@
       <if test="groupType != null" >
         group_type,
       </if>
+      <if test="groupTypeShort != null" >
+        group_type_short,
+      </if>
       <if test="strategyId != null" >
         strategy_id,
+      </if>
+      <if test="baseInfo != null" >
+        base_info,
       </if>
       <if test="isDel != null" >
         is_del,
       </if>
       <if test="createTime != null" >
         create_time,
+      </if>
+      <if test="execType != null" >
+        exec_type,
+      </if>
+      <if test="cycleDay != null" >
+        cycle_day,
+      </if>
+      <if test="cycleEndDay != null" >
+        cycle_end_day,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -138,14 +163,29 @@
       <if test="groupType != null" >
         #{groupType,jdbcType=VARCHAR},
       </if>
+      <if test="groupTypeShort != null" >
+        #{groupTypeShort,jdbcType=VARCHAR},
+      </if>
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="baseInfo != null" >
+        #{baseInfo,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="execType != null" >
+        #{execType,jdbcType=INTEGER},
+      </if>
+      <if test="cycleDay != null" >
+        #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="cycleEndDay != null" >
+        #{cycleEndDay,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -167,14 +207,29 @@
       <if test="record.groupType != null" >
         group_type = #{record.groupType,jdbcType=VARCHAR},
       </if>
+      <if test="record.groupTypeShort != null" >
+        group_type_short = #{record.groupTypeShort,jdbcType=VARCHAR},
+      </if>
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.baseInfo != null" >
+        base_info = #{record.baseInfo,jdbcType=VARCHAR},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.execType != null" >
+        exec_type = #{record.execType,jdbcType=INTEGER},
+      </if>
+      <if test="record.cycleDay != null" >
+        cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="record.cycleEndDay != null" >
+        cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -186,9 +241,14 @@
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       group_type = #{record.groupType,jdbcType=VARCHAR},
+      group_type_short = #{record.groupTypeShort,jdbcType=VARCHAR},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      base_info = #{record.baseInfo,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      exec_type = #{record.execType,jdbcType=INTEGER},
+      cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -202,14 +262,29 @@
       <if test="groupType != null" >
         group_type = #{groupType,jdbcType=VARCHAR},
       </if>
+      <if test="groupTypeShort != null" >
+        group_type_short = #{groupTypeShort,jdbcType=VARCHAR},
+      </if>
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="baseInfo != null" >
+        base_info = #{baseInfo,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="execType != null" >
+        exec_type = #{execType,jdbcType=INTEGER},
+      </if>
+      <if test="cycleDay != null" >
+        cycle_day = #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="cycleEndDay != null" >
+        cycle_end_day = #{cycleEndDay,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -218,9 +293,14 @@
     update b_group_strategy_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
       group_type = #{groupType,jdbcType=VARCHAR},
+      group_type_short = #{groupTypeShort,jdbcType=VARCHAR},
       strategy_id = #{strategyId,jdbcType=VARCHAR},
+      base_info = #{baseInfo,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP}
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      exec_type = #{execType,jdbcType=INTEGER},
+      cycle_day = #{cycleDay,jdbcType=INTEGER},
+      cycle_end_day = #{cycleEndDay,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

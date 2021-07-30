@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingStrategyProductMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingStrategyProduct" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="file_id" property="fileId" jdbcType="INTEGER" />
+    <result column="file_id" property="fileId" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cus_batch_number" property="cusBatchNumber" jdbcType="VARCHAR" />
     <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
@@ -113,7 +113,7 @@
       batch_number, strategy_id, product_name, 
       product_version, is_del, create_time
       )
-    values (#{fileId,jdbcType=INTEGER}, #{apiCode,jdbcType=VARCHAR}, #{cusBatchNumber,jdbcType=VARCHAR}, 
+    values (#{fileId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{cusBatchNumber,jdbcType=VARCHAR}, 
       #{batchNumber,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, #{productName,jdbcType=VARCHAR}, 
       #{productVersion,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}
       )
@@ -154,7 +154,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="fileId != null" >
-        #{fileId,jdbcType=INTEGER},
+        #{fileId,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
@@ -195,7 +195,7 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.fileId != null" >
-        file_id = #{record.fileId,jdbcType=INTEGER},
+        file_id = #{record.fileId,jdbcType=BIGINT},
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -229,7 +229,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_strategy_product
     set id = #{record.id,jdbcType=BIGINT},
-      file_id = #{record.fileId,jdbcType=INTEGER},
+      file_id = #{record.fileId,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cus_batch_number = #{record.cusBatchNumber,jdbcType=VARCHAR},
       batch_number = #{record.batchNumber,jdbcType=VARCHAR},
@@ -246,7 +246,7 @@
     update b_marketing_strategy_product
     <set >
       <if test="fileId != null" >
-        file_id = #{fileId,jdbcType=INTEGER},
+        file_id = #{fileId,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -277,7 +277,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingStrategyProduct" >
     update b_marketing_strategy_product
-    set file_id = #{fileId,jdbcType=INTEGER},
+    set file_id = #{fileId,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
       cus_batch_number = #{cusBatchNumber,jdbcType=VARCHAR},
       batch_number = #{batchNumber,jdbcType=VARCHAR},
