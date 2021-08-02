@@ -9,9 +9,6 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @Author: jianmin.li
  * @Description: 消息队列配置
@@ -24,25 +21,25 @@ public class RabbitMqConfig {
 
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.exchangerName,true,false);
+        return new TopicExchange(MQConstants.EX_CHANGER_NAME,true,false);
     }
 
     @Bean(name = "TaskQueue")
     public Queue taskQueue() {
-        return new Queue(MQConstants.taskQueueName, true, false, false);
+        return new Queue(MQConstants.TASK_QUEUE_NAME, true, false, false);
     }
     @Bean(name = "bindingTaskQueue")
     public Binding bindingTaskQueue() {
-        return BindingBuilder.bind(taskQueue()).to(warningExchange()).with(MQConstants.taskRoutingKey);
+        return BindingBuilder.bind(taskQueue()).to(warningExchange()).with(MQConstants.TASK_ROUTING_KEY);
     }
 
     @Bean(name = "pushQueue")
     public Queue pushQueue() {
-        return new Queue(MQConstants.pushQueueName, true, false, false);
+        return new Queue(MQConstants.PUSH_QUEUE_NAME, true, false, false);
     }
     @Bean(name = "bindingPushQueue")
     public Binding bindingPushQueue() {
-        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.pushRoutingKey);
+        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.PUSH_ROUTING_KEY);
     }
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {

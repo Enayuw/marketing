@@ -2,7 +2,6 @@ package com.br.marketing.check.mq;
 
 import com.br.marketing.check.service.PushFinishService;
 import com.br.marketing.check.service.ResultCheckService;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,7 @@ public class RabbitmqListener {
      * @param channel
      * @param message
      */
-    @RabbitListener(queues = MQConstants.checkQueueName,containerFactory = "containerFactory")
+    @RabbitListener(queues = MQConstants.CHECK_QUEUE_NAME,containerFactory = "containerFactory")
     @RabbitHandler
     public void resultCheck(Channel channel,Message message) {
         long startTime = System.currentTimeMillis();

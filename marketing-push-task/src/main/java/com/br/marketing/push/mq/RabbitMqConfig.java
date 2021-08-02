@@ -43,25 +43,25 @@ public class RabbitMqConfig {
     public static final int MQ_LISTENER = 1;
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.exchangerName,true,false);
+        return new TopicExchange(MQConstants.EX_CHANGER_NAME,true,false);
     }
 
     @Bean(name = "pushQueue")
     public Queue pushQueue() {
-        return new Queue(MQConstants.pushQueueName, true, false, false);
+        return new Queue(MQConstants.PUSH_QUEUE_NAME, true, false, false);
     }
     @Bean(name = "bindingPushQueue")
     public Binding bindingPushQueue() {
-        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.pushRoutingKey);
+        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.PUSH_ROUTING_KEY);
     }
 
     @Bean(name = "checkQueue")
     public Queue checkQueue() {
-        return new Queue(MQConstants.checkQueueName, true, false, false);
+        return new Queue(MQConstants.CHECK_QUEUE_NAME, true, false, false);
     }
     @Bean(name = "bindinCheckQueue")
     public Binding bindingCheckQueue() {
-        return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.checkRoutingKey);
+        return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.CHECK_ROUTING_KEY);
     }
 
     @Bean
