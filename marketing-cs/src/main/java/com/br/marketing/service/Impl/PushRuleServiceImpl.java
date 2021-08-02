@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -95,16 +94,17 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private Date addDay(String date, Integer addDays, String format) {
+        Calendar c = Calendar.getInstance();
+        Date time = null;
         try {
-            Calendar c = Calendar.getInstance();
             Date endTime = DateUtils.parse(date, format);
             c.setTime(endTime);
             c.add(Calendar.DAY_OF_MONTH, addDays);
-            Date time = c.getTime();
-            return time;
+            time = c.getTime();
         } catch (ParseException e) {
-            throw new RuntimeException(e.getMessage());
+            log.error("date:{} is error", date, e);
         }
+        return time;
     }
 
     @Autowired
@@ -143,8 +143,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
-    final static Integer errorIdMark = 1;
-
     final static String marketingPreUserTable = "b_marketing_sync_";
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -163,7 +161,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         productExample.createCriteria().andFileIdIn(dto.getFileIdList())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingStrategyProduct> marketingStrategyProductsDb = marketingStrategyProductMapper.selectByExample(productExample);
-        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t -> dto.getProductName().equals(t.getProductName())
+        List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t ->
+                dto.getProductName().equals(t.getProductName())
                 && dto.getProductVersion().equals(t.getProductVersion())).collect(Collectors.toList());
         if (marketingStrategyProducts.size() <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
@@ -295,7 +294,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region push Intelligent Customer Service
 
         //调用es查询接口
-        Integer minTop = (customerInfoPushMain.getmNumMin() == null) ? 0 : customerInfoPushMain.getmNumMin();
+        int minTop = (customerInfoPushMain.getmNumMin() == null) ? 0 : customerInfoPushMain.getmNumMin();
         int startPageYushu = minTop % 10000;
         Integer startPage = minTop / 10000 + (startPageYushu > 0 ? 1 : 0);
         String searchAfterStr = "";
@@ -335,8 +334,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
                 if (log.isWarnEnabled()) {
-                    log.warn("人员信息：cusnum:" + marketingHistory.getCusNum() + ";batchnumber:"
-                            + (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
+                    log.warn("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
+                            (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
                 dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
                         .concat(String.valueOf(System.currentTimeMillis())));
@@ -372,7 +371,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
             extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
             if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
-                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
+                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",")
+                        .concat(customerInfoPushMain.getmScoreMax().toString()));
             }
             if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
                 extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
@@ -404,7 +404,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         producter.send("Marketing.Push.CustomerService.Search.Delay", customerInfoPushMain.getId().toString());
         //endregion
 
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     @Override
@@ -711,7 +711,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate, marketingPreUserDetailDTO.getFailType()==null?"":marketingPreUserDetailDTO.getFailType(), marketingPreUserDetailDTO.getStatus());
+                        , date, date, appletDate,
+                        marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType(),
+                        marketingPreUserDetailDTO.getStatus());
                 try {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {

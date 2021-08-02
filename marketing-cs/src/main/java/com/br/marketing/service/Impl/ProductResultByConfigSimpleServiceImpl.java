@@ -13,7 +13,6 @@ import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +57,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         StrategyProductDetailVO strategyProductDetailVO = null;
         if(strategyProductDetailVOs.size()>1){
             Optional<StrategyProductDetailVO> first = strategyProductDetailVOs.stream()
-                    .filter(t -> t.getStrategy_id().equals(strategyId))
+                    .filter(t -> t.getStrategyId().equals(strategyId))
                     .findFirst();
             if(first.isPresent()){
                 strategyProductDetailVO = first.get();
@@ -149,7 +148,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             }else{
                 Optional<StrategyProductDetailVO> first =
                         strategyProductDetailVOs.stream()
-                                .filter(t -> strategyId.equals(t.getStrategy_id())).findFirst();
+                                .filter(t -> strategyId.equals(t.getStrategyId())).findFirst();
                 if(first.isPresent()){
                     return new Result<>().setCode(ResultCode.SUCCESS.getValue())
                             .setDate(first.get().getFields());

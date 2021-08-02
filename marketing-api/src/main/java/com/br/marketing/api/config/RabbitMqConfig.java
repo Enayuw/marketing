@@ -73,7 +73,7 @@ public class RabbitMqConfig {
      * @return
      */
     @Bean(name = MQConstants.Marketing_User_Receive)
-    public Queue UserQueue() {
+    public Queue userQueue() {
         return new Queue(MQConstants.Marketing_User_Receive, true);
     }
 
@@ -83,8 +83,8 @@ public class RabbitMqConfig {
      * @return
      */
     @Bean
-    public Binding UserBinding() {
-        return BindingBuilder.bind(UserQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_User_Receive);
+    public Binding userBinding() {
+        return BindingBuilder.bind(userQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_User_Receive);
     }
 
     /**

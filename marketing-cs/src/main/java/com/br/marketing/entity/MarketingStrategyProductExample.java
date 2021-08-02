@@ -9,10 +9,10 @@ public class MarketingStrategyProductExample {
 
     protected boolean distinct;
 
-    protected List<Criteria> oredCriteria;
+    protected List<BaseCriteria> oredCriteria;
 
     public MarketingStrategyProductExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<BaseCriteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -31,30 +31,30 @@ public class MarketingStrategyProductExample {
         return distinct;
     }
 
-    public List<Criteria> getOredCriteria() {
+    public List<BaseCriteria> getOredCriteria() {
         return oredCriteria;
     }
 
-    public void or(Criteria criteria) {
+    public void or(BaseCriteria criteria) {
         oredCriteria.add(criteria);
     }
 
-    public Criteria or() {
-        Criteria criteria = createCriteriaInternal();
+    public BaseCriteria or() {
+        BaseCriteria criteria = createCriteriaInternal();
         oredCriteria.add(criteria);
         return criteria;
     }
 
-    public Criteria createCriteria() {
-        Criteria criteria = createCriteriaInternal();
+    public BaseCriteria createCriteria() {
+        BaseCriteria criteria = createCriteriaInternal();
         if (oredCriteria.size() == 0) {
             oredCriteria.add(criteria);
         }
         return criteria;
     }
 
-    protected Criteria createCriteriaInternal() {
-        Criteria criteria = new Criteria();
+    protected BaseCriteria createCriteriaInternal() {
+        BaseCriteria criteria = new BaseCriteria();
         return criteria;
     }
 
@@ -105,670 +105,670 @@ public class MarketingStrategyProductExample {
             criteria.add(new Criterion(condition, value1, value2));
         }
 
-        public Criteria andIdIsNull() {
+        public BaseCriteria andIdIsNull() {
             addCriterion("id is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdIsNotNull() {
+        public BaseCriteria andIdIsNotNull() {
             addCriterion("id is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdEqualTo(Long value) {
+        public BaseCriteria andIdEqualTo(Long value) {
             addCriterion("id =", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdNotEqualTo(Long value) {
+        public BaseCriteria andIdNotEqualTo(Long value) {
             addCriterion("id <>", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdGreaterThan(Long value) {
+        public BaseCriteria andIdGreaterThan(Long value) {
             addCriterion("id >", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdGreaterThanOrEqualTo(Long value) {
+        public BaseCriteria andIdGreaterThanOrEqualTo(Long value) {
             addCriterion("id >=", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdLessThan(Long value) {
+        public BaseCriteria andIdLessThan(Long value) {
             addCriterion("id <", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdLessThanOrEqualTo(Long value) {
+        public BaseCriteria andIdLessThanOrEqualTo(Long value) {
             addCriterion("id <=", value, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdIn(List<Long> values) {
+        public BaseCriteria andIdIn(List<Long> values) {
             addCriterion("id in", values, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdNotIn(List<Long> values) {
+        public BaseCriteria andIdNotIn(List<Long> values) {
             addCriterion("id not in", values, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdBetween(Long value1, Long value2) {
+        public BaseCriteria andIdBetween(Long value1, Long value2) {
             addCriterion("id between", value1, value2, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIdNotBetween(Long value1, Long value2) {
+        public BaseCriteria andIdNotBetween(Long value1, Long value2) {
             addCriterion("id not between", value1, value2, "id");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdIsNull() {
+        public BaseCriteria andFileIdIsNull() {
             addCriterion("file_id is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdIsNotNull() {
+        public BaseCriteria andFileIdIsNotNull() {
             addCriterion("file_id is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdEqualTo(Long value) {
+        public BaseCriteria andFileIdEqualTo(Long value) {
             addCriterion("file_id =", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdNotEqualTo(Long value) {
+        public BaseCriteria andFileIdNotEqualTo(Long value) {
             addCriterion("file_id <>", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdGreaterThan(Long value) {
+        public BaseCriteria andFileIdGreaterThan(Long value) {
             addCriterion("file_id >", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdGreaterThanOrEqualTo(Long value) {
+        public BaseCriteria andFileIdGreaterThanOrEqualTo(Long value) {
             addCriterion("file_id >=", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdLessThan(Long value) {
+        public BaseCriteria andFileIdLessThan(Long value) {
             addCriterion("file_id <", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdLessThanOrEqualTo(Long value) {
+        public BaseCriteria andFileIdLessThanOrEqualTo(Long value) {
             addCriterion("file_id <=", value, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdIn(List<Long> values) {
+        public BaseCriteria andFileIdIn(List<Long> values) {
             addCriterion("file_id in", values, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdNotIn(List<Long> values) {
+        public BaseCriteria andFileIdNotIn(List<Long> values) {
             addCriterion("file_id not in", values, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdBetween(Long value1, Long value2) {
+        public BaseCriteria andFileIdBetween(Long value1, Long value2) {
             addCriterion("file_id between", value1, value2, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andFileIdNotBetween(Long value1, Long value2) {
+        public BaseCriteria andFileIdNotBetween(Long value1, Long value2) {
             addCriterion("file_id not between", value1, value2, "fileId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeIsNull() {
+        public BaseCriteria andApiCodeIsNull() {
             addCriterion("api_code is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeIsNotNull() {
+        public BaseCriteria andApiCodeIsNotNull() {
             addCriterion("api_code is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeEqualTo(String value) {
+        public BaseCriteria andApiCodeEqualTo(String value) {
             addCriterion("api_code =", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeNotEqualTo(String value) {
+        public BaseCriteria andApiCodeNotEqualTo(String value) {
             addCriterion("api_code <>", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeGreaterThan(String value) {
+        public BaseCriteria andApiCodeGreaterThan(String value) {
             addCriterion("api_code >", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andApiCodeGreaterThanOrEqualTo(String value) {
             addCriterion("api_code >=", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeLessThan(String value) {
+        public BaseCriteria andApiCodeLessThan(String value) {
             addCriterion("api_code <", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+        public BaseCriteria andApiCodeLessThanOrEqualTo(String value) {
             addCriterion("api_code <=", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeLike(String value) {
+        public BaseCriteria andApiCodeLike(String value) {
             addCriterion("api_code like", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeNotLike(String value) {
+        public BaseCriteria andApiCodeNotLike(String value) {
             addCriterion("api_code not like", value, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeIn(List<String> values) {
+        public BaseCriteria andApiCodeIn(List<String> values) {
             addCriterion("api_code in", values, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeNotIn(List<String> values) {
+        public BaseCriteria andApiCodeNotIn(List<String> values) {
             addCriterion("api_code not in", values, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeBetween(String value1, String value2) {
+        public BaseCriteria andApiCodeBetween(String value1, String value2) {
             addCriterion("api_code between", value1, value2, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andApiCodeNotBetween(String value1, String value2) {
+        public BaseCriteria andApiCodeNotBetween(String value1, String value2) {
             addCriterion("api_code not between", value1, value2, "apiCode");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberIsNull() {
+        public BaseCriteria andCusBatchNumberIsNull() {
             addCriterion("cus_batch_number is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberIsNotNull() {
+        public BaseCriteria andCusBatchNumberIsNotNull() {
             addCriterion("cus_batch_number is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberEqualTo(String value) {
+        public BaseCriteria andCusBatchNumberEqualTo(String value) {
             addCriterion("cus_batch_number =", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberNotEqualTo(String value) {
+        public BaseCriteria andCusBatchNumberNotEqualTo(String value) {
             addCriterion("cus_batch_number <>", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberGreaterThan(String value) {
+        public BaseCriteria andCusBatchNumberGreaterThan(String value) {
             addCriterion("cus_batch_number >", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andCusBatchNumberGreaterThanOrEqualTo(String value) {
             addCriterion("cus_batch_number >=", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberLessThan(String value) {
+        public BaseCriteria andCusBatchNumberLessThan(String value) {
             addCriterion("cus_batch_number <", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberLessThanOrEqualTo(String value) {
+        public BaseCriteria andCusBatchNumberLessThanOrEqualTo(String value) {
             addCriterion("cus_batch_number <=", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberLike(String value) {
+        public BaseCriteria andCusBatchNumberLike(String value) {
             addCriterion("cus_batch_number like", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberNotLike(String value) {
+        public BaseCriteria andCusBatchNumberNotLike(String value) {
             addCriterion("cus_batch_number not like", value, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberIn(List<String> values) {
+        public BaseCriteria andCusBatchNumberIn(List<String> values) {
             addCriterion("cus_batch_number in", values, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberNotIn(List<String> values) {
+        public BaseCriteria andCusBatchNumberNotIn(List<String> values) {
             addCriterion("cus_batch_number not in", values, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberBetween(String value1, String value2) {
+        public BaseCriteria andCusBatchNumberBetween(String value1, String value2) {
             addCriterion("cus_batch_number between", value1, value2, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCusBatchNumberNotBetween(String value1, String value2) {
+        public BaseCriteria andCusBatchNumberNotBetween(String value1, String value2) {
             addCriterion("cus_batch_number not between", value1, value2, "cusBatchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberIsNull() {
+        public BaseCriteria andBatchNumberIsNull() {
             addCriterion("batch_number is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberIsNotNull() {
+        public BaseCriteria andBatchNumberIsNotNull() {
             addCriterion("batch_number is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberEqualTo(String value) {
+        public BaseCriteria andBatchNumberEqualTo(String value) {
             addCriterion("batch_number =", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberNotEqualTo(String value) {
+        public BaseCriteria andBatchNumberNotEqualTo(String value) {
             addCriterion("batch_number <>", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberGreaterThan(String value) {
+        public BaseCriteria andBatchNumberGreaterThan(String value) {
             addCriterion("batch_number >", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andBatchNumberGreaterThanOrEqualTo(String value) {
             addCriterion("batch_number >=", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberLessThan(String value) {
+        public BaseCriteria andBatchNumberLessThan(String value) {
             addCriterion("batch_number <", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberLessThanOrEqualTo(String value) {
+        public BaseCriteria andBatchNumberLessThanOrEqualTo(String value) {
             addCriterion("batch_number <=", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberLike(String value) {
+        public BaseCriteria andBatchNumberLike(String value) {
             addCriterion("batch_number like", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberNotLike(String value) {
+        public BaseCriteria andBatchNumberNotLike(String value) {
             addCriterion("batch_number not like", value, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberIn(List<String> values) {
+        public BaseCriteria andBatchNumberIn(List<String> values) {
             addCriterion("batch_number in", values, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberNotIn(List<String> values) {
+        public BaseCriteria andBatchNumberNotIn(List<String> values) {
             addCriterion("batch_number not in", values, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberBetween(String value1, String value2) {
+        public BaseCriteria andBatchNumberBetween(String value1, String value2) {
             addCriterion("batch_number between", value1, value2, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andBatchNumberNotBetween(String value1, String value2) {
+        public BaseCriteria andBatchNumberNotBetween(String value1, String value2) {
             addCriterion("batch_number not between", value1, value2, "batchNumber");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdIsNull() {
+        public BaseCriteria andStrategyIdIsNull() {
             addCriterion("strategy_id is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdIsNotNull() {
+        public BaseCriteria andStrategyIdIsNotNull() {
             addCriterion("strategy_id is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdEqualTo(String value) {
+        public BaseCriteria andStrategyIdEqualTo(String value) {
             addCriterion("strategy_id =", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdNotEqualTo(String value) {
+        public BaseCriteria andStrategyIdNotEqualTo(String value) {
             addCriterion("strategy_id <>", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdGreaterThan(String value) {
+        public BaseCriteria andStrategyIdGreaterThan(String value) {
             addCriterion("strategy_id >", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andStrategyIdGreaterThanOrEqualTo(String value) {
             addCriterion("strategy_id >=", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdLessThan(String value) {
+        public BaseCriteria andStrategyIdLessThan(String value) {
             addCriterion("strategy_id <", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdLessThanOrEqualTo(String value) {
+        public BaseCriteria andStrategyIdLessThanOrEqualTo(String value) {
             addCriterion("strategy_id <=", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdLike(String value) {
+        public BaseCriteria andStrategyIdLike(String value) {
             addCriterion("strategy_id like", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdNotLike(String value) {
+        public BaseCriteria andStrategyIdNotLike(String value) {
             addCriterion("strategy_id not like", value, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdIn(List<String> values) {
+        public BaseCriteria andStrategyIdIn(List<String> values) {
             addCriterion("strategy_id in", values, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdNotIn(List<String> values) {
+        public BaseCriteria andStrategyIdNotIn(List<String> values) {
             addCriterion("strategy_id not in", values, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdBetween(String value1, String value2) {
+        public BaseCriteria andStrategyIdBetween(String value1, String value2) {
             addCriterion("strategy_id between", value1, value2, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andStrategyIdNotBetween(String value1, String value2) {
+        public BaseCriteria andStrategyIdNotBetween(String value1, String value2) {
             addCriterion("strategy_id not between", value1, value2, "strategyId");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameIsNull() {
+        public BaseCriteria andProductNameIsNull() {
             addCriterion("product_name is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameIsNotNull() {
+        public BaseCriteria andProductNameIsNotNull() {
             addCriterion("product_name is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameEqualTo(String value) {
+        public BaseCriteria andProductNameEqualTo(String value) {
             addCriterion("product_name =", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameNotEqualTo(String value) {
+        public BaseCriteria andProductNameNotEqualTo(String value) {
             addCriterion("product_name <>", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameGreaterThan(String value) {
+        public BaseCriteria andProductNameGreaterThan(String value) {
             addCriterion("product_name >", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andProductNameGreaterThanOrEqualTo(String value) {
             addCriterion("product_name >=", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameLessThan(String value) {
+        public BaseCriteria andProductNameLessThan(String value) {
             addCriterion("product_name <", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameLessThanOrEqualTo(String value) {
+        public BaseCriteria andProductNameLessThanOrEqualTo(String value) {
             addCriterion("product_name <=", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameLike(String value) {
+        public BaseCriteria andProductNameLike(String value) {
             addCriterion("product_name like", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameNotLike(String value) {
+        public BaseCriteria andProductNameNotLike(String value) {
             addCriterion("product_name not like", value, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameIn(List<String> values) {
+        public BaseCriteria andProductNameIn(List<String> values) {
             addCriterion("product_name in", values, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameNotIn(List<String> values) {
+        public BaseCriteria andProductNameNotIn(List<String> values) {
             addCriterion("product_name not in", values, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameBetween(String value1, String value2) {
+        public BaseCriteria andProductNameBetween(String value1, String value2) {
             addCriterion("product_name between", value1, value2, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductNameNotBetween(String value1, String value2) {
+        public BaseCriteria andProductNameNotBetween(String value1, String value2) {
             addCriterion("product_name not between", value1, value2, "productName");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionIsNull() {
+        public BaseCriteria andProductVersionIsNull() {
             addCriterion("product_version is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionIsNotNull() {
+        public BaseCriteria andProductVersionIsNotNull() {
             addCriterion("product_version is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionEqualTo(String value) {
+        public BaseCriteria andProductVersionEqualTo(String value) {
             addCriterion("product_version =", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionNotEqualTo(String value) {
+        public BaseCriteria andProductVersionNotEqualTo(String value) {
             addCriterion("product_version <>", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionGreaterThan(String value) {
+        public BaseCriteria andProductVersionGreaterThan(String value) {
             addCriterion("product_version >", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionGreaterThanOrEqualTo(String value) {
+        public BaseCriteria andProductVersionGreaterThanOrEqualTo(String value) {
             addCriterion("product_version >=", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionLessThan(String value) {
+        public BaseCriteria andProductVersionLessThan(String value) {
             addCriterion("product_version <", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionLessThanOrEqualTo(String value) {
+        public BaseCriteria andProductVersionLessThanOrEqualTo(String value) {
             addCriterion("product_version <=", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionLike(String value) {
+        public BaseCriteria andProductVersionLike(String value) {
             addCriterion("product_version like", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionNotLike(String value) {
+        public BaseCriteria andProductVersionNotLike(String value) {
             addCriterion("product_version not like", value, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionIn(List<String> values) {
+        public BaseCriteria andProductVersionIn(List<String> values) {
             addCriterion("product_version in", values, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionNotIn(List<String> values) {
+        public BaseCriteria andProductVersionNotIn(List<String> values) {
             addCriterion("product_version not in", values, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionBetween(String value1, String value2) {
+        public BaseCriteria andProductVersionBetween(String value1, String value2) {
             addCriterion("product_version between", value1, value2, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andProductVersionNotBetween(String value1, String value2) {
+        public BaseCriteria andProductVersionNotBetween(String value1, String value2) {
             addCriterion("product_version not between", value1, value2, "productVersion");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelIsNull() {
+        public BaseCriteria andIsDelIsNull() {
             addCriterion("is_del is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelIsNotNull() {
+        public BaseCriteria andIsDelIsNotNull() {
             addCriterion("is_del is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelEqualTo(Integer value) {
+        public BaseCriteria andIsDelEqualTo(Integer value) {
             addCriterion("is_del =", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelNotEqualTo(Integer value) {
+        public BaseCriteria andIsDelNotEqualTo(Integer value) {
             addCriterion("is_del <>", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelGreaterThan(Integer value) {
+        public BaseCriteria andIsDelGreaterThan(Integer value) {
             addCriterion("is_del >", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelGreaterThanOrEqualTo(Integer value) {
+        public BaseCriteria andIsDelGreaterThanOrEqualTo(Integer value) {
             addCriterion("is_del >=", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelLessThan(Integer value) {
+        public BaseCriteria andIsDelLessThan(Integer value) {
             addCriterion("is_del <", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelLessThanOrEqualTo(Integer value) {
+        public BaseCriteria andIsDelLessThanOrEqualTo(Integer value) {
             addCriterion("is_del <=", value, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelIn(List<Integer> values) {
+        public BaseCriteria andIsDelIn(List<Integer> values) {
             addCriterion("is_del in", values, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelNotIn(List<Integer> values) {
+        public BaseCriteria andIsDelNotIn(List<Integer> values) {
             addCriterion("is_del not in", values, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelBetween(Integer value1, Integer value2) {
+        public BaseCriteria andIsDelBetween(Integer value1, Integer value2) {
             addCriterion("is_del between", value1, value2, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
+        public BaseCriteria andIsDelNotBetween(Integer value1, Integer value2) {
             addCriterion("is_del not between", value1, value2, "isDel");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeIsNull() {
+        public BaseCriteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeIsNotNull() {
+        public BaseCriteria andCreateTimeIsNotNull() {
             addCriterion("create_time is not null");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeEqualTo(Date value) {
+        public BaseCriteria andCreateTimeEqualTo(Date value) {
             addCriterion("create_time =", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeNotEqualTo(Date value) {
+        public BaseCriteria andCreateTimeNotEqualTo(Date value) {
             addCriterion("create_time <>", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeGreaterThan(Date value) {
+        public BaseCriteria andCreateTimeGreaterThan(Date value) {
             addCriterion("create_time >", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeGreaterThanOrEqualTo(Date value) {
+        public BaseCriteria andCreateTimeGreaterThanOrEqualTo(Date value) {
             addCriterion("create_time >=", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeLessThan(Date value) {
+        public BaseCriteria andCreateTimeLessThan(Date value) {
             addCriterion("create_time <", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeLessThanOrEqualTo(Date value) {
+        public BaseCriteria andCreateTimeLessThanOrEqualTo(Date value) {
             addCriterion("create_time <=", value, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeIn(List<Date> values) {
+        public BaseCriteria andCreateTimeIn(List<Date> values) {
             addCriterion("create_time in", values, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeNotIn(List<Date> values) {
+        public BaseCriteria andCreateTimeNotIn(List<Date> values) {
             addCriterion("create_time not in", values, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeBetween(Date value1, Date value2) {
+        public BaseCriteria andCreateTimeBetween(Date value1, Date value2) {
             addCriterion("create_time between", value1, value2, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
 
-        public Criteria andCreateTimeNotBetween(Date value1, Date value2) {
+        public BaseCriteria andCreateTimeNotBetween(Date value1, Date value2) {
             addCriterion("create_time not between", value1, value2, "createTime");
-            return (Criteria) this;
+            return (BaseCriteria) this;
         }
     }
 
-    public static class Criteria extends GeneratedCriteria {
+    public static class BaseCriteria extends GeneratedCriteria {
 
-        protected Criteria() {
+        protected BaseCriteria() {
             super();
         }
     }
