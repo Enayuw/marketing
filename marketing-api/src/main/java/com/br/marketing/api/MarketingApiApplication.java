@@ -12,7 +12,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 
 /**
- * 程序主类
+ * 程序主类-启动入口
  */
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
@@ -22,11 +22,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @Slf4j
 public class MarketingApiApplication {
 
-    /**
-     * 启动入口
-     *
-     * @param args
-     */
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");

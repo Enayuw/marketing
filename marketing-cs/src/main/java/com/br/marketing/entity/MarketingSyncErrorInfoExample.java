@@ -64,10 +64,10 @@ public class MarketingSyncErrorInfoExample {
         distinct = false;
     }
 
-    protected abstract static class BaseGeneratedCriteria {
+    protected abstract static class AbstractGeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected BaseGeneratedCriteria() {
+        protected AbstractGeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -496,7 +496,7 @@ public class MarketingSyncErrorInfoExample {
         }
     }
 
-    public static class Criteria extends BaseGeneratedCriteria {
+    public static class Criteria extends AbstractGeneratedCriteria {
 
         protected Criteria() {
             super();

@@ -1,6 +1,4 @@
 package com.br.marketing.api.controller;
-import java.util.Date;
-
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -19,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -41,15 +38,16 @@ public class PushRuleFilterController {
 
     /**
      * 获取批次列表
+     *
      * @param dto
      * @return
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
-    public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto){
+    public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
         try {
             return pushRuleService.getBatchInfos(dto);
-        }catch (ParamValidErrorException ex){
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
@@ -57,15 +55,16 @@ public class PushRuleFilterController {
 
     /**
      * 获取推送列表
+     *
      * @param dto
      * @return
      */
     @ApiOperation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
-    public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto){
+    public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
         try {
             return pushRuleService.getPushInfos(dto);
-        }catch (ParamValidErrorException ex){
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
@@ -73,15 +72,16 @@ public class PushRuleFilterController {
 
     /**
      * 推送客服
+     *
      * @param dto
      * @return
      */
     @ApiOperation(value = "推送客服")
     @PostMapping("/pushCustomer")
-    public Result pushCustomer(@RequestBody PushCustomerDTO dto){
+    public Result pushCustomer(@RequestBody PushCustomerDTO dto) {
         try {
             return pushRuleService.pushCustomer(dto);
-        }catch (ParamValidErrorException ex){
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
@@ -89,18 +89,19 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "测试消费")
     @GetMapping("/testConsumerCustomer")
-    public Result testConsumerCustomer(Long id){
+    public Result testConsumerCustomer(Long id) {
         return pushRuleService.consumerPushCustomer(id);
     }
 
     /**
      * 测试MQ
+     *
      * @return
      */
     @ApiOperation(value = "测试rabbit")
     @PostMapping("/testRabbitProduct")
-    public String testRabbitProduct(){
-        producter.send("hehe","还有谁");
+    public String testRabbitProduct() {
+        producter.send("hehe", "还有谁");
 //        producter.send("hehe",12L);
 //        producter.send("hehe",String.valueOf(12L));
         return "true";

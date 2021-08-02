@@ -4,12 +4,10 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.service.EmailService;
-import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.omg.CORBA.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +34,7 @@ public class ErrorControllerAspect {
 
     /**
      * 捕获Reuslt 形式输出的接口异常
+     *
      * @param jp
      * @return
      * @throws Throwable
@@ -50,7 +49,7 @@ public class ErrorControllerAspect {
                 Result obj = new Result();
                 obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e);
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e);
                 obj.setMessage("发生内部错误");
                 return obj;
             } catch (Exception ee) {
@@ -64,6 +63,7 @@ public class ErrorControllerAspect {
 
     /**
      * 捕获ApiNoDataResult 形式输出的接口异常
+     *
      * @param jp
      * @return
      * @throws Throwable
@@ -78,7 +78,7 @@ public class ErrorControllerAspect {
                 ApiNoDataResult obj = new ApiNoDataResult();
                 obj.setCode("10001");
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e);
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e);
                 obj.setMessage("系统错误");
                 return obj;
             } catch (Exception ee) {
@@ -92,36 +92,39 @@ public class ErrorControllerAspect {
 
     /**
      * 异常信息处理
+     *
      * @param typeName
      * @param methodName
      * @param args
      * @param e
+     * @return
      */
-    private void errorHandle(String typeName,String methodName,Object[] args,Throwable e){
+    private void errorHandle(String typeName, String methodName, Object[] args, Throwable e) {
         StringBuilder params = new StringBuilder();
+        String br = "<br/>";
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
-                params.append(String.format("Index:%d,Data:%s \r\n",i,args[i]));
+                params.append(String.format("Index:%d,Data:%s ", i, args[i])).append(br);
             }
         }
         UUID uuid = UUID.randomUUID();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(String.format("\r\n环境：%s" ,env));
-        stringBuilder.append(String.format("\r\nlogId：%s" , uuid));
-        stringBuilder.append(String.format("\r\n方法：%s.%s",typeName,methodName));
-        stringBuilder.append(String.format("\r\n参数：%s",params.toString()));
-        stringBuilder.append(String.format("\r\nException：%s", e.toString()));
-        stringBuilder.append("\r\n StackTrace：");
+        StringBuilder stringBuilder = new StringBuilder()
+                .append(br).append(String.format("环境：%s", env))
+                .append(br).append(String.format("logId：%s", uuid))
+                .append(br).append(String.format("方法：%s.%s", typeName, methodName))
+                .append(br).append(String.format("参数：%s", params.toString()))
+                .append(br).append(String.format("Exception：%s", e.toString()))
+                .append(br).append(" StackTrace：");
         for (int i = 0; i < e.getStackTrace().length; i++) {
-            stringBuilder.append(String.format("\r\n%s", e.getStackTrace()[i].toString()));
+            stringBuilder.append(br).append(e.getStackTrace()[i]);
         }
-        StringBuilder stringBuilderMail = new StringBuilder();
-        stringBuilderMail.append(String.format("\r\n环境：%s" ,env));
-        stringBuilderMail.append(String.format("\r\nlogId：%s" , uuid));
-        stringBuilderMail.append(String.format("\r\n方法：%s.%s",typeName,methodName));
-        stringBuilderMail.append(String.format("\r\n参数：%s",params.toString()));
-        systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(),"Marketing-Api");
-        if(log.isErrorEnabled()){
+        StringBuilder stringBuilderMail = new StringBuilder()
+                .append(br).append(String.format("环境：%s", env))
+                .append(br).append(String.format("logId：%s", uuid))
+                .append(br).append(String.format("方法：%s.%s", typeName, methodName))
+                .append(br).append(String.format("参数：%s", params.toString()));
+        systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(), "Marketing-Api");
+        if (log.isErrorEnabled()) {
             log.error(stringBuilder.toString());
         }
     }
