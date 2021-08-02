@@ -116,7 +116,7 @@ public class ErrorControllerAspect {
                 .append(br).append(String.format("Exception：%s", e.toString()))
                 .append(br).append(" StackTrace：");
         for (int i = 0; i < e.getStackTrace().length; i++) {
-            stringBuilder.append(br).append(e.getStackTrace()[i].toString());
+            stringBuilder.append(br).append(e.getStackTrace()[i]);
         }
         StringBuilder stringBuilderMail = new StringBuilder()
                 .append(br).append(String.format("环境：%s", env))
