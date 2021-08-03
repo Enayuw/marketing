@@ -1,8 +1,11 @@
 package com.br.marketing.api.aspect;
 
+import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.CalledInterfaceLog;
+import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -13,11 +16,16 @@ import org.omg.CORBA.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 对外接口的异常捕获
@@ -34,6 +42,15 @@ public class ErrorControllerAspect {
     @Autowired
     EmailService systemExceptionServiceImpl;
 
+    @Autowired
+    HttpServletRequest httpServletRequest;
+
+    @Autowired
+    CalledInterfaceLogMapper interfaceLogMapper;
+
+    @Autowired
+    @Qualifier("logDbpool")
+    ThreadPoolExecutor logDbpool;
     /**
      * 捕获Reuslt 形式输出的接口异常
      * @param jp
@@ -70,15 +87,43 @@ public class ErrorControllerAspect {
      */
     @Around("execution(public com.br.marketing.common.commondto.ApiNoDataResult com.br.marketing.api.controller..*.*(..))")
     public Object handApiNoDataResultException(ProceedingJoinPoint jp) throws Throwable {
+
+        long startTime = System.currentTimeMillis();
+        Method sMethod = ((MethodSignature) jp.getSignature()).getMethod();
+        SaveLog saveLog = sMethod.getAnnotation(SaveLog.class);
+        CalledInterfaceLog interfaceLog = new CalledInterfaceLog();
+        if(saveLog!=null){
+
+            interfaceLog.setRequestId(UUID.randomUUID().toString());
+            interfaceLog.setRequestParam(jp.getArgs().toString().length()>5000
+                    ?jp.getArgs().toString().substring(0,5000)
+                    :jp.getArgs().toString());
+            interfaceLog.setMethodName(httpServletRequest.getRequestURI());
+        }
+
         try {
             Object rvt = jp.proceed();
+            if(saveLog!=null) {
+                interfaceLog.setResult(rvt.toString());
+                interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
+                interfaceLog.setCreateTime(new Date());
+
+                logDbpool.submit(() -> {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                });
+            }
             return rvt;
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
                 obj.setCode("10001");
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e);
+                if(saveLog != null){
+                    interfaceLog.setCode(2);
+                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis()-startTime));
+                    interfaceLog.setCreateTime(new Date());
+                }
+                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,saveLog==null?null:interfaceLog);
                 obj.setMessage("系统错误");
                 return obj;
             } catch (Exception ee) {
@@ -97,7 +142,7 @@ public class ErrorControllerAspect {
      * @param args
      * @param e
      */
-    private void errorHandle(String typeName,String methodName,Object[] args,Throwable e){
+    private void errorHandle(String typeName,String methodName,Object[] args,Throwable e,CalledInterfaceLog interfaceLog){
         StringBuilder params = new StringBuilder();
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
@@ -123,6 +168,14 @@ public class ErrorControllerAspect {
         systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(),"Marketing-Api");
         if(log.isErrorEnabled()){
             log.error(stringBuilder.toString());
+        }
+
+        if(interfaceLog!=null){
+            String s = stringBuilder.toString();
+            interfaceLog.setResult(s.length()>=5000?s.substring(0,5000):s);
+            logDbpool.submit(()->{
+                interfaceLogMapper.insertSelective(interfaceLog);
+            });
         }
     }
 }

@@ -468,7 +468,9 @@
 		left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
 		where mt.api_code = #{apiCode}
 		and msp.product_name = #{productName}
-		and msp.product_version =#{productVersion}
+		  <if test="productVersion !=null and productVersion !=''">
+			and msp.product_version =#{productVersion}
+		  </if>
 		<![CDATA[ and mt.create_time >= #{uploadBeginTime} ]]>
 		<![CDATA[ and mt.create_time <= #{uploadEndTime} ]]>
 		<![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>

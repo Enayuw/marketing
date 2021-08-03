@@ -29,4 +29,26 @@
         <![CDATA[and create_time >= #{beginTime} and create_time < #{endTime}  ]]>
         order by id asc limit 200
     </select>
+
+    <update id="createMarketingTransferTable" parameterType="java.lang.String">
+        CREATE TABLE
+            IF NOT EXISTS ${tableName} (
+           `id` BIGINT(20) auto_increment NOT NULL COMMENT '自增主键',
+           `request_id` varchar(100) NULL COMMENT '请求id',
+            `task_id` varchar(100) NULL COMMENT '任务id',
+            `cust_num` varchar(100) NULL COMMENT '客户编号',
+            `transform_time` DATETIME NULL COMMENT '转化时间',
+            `create_time` DATETIME NULL COMMENT '入库时间',
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='转化表'
+    </update>
+
+    <insert id="insertBatchTransfer" parameterType="java.lang.String">
+        ${execSql}
+    </insert>
+
+    <select id="selectTransfersByRequestId" resultType="java.lang.Integer">
+        select count(1) from marketing_transfer_${apiCode}
+        where request_id = #{requestId}
+    </select>
 </mapper>

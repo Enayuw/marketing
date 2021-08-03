@@ -7,6 +7,7 @@ import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 
 import javax.validation.Valid;
+import java.text.ParseException;
 import java.util.List;
 
 public interface PushRuleService {
@@ -42,13 +43,6 @@ public interface PushRuleService {
      */
     Result<Boolean> getCustomerStatus(Long mId);
 
-    /**
-     * 批量推送人员
-     *
-     * @param dto
-     * @return
-     */
-    Result insertMarketingPreUser(@Valid RequestCommonDTO<MarketingPreUserDTO> dto);
 
     /**
      * 接受异步推送人员文本信息
@@ -60,15 +54,7 @@ public interface PushRuleService {
     Result insertMarketingPreUserText(String apiCode, String jsonData);
 
 
-    /**
-     * 接受异步推送人员文本信息
-     *
-     * @param apiCode
-     * @param jsonData
-     * @return
-     */
-    Result insertMarketingPreUserMq(String apiCode, String jsonData);
-
+    Result insertBatchTransferUser(String apiCode,String jsonData);
     /**
      * 消费异步推送人员信息
      *
@@ -85,4 +71,6 @@ public interface PushRuleService {
      * @return
      */
     Result<MarketingPreUserSyncDetailVO> getMarketingPreUserSyncStatus(@Valid MarketingPreUserSyncStatusDTO dto);
+
+
 }

@@ -14,4 +14,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncInfo> getDatalimit(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch
                                          ,@Param("id") Long id,@Param("beginTime") String beginTime
                                          ,@Param("endTime") String endTime);
+
+    void createMarketingTransferTable(@Param("tableName") String tableName);
+
+    Integer insertBatchTransfer(@Param("execSql") String execSql);
+
+    Integer selectTransfersByRequestId(@Param("apiCode") String apiCode,@Param("requestId") String requestId);
 }
