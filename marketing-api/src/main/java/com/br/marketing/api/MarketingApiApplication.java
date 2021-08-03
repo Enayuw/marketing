@@ -12,7 +12,14 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 
 /**
- * 程序主类-启动入口
+ * 程序主类
+ *
+ * @Author linquan.guo
+ * @CreateDate 2021/8/2 14:32
+ * @UpdateUser linquan.guo
+ * @UpdateDate 2021/8/2 14:32
+ * @UpdateRemark 修改内容
+ * @Version 1.0
  */
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
@@ -22,6 +29,12 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @Slf4j
 public class MarketingApiApplication {
 
+    /**
+     * 启动入口
+     *
+     * @param args
+     * @return
+     */
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");

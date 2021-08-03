@@ -1,29 +1,12 @@
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.api.MarketingApiApplication;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.RandomUtils;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.utils.ThreeDes;
-import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.mapper.MarketingStrategyProductMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;

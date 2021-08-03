@@ -2,44 +2,40 @@ package com.br.marketing.common.utils;
 
 
 public class MQConstants {
-    public static final String exchangerName="loanWarningExchange";
+    public static final String EX_CHANGER_NAME = "loanWarningExchange";
 
     //营销平台交换机
-    public static final String MarketingexchangerName = "gate";
+    public static final String MARKETINGEXCHANGER_NAME = "gate";
 
     //营销平台死信交换机
-    public static final String MarketingexchangerDeadName = "deadgate";
+    public static final String MARKETINGEXCHANGER_DEAD_NAME = "deadgate";
 
 
     /**
      * queue
      */
-    public static final String taskQueueName="taskQueue";
-    public static final String pushQueueName="pushQueue";
-    public static final String checkQueueName="checkQueue";
+    public static final String TASK_QUEUE_NAME = "taskQueue";
+    public static final String PUSH_QUEUE_NAME = "pushQueue";
+    public static final String CHECK_QUEUE_NAME = "checkQueue";
 
     //异步处理人员入库的队列
-    public static final String Marketing_PreUser_Receive = "Marketing_PreUser_Receive";
-    public static final String Marketing_User_Receive = "Marketing_User_Receive";
-    public static final String Marketing_Push_CustomerService_Search_Delay = "Marketing_Push_CustomerService_Search_Delay";
-    public static final String Marketing_Push_CustomerService_Search = "Marketing_Push_CustomerService_Search";
-    public static final String Marketing_Push_CustomerService = "Marketing_Push_CustomerService";
+    public static final String MARKETING_PRE_USER_RECEIVE = "Marketing_PreUser_Receive";
+    public static final String MARKETING_USER_RECEIVE = "Marketing_User_Receive";
+    public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing_Push_CustomerService_Search_Delay";
+    public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH = "Marketing_Push_CustomerService_Search";
+    public static final String MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing_Push_CustomerService";
 
     /**
      * routingkey
      */
-    public static final String taskRoutingKey = "taskRoutingKey";
-    public static final String pushRoutingKey="pushRoutingKey";
-    public static final String checkRoutingKey="checkRoutingKey";
+    public static final String TASK_ROUTING_KEY = "taskRoutingKey";
+    public static final String PUSH_ROUTING_KEY = "pushRoutingKey";
+    public static final String CHECK_ROUTING_KEY = "checkRoutingKey";
 
-    public static final String RoutingKey_Marketing_PreUser_Receive = "Marketing.PreUser.Receive";
-    public static final String RoutingKey_Marketing_User_Receive = "Marketing.User.Receive";
-    public static final String RoutingKey_Marketing_Push_CustomerService_Search_topic = "Marketing.Push.CustomerService.Search.#";
-    public static final String RoutingKey_Marketing_Push_CustomerService_Search_Delay = "Marketing.Push.CustomerService.Search.Delay";
-    public static final String RoutingKey_Marketing_Push_CustomerService_Search = "Marketing.Push.CustomerService.Search";
-    public static final String RoutingKey_Marketing_Push_CustomerService = "Marketing.Push.CustomerService";
-
-
+    public static final String ROUTING_KEY_MARKETING_PRE_USER_RECEIVE = "Marketing.PreUser.Receive";
+    public static final String ROUTING_KEY_MARKETING_USER_RECEIVE = "Marketing.User.Receive";
+    public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing.Push.CustomerService.Search.Delay";
+    public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing.Push.CustomerService";
 
 
 }

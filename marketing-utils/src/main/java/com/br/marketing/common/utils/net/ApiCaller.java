@@ -1,28 +1,22 @@
 package com.br.marketing.common.utils.net;
 
 import com.alibaba.fastjson.JSON;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
-//@Component
-//@Scope(proxyMode=ScopedProxyMode.TARGET_CLASS,value = "prototype")
+@Slf4j
 public class ApiCaller {
 
-    public ApiCaller(){
+    public ApiCaller() {
         restTemplate = new RestTemplate();
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate){
+    public ApiCaller(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
     }
@@ -59,28 +53,27 @@ public class ApiCaller {
         this.requestHeader = requestHeader;
         return this;
     }
+
     public ApiCaller setContentType(MediaType contentType) {
         this.contentType = contentType;
         return this;
     }
 
-    public ApiCaller setHttpHeaders(HashMap<String,String> headers) {
-        headers.keySet().forEach(t->{
-            this.httpHeaders.add(t,headers.get(t));
-                });
+    public ApiCaller setHttpHeaders(HashMap<String, String> headers) {
+        headers.keySet().forEach((String t) -> {
+            this.httpHeaders.add(t, headers.get(t));
+        });
         return this;
     }
 
-    public String get(){
+    public String get() {
         ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, createHttpEntity(), String.class);
         return exchange.getBody();
     }
 
-    public ThirdApiResultTransfer postTransferStr(){
-        System.out.println("POST====="+this);
+    public ThirdApiResultTransfer postTransferStr() {
         HttpEntity postHttpEntity = createPostHttpEntity();
-        System.out.println(url);
-        System.out.println(postHttpEntity.getBody());
+        log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
@@ -88,20 +81,20 @@ public class ApiCaller {
         return transfer;
     }
 
-    
-    private HttpEntity createHttpEntity(){
+
+    private HttpEntity createHttpEntity() {
         HttpEntity requestEntity = new HttpEntity<String>(null, httpHeaders);
         return requestEntity;
     }
 
-    private HttpEntity createPostHttpEntity(){
+    private HttpEntity createPostHttpEntity() {
         HttpEntity requestEntity;
         httpHeaders.setContentType(contentType);
         if (requestParam instanceof String) {
             requestEntity = new HttpEntity<String>((String) requestParam, httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_JSON_UTF8)) {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
-        } else if(contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)){
+        } else if (contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 //            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
             requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {

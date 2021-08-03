@@ -21,14 +21,11 @@ public class NameValidator implements Valid<String> {
 
     @Override
     public boolean valid(String param) {
-        if (StringUtils.isNotEmpty(param)) {
-            if (param.length() >= 2 && param.length() <= 30) {
-                if (param.contains("·")) {
-                    return NAME_PATTERN.matcher(param).matches();
-                } else {
-                    return NAME_PATTERN1.matcher(param).matches();
-                }
-
+        if (StringUtils.isNotBlank(param) && (param.length() >= 2 && param.length() <= 30)) {
+            if (param.contains("·")) {
+                return NAME_PATTERN.matcher(param).matches();
+            } else {
+                return NAME_PATTERN1.matcher(param).matches();
             }
         }
         return false;

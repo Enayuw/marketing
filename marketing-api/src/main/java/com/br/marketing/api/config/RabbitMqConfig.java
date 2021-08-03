@@ -32,9 +32,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.MarketingexchangerName)
+    @Bean(name = MQConstants.MARKETINGEXCHANGER_NAME)
     public TopicExchange gateExchange() {
-        return new TopicExchange(MQConstants.MarketingexchangerName, true, false);
+        return new TopicExchange(MQConstants.MARKETINGEXCHANGER_NAME, true, false);
     }
 
     /**
@@ -42,9 +42,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.MarketingexchangerDeadName)
+    @Bean(name = MQConstants.MARKETINGEXCHANGER_DEAD_NAME)
     public TopicExchange deadGateExchange() {
-        return new TopicExchange(MQConstants.MarketingexchangerDeadName, true, false);
+        return new TopicExchange(MQConstants.MARKETINGEXCHANGER_DEAD_NAME, true, false);
     }
 
     /**
@@ -52,9 +52,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_PreUser_Receive)
+    @Bean(name = MQConstants.MARKETING_PRE_USER_RECEIVE)
     public Queue preUserQueue() {
-        return new Queue(MQConstants.Marketing_PreUser_Receive, true);
+        return new Queue(MQConstants.MARKETING_PRE_USER_RECEIVE, true);
     }
 
     /**
@@ -64,7 +64,7 @@ public class RabbitMqConfig {
      */
     @Bean
     public Binding preUserBinding() {
-        return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_PreUser_Receive);
+        return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE);
     }
 
     /**
@@ -72,9 +72,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_User_Receive)
+    @Bean(name = MQConstants.MARKETING_USER_RECEIVE)
     public Queue userQueue() {
-        return new Queue(MQConstants.Marketing_User_Receive, true);
+        return new Queue(MQConstants.MARKETING_USER_RECEIVE, true);
     }
 
     /**
@@ -84,7 +84,7 @@ public class RabbitMqConfig {
      */
     @Bean
     public Binding userBinding() {
-        return BindingBuilder.bind(userQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_User_Receive);
+        return BindingBuilder.bind(userQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_USER_RECEIVE);
     }
 
     /**
@@ -92,16 +92,16 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService_Search_Delay)
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY)
     public Queue customerSearchDelayQueue() {
         Map<String, Object> args = new HashMap<>(2);
         // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
-        args.put("x-dead-letter-exchange", MQConstants.MarketingexchangerDeadName);
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
         // x-dead-letter-routing-key  这里声明当前队列的死信路由key
-        args.put("x-dead-letter-routing-key", MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
         // x-message-ttl  声明队列的TTL
         args.put("x-message-ttl", 3000);
-        return QueueBuilder.durable(MQConstants.Marketing_Push_CustomerService_Search_Delay).withArguments(args).build();
+        return QueueBuilder.durable(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY).withArguments(args).build();
     }
 
     /**
@@ -113,7 +113,7 @@ public class RabbitMqConfig {
     public Binding customerSearchDelayBinding() {
         return BindingBuilder.bind(customerSearchDelayQueue())
                 .to(gateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
     }
 
     /**
@@ -121,9 +121,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService_Search)
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH)
     public Queue customerSearchQueue() {
-        return new Queue(MQConstants.Marketing_Push_CustomerService_Search, true);
+        return new Queue(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, true);
     }
 
     /**
@@ -135,7 +135,7 @@ public class RabbitMqConfig {
     public Binding customerSearchBinding() {
         return BindingBuilder.bind(customerSearchQueue())
                 .to(deadGateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
     }
 
     /**
@@ -143,9 +143,9 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService)
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE)
     public Queue pushCustomerSearchQueue() {
-        return new Queue(MQConstants.Marketing_Push_CustomerService, true);
+        return new Queue(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE, true);
     }
 
     /**
@@ -157,7 +157,7 @@ public class RabbitMqConfig {
     public Binding pushCustomerSearchBinding() {
         return BindingBuilder.bind(pushCustomerSearchQueue())
                 .to(gateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE);
     }
 
     @Bean

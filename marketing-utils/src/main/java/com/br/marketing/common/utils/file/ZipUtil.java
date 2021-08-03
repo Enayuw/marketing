@@ -52,7 +52,7 @@ public class ZipUtil {
                     }
                     // 将压缩文件内容写入到这个文件中
                     InputStream is = zipFile.getInputStream(entry);
-                    OutputStream fos =java.nio.file.Files.newOutputStream(Paths.get(destDirPath + "/" + entry.getName()));
+                    OutputStream fos = Files.newOutputStream(Paths.get(destDirPath + "/" + entry.getName()));
                     int len;
                     byte[] buf = new byte[1024];
                     while ((len = is.read(buf)) != -1) {
@@ -80,13 +80,13 @@ public class ZipUtil {
             throw new RuntimeException(srcFilePath + "不存在");
         }
         try {
-            OutputStream fos =java.nio.file.Files.newOutputStream(Paths.get(destFilePath));
+            OutputStream fos = Files.newOutputStream(Paths.get(destFilePath));
             ZipOutputStream zos = new ZipOutputStream(fos);
             String baseDir = "";
             compressbyType(src, zos, baseDir);
             zos.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("compress error", e);
         }
     }
     /**
@@ -138,8 +138,7 @@ public class ZipUtil {
         if (!file.exists()) {
             return;
         }
-        try (BufferedInputStream bis = new BufferedInputStream(java.nio.file.Files.newInputStream(file.toPath()));) {
-
+        try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
             ZipEntry entry = new ZipEntry(baseDir + file.getName());
             zos.putNextEntry(entry);
             int count;
@@ -148,7 +147,7 @@ public class ZipUtil {
                 zos.write(buf, 0, count);
             }
         } catch (Exception e) {
-            log.error("compressFile error",e);
+            log.error("compressFile error", e);
         }
     }
 
@@ -160,11 +159,11 @@ public class ZipUtil {
             return;
         }
         File[] files = dir.listFiles();
-        if(files.length == 0){
+        if (files.length == 0) {
             try {
-                zos.putNextEntry(new ZipEntry(baseDir + dir.getName()+File.separator));
+                zos.putNextEntry(new ZipEntry(baseDir + dir.getName() + File.separator));
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("compressDir error", e);
             }
         }
         for (File file : files) {
