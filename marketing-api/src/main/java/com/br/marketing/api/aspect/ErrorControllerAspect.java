@@ -67,7 +67,7 @@ public class ErrorControllerAspect {
                 Result obj = new Result();
                 obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e);
+                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,null);
                 obj.setMessage("发生内部错误");
                 return obj;
             } catch (Exception ee) {

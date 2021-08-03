@@ -5,7 +5,7 @@ import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.stereotype.Component;
 
 
-@FeignClient(value = "b-house-service",fallbackFactory = IntelligentCustomerFeignClient.FallIntelligentCustomerFeignClient.class)
+@FeignClient(value = "ROBOTAI-API-SERVICE",fallbackFactory = IntelligentCustomerFeignClient.FallIntelligentCustomerFeignClient.class)
 public interface IntelligentCustomerFeignClient {
 
     @Component
