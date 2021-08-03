@@ -392,6 +392,23 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setShowTitle(createShowTitle(blt));
             loanFileMapper.insertFile(blf);
 
+            if(customer.getPushCustomer()==1){
+                JSONArray dtbArray=JSONArray.parseArray(strategyStr);
+                for(int i=0;i<dtbArray.size();i++){
+                    JSONObject jsonObject = dtbArray.getJSONObject(i);
+                    MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
+                    marketingStrategyProduct.setApiCode(blt.getApiCode());
+                    marketingStrategyProduct.setBatchNumber(blt.getBatchNumber());
+                    marketingStrategyProduct.setCreateTime(new Date());
+                    marketingStrategyProduct.setCusBatchNumber(blt.getFileName());
+                    marketingStrategyProduct.setProductName(jsonObject.getString("code"));
+                    marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
+                    marketingStrategyProduct.setStrategyId(blt.getStrategyId());
+                    marketingStrategyProduct.setFileId(blf.getId());
+                    marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
+                }
+            }
+
             /**
              * 全量任务提交前，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
              */
