@@ -348,6 +348,8 @@
 		    `request_batch`,
 			`cust_num`,
 			`cell`,
+		    `id_card`,
+		    `name`,
 			`group_type`,
 			`register_date`,
 			`reserve_field1`,

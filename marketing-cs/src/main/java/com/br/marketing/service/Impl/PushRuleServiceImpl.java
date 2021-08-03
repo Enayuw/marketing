@@ -701,13 +701,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //解密、规则校验
                 String cell = marketingPreUserDetailDTO.getCell();
-                encodeMapping(marketingPreUserDetailDTO, finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
+                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
-                        , marketingPreUserDetailDTO.getCell(), marketingPreUserDetailDTO.getGroupType()
+                        , marketingPreUserDetailDTO.getCell()
+                        , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?marketingPreUserDetailDTO.getId():""
+                        , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?marketingPreUserDetailDTO.getName():""
+                        , marketingPreUserDetailDTO.getGroupType()
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
@@ -789,32 +794,55 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param isCheck
      * @return
      */
-    private void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
+    private void encodeMapping(MarketingPreUserDetailDTO user,String type, Integer isCheck) {
         user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-        String cell = user.getCell();
-        if (decodeClient.isMd5(cell)) {
+        String content = "";
+        switch (type){
+            case "cell":
+                content = user.getCell();
+                break;
+            case "id":
+                content = user.getId();
+                break;
+            case "name":
+                content = user.getName();
+                break;
+        }
+        if (decodeClient.isMd5(content)) {
             //cell md5
-            cell = decodeClient.query(cell, "cell", "md5", "");
-            if (StringUtils.isBlank(cell)) {
+            content = decodeClient.query(content, type, "md5", "");
+            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
-        } else if (cell.length() == 64) {
+        } else if (content.length() == 64) {
             //cell sha256
-            cell = decodeClient.query(cell, "cell", "sha", "");
-            if (StringUtils.isBlank(cell)) {
+            content = decodeClient.query(content, type, "sha", "");
+            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
         }
         //明文规则校验
         UserValidator userValidator = new UserValidator(isCheck);
-        if (StringUtils.isNotBlank(cell)) {
-            if (!userValidator.validatePhone(cell)) {
+        if (StringUtils.isNotBlank(content)&&"cell".equals(type)) {
+            if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
-            user.setCell(BrCipherMaker.getInstance().encode(cell));
+            user.setCell(BrCipherMaker.getInstance().encode(content));
+        }
+        if (StringUtils.isNotBlank(content)&&"id".equals(type)) {
+            if (!userValidator.validateId(content)) {
+                user.setId(content);
+            }
+            user.setId(BrCipherMaker.getInstance().encode(content));
+        }
+        if (StringUtils.isNotBlank(content)&&"name".equals(type)) {
+            if (!userValidator.validateName(content)) {
+                user.setName(content);
+            }
+            user.setName(BrCipherMaker.getInstance().encode(content));
         }
     }
 
