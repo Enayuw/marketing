@@ -722,12 +722,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum()
-                                .concat("重复客户编号"));
+                                .concat(":重复客户编号"));
                     } else if (ex.getMessage().contains("uk_taskId_cell")) {
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("重复电话"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum().concat(":重复电话"));
                     } else {
                         log.error(ex.getMessage(),ex);
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("入库异常"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum().concat(":入库异常"));
                     }
                 }
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -799,13 +799,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         String content = "";
         switch (type){
             case "cell":
-                content = user.getCell();
+                content = StringUtils.isBlank(user.getCell())?"":user.getCell();
                 break;
             case "id":
-                content = user.getId();
+                content = StringUtils.isBlank(user.getId())?"":user.getId();
                 break;
             case "name":
-                content = user.getName();
+                content = StringUtils.isBlank(user.getName())?"":user.getName();
                 break;
         }
         if (decodeClient.isMd5(content)) {
@@ -835,12 +835,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isNotBlank(content)&&"id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
+                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setId(BrCipherMaker.getInstance().encode(content));
         }
         if (StringUtils.isNotBlank(content)&&"name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
+                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setName(BrCipherMaker.getInstance().encode(content));
         }
