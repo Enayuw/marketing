@@ -12,20 +12,17 @@ import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.es.util.UuidUtils;
-import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.task.Scheduler;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/21.
@@ -37,7 +34,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ResultUtil {
 
 
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,Integer esOpen,String baseHeadInfo) throws IOException {
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
+                                    MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
+                                    Integer esOpen,String baseHeadInfo) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
 
         StringBuilder sb=new StringBuilder();
@@ -84,7 +83,8 @@ public class ResultUtil {
                   hxJson=resultJson;
               }
             if(StringUtils.isNotBlank(baseHeadInfo)){
-                sb.append(baseHeadInfo.replace("{cell}", DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(user.getCell()).getBytes()))).append(sep);
+                sb.append(baseHeadInfo.replace("{cell}", DigestUtils.md5DigestAsHex(
+                        BrCipherMaker.getInstance().decode(user.getCell()).getBytes()))).append(sep);
             }
 
 
@@ -120,8 +120,8 @@ public class ResultUtil {
         ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
                 getBean(ProductResultByConfigSimpleServiceImpl.class);
         Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId);
-        if(!ResultCode.SUCCESS.equals(result.getCode())){
-            ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            ProductResultUtil.dealProResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode());
         }
         if(log.isInfoEnabled()){
             log.info("sb信息--"+sb.toString());
