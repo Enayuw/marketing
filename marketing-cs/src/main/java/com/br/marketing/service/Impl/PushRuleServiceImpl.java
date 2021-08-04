@@ -715,6 +715,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //解密、规则校验
                 String cell = marketingPreUserDetailDTO.getCell();
+                marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
                 encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
@@ -820,7 +821,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     private void encodeMapping(MarketingPreUserDetailDTO user,String type, Integer isCheck) {
-        user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
         String content = "";
         switch (type){
             case "cell":
