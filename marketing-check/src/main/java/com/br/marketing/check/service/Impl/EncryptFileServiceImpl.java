@@ -2,7 +2,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.br.marketing.check.service.EncryptFileService;
 import com.br.marketing.client.IceClient;
-import com.br.marketing.common.utils.file.AESCrpyt;
+import com.br.marketing.common.utils.file.AesCrpyt;
 import com.br.marketing.entity.MerchantParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class EncryptFileServiceImpl implements EncryptFileService {
             String[] split = fileName.split("\\.");
             if(split.length>=2){
                 String destFileName=split[0]+"_cipherdecrypt."+split[1];
-                AESCrpyt.decrypt(path+fileName,path+destFileName,merchantParam.getFileEncryptionKey());
+                AesCrpyt.decrypt(path+fileName,path+destFileName,merchantParam.getFileEncryptionKey());
             }
 
             return true;
@@ -39,11 +39,11 @@ public class EncryptFileServiceImpl implements EncryptFileService {
         if(split.length>=2){
             String destFileName=split[0]+"_cipherencrypt."+split[1];
             log.info(destFileName);
-            AESCrpyt.crypt(path+filePath,path+destFileName,password);
+            AesCrpyt.crypt(path+filePath,path+destFileName,password);
 
 
             String destFileName1=split[0]+"_cipherdecrypt."+split[1];
-            AESCrpyt.decrypt(path+destFileName,path+destFileName1,password);
+            AesCrpyt.decrypt(path+destFileName,path+destFileName1,password);
         }
         return true;
     }

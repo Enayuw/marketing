@@ -7,12 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -56,7 +50,6 @@ public final class CallUtils {
      * 获取javaBean的form-urlencoded拼接字符串
      */
     public static String getFormUrlEncodedStr(Map<String, Object> paramKV, boolean toUrlEncoded, String encodeName) {
-        StringBuilder paramSb = new StringBuilder();
         ArrayList<String> paramList = new ArrayList<String>();
         for (Map.Entry<String, Object> entry : paramKV.entrySet()) {
             try {

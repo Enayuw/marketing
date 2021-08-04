@@ -29,7 +29,7 @@ public class RabbitmqListener {
      * @param channel
      * @param message
      */
-    @RabbitListener(queues = MQConstants.pushQueueName,containerFactory = "containerFactory")
+    @RabbitListener(queues = MQConstants.PUSH_QUEUE_NAME,containerFactory = "containerFactory")
     @RabbitHandler
     public void resultCheck(Channel channel,Message message) {
         long startTime = System.currentTimeMillis();
