@@ -663,6 +663,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         StringBuilder sql = new StringBuilder();
+        StringBuilder sqlByTaskAndCustNum = new StringBuilder();
         for (int i = 0; i < transfers.size(); i++) {
 
             TransferUserVO transferUserVO = transfers.get(i);
@@ -679,12 +680,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             //ednregion
 
             //region 拼接sql
+
             if(i==0){
                 sql.append("insert into b_marketing_transfer_").append(apiCode)
                     .append(" ('request_id','task_id','cust_num','transform_time','create_time') values");
+                sqlByTaskAndCustNum.append(String.format("(cus_batch = '%s' and cust_num = '%s')"
+                        ,transferUserVO.getTaskId()
+                        ,transferUserVO.getCustNum()));
             }
             if(i>0){
                 sql.append(",");
+                sqlByTaskAndCustNum.append(" or ")
+                        .append(String.format("(cus_batch = '%s' and cust_num = '%s')"
+                                ,transferUserVO.getTaskId()
+                                ,transferUserVO.getCustNum()));
             }
             Date parse = null;
             try {
