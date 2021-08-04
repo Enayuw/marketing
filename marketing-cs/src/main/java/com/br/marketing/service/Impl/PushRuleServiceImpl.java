@@ -662,15 +662,27 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setMessage("最多传输100条数据");
         }
 
-
-
         StringBuilder sql = new StringBuilder();
         for (int i = 0; i < transfers.size(); i++) {
+
+            TransferUserVO transferUserVO = transfers.get(i);
+            //region 校验参数
+            if(StringUtils.isBlank(transferUserVO.getTaskId())){
+                return new Result().setCode(ResultCode.FAIL.getValue())
+                        .setMessage("该批次数据含有taskId为空数据");
+            }
+
+            if(StringUtils.isBlank(transferUserVO.getCustNum())){
+                return new Result().setCode(ResultCode.FAIL.getValue())
+                        .setMessage("该批次数据含有custNum为空数据");
+            }
+            //ednregion
+
+            //region 拼接sql
             if(i==0){
                 sql.append("insert into b_marketing_transfer_").append(apiCode)
-                        .append(" ('request_id','task_id','cust_num','transform_time','create_time') values");
+                    .append(" ('request_id','task_id','cust_num','transform_time','create_time') values");
             }
-            TransferUserVO transferUserVO = transfers.get(i);
             if(i>0){
                 sql.append(",");
             }
@@ -685,6 +697,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .append(",'").append(transferUserVO.getCustNum()).append("'")
                 .append(",'").append(yyyyMMddHMS.format(parse)).append("'")
                 .append(",'").append(yyyyMMddHMS.format(new Date())).append("')");
+            //endregion
         }
         if(StringUtils.isNotBlank(sql.toString())){
             marketingSyncInfoMapper.insertBatchTransfer(sql.toString());
