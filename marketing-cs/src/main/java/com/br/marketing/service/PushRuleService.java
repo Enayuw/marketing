@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
@@ -85,4 +86,13 @@ public interface PushRuleService {
      * @return
      */
     Result<MarketingPreUserSyncDetailVO> getMarketingPreUserSyncStatus(@Valid MarketingPreUserSyncStatusDTO dto);
+
+    /**
+     * 查询客户信息接口
+     *
+     * @param cid
+     * @param custNum
+     * @return
+     */
+    Result<MarketingSyncUser> queryCustInfo(String cid, String custNum);
 }

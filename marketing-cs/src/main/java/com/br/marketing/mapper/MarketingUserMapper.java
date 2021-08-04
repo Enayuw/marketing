@@ -152,5 +152,6 @@ public interface MarketingUserMapper {
         int countBySureUser(@Param("apiCode") String apiCode,@Param("batchNumber")String batchNumber);
 
         List<MarketingSyncUser> selectSyncUser(@Param("apiCode") String apiCode, @Param("requestId")String requestId);
+        MarketingSyncUser selectSyncUserByCustNum(@Param("apiCode") String apiCode, @Param("custNum")String custNum);
 }
 

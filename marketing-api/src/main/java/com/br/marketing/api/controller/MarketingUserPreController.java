@@ -82,5 +82,21 @@ public class MarketingUserPreController {
         return pushRuleService.insertMarketingPreUserSync(infoId);
     }
 
-
+    /**
+     * 查询客户信息接口
+     *
+     * @param cid
+     * @param custNum
+     * @return
+     */
+    @ApiOperation(value = "查询客户信息接口")
+    @PostMapping("/queryCustInfo")
+    public ApiResult queryCustInfo(@RequestParam("cid") String cid, @RequestParam("custNum") String custNum) {
+        try {
+            return new ApiResult().fromResult(pushRuleService.queryCustInfo(cid, custNum));
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult().setCode("100006").setMessage(ex.getMessage());
+        }
+    }
 }

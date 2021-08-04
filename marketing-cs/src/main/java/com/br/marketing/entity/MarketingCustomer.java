@@ -71,6 +71,11 @@ public class MarketingCustomer {
      */
     private String extendConfigInfo;
 
+    /**
+     * 合作客户ID
+     */
+    private String cid;
+
     public Long getId() {
         return id;
     }
@@ -181,5 +186,13 @@ public class MarketingCustomer {
 
     public void setExtendConfigInfo(String extendConfigInfo) {
         this.extendConfigInfo = extendConfigInfo == null ? null : extendConfigInfo.trim();
+    }
+
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid == null ? null : cid.trim();
     }
 }

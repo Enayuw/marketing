@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -79,6 +78,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
 
     @Autowired
     DecodeClient decodeClient;
@@ -921,5 +923,36 @@ public class PushRuleServiceImpl implements PushRuleService {
             default:
         }
         return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
+    }
+
+    /**
+     * 查询客户信息接口
+     *
+     * @param cid
+     * @param custNum
+     * @return
+     */
+    @Override
+    public Result<MarketingSyncUser> queryCustInfo(String cid, String custNum) {
+        Result<MarketingSyncUser> result = new Result<>();
+        //校验
+        if (StringUtils.isBlank(cid) && StringUtils.isBlank(custNum)) {
+            return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
+        }
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andCidEqualTo(cid);
+        List<MarketingCustomer> cList = marketingCustomerMapper.selectByExample(customerExample);
+        if (cList != null && !cList.isEmpty()) {
+            for (MarketingCustomer customer : cList) {
+                String apiCode = customer.getApiCode();
+                if (StringUtils.isNotBlank(apiCode)) {
+                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum);
+                    if (vo != null) {
+                        return result.setCode(ResultCode.SUCC.getValue()).setDate(vo);
+                    }
+                }
+            }
+        }
+        return result.setCode(ResultCode.SUCC.getValue());
     }
 }

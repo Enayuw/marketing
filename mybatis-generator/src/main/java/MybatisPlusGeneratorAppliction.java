@@ -47,11 +47,11 @@ public class MybatisPlusGeneratorAppliction {
 
             // 数据源配置
             DataSourceConfig dsc = new DataSourceConfig();
-            dsc.setUrl("jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8");
+            dsc.setUrl("jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8");
             // dsc.setSchemaName("public");
             dsc.setDriverName("com.mysql.jdbc.Driver");
-            dsc.setUsername("rule_service");
-            dsc.setPassword("rule_service_2015-09-10");
+            dsc.setUsername("u_pd_marketing");
+            dsc.setPassword("f9daIYUIAXQkeyVbDoOI");
             mpg.setDataSource(dsc);
 
             // 包配置
