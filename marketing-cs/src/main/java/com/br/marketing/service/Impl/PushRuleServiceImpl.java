@@ -664,6 +664,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         StringBuilder sql = new StringBuilder();
         StringBuilder sqlByTaskAndCustNum = new StringBuilder();
+        String nowDate = yyyyMMddHMS.format(new Date());
         for (int i = 0; i < transfers.size(); i++) {
 
             TransferUserVO transferUserVO = transfers.get(i);
@@ -705,12 +706,44 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .append(",'").append(transferUserVO.getTaskId()).append("'")
                 .append(",'").append(transferUserVO.getCustNum()).append("'")
                 .append(",'").append(yyyyMMddHMS.format(parse)).append("'")
-                .append(",'").append(yyyyMMddHMS.format(new Date())).append("')");
+                .append(",'").append(nowDate).append("')");
             //endregion
         }
         if(StringUtils.isNotBlank(sql.toString())){
             marketingSyncInfoMapper.insertBatchTransfer(sql.toString());
         }
+        HashMap<String,MarketingSyncUser> hmPreUser = new HashMap();
+        if(StringUtils.isNotBlank(sqlByTaskAndCustNum.toString())){
+            List<MarketingSyncUser> preUserByTaskAndCust = marketingSyncInfoMapper.getPreUserByTaskAndCust(apiCode, sqlByTaskAndCustNum.toString());
+            for (MarketingSyncUser marketingSyncUser : preUserByTaskAndCust) {
+                hmPreUser.put(marketingSyncUser.getCusBatch()
+                        .concat("_")
+                        .concat(marketingSyncUser.getCustNum()),marketingSyncUser);
+            }
+        }
+        for (TransferUserVO transfer : transfers) {
+
+            ConversionData data = new ConversionData();
+            data.setCaseNum(transfer.getCustNum());
+            data.setInversionDate(transfer.getTransformTime());
+            data.setInversionStatus("0");
+            data.setInversionInfo(JSON.toJSONString(transfer));
+            data.setTaskId(transfer.getTaskId());
+            data.setPartnerProcessDate(nowDate);
+            data.setBusinessType("");
+            MarketingSyncUser marketingSyncUser = hmPreUser.get(transfer.getTaskId()
+                    .concat("_")
+                    .concat(transfer.getCustNum()));
+            if(marketingSyncUser!=null){
+                data.setGroupType(marketingSyncUser.getGroupType());
+                data.setPhone(StringUtils.isBlank(marketingSyncUser.getFailType())
+                        ?BrCipherMaker.getInstance().decode(marketingSyncUser.getCell())
+                        :marketingSyncUser.getCell());
+            }
+
+
+        }
+
         //todo 调用客服接口
 
         return new Result().setCode(ResultCode.SUCCESS.getValue());

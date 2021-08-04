@@ -51,4 +51,9 @@
         select count(1) from marketing_transfer_${apiCode}
         where request_id = #{requestId}
     </select>
+
+    <select id="getPreUserByTaskAndCust" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        where ${conditionTextByTaskIdAndCust}
+    </select>
 </mapper>
