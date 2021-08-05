@@ -4,7 +4,6 @@ package com.br.marketing.common.commondto;
 public enum ResultCode {
 
     SUCCESS(1),
-    SUCC(00),
     PARAM_ERROR(100003),
     FAIL(0),
     INTERNAL_SERVER_ERROR(500);

@@ -936,11 +936,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if (StringUtils.isNotBlank(apiCode)) {
                     MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum);
                     if (vo != null) {
-                        return result.setCode(ResultCode.SUCC.getValue()).setDate(vo).setMessage("成功");
+                        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
                     }
                 }
             }
         }
-        return result.setCode(ResultCode.SUCC.getValue()).setMessage("成功");
+        return result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 }
