@@ -21,10 +21,14 @@ public class RobotaiApiServiceClient {
     @Value("${api.robotAiApiService.robotOutboundUrl:00}")
     private String robotOutboundUrl;
 
+    @Value("${api.customerService.apiCode:0}")
+    private String customerServiceApiCode;
+
     @Autowired
     RestTemplate restTemplate;
 
     public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
+        dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)

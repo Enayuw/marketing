@@ -757,7 +757,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         jsonDataDTO.setConversionData(conversionDataList);
         jsonDataDTO.setMethod("conversionData");
         jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
-        jsonDataDTO.setPlatApiCode(apiCode);
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
         //todo 调用客服接口
