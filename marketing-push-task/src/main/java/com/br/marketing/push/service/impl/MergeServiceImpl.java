@@ -258,7 +258,7 @@ public class MergeServiceImpl implements MergeService {
                     fileNameList.add(countFileName);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("获取文件头异常", e);
         }
         return fileNameList;

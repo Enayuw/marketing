@@ -12,7 +12,9 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerFeignClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
+import com.br.marketing.client.intelligentcustomerservice.output.TransferRobotOutboundVO;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.StatusConstants;
@@ -138,6 +140,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     StraHisFileMapper straHisFileMapper;
 
+    @Autowired
+    IntelligentCustomerFeignClient intelligentCustomerFeignClient;
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
@@ -648,7 +652,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue())
                     .setMessage("requestId不能为空");
         }
-
+        marketingSyncInfoMapper.createMarketingTransferTable("b_marketing_transfer_".concat(apiCode));
         Integer hasData = marketingSyncInfoMapper.selectTransfersByRequestId(apiCode, requestId);
         if(hasData>0){
             return new Result().setCode(ResultCode.FAIL.getValue())
@@ -684,7 +688,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             if(i==0){
                 sql.append("insert into b_marketing_transfer_").append(apiCode)
-                    .append(" ('request_id','task_id','cust_num','transform_time','create_time') values");
+                    .append(" (request_id,task_id,cust_num,transform_time,create_time,group_type) values");
                 sqlByTaskAndCustNum.append(String.format("(cus_batch = '%s' and cust_num = '%s')"
                         ,transferUserVO.getTaskId()
                         ,transferUserVO.getCustNum()));
@@ -706,7 +710,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .append(",'").append(transferUserVO.getTaskId()).append("'")
                 .append(",'").append(transferUserVO.getCustNum()).append("'")
                 .append(",'").append(yyyyMMddHMS.format(parse)).append("'")
-                .append(",'").append(nowDate).append("')");
+                .append(",'").append(nowDate).append("'")
+                .append(",'").append(transferUserVO.getGroupType()).append("')");
             //endregion
         }
         if(StringUtils.isNotBlank(sql.toString())){
@@ -721,8 +726,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                         .concat(marketingSyncUser.getCustNum()),marketingSyncUser);
             }
         }
+        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+        List<ConversionData> conversionDataList = new ArrayList<>();
         for (TransferUserVO transfer : transfers) {
-
             ConversionData data = new ConversionData();
             data.setCaseNum(transfer.getCustNum());
             data.setInversionDate(transfer.getTransformTime());
@@ -730,22 +736,30 @@ public class PushRuleServiceImpl implements PushRuleService {
             data.setInversionInfo(JSON.toJSONString(transfer));
             data.setTaskId(transfer.getTaskId());
             data.setPartnerProcessDate(nowDate);
+            data.setGroupType(transfer.getGroupType());
             data.setBusinessType("");
             MarketingSyncUser marketingSyncUser = hmPreUser.get(transfer.getTaskId()
                     .concat("_")
                     .concat(transfer.getCustNum()));
             if(marketingSyncUser!=null){
-                data.setGroupType(marketingSyncUser.getGroupType());
                 data.setPhone(StringUtils.isBlank(marketingSyncUser.getFailType())
                         ?BrCipherMaker.getInstance().decode(marketingSyncUser.getCell())
                         :marketingSyncUser.getCell());
             }
-
-
+            conversionDataList.add(data);
         }
-
+        robotOutboundDTO.setConversionData(conversionDataList);
+        robotOutboundDTO.setMethod("conversionData");
+        robotOutboundDTO.setAccessNumber(UUID.randomUUID().toString());
         //todo 调用客服接口
-
+        HashMap<String, String> body = new HashMap<>();
+        body.put("apiCode",apiCode);
+        body.put("jsonData",JSON.toJSONString(robotOutboundDTO));
+        StringBuilder sb = new StringBuilder();
+        sb.append("apiCode=".concat(apiCode));
+        sb.append("&jsonData=".concat(JSON.toJSONString(robotOutboundDTO)));
+        TransferRobotOutboundVO transferRobotOutboundVO = intelligentCustomerFeignClient.robotOutbound(sb.toString());
+        System.out.println(transferRobotOutboundVO.toString());
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 

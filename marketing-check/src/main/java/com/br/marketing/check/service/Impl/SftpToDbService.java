@@ -64,7 +64,7 @@ public class SftpToDbService extends AbstractDataToDbService {
 
         try {
          head=MyFileUtil.gethead(txtFilePathAndName);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("获取表头失败",e);
             return false;
         }
