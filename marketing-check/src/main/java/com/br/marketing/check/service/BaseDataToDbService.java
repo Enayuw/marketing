@@ -1,8 +1,6 @@
 package com.br.marketing.check.service;
 
-import IceInternal.Ex;
 import com.br.marketing.check.dto.FileContext;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 /**
  * //				    _ooOoo_

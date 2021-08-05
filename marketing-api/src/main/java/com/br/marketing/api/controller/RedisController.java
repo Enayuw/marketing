@@ -15,19 +15,19 @@ public class RedisController {
     RedisChgService redisChgService;
 
     @GetMapping("get")
-    public String get(@RequestParam("key") String key){
+    public String get(@RequestParam("key") String key) {
         return redisChgService.get(key);
     }
 
     @GetMapping("del")
-    public String del(@RequestParam("key") String key){
+    public String del(@RequestParam("key") String key) {
         long del = redisChgService.del(key);
         return String.valueOf(del);
     }
 
     @GetMapping("set")
-    public String set(@RequestParam("key") String key,@RequestParam("value")  String value){
-        redisChgService.set(key,value);
+    public String set(@RequestParam("key") String key, @RequestParam("value") String value) {
+        redisChgService.set(key, value);
         return "success";
     }
 }

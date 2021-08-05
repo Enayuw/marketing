@@ -1,6 +1,7 @@
 package com.br.marketing.api.controller;
 
 import com.alibaba.fastjson.*;
+import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
@@ -45,6 +46,20 @@ public class MarketingUserPreController {
             if (log.isInfoEnabled()) {
                 log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
+            return new ApiNoDataResult().fromResult(result);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+        }
+    }
+
+    @ApiOperation(value = "转化人员")
+    @PostMapping("/transferUser")
+    @SaveLog
+    public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData){
+        try {
+            long l = System.currentTimeMillis();
+            Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
             return new ApiNoDataResult().fromResult(result);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());

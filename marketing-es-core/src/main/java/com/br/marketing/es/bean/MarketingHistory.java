@@ -89,5 +89,10 @@ public class MarketingHistory implements Serializable {
      */
     @JSONField(name = "file_id")
     private String fileId;
+    /**
+     * 扩展字段
+     */
+    @JSONField(name = "reserve_field")
+    private String reserveField;
 
 }

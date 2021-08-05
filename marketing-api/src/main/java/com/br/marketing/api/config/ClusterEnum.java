@@ -46,13 +46,4 @@ public enum ClusterEnum {
     public String getName() {
         return name;
     }
-
-    public static String getCode(String flag) {
-        for (ClusterEnum c : ClusterEnum.values()) {
-            if (c.getName().equals(flag)) {
-                return c.code;
-            }
-        }
-        return "Z";
-    }
 }

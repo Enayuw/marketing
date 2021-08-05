@@ -2,7 +2,6 @@ package com.br.marketing.task.service.Impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -29,10 +28,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -58,18 +55,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     LoanFileMapper loanFileMapper;
     @Resource
-    LoanWarningClient loanWarningClient;
-
-    @Resource
-    RedisService redisService;
-    @Resource
     TaskStatusMapper taskStatusMapper;
 
     @Resource
     StrategyCs strategyCS;
-
-    @Resource
-    ProFieldsClient proFieldsClient;
 
     @Resource
     RedisChgService redisChgService;
@@ -88,9 +77,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
-    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+    final SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
 
-    final static SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
+    final SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
 
@@ -266,7 +255,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 flag=true;
             }
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
+            Integer esOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
             String descPath=path+"/"+s1+"/"+ marketingTask.getApiCode()+"/"+ marketingTask.getBatchNumber()+"/"+
                     new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             log.info("{},list:{}",errorFile,list.size());
@@ -284,7 +273,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,EsOpenMark));
+            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,esOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -431,14 +420,15 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param descPath
      */
 
-    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,String fileId,Customer customer){
+    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,
+                      String fileId,Customer customer){
         try {
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
 
             String baseHeadInfo = this.getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
+            Integer esOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Long minId= marketingUserMapper.queryMinId(blt);
                 Long maxId= marketingUserMapper.queryMaxId(blt);
                 log.warn("min_id--{},max_id--{},pageSize--{}",minId,maxId,pageSize);
@@ -465,7 +455,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("fileId", fileId);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,EsOpenMark));
+                            warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,esOpenMark));
                             Thread.sleep(100);
                         }
                         i++;
@@ -474,7 +464,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     if (log.isWarnEnabled()) {
                         log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                                 .concat(String.valueOf(endtime - start)).concat("~~轮询总次数：")
-                                .concat(String.valueOf(i).concat("~~esOpen:").concat(EsOpenMark.toString()))));
+                                .concat(String.valueOf(i).concat("~~esOpen:").concat(esOpenMark.toString()))));
                     }
                 }else{
                     log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
@@ -507,6 +497,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                         case "cell":
                             baseHeadInfo.append("{cell}"+separator);
                             break;
+                        default:
+                            log.warn("switch default s:{}", s);
                     }
                 }
             }
@@ -518,7 +510,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * 初始化当日需要监控的任务信息
      * @param allList
      */
-    private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,JobExecutionMultipleShardingContext context){
+    private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,
+                                  JobExecutionMultipleShardingContext context){
         int count=context==null?1:context.getShardingTotalCount();
         List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
         try{

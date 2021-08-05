@@ -5,7 +5,7 @@ import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
 import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
-import com.br.marketing.common.utils.transaction.SwiftNumberManager;
+import com.br.marketing.es.util.SwiftNumberManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -78,7 +78,7 @@ public class AlarmApiClient implements ApplicationContextAware {
      */
     private  void sendMailData(String content, String title, String appName, String secretKey, String exceptionCode,
                                BrSendAlarmNewServicePrx service){
-        String swiftNumber = SwiftNumberManager.generate();
+        String swiftNumber = SwiftNumberManager.getSwiftNumberManager().getSwiftNumber();
         String result="";
         try {
             log.debug("调用报警服务开始,流水号：{},报警邮件标题：{},异常码：{}",swiftNumber,title,exceptionCode);

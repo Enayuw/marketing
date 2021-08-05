@@ -106,7 +106,7 @@ public class DecodeClient {
         //3DES
         if("1011".equals(requestCode)){
             try {
-                result= ThreeDes.decryptByEcb(param,decryptKey);
+                result= ThreeDes.decryptByECB(param,decryptKey);
                 log.debug("3DES解密结果---{}",result);
             } catch (Exception e) {
                 log.error("param--{} decrypt_key--{} 3DES解密出错---{}",param,decryptKey,e);

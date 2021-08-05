@@ -1,5 +1,7 @@
 package com.br.marketing.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -7,10 +9,11 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class BeanUtils {
 
     public static Map<String, Object> transBean2Map(Object obj) {
-        if(obj == null){
+        if (obj == null) {
             return null;
         }
         Map<String, Object> map = new HashMap<String, Object>();
@@ -31,7 +34,7 @@ public class BeanUtils {
 
             }
         } catch (Exception e) {
-            System.out.println("transBean2Map Error " + e);
+            log.error("transBean2Map Error", e);
         }
 
         return map;

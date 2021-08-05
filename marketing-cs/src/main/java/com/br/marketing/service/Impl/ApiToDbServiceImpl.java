@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrExecutors;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -18,14 +17,12 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IProductResultSimpleService;
-import com.br.marketing.vo.CustGroupTempVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -34,11 +31,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {
@@ -106,7 +98,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             e.printStackTrace();
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andStatusEqualTo(new Byte("1"));
+        customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
 
         /**
@@ -114,8 +106,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
          * 2.遍历该apicode的T日客户批次号
          * 3.查询该客户 该批次T日的数据
          */
-
-
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
             GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
@@ -240,8 +230,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }else{
                         try {
                             Thread.sleep(3000L);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (Exception e) {
+                            log.error("Thread.sleep error", e);
                         }
                     }
                 }
@@ -266,9 +256,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             task.setCusBatch(taskId);
                             task.setActualNumber(i1);
                             task.setTaskNumber(i);
-                            String s = simpleDateFormatOfymd.format(new Date());
+                            String s = DateUtils.format(new Date(), "yyyy-MM-dd");
                             task.setMonitorType(strategyOfGroupDTO.getExecType());
-                            if (new Integer(1).equals(strategyOfGroupDTO.getExecType())) {
+                            if (Integer.valueOf(1).equals(strategyOfGroupDTO.getExecType())) {
                                 task.setStartDate(s);
                                 task.setCloseDate(nextDate);
                             } else {
@@ -310,7 +300,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                         .append("groupType：".concat(t).concat("\r\n"))
                                         .append("time：".concat(nowDate).concat("\r\n"))
                                         .append("batchNumber：".concat(strategyOfGroupDTO.getBatchNumber()));
-                                alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,Constants.sendCodeMap.get("uploadSuccess"));
+                                alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
+                                        Constants.sendCodeMap.get("uploadSuccess"));
                             }catch (Exception ex){
                                 log.error(ex.getMessage(),ex);
                             }
@@ -337,8 +328,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             i++;
             try {
                 Thread.sleep(500L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                log.error("Thread.sleep error", e);
             }
             if(i==4){
                 res = true;
@@ -383,7 +374,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 batchnumberPre.setCreateTime(new Date());
                 taskBatchnumberPreMapper.insertSelective(batchnumberPre);
                 String endSecond = DateHelper.date2TimeStamp(DateHelper.getDateAdd(1).concat(" 00:00:00"), "yyyy-MM-dd HH:mm:ss");
-                Long l = Long.valueOf(endSecond) - System.currentTimeMillis() / 1000;
+                Long l = Long.parseLong(endSecond) - System.currentTimeMillis() / 1000;
                 redisChgService.set(key,batchNumber);
                 redisChgService.expire(key,l.intValue());
                 if(batchNumber.equals(redisChgService.get(keyCourrent))){
@@ -426,14 +417,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             updateSync.setIsUpload(2);
             syncInfoMapper.updateByPrimaryKeySelective(updateSync);
         }
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
-    }
-
-    private Date addDay(Date date, Integer addDays) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(date);
-        c.add(Calendar.DAY_OF_MONTH, addDays);
-        Date time = c.getTime();
-        return time;
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 }

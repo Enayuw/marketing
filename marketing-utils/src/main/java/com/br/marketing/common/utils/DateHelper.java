@@ -21,14 +21,18 @@ import java.util.Map;
 public class DateHelper {
 
     //key为正则 value为日期格式
-    private static Map<String, String> patterns = new HashMap() {
+    private static Map<String, String> PATTERNS = new HashMap();
+
+    static {
         {
-            put("^\\d{4}-\\d{1,2}-\\d{1,2}$", "yyyy-MM-dd");
-            put("^\\d{4}/\\d{1,2}/\\d{1,2}$", "yyyy/MM/dd");
-            put("^\\d{6,8}$", "yyyyMMdd");
-            put("^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}$", "yyyy-MM-dd HH:mm:ss");
+            PATTERNS.put("^\\d{4}-\\d{1,2}-\\d{1,2}$", "yyyy-MM-dd");
+            PATTERNS.put("^\\d{4}/\\d{1,2}/\\d{1,2}$", "yyyy/MM/dd");
+            PATTERNS.put("^\\d{6,8}$", "yyyyMMdd");
+            PATTERNS.put("^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{1,2}$", "yyyy-MM-dd HH:mm:ss");
         }
-    };
+    }
+
+    ;
 
     /**
      * 转换字符串为日期
@@ -41,7 +45,7 @@ public class DateHelper {
             throw new IllegalArgumentException("日期格式错误");
         }
         str = str.trim();
-        for(Map.Entry<String, String> entry:patterns.entrySet()){
+        for (Map.Entry<String, String> entry : PATTERNS.entrySet()) {
             String key = entry.getKey();
             if (str.matches(key)) {
                 //日期转换
@@ -53,26 +57,28 @@ public class DateHelper {
         throw new IllegalArgumentException("日期格式错误");
     }
 
-    public static  String getDateAdd(int days){
+    public static String getDateAdd(int days) {
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, days);
         return sf.format(c.getTime());
     }
 
-    public static  String getDateAddYyMmDd(int days){
+    public static String getDateAddYyMmDd(int days) {
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
         return sf.format(c.getTime());
     }
-    public static  String getDateAddYyMmDdHhMmSs(int days){
+
+    public static String getDateAddYyMmDdHhMmSs(int days) {
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMddHHmmss");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
         return sf.format(c.getTime());
     }
-    public static  String getDateByMinute(int minute){
+
+    public static String getDateByMinute(int minute) {
         SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.MINUTE, minute);
@@ -114,28 +120,30 @@ public class DateHelper {
 
     /**
      * 日期格式字符串转换成时间戳
+     *
      * @param format 如：yyyy-MM-dd HH:mm:ss
      * @return
      */
-    public static String date2TimeStamp(String dateStr,String format){
+    public static String date2TimeStamp(String dateStr, String format) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(format);
-            return String.valueOf(sdf.parse(dateStr).getTime()/1000);
+            return String.valueOf(sdf.parse(dateStr).getTime() / 1000);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("date2TimeStamp error", e);
         }
         return "";
     }
 
     /**
      * 两个时间之间相差距离多少天
+     *
      * @return 相差天数
      */
-    public static long getDistanceDays(String str1, String str2) throws Exception{
+    public static long getDistanceDays(String str1, String str2) throws Exception {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         Date one;
         Date two;
-        long days=0;
+        long days = 0;
         try {
             one = df.parse(str1);
             two = df.parse(str2);
@@ -151,26 +159,28 @@ public class DateHelper {
 
     /**
      * 和当前日期相差多少分钟
+     *
      * @param str 时间参数  格式：2009-01-01 12:00:00
      * @return long
      */
     public static long getDistanceMinutes(String str) {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        long now=System.currentTimeMillis();
+        long now = System.currentTimeMillis();
         long min = 0;
         try {
             Date two = df.parse(str);
             long time = two.getTime();
-            long diff =time - now;
+            long diff = time - now;
             min = diff / (60 * 1000);
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.error("getDistanceMinutes error", e);
         }
-        return min>0?min:min*-1;
+        return min > 0 ? min : min * -1;
     }
 
     /**
      * 两个时间相差距离多少天多少小时多少分多少秒
+     *
      * @param str1 时间参数 1 格式：1990-01-01 12:00:00
      * @param str2 时间参数 2 格式：2009-01-01 12:00:00
      * @return long[] 返回值为：{天, 时, 分, 秒}
@@ -188,8 +198,8 @@ public class DateHelper {
             two = df.parse(str2);
             long time1 = one.getTime();
             long time2 = two.getTime();
-            long diff ;
-            if(time1<time2) {
+            long diff;
+            if (time1 < time2) {
                 diff = time2 - time1;
             } else {
                 diff = time1 - time2;
@@ -197,15 +207,17 @@ public class DateHelper {
             day = diff / (24 * 60 * 60 * 1000);
             hour = (diff / (60 * 60 * 1000) - day * 24);
             min = ((diff / (60 * 1000)) - day * 24 * 60 - hour * 60);
-            sec = (diff/1000-day*24*60*60-hour*60*60-min*60);
+            sec = (diff / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - min * 60);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         long[] times = {day, hour, min, sec};
         return times;
     }
+
     /**
      * 两个时间相差距离多少天多少小时多少分多少秒
+     *
      * @param str1 时间参数 1 格式：1990-01-01 12:00:00
      * @param str2 时间参数 2 格式：2009-01-01 12:00:00
      * @return String 返回值为：xx天xx小时xx分xx秒
@@ -223,8 +235,8 @@ public class DateHelper {
             two = df.parse(str2);
             long time1 = one.getTime();
             long time2 = two.getTime();
-            long diff ;
-            if(time1<time2) {
+            long diff;
+            if (time1 < time2) {
                 diff = time2 - time1;
             } else {
                 diff = time1 - time2;
@@ -232,7 +244,7 @@ public class DateHelper {
             day = diff / (24 * 60 * 60 * 1000);
             hour = (diff / (60 * 60 * 1000) - day * 24);
             min = ((diff / (60 * 1000)) - day * 24 * 60 - hour * 60);
-            sec = (diff/1000-day*24*60*60-hour*60*60-min*60);
+            sec = (diff / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - min * 60);
         } catch (ParseException e) {
             e.printStackTrace();
         }

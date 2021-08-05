@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,123 +29,135 @@ public class RabbitMqConfig {
 
     /**
      * marketing 通用交换机
+     *
      * @return
      */
-    @Bean(name = MQConstants.MarketingexchangerName)
+    @Bean(name = MQConstants.MARKETINGEXCHANGER_NAME)
     public TopicExchange gateExchange() {
-        return new TopicExchange(MQConstants.MarketingexchangerName,true,false);
+        return new TopicExchange(MQConstants.MARKETINGEXCHANGER_NAME, true, false);
     }
 
     /**
      * marketing 通用死信交换机
+     *
      * @return
      */
-    @Bean(name = MQConstants.MarketingexchangerDeadName)
-    public TopicExchange deadGateExchange(){
-        return new TopicExchange(MQConstants.MarketingexchangerDeadName,true,false);
+    @Bean(name = MQConstants.MARKETINGEXCHANGER_DEAD_NAME)
+    public TopicExchange deadGateExchange() {
+        return new TopicExchange(MQConstants.MARKETINGEXCHANGER_DEAD_NAME, true, false);
     }
 
     /**
      * marketing 营销平台接受预处理人员队列
+     *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_PreUser_Receive)
-    public Queue preUserQueue(){
-        return new Queue(MQConstants.Marketing_PreUser_Receive, true);
+    @Bean(name = MQConstants.MARKETING_PRE_USER_RECEIVE)
+    public Queue preUserQueue() {
+        return new Queue(MQConstants.MARKETING_PRE_USER_RECEIVE, true);
     }
 
     /**
      * 绑定——营销平台接受预处理人员队列
+     *
      * @return
      */
     @Bean
-    public Binding preUserBinding(){
-        return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_PreUser_Receive);
+    public Binding preUserBinding() {
+        return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE);
     }
 
     /**
      * marketing 跑批人员入队列
+     *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_User_Receive)
-    public Queue UserQueue(){
-        return new Queue(MQConstants.Marketing_User_Receive, true);
+    @Bean(name = MQConstants.MARKETING_USER_RECEIVE)
+    public Queue userQueue() {
+        return new Queue(MQConstants.MARKETING_USER_RECEIVE, true);
     }
 
     /**
      * 绑定——跑批人员队列
+     *
      * @return
      */
     @Bean
-    public Binding UserBinding(){
-        return BindingBuilder.bind(UserQueue()).to(gateExchange()).with(MQConstants.RoutingKey_Marketing_User_Receive);
+    public Binding userBinding() {
+        return BindingBuilder.bind(userQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_USER_RECEIVE);
     }
 
     /**
      * 延迟队列-查询推送智能客服状态
+     *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService_Search_Delay)
-    public Queue customerSearchDelayQueue(){
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY)
+    public Queue customerSearchDelayQueue() {
         Map<String, Object> args = new HashMap<>(2);
         // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
-        args.put("x-dead-letter-exchange", MQConstants.MarketingexchangerDeadName);
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
         // x-dead-letter-routing-key  这里声明当前队列的死信路由key
-        args.put("x-dead-letter-routing-key", MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
         // x-message-ttl  声明队列的TTL
         args.put("x-message-ttl", 3000);
-        return QueueBuilder.durable(MQConstants.Marketing_Push_CustomerService_Search_Delay).withArguments(args).build();
+        return QueueBuilder.durable(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY).withArguments(args).build();
     }
 
     /**
      * 绑定-查询推送智能客服绑定
+     *
      * @return
      */
     @Bean
-    public Binding customerSearchDelayBinding(){
+    public Binding customerSearchDelayBinding() {
         return BindingBuilder.bind(customerSearchDelayQueue())
                 .to(gateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
     }
 
     /**
      * 消费队列-查询推送智能客服状态
+     *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService_Search)
-    public Queue customerSearchQueue(){
-        return new Queue(MQConstants.Marketing_Push_CustomerService_Search, true);
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH)
+    public Queue customerSearchQueue() {
+        return new Queue(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, true);
     }
 
     /**
      * 绑定死信交换机- 消费队列-查询推送智能客服状态
+     *
      * @return
      */
     @Bean
-    public Binding customerSearchBinding(){
+    public Binding customerSearchBinding() {
         return BindingBuilder.bind(customerSearchQueue())
                 .to(deadGateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService_Search_Delay);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
     }
 
     /**
      * 消费队列-推送智能客服
+     *
      * @return
      */
-    @Bean(name = MQConstants.Marketing_Push_CustomerService)
-    public Queue pushCustomerSearchQueue(){
-        return new Queue(MQConstants.Marketing_Push_CustomerService, true);
+    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE)
+    public Queue pushCustomerSearchQueue() {
+        return new Queue(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE, true);
     }
 
     /**
      * 绑定交换机- 消费队列-推送智能客服
+     *
      * @return
      */
     @Bean
-    public Binding pushCustomerSearchBinding(){
+    public Binding pushCustomerSearchBinding() {
         return BindingBuilder.bind(pushCustomerSearchQueue())
                 .to(gateExchange())
-                .with(MQConstants.RoutingKey_Marketing_Push_CustomerService);
+                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE);
     }
 
     @Bean

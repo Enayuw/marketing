@@ -33,7 +33,7 @@ public class RabbitmqListener {
      * @param channel
      * @param message
      */
-    @RabbitListener(queues = MQConstants.taskQueueName,containerFactory = "containerFactory")
+    @RabbitListener(queues = MQConstants.TASK_QUEUE_NAME,containerFactory = "containerFactory")
     @RabbitHandler
     public void receiveMessage(Channel channel,Message message) {
         long startTime = System.currentTimeMillis();
@@ -51,7 +51,7 @@ public class RabbitmqListener {
             LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
             //loanWarningService.process(customer);
             //推送消息到pushQueue，进行下一流程处理
-            RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
+            RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate,MQConstants.EX_CHANGER_NAME, MQConstants.PUSH_ROUTING_KEY,customer.getApiCode());
             // 手动ack消息
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
             log.warn("接收消息耗时：{}", (System.currentTimeMillis() - startTime));
