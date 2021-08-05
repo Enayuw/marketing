@@ -263,6 +263,11 @@
 		from b_marketing_sync_${apiCode}
 		where request_batch = #{requestId}
 	</select>
+	<select id="selectSyncUserByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from  b_marketing_sync_${apiCode}
+        where cust_num = #{custNum} limit 1
+    </select>
 	<insert id="insertLoanUser" parameterType="map">
     INSERT INTO b_marketing_user (
         	`api_code`,
@@ -348,6 +353,8 @@
 		    `request_batch`,
 			`cust_num`,
 			`cell`,
+		    `id_card`,
+		    `name`,
 			`group_type`,
 			`register_date`,
 			`reserve_field1`,
@@ -371,7 +378,7 @@
 	<insert id="insertByRequestId" parameterType="java.lang.String">
 		insert into
 		b_marketing_user_${apiCode}
-		(api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json)
+		(api_code,batch_number,cus_num,cell,id_card,name,create_time,update_time,decodeFailType,status,extend_json)
 		values ${valuesStr}
 	</insert>
 	<update id="createMarketingPreUserTable" parameterType="java.lang.String">

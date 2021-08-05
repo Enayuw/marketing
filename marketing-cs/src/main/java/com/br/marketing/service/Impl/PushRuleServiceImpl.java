@@ -56,6 +56,17 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
 
+    private static HashMap<String,String> errorCodeHm;
+
+    static {
+        errorCodeHm = new HashMap();
+        errorCodeHm.put("1001","无客户编号");
+        errorCodeHm.put("1002","无grouptype或cell");
+        errorCodeHm.put("1003","重复客户编号");
+        errorCodeHm.put("1004","重复电话");
+        errorCodeHm.put("1005","入库异常");
+    }
+
     @Autowired
     MarketingTaskMapper marketingTaskMapper;
 
@@ -73,6 +84,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
 
     @Autowired
     DecodeClient decodeClient;
@@ -548,28 +562,40 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         long l = System.currentTimeMillis();
         marketingUserMapper.createMarketingPreUserTable(marketingPreUserTable.concat(marketingSyncInfo.getApiCode()));
-        ArrayList<Callable<Result>> list = new ArrayList<>();
+        ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             Integer finalIsCheck = isCheck;
             list.add(() -> {
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("无客户编号");
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setErrorCode("1001");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1001"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
                         || !StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum()
-                            .concat(":无grouptype或cell"));
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1002");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1002"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
                 //解密、规则校验
                 String cell = marketingPreUserDetailDTO.getCell();
-                encodeMapping(marketingPreUserDetailDTO, finalIsCheck);
+                marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
+                encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
+                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
-                        , marketingPreUserDetailDTO.getCell(), marketingPreUserDetailDTO.getGroupType()
+                        , marketingPreUserDetailDTO.getCell()
+                        , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?"":marketingPreUserDetailDTO.getId()
+                        , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
+                        , marketingPreUserDetailDTO.getGroupType()
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
@@ -580,21 +606,32 @@ public class PushRuleServiceImpl implements PushRuleService {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(marketingPreUserDetailDTO.getCustNum()
-                                .concat("重复客户编号"));
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1003");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1003"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                     } else if (ex.getMessage().contains("uk_taskId_cell")) {
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("重复电话"));
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1004");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1004"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                     } else {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1005");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
                         log.error(ex.getMessage(),ex);
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(cell.concat("入库异常"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                     }
                 }
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             });
         }
-        StringBuilder errorBuild = new StringBuilder();
+        List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
-        List<Future<Result>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
             futures = currentDbPoolExecutor.invokeAll(list);
         } catch (Exception e) {
@@ -603,10 +640,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (futures != null && !futures.isEmpty()) {
             for (int i = 0; i < futures.size(); i++) {
                 try {
-                    Result result = futures.get(i).get();
+                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
                     if (ResultCode.FAIL.getValue().equals(result.getCode())) {
                         errorSize++;
-                        errorBuild.append(result.getMessage().concat(","));
+                        errorBuild.add(result.getData());
                     }
                 } catch (Exception e) {
                     log.error(e.getMessage(),e);
@@ -625,7 +662,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
             errorInfo.setCreateTime(new Date());
-            errorInfo.setErrorInfo(errorBuild.toString());
+            errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
         } else if (errorSize < futures.size()) {
@@ -635,7 +672,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
             errorInfo.setCreateTime(new Date());
-            errorInfo.setErrorInfo(errorBuild.toString());
+            errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
         }
@@ -800,32 +837,56 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param isCheck
      * @return
      */
-    private void encodeMapping(MarketingPreUserDetailDTO user, Integer isCheck) {
-        user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-        String cell = user.getCell();
-        if (decodeClient.isMd5(cell)) {
+    private void encodeMapping(MarketingPreUserDetailDTO user,String type, Integer isCheck) {
+        String content = "";
+        switch (type){
+            case "cell":
+                content = StringUtils.isBlank(user.getCell())?"":user.getCell();
+                break;
+            case "id":
+                content = StringUtils.isBlank(user.getId())?"":user.getId();
+                break;
+            case "name":
+                content = StringUtils.isBlank(user.getName())?"":user.getName();
+                break;
+        }
+        if (decodeClient.isMd5(content)) {
             //cell md5
-            cell = decodeClient.query(cell, "cell", "md5", "");
-            if (StringUtils.isBlank(cell)) {
+            content = decodeClient.query(content, type, "md5", "");
+            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
-        } else if (cell.length() == 64) {
+        } else if (content.length() == 64) {
             //cell sha256
-            cell = decodeClient.query(cell, "cell", "sha", "");
-            if (StringUtils.isBlank(cell)) {
+            content = decodeClient.query(content, type, "sha", "");
+            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
         }
         //明文规则校验
         UserValidator userValidator = new UserValidator(isCheck);
-        if (StringUtils.isNotBlank(cell)) {
-            if (!userValidator.validatePhone(cell)) {
+        if (StringUtils.isNotBlank(content)&&"cell".equals(type)) {
+            if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
-            user.setCell(BrCipherMaker.getInstance().encode(cell));
+            user.setCell(BrCipherMaker.getInstance().encode(content));
+        }
+        if (StringUtils.isNotBlank(content)&&"id".equals(type)) {
+            if (!userValidator.validateId(content)) {
+                user.setId(content);
+                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }
+            user.setId(BrCipherMaker.getInstance().encode(content));
+        }
+        if (StringUtils.isNotBlank(content)&&"name".equals(type)) {
+            if (!userValidator.validateName(content)) {
+                user.setName(content);
+                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }
+            user.setName(BrCipherMaker.getInstance().encode(content));
         }
     }
 
@@ -856,7 +917,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 || StatusConstants.MarketingPreUserStatus_success_part.equals(syncInfo.getStatus())) {
             MarketingSyncErrorInfo errorInfo = marketingSyncErrorInfoMapper.selectByPrimaryKey(syncInfo.getErrorId());
             if (errorInfo != null) {
-                vo.setErrorInfo(errorInfo.getErrorInfo());
+                List<MarketingPreUserErrorDetailVO> o = JSON.parseObject(errorInfo.getErrorInfo(), new TypeReference<List<MarketingPreUserErrorDetailVO>>() {
+                }.getType());
+                vo.setErrorInfo(o);
             }
         }
         switch (syncInfo.getStatus()) {
@@ -875,5 +938,36 @@ public class PushRuleServiceImpl implements PushRuleService {
             default:
         }
         return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
+    }
+
+    /**
+     * 查询客户信息接口
+     *
+     * @param cid
+     * @param custNum
+     * @return
+     */
+    @Override
+    public Result<MarketingSyncUser> queryCustInfo(String cid, String custNum) {
+        Result<MarketingSyncUser> result = new Result<>();
+        //校验
+        if (StringUtils.isBlank(cid) && StringUtils.isBlank(custNum)) {
+            return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
+        }
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andCidEqualTo(cid);
+        List<MarketingCustomer> cList = marketingCustomerMapper.selectByExample(customerExample);
+        if (cList != null && !cList.isEmpty()) {
+            for (MarketingCustomer customer : cList) {
+                String apiCode = customer.getApiCode();
+                if (StringUtils.isNotBlank(apiCode)) {
+                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum);
+                    if (vo != null) {
+                        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                    }
+                }
+            }
+        }
+        return result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 }
