@@ -475,7 +475,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         }
     }
 
-    private String getBaseHeadInfo(Integer taskId,String separator){
+    private String getBaseHeadInfo(Long taskId,String separator){
         StringBuilder baseHeadInfo = new StringBuilder();
         Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
