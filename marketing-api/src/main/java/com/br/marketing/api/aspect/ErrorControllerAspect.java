@@ -115,7 +115,7 @@ public class ErrorControllerAspect {
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
-                obj.setCode("10001");
+                obj.setCode("100001");
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
                 if(saveLog != null){
                     interfaceLog.setCode(2);

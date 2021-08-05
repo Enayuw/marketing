@@ -1,6 +1,7 @@
 package com.br.marketing.common.commondto;
 
 
+import com.br.marketing.common.utils.StringUtils;
 
 public class ApiNoDataResult<T> {
     private String code;
@@ -29,10 +30,13 @@ public class ApiNoDataResult<T> {
     public ApiNoDataResult<T> fromResult(Result<T> result){
         if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
             this.code = "00";
+            if(StringUtils.isBlank(result.getMessage())){
+                this.message="成功";
+            }
         }else{
             this.code ="100001";
+            this.message = result.getMessage();
         }
-        this.message = result.getMessage();
         return this;
     }
 }

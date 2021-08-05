@@ -742,16 +742,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             Date parse = null;
             try {
-                parse = yyyyMMddHMS.parse(transferUserVO.getTransformTime());
+                if(StringUtils.isNotBlank(transferUserVO.getTransformTime())) {
+                    parse = yyyyMMddHMS.parse(transferUserVO.getTransformTime());
+                }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("转化时间格式错误");
             }
             sql.append("('").append(requestId).append("'")
-                .append(",'").append(transferUserVO.getTaskId()).append("'")
-                .append(",'").append(transferUserVO.getCustNum()).append("'")
-                .append(",'").append(yyyyMMddHMS.format(parse)).append("'")
-                .append(",'").append(nowDate).append("'")
-                .append(",'").append(transferUserVO.getGroupType()).append("')");
+                    .append(",'").append(transferUserVO.getTaskId()).append("'")
+                    .append(",'").append(transferUserVO.getCustNum()).append("'")
+                    .append(",").append(parse==null?"null":("'".concat(yyyyMMddHMS.format(parse)).concat("'")))
+                    .append(",'").append(nowDate).append("'")
+                    .append(",'").append(transferUserVO.getGroupType()).append("')");
             //endregion
         }
         if(StringUtils.isNotBlank(sql.toString())){
