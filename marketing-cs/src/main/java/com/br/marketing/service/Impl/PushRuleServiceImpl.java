@@ -12,9 +12,12 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerFeignClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
-import com.br.marketing.client.intelligentcustomerservice.output.TransferRobotOutboundVO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
+import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.StatusConstants;
@@ -141,7 +144,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     StraHisFileMapper straHisFileMapper;
 
     @Autowired
-    IntelligentCustomerFeignClient intelligentCustomerFeignClient;
+    RobotaiApiServiceClient robotaiApiServiceClient;
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
@@ -748,17 +751,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             conversionDataList.add(data);
         }
-        robotOutboundDTO.setConversionData(conversionDataList);
-        robotOutboundDTO.setMethod("conversionData");
-        robotOutboundDTO.setAccessNumber(UUID.randomUUID().toString());
+        TransferJsonDataDTO jsonDataDTO = new TransferJsonDataDTO();
+        jsonDataDTO.setConversionData(conversionDataList);
+        jsonDataDTO.setMethod("conversionData");
+        jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
+        jsonDataDTO.setPlatApiCode(apiCode);
+        robotOutboundDTO.setApiCode(apiCode);
+        robotOutboundDTO.setJsonData(jsonDataDTO);
         //todo 调用客服接口
-        HashMap<String, String> body = new HashMap<>();
-        body.put("apiCode",apiCode);
-        body.put("jsonData",JSON.toJSONString(robotOutboundDTO));
-        StringBuilder sb = new StringBuilder();
-        sb.append("apiCode=".concat(apiCode));
-        sb.append("&jsonData=".concat(JSON.toJSONString(robotOutboundDTO)));
-        TransferRobotOutboundVO transferRobotOutboundVO = intelligentCustomerFeignClient.robotOutbound(sb.toString());
+        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
         System.out.println(transferRobotOutboundVO.toString());
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }

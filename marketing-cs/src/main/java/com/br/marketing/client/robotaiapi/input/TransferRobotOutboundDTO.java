@@ -1,7 +1,7 @@
 /**
   * Copyright 2021 bejson.com 
   */
-package com.br.marketing.client.intelligentcustomerservice.input;
+package com.br.marketing.client.robotaiapi.input;
 import lombok.Data;
 
 import java.util.List;
@@ -11,7 +11,6 @@ import java.util.List;
  */
 @Data
 public class TransferRobotOutboundDTO {
-    private String accessNumber;
-    private List<ConversionData> conversionData;
-    private String method;
+    private String apiCode;
+    private TransferJsonDataDTO jsonData;
 }

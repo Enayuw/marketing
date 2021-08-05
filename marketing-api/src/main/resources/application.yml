@@ -66,26 +66,3 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-feign:
-  hystrix:
-    enabled: true
-    httpclient:
-      enabled: false
-    okhttp:
-      enabled: true
-hystrix:
-  threadpool: #https://github.com/Netflix/Hystrix/wiki/Configuration#threadpool-properties
-    default:
-      coreSize: 1000
-  command:
-    default:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 10000
-          semaphore:
-            maxConcurrentRequests: 1000
-ribbon:
-  ReadTimeout: 5000
-  ConnectTimeout: 5000

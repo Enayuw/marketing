@@ -1,4 +1,4 @@
-package com.br.marketing.client.intelligentcustomerservice.output;
+package com.br.marketing.client.robotaiapi.output;
 
 import lombok.Data;
 
