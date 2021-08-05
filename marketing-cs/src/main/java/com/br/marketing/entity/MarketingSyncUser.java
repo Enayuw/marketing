@@ -54,16 +54,6 @@ public class MarketingSyncUser {
     private String registerDate;
 
     /**
-     * 业务保留字段1
-     */
-    private String reserveField1;
-
-    /**
-     * 业务保留字段2
-     */
-    private String reserveField2;
-
-    /**
      * 创建时间
      */
     private Date createTime;
