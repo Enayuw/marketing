@@ -149,7 +149,7 @@ public class ResultUtil {
             p.setVersion(meal.getJSONObject(product).getString("version"));
             p.setCodeVersion(p.getCode().concat("_").concat(p.getVersion()));
             p.setFlag(hxJson.get("flag_score")==null?"":hxJson.getString("flag_score"));
-            p.setScore(new Double(hxJson.get(product)==null?0:hxJson.getDoubleValue(product)));
+            p.setScore(new Double(hxJson.get(product.toLowerCase())==null?0:hxJson.getDoubleValue(product.toLowerCase())));
             list.add(p);
         }
         mh.setProduct(list);
