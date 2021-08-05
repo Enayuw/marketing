@@ -1,4 +1,6 @@
 package com.br.marketing.check.job;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
@@ -10,7 +12,9 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExtend;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.service.IApiToDbService;
@@ -72,6 +76,8 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     SftpToDbService sftpToDbService;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
+    @Autowired
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
     @Resource
     RedisChgService redisChgService;
     @Resource
@@ -82,9 +88,9 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     FileCheckServiceImpl fileCheckService;
     @Resource
     DeleteService deleteService;
-
     @Autowired
     IApiToDbService iApiToDbService;
+    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -175,6 +181,13 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             task.setContextId(iApiToDbService.getTaskContextId());
                             context.setCusBatch(task.getFileName());
                             marketingTaskMapper.insertTask(task);
+                            MarketingTaskExtend taskExtend = new MarketingTaskExtend();
+                            taskExtend.setApiCode(apiCode);
+                            taskExtend.setTaskId(task.getId());
+                            taskExtend.setCusTaskId(task.getFileName());
+                            taskExtend.setCreateTime(new Date());
+                            taskExtend.setUploadTime(yyyyMMdd.format(new Date()));
+                            marketingTaskExtendMapper.insertSelective(taskExtend);
                             context.setTask(task);
                             context.init();
                             if (SftpToDbUtils.vaildFileName(zipFileName, apiCode, errorMessage)) {

@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 public class MarketingTask {
-    private Integer id;
+    private Long id;
     @JSONField(name = "api_code")
     private String apiCode;
     @JSONField(name = "batch_number")
