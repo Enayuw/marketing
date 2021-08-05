@@ -45,7 +45,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
-            , String sep, String apiCode,String strategyId) {
+            , String sep, String apiCode,String strategyId,JSONObject esResult) {
         StringBuilder result=new StringBuilder();
         String strategyProductConfigStr = getStrategyProductConfigStr(apiCode);
         if(StringUtils.isEmpty(strategyProductConfigStr)){
@@ -73,6 +73,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             String field = strategyProductDetailVO.getFields().get(i);
             String fieldRes = hxJson.getString(field);
             result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"").append(sep);
+            esResult.put(field,StringUtils.isNotBlank(fieldRes)?fieldRes:"");
         }
         sb.append(result);
         return new Result().setCode(ResultCode.SUCCESS.getValue());

@@ -65,16 +65,13 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
-    @Autowired
-    StrategyProductConfigMapper strategyProductConfigMapper;
-
-    @Autowired
+    @Resource
     IProductResultSimpleService iProductResultSimpleService;
 
-    @Autowired
+    @Resource
     GroupStrategyConfigMapper groupStrategyConfigMapper;
 
-    @Autowired
+    @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
     final SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
@@ -299,7 +296,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blt.setTableName("b_marketing_user_"+blt.getApiCode());
             String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                     + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
+            Integer pushType=0;
+            GroupStrategyConfig groupStrategyConfig =getGroupStrategyConfig(blt);
+            if(groupStrategyConfig !=null){
+                pushType=groupStrategyConfig.getPushType();
+            }
             /**
              * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
              */
@@ -311,6 +312,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
             blf.setShowTitle(createShowTitle(blt));
+            blf.setPushType(pushType);
             loanFileMapper.insertFile(blf);
 
             /**
@@ -367,7 +369,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
                 String descPath=path+"/all/"+blt.getApiCode()+"/"+blt.getBatchNumber()+"/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
+                Integer pushType=0;
+            GroupStrategyConfig groupStrategyConfig =getGroupStrategyConfig(blt);
+            if(groupStrategyConfig !=null){
+                pushType=groupStrategyConfig.getPushType();
+            }
             /**
              * 任务提交前，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
              */
@@ -379,6 +385,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
             blf.setShowTitle(createShowTitle(blt));
+            blf.setPushType(pushType);
             loanFileMapper.insertFile(blf);
 
             /**
@@ -458,11 +465,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         }
     }
 
-    private String getBaseHeadInfo(Integer taskId,String separator){
+    private String getBaseHeadInfo(Long taskId,String separator){
         StringBuilder baseHeadInfo = new StringBuilder();
-        Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
+        taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
         if(marketingTaskExtends.size()>0){
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
@@ -589,5 +595,29 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             }
             return task.getCusBatch();
         }
+    }
+    private GroupStrategyConfig getGroupStrategyConfig(MarketingTask task){
+
+        GroupStrategyConfig groupStrategyConfig=null;
+
+        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
+        extendExample.createCriteria()
+                .andTaskIdEqualTo(task.getId())
+                .andIsDelEqualTo(1);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
+        if(marketingTaskExtends.size()>0) {
+            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
+
+            GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
+            configExample.createCriteria()
+                    .andApiCodeEqualTo(task.getApiCode())
+                    .andGroupTypeEqualTo(taskExtend.getGroupType())
+                    .andIsDelEqualTo(1);
+            List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
+            if (groupStrategyConfigs.size() > 0) {
+                groupStrategyConfig = groupStrategyConfigs.get(0);
+            }
+        }
+        return groupStrategyConfig;
     }
 }

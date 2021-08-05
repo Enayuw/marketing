@@ -1,6 +1,6 @@
-package com.br.marketing.entity;
+package com.br.marketing.check.service;
 
-import lombok.Data;
+import com.br.marketing.entity.Customer;
 
 /**
  * //				    _ooOoo_
@@ -25,27 +25,11 @@ import lombok.Data;
  * //			  Buddha Bless, No Bug !
  *
  * @Author xiaoxin.pang
- * @Date 2021/5/6 15:45
+ * @Date 2021/8/4 15:40
  * @Description:
  **/
-@Data
-public class Customer {
-    private String  apiCode;
-    private String message;
-    /**
-     *
-     */
-    private String type;
-    private Integer threadNum;
-    private Integer taskTime;
-    private Integer finishDate;
-    private Integer pushCustomer;
-    private Integer sort;
-    private Integer status;
-    private Integer checkBlackList;
-    private Integer checkRedisNumber;
-    private Integer saveLog;
-    private String extendConfigInfo;
-    private Integer pushType;
-    private String pushUrl;
+public interface PushCustomerService {
+
+    void push(Customer customer);
+    void retry(Customer customer);
 }

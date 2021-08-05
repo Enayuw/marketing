@@ -40,6 +40,8 @@ public class LoanFile extends BaseRowModel {
     private String statisticFilePath;
     private Integer scoreStatus;
     private String showTitle;
+    private Integer pushType;
+    private Integer pushStatus;
     @Override
     public String toString() {
         return "LoanFile{" +
