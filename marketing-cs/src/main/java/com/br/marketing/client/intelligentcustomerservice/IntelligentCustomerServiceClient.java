@@ -27,6 +27,9 @@ public class IntelligentCustomerServiceClient {
     @Value("${api.intelligentCustomerService.pushUserUrl:00}")
     private String pushUrl;
 
+    @Value("${api.customerService.apiCode:0}")
+    private String customerServiceApiCode;
+
     @Autowired
     CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
@@ -35,8 +38,7 @@ public class IntelligentCustomerServiceClient {
 
 
     public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
-//        System.out.println("SERVICE===="+apiCaller);
-//        System.out.println("SERVICE===="+JSON.toJSONString(dto));
+        dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
         log.setmId(mId);
@@ -68,6 +70,7 @@ public class IntelligentCustomerServiceClient {
 
 
     public Result<String> getUserStatus(PushMarketingUserDTO dto){
+        dto.setPlatApiCode(customerServiceApiCode);
         Result<String> result = new Result();
         try{
             ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)

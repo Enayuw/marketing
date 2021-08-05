@@ -37,6 +37,7 @@
            `request_id` varchar(100) NULL COMMENT '请求id',
             `task_id` varchar(100) NULL COMMENT '任务id',
             `cust_num` varchar(100) NULL COMMENT '客户编号',
+            `group_type` varchar(100) NULL COMMENT '场景',
             `transform_time` DATETIME NULL COMMENT '转化时间',
             `create_time` DATETIME NULL COMMENT '入库时间',
             PRIMARY KEY (`id`)
@@ -48,7 +49,8 @@
     </insert>
 
     <select id="selectTransfersByRequestId" resultType="java.lang.Integer">
-        select count(1) from marketing_transfer_${apiCode}
+        select count(1)
+        from b_marketing_transfer_${apiCode}
         where request_id = #{requestId}
     </select>
 
