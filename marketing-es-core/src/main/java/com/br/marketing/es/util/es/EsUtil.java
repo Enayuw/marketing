@@ -43,7 +43,7 @@ import java.util.Map;
  */
 @Slf4j
 public class EsUtil {
-    private final static RestHighLevelClient client = EsClientFactory.getClient();
+    private final static RestHighLevelClient CLIENT = EsClientFactory.getClient();
 
     /**
      * 新增
@@ -57,7 +57,7 @@ public class EsUtil {
         String id = object.remove("_id").toString();
         indexRequest.id(id);
         indexRequest.source(object);
-        client.index(indexRequest, RequestOptions.DEFAULT);
+        CLIENT.index(indexRequest, RequestOptions.DEFAULT);
         return true;
     }
 
@@ -71,7 +71,7 @@ public class EsUtil {
     public static long delete(String[] indices, QueryBuilder queryBuilder) throws IOException {
         DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(indices);
         deleteByQueryRequest.setQuery(queryBuilder);
-        BulkByScrollResponse response = client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT);
+        BulkByScrollResponse response = CLIENT.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT);
         log.debug("fail:(count:{},message:{}),detele:{}", response.getBulkFailures().size(), JSON.toJSONString(response.getBulkFailures())
                 , response.getDeleted());
         return response.getDeleted();
@@ -94,7 +94,7 @@ public class EsUtil {
             sb.append("ctx._source.").append(key).append("=").append("params.").append(key).append(";");
         }
         updateByQueryRequest.setScript(new Script(ScriptType.INLINE, "painless", sb.toString(), object));
-        BulkByScrollResponse response = client.updateByQuery(updateByQueryRequest, RequestOptions.DEFAULT);
+        BulkByScrollResponse response = CLIENT.updateByQuery(updateByQueryRequest, RequestOptions.DEFAULT);
         log.debug("fail:(count:{},message:{}),update:{}", response.getBulkFailures().size(), JSON.toJSONString(response.getBulkFailures())
                 , response.getUpdated());
         return response.getUpdated();
@@ -111,7 +111,7 @@ public class EsUtil {
         String id = object.remove("_id").toString();
         UpdateRequest updateRequest = new UpdateRequest(index, id);
         updateRequest.doc(object);
-        client.update(updateRequest, RequestOptions.DEFAULT);
+        CLIENT.update(updateRequest, RequestOptions.DEFAULT);
         return true;
     }
 
@@ -128,7 +128,7 @@ public class EsUtil {
         //以WriteRequest.RefreshPolicy实例形式设置刷新策略,RefreshPolicy#IMMEDIATE-请求向ElasticSearch提交了数据，立即进行数据刷新，然后再结束请求。
         updateRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         updateRequest.doc(object);
-        client.update(updateRequest, RequestOptions.DEFAULT);
+        CLIENT.update(updateRequest, RequestOptions.DEFAULT);
         return true;
     }
 
@@ -147,10 +147,10 @@ public class EsUtil {
             searchTemplateRequest.setScript(templateId);
             searchTemplateRequest.setScriptType(ScriptType.STORED);
             searchTemplateRequest.setScriptParams(params);
-            SearchTemplateResponse response = client.searchTemplate(searchTemplateRequest, RequestOptions.DEFAULT);
+            SearchTemplateResponse response = CLIENT.searchTemplate(searchTemplateRequest, RequestOptions.DEFAULT);
             return response.getResponse().getHits();
         } catch (ElasticsearchStatusException esException) {
-            log.error("selectByTemplate ElasticsearchStatusException:{}", esException.getMessage());
+            log.error("selectByTemplate ElasticsearchStatusException", esException);
         } catch (Exception e) {
             log.error("selectByTemplate error", e);
         }
@@ -167,7 +167,7 @@ public class EsUtil {
     public static long count(String[] indices, QueryBuilder queryBuilder) throws IOException {
         CountRequest countRequest = new CountRequest(indices);
         countRequest.query(queryBuilder);
-        CountResponse countR = client.count(countRequest, RequestOptions.DEFAULT);
+        CountResponse countR = CLIENT.count(countRequest, RequestOptions.DEFAULT);
         return countR.getCount();
     }
 
@@ -188,17 +188,17 @@ public class EsUtil {
             searchTemplateRequest.setScriptParams(params);
             // 给定参数值，模板可以在不执行搜索的情况下呈现:
             searchTemplateRequest.setSimulate(true);
-            SearchTemplateResponse response = client.searchTemplate(searchTemplateRequest, RequestOptions.DEFAULT);
+            SearchTemplateResponse response = CLIENT.searchTemplate(searchTemplateRequest, RequestOptions.DEFAULT);
             String source = response.getSource().utf8ToString();
             JSONObject query = JSON.parseObject(source).getJSONObject("query");
             //获取query查询
             WrapperQueryBuilder builder = new WrapperQueryBuilder(query.toJSONString());
             CountRequest countRequest = new CountRequest(indices);
             countRequest.query(builder);
-            CountResponse countR = client.count(countRequest, RequestOptions.DEFAULT);
+            CountResponse countR = CLIENT.count(countRequest, RequestOptions.DEFAULT);
             return countR.getCount();
         } catch (ElasticsearchStatusException esException) {
-            log.error("selectByTemplateCount ElasticsearchStatusException:{}", esException.getMessage());
+            log.error("selectByTemplateCount ElasticsearchStatusException", esException);
         } catch (Exception e) {
             log.error("selectByTemplateCount error", e);
         }
@@ -217,7 +217,7 @@ public class EsUtil {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(queryBuilder);
         searchRequest.source(searchSourceBuilder);
-        SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        SearchResponse response = CLIENT.search(searchRequest, RequestOptions.DEFAULT);
         return hitsToString(response.getHits());
     }
 
