@@ -692,9 +692,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue())
                     .setMessage("requestId不能为空");
         }
-        if(requestId.length()>50){
+        if(requestId.length()>100){
             return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("requestId不能超过50");
+                    .setMessage("requestId不能超过100");
         }
         marketingSyncInfoMapper.createMarketingTransferTable("b_marketing_transfer_".concat(apiCode));
         Integer hasData = marketingSyncInfoMapper.selectTransfersByRequestId(apiCode, requestId);
@@ -736,7 +736,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         .setMessage("该批次数据含有custNum为空数据");
             }
 
-            if(transferUserVO.getCustNum().length()>50){
+            if(transferUserVO.getCustNum().length()>100){
                 return new Result().setCode(ResultCode.FAIL.getValue())
                         .setMessage("该批次数据含有custNum超过长度数据");
             }
@@ -746,10 +746,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                         .setMessage("该批次数据含有groupType为空数据");
             }
 
-            if(transferUserVO.getGroupType().length()>50){
+            if(transferUserVO.getGroupType().length()>100){
                 return new Result().setCode(ResultCode.FAIL.getValue())
                         .setMessage("该批次数据含有groupType超过长度数据");
             }
+
+            if(StringUtils.isNotBlank(transferUserVO.getReserveField1())
+                    &&transferUserVO.getReserveField1().length()>500){
+                return new Result().setCode(ResultCode.FAIL.getValue())
+                        .setMessage("该批次数据含有reserveField1超过长度数据");
+            }
+
+            if(StringUtils.isNotBlank(transferUserVO.getReserveField2())
+                    &&transferUserVO.getReserveField2().length()>500){
+                return new Result().setCode(ResultCode.FAIL.getValue())
+                        .setMessage("该批次数据含有reserveField2超过长度数据");
+            }
+
+
             //ednregion
 
             //region 拼接sql
