@@ -283,7 +283,8 @@
         	`type`,
         	file_path,
         	expected_num,
-			show_title
+			show_title,
+			push_type
         	)
         	 VALUES (
         	 #{apiCode},
@@ -294,7 +295,8 @@
         	 #{type},
         	 #{filePath},
         	 #{expectedNum},
-			 #{showTitle}
+			 #{showTitle},
+			 #{pushType}
         	 )
 	</insert>
 	<update id="updateFileComplete" parameterType="map">
