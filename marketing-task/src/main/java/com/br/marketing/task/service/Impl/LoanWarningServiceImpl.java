@@ -579,7 +579,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 .andTaskIdEqualTo(Long.valueOf(task.getId()))
                 .andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()>0){
+        if(marketingTaskExtends.size()>0 && StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())){
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
 
             String groupStr = "";
@@ -606,12 +606,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                                     .concat(yyyyMMdd.format(parse)).concat("_")
                                     .concat(yyyyMMdd.format(new Date()));
             return showTitle;
-        }else{
-            if(allMonitorType.equals(task.getMonitorType())){
-                return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
-            }
-            return task.getCusBatch();
         }
+        if(allMonitorType.equals(task.getMonitorType())){
+            return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
+        }
+        return task.getCusBatch();
     }
     private GroupStrategyConfig getGroupStrategyConfig(MarketingTask task){
 
