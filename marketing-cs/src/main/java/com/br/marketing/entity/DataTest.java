@@ -16,7 +16,7 @@ public class DataTest {
     /**
      * 
      */
-    private String data;
+    private String dataStr;
 
     public Long getId() {
         return id;
@@ -34,11 +34,11 @@ public class DataTest {
         this.createTime = createTime;
     }
 
-    public String getData() {
-        return data;
+    public String getDataStr() {
+        return dataStr;
     }
 
-    public void setData(String data) {
-        this.data = data == null ? null : data.trim();
+    public void setDataStr(String dataStr) {
+        this.dataStr = dataStr == null ? null : dataStr.trim();
     }
 }

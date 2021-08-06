@@ -4,9 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.DataTest" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.DataTest" extends="BaseResultMap" >
-    <result column="data" property="data" jdbcType="LONGVARCHAR" />
+    <result column="data_str" property="dataStr" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -67,34 +65,15 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, create_time
+    id, create_time, data_str
   </sql>
-  <sql id="Blob_Column_List" >
-    data
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.DataTestExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from data_test1
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataTestExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from data_test1
+    from data_test2
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -102,20 +81,18 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from data_test1
+    from data_test2
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from data_test1
+    delete from data_test2
     where id = #{id,jdbcType=BIGINT}
   </delete>
   <delete id="deleteByExample" parameterType="com.br.marketing.entity.DataTestExample" >
-    delete from data_test1
+    delete from data_test2
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -124,39 +101,39 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into data_test1 (create_time, data)
-    values (#{createTime,jdbcType=TIMESTAMP}, #{data,jdbcType=LONGVARCHAR})
+    insert into data_test2 (create_time, data_str)
+    values (#{createTime,jdbcType=TIMESTAMP}, #{dataStr,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataTest" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into data_test1
+    insert into data_test2
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="createTime != null" >
         create_time,
       </if>
-      <if test="data != null" >
-        data,
+      <if test="dataStr != null" >
+        data_str,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="data != null" >
-        #{data,jdbcType=LONGVARCHAR},
+      <if test="dataStr != null" >
+        #{dataStr,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.DataTestExample" resultType="java.lang.Integer" >
-    select count(*) from data_test1
+    select count(*) from data_test2
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update data_test1
+    update data_test2
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -164,52 +141,39 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.data != null" >
-        data = #{record.data,jdbcType=LONGVARCHAR},
+      <if test="record.dataStr != null" >
+        data_str = #{record.dataStr,jdbcType=VARCHAR},
       </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update data_test1
-    set id = #{record.id,jdbcType=BIGINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      data = #{record.data,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update data_test1
+    update data_test2
     set id = #{record.id,jdbcType=BIGINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      data_str = #{record.dataStr,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DataTest" >
-    update data_test1
+    update data_test2
     <set >
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="data != null" >
-        data = #{data,jdbcType=LONGVARCHAR},
+      <if test="dataStr != null" >
+        data_str = #{dataStr,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.DataTest" >
-    update data_test1
-    set create_time = #{createTime,jdbcType=TIMESTAMP},
-      data = #{data,jdbcType=LONGVARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataTest" >
-    update data_test1
-    set create_time = #{createTime,jdbcType=TIMESTAMP}
+    update data_test2
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      data_str = #{dataStr,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -224,6 +224,76 @@ public class DataTestExample {
             addCriterion("create_time not between", value1, value2, "createTime");
             return (Criteria) this;
         }
+
+        public Criteria andDataStrIsNull() {
+            addCriterion("data_str is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrIsNotNull() {
+            addCriterion("data_str is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrEqualTo(String value) {
+            addCriterion("data_str =", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrNotEqualTo(String value) {
+            addCriterion("data_str <>", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrGreaterThan(String value) {
+            addCriterion("data_str >", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrGreaterThanOrEqualTo(String value) {
+            addCriterion("data_str >=", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrLessThan(String value) {
+            addCriterion("data_str <", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrLessThanOrEqualTo(String value) {
+            addCriterion("data_str <=", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrLike(String value) {
+            addCriterion("data_str like", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrNotLike(String value) {
+            addCriterion("data_str not like", value, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrIn(List<String> values) {
+            addCriterion("data_str in", values, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrNotIn(List<String> values) {
+            addCriterion("data_str not in", values, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrBetween(String value1, String value2) {
+            addCriterion("data_str between", value1, value2, "dataStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataStrNotBetween(String value1, String value2) {
+            addCriterion("data_str not between", value1, value2, "dataStr");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

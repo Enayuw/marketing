@@ -17,21 +17,15 @@ public interface DataTestMapper {
 
     int insertSelective(DataTest record);
 
-    List<DataTest> selectByExampleWithBLOBs(DataTestExample example);
-
     List<DataTest> selectByExample(DataTestExample example);
 
     DataTest selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") DataTest record, @Param("example") DataTestExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") DataTest record, @Param("example") DataTestExample example);
-
     int updateByExample(@Param("record") DataTest record, @Param("example") DataTestExample example);
 
     int updateByPrimaryKeySelective(DataTest record);
-
-    int updateByPrimaryKeyWithBLOBs(DataTest record);
 
     int updateByPrimaryKey(DataTest record);
 }

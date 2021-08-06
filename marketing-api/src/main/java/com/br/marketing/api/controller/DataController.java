@@ -31,7 +31,7 @@ public class DataController {
         JSONObject result =new JSONObject();
         DataTest dataTest = new DataTest();
         dataTest.setCreateTime(new Date());
-        dataTest.setData(data);
+        dataTest.setDataStr(data);
         dataTestMapper.insertSelective(dataTest);
         result.put("code","00");
         result.put("message","接收成功");
