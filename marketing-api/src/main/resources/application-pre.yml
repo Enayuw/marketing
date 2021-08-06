@@ -27,7 +27,7 @@ sharding:
         sql.show: true
 eureka:
   client:
-    service-url.defaultZone: http://eureka-0.100credit.cn/eureka/
+    service-url.defaultZone: http://192.168.23.121:18000/eureka/
 
 spring:
   rabbitmq:
