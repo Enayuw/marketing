@@ -2,12 +2,15 @@ package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.DataService;
+import com.br.marketing.entity.DataTest;
+import com.br.marketing.mapper.DataTestMapper;
 import com.br.marketing.service.IApiToDbService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/data/")
@@ -19,7 +22,8 @@ public class DataController {
 
     @Autowired
     IApiToDbService iApiToDbService;
-
+    @Resource
+    DataTestMapper dataTestMapper;
     @GetMapping("dataEliminate")
     public String dataEliminate(){
         boolean result=dataServiceImpl.dataEliminate();
@@ -34,14 +38,15 @@ public class DataController {
         iApiToDbService.pushToDb();
         return "success";
     }
-
-    @PostMapping("put")
-    public String put(@RequestBody String data){
-        log.warn("推送请求数据-{}",data);
+    @PostMapping("pushTest")
+    public String pushTest(@RequestBody String data){
         JSONObject result =new JSONObject();
+        DataTest dataTest = new DataTest();
+        dataTest.setCreateTime(new Date());
+        dataTest.setData(data);
+        dataTestMapper.insertSelective(dataTest);
         result.put("code","00");
-        result.put("message","成功");
+        result.put("message","接收成功");
         return result.toJSONString();
     }
-
 }
