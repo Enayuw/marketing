@@ -155,13 +155,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         PushErrorLogExample pushErrorLogExample = new PushErrorLogExample();
         pushErrorLogExample.createCriteria().andApiCodeEqualTo(customer.getApiCode()).andCreateTimeGreaterThanOrEqualTo(createTime).andStatusEqualTo(2);
-        List<PushErrorLogWithBLOBs> pushErrorLogList =pushErrorLogMapper.selectByExampleWithBLOBs(pushErrorLogExample);
+        List<PushErrorLog> pushErrorLogList =pushErrorLogMapper.selectByExample(pushErrorLogExample);
         pushErrorLogList=pushErrorLogList.stream()
                  .filter(pushErrorLogWithBLOBs1 -> pushErrorLogWithBLOBs1.getActualPushTimes()<pushErrorLogWithBLOBs1.getPushTimes())
          .collect(Collectors.toList());
 
         List<Callable<Boolean>> list = new ArrayList<>();
-        for (PushErrorLogWithBLOBs pushErrorLog : pushErrorLogList) {
+        for (PushErrorLog pushErrorLog : pushErrorLogList) {
             list.add(() -> {
                 JSONObject param =JSONObject.parseObject(pushErrorLog.getRequestStr());
                 param.put("requestId", UuidUtils.getUuid());

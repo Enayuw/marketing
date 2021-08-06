@@ -29,6 +29,16 @@ public class PushErrorLog {
     private Integer status;
 
     /**
+     * 请求数据
+     */
+    private String requestStr;
+
+    /**
+     * 响应数据
+     */
+    private String responseStr;
+
+    /**
      * 重试次数
      */
     private Integer pushTimes;
@@ -86,6 +96,22 @@ public class PushErrorLog {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getRequestStr() {
+        return requestStr;
+    }
+
+    public void setRequestStr(String requestStr) {
+        this.requestStr = requestStr == null ? null : requestStr.trim();
+    }
+
+    public String getResponseStr() {
+        return responseStr;
+    }
+
+    public void setResponseStr(String responseStr) {
+        this.responseStr = responseStr == null ? null : responseStr.trim();
     }
 
     public Integer getPushTimes() {

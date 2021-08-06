@@ -5,12 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.utils.MomUtil;
 import com.br.marketing.client.HttpProxyClient;
-import com.br.marketing.common.utils.EncodeUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.PushErrorLog;
-import com.br.marketing.entity.PushErrorLogWithBLOBs;
-import com.br.marketing.entity.RequestLog;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.PushErrorLogMapper;
@@ -18,7 +15,6 @@ import com.br.marketing.vo.TaskExtendInfoVO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -68,7 +64,7 @@ public class PushDataThread implements Callable<String>{
         }
 
         if(!(Boolean) result.get("result")){
-            PushErrorLogWithBLOBs pushErrorLog =new PushErrorLogWithBLOBs();
+            PushErrorLog pushErrorLog =new PushErrorLog();
             pushErrorLog.setCreateTime(new Date());
             pushErrorLog.setUpdateTime(new Date());
             pushErrorLog.setApiCode(customer.getApiCode());
