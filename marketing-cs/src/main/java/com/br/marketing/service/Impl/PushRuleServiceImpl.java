@@ -686,11 +686,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result insertBatchTransferUser(String apiCode, String jsonData){
-        JSONObject jsonObject = JSON.parseObject(jsonData);
+        JSONObject jsonObject =null;
+        try {
+            jsonObject = JSON.parseObject(jsonData);
+        }catch (Exception ex){
+            throw new ParamValidErrorException("参数解析异常");
+        }
         String requestId = jsonObject.getString("requestId");
         if(StringUtils.isBlank(requestId)){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("requestId不能为空");
+            throw new ParamValidErrorException("requestId不能为空");
         }
         if(requestId.length()>100){
             return new Result().setCode(ResultCode.FAIL.getValue())
@@ -699,19 +703,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         marketingSyncInfoMapper.createMarketingTransferTable("b_marketing_transfer_".concat(apiCode));
         Integer hasData = marketingSyncInfoMapper.selectTransfersByRequestId(apiCode, requestId);
         if(hasData>0){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("requestId数据已存在");
+            throw new ParamValidErrorException("requestId数据已存在");
         }
 
-        List<TransferUserVO> transfers = JSON.parseObject(jsonObject.getString("dataItems"), new TypeReference<List<TransferUserVO>>() {
-        }.getType());
+        List<TransferUserVO> transfers = new ArrayList<>();
+        try {
+            transfers = JSON.parseObject(jsonObject.getString("dataItems"), new TypeReference<List<TransferUserVO>>() {
+            }.getType());
+        }catch (Exception ex){
+            throw new ParamValidErrorException("参数解析异常");
+        }
         if(transfers.size()>100){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("最多传输100条数据");
+            throw new ParamValidErrorException("最多传输100条数据");
         }
         if(transfers.size()==0){
-            return new Result().setCode(ResultCode.SUCCESS.getValue())
-                    .setMessage("未传输数据");
+            throw new ParamValidErrorException("未传输数据");
         }
 
         StringBuilder sql = new StringBuilder();
@@ -722,45 +728,37 @@ public class PushRuleServiceImpl implements PushRuleService {
             TransferUserVO transferUserVO = transfers.get(i);
             //region 校验参数
             if(StringUtils.isBlank(transferUserVO.getTaskId())){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有taskId为空数据");
+                throw new ParamValidErrorException("该批次数据含有taskId为空数据");
             }
 
             if(transferUserVO.getTaskId().length()>50){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有taskId超过长度数据");
+                throw new ParamValidErrorException("该批次数据含有taskId超过长度数据");
             }
 
             if(StringUtils.isBlank(transferUserVO.getCustNum())){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有custNum为空数据");
+                throw new ParamValidErrorException("该批次数据含有custNum为空数据");
             }
 
             if(transferUserVO.getCustNum().length()>100){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有custNum超过长度数据");
+                throw new ParamValidErrorException("该批次数据含有custNum超过长度数据");
             }
 
             if(StringUtils.isBlank(transferUserVO.getGroupType())){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有groupType为空数据");
+                throw new ParamValidErrorException("该批次数据含有groupType为空数据");
             }
 
             if(transferUserVO.getGroupType().length()>100){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有groupType超过长度数据");
+                throw new ParamValidErrorException("该批次数据含有groupType超过长度数据");
             }
 
             if(StringUtils.isNotBlank(transferUserVO.getReserveField1())
                     &&transferUserVO.getReserveField1().length()>500){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有reserveField1超过长度数据");
+                throw new ParamValidErrorException("该批次数据含有reserveField1超过长度数据");
             }
 
             if(StringUtils.isNotBlank(transferUserVO.getReserveField2())
                     &&transferUserVO.getReserveField2().length()>500){
-                return new Result().setCode(ResultCode.FAIL.getValue())
-                        .setMessage("该批次数据含有reserveField2超过长度数据");
+                throw new ParamValidErrorException("该批次数据含有reserveField2超过长度数据");
             }
 
 
