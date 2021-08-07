@@ -621,7 +621,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 .andTaskIdEqualTo(task.getId())
                 .andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()>0) {
+        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())) {
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
 
             GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
