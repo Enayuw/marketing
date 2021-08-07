@@ -32,7 +32,7 @@ public class DataController {
         Long time=System.currentTimeMillis();
         if(time%5==0){
             result.put("code","99");
-            result.put("message","接收失败");
+            result.put("message","FALSE");
             return result.toJSONString();
         }else {
             DataTest dataTest = new DataTest();
@@ -40,7 +40,7 @@ public class DataController {
             dataTest.setDataStr(data);
             dataTestMapper.insertSelective(dataTest);
             result.put("code","00");
-            result.put("message","接收成功");
+            result.put("message","SUCCESS");
             return result.toJSONString();
         }
     }
