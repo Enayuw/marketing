@@ -3,6 +3,8 @@ import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.BrExecutors;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -18,7 +20,10 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.vo.BaseHead;
+import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.CustGroupTempVO;
+import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -158,18 +164,25 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //region 生成批次号
                 List<String> groupTypes = marketingUserMapper.selectGroupByCodeAndCusAndTime(apiCode,taskId,preDate);
-                ArrayList<StrategyOfGroupDTO> strategyOfGroupDTOS = new ArrayList<>();
-                HashMap<String,String> strategyOfGroupHashMap = new HashMap();
+//                ArrayList<StrategyOfGroupDTO> strategyOfGroupDTOS = new ArrayList<>();
+                HashMap<String,StrategyOfGroupDTO> strategyOfGroupHashMap = new HashMap();
                 groupTypes.forEach(t->{
-                    Optional<GroupStrategyConfig> first = groupStrategyConfigs.stream().filter(k -> k.getGroupType().equals(t)).findFirst();
+                    Optional<GroupStrategyConfig> first = groupStrategyConfigs.stream()
+                            .filter(k -> k.getGroupType().equals(t)).findFirst();
                     if (first.isPresent()) {
-                        Result<String> stringResult = buildBatchNumber(apiCode, taskId, t, DateUtils.format(new Date(), "yyyy-MM-dd"));
+                        Result<String> stringResult = buildBatchNumber(apiCode, taskId, t
+                                , DateUtils.format(new Date(), "yyyy-MM-dd"));
                         if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                             StrategyOfGroupDTO strategyOfGroupDTO = new StrategyOfGroupDTO();
                             BeanUtils.copyProperties(first.get(), strategyOfGroupDTO);
                             strategyOfGroupDTO.setBatchNumber(stringResult.getData());
-                            strategyOfGroupDTOS.add(strategyOfGroupDTO);
-                            strategyOfGroupHashMap.put(t, stringResult.getData());
+                            if(StringUtils.isNotBlank(strategyOfGroupDTO.getBaseInfo())){
+                                BaseHeadConfigVO vo =JSON.parseObject(strategyOfGroupDTO.getBaseInfo()
+                                        ,new TypeReference<BaseHeadConfigVO>(){}.getType());
+                                BaseHeadConfigVO orderBaseHeadInfo = iProductResultSimpleService.getOrderBaseHeadInfo(vo);
+                                strategyOfGroupDTO.setConfigVO(orderBaseHeadInfo);
+                            }
+                            strategyOfGroupHashMap.put(t, strategyOfGroupDTO);
                     }
                 }
                 });
@@ -179,6 +192,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 20);
                 Long aLong = syncInfoMapper.minSyncId(apiCode, taskId, preDate, nowDate);
                 boolean dbMark = true;
+                Integer ia=0,ib=1,ic=2;
                 while(dbMark){
                     List<MarketingSyncInfo> syncInfos = syncInfoMapper.getDatalimit(apiCode, taskId, aLong, preDate, nowDate);
                     int size = syncInfos.size();
@@ -192,16 +206,93 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                     List<MarketingSyncUser> list = marketingUserMapper.selectSyncUser(apiCode, requestBatch);
                                     for (int i = 0; i < list.size(); i++) {
                                         MarketingSyncUser marketingSyncUser = list.get(i);
-                                        String batchNumber = strategyOfGroupHashMap.get(marketingSyncUser.getGroupType());
-                                        if(!StringUtils.isNotBlank(batchNumber)){
+                                        StrategyOfGroupDTO strategy = strategyOfGroupHashMap.get(marketingSyncUser.getGroupType());
+                                        if(!StringUtils.isNotBlank(strategy.getBatchNumber())){
                                             continue;
                                         }
                                         JSONObject extendJson = new JSONObject();
-                                        extendJson.put("groupType",marketingSyncUser.getGroupType());
-                                        extendJson.put("taskId",marketingSyncUser.getCusBatch());
+                                        if(strategy.getConfigVO()!=null){
+                                            JSONObject icData = null;
+                                            if(StringUtils.isNotBlank(marketingSyncUser.getReserveField1())){
+                                                try {
+                                                    icData = JSON.parseObject(marketingSyncUser.getReserveField1());
+                                                }catch (Exception ex){
+                                                    log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
+                                                            ,marketingSyncUser.getApiCode(),marketingSyncUser.getId());
+                                                }
+                                            }
+                                            for (BaseHead head : strategy.getConfigVO().getBaseHead()) {
+                                                String str = "";
+                                                if(ia.equals(head.getType())){
+                                                    str = "";
+                                                }else if(ib.equals(head.getType())){
+                                                    switch (head.getName().toLowerCase()){
+                                                        case "apicode":
+                                                            str = marketingSyncUser.getApiCode();
+                                                            break;
+                                                        case "cusbatch":
+                                                            str = marketingSyncUser.getCusBatch();
+                                                            break;
+                                                        case "taskid":
+                                                            str = marketingSyncUser.getCusBatch();
+                                                            break;
+                                                        case "requestbatch":
+                                                            str = marketingSyncUser.getRequestBatch();
+                                                            break;
+                                                        case "requestid":
+                                                            str = marketingSyncUser.getRequestBatch();
+                                                            break;
+                                                        case "custnum":
+                                                            str = marketingSyncUser.getCustNum();
+                                                            break;
+                                                        case "idcard":
+                                                            str =StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                                    &&StringUtils.isNotBlank(marketingSyncUser.getIdCard())
+                                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                                    .decode(marketingSyncUser.getIdCard()).getBytes())
+                                                            :marketingSyncUser.getIdCard();
+                                                            break;
+                                                        case "id":
+                                                            str =StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                                    &&StringUtils.isNotBlank(marketingSyncUser.getIdCard())
+                                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                                    .decode(marketingSyncUser.getIdCard()).getBytes())
+                                                                    :marketingSyncUser.getIdCard();
+                                                            break;
+                                                        case "cell":
+                                                            str =StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                                    &&StringUtils.isNotBlank(marketingSyncUser.getCell())
+                                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                                    .decode(marketingSyncUser.getCell()).getBytes())
+                                                                    :marketingSyncUser.getCell();
+                                                            break;
+                                                        case "name":
+                                                            str =StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                                    &&StringUtils.isNotBlank(marketingSyncUser.getName())
+                                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                                    .decode(marketingSyncUser.getName()).getBytes())
+                                                                    :marketingSyncUser.getName();
+                                                            break;
+                                                        case "grouptype":
+                                                            str = marketingSyncUser.getGroupType();
+                                                            break;
+                                                        case "registerdate":
+                                                            str = marketingSyncUser.getRegisterDate();
+                                                            break;
+                                                    }
+                                                }else if(ic.equals(head.getType())){
+                                                    if(icData!=null){
+                                                        str = icData.getString(head.getName());
+                                                    }
+                                                }else{
+                                                    str = "";
+                                                }
+                                                extendJson.put(head.getName(),str);
+                                            };
+                                        }
                                         // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
                                         valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')"
-                                                ,apiCode,batchNumber,marketingSyncUser.getCustNum()
+                                                ,apiCode,strategy.getBatchNumber(),marketingSyncUser.getCustNum()
                                                 ,marketingSyncUser.getCell()
                                                 ,StringUtils.isBlank(marketingSyncUser.getIdCard())?"":marketingSyncUser.getIdCard()
                                                 ,StringUtils.isBlank(marketingSyncUser.getName())?"":marketingSyncUser.getName(),s,s
@@ -249,10 +340,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //region处理marketingTask
                 groupTypes.forEach(t->{
-                    Optional<StrategyOfGroupDTO> first = strategyOfGroupDTOS.stream()
-                            .filter(k -> k.getGroupType().equals(t)).findFirst();
-                    if(first.isPresent()){
-                        StrategyOfGroupDTO strategyOfGroupDTO = first.get();
+                    StrategyOfGroupDTO strategyOfGroupDTO = strategyOfGroupHashMap.get(t);
+                    if(strategyOfGroupDTO!=null){
                         int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());
                         if(i1>0) {
@@ -284,7 +373,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             }
                             task.setContextId(getTaskContextId());
                             marketingTaskMapper.insertTask(task);
-
+                            BaseHeadConfigVO configVO = strategyOfGroupDTO.getConfigVO();
                             Result<String> baseHeadInfo = iProductResultSimpleService.getBaseHeadInfo(apiCode, t);
                             if (ResultCode.SUCCESS.getValue().equals(baseHeadInfo.getCode())) {
                                 MarketingTaskExtend taskExtend = new MarketingTaskExtend();
@@ -294,6 +383,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 taskExtend.setGroupType(t);
                                 taskExtend.setCreateTime(new Date());
                                 taskExtend.setUploadTime(preDate);
+                                taskExtend.setExtendShowTitle(configVO!=null?Joiner.on(",").join(configVO.getShowBaseHead()):"");
                                 marketingTaskExtendMapper.insertSelective(taskExtend);
                             }
 

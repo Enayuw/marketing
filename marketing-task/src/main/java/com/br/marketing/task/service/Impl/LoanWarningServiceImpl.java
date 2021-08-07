@@ -486,32 +486,14 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     }
 
     private String getBaseHeadInfo(Integer taskId,String separator){
-        StringBuilder baseHeadInfo = new StringBuilder();
         Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
         taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
-        if(marketingTaskExtends.size()>0){
-            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-            Result<String> headInfo = iProductResultSimpleService.getBaseHeadInfo(taskExtend.getApiCode(), taskExtend.getGroupType());
-            if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
-                String[] split = headInfo.getData().split(",");
-                for (String s : split) {
-                    switch (s.toLowerCase()){
-                        case "grouptype":
-                            baseHeadInfo.append(taskExtend.getGroupType()+separator);
-                            break;
-                        case "taskid":
-                            baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
-                            break;
-                        case "cell":
-                            baseHeadInfo.append("{cell}"+separator);
-                            break;
-                    }
-                }
-            }
+        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getExtendShowTitle())){
+            return marketingTaskExtends.get(0).getExtendShowTitle().concat(separator);
         }
-        return baseHeadInfo.toString();
+        return "";
     }
 
     /**

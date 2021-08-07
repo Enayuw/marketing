@@ -1,5 +1,6 @@
 package com.br.marketing.dto;
 
+import com.br.marketing.vo.BaseHeadConfigVO;
 import lombok.Data;
 
 @Data
@@ -38,4 +39,8 @@ public class StrategyOfGroupDTO {
      * 周期结束时间
      */
     private String cycleEndDay;
+
+    private String baseInfo;
+
+    private BaseHeadConfigVO configVO;
 }
