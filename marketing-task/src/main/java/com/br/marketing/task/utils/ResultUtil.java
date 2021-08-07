@@ -83,8 +83,27 @@ public class ResultUtil {
                   hxJson=resultJson;
               }
             if(StringUtils.isNotBlank(baseHeadInfo)){
-                sb.append(baseHeadInfo.replace("{cell}", DigestUtils.md5DigestAsHex(
-                        BrCipherMaker.getInstance().decode(user.getCell()).getBytes()))).append(sep);
+                JSONObject jsonObject = null;
+                if(StringUtils.isNotBlank(user.getExtendJson())){
+                    try {
+                        jsonObject = JSONObject.parseObject(user.getExtendJson());
+                    }catch (Exception ex){
+                        log.error("跑分扩展信息解析有误 apiCode:{},id:{}",user.getApiCode(),user.getId());
+                    }
+                }
+                for (String s : baseHeadInfo.split(",")) {
+                    if(jsonObject!=null){
+                        String ss = jsonObject.getString(s);
+                        if(StringUtils.isNotBlank(ss)){
+                            sb.append(ss);
+                        }else {
+                            sb.append("");
+                        }
+                    }else{
+                        sb.append("");
+                    }
+                    sb.append(sep);
+                }
             }
 
 

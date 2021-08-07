@@ -143,7 +143,7 @@ public class MergeServiceImpl implements MergeService {
                 fileName1=fileName1.replace(".txt","");
                 s = MYREGEX1.split(fileName1)[1];
             }
-            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
+            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getCurrentBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
             String baseHeadInfo = "";
             if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
                 baseHeadInfo = baseHeadInfoByTaskId.getData();

@@ -65,18 +65,21 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
-    @Resource
+    @Autowired
+    StrategyProductConfigMapper strategyProductConfigMapper;
+
+    @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
-    @Resource
+    @Autowired
     GroupStrategyConfigMapper groupStrategyConfigMapper;
 
-    @Resource
+    @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
-    final SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
 
-    final SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
+    final static SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
 
@@ -483,33 +486,14 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     }
 
     private String getBaseHeadInfo(Long taskId,String separator){
-        StringBuilder baseHeadInfo = new StringBuilder();
+        Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-        taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
+        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
-        if(marketingTaskExtends.size()>0){
-            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-            Result<String> headInfo = iProductResultSimpleService.getBaseHeadInfo(taskExtend.getApiCode(), taskExtend.getGroupType());
-            if(ResultCode.SUCCESS.getValue().equals(headInfo.getCode())){
-                String[] split = headInfo.getData().split(",");
-                for (String s : split) {
-                    switch (s.toLowerCase()){
-                        case "grouptype":
-                            baseHeadInfo.append(taskExtend.getGroupType()+separator);
-                            break;
-                        case "taskid":
-                            baseHeadInfo.append(taskExtend.getCusTaskId()+separator);
-                            break;
-                        case "cell":
-                            baseHeadInfo.append("{cell}"+separator);
-                            break;
-                        default:
-                            log.warn("switch default s:{}", s);
-                    }
-                }
-            }
+        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getExtendShowTitle())){
+            return marketingTaskExtends.get(0).getExtendShowTitle().concat(separator);
         }
-        return baseHeadInfo.toString();
+        return "";
     }
 
     /**
