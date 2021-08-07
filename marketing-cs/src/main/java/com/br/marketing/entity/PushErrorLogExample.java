@@ -425,6 +425,146 @@ public class PushErrorLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andRequestStrIsNull() {
+            addCriterion("request_str is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrIsNotNull() {
+            addCriterion("request_str is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrEqualTo(String value) {
+            addCriterion("request_str =", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrNotEqualTo(String value) {
+            addCriterion("request_str <>", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrGreaterThan(String value) {
+            addCriterion("request_str >", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrGreaterThanOrEqualTo(String value) {
+            addCriterion("request_str >=", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrLessThan(String value) {
+            addCriterion("request_str <", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrLessThanOrEqualTo(String value) {
+            addCriterion("request_str <=", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrLike(String value) {
+            addCriterion("request_str like", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrNotLike(String value) {
+            addCriterion("request_str not like", value, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrIn(List<String> values) {
+            addCriterion("request_str in", values, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrNotIn(List<String> values) {
+            addCriterion("request_str not in", values, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrBetween(String value1, String value2) {
+            addCriterion("request_str between", value1, value2, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestStrNotBetween(String value1, String value2) {
+            addCriterion("request_str not between", value1, value2, "requestStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrIsNull() {
+            addCriterion("response_str is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrIsNotNull() {
+            addCriterion("response_str is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrEqualTo(String value) {
+            addCriterion("response_str =", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrNotEqualTo(String value) {
+            addCriterion("response_str <>", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrGreaterThan(String value) {
+            addCriterion("response_str >", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrGreaterThanOrEqualTo(String value) {
+            addCriterion("response_str >=", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrLessThan(String value) {
+            addCriterion("response_str <", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrLessThanOrEqualTo(String value) {
+            addCriterion("response_str <=", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrLike(String value) {
+            addCriterion("response_str like", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrNotLike(String value) {
+            addCriterion("response_str not like", value, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrIn(List<String> values) {
+            addCriterion("response_str in", values, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrNotIn(List<String> values) {
+            addCriterion("response_str not in", values, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrBetween(String value1, String value2) {
+            addCriterion("response_str between", value1, value2, "responseStr");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseStrNotBetween(String value1, String value2) {
+            addCriterion("response_str not between", value1, value2, "responseStr");
+            return (Criteria) this;
+        }
+
         public Criteria andPushTimesIsNull() {
             addCriterion("push_times is null");
             return (Criteria) this;

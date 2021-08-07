@@ -95,6 +95,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         List<StraHisFile> straHisFileList=straHisFileMapper.selectByExample(straHisFileExample);
         straHisFileList.forEach(straHisFile -> {
             List<Long> fileIds=new ArrayList<>();
+            fileIds.add(straHisFile.getId());
             StraHisFileExample straHisFileExample1 =new StraHisFileExample();
             straHisFileExample1.createCriteria().andBatchNumberEqualTo(straHisFile.getBatchNumber()).andApiCodeEqualTo(straHisFile.getApiCode());
             List<StraHisFile> straHisFiles=straHisFileMapper.selectByExample(straHisFileExample1);
@@ -110,11 +111,11 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             for (int i = 1; i <= totalPage; i++) {
                 queryBaseBean.setPageSize(500);
                 queryBaseBean.setSearchAfter(searchAfterStr);
-                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean,"cus_num,batch_number,request_time,file_id,reserve_field");
                 if (marketingHistories.size() > 0) {
                     searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                    pushExecutor.submit(new PushDataThread(customer,extendInfosByFileIds.get(0),marketingHistories,straHisFiles.size()));
                 }
-                pushExecutor.submit(new PushDataThread(customer,extendInfosByFileIds.get(0),marketingHistories,straHisFiles.size()));
             }
             straHisFile.setPushStatus(1);
             straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
@@ -155,13 +156,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         PushErrorLogExample pushErrorLogExample = new PushErrorLogExample();
         pushErrorLogExample.createCriteria().andApiCodeEqualTo(customer.getApiCode()).andCreateTimeGreaterThanOrEqualTo(createTime).andStatusEqualTo(2);
-        List<PushErrorLogWithBLOBs> pushErrorLogList =pushErrorLogMapper.selectByExampleWithBLOBs(pushErrorLogExample);
+        List<PushErrorLog> pushErrorLogList =pushErrorLogMapper.selectByExample(pushErrorLogExample);
         pushErrorLogList=pushErrorLogList.stream()
                  .filter(pushErrorLogWithBLOBs1 -> pushErrorLogWithBLOBs1.getActualPushTimes()<pushErrorLogWithBLOBs1.getPushTimes())
          .collect(Collectors.toList());
 
         List<Callable<Boolean>> list = new ArrayList<>();
-        for (PushErrorLogWithBLOBs pushErrorLog : pushErrorLogList) {
+        for (PushErrorLog pushErrorLog : pushErrorLogList) {
             list.add(() -> {
                 JSONObject param =JSONObject.parseObject(pushErrorLog.getRequestStr());
                 param.put("requestId", UuidUtils.getUuid());

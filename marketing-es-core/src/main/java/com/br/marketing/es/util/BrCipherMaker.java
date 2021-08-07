@@ -75,11 +75,11 @@ public class BrCipherMaker {
      */
     public String decode(String text) {
         if (StringUtils.isBlank(text) || !(StringUtils.contains(text, SP) || StringUtils.contains(text, SP2))) {
-            log.info("解密信息失败："+text+",SP："+SP+",SP2："+SP2);
+            log.info("解密信息失败：{} SP：{} SP2：{}", text, SP, SP2);
             return text;
         } else if (StringUtils.contains(text, SP2)) {
             String decode = BrCipherMakerOld.getInstance().decode(text);
-            log.info("解密信息成功："+text+",解密信息："+decode+",SP2："+SP2);
+            log.info("解密信息成功：{} 解密信息：{} SP2：{}", text, decode, SP2);
             return decode;
         }
         //先解析索引位置
@@ -90,7 +90,7 @@ public class BrCipherMaker {
             int idx = Integer.parseInt(StringUtils.substring(srcEnd, 0, 1));
             src = new StringBuilder().append(src).append(StringUtils.substring(srcEnd, 1)).toString();
             String decode = decode(src, KEYS[idx]);
-            log.info("解密信息成功："+text+",解密信息："+decode+",SP："+SP);
+            log.info("解密信息成功：{} 解密信息：{} SP：{}", text, decode, SP);
             return decode;
         }
         return null;

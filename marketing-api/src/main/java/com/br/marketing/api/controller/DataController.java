@@ -27,14 +27,21 @@ public class DataController {
         return "success";
     }
     @PostMapping("pushTest")
-    public String pushTest(@RequestBody String data){
+    public String pushTest(String data){
         JSONObject result =new JSONObject();
-        DataTest dataTest = new DataTest();
-        dataTest.setCreateTime(new Date());
-        dataTest.setDataStr(data);
-        dataTestMapper.insertSelective(dataTest);
-        result.put("code","00");
-        result.put("message","接收成功");
-        return result.toJSONString();
+        Long time=System.currentTimeMillis();
+        if(time%5==0){
+            result.put("code","99");
+            result.put("message","接收失败");
+            return result.toJSONString();
+        }else {
+            DataTest dataTest = new DataTest();
+            dataTest.setCreateTime(new Date());
+            dataTest.setDataStr(data);
+            dataTestMapper.insertSelective(dataTest);
+            result.put("code","00");
+            result.put("message","接收成功");
+            return result.toJSONString();
+        }
     }
 }

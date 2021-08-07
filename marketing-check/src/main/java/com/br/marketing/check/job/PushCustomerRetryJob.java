@@ -55,7 +55,7 @@ public class PushCustomerRetryJob extends AbstractSimpleElasticJob {
         log.warn("【api推送客户数据】调度开始");
         List<Customer> customers =customerMapper.getAllCustomer();
         customers.forEach(customer -> {
-            if(customer.getPushCustomer()==1&&customer.getPushType()==0
+            if(customer.getPushCustomer()==1&&customer.getPushType()==1
                     && StringUtils.isNotBlank(customer.getPushUrl())){
                 pushCustomerService.retry(customer);
             }

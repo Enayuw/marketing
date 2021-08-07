@@ -38,15 +38,5 @@ public class DataController {
         iApiToDbService.pushToDb();
         return "success";
     }
-    @PostMapping("pushTest")
-    public String pushTest(@RequestBody String data){
-        JSONObject result =new JSONObject();
-        DataTest dataTest = new DataTest();
-        dataTest.setCreateTime(new Date());
-        dataTest.setData(data);
-        dataTestMapper.insertSelective(dataTest);
-        result.put("code","00");
-        result.put("message","接收成功");
-        return result.toJSONString();
-    }
+
 }
