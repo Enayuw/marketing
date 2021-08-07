@@ -10,6 +10,7 @@
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="upload_time" property="uploadTime" jdbcType="VARCHAR" />
+    <result column="extend_show_title" property="extendShowTitle" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -70,7 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, task_id, cus_task_id, group_type, is_del, create_time, upload_time
+    id, api_code, task_id, cus_task_id, group_type, is_del, create_time, upload_time, 
+    extend_show_title
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
@@ -108,10 +110,10 @@
     </selectKey>
     insert into b_marketing_task_extend (api_code, task_id, cus_task_id, 
       group_type, is_del, create_time, 
-      upload_time)
+      upload_time, extend_show_title)
     values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
       #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{uploadTime,jdbcType=VARCHAR})
+      #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -140,6 +142,9 @@
       <if test="uploadTime != null" >
         upload_time,
       </if>
+      <if test="extendShowTitle != null" >
+        extend_show_title,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -162,6 +167,9 @@
       </if>
       <if test="uploadTime != null" >
         #{uploadTime,jdbcType=VARCHAR},
+      </if>
+      <if test="extendShowTitle != null" >
+        #{extendShowTitle,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -198,6 +206,9 @@
       <if test="record.uploadTime != null" >
         upload_time = #{record.uploadTime,jdbcType=VARCHAR},
       </if>
+      <if test="record.extendShowTitle != null" >
+        extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -212,7 +223,8 @@
       group_type = #{record.groupType,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      upload_time = #{record.uploadTime,jdbcType=VARCHAR}
+      upload_time = #{record.uploadTime,jdbcType=VARCHAR},
+      extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -241,6 +253,9 @@
       <if test="uploadTime != null" >
         upload_time = #{uploadTime,jdbcType=VARCHAR},
       </if>
+      <if test="extendShowTitle != null" >
+        extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -252,7 +267,8 @@
       group_type = #{groupType,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      upload_time = #{uploadTime,jdbcType=VARCHAR}
+      upload_time = #{uploadTime,jdbcType=VARCHAR},
+      extend_show_title = #{extendShowTitle,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
