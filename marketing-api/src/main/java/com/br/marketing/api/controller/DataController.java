@@ -27,7 +27,7 @@ public class DataController {
         return "success";
     }
     @PostMapping("pushTest")
-    public String pushTest(String data){
+    public String pushTest(@RequestBody String data){
         JSONObject result =new JSONObject();
         Long time=System.currentTimeMillis();
         if(time%5==0){
