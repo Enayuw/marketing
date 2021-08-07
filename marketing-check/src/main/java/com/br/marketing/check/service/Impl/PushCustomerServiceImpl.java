@@ -167,7 +167,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 JSONObject param =JSONObject.parseObject(pushErrorLog.getRequestStr());
                 param.put("requestId", UuidUtils.getUuid());
                 Long begin=System.currentTimeMillis();
-                Map<String,Object> result=httpProxyClient.request(customer.getPushUrl(),param.toJSONString());
+                JSONObject extendConfigInfoJson=new JSONObject();
+                String extendConfigInfo=customer.getExtendConfigInfo();
+                if(StringUtils.isNotBlank(extendConfigInfo)){
+                    extendConfigInfoJson=JSONObject.parseObject(extendConfigInfo);
+                }
+                Boolean isProxy=extendConfigInfoJson.getBoolean("isProxy")==null?Boolean.TRUE:extendConfigInfoJson.getBoolean("isProxy");
+                Map<String,Object> result=httpProxyClient.request(customer.getPushUrl().trim(),param.toJSONString(),isProxy);
                 Long end =System.currentTimeMillis();
                 String resultStr=result.get("data")!=null?result.get("data").toString():"";
                 String code="9999";

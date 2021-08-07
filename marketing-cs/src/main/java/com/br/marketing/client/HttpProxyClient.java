@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
@@ -49,11 +50,11 @@ public class HttpProxyClient {
 	}
 
 
-	public Map<String ,Object> request(String url, String data){
+	public Map<String ,Object> request(String url, String data,Boolean isProxy){
 		Map<String,Object> resultMap = new HashMap<>();
 		try {
 			log.warn("http发送数据入参--请求地址:{},参数：{}",url,data);
-			String result = send(data,url);
+			String result = send(data,url,isProxy);
 			log.warn("http发送数据返回结果{}",result);
 			resultMap.put("data",result);
 			if(StringUtils.isNotBlank(result)){
@@ -84,19 +85,14 @@ public class HttpProxyClient {
 	 * @param url 发送地址
 	 * @return String 返回信息
 	 */
-	public  String send(String param, String url) {
-		HttpClient httpClient =getHttpClientZw();
+	public  String send(String param, String url,Boolean isPorxy) {
+		HttpClient httpClient =getHttpClient(isPorxy);
 		try {
 			HttpPost post = new HttpPost(url);
 			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
 			post.setEntity(requestEntity);
 			post.setHeader("content-type","application/json");
-			RequestConfig requestConfig= RequestConfig.custom()
-					.setSocketTimeout(6000)
-					.setConnectTimeout(1000)
-					.setProxy(new HttpHost(proxyHost, proxyPort ))
-					.setConnectionRequestTimeout(1000)
-					.build();
+			RequestConfig requestConfig= getRequestConfig(isPorxy);
 			post.setConfig(requestConfig);
 			HttpResponse response = httpClient.execute(post);
 			String result = EntityUtils.toString(response.getEntity());
@@ -105,6 +101,21 @@ public class HttpProxyClient {
 		} catch (IOException e) {
 			log.error("url={} param={}", url, param, e);
 			return null;
+		}
+	}
+
+
+	/**
+	 * 获取httpClient
+	 * @param isProxy 是否代理
+	 * @return HttpClient httpClient
+	 */
+	public  HttpClient getHttpClient(Boolean isProxy) {
+		if(isProxy) {
+			return getHttpClientZw();
+		}else {
+			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
+			return httpClient;
 		}
 	}
 	/**
@@ -123,5 +134,27 @@ public class HttpProxyClient {
 		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
 
 		return httpClient;
+	}
+
+	/**
+	 * 配置信息
+	 * @param isProxy 是否代理
+	 * @return RequestConfig requestConfig
+	 */
+	public   RequestConfig getRequestConfig(Boolean isProxy) {
+		if(isProxy) {
+			return RequestConfig.custom()
+					.setSocketTimeout(6000)
+					.setConnectTimeout(1000)
+					.setProxy(new HttpHost(proxyHost, proxyPort ))
+					.setConnectionRequestTimeout(1000)
+					.build();
+		}else {
+			return	RequestConfig.custom()
+					.setSocketTimeout(6000)
+					.setConnectTimeout(1000)
+					.setConnectionRequestTimeout(1000)
+					.build();
+		}
 	}
 }

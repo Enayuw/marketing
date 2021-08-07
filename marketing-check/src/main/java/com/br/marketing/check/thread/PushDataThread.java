@@ -14,6 +14,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.PushErrorLogMapper;
 import com.br.marketing.vo.TaskExtendInfoVO;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
@@ -58,7 +59,13 @@ public class PushDataThread implements Callable<String>{
         });
         param.put("dataItems",dataItems);
         Long begin=System.currentTimeMillis();
-        Map<String,Object> result=httpProxyClient.request(customer.getPushUrl().trim(),param.toJSONString());
+        JSONObject extendConfigInfoJson=new JSONObject();
+        String extendConfigInfo=customer.getExtendConfigInfo();
+        if(StringUtils.isNotBlank(extendConfigInfo)){
+            extendConfigInfoJson=JSONObject.parseObject(extendConfigInfo);
+        }
+        Boolean isProxy=extendConfigInfoJson.getBoolean("isProxy")==null?Boolean.TRUE:extendConfigInfoJson.getBoolean("isProxy");
+        Map<String,Object> result=httpProxyClient.request(customer.getPushUrl().trim(),param.toJSONString(),isProxy);
         Long end =System.currentTimeMillis();
         String resultStr=result.get("data")!=null?result.get("data").toString():"";
         String code="9999";
