@@ -52,9 +52,9 @@ public class HttpProxyClient {
 	public Map<String ,Object> request(String url, String data){
 		Map<String,Object> resultMap = new HashMap<>();
 		try {
-			log.info("http发送数据入参--请求地址:{},参数：{}",url,data);
+			log.warn("http发送数据入参--请求地址:{},参数：{}",url,data);
 			String result = send(data,url);
-			log.info("http发送数据返回结果{}",result);
+			log.warn("http发送数据返回结果{}",result);
 			resultMap.put("data",result);
 			if(StringUtils.isNotBlank(result)){
 				JSONObject resultJson =JSONObject.parseObject(result);

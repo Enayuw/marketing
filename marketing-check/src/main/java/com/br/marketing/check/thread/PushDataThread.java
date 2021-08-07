@@ -2,9 +2,11 @@ package com.br.marketing.check.thread;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.utils.MomUtil;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.PushErrorLog;
@@ -50,11 +52,13 @@ public class PushDataThread implements Callable<String>{
             item.put("custNum",marketingHistory.getCusNum());
             JSONObject resultJson=JSONObject.parseObject(marketingHistory.getReserveField()) ;
             resultJson.put("times",times);
+            resultJson.put("request_time", DateUtils.format(marketingHistory.getRequestTime()));
             item.put("resultJson",resultJson);
             dataItems.add(item);
         });
+        param.put("dataItems",dataItems);
         Long begin=System.currentTimeMillis();
-        Map<String,Object> result=httpProxyClient.request(customer.getPushUrl(),param.toJSONString());
+        Map<String,Object> result=httpProxyClient.request(customer.getPushUrl().trim(),param.toJSONString());
         Long end =System.currentTimeMillis();
         String resultStr=result.get("data")!=null?result.get("data").toString():"";
         String code="9999";
@@ -71,6 +75,7 @@ public class PushDataThread implements Callable<String>{
             pushErrorLog.setBatchNumber(marketingHistoryList.get(0).getBatchNumber());
             pushErrorLog.setActualPushTimes(0);
             pushErrorLog.setRequestStr(param.toJSONString());
+            pushErrorLog.setFileId(Long.valueOf(marketingHistoryList.get(0).getFileId()));
             pushErrorLog.setResponseStr(resultStr);
             pushErrorLog.setPushTimes(3);
             pushErrorLog.setStatus(2);
