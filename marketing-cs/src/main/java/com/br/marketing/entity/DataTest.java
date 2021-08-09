@@ -16,6 +16,16 @@ public class DataTest {
     /**
      * 
      */
+    private String taskId;
+
+    /**
+     * 
+     */
+    private String groupType;
+
+    /**
+     * 
+     */
     private String dataStr;
 
     public Long getId() {
@@ -32,6 +42,22 @@ public class DataTest {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId == null ? null : taskId.trim();
+    }
+
+    public String getGroupType() {
+        return groupType;
+    }
+
+    public void setGroupType(String groupType) {
+        this.groupType = groupType == null ? null : groupType.trim();
     }
 
     public String getDataStr() {

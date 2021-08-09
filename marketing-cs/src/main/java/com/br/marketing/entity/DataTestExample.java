@@ -225,6 +225,146 @@ public class DataTestExample {
             return (Criteria) this;
         }
 
+        public Criteria andTaskIdIsNull() {
+            addCriterion("task_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdIsNotNull() {
+            addCriterion("task_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdEqualTo(String value) {
+            addCriterion("task_id =", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotEqualTo(String value) {
+            addCriterion("task_id <>", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdGreaterThan(String value) {
+            addCriterion("task_id >", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdGreaterThanOrEqualTo(String value) {
+            addCriterion("task_id >=", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdLessThan(String value) {
+            addCriterion("task_id <", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdLessThanOrEqualTo(String value) {
+            addCriterion("task_id <=", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdLike(String value) {
+            addCriterion("task_id like", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotLike(String value) {
+            addCriterion("task_id not like", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdIn(List<String> values) {
+            addCriterion("task_id in", values, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotIn(List<String> values) {
+            addCriterion("task_id not in", values, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdBetween(String value1, String value2) {
+            addCriterion("task_id between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotBetween(String value1, String value2) {
+            addCriterion("task_id not between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeIsNull() {
+            addCriterion("group_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeIsNotNull() {
+            addCriterion("group_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeEqualTo(String value) {
+            addCriterion("group_type =", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNotEqualTo(String value) {
+            addCriterion("group_type <>", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeGreaterThan(String value) {
+            addCriterion("group_type >", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("group_type >=", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeLessThan(String value) {
+            addCriterion("group_type <", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeLessThanOrEqualTo(String value) {
+            addCriterion("group_type <=", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeLike(String value) {
+            addCriterion("group_type like", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNotLike(String value) {
+            addCriterion("group_type not like", value, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeIn(List<String> values) {
+            addCriterion("group_type in", values, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNotIn(List<String> values) {
+            addCriterion("group_type not in", values, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeBetween(String value1, String value2) {
+            addCriterion("group_type between", value1, value2, "groupType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNotBetween(String value1, String value2) {
+            addCriterion("group_type not between", value1, value2, "groupType");
+            return (Criteria) this;
+        }
+
         public Criteria andDataStrIsNull() {
             addCriterion("data_str is null");
             return (Criteria) this;
