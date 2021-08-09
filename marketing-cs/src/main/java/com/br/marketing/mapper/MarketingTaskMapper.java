@@ -4,6 +4,7 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.vo.ScoreDetailVo;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -139,6 +140,8 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      * @return
      */
     MarketingTask getById(MarketingTask blt);
+
+    MarketingTask getByBatchNumber(@Param("batchNumber") String batchNumber);
 
     /**
      *获取客户侧批次号
