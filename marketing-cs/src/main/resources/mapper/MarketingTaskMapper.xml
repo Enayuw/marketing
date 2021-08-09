@@ -59,6 +59,15 @@
 		id=#{id}
 	</select>
 
+	<select id="getByBatchNumber" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			*
+		FROM
+			b_marketing_task
+		WHERE
+			batch_number=#{batchNumber}
+	</select>
+
 	<select id="queryCount"  resultType="int" parameterType="com.br.marketing.entity.MarketingTask">
 		SELECT
 		count(*)

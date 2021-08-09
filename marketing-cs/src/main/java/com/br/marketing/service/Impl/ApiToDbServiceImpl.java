@@ -346,6 +346,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     if(strategyOfGroupDTO!=null){
                         int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                         int i1 = marketingUserMapper.countBySureUser(apiCode, strategyOfGroupDTO.getBatchNumber());
+                        MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(strategyOfGroupDTO.getBatchNumber());
+                        if(hasTask!=null){
+                            return;
+                        }
                         if(i1>0) {
                             MarketingTask task = new MarketingTask();
                             task.setApiCode(apiCode);
