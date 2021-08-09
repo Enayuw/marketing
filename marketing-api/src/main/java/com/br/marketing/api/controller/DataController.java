@@ -1,6 +1,8 @@
 package com.br.marketing.api.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DataTest;
 import com.br.marketing.mapper.DataTestMapper;
 import com.br.marketing.service.IApiToDbService;
@@ -35,8 +37,25 @@ public class DataController {
             result.put("message","FALSE");
             return result.toJSONString();
         }else {
+
+            String groupType="";
+            String taskId="";
+            Integer sum=0;
+            if(StringUtils.isNotBlank(data)){
+                JSONObject dataJSON=JSONObject.parseObject(data);
+                JSONArray dataItems=dataJSON.getJSONArray("dataItems");
+                if(dataItems !=null &&dataItems.size()>0){
+                    sum=dataItems.size();
+                    JSONObject item=dataItems.getJSONObject(0);
+                    groupType=item.getString("groupType");
+                    taskId=item.getString("taskId");
+                }
+            }
             DataTest dataTest = new DataTest();
             dataTest.setCreateTime(new Date());
+            dataTest.setTaskId(taskId);
+            dataTest.setSum(sum);
+            dataTest.setGroupType(groupType);
             dataTest.setDataStr(data);
             dataTestMapper.insertSelective(dataTest);
             result.put("code","00");

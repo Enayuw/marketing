@@ -4,6 +4,9 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.DataTest" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="group_type" property="groupType" jdbcType="VARCHAR" />
+    <result column="sum" property="sum" jdbcType="INTEGER" />
     <result column="data_str" property="dataStr" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -65,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, create_time, data_str
+    id, create_time, task_id, group_type, sum, data_str
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataTestExample" >
     select
@@ -101,8 +104,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into data_test2 (create_time, data_str)
-    values (#{createTime,jdbcType=TIMESTAMP}, #{dataStr,jdbcType=VARCHAR})
+    insert into data_test2 (create_time, task_id, group_type, 
+      sum, data_str)
+    values (#{createTime,jdbcType=TIMESTAMP}, #{taskId,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, 
+      #{sum,jdbcType=INTEGER}, #{dataStr,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataTest" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -113,6 +118,15 @@
       <if test="createTime != null" >
         create_time,
       </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="groupType != null" >
+        group_type,
+      </if>
+      <if test="sum != null" >
+        sum,
+      </if>
       <if test="dataStr != null" >
         data_str,
       </if>
@@ -120,6 +134,15 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupType != null" >
+        #{groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="sum != null" >
+        #{sum,jdbcType=INTEGER},
       </if>
       <if test="dataStr != null" >
         #{dataStr,jdbcType=VARCHAR},
@@ -141,6 +164,15 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupType != null" >
+        group_type = #{record.groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sum != null" >
+        sum = #{record.sum,jdbcType=INTEGER},
+      </if>
       <if test="record.dataStr != null" >
         data_str = #{record.dataStr,jdbcType=VARCHAR},
       </if>
@@ -153,6 +185,9 @@
     update data_test2
     set id = #{record.id,jdbcType=BIGINT},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      group_type = #{record.groupType,jdbcType=VARCHAR},
+      sum = #{record.sum,jdbcType=INTEGER},
       data_str = #{record.dataStr,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -164,6 +199,15 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupType != null" >
+        group_type = #{groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="sum != null" >
+        sum = #{sum,jdbcType=INTEGER},
+      </if>
       <if test="dataStr != null" >
         data_str = #{dataStr,jdbcType=VARCHAR},
       </if>
@@ -173,6 +217,9 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataTest" >
     update data_test2
     set create_time = #{createTime,jdbcType=TIMESTAMP},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      group_type = #{groupType,jdbcType=VARCHAR},
+      sum = #{sum,jdbcType=INTEGER},
       data_str = #{dataStr,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
