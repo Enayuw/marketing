@@ -81,10 +81,10 @@ public class MomUtil {
         paramJson.put("swiftNum", UUID.randomUUID());
         requestData.put("content",param);
         paramJson.put("requestData",requestData);
-        log.warn("MQ入参--{}",paramJson);
+        //log.warn("MQ入参--{}",paramJson);
         try {
-            ResponseBean sender = service.sender(paramJson.toString());
-            log.warn("MQ返回值--{}--{}",sender.getCode(),sender.getMessage());
+             service.sender(paramJson.toString());
+            //log.warn("MQ返回值--{}--{}",sender.getCode(),sender.getMessage());
         }catch (Exception e){
             log.error("日志信息写入消息队列异常",e);
         }
