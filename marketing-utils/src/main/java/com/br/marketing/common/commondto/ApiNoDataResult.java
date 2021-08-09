@@ -32,6 +32,8 @@ public class ApiNoDataResult<T> {
             this.code = "00";
             if(StringUtils.isBlank(result.getMessage())){
                 this.message="成功";
+            }else{
+                this.message= result.getMessage();
             }
         }else{
             this.code ="100001";
