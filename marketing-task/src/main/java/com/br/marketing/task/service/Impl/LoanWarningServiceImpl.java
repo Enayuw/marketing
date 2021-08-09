@@ -488,7 +488,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     private String getBaseHeadInfo(Long taskId,String separator){
         Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-        taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
+        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
         if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getExtendShowTitle())){
             return marketingTaskExtends.get(0).getExtendShowTitle().concat(separator);
