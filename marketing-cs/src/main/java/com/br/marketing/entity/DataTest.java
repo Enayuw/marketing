@@ -26,6 +26,11 @@ public class DataTest {
     /**
      * 
      */
+    private Integer sum;
+
+    /**
+     * 
+     */
     private String dataStr;
 
     public Long getId() {
@@ -58,6 +63,14 @@ public class DataTest {
 
     public void setGroupType(String groupType) {
         this.groupType = groupType == null ? null : groupType.trim();
+    }
+
+    public Integer getSum() {
+        return sum;
+    }
+
+    public void setSum(Integer sum) {
+        this.sum = sum;
     }
 
     public String getDataStr() {
