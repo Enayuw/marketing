@@ -46,6 +46,7 @@ public class Customer {
     private Integer checkRedisNumber;
     private Integer saveLog;
     private String extendConfigInfo;
+    private Integer pushThreadNum;
     private Integer pushType;
     private String pushUrl;
 }

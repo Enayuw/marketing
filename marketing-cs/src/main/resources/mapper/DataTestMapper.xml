@@ -6,6 +6,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="task_id" property="taskId" jdbcType="VARCHAR" />
     <result column="group_type" property="groupType" jdbcType="VARCHAR" />
+    <result column="sum" property="sum" jdbcType="INTEGER" />
     <result column="data_str" property="dataStr" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -67,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, create_time, task_id, group_type, data_str
+    id, create_time, task_id, group_type, sum, data_str
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataTestExample" >
     select
@@ -104,9 +105,9 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into data_test2 (create_time, task_id, group_type, 
-      data_str)
+      sum, data_str)
     values (#{createTime,jdbcType=TIMESTAMP}, #{taskId,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, 
-      #{dataStr,jdbcType=VARCHAR})
+      #{sum,jdbcType=INTEGER}, #{dataStr,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataTest" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -123,6 +124,9 @@
       <if test="groupType != null" >
         group_type,
       </if>
+      <if test="sum != null" >
+        sum,
+      </if>
       <if test="dataStr != null" >
         data_str,
       </if>
@@ -136,6 +140,9 @@
       </if>
       <if test="groupType != null" >
         #{groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="sum != null" >
+        #{sum,jdbcType=INTEGER},
       </if>
       <if test="dataStr != null" >
         #{dataStr,jdbcType=VARCHAR},
@@ -163,6 +170,9 @@
       <if test="record.groupType != null" >
         group_type = #{record.groupType,jdbcType=VARCHAR},
       </if>
+      <if test="record.sum != null" >
+        sum = #{record.sum,jdbcType=INTEGER},
+      </if>
       <if test="record.dataStr != null" >
         data_str = #{record.dataStr,jdbcType=VARCHAR},
       </if>
@@ -177,6 +187,7 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       task_id = #{record.taskId,jdbcType=VARCHAR},
       group_type = #{record.groupType,jdbcType=VARCHAR},
+      sum = #{record.sum,jdbcType=INTEGER},
       data_str = #{record.dataStr,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -194,6 +205,9 @@
       <if test="groupType != null" >
         group_type = #{groupType,jdbcType=VARCHAR},
       </if>
+      <if test="sum != null" >
+        sum = #{sum,jdbcType=INTEGER},
+      </if>
       <if test="dataStr != null" >
         data_str = #{dataStr,jdbcType=VARCHAR},
       </if>
@@ -205,6 +219,7 @@
     set create_time = #{createTime,jdbcType=TIMESTAMP},
       task_id = #{taskId,jdbcType=VARCHAR},
       group_type = #{groupType,jdbcType=VARCHAR},
+      sum = #{sum,jdbcType=INTEGER},
       data_str = #{dataStr,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

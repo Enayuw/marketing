@@ -40,10 +40,12 @@ public class DataController {
 
             String groupType="";
             String taskId="";
+            Integer sum=0;
             if(StringUtils.isNotBlank(data)){
                 JSONObject dataJSON=JSONObject.parseObject(data);
                 JSONArray dataItems=dataJSON.getJSONArray("dataItems");
                 if(dataItems !=null &&dataItems.size()>0){
+                    sum=dataItems.size();
                     JSONObject item=dataItems.getJSONObject(0);
                     groupType=item.getString("groupType");
                     taskId=item.getString("taskId");
@@ -52,6 +54,7 @@ public class DataController {
             DataTest dataTest = new DataTest();
             dataTest.setCreateTime(new Date());
             dataTest.setTaskId(taskId);
+            dataTest.setSum(sum);
             dataTest.setGroupType(groupType);
             dataTest.setDataStr(data);
             dataTestMapper.insertSelective(dataTest);
