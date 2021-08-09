@@ -173,6 +173,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                         ,new TypeReference<BaseHeadConfigVO>(){}.getType());
                                 BaseHeadConfigVO orderBaseHeadInfo = iProductResultSimpleService.getOrderBaseHeadInfo(vo);
                                 strategyOfGroupDTO.setConfigVO(orderBaseHeadInfo);
+                            }else{
+                                strategyOfGroupDTO.setConfigVO(null);
                             }
                             strategyOfGroupHashMap.put(t, strategyOfGroupDTO);
                     }
@@ -366,19 +368,15 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             task.setContextId(getTaskContextId());
                             marketingTaskMapper.insertTask(task);
                             BaseHeadConfigVO configVO = strategyOfGroupDTO.getConfigVO();
-                            Result<String> baseHeadInfo = iProductResultSimpleService.getBaseHeadInfo(apiCode, t);
-                            if (ResultCode.SUCCESS.getValue().equals(baseHeadInfo.getCode())) {
-                                MarketingTaskExtend taskExtend = new MarketingTaskExtend();
-                                taskExtend.setApiCode(apiCode);
-                                taskExtend.setTaskId(Long.valueOf(task.getId()));
-                                taskExtend.setCusTaskId(taskId);
-                                taskExtend.setGroupType(t);
-                                taskExtend.setCreateTime(new Date());
-                                taskExtend.setUploadTime(preDate);
-                                taskExtend.setExtendShowTitle(configVO!=null?Joiner.on(",").join(configVO.getShowBaseHead()):"");
-                                marketingTaskExtendMapper.insertSelective(taskExtend);
-                            }
-
+                            MarketingTaskExtend taskExtend = new MarketingTaskExtend();
+                            taskExtend.setApiCode(apiCode);
+                            taskExtend.setTaskId(Long.valueOf(task.getId()));
+                            taskExtend.setCusTaskId(taskId);
+                            taskExtend.setGroupType(t);
+                            taskExtend.setCreateTime(new Date());
+                            taskExtend.setUploadTime(preDate);
+                            taskExtend.setExtendShowTitle(configVO!=null?Joiner.on(",").join(configVO.getShowBaseHead()):"");
+                            marketingTaskExtendMapper.insertSelective(taskExtend);
                             TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
                             updateBatchExample.createCriteria().andBatchNumberEqualTo(strategyOfGroupDTO.getBatchNumber());
                             TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
