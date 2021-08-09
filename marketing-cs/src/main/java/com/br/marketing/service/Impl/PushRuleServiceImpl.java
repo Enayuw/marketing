@@ -837,8 +837,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
         //todo 调用客服接口
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        System.out.println(transferRobotOutboundVO.toString());
+//        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+//        System.out.println(transferRobotOutboundVO.toString());
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
