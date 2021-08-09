@@ -1,5 +1,6 @@
 package com.br.marketing.api.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.DataTest;
 import com.br.marketing.mapper.DataTestMapper;
@@ -35,8 +36,15 @@ public class DataController {
             result.put("message","FALSE");
             return result.toJSONString();
         }else {
+            JSONObject dataJSON=new JSONObject();
+            JSONArray dataItems=dataJSON.getJSONArray("dataItems");
+            JSONObject item=dataItems.getJSONObject(0);
+            String groupType=item.getString("groupType");
+            String taskId=item.getString("taskId");
             DataTest dataTest = new DataTest();
             dataTest.setCreateTime(new Date());
+            dataTest.setTaskId(taskId);
+            dataTest.setGroupType(groupType);
             dataTest.setDataStr(data);
             dataTestMapper.insertSelective(dataTest);
             result.put("code","00");
