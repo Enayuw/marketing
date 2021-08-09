@@ -12,7 +12,7 @@ import java.util.Set;
 
 public interface IProductResultSimpleService {
     Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb,
-                       Map<String, String> proFieldMap, String sep, String apiCode,String strategyId);
+                       Map<String, String> proFieldMap, String sep, String apiCode,String strategyId,JSONObject esResult);
 
     Result<String> getFieldsStrInfo(String apiCode,String strategyId);
 

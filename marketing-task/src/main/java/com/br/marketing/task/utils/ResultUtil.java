@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/21.
@@ -37,9 +36,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ResultUtil {
 
 
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap, MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,Integer esOpen,String baseHeadInfo) throws IOException {
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
+                                    MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
+                                    Integer esOpen,String baseHeadInfo) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
-
+        JSONObject esResult=new JSONObject();
         StringBuilder sb=new StringBuilder();
         JSONObject jsonData;
         JSONObject strategyJson=new JSONObject();
@@ -139,14 +140,14 @@ public class ResultUtil {
 
         ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
                 getBean(ProductResultByConfigSimpleServiceImpl.class);
-        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId);
-        if(!ResultCode.SUCCESS.equals(result.getCode())){
-            ProductResultUtil.dealProResult(hxJson,products,sb,proFieldMap,sep,user.getApiCode());
+        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId,esResult);
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            ProductResultUtil.dealProResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode());
         }
         if(log.isInfoEnabled()){
             log.info("sb信息--"+sb.toString());
         }
-        if(sb.toString().split(",").length>5){
+        if(countStr(sb.toString(),sep)>5){
             fw.append(sb + "\r\n");
             if("1".equals(pushCustomer)){
                 mh.setIdCard(user.getIdCard());
@@ -155,6 +156,7 @@ public class ResultUtil {
                 mh.setCusBatchNumber(cusBatchNumber);
                 mh.setBatchNumber(user.getBatchNumber());
                 mh.setFileId(fileId);
+                mh.setReserveField(esResult.toJSONString());
                 writeEs(mh,meal,hxJson);
             }
         }
@@ -245,5 +247,12 @@ public class ResultUtil {
                 .append(resultJson.getString("code")).append(sep);
         fw.append(sb + "\r\n");
     }
-
+    private static int countStr(String str, String sToFind) {
+        int num = 0;
+        int len1 = str.length();
+        String str1 = str.replaceAll(sToFind, "");
+        int len2 = str1.length();
+        num = len1 - len2;
+        return num;
+    }
 }

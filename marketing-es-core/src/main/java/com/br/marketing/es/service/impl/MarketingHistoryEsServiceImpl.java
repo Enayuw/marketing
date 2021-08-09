@@ -106,7 +106,8 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 Set<String> indexSet = esBuilder.builderHistoryWithIndexSet();
                 Map<String, Object> paramsCount = new HashMap<>();
                 esBuilder.marketingWhereCount(paramsCount);
-                String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
+                String[] strArray = new String[indexSet.size()];
+                String[] indexArr = indexSet.toArray(strArray);
                 //查询数量
                 int count = (int) EsUtil.selectByTemplateCount(indexArr, EsConstants.PAGE_TEMPLATE, paramsCount);
                 log.info("ES builderMarketingCount indexSet:{},paramsCount:{},count:{}",
@@ -145,9 +146,9 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 }
                 if (topBegin > esTotal) {
                     return 0;
-                } else if (topBegin < esTotal && topEnd >= esTotal) {
+                } else if (topEnd >= esTotal) {
                     return esTotal - topBegin;
-                } else if (topBegin < esTotal && topEnd < esTotal) {
+                } else {
                     return topEnd - topBegin;
                 }
             }
@@ -173,7 +174,8 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 Map<String, Object> params = esBuilder.builderMarketingWithSearchAfter();
                 log.info("ES builderMarketingWithSwiftNumber indexSet:{} params:{}",
                         JSON.toJSONString(indexSet), JSON.toJSONString(params));
-                String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
+                String[] strArray = new String[indexSet.size()];
+                String[] indexArr = indexSet.toArray(strArray);
                 SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
                 if (hits != null) {
                     SearchHit hit = hits.getHits()[hits.getHits().length - 1];
@@ -215,7 +217,8 @@ public class MarketingHistoryEsServiceImpl implements MarketingHistoryEsService 
                 Map<String, Object> params = esBuilder.builderMarketingWithList(columns);
                 log.info("ES builderMarketingWithList indexSet:{} params:{}",
                         JSON.toJSONString(indexSet), JSON.toJSONString(params));
-                String[] indexArr = indexSet.toArray(new String[indexSet.size()]);
+                String[] strArray = new String[indexSet.size()];
+                String[] indexArr = indexSet.toArray(strArray);
                 SearchHits hits = EsUtil.selectByTemplate(indexArr, EsConstants.PAGE_TEMPLATE, params);
                 if (hits != null) {
                     int last = hits.getHits().length - 1;

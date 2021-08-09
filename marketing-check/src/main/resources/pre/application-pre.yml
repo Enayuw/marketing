@@ -57,6 +57,16 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
+  proxy:
+    proxy_host_zw: 192.168.22.50
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+  mom:
+    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+
 
 spring:
   rabbitmq:

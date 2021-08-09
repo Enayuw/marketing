@@ -2,7 +2,6 @@ package com.br.marketing.task.service.Impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -29,10 +28,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -58,18 +55,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     LoanFileMapper loanFileMapper;
     @Resource
-    LoanWarningClient loanWarningClient;
-
-    @Resource
-    RedisService redisService;
-    @Resource
     TaskStatusMapper taskStatusMapper;
 
     @Resource
     StrategyCs strategyCS;
-
-    @Resource
-    ProFieldsClient proFieldsClient;
 
     @Resource
     RedisChgService redisChgService;
@@ -266,7 +255,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 flag=true;
             }
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
+            Integer esOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
             String descPath=path+"/"+s1+"/"+ marketingTask.getApiCode()+"/"+ marketingTask.getBatchNumber()+"/"+
                     new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             log.info("{},list:{}",errorFile,list.size());
@@ -284,7 +273,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,EsOpenMark));
+            warrningExecutor.submit(new LoanWarningThread(list, param,i,flag,customer,esOpenMark));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -310,7 +299,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blt.setTableName("b_marketing_user_"+blt.getApiCode());
             String descPath = path + "/once/" + blt.getApiCode() + "/" + blt.getBatchNumber() + "/"
                     + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
+            Integer pushType=0;
+            GroupStrategyConfig groupStrategyConfig =getGroupStrategyConfig(blt);
+            if(groupStrategyConfig !=null){
+                pushType=groupStrategyConfig.getPushType();
+            }
             /**
              * 任务提交后，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
              */
@@ -322,6 +315,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
             blf.setShowTitle(createShowTitle(blt));
+            blf.setPushType(pushType);
             loanFileMapper.insertFile(blf);
 
             /**
@@ -378,7 +372,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
                 String descPath=path+"/all/"+blt.getApiCode()+"/"+blt.getBatchNumber()+"/"
                         + new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
+                Integer pushType=0;
+            GroupStrategyConfig groupStrategyConfig =getGroupStrategyConfig(blt);
+            if(groupStrategyConfig !=null){
+                pushType=groupStrategyConfig.getPushType();
+            }
             /**
              * 任务提交前，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
              */
@@ -390,6 +388,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             blf.setBatchNumber(blt.getBatchNumber());
             blf.setExpectedNum(blt.getActualNumber());
             blf.setShowTitle(createShowTitle(blt));
+            blf.setPushType(pushType);
             loanFileMapper.insertFile(blf);
 
             if(customer.getPushCustomer()==1){
@@ -431,14 +430,15 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * @param descPath
      */
 
-    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,String fileId,Customer customer){
+    private void core(MarketingTask blt, String descPath, boolean isIncr, String strategyStr, ExecutorService warrningExecutor,
+                      String fileId,Customer customer){
         try {
             Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
             String separator=Constants.sepMap.get(sep);
 
             String baseHeadInfo = this.getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer EsOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
+            Integer esOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Long minId= marketingUserMapper.queryMinId(blt);
                 Long maxId= marketingUserMapper.queryMaxId(blt);
                 log.warn("min_id--{},max_id--{},pageSize--{}",minId,maxId,pageSize);
@@ -465,7 +465,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             param.put("fileId", fileId);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,EsOpenMark));
+                            warrningExecutor.submit(new LoanWarningThread(list, param,i,isIncr,customer,esOpenMark));
                             Thread.sleep(100);
                         }
                         i++;
@@ -474,7 +474,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     if (log.isWarnEnabled()) {
                         log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                                 .concat(String.valueOf(endtime - start)).concat("~~轮询总次数：")
-                                .concat(String.valueOf(i).concat("~~esOpen:").concat(EsOpenMark.toString()))));
+                                .concat(String.valueOf(i).concat("~~esOpen:").concat(esOpenMark.toString()))));
                     }
                 }else{
                     log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
@@ -485,10 +485,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         }
     }
 
-    private String getBaseHeadInfo(Integer taskId,String separator){
+    private String getBaseHeadInfo(Long taskId,String separator){
         Long id = Long.valueOf(taskId.toString());
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
+        taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
         if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getExtendShowTitle())){
             return marketingTaskExtends.get(0).getExtendShowTitle().concat(separator);
@@ -500,7 +500,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      * 初始化当日需要监控的任务信息
      * @param allList
      */
-    private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,JobExecutionMultipleShardingContext context){
+    private void initBatchNumList(List<MarketingTask> allList, List<MarketingTask> onceList, String apiCode,
+                                  JobExecutionMultipleShardingContext context){
         int count=context==null?1:context.getShardingTotalCount();
         List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
         try{
@@ -562,7 +563,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 .andTaskIdEqualTo(Long.valueOf(task.getId()))
                 .andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()>0){
+        if(marketingTaskExtends.size()>0 && StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())){
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
 
             String groupStr = "";
@@ -589,11 +590,34 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                                     .concat(yyyyMMdd.format(parse)).concat("_")
                                     .concat(yyyyMMdd.format(new Date()));
             return showTitle;
-        }else{
-            if(allMonitorType.equals(task.getMonitorType())){
-                return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
-            }
-            return task.getCusBatch();
         }
+        if(allMonitorType.equals(task.getMonitorType())){
+            return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
+        }
+        return task.getCusBatch();
+    }
+    private GroupStrategyConfig getGroupStrategyConfig(MarketingTask task){
+
+        GroupStrategyConfig groupStrategyConfig=null;
+
+        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
+        extendExample.createCriteria()
+                .andTaskIdEqualTo(task.getId())
+                .andIsDelEqualTo(1);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
+        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())) {
+            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
+
+            GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
+            configExample.createCriteria()
+                    .andApiCodeEqualTo(task.getApiCode())
+                    .andGroupTypeEqualTo(taskExtend.getGroupType())
+                    .andIsDelEqualTo(1);
+            List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
+            if (groupStrategyConfigs.size() > 0) {
+                groupStrategyConfig = groupStrategyConfigs.get(0);
+            }
+        }
+        return groupStrategyConfig;
     }
 }

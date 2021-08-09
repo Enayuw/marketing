@@ -261,8 +261,8 @@ public class redis {
 
     @Test
     public void encAnddec() throws Exception {
-        String s = ThreeDes.encryptByCbc("123", "abcddesds", "abcdefgh");
-        String abcddesds = ThreeDes.decryptByCbc(s, "abcddesds","hhhhtttt");
+        String s = ThreeDes.encryptByCBC("123", "abcddesds", "abcdefgh");
+        String abcddesds = ThreeDes.decryptByCBC(s, "abcddesds","hhhhtttt");
         System.out.println(abcddesds);
     }
 

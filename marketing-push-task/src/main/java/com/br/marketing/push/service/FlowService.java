@@ -4,7 +4,6 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
-import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
 import com.br.marketing.push.service.impl.PushServiceImpl;
@@ -65,7 +64,7 @@ public class FlowService {
                 pushService.push(pushList);
 
                 //推送消息到pushQueue，进行下一流程处理
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.checkRoutingKey,customer.getApiCode());
+                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.EX_CHANGER_NAME, MQConstants.CHECK_ROUTING_KEY,customer.getApiCode());
             }
 
         } catch (Exception e) {
