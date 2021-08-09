@@ -124,7 +124,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
         taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
-        if(marketingTaskExtends.size()>=0){
+        if(marketingTaskExtends.size()>0){
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
             if(StringUtils.isNotBlank(taskExtend.getExtendShowTitle())){
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(taskExtend.getExtendShowTitle());
