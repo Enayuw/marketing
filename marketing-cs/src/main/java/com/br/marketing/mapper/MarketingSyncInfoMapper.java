@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransfer;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     void createMarketingTransferTable(@Param("tableName") String tableName);
 
     Integer insertBatchTransfer(@Param("execSql") String execSql);
+
+    int insertTransfer(MarketingTransfer transfer);
 
     Integer selectTransfersByRequestId(@Param("apiCode") String apiCode,@Param("requestId") String requestId);
 

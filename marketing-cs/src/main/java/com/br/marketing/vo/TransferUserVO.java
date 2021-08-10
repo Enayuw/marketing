@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class TransferUserVO {
+    private Long id;
     private String taskId;
     private String custNum;
     private String groupType;

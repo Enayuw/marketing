@@ -48,6 +48,15 @@
         ${execSql}
     </insert>
 
+    <insert id="insertTransfer" parameterType="com.br.marketing.entity.MarketingTransfer">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_transfer_${apiCode}
+        (request_id,task_id,cust_num,transform_time,create_time,group_type)
+        values (#{requestId},#{taskId},#{taskId},#{transformTime},#{createTime},#{groupType} )
+    </insert>
+
     <select id="selectTransfersByRequestId" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_${apiCode}

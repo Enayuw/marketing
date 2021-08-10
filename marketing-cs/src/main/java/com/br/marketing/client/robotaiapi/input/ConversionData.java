@@ -52,8 +52,14 @@ public class ConversionData {
      * 合作平台入库时间
      */
     private String partnerProcessDate;
+
     /**
      * 1:数禾,2:萨摩耶 (必填)
      */
-    private String businessType;
+    private String cid;
+
+    /**
+     * 数据id
+     */
+    private String dataId;
 }
