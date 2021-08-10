@@ -14,13 +14,13 @@ import java.util.UUID;
 @Component
 public class MomCommonUtil {
 
-    @Value("otherConfig.mom.destinationName")
+    @Value("${otherConfig.mom.destinationName:00}")
     private  String destinationName;
 
-    @Value("otherConfig.mom.appName")
+    @Value("${otherConfig.mom.appName:00}")
     private  String appName;
 
-    @Value("otherConfig.mom.appSecretKey")
+    @Value("${otherConfig.mom.appSecretKey:00}")
     private  String appSecretKey;
 
     /**
