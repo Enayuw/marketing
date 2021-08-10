@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.bsf.ext.app.util.Ice1BSFConsumerBean;
 import com.br.mom.v3.broker_layer_api.api.BrokerLayerServicePrx;
+import com.br.mom.v3.broker_layer_api.api.ResponseBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,8 +42,8 @@ public class MomCommonUtil {
         requestData.put("content",param);
         paramJson.put("requestData",requestData);
         //log.warn("MQ入参--{}",paramJson);
-            service.sender(paramJson.toString());
-            //log.warn("MQ返回值--{}--{}",sender.getCode(),sender.getMessage());
+            ResponseBean sender = service.sender(paramJson.toString());
+            log.info("MQ返回值--{}--{}",sender.getCode(),sender.getMessage());
         }catch (Exception e){
             log.error("日志信息写入消息队列异常",e);
         }
