@@ -68,6 +68,10 @@ otherConfig:
   userCenter:
     appName: loan-strategy
     appSecretKey: 7357430aa11febfe81d45945c02706b3
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api

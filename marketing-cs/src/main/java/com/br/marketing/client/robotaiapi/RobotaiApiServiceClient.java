@@ -8,6 +8,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.common.utils.net.MomCommonUtil;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +28,13 @@ public class RobotaiApiServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
+    @Autowired
+    MomCommonUtil momCommonUtil;
+
     public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
-            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(robotOutboundUrl)
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()

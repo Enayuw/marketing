@@ -21,7 +21,17 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
+    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil) {
+        this.restTemplate = restTemplate;
+        this.httpHeaders = new HttpHeaders();
+        this.momCommonUtil = momCommonUtil;
+    }
+
+    private InterfaceLog interfaceLog = new InterfaceLog();
+
     private RestTemplate restTemplate;
+
+    private MomCommonUtil momCommonUtil;
 
     private String url;
 
@@ -73,9 +83,22 @@ public class ApiCaller {
 
     public ThirdApiResultTransfer postTransferStr() {
         HttpEntity postHttpEntity = createPostHttpEntity();
+        interfaceLog.setRequestStr(postHttpEntity.getBody().toString());
+        interfaceLog.setUrl(url);
+        long start = System.currentTimeMillis();
         log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
+        if(momCommonUtil != null) {
+            try {
+                interfaceLog.setCostTime(System.currentTimeMillis() - start);
+                interfaceLog.setResponseStr(stringResponseEntity.getBody());
+                interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
+                momCommonUtil.sendMQ(interfaceLog);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
         transfer.setResult(stringResponseEntity.getBody());
         return transfer;
