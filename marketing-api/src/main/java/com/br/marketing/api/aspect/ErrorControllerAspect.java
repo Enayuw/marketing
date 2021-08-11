@@ -1,5 +1,6 @@
 package com.br.marketing.api.aspect;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
@@ -21,9 +22,11 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * 对外接口的异常捕获
@@ -92,18 +95,23 @@ public class ErrorControllerAspect {
         SaveLog saveLog = sMethod.getAnnotation(SaveLog.class);
         CalledInterfaceLog interfaceLog = new CalledInterfaceLog();
         if(saveLog!=null){
-
             interfaceLog.setRequestId(UUID.randomUUID().toString());
-            interfaceLog.setRequestParam(jp.getArgs().toString().length()>5000
-                    ?jp.getArgs().toString().substring(0,5000)
-                    :jp.getArgs().toString());
+            String parms = Arrays.asList(jp.getArgs()).stream().map(t -> t.toString()).collect(Collectors.joining("&"));
+            interfaceLog.setRequestParam(parms.length()>5000
+                    ?parms.substring(0,5000)
+                    :parms);
             interfaceLog.setMethodName(httpServletRequest.getRequestURI());
         }
 
         try {
             Object rvt = jp.proceed();
             if(saveLog!=null) {
-                interfaceLog.setResult(rvt.toString());
+                if((rvt instanceof ApiNoDataResult)
+                        ||(rvt instanceof Result)){
+                    interfaceLog.setResult(JSON.toJSONString(rvt));
+                }else{
+                    interfaceLog.setResult(rvt.toString());
+                }
                 interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
                 interfaceLog.setCreateTime(new Date());
 
