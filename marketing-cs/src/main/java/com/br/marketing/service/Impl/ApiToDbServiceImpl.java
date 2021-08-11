@@ -76,8 +76,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     @Autowired
     TaskBatchnumberPreMapper taskBatchnumberPreMapper;
 
-    final SimpleDateFormat simpleDateFormatOfymd=new SimpleDateFormat("yyyy-MM-dd");
-
     private final static String redisElasticJobKey = "elasticjob:contextid";
 
     private final static String redisBatchNumberKey = "batchnumber:pre";
@@ -100,8 +98,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         Date preDateDay = null;
         Date nowDateDay = null;
         try {
-            preDateDay = simpleDateFormatOfymd.parse(preDate);
-            nowDateDay = simpleDateFormatOfymd.parse(nowDate);
+            preDateDay = new SimpleDateFormat("yyyy-MM-dd").parse(preDate);
+            nowDateDay = new SimpleDateFormat("yyyy-MM-dd").parse(nowDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }

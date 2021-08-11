@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -76,10 +77,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
 
     @Autowired
     MarketingTaskExtendMapper marketingTaskExtendMapper;
-
-    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
-
-    final static SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
 
     private final static String RedisEsOpen="es:open";
 
@@ -557,7 +554,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     }
 
     private String createShowTitle(MarketingTask task){
-
+        SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
         extendExample.createCriteria()
                 .andTaskIdEqualTo(Long.valueOf(task.getId()))
@@ -577,7 +575,6 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 GroupStrategyConfig groupStrategyConfig = groupStrategyConfigs.get(0);
                 groupStr = groupStrategyConfig.getGroupTypeShort().concat("_");
             }
-
             Date parse = null;
             try {
                 parse = yyyy_MM_dd.parse(taskExtend.getUploadTime());

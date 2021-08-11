@@ -164,7 +164,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final static String marketingPreUserTable = "b_marketing_sync_";
 
-    final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -736,7 +735,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
         StringBuilder sqlByTaskAndCustNum = new StringBuilder();
-        String nowDate = yyyyMMddHMS.format(new Date());
+        String nowDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         for (int i = 0; i < transfers.size(); i++) {
 //            StringBuilder sql = new StringBuilder();
             TransferUserVO transferUserVO = transfers.get(i);
@@ -782,7 +781,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             Date parse = null;
             try {
                 if(StringUtils.isNotBlank(transferUserVO.getTransformTime())) {
-                    parse = yyyyMMddHMS.parse(transferUserVO.getTransformTime());
+                    parse = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferUserVO.getTransformTime());
                 }
             } catch (Exception e) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("转化时间格式错误");
@@ -792,7 +791,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transfer.setRequestId(requestId);
             transfer.setTaskId(transferUserVO.getTaskId());
             transfer.setCustNum(transferUserVO.getCustNum());
-            transfer.setTransformTime(parse==null?null:(yyyyMMddHMS.format(parse)));
+            transfer.setTransformTime(parse==null?null:(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(parse)));
             transfer.setCreateTime(new Date());
             transfer.setGroupType(transferUserVO.getGroupType());
             transfer.setReserveField1(transferUserVO.getReserveField1());

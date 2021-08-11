@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
@@ -90,7 +91,6 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     DeleteService deleteService;
     @Autowired
     IApiToDbService iApiToDbService;
-    final static SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -186,7 +186,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             taskExtend.setTaskId(task.getId());
                             taskExtend.setCusTaskId(task.getFileName());
                             taskExtend.setCreateTime(new Date());
-                            taskExtend.setUploadTime(yyyyMMdd.format(new Date()));
+                            taskExtend.setUploadTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
                             marketingTaskExtendMapper.insertSelective(taskExtend);
                             context.setTask(task);
                             context.init();
