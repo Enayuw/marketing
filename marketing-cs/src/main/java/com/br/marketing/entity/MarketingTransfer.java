@@ -50,4 +50,10 @@ public class MarketingTransfer {
     @JSONField(name = "group_type")
     private String groupType;
 
+    @JSONField(name = "reserve_field1")
+    private String reserveField1;
+
+    @JSONField(name = "reserve_field2")
+    private String reserveField2;
+
 }

@@ -787,14 +787,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             } catch (Exception e) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("转化时间格式错误");
             }
-//            sql.append("insert into b_marketing_transfer_").append(apiCode)
-//                    .append(" (request_id,task_id,cust_num,transform_time,create_time,group_type) values");
-//            sql.append("('").append(requestId).append("'")
-//                    .append(",'").append(transferUserVO.getTaskId()).append("'")
-//                    .append(",'").append(transferUserVO.getCustNum()).append("'")
-//                    .append(",").append(parse==null?"null":("'".concat(yyyyMMddHMS.format(parse)).concat("'")))
-//                    .append(",'").append(nowDate).append("'")
-//                    .append(",'").append(transferUserVO.getGroupType()).append("')");
             MarketingTransfer transfer = new MarketingTransfer();
             transfer.setApiCode(apiCode);
             transfer.setRequestId(requestId);
@@ -803,6 +795,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             transfer.setTransformTime(parse==null?null:(yyyyMMddHMS.format(parse)));
             transfer.setCreateTime(new Date());
             transfer.setGroupType(transferUserVO.getGroupType());
+            transfer.setReserveField1(transferUserVO.getReserveField1());
+            transfer.setReserveField2(transferUserVO.getReserveField2());
             if(i==0){
                 sqlByTaskAndCustNum.append(String.format("(cus_batch = '%s' and cust_num = '%s')"
                         ,transferUserVO.getTaskId()
@@ -833,6 +827,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         .concat(marketingSyncUser.getCustNum()),marketingSyncUser);
             }
         }
+        //region 拼接客服接口参数
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         List<ConversionData> conversionDataList = new ArrayList<>();
         for (TransferUserVO transfer : transfers) {
@@ -862,6 +857,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
+        //endregion
+
         //todo 调用客服接口
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
         return new Result().setCode(ResultCode.SUCCESS.getValue());

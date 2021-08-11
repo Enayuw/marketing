@@ -40,6 +40,8 @@
             `group_type` varchar(100) NULL COMMENT '场景',
             `transform_time` DATETIME NULL COMMENT '转化时间',
             `create_time` DATETIME NULL COMMENT '入库时间',
+            `reserve_field1` varchar(1000) NULL COMMENT '扩展字段1',
+            `reserve_field2` varchar(1000) NULL COMMENT '扩展字段2',
             PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='转化表'
     </update>
@@ -53,8 +55,8 @@
             SELECT LAST_INSERT_ID()
         </selectKey>
         insert into b_marketing_transfer_${apiCode}
-        (request_id,task_id,cust_num,transform_time,create_time,group_type)
-        values (#{requestId},#{taskId},#{custNum},#{transformTime},#{createTime},#{groupType} )
+        (request_id,task_id,cust_num,transform_time,create_time,group_type,reserve_field1,reserve_field2)
+        values (#{requestId},#{taskId},#{custNum},#{transformTime},#{createTime},#{groupType},#{reserveField1},#{reserveField2})
     </insert>
 
     <select id="selectTransfersByRequestId" resultType="java.lang.Integer">
