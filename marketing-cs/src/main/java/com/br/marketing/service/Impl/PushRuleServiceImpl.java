@@ -860,7 +860,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //todo 调用客服接口
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO,requestId);
+        if(String.valueOf("9999").equals(transferRobotOutboundVO.getCode())){
+            throw new RuntimeException(transferRobotOutboundVO.getMessage());
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 

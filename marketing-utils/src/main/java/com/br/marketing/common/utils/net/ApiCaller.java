@@ -1,11 +1,13 @@
 package com.br.marketing.common.utils.net;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
 import java.util.HashMap;
 
 @Slf4j
@@ -29,6 +31,11 @@ public class ApiCaller {
 
     private InterfaceLog interfaceLog = new InterfaceLog();
 
+    public ApiCaller setInterfaceLog(InterfaceLog interfaceLog) {
+        this.interfaceLog = interfaceLog;
+        return this;
+    }
+
     private RestTemplate restTemplate;
 
     private MomCommonUtil momCommonUtil;
@@ -44,6 +51,8 @@ public class ApiCaller {
     protected HttpHeaders httpHeaders;
 
     protected String encodeName = "utf-8";
+
+
 
     public String getUrl() {
         return url;
@@ -82,9 +91,18 @@ public class ApiCaller {
     }
 
     public ThirdApiResultTransfer postTransferStr() {
+        if(momCommonUtil!=null){
+            if(StringUtils.isBlank(interfaceLog.getApiCode())){
+             throw new RuntimeException("记录接口日志 apiCode不能为空");
+            }
+            if(StringUtils.isBlank(interfaceLog.getSwiftNumber())){
+                throw new RuntimeException("记录接口日志 SwiftNumber不能为空");
+            }
+        }
         HttpEntity postHttpEntity = createPostHttpEntity();
         interfaceLog.setRequestStr(postHttpEntity.getBody().toString());
         interfaceLog.setUrl(url);
+        interfaceLog.setRequestTime(new Date());
         long start = System.currentTimeMillis();
         log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();

@@ -8,10 +8,12 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.MomCommonUtil;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -31,12 +33,19 @@ public class RobotaiApiServiceClient {
     @Autowired
     MomCommonUtil momCommonUtil;
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto,String requestId){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
+            InterfaceLog interfaceLog = new InterfaceLog();
+            interfaceLog.setApiCode(dto.getApiCode());
+            interfaceLog.setSwiftNumber(requestId);
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil).setUrl(robotOutboundUrl)
+                    .setInterfaceLog(interfaceLog)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
+            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+                throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
+            }
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
             return result;
