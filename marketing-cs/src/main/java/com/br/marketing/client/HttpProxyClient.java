@@ -34,13 +34,13 @@ import java.util.Map;
 @Slf4j
 public class HttpProxyClient {
 	private static final String CHARSET_UTF8 = "UTF-8";
-	@Value("${proxy.proxy_host_zw:00}")
+	@Value("${otherConfig.proxy.proxy_host_zw:00}")
 	private  String  proxyHost;
-	@Value("${proxy.proxy_port:00}")
+	@Value("${otherConfig.proxy.proxy_port:00}")
 	private  int proxyPort;
-	@Value("${proxy.proxy_username:00}")
+	@Value("${otherConfig.proxy.proxy_username:00}")
 	private  String userName;
-	@Value("${proxy.proxy_password:00}")
+	@Value("${otherConfig.proxy.proxy_password:00}")
 	private  String password;
 	private static final PoolingHttpClientConnectionManager HTTP_CLIENT_POOL = new PoolingHttpClientConnectionManager();
 
