@@ -199,7 +199,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                     for (int i = 0; i < list.size(); i++) {
                                         MarketingSyncUser marketingSyncUser = list.get(i);
                                         StrategyOfGroupDTO strategy = strategyOfGroupHashMap.get(marketingSyncUser.getGroupType());
-                                        if(!StringUtils.isNotBlank(strategy.getBatchNumber())){
+                                        if(strategy==null||!StringUtils.isNotBlank(strategy.getBatchNumber())){
                                             continue;
                                         }
                                         JSONObject extendJson = new JSONObject();
