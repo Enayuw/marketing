@@ -62,7 +62,7 @@ otherConfig:
         appName: loan-warning
         appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
-    proxy_host_zw: 192.168.22.50
+    proxy_host_zw: 192.168.22.169
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
