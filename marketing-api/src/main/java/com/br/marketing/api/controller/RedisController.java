@@ -1,6 +1,9 @@
 package com.br.marketing.api.controller;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +16,9 @@ public class RedisController {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Autowired
+    IProductResultSimpleService productResultSimpleService;
 
     @GetMapping("get")
     public String get(@RequestParam("key") String key) {
@@ -28,6 +34,14 @@ public class RedisController {
     @GetMapping("set")
     public String set(@RequestParam("key") String key, @RequestParam("value") String value) {
         redisChgService.set(key, value);
+        return "success";
+    }
+
+    @GetMapping("/clearInnerCache")
+    public String clearInnerCache(@RequestParam("type") Integer type){
+        if(Integer.valueOf(1).equals(type)){
+            ProductResultByConfigSimpleServiceImpl.flagScoreByinnerList.clear();
+        }
         return "success";
     }
 }

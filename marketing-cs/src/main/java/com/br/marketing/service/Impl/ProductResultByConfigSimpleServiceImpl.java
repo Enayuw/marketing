@@ -45,6 +45,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     @Autowired
     MarketingCustomerMapper marketingCustomerMapper;
 
+    public static List<String> flagScoreByinnerList;
+
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
             , String sep, String apiCode,String strategyId,JSONObject esResult) {
@@ -253,14 +255,18 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Override
     public Result<List<String>> getFlagProduct() {
+        if(flagScoreByinnerList!=null&&flagScoreByinnerList.size()>0){
+            return new Result<List<String>>().setCode(ResultCode.SUCCESS.getValue()).setDate(flagScoreByinnerList);
+        }
         ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
         flagScoreExample.createCriteria().andIsDelEqualTo(1);
         List<ProductFlagScore> productFlagScores = flagScoreMapper.selectByExample(flagScoreExample);
         if(productFlagScores.size()<=0){
             return new Result<List<String>>().setCode(ResultCode.FAIL.getValue());
         }else{
+            flagScoreByinnerList = new ArrayList<>(Arrays.asList(productFlagScores.get(0).getFlagScoreProduct().split(",")));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue())
-                    .setDate(Arrays.asList(productFlagScores.get(0).getFlagScoreProduct().split(",")));
+                    .setDate(flagScoreByinnerList);
         }
     }
 
