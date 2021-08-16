@@ -27,19 +27,19 @@ sharding:
         sql.show: true
 eureka:
   client:
-    service-url.defaultZone: http://192.168.23.121:18000/eureka/
+    service-url.defaultZone: http://10.100.123.121:18000/eureka/
 
 spring:
   rabbitmq:
     zw:
-      addresses: 192.168.23.73:5672
+      addresses: 10.100.123.73:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow
     yz:
-      addresses: 192.168.23.73:5672
+      addresses: 10.100.123.73:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true

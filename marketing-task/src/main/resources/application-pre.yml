@@ -53,7 +53,7 @@ otherConfig:
       appSecretKey: d42726322ba9bda57b74043be21aa2c4
 spring:
   rabbitmq:
-    addresses: 192.168.23.73:5672
+    addresses: 10.100.123.73:5672
     username: strategy_distribute
     password: strategy_distribute
     publisher-confirms: true
@@ -61,7 +61,7 @@ spring:
     virtual-host: marketing-flow
 
 #elastic-job配置
-SERVER_LISTS: 192.168.23.78:2181,192.168.23.79:2181,192.168.23.80:2181
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
