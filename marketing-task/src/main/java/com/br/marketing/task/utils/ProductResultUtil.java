@@ -71,6 +71,7 @@ public class ProductResultUtil {
                     result.append(sep);
                 }
                 result.append("zd3").append(sep);
+                result.append(sep).append(sep).append(sep).append(sep).append(sep).append(sep);
             }
             sb.append(result);
         }
