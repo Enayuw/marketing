@@ -60,7 +60,7 @@ otherConfig:
 
 spring:
   rabbitmq:
-    addresses: 10.100.123.73:5672
+    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
     username: strategy_distribute
     password: strategy_distribute
     publisher-confirms: true
