@@ -21,9 +21,9 @@ import java.util.Set;
 @Service
 @Slf4j
 public class DtbStrategyClient {
-    @Resource
+    /*@Resource
     @LoadBalanced
-    private RestTemplate loadBalanced;
+    private RestTemplate loadBalanced;*/
     @Resource
     RestTemplate restTemplate;
     /**
@@ -142,7 +142,7 @@ public class DtbStrategyClient {
      *     "code":"000000"
      * }
      * */
-    public String getStrategyList(String sessionId) {
+    /*public String getStrategyList(String sessionId) {
         Map<String,Object> urlVariables = new HashMap<>();
         urlVariables.put("sessionId",sessionId);
         urlVariables.put("type",6);
@@ -151,10 +151,10 @@ public class DtbStrategyClient {
                 "/list?sessionId={sessionId}&type={type}", String.class, urlVariables);
         log.info("数据策略返回值 --- {}", result);
         return result;
-    }
+    }*/
 
 
-    public String getAllStrategy(String sessionId){
+    /*public String getAllStrategy(String sessionId){
         log.info("查询策略信息--{}",sessionId);
         Map<String, Object> urlVariables = new HashMap<>();
         urlVariables.put("sessionId",sessionId);
@@ -162,6 +162,6 @@ public class DtbStrategyClient {
                 "?sessionId={sessionId}", String.class,urlVariables);
         log.info("贷中微服务返回结果--{}",forObject);
         return forObject;
-    }
+    }*/
 
 }

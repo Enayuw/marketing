@@ -168,6 +168,12 @@
             <artifactId>jsch</artifactId>
             <version>0.1.54</version>
         </dependency>
+        <!--istio -->
+        <dependency>
+            <groupId>com.br.transfer</groupId>
+            <artifactId>header-transfer-spring-boot-starter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
