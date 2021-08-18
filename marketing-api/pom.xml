@@ -156,6 +156,18 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!--本地开发环境-->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
     <build>
         <resources>
             <resource>
@@ -170,6 +182,10 @@
                     <include>**/*.xml</include>
                     <include>**/*.properties</include>
                 </includes>
+            </resource>
+            <resource>
+                <targetPath>${project.build.directory}/classes</targetPath>
+                <directory>src/main/resources/${profiles.active}</directory>
             </resource>
         </resources>
         <plugins>
