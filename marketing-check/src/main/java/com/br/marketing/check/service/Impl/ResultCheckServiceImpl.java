@@ -167,7 +167,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
         Map<String,String> param=new HashMap<>();
         param.put("batchNumber",batchNumber);
         param.put("apiCode",apiCode);
-        param.put("zipFileName",name);
+        param.put("fileName",name);
         log.warn("param:{}",param);
         loanFile = loanFileMapper.queryFilePath(param);
         loanFile.setFileSize(String.valueOf(sftpATTRS.getSize()));
