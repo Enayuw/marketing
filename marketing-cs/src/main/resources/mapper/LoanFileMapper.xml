@@ -16,6 +16,9 @@
 		<if test="fileName!=null">
 		AND zipFile_name=#{fileName}
 		</if>
+		<if test="status !=null">
+		AND status = #{stauts}
+		</if>
 		</select>
 
 	<select id="queryTadayTaskStatus" resultType="java.lang.Integer" parameterType="java.lang.String">
