@@ -178,8 +178,11 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 String resultStr=result.get("data")!=null?result.get("data").toString():"";
                 String code="9999";
                 if(StringUtils.isNotBlank(resultStr)){
-                    JSONObject resultJson =JSONObject.parseObject(resultStr);
-                    code=resultJson.getString("code");
+                    try {
+                        JSONObject resultJson =JSONObject.parseObject(resultStr);
+                        code=resultJson.getString("code");
+                    }catch (Exception e){
+                    }
                 }
                 if((Boolean) result.get("result")){
                     pushErrorLog.setStatus(1);
