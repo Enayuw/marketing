@@ -271,6 +271,15 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                                         case "registerdate":
                                                             str = marketingSyncUser.getRegisterDate();
                                                             break;
+                                                        /* 2021-8-18 14:41:12
+                                                         * 回传文件结果表头新增字段：
+                                                         * createTime 基础字段
+                                                         */
+                                                        case "createtime": // 客户数据上传日期（精确到日）
+                                                            str = marketingSyncUser.getAppletDate();
+                                                            break;
+                                                        default:
+                                                            str = "";
                                                     }
                                                 }else if(ic.equals(head.getType())){
                                                     if(icData!=null){
