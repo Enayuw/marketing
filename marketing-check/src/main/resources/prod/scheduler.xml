@@ -85,7 +85,7 @@
 
     <job:simple id="sftpToDbJob"
                 class="com.br.marketing.check.job.SftpToDbJob"
-                cron="0 0/30 * * * ? "
+                cron="0 9/30 * * * ? "
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
