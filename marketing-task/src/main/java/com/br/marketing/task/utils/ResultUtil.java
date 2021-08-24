@@ -38,7 +38,7 @@ public class ResultUtil {
 
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
                                     MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
-                                    Integer esOpen,String baseHeadInfo) throws IOException {
+                                    String baseHeadInfo) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
         JSONObject esResult=new JSONObject();
         StringBuilder sb=new StringBuilder();
@@ -98,11 +98,7 @@ public class ResultUtil {
                         String ss = jsonObject.getString(s);
                         if(StringUtils.isNotBlank(ss)){
                             sb.append(ss);
-                        }else {
-                            sb.append("");
                         }
-                    }else{
-                        sb.append("");
                     }
                     sb.append(sep);
                 }

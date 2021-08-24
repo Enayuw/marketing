@@ -95,6 +95,11 @@ public class MarketingTask {
 
     private Integer dataVolume;
 
+    /**
+     * 是否首次跑数，首次记录日志，否则不记录
+     */
+    private Boolean firstTime;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -131,6 +136,7 @@ public class MarketingTask {
                 ", isRepair='" + isRepair + '\'' +
                 ", dataVolume=" + dataVolume +'\'' +
                 ", context_id=" + contextId +
+                ", isFirstTime=" + firstTime +
                 '}';
     }
 }

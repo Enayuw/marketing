@@ -58,6 +58,11 @@ public class Constants {
 
     public static Map<String, String> requestCodeMap = new HashMap<>();
 
+    public static Map<String, String> monitorTypeMap = new HashMap<>();
+    static {
+        monitorTypeMap.put("1","once");
+        monitorTypeMap.put("4","all");
+    }
     static {
         requestCodeMap.put("00", "00");
         requestCodeMap.put("1001", "Md5");

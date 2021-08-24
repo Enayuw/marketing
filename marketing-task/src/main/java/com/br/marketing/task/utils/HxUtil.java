@@ -21,7 +21,7 @@ import java.text.DecimalFormat;
 public class HxUtil {
     private static RestTemplate restTemplate = Scheduler.ac.getBean(RestTemplate.class);
 
-    public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean notSaveLog, String url) {
+    public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
         log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
@@ -47,10 +47,10 @@ public class HxUtil {
         /**
          * 0不留存，1留存
          */
-        if(notSaveLog ||customer.getSaveLog()==0){
-            extDataJson.put("isSaveLog","0");
-        }else{
+        if(firstTime ||customer.getSaveLog()==1){
             extDataJson.put("isSaveLog","1");
+        }else{
+            extDataJson.put("isSaveLog","0");
         }
         json.put("ExtData",extDataJson);
         json.put("ifDeactivated", "0");
