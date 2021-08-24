@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -82,10 +81,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
 
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
-        //todo 预发需要去掉这个逻辑
+
         int count=context==null?1:context.getShardingTotalCount();
         List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
-        String type=customer.getType();
         ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
 
