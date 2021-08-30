@@ -1,4 +1,4 @@
-package com.br.marketing.api.controller;
+package com.br.marketing.innerapi.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
