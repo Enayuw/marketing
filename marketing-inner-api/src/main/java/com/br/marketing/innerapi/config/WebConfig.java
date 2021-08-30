@@ -31,9 +31,9 @@ public class WebConfig extends WebMvcConfigurationSupport {
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionInterceptor)
-                .addPathPatterns("/ruleofsole/*");
+                .addPathPatterns("/rule/*");
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/ruleofsole/*");
+                .addPathPatterns("/rule/*");
         super.addInterceptors(registry);
     }
 }
