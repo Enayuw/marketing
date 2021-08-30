@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,6 +27,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
     @Autowired
     private RedisAuthService redisService;
 
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String sessionId = request.getParameter("sessionId");
@@ -41,6 +43,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
                 session.invalidate();
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
+                ThreadContextInfo.setUser(userDetail);
                 session.setAttribute("userDetail", userDetail);
                 return super.preHandle(request, response, handler);
             }
@@ -54,6 +57,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
         HttpSession session = request.getSession();
         response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
+        ThreadContextInfo.removeUser();
         session.invalidate();
         session = null;
     }
