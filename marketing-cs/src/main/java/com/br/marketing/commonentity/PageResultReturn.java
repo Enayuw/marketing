@@ -1,4 +1,4 @@
-package com.br.marketing.innerapi.bean;
+package com.br.marketing.commonentity;
 
 import com.github.pagehelper.PageInfo;
 import lombok.Getter;

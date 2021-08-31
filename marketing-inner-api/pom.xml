@@ -159,11 +159,31 @@
             <artifactId>groovy-all</artifactId>
             <version>2.4.10</version>
         </dependency>
-        <!-- pagehelper 分页插件 -->
+
+        <!-- 升级swagger2版本 -->
         <dependency>
-            <groupId>com.github.pagehelper</groupId>
-            <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.3.1</version>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+        <!-- 升级guava版本 -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>20.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -189,6 +209,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.br.marketing.innerapi.MarketingInnerApiApplication</mainClass>
+                    <fork>true</fork>
                 </configuration>
                 <version>1.5.3.RELEASE</version>
                 <executions>
