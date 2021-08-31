@@ -73,6 +73,16 @@ public class ScoreRuleConfig {
      */
     private Integer pushType;
 
+    /**
+     * 开启状态 1-开启；2-禁用；3-开启中
+     */
+    private Integer status;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
     public Long getId() {
         return id;
     }
@@ -183,5 +193,21 @@ public class ScoreRuleConfig {
 
     public void setPushType(Integer pushType) {
         this.pushType = pushType;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }

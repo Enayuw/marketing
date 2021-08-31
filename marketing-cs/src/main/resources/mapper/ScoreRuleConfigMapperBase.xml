@@ -16,6 +16,8 @@
     <result column="cycle_day" property="cycleDay" jdbcType="INTEGER" />
     <result column="cycle_end_day" property="cycleEndDay" jdbcType="VARCHAR" />
     <result column="push_type" property="pushType" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -78,7 +80,7 @@
   <sql id="Base_Column_List" >
     id, sule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
     strategy_id, base_info, is_del, create_time, exec_type, cycle_day, cycle_end_day, 
-    push_type
+    push_type, status, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" >
     select
@@ -118,12 +120,14 @@
       strategy_product_json, condition_info, strategy_id, 
       base_info, is_del, create_time, 
       exec_type, cycle_day, cycle_end_day, 
-      push_type)
+      push_type, status, update_time
+      )
     values (#{suleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
       #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{baseInfo,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
       #{execType,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, 
-      #{pushType,jdbcType=INTEGER})
+      #{pushType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -170,6 +174,12 @@
       <if test="pushType != null" >
         push_type,
       </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="suleName != null" >
@@ -210,6 +220,12 @@
       </if>
       <if test="pushType != null" >
         #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -264,6 +280,12 @@
       <if test="record.pushType != null" >
         push_type = #{record.pushType,jdbcType=INTEGER},
       </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -284,7 +306,9 @@
       exec_type = #{record.execType,jdbcType=INTEGER},
       cycle_day = #{record.cycleDay,jdbcType=INTEGER},
       cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR},
-      push_type = #{record.pushType,jdbcType=INTEGER}
+      push_type = #{record.pushType,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=INTEGER},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -331,6 +355,12 @@
       <if test="pushType != null" >
         push_type = #{pushType,jdbcType=INTEGER},
       </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -348,7 +378,9 @@
       exec_type = #{execType,jdbcType=INTEGER},
       cycle_day = #{cycleDay,jdbcType=INTEGER},
       cycle_end_day = #{cycleEndDay,jdbcType=VARCHAR},
-      push_type = #{pushType,jdbcType=INTEGER}
+      push_type = #{pushType,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
