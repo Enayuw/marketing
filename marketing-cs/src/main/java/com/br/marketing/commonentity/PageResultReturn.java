@@ -1,6 +1,8 @@
 package com.br.marketing.commonentity;
 
 import com.github.pagehelper.PageInfo;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,13 +19,18 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
+@ApiModel(value = "分页数据")
 public class PageResultReturn implements Serializable {
-    private int page;            // 当前页数
-    private int total;            // 总页数
-    private long records;        // 总记录数
-    private List<?> rows;        // 每行显示的内容
+    @ApiModelProperty(value = "当前页")
+    private int page;
+    @ApiModelProperty(value = "总页数", position = 1)
+    private int total;
+    @ApiModelProperty(value = "总记录数", position = 2)
+    private long records;
+    @ApiModelProperty(value = "结果集", position = 3)
+    private List<?> rows;
 
-    //分页数据进行封装到PageResult类，传给前端
+    //分页数据进行封装到PageResult类
     public static PageResultReturn setPageResult(List<?> list, Integer page) {
         PageInfo<?> pageList = new PageInfo<>(list);
         PageResultReturn pageResultReturn = new PageResultReturn();
