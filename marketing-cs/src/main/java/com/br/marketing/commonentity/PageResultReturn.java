@@ -30,7 +30,7 @@ public class PageResultReturn implements Serializable {
     @ApiModelProperty(value = "结果集", position = 3)
     private List<?> rows;
 
-    //分页数据进行封装到PageResult类
+    //分页数据进行封装到PageResultReturn
     public static PageResultReturn setPageResult(List<?> list, Integer page) {
         PageInfo<?> pageList = new PageInfo<>(list);
         PageResultReturn pageResultReturn = new PageResultReturn();
