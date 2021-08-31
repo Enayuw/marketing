@@ -76,6 +76,16 @@ public class MarketingCustomer {
      */
     private String cid;
 
+    /**
+     * 合作客户名称
+     */
+    private String name;
+
+    /**
+     * 合作客户简称
+     */
+    private String shortName;
+
     public Long getId() {
         return id;
     }
@@ -194,5 +204,21 @@ public class MarketingCustomer {
 
     public void setCid(String cid) {
         this.cid = cid == null ? null : cid.trim();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 }
