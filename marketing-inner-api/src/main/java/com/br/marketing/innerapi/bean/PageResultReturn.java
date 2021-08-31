@@ -17,20 +17,20 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
-public class PageResult implements Serializable {
+public class PageResultReturn implements Serializable {
     private int page;            // 当前页数
     private int total;            // 总页数
     private long records;        // 总记录数
     private List<?> rows;        // 每行显示的内容
 
     //分页数据进行封装到PageResult类，传给前端
-    public static PageResult setPageResult(List<?> list, Integer page) {
+    public static PageResultReturn setPageResult(List<?> list, Integer page) {
         PageInfo<?> pageList = new PageInfo<>(list);
-        PageResult pageResult = new PageResult();
-        pageResult.setPage(page);
-        pageResult.setRows(list);
-        pageResult.setTotal(pageList.getPages());
-        pageResult.setRecords(pageList.getTotal());
-        return pageResult;
+        PageResultReturn pageResultReturn = new PageResultReturn();
+        pageResultReturn.setPage(page);
+        pageResultReturn.setRows(list);
+        pageResultReturn.setTotal(pageList.getPages());
+        pageResultReturn.setRecords(pageList.getTotal());
+        return pageResultReturn;
     }
 }
