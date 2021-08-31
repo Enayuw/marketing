@@ -11,7 +11,7 @@ public class ScoreRuleConfig {
     /**
      * 规则名称
      */
-    private String suleName;
+    private String ruleName;
 
     /**
      * 规则简拼
@@ -91,12 +91,12 @@ public class ScoreRuleConfig {
         this.id = id;
     }
 
-    public String getSuleName() {
-        return suleName;
+    public String getRuleName() {
+        return ruleName;
     }
 
-    public void setSuleName(String suleName) {
-        this.suleName = suleName == null ? null : suleName.trim();
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName == null ? null : ruleName.trim();
     }
 
     public String getRuleNameShort() {

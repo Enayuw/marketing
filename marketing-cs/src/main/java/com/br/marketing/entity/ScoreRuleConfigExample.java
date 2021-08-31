@@ -166,72 +166,72 @@ public class ScoreRuleConfigExample {
         }
 
         public Criteria andSuleNameIsNull() {
-            addCriterion("sule_name is null");
+            addCriterion("rule_name is null");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameIsNotNull() {
-            addCriterion("sule_name is not null");
+            addCriterion("rule_name is not null");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameEqualTo(String value) {
-            addCriterion("sule_name =", value, "suleName");
+            addCriterion("rule_name =", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameNotEqualTo(String value) {
-            addCriterion("sule_name <>", value, "suleName");
+            addCriterion("rule_name <>", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameGreaterThan(String value) {
-            addCriterion("sule_name >", value, "suleName");
+            addCriterion("rule_name >", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameGreaterThanOrEqualTo(String value) {
-            addCriterion("sule_name >=", value, "suleName");
+            addCriterion("rule_name >=", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameLessThan(String value) {
-            addCriterion("sule_name <", value, "suleName");
+            addCriterion("rule_name <", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameLessThanOrEqualTo(String value) {
-            addCriterion("sule_name <=", value, "suleName");
+            addCriterion("rule_name <=", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameLike(String value) {
-            addCriterion("sule_name like", value, "suleName");
+            addCriterion("rule_name like", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameNotLike(String value) {
-            addCriterion("sule_name not like", value, "suleName");
+            addCriterion("rule_name not like", value, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameIn(List<String> values) {
-            addCriterion("sule_name in", values, "suleName");
+            addCriterion("rule_name in", values, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameNotIn(List<String> values) {
-            addCriterion("sule_name not in", values, "suleName");
+            addCriterion("rule_name not in", values, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameBetween(String value1, String value2) {
-            addCriterion("sule_name between", value1, value2, "suleName");
+            addCriterion("rule_name between", value1, value2, "ruleName");
             return (Criteria) this;
         }
 
         public Criteria andSuleNameNotBetween(String value1, String value2) {
-            addCriterion("sule_name not between", value1, value2, "suleName");
+            addCriterion("rule_name not between", value1, value2, "ruleName");
             return (Criteria) this;
         }
 
