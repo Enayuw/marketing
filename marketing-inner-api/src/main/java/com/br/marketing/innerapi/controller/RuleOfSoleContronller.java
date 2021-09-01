@@ -1,14 +1,13 @@
 package com.br.marketing.innerapi.controller;
 
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.RuleOfSoleService;
-import com.br.marketing.vo.SoleRuleVO;
-import com.github.pagehelper.Page;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -18,10 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 去重规则控制层
+ * songjuanjuan
+ */
 @RestController
 @RequestMapping("/rule/sole")
 public class RuleOfSoleContronller {
@@ -43,13 +45,15 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @PostMapping("/list")
-    public Result<List<SoleRuleVO>> list(@RequestBody SoleRuleSearchDTO dto){
+    public ApiResult<PageResultReturn> list(@RequestBody SoleRuleSearchDTO dto,
+                                            @RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "10") int pageSize){
         try {
-            //还差分页功能
-            return ruleOfSoleService.list(dto);
+            PageResultReturn list = ruleOfSoleService.list(dto, page, pageSize);
+            return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.UNKNOWN_ERROR);
         }
     }
 
@@ -59,7 +63,7 @@ public class RuleOfSoleContronller {
     @GetMapping("/getNameOnly")
     public boolean getNameOnly(String soleName){
         //查询
-        return true;
+        return ruleOfSoleService.getNameOnly(soleName);
     }
 
 

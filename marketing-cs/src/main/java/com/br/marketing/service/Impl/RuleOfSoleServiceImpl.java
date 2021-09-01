@@ -1,9 +1,7 @@
 package com.br.marketing.service.Impl;
 
-import com.br.common.util.DateUtils;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.entity.CustomerSoleExample;
 import com.br.marketing.entity.SoleRuleConfig;
@@ -12,6 +10,7 @@ import com.br.marketing.mapper.CustomerSoleMapper;
 import com.br.marketing.mapper.SoleRuleConfigMapper;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.SoleRuleVO;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 去重规则业务实现
+ * songjuanjuan
+ */
 @Service
 @Slf4j
 public class RuleOfSoleServiceImpl implements RuleOfSoleService {
@@ -31,15 +34,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
 
     @Override
-    public Result<List<SoleRuleVO>> list(SoleRuleSearchDTO dto) {
-        SoleRuleConfigExample example = new SoleRuleConfigExample();
-        example.createCriteria().andSoleNameLike(dto.getSoleName())
-                .andStatusEqualTo(dto.getStatus())
-                .andCreateTimeBetween(dto.getCreateTimeStart(),dto.getCreateTimeEnd())
-                .andUpdateTimeBetween(dto.getUpdateTimeStart(),dto.getUpdateTimeEnd())
-                .andIsDelEqualTo(1);
-        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectByExample(example);
-
+    public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
+        PageHelper.startPage(page, pageSize);
+        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
         List<SoleRuleVO> soleRuleVos = new ArrayList<>();
         CustomerSoleExample customerSoleExample;
         for(SoleRuleConfig single:soleRuleConfigs){
@@ -48,7 +45,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             vo.setSoleName(single.getSoleName());
             vo.setSoleFields(single.getSoleFields());
             vo.setSoleFieldsNum(single.getSoleFields().split(",").length);//去重字段统计
-            vo.setSoleCycleTimes(single.getSoleCycleTimes());
+            if(StringUtils.isNotEmpty(single.getSoleCycleTimes())){
+                vo.setSoleCycleTimes(single.getSoleCycleTimes());
+            }
             //使用商户统计
             customerSoleExample = new CustomerSoleExample();
             customerSoleExample.createCriteria().andSoleIdEqualTo(single.getId())
@@ -60,6 +59,19 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             vo.setUpdateTime(single.getUpdateTime());
             soleRuleVos.add(vo);
         }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(soleRuleVos);
+
+        return PageResultReturn.setPageResult(soleRuleVos, page);
+    }
+
+    @Override
+    public boolean getNameOnly(String soleName) {
+        SoleRuleConfigExample example = new SoleRuleConfigExample();
+        example.createCriteria().andSoleNameEqualTo(soleName);
+        int count = soleRuleConfigMapper.countByExample(example);
+        if (count<=0){
+            return true;
+        }else {
+            return false;
+        }
     }
 }

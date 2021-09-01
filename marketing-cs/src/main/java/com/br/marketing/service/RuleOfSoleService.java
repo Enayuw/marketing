@@ -1,10 +1,7 @@
 package com.br.marketing.service;
 
-import com.br.marketing.common.commondto.Result;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
-import com.br.marketing.vo.SoleRuleVO;
-
-import java.util.List;
 
 public interface RuleOfSoleService {
 
@@ -13,7 +10,12 @@ public interface RuleOfSoleService {
      * @param dto
      * @return
      */
-    Result<List<SoleRuleVO>> list(SoleRuleSearchDTO dto);
+    PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize);
 
-
+    /**
+     * 判断规则名称是否重复
+     * @param soleName
+     * @return
+     */
+    boolean getNameOnly(String soleName);
 }
