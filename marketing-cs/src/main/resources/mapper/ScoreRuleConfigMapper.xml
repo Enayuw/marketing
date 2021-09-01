@@ -4,18 +4,44 @@
 
     <select id="findList" resultType="com.br.marketing.vo.ScoreRuleConfigPageVO">
         select src.id
-             , src.rule_name    as ruleName
-             , bmc.cid
-             , bmc.api_code     as apiCode
-             , case src.status
-                   when 1 then '开启'
-                   when 2 then '禁用'
-                   when 3 then '开启中'
-                   else '-' end as status
-             , src.create_time  as createTime
-             , src.update_time  as updateTime
+        , src.rule_name as ruleName
+        , bmc.cid
+        , bmc.api_code as apiCode
+        , case src.status
+        when 1 then '开启'
+        when 2 then '禁用'
+        when 3 then '开启中'
+        else '-' end as status
+        , DATE_FORMAT(src.create_time,'%Y-%m-%d %H:%i:%s') as createTime
+        , DATE_FORMAT(src.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
         from b_score_rule_config src
-                 left join b_customer_rule bcr on src.id = bcr.rule_id
-                 left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        left join b_customer_rule bcr on src.id = bcr.rule_id
+        left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        <where>
+            <if test="search != null and search.trim() neq ''">
+                src.rule_name like CONCAT(#{search},'%')
+                or bmc.cid like CONCAT(#{search},'%')
+                or bmc.api_code like CONCAT(#{search},'%')
+            </if>
+            <if test="status != null">
+                and src.status=#{status}
+            </if>
+            <if test="cts != null and cts.trim() neq ''">
+                and
+                date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{cts},'%Y-%m-%d %H:%i:%s')
+            </if>
+            <if test="cte != null and cte.trim() neq ''">
+                and
+                date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{cte},'%Y-%m-%d %H:%i:%s')
+            </if>
+            <if test="uts != null and uts.trim() neq ''">
+                and
+                date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{uts},'%Y-%m-%d %H:%i:%s')
+            </if>
+            <if test="ute != null and ute.trim() neq ''">
+                and
+                date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{ute},'%Y-%m-%d %H:%i:%s')
+            </if>
+        </where>
     </select>
 </mapper>

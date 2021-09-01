@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,9 +15,14 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
      * @param cte    创建时间结束
      * @param uts    更新时间开始
      * @param ute    更新时间结束
-     * @return PageResult {@link ScoreRuleConfigPageVO}
+     * @return {@link List<ScoreRuleConfigPageVO>}
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/8/31 14:38
      */
-    List<ScoreRuleConfigPageVO> findList(String search, int status, String cts, String cte, String uts, String ute);
+    List<ScoreRuleConfigPageVO> findList(@Param("search") String search
+            , @Param("status") Integer status
+            , @Param("cts") String cts
+            , @Param("cte") String cte
+            , @Param("uts") String uts
+            , @Param("ute") String ute);
 }
