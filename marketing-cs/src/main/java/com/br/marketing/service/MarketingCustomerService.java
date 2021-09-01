@@ -1,11 +1,16 @@
-package com.br.marketing.mapper;
+package com.br.marketing.service;
 
 import com.br.marketing.vo.CustomerSelectVO;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
+/**
+ * 客户业务接口
+ *
+ * @author zeqiang.guo@brgroup.com
+ * @dateTime 2021/9/1 15:33
+ */
+public interface MarketingCustomerService {
 
     /**
      * 获取客户cid或apiCode
@@ -17,5 +22,5 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 15:35
      */
-    List<CustomerSelectVO> getCidOrApiCodeList(@Param("cid") String cid);
+    List<CustomerSelectVO> getCidOrApiCodeList(String cid);
 }

@@ -1,14 +1,13 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import io.swagger.annotations.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -63,6 +62,19 @@ public class RuleOfScoreController {
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
-        return new ApiResult<PageResultReturn>().fail("暂无数据");
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    }
+
+    /**
+     * 添加
+     *
+     * @param scoreRuleConfig 接收参数pojo
+     * @return ApiResult
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/1 14:28
+     */
+    @PostMapping()
+    public ApiResult<?> add(@RequestBody ScoreRuleConfig scoreRuleConfig) {
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.UNKNOWN_ERROR);
     }
 }
