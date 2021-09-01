@@ -63,6 +63,6 @@ public class RuleOfScoreController {
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
-        return new ApiResult<PageResultReturn>().fail("");
+        return new ApiResult<PageResultReturn>().fail("暂无数据");
     }
 }

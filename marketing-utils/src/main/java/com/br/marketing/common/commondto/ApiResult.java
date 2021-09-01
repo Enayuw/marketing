@@ -1,6 +1,7 @@
 package com.br.marketing.common.commondto;
 
 
+import com.br.marketing.common.enums.ServiceResultEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -52,29 +53,104 @@ public class ApiResult<T> {
         return this;
     }
 
-    public ApiResult<T> success(T data, String message) {
-        this.code = "2000";
-        this.data = data;
-        this.message = message;
+    public ApiResult<T> success() {
+        ServiceResultEnum success = ServiceResultEnum.SUCCESS;
+        this.code = success.getCode();
+        this.message = success.getMessage();
         return this;
     }
 
     public ApiResult<T> success(T data) {
-        this.code = "2000";
+        ServiceResultEnum success = ServiceResultEnum.SUCCESS;
+        this.code = success.getCode();
         this.data = data;
+        this.message = success.getMessage();
         return this;
     }
 
-    public ApiResult<T> fail(T data, String message) {
-        this.code = "5000";
+    public ApiResult<T> success(String message) {
+        this.code = ServiceResultEnum.SUCCESS.getCode();
+        this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> success(ServiceResultEnum resultEnum) {
+        this.code = resultEnum.getCode();
+        this.message = resultEnum.getMessage();
+        return this;
+    }
+
+    public ApiResult<T> success(String code, String message) {
+        this.code = code;
+        this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> success(T data, String message) {
+        this.code = ServiceResultEnum.SUCCESS.getCode();
         this.data = data;
         this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> success(T data, ServiceResultEnum resultEnum) {
+        this.code = resultEnum.getCode();
+        this.data = data;
+        this.message = resultEnum.getMessage();
+        return this;
+    }
+
+    public ApiResult<T> success(T data, String code, String message) {
+        this.data = data;
+        this.code = code;
+        this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> fail() {
+        ServiceResultEnum success = ServiceResultEnum.FAILED;
+        this.code = success.getCode();
+        this.message = success.getMessage();
         return this;
     }
 
     public ApiResult<T> fail(String message) {
-        this.code = "5000";
+        this.code = ServiceResultEnum.UNKNOWN_ERROR.getCode();
         this.message = message;
         return this;
     }
+
+    public ApiResult<T> fail(ServiceResultEnum resultEnum) {
+        this.code = resultEnum.getCode();
+        this.message = resultEnum.getMessage();
+        return this;
+    }
+
+    public ApiResult<T> fail(T data, String message) {
+        this.code = ServiceResultEnum.UNKNOWN_ERROR.getCode();
+        this.data = data;
+        this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> fail(T data, ServiceResultEnum resultEnum) {
+        this.code = resultEnum.getCode();
+        this.data = data;
+        this.message = resultEnum.getMessage();
+        return this;
+    }
+
+    public ApiResult<T> fail(String code, String message) {
+        this.code = code;
+        this.message = message;
+        return this;
+    }
+
+    public ApiResult<T> fail(T data, String code, String message) {
+        this.data = data;
+        this.code = code;
+        this.message = message;
+        return this;
+    }
+
 }
