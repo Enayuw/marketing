@@ -11,11 +11,13 @@
         </if>
         from b_marketing_customer
         where
+        status=1 and
         <if test="cid == null or cid.trim() eq ''">
             ISNULL(cid) = 0 group by cid
         </if>
         <if test="cid != null and cid.trim() neq ''">
             cid=#{cid}
         </if>
+
     </select>
 </mapper>

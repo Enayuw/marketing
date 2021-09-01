@@ -18,10 +18,11 @@
         left join b_customer_rule bcr on src.id = bcr.rule_id
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id
         <where>
+            is_del=1
             <if test="search != null and search.trim() neq ''">
-                src.rule_name like CONCAT(#{search},'%')
+                and (src.rule_name like CONCAT(#{search},'%')
                 or bmc.cid like CONCAT(#{search},'%')
-                or bmc.api_code like CONCAT(#{search},'%')
+                or bmc.api_code like CONCAT(#{search},'%'))
             </if>
             <if test="status != null">
                 and src.status=#{status}
