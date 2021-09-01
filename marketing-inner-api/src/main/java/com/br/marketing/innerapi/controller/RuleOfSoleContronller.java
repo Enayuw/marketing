@@ -6,6 +6,7 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.RuleOfSoleService;
 import io.swagger.annotations.ApiImplicitParam;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "判断规则名称是否重复",notes = "")
+    @ApiOperation(value = "判断规则名称是否重复",notes = "重复返回false；没有重复返回true")
     @ApiImplicitParam(name = "soleName",value = "规则名称",required = true,dataType = "String")
     @GetMapping("/getNameOnly")
     public boolean getNameOnly(String soleName){
@@ -69,15 +71,19 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "匹配商户列表",notes = "支持模糊搜索")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "apiCode",value = "",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "shortName",value = "商户简称",required = true,dataType = "String")
+            @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
     @GetMapping("/getCustomer")
-    public List<Map> getCustomer(String shortName, String apiCode){
-        ArrayList<Map> list = new ArrayList<>();
-        //查询
+    public ApiResult<List<MarketingCustomer>> getCustomer(String search){
         //返回 [{"cid":"","api_code":"123","name":"商户名称","short_name":"商户简称"},{"cid":"","api_code":"123","name":"商户名称","short_name":"商户简称"}]
-        return list;
+        try {
+            //查询
+            List<MarketingCustomer> list = ruleOfSoleService.getCustomer(search);
+            return new ApiResult<List<MarketingCustomer>>().success(list);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+        }
     }
 
 

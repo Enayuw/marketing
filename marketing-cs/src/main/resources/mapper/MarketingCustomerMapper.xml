@@ -20,4 +20,16 @@
         </if>
 
     </select>
+
+    <select id="selectByLike" resultType="com.br.marketing.entity.MarketingCustomer" parameterType="string">
+        select id,cid,api_code,name,short_name
+        from b_marketing_customer bmc
+        where bmc.status = 1
+        <if test="value !=null and value!=''">
+            and bmc.short_name like concat("%", #{value},"%")
+            or bmc.api_code like concat("%", #{value},"%")
+        </if>
+        order by bmc.id desc
+    </select>
+
 </mapper>

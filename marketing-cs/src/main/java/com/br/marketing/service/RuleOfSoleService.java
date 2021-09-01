@@ -2,6 +2,9 @@ package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
+import com.br.marketing.entity.MarketingCustomer;
+
+import java.util.List;
 
 public interface RuleOfSoleService {
 
@@ -18,4 +21,11 @@ public interface RuleOfSoleService {
      * @return
      */
     boolean getNameOnly(String soleName);
+
+    /**
+     * 匹配商户列表,支持模糊搜索
+     * @param search
+     * @return
+     */
+    List<MarketingCustomer> getCustomer(String search);
 }

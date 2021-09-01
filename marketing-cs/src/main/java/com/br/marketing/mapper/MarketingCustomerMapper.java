@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.vo.CustomerSelectVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,4 +19,6 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      * @dateTime 2021/9/1 15:35
      */
     List<CustomerSelectVO> getCidOrApiCodeList(@Param("cid") String cid);
+
+    List<MarketingCustomer> selectByLike(@Param("search") String search);
 }
