@@ -108,6 +108,16 @@ public class StraHisFile {
      */
     private String showTitle;
 
+    /**
+     * 跑分结果推送类型，0文件，1 api，默认支持文件推送
+     */
+    private Integer pushType;
+
+    /**
+     * api数据推送状态 0 未推送  1推送成功 2 推送失败 3推送中
+     */
+    private Integer pushStatus;
+
     public Long getId() {
         return id;
     }
@@ -274,5 +284,21 @@ public class StraHisFile {
 
     public void setShowTitle(String showTitle) {
         this.showTitle = showTitle == null ? null : showTitle.trim();
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
     }
 }

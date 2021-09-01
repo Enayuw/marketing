@@ -16,6 +16,7 @@
     <result column="sort" property="sort" jdbcType="TINYINT" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,7 +78,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, message, type, thread_num, task_time, finish_date, push_customer, check_black_list, 
-    check_redis_number, save_log, sort, status, extend_config_info
+    check_redis_number, save_log, sort, status, extend_config_info, cid
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
     select
@@ -117,12 +118,12 @@
       thread_num, task_time, finish_date, 
       push_customer, check_black_list, check_redis_number, 
       save_log, sort, status, 
-      extend_config_info)
+      extend_config_info, cid)
     values (#{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
       #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, #{finishDate,jdbcType=TINYINT}, 
       #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT}, #{checkRedisNumber,jdbcType=TINYINT}, 
       #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT}, #{status,jdbcType=TINYINT}, 
-      #{extendConfigInfo,jdbcType=VARCHAR})
+      #{extendConfigInfo,jdbcType=VARCHAR}, #{cid,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,6 +170,9 @@
       <if test="extendConfigInfo != null" >
         extend_config_info,
       </if>
+      <if test="cid != null" >
+        cid,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -209,6 +213,9 @@
       </if>
       <if test="extendConfigInfo != null" >
         #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -263,6 +270,9 @@
       <if test="record.extendConfigInfo != null" >
         extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
       </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -283,7 +293,8 @@
       save_log = #{record.saveLog,jdbcType=TINYINT},
       sort = #{record.sort,jdbcType=TINYINT},
       status = #{record.status,jdbcType=TINYINT},
-      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR}
+      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+      cid = #{record.cid,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -330,6 +341,9 @@
       <if test="extendConfigInfo != null" >
         extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -347,7 +361,8 @@
       save_log = #{saveLog,jdbcType=TINYINT},
       sort = #{sort,jdbcType=TINYINT},
       status = #{status,jdbcType=TINYINT},
-      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR}
+      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      cid = #{cid,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -1464,6 +1464,126 @@ public class StraHisFileExample {
             addCriterion("show_title not between", value1, value2, "showTitle");
             return (Criteria) this;
         }
+
+        public Criteria andPushTypeIsNull() {
+            addCriterion("push_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIsNotNull() {
+            addCriterion("push_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeEqualTo(Integer value) {
+            addCriterion("push_type =", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotEqualTo(Integer value) {
+            addCriterion("push_type <>", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThan(Integer value) {
+            addCriterion("push_type >", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_type >=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThan(Integer value) {
+            addCriterion("push_type <", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("push_type <=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIn(List<Integer> values) {
+            addCriterion("push_type in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotIn(List<Integer> values) {
+            addCriterion("push_type not in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeBetween(Integer value1, Integer value2) {
+            addCriterion("push_type between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_type not between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIsNull() {
+            addCriterion("push_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIsNotNull() {
+            addCriterion("push_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusEqualTo(Integer value) {
+            addCriterion("push_status =", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotEqualTo(Integer value) {
+            addCriterion("push_status <>", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThan(Integer value) {
+            addCriterion("push_status >", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_status >=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThan(Integer value) {
+            addCriterion("push_status <", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("push_status <=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIn(List<Integer> values) {
+            addCriterion("push_status in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotIn(List<Integer> values) {
+            addCriterion("push_status not in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusBetween(Integer value1, Integer value2) {
+            addCriterion("push_status between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_status not between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

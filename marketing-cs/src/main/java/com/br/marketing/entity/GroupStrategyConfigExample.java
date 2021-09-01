@@ -824,6 +824,66 @@ public class GroupStrategyConfigExample {
             addCriterion("cycle_end_day not between", value1, value2, "cycleEndDay");
             return (Criteria) this;
         }
+
+        public Criteria andPushTypeIsNull() {
+            addCriterion("push_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIsNotNull() {
+            addCriterion("push_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeEqualTo(Integer value) {
+            addCriterion("push_type =", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotEqualTo(Integer value) {
+            addCriterion("push_type <>", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThan(Integer value) {
+            addCriterion("push_type >", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_type >=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThan(Integer value) {
+            addCriterion("push_type <", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("push_type <=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIn(List<Integer> values) {
+            addCriterion("push_type in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotIn(List<Integer> values) {
+            addCriterion("push_type not in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeBetween(Integer value1, Integer value2) {
+            addCriterion("push_type between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_type not between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

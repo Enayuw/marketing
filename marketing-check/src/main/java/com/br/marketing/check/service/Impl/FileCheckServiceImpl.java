@@ -46,11 +46,11 @@ public class FileCheckServiceImpl implements FileCheckService {
     @Autowired
     RedisChgService redisChgService;
 
-    final static String dbPoolKey = "DB:Pool:Num";
+    final static String DB_POOL_KEY = "DB:Pool:Num";
 
-    final static String dbPoolQueueKey = "DB:Pool:Num:Queue:Num";
+    final static String DB_POOL_QUEUE_KEY = "DB:Pool:Num:Queue:Num";
 
-    final static String dbPoolCheckOpen = "DB:Pool:checkopen";
+    final static String DB_POOL_CHECK_OPEN = "DB:Pool:checkopen";
 
     @Resource
     CustomerMapper customerMapper;
@@ -65,11 +65,11 @@ public class FileCheckServiceImpl implements FileCheckService {
     public boolean checkSmallDataFile(FileContext context) {
         long l = System.currentTimeMillis();
         Customer customer = customerMapper.getCustomerByApiCode(context.getApiCode());
-        String s = redisChgService.get(dbPoolKey);
+        String s = redisChgService.get(DB_POOL_KEY);
         Integer dbPoolNum = StringUtils.isNotBlank(s)?Integer.valueOf(s):40;
-        String s1 = redisChgService.get(dbPoolQueueKey);
+        String s1 = redisChgService.get(DB_POOL_QUEUE_KEY);
         Integer dbPoolQueueNum = StringUtils.isNotBlank(s1)?Integer.valueOf(s1):200;
-        String s2 = redisChgService.get(dbPoolCheckOpen);
+        String s2 = redisChgService.get(DB_POOL_CHECK_OPEN);
         Integer dbPoolCheckOpenMark = StringUtils.isNotBlank(s2)?Integer.valueOf(s2):1;
         ExecutorService validatorExecutor = BrExecutors.getThreadPool(dbPoolNum,dbPoolNum,dbPoolQueueNum);
         File errorPathFile=new File(context.getErrorFilePath());

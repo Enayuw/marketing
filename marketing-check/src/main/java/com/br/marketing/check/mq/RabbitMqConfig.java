@@ -7,13 +7,9 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * //				    _ooOoo_
@@ -48,15 +44,15 @@ public class RabbitMqConfig {
 
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.exchangerName,true,false);
+        return new TopicExchange(MQConstants.EX_CHANGER_NAME,true,false);
     }
     @Bean(name = "checkQueue")
     public Queue checkQueue() {
-        return new Queue(MQConstants.checkQueueName, true, false, false);
+        return new Queue(MQConstants.CHECK_QUEUE_NAME, true, false, false);
     }
     @Bean(name = "bindingCheckQueue")
     public Binding bindingCheckQueue() {
-        return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.checkRoutingKey);
+        return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.CHECK_ROUTING_KEY);
     }
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {

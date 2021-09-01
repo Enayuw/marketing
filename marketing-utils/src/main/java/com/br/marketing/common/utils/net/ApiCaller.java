@@ -1,33 +1,44 @@
 package com.br.marketing.common.utils.net;
 
 import com.alibaba.fastjson.JSON;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import com.br.marketing.common.utils.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.HashMap;
 
-//@Component
-//@Scope(proxyMode=ScopedProxyMode.TARGET_CLASS,value = "prototype")
+@Slf4j
 public class ApiCaller {
 
-    public ApiCaller(){
+    public ApiCaller() {
         restTemplate = new RestTemplate();
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate){
+    public ApiCaller(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
     }
 
+    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil) {
+        this.restTemplate = restTemplate;
+        this.httpHeaders = new HttpHeaders();
+        this.momCommonUtil = momCommonUtil;
+    }
+
+    private InterfaceLog interfaceLog = new InterfaceLog();
+
+    public ApiCaller setInterfaceLog(InterfaceLog interfaceLog) {
+        this.interfaceLog = interfaceLog;
+        return this;
+    }
+
     private RestTemplate restTemplate;
+
+    private MomCommonUtil momCommonUtil;
 
     private String url;
 
@@ -40,6 +51,8 @@ public class ApiCaller {
     protected HttpHeaders httpHeaders;
 
     protected String encodeName = "utf-8";
+
+
 
     public String getUrl() {
         return url;
@@ -59,49 +72,70 @@ public class ApiCaller {
         this.requestHeader = requestHeader;
         return this;
     }
+
     public ApiCaller setContentType(MediaType contentType) {
         this.contentType = contentType;
         return this;
     }
 
-    public ApiCaller setHttpHeaders(HashMap<String,String> headers) {
-        headers.keySet().forEach(t->{
-            this.httpHeaders.add(t,headers.get(t));
-                });
+    public ApiCaller setHttpHeaders(HashMap<String, String> headers) {
+        headers.keySet().forEach((String t) -> {
+            this.httpHeaders.add(t, headers.get(t));
+        });
         return this;
     }
 
-    public String get(){
+    public String get() {
         ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, createHttpEntity(), String.class);
         return exchange.getBody();
     }
 
-    public ThirdApiResultTransfer postTransferStr(){
-        System.out.println("POST====="+this);
+    public ThirdApiResultTransfer postTransferStr() {
+        if(momCommonUtil!=null){
+            if(StringUtils.isBlank(interfaceLog.getApiCode())){
+             throw new RuntimeException("记录接口日志 apiCode不能为空");
+            }
+            if(StringUtils.isBlank(interfaceLog.getSwiftNumber())){
+                throw new RuntimeException("记录接口日志 SwiftNumber不能为空");
+            }
+        }
         HttpEntity postHttpEntity = createPostHttpEntity();
-        System.out.println(url);
-        System.out.println(postHttpEntity.getBody());
+        interfaceLog.setRequestStr(postHttpEntity.getBody().toString());
+        interfaceLog.setUrl(url);
+        interfaceLog.setRequestTime(new Date());
+        long start = System.currentTimeMillis();
+        log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
+        if(momCommonUtil != null) {
+            try {
+                interfaceLog.setCostTime(System.currentTimeMillis() - start);
+                interfaceLog.setResponseStr(stringResponseEntity.getBody());
+                interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
+                momCommonUtil.sendMQ(interfaceLog);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
         transfer.setResult(stringResponseEntity.getBody());
         return transfer;
     }
 
-    
-    private HttpEntity createHttpEntity(){
+
+    private HttpEntity createHttpEntity() {
         HttpEntity requestEntity = new HttpEntity<String>(null, httpHeaders);
         return requestEntity;
     }
 
-    private HttpEntity createPostHttpEntity(){
+    private HttpEntity createPostHttpEntity() {
         HttpEntity requestEntity;
         httpHeaders.setContentType(contentType);
         if (requestParam instanceof String) {
             requestEntity = new HttpEntity<String>((String) requestParam, httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_JSON_UTF8)) {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
-        } else if(contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)){
+        } else if (contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 //            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
             requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {

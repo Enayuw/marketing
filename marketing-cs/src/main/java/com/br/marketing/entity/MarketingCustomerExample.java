@@ -63,10 +63,10 @@ public class MarketingCustomerExample {
         distinct = false;
     }
 
-    protected abstract static class GeneratedCriteria {
+    protected abstract static class AbstractGeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected GeneratedCriteria() {
+        protected AbstractGeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -983,9 +983,79 @@ public class MarketingCustomerExample {
             addCriterion("extend_config_info not between", value1, value2, "extendConfigInfo");
             return (Criteria) this;
         }
+
+        public Criteria andCidIsNull() {
+            addCriterion("cid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidIsNotNull() {
+            addCriterion("cid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidEqualTo(String value) {
+            addCriterion("cid =", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidNotEqualTo(String value) {
+            addCriterion("cid <>", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidGreaterThan(String value) {
+            addCriterion("cid >", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidGreaterThanOrEqualTo(String value) {
+            addCriterion("cid >=", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidLessThan(String value) {
+            addCriterion("cid <", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidLessThanOrEqualTo(String value) {
+            addCriterion("cid <=", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidLike(String value) {
+            addCriterion("cid like", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidNotLike(String value) {
+            addCriterion("cid not like", value, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidIn(List<String> values) {
+            addCriterion("cid in", values, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidNotIn(List<String> values) {
+            addCriterion("cid not in", values, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidBetween(String value1, String value2) {
+            addCriterion("cid between", value1, value2, "cid");
+            return (Criteria) this;
+        }
+
+        public Criteria andCidNotBetween(String value1, String value2) {
+            addCriterion("cid not between", value1, value2, "cid");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends GeneratedCriteria {
+    public static class Criteria extends AbstractGeneratedCriteria {
 
         protected Criteria() {
             super();

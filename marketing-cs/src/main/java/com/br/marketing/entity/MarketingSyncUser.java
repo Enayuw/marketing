@@ -69,14 +69,24 @@ public class MarketingSyncUser {
     private String appletDate;
 
     /**
+     * 预留剔除状态字段 1：正常，2：剔除
+     */
+    private Integer status;
+
+    /**
      * 类型 MD5、Sha256
      */
     private String failType;
 
     /**
-     * 预留剔除状态字段 1：正常，2：剔除
+     * 预留字段1
      */
-    private Integer status;
+    private String reserveField1;
+
+    /**
+     * 预留字段2
+     */
+    private String reserveField2;
 
     public Long getId() {
         return id;
@@ -182,6 +192,14 @@ public class MarketingSyncUser {
         this.appletDate = appletDate == null ? null : appletDate.trim();
     }
 
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
     public String getFailType() {
         return failType;
     }
@@ -190,11 +208,19 @@ public class MarketingSyncUser {
         this.failType = failType == null ? null : failType.trim();
     }
 
-    public Integer getStatus() {
-        return status;
+    public String getReserveField1() {
+        return reserveField1;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setReserveField1(String reserveField1) {
+        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    }
+
+    public String getReserveField2() {
+        return reserveField2;
+    }
+
+    public void setReserveField2(String reserveField2) {
+        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
     }
 }

@@ -73,12 +73,7 @@ public class DeleteService extends AbstractDataToDbService {
             return false;
         }
         StringBuilder head;
-        try {
-         head=MyFileUtil.gethead(txtFilePathAndName);
-        } catch (IOException e) {
-            log.error("获取表头失败",e);
-            return false;
-        }
+        head=MyFileUtil.gethead(txtFilePathAndName);
 
         if(!SftpToDbUtils.checkDeleteFileHead(head.toString())){
             log.error("文件表头异常-文件名-{}，head-{}",context.getTxtFileName(),head);

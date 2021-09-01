@@ -59,6 +59,15 @@
 		id=#{id}
 	</select>
 
+	<select id="getByBatchNumber" resultType="com.br.marketing.entity.MarketingTask">
+		SELECT
+			*
+		FROM
+			b_marketing_task
+		WHERE
+			batch_number=#{batchNumber}
+	</select>
+
 	<select id="queryCount"  resultType="int" parameterType="com.br.marketing.entity.MarketingTask">
 		SELECT
 		count(*)
@@ -342,7 +351,7 @@
 
 
 	<insert id="insertTask" parameterType="com.br.marketing.entity.MarketingTask">
-		<selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+		<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
 			SELECT LAST_INSERT_ID()
 		</selectKey>
 		INSERT INTO b_marketing_task (
@@ -466,11 +475,14 @@
 		from stra_his_file as shf
 		left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
 		left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
+		left join b_marketing_task_extend as mte on mt.id = mte.task_id
 		where mt.api_code = #{apiCode}
 		and msp.product_name = #{productName}
-		and msp.product_version =#{productVersion}
-		<![CDATA[ and mt.create_time >= #{uploadBeginTime} ]]>
-		<![CDATA[ and mt.create_time <= #{uploadEndTime} ]]>
+		  <if test="productVersion !=null and productVersion !=''">
+			and msp.product_version =#{productVersion}
+		  </if>
+		<![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
+		<![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
 		<![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
 		<![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
 		and shf.score_status = 2

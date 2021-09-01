@@ -3,6 +3,8 @@ package com.br.marketing.vo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class MarketingPreUserSyncDetailVO {
 
@@ -19,5 +21,5 @@ public class MarketingPreUserSyncDetailVO {
     private Integer status;
 
     @ApiModelProperty(value = "错误信息")
-    private String errorInfo;
+    private List<MarketingPreUserErrorDetailVO> errorInfo;
 }

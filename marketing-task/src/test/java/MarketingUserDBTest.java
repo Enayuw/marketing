@@ -56,11 +56,11 @@ public class MarketingUserDBTest {
         loanSyncConfig.setCheckSuccess(1);
         loanSyncConfig.setStatus(1);
         loanSyncConfig.setRemark("通用测试，客户目录》》内部目录");
-        loanSyncConfig.setSrcSftpHost("192.168.23.65");
+        loanSyncConfig.setSrcSftpHost("10.100.123.65");
         loanSyncConfig.setSrcSftpPort(9999);
         loanSyncConfig.setSrcSftpUser("loan_warning_pre_qa");
         loanSyncConfig.setSrcSftpPwd(AESAlgorithmUtil.encrypt("ZXL3DkzZjtNsd0rO3T2w@_2020.11.05", Constants.SFTP_P_SECRET_KEY));
-        loanSyncConfig.setTargetSftpHost("192.168.23.65");
+        loanSyncConfig.setTargetSftpHost("10.100.123.65");
         loanSyncConfig.setTargetSftpPort(9999);
         loanSyncConfig.setTargetSftpUser("loan_warning_pre");
         loanSyncConfig.setTargetSftpPwd(AESAlgorithmUtil.encrypt("5Ge89rr8TKvVEiHvmrSL@_2020.11.05",Constants.SFTP_P_SECRET_KEY));

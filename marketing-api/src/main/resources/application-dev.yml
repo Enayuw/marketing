@@ -31,20 +31,20 @@ logging:
 eureka:
   client:
     service-url.defaultZone: http://192.168.162.193:1111/eureka/
-##    service-url.defaultZone: http://192.168.23.121:18000/eureka/
+##    service-url.defaultZone: http://10.100.123.121:18000/eureka/
 
 
 spring:
   rabbitmq:
     zw:
-      addresses: 192.168.23.73:5672
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow
     yz:
-      addresses: 192.168.23.73:5672
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
@@ -77,3 +77,8 @@ api:
   intelligentCustomerService:
     baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  customerService:
+    apiCode: 4000296

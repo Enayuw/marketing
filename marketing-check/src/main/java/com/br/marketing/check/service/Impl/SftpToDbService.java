@@ -61,13 +61,7 @@ public class SftpToDbService extends AbstractDataToDbService {
             fileCheckService.errorDetail(context,errorMessage.toString(),ErrorFileTypeEnum.ERROR_FILE);
             return false;
         }
-
-        try {
-         head=MyFileUtil.gethead(txtFilePathAndName);
-        } catch (IOException e) {
-            log.error("获取表头失败",e);
-            return false;
-        }
+        head=MyFileUtil.gethead(txtFilePathAndName);
 
         if(!SftpToDbUtils.checkHead(context,head.toString())){
             log.error("文件表头异常-文件名-{}，head-{}",context.getTxtFileName(),head);

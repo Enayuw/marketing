@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.*;
 
 import java.io.*;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,28 +47,28 @@ public class FtpUtil {
     /**
      * 初始化时ftp服务器路径
      */
-    private  String ftpBasePath = "";
+    private String ftpBasePath = "";
 
     /**
      * 构造函数
      *
-     * @param host     主机名或者ip地址
-     * @param username ftp 用户名
-     * @param password ftp 密码
+     * @param host        主机名或者ip地址
+     * @param username    ftp 用户名
+     * @param password    ftp 密码
      * @param ftpBasePath 初始化时ftp服务器路径
      */
-    private FtpUtil(String host, String username, String password,String ftpBasePath) {
-        this(host, 21, username, password, DEFAULT_CHARSET,ftpBasePath);
+    private FtpUtil(String host, String username, String password, String ftpBasePath) {
+        this(host, 21, username, password, DEFAULT_CHARSET, ftpBasePath);
         setTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT);
     }
 
     /**
      * 构造函数
      *
-     * @param host     主机名或者ip地址
-     * @param port     ftp 端口
-     * @param username 用户名
-     * @param password 密码
+     * @param host        主机名或者ip地址
+     * @param port        ftp 端口
+     * @param username    用户名
+     * @param password    密码
      * @param ftpBasePath 初始化时ftp服务器路径
      */
     private FtpUtil(String host, int port, String username, String password, String charset, String ftpBasePath) {
@@ -86,29 +84,29 @@ public class FtpUtil {
     /**
      * 创建默认的ftp客户端
      *
-     * @param host     主机名或者ip地址
-     * @param username ftp用户名
-     * @param password ftp密码
+     * @param host        主机名或者ip地址
+     * @param username    ftp用户名
+     * @param password    ftp密码
      * @param ftpBasePath 初始化时ftp服务器路径
      * @return FtpUtil
      */
-    public static FtpUtil createFtpCli(String host, String username, String password,String ftpBasePath) {
-        return new FtpUtil(host, username, password,ftpBasePath);
+    public static FtpUtil createFtpCli(String host, String username, String password, String ftpBasePath) {
+        return new FtpUtil(host, username, password, ftpBasePath);
     }
 
     /**
      * 创建自定义属性的ftp客户端
      *
-     * @param host     主机名或者ip地址
-     * @param port     ftp端口
-     * @param username ftp用户名
-     * @param password ftp密码
-     * @param charset  字符集
+     * @param host        主机名或者ip地址
+     * @param port        ftp端口
+     * @param username    ftp用户名
+     * @param password    ftp密码
+     * @param charset     字符集
      * @param ftpBasePath 初始化时ftp服务器路径
      * @return FtpUtil
      */
-    public static FtpUtil createFtpCli(String host, int port, String username, String password, String charset,String ftpBasePath) {
-        return new FtpUtil(host, port, username, password, charset,ftpBasePath);
+    public static FtpUtil createFtpCli(String host, int port, String username, String password, String charset, String ftpBasePath) {
+        return new FtpUtil(host, port, username, password, charset, ftpBasePath);
     }
 
     /**
@@ -133,13 +131,13 @@ public class FtpUtil {
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
                 disconnect();
-                log.error("Can't find FTP server {}" , host);
+                log.error("Can't find FTP server {}", host);
                 return false;
-             }
+            }
 
             if (!ftpClient.login(username, password)) {
                 disconnect();
-                log.error("Can't find FTP server {}" , host);
+                log.error("Can't find FTP server {}", host);
                 return false;
             }
 
@@ -151,7 +149,7 @@ public class FtpUtil {
 
             initFtpBasePath();
         } catch (Exception e) {
-            log.error("Can't find FTP server {}" + host,e);
+            log.error("Can't find FTP server {}" + host, e);
             return false;
         }
         return true;
@@ -262,11 +260,12 @@ public class FtpUtil {
 
     /**
      * 判断ftp是否存在指定文件
+     *
      * @param fileName 文件名称
      * @return 是否存在
      * @throws IOException
      */
-    public  boolean isExsits(String fileName)throws IOException{
+    public boolean isExsits(String fileName) throws IOException {
         boolean flag = false;
         FTPFile[] ftpFileArr = ftpClient.listFiles(fileName);
         if (ftpFileArr.length > 0) {
@@ -274,6 +273,7 @@ public class FtpUtil {
         }
         return flag;
     }
+
     /**
      * 上传文件到ftp
      *
@@ -282,34 +282,34 @@ public class FtpUtil {
      */
     public boolean upload(String ftpFileName, File localFile) throws IOException {
         if (!localFile.exists()) {
-            log.error("Can't upload {} This file doesn't exist.",localFile.getAbsolutePath());
+            log.error("Can't upload {} This file doesn't exist.", localFile.getAbsolutePath());
             return false;
         }
 
-        try (InputStream in = new BufferedInputStream(java.nio.file.Files.newInputStream(localFile.toPath()));){
+        try (InputStream in = new BufferedInputStream(java.nio.file.Files.newInputStream(localFile.toPath()));) {
             if (!ftpClient.storeFile(ftpFileName, in)) {
-                log.error("Can't upload file {} to FTP server. Check FTP permissions and path.",ftpFileName);
+                log.error("Can't upload file {} to FTP server. Check FTP permissions and path.", ftpFileName);
                 return false;
             }
-        } catch (Exception e){
-            log.error("upload error",e);
+        } catch (Exception e) {
+            log.error("upload error", e);
             return false;
         }
         return true;
     }
 
     /**
-     *
      * @throws Exception
      */
-    public  void rename(String srcFname,String targetFname) throws Exception {
-        log.info("rename srcFname:{},targetFname:{}",srcFname,targetFname);
-        if( ftpClient!=null ){
-            ftpClient.rename(srcFname,targetFname);
-        }else{
+    public void rename(String srcFname, String targetFname) throws Exception {
+        log.info("rename srcFname:{},targetFname:{}", srcFname, targetFname);
+        if (ftpClient != null) {
+            ftpClient.rename(srcFname, targetFname);
+        } else {
             log.error("ftp is null error");
         }
     }
+
     /**
      * 上传文件夹到ftp上
      *
@@ -327,7 +327,7 @@ public class FtpUtil {
             File[] files = file.listFiles();
             if (null != files) {
                 for (File f : files) {
-                    if (f.isDirectory() && !".".equals(f.getName()) &&!"..".equals(f.getName())) {
+                    if (f.isDirectory() && !".".equals(f.getName()) && !"..".equals(f.getName())) {
                         uploadDir(remotePath + "/" + f.getName(), f.getPath());
                     } else if (f.isFile()) {
                         upload(remotePath + "/" + f.getName(), f);
@@ -343,26 +343,26 @@ public class FtpUtil {
      * @param ftpFileName ftp文件路径名称
      * @param localFile   本地文件路径名称
      */
-    public boolean download(String ftpFileName, File localFile)  {
-        try (OutputStream out = new BufferedOutputStream( java.nio.file.Files.newOutputStream(localFile.toPath()));){
+    public boolean download(String ftpFileName, File localFile) {
+        try (OutputStream out = new BufferedOutputStream(java.nio.file.Files.newOutputStream(localFile.toPath()));) {
             FTPFile[] fileInfoArray = ftpClient.listFiles(ftpFileName);
             if (fileInfoArray == null || fileInfoArray.length == 0) {
-                log.error("File {} was not found on FTP server.",ftpFileName);
+                log.error("File {} was not found on FTP server.", ftpFileName);
                 return false;
             }
 
             FTPFile fileInfo = fileInfoArray[0];
             if (fileInfo.getSize() > Integer.MAX_VALUE) {
-                log.error("File {}} is too large.",ftpFileName);
+                log.error("File {}} is too large.", ftpFileName);
                 return false;
             }
 
             if (!ftpClient.retrieveFile(ftpFileName, out)) {
-                log.error("Error loading file {} from FTP server. Check FTP permissions and path.",ftpFileName);
+                log.error("Error loading file {} from FTP server. Check FTP permissions and path.", ftpFileName);
             }
             out.flush();
-        }catch (Exception e){
-            log.error("download error",e);
+        } catch (Exception e) {
+            log.error("download error", e);
             return false;
         }
         return true;
@@ -393,8 +393,8 @@ public class FtpUtil {
         File file = new File(localPath);
         if (!file.exists()) {
             boolean mkdirs = file.mkdirs();
-            if(!mkdirs){
-                log.error("创建目录失败:{}",localPath);
+            if (!mkdirs) {
+                log.error("创建目录失败:{}", localPath);
             }
         }
         FTPFile[] ftpFiles = ftpClient.listFiles(remotePath);
@@ -415,8 +415,8 @@ public class FtpUtil {
      * @param filePath ftp上文件目录
      * @return java.util.List<java.lang.String>
      */
-    public List<String> listFileNames(String filePath,FTPFileFilter ftpFileFilter) throws IOException {
-        FTPFile[] ftpFiles = ftpClient.listFiles(filePath,ftpFileFilter);
+    public List<String> listFileNames(String filePath, FTPFileFilter ftpFileFilter) throws IOException {
+        FTPFile[] ftpFiles = ftpClient.listFiles(filePath, ftpFileFilter);
         List<String> fileList = new ArrayList<>();
         if (ftpFiles != null) {
             for (int i = 0; i < ftpFiles.length; i++) {
@@ -430,25 +430,26 @@ public class FtpUtil {
         return fileList;
     }
 
-    public  FTPFile[] listFiles() {
-        FTPFile[] ftpFiles=null;
+    public FTPFile[] listFiles() {
+        FTPFile[] ftpFiles = null;
         try {
             ftpFiles = ftpClient.listFiles();
         } catch (IOException e) {
-            log.error("listFiles error",e);
+            log.error("listFiles error", e);
         }
         return ftpFiles;
     }
 
-    public  FTPFile[] listFiles(String path, FTPFileFilter ftpFileFilter) {
-        FTPFile[] ftpFiles=null;
+    public FTPFile[] listFiles(String path, FTPFileFilter ftpFileFilter) {
+        FTPFile[] ftpFiles = null;
         try {
-            ftpFiles = ftpClient.listFiles(path,ftpFileFilter);
+            ftpFiles = ftpClient.listFiles(path, ftpFileFilter);
         } catch (IOException e) {
-            log.error("listFiles error",e);
+            log.error("listFiles error", e);
         }
         return ftpFiles;
     }
+
     /**
      * 发送ftp命令到ftp服务器中
      *
@@ -472,7 +473,7 @@ public class FtpUtil {
         try {
             return ftpClient.printWorkingDirectory();
         } catch (IOException e) {
-            // do nothing
+            log.error("printWorkingDirectory error", e);
         }
 
         return "";
@@ -492,7 +493,7 @@ public class FtpUtil {
         try {
             return ftpClient.changeToParentDirectory();
         } catch (IOException e) {
-            // do nothing
+            log.error("changeToParentDirectory error", e);
         }
 
         return false;
@@ -551,7 +552,7 @@ public class FtpUtil {
             try {
                 stream.close();
             } catch (IOException ex) {
-                // do nothing
+                log.error("closeStream error", ex);
             }
         }
     }
@@ -565,7 +566,7 @@ public class FtpUtil {
                 ftpClient.logout();
                 ftpClient.disconnect();
             } catch (IOException ex) {
-                // do nothing
+                log.error("disconnect error", ex);
             }
         }
     }

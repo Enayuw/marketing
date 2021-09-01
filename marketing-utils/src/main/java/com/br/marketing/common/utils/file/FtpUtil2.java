@@ -10,24 +10,22 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 public class FtpUtil2 {
-    private  FTPClient ftp = null;
+    private FTPClient ftp = null;
 
     /**
-     *
-     * @param path 上传到ftp服务器哪个路径下
-     * @param addr 地址
-     * @param port 端口号
+     * @param path     上传到ftp服务器哪个路径下
+     * @param addr     地址
+     * @param port     端口号
      * @param username 用户名
      * @param password 密码
      * @return
      * @throws Exception
      */
-    public  boolean connect( String path, String addr, int port,
-            String username, String password) throws Exception {
+    public boolean connect(String path, String addr, int port,
+                           String username, String password) throws Exception {
         boolean result = false;
         if (null == ftp) {
             ftp = new FTPClient();
@@ -43,53 +41,53 @@ public class FtpUtil2 {
         }
         ftp.makeDirectory(path);
         ftp.changeWorkingDirectory(path);
-        ftp.setBufferSize(1024*1024);
+        ftp.setBufferSize(1024 * 1024);
         ftp.enterLocalPassiveMode();
         result = true;
         return result;
     }
 
-    public  void change(String thisDay) throws IOException {
+    public void change(String thisDay) throws IOException {
         ftp.makeDirectory(thisDay);
         ftp.changeWorkingDirectory(thisDay);
     }
+
     /**
      * 关闭ftp连接
      */
-    public  void closeFtp() {
+    public void closeFtp() {
         if (ftp != null && ftp.isConnected()) {
             try {
                 ftp.logout();
                 ftp.disconnect();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("closeFtp error", e);
             }
         }
     }
 
     /**
-     *
      * @throws Exception
      */
-    public  void rename(String srcFname,String targetFname) throws Exception {
-        log.info("rename srcFname:{},targetFname:{}",srcFname,targetFname);
-        if( ftp!=null ){
+    public void rename(String srcFname, String targetFname) throws Exception {
+        log.info("rename srcFname:{},targetFname:{}", srcFname, targetFname);
+        if (ftp != null) {
             try {
-                ftp.rename(srcFname,targetFname);
+                ftp.rename(srcFname, targetFname);
             } catch (IOException e) {
-                log.error("rename error",e);
+                log.error("rename error", e);
             }
-        }else{
+        } else {
             log.error("ftp is null error");
         }
     }
+
     /**
-     *
      * @param file 上传的文件或文件夹
      * @throws Exception
      */
-    public  boolean upload(File file) throws Exception {
-        boolean flag=false;
+    public boolean upload(File file) throws Exception {
+        boolean flag = false;
         if (file.isDirectory()) {
             ftp.makeDirectory(file.getName());
             ftp.changeWorkingDirectory(file.getName());
@@ -100,19 +98,19 @@ public class FtpUtil2 {
                     upload(file1);
                     ftp.changeToParentDirectory();
                 } else {
-                    InputStream  input = java.nio.file.Files.newInputStream(Paths.get(file.getPath() + "\\" + files[i]));
+                    InputStream input = java.nio.file.Files.newInputStream(Paths.get(file.getPath() + "\\" + files[i]));
                     flag = ftp.storeFile(files[i], input);
-                    if(!flag){
-                        log.error("上传文件失败{}",files[i]);
+                    if (!flag) {
+                        log.error("上传文件失败{}", files[i]);
                     }
                     input.close();
                 }
             }
         } else {
-            InputStream  input = java.nio.file.Files.newInputStream(file.toPath());
+            InputStream input = java.nio.file.Files.newInputStream(file.toPath());
             flag = ftp.storeFile(file.getName(), input);
-            if(!flag){
-                log.error("上传文件失败：{}",file.getName());
+            if (!flag) {
+                log.error("上传文件失败：{}", file.getName());
                 //ftp.storeFile(file2.getName(), input);
             }
             input.close();
@@ -120,11 +118,11 @@ public class FtpUtil2 {
         return flag;
     }
 
-    public  void deleteFile(String fileName) throws IOException {
-       ftp.dele(fileName);
+    public void deleteFile(String fileName) throws IOException {
+        ftp.dele(fileName);
     }
 
-    public  boolean isExsits(String fileName)throws IOException{
+    public boolean isExsits(String fileName) throws IOException {
         boolean flag = false;
         FTPFile[] ftpFileArr = ftp.listFiles(fileName);
         if (ftpFileArr.length > 0) {
@@ -133,12 +131,12 @@ public class FtpUtil2 {
         return flag;
     }
 
-    public  FTPFile[] listFiles() {
-        FTPFile[] ftpFiles=null;
+    public FTPFile[] listFiles() {
+        FTPFile[] ftpFiles = null;
         try {
             ftpFiles = ftp.listFiles();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("listFiles error", e);
         }
         return ftpFiles;
     }
@@ -146,13 +144,13 @@ public class FtpUtil2 {
 
     /**
      * Description: 从FTP服务器下载文件
-     * 
+     *
      * @param remotePath FTP服务器上的相对路径
-     * @param fileName 要下载的文件名
+     * @param fileName   要下载的文件名
      * @param tempFile
      * @return
      */
-    public  File downFile(String remotePath, String fileName, File tempFile) {
+    public File downFile(String remotePath, String fileName, File tempFile) {
         try {
             // 转移到FTP服务器目录
             ftp.changeWorkingDirectory(remotePath);
@@ -166,32 +164,33 @@ public class FtpUtil2 {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("downFile error", e);
         }
         return null;
     }
 
-    public  void changeWorkingDirectory(String remotePath) {
-            // 转移到FTP服务器目录
+    public void changeWorkingDirectory(String remotePath) {
+        // 转移到FTP服务器目录
         try {
             ftp.makeDirectory(remotePath);
             ftp.changeWorkingDirectory(remotePath);
         } catch (IOException e) {
-            log.error("changeWorkingDirectory error",e);
+            log.error("changeWorkingDirectory error", e);
         }
     }
-    public  String thisDay() {
+
+    public String thisDay() {
         SimpleDateFormat toDay = new SimpleDateFormat("yyyyMMddHHmmss");
         String thisDay = toDay.format(new Date());
         return thisDay;
     }
 
-    public  FTPFile[] listFiles(String path, FTPFileFilter ftpFileFilter) {
-        FTPFile[] ftpFiles=null;
+    public FTPFile[] listFiles(String path, FTPFileFilter ftpFileFilter) {
+        FTPFile[] ftpFiles = null;
         try {
-            ftpFiles = ftp.listFiles(path,ftpFileFilter);
+            ftpFiles = ftp.listFiles(path, ftpFileFilter);
         } catch (IOException e) {
-            log.error("listFiles error",e);
+            log.error("listFiles error", e);
         }
         return ftpFiles;
     }

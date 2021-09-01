@@ -68,8 +68,17 @@ otherConfig:
   userCenter:
     appName: loan-strategy
     appSecretKey: 7357430aa11febfe81d45945c02706b3
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  customerService:
+    apiCode: 4000296
 

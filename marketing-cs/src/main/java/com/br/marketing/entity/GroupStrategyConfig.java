@@ -58,6 +58,11 @@ public class GroupStrategyConfig {
      */
     private String cycleEndDay;
 
+    /**
+     * 推送客户类型  0 文件，1 api  默认支持文件推送
+     */
+    private Integer pushType;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +149,13 @@ public class GroupStrategyConfig {
 
     public void setCycleEndDay(String cycleEndDay) {
         this.cycleEndDay = cycleEndDay == null ? null : cycleEndDay.trim();
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
     }
 }

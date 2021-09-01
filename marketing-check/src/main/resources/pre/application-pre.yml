@@ -50,17 +50,27 @@ otherConfig:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/marketing/
-        sftpHost: 192.168.23.65
+        sftpHost: 10.100.123.65
         sftpPort: 9999
         sftpUser: BRmarketing_pre
         sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
+  proxy:
+    proxy_host_zw: 192.168.22.169
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+  mom:
+    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+
 
 spring:
   rabbitmq:
-    addresses: 192.168.23.73:5672
+    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
     username: strategy_distribute
     password: strategy_distribute
     publisher-confirms: true
@@ -68,7 +78,7 @@ spring:
     virtual-host: marketing-flow
 
 #elastic-job配置
-SERVER_LISTS: 192.168.23.78:2181,192.168.23.79:2181,192.168.23.80:2181
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000

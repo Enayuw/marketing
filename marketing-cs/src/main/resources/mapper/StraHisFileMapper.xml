@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.StraHisFileMapper" >
 
     <select id="getExtendInfosByFileIds" resultType="com.br.marketing.vo.TaskExtendInfoVO">
-        select shf.id as fileId, bmte.cus_task_id as cusTaskId ,bmte.group_type as groupType
+        select shf.id as fileId, bmte.cus_task_id as cusTaskId ,bmte.group_type as groupType,bmte.upload_time as uploadTime
             from stra_his_file shf
             left join b_marketing_task bmt on shf.batch_number = bmt.batch_number
             left join b_marketing_task_extend bmte on bmte.task_id = bmt.id

@@ -283,7 +283,8 @@
         	`type`,
         	file_path,
         	expected_num,
-			show_title
+			show_title,
+			push_type
         	)
         	 VALUES (
         	 #{apiCode},
@@ -294,7 +295,8 @@
         	 #{type},
         	 #{filePath},
         	 #{expectedNum},
-			 #{showTitle}
+			 #{showTitle},
+			 #{pushType}
         	 )
 	</insert>
 	<update id="updateFileComplete" parameterType="map">
@@ -304,6 +306,7 @@
 		where
 		api_code=#{apiCode}
 		AND batch_number=#{batchNumber}
+		AND status=3
 		AND create_time>date_add(curdate(), interval -1 day)
 
 	</update>

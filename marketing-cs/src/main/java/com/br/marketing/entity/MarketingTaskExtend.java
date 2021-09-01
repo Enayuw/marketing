@@ -43,6 +43,11 @@ public class MarketingTaskExtend {
      */
     private String uploadTime;
 
+    /**
+     * 扩展表头字段
+     */
+    private String extendShowTitle;
+
     public Long getId() {
         return id;
     }
@@ -105,5 +110,13 @@ public class MarketingTaskExtend {
 
     public void setUploadTime(String uploadTime) {
         this.uploadTime = uploadTime == null ? null : uploadTime.trim();
+    }
+
+    public String getExtendShowTitle() {
+        return extendShowTitle;
+    }
+
+    public void setExtendShowTitle(String extendShowTitle) {
+        this.extendShowTitle = extendShowTitle == null ? null : extendShowTitle.trim();
     }
 }

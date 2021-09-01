@@ -29,4 +29,44 @@
         <![CDATA[and create_time >= #{beginTime} and create_time < #{endTime}  ]]>
         order by id asc limit 200
     </select>
+
+    <update id="createMarketingTransferTable" parameterType="java.lang.String">
+        CREATE TABLE
+            IF NOT EXISTS ${tableName} (
+           `id` BIGINT(20) auto_increment NOT NULL COMMENT '自增主键',
+           `request_id` varchar(100) NULL COMMENT '请求id',
+            `task_id` varchar(100) NULL COMMENT '任务id',
+            `cust_num` varchar(100) NULL COMMENT '客户编号',
+            `group_type` varchar(100) NULL COMMENT '场景',
+            `transform_time` DATETIME NULL COMMENT '转化时间',
+            `create_time` DATETIME NULL COMMENT '入库时间',
+            `reserve_field1` varchar(1000) NULL COMMENT '扩展字段1',
+            `reserve_field2` varchar(1000) NULL COMMENT '扩展字段2',
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='转化表'
+    </update>
+
+    <insert id="insertBatchTransfer" parameterType="java.lang.String">
+        ${execSql}
+    </insert>
+
+    <insert id="insertTransfer" parameterType="com.br.marketing.entity.MarketingTransfer">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_transfer_${apiCode}
+        (request_id,task_id,cust_num,transform_time,create_time,group_type,reserve_field1,reserve_field2)
+        values (#{requestId},#{taskId},#{custNum},#{transformTime},#{createTime},#{groupType},#{reserveField1},#{reserveField2})
+    </insert>
+
+    <select id="selectTransfersByRequestId" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_${apiCode}
+        where request_id = #{requestId}
+    </select>
+
+    <select id="getPreUserByTaskAndCust" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        where ${conditionTextByTaskIdAndCust}
+    </select>
 </mapper>

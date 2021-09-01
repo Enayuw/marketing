@@ -12,7 +12,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -31,6 +30,7 @@ public class ConsumerApp {
 
     /**
      * 延迟消费 获取推送客服中心数据状态
+     *
      * @param channel 通道
      * @param message 消息体
      */
@@ -45,6 +45,7 @@ public class ConsumerApp {
 
     /**
      * 延迟消费 获取推送客服中心数据状态
+     *
      * @param channel 通道
      * @param message 消息体
      */

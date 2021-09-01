@@ -64,10 +64,10 @@ public class MarketingTaskExtendExample {
         distinct = false;
     }
 
-    protected abstract static class GeneratedCriteria {
+    protected abstract static class AbstractGeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected GeneratedCriteria() {
+        protected AbstractGeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -624,9 +624,79 @@ public class MarketingTaskExtendExample {
             addCriterion("upload_time not between", value1, value2, "uploadTime");
             return (Criteria) this;
         }
+
+        public Criteria andExtendShowTitleIsNull() {
+            addCriterion("extend_show_title is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleIsNotNull() {
+            addCriterion("extend_show_title is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleEqualTo(String value) {
+            addCriterion("extend_show_title =", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleNotEqualTo(String value) {
+            addCriterion("extend_show_title <>", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleGreaterThan(String value) {
+            addCriterion("extend_show_title >", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_show_title >=", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleLessThan(String value) {
+            addCriterion("extend_show_title <", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleLessThanOrEqualTo(String value) {
+            addCriterion("extend_show_title <=", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleLike(String value) {
+            addCriterion("extend_show_title like", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleNotLike(String value) {
+            addCriterion("extend_show_title not like", value, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleIn(List<String> values) {
+            addCriterion("extend_show_title in", values, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleNotIn(List<String> values) {
+            addCriterion("extend_show_title not in", values, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleBetween(String value1, String value2) {
+            addCriterion("extend_show_title between", value1, value2, "extendShowTitle");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendShowTitleNotBetween(String value1, String value2) {
+            addCriterion("extend_show_title not between", value1, value2, "extendShowTitle");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends GeneratedCriteria {
+    public static class Criteria extends AbstractGeneratedCriteria {
 
         protected Criteria() {
             super();

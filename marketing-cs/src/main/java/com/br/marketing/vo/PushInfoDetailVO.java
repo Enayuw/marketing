@@ -1,7 +1,6 @@
 package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 
 import java.util.Date;
 
@@ -46,12 +45,12 @@ public class PushInfoDetailVO {
     @ApiModelProperty(value = "执行状态文本描述")
     private String mStatusDesc;
 
-    public String getmStatusDesc(){
-        if(mStatus.equals(1)){
+    public String getmStatusDesc() {
+        if (mStatus.equals(1)) {
             return "执行中";
-        }else if(mStatus.equals(2)){
+        } else if (mStatus.equals(2)) {
             return "执行成功";
-        }else{
+        } else {
             return "执行失败";
         }
     }

@@ -70,6 +70,8 @@ public class ProductResultUtil {
                     result.append(hxJson.get(split[i])==null?"":hxJson.get(split[i]));
                     result.append(sep);
                 }
+                result.append("zd3").append(sep);
+                result.append(sep).append(sep).append(sep).append(sep).append(sep).append(sep);
             }
             sb.append(result);
         }
