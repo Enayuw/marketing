@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @SpringBootTest
@@ -37,7 +38,7 @@ public class MarketingUserPreControllerTest {
 
 
     //模拟没有传输last和total
-    @Test
+    //@Test
     public void testReceiveMarketingPreUserSync1() {
         String apiCode = "123";
         String jsonData = mockMarketingPreUserDTO1(apiCode);
@@ -76,7 +77,7 @@ public class MarketingUserPreControllerTest {
     }
 
     //模拟没有传输last和total
-    @Test
+    //@Test
     public void testReceiveMarketingPreUserSync2() {
         String apiCode = "123";
         String jsonData = mockMarketingPreUserDTO2(apiCode);
@@ -117,7 +118,7 @@ public class MarketingUserPreControllerTest {
     }
 
     //3 模拟只传groupType
-    @Test
+    //@Test
     public void testReceiveMarketingPreUserSync3() {
         String apiCode = "123";
         MarketingPreUserSyncStatusDTO dto = new MarketingPreUserSyncStatusDTO();
@@ -132,7 +133,7 @@ public class MarketingUserPreControllerTest {
         Assert.assertTrue(data.getStatus()==2);
     }
     //4 模拟只传userType
-    @Test
+    //@Test
     public void testReceiveMarketingPreUserSync4() throws InterruptedException {
         String apiCode = "123";
         String taskId = "1";
@@ -146,11 +147,11 @@ public class MarketingUserPreControllerTest {
         dto.setRequestId(requestId);
         dto.setTaskId(taskId);
 
+        Thread.sleep(30*1000);
         ApiResult marketingPreUserStauts = marketingUserPreController.getMarketingPreUserStauts(apiCode, JSON.toJSONString(dto));
         Assert.assertEquals(marketingPreUserStauts.getCode(), "00");
         MarketingPreUserSyncDetailVO data = (MarketingPreUserSyncDetailVO) marketingPreUserStauts.getData();
         System.out.println(JSON.toJSONString(data));
-        Thread.sleep(30*1000);
         Assert.assertTrue(data.getStatus()==2);
     }
 
@@ -162,8 +163,8 @@ public class MarketingUserPreControllerTest {
         dto.setLast(1);
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
-        detailDTO.setCell(Md5Utils.cell32("18810987654"));
-        detailDTO.setCustNum("1");
+        detailDTO.setCell(Md5Utils.cell32("18810987652"));
+        detailDTO.setCustNum(new Random().nextInt(10000)+"");
         ReserveField1DTO reserveField1DTO = new ReserveField1DTO();
         reserveField1DTO.setUserType("S01");
         detailDTO.setReserveField1(reserveField1DTO);

@@ -620,7 +620,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
                         , marketingPreUserDetailDTO.getGroupType()
                         , marketingPreUserDetailDTO.getRegisterDate()
-                        , marketingPreUserDetailDTO.getReserveField1()
+                        , JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1())
                         , marketingPreUserDetailDTO.getReserveField2()
                         , date, date, appletDate,
                         marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType(),
