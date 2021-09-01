@@ -3,10 +3,9 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
-import com.br.marketing.entity.CustomerSoleExample;
-import com.br.marketing.entity.SoleRuleConfig;
-import com.br.marketing.entity.SoleRuleConfigExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerSoleMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SoleRuleConfigMapper;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.SoleRuleVO;
@@ -31,6 +30,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Autowired
     CustomerSoleMapper customerSoleMapper;
+
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
+
 
 
     @Override
@@ -66,12 +69,18 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     @Override
     public boolean getNameOnly(String soleName) {
         SoleRuleConfigExample example = new SoleRuleConfigExample();
-        example.createCriteria().andSoleNameEqualTo(soleName);
+        example.createCriteria().andSoleNameEqualTo(soleName).andIsDelEqualTo(1);
         int count = soleRuleConfigMapper.countByExample(example);
         if (count<=0){
             return true;
         }else {
             return false;
         }
+    }
+
+    @Override
+    public List<MarketingCustomer> getCustomer(String search) {
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search);
+        return list;
     }
 }

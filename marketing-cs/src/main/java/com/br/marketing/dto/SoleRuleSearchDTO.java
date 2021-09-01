@@ -11,7 +11,7 @@ public class SoleRuleSearchDTO {
     @ApiModelProperty(value = "去重规则名称")
     private String soleName;
 
-    @ApiModelProperty(value = "开启状态")
+    @ApiModelProperty(value = "开启状态;(1-开启;2-禁用;不传查全部)")
     private Integer status;
 
     @ApiModelProperty(value = "开始创建时间")
