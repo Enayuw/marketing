@@ -19,6 +19,7 @@ import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.common.validators.user.UserValidator;
@@ -484,9 +485,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("反序列化耗时:{}", (System.currentTimeMillis() - l1));
         }
-        if (!StringUtils.isNotBlank(dto.getApiCode())) {
-            throw new CommonException(MarketingErrorInfo.API_CODE_ERROR);
-        }
         if (dto.getJsonData() == null) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
@@ -500,15 +498,24 @@ public class PushRuleServiceImpl implements PushRuleService {
          * 兼容旧逻辑,如果没传，则last=0，非最后一次，
          * */
         byte last = 0;
-        if (null != dto.getJsonData().getLast()) {
-            last = Byte.valueOf(String.valueOf(dto.getJsonData().getLast()));
+        String lastStr = dto.getJsonData().getLast();
+        if (StringUtils.isNotBlank(lastStr)) {
+            if(LastEnum.isLegal(lastStr)) {
+                last = Byte.valueOf(dto.getJsonData().getLast());
+            } else {
+                throw new CommonException(MarketingErrorInfo.LAST_ERROR);
+            }
         }
         /**
          * 兼容旧逻辑,如果没传，则total=0
          * */
         Long total = 0L;
         if (null != dto.getJsonData().getTotal()) {
-            total = dto.getJsonData().getTotal();
+            try {
+                total = Long.valueOf(dto.getJsonData().getTotal());
+            } catch (NumberFormatException numberFormatException) {
+                throw new CommonException(MarketingErrorInfo.TOTAL_ERROR);
+            }
         }
         int size = dto.getJsonData().getDataItems().size();
         if (size > 2000) {
@@ -586,6 +593,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (null == reserveField1) {
                 reserveField1 = new ReserveField1DTO();
                 reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+            } else {
+                if (StringUtils.isBlank(reserveField1.getUserType())) {
+                    reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                }
             }
             Integer finalIsCheck = isCheck;
             ReserveField1DTO finalReserveField = reserveField1;
@@ -612,13 +623,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
+                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s', '%s','%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
                         , marketingPreUserDetailDTO.getCell()
                         , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?"":marketingPreUserDetailDTO.getId()
                         , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
                         , marketingPreUserDetailDTO.getGroupType()
+                        , marketingPreUserDetailDTO.getReserveField1().getUserType()
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1())
                         , marketingPreUserDetailDTO.getReserveField2()

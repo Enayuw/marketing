@@ -24,13 +24,13 @@ public class MarketingPreUserDTO implements Serializable {
      * 是否最后一次，0:非最后一次，1:最后一次
      * */
     @ApiModelProperty(value = "是否最后一次，0:非最后一次，1:最后一次")
-    private Integer last;
+    private String last;
 
     @ApiModelProperty(value = "总数据量")
     /**
      * 总数据量
      * */
-    private Long total;
+    private String total;
 
     /**
      * 客户数据

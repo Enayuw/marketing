@@ -25,13 +25,14 @@ public enum MarketingErrorInfo {
 
     //参数异常--客户上送数据问题
     JSON_DATA_ERROR("300001", "jsonData非法"),
-    API_CODE_ERROR("300002", "apiCode非法"),
     TASK_ID_ERROR("300003", "taskid非法"),
     REQUEST_ID_ERROR("300004", "requestId非法"),
     CUST_NUM_ERROR("300005", "custNum非法"),
     GROUP_TYPE_ERROR("300006", "groupType或者userType非法"),
     TIME_FORMAT_ERROR("300007", "时间格式错误"),
     QUANTITY_ERROR("300008", "数据量过大或者为空"),
+    LAST_ERROR("300009", "last非法"),
+    TOTAL_ERROR("300010", "total非法"),
 
 
     //权限异常
