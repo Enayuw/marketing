@@ -62,25 +62,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-        <!-- 公共包 -->
-        <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.elasticsearch</groupId>
-                    <artifactId>elasticsearch</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>7.7.1</version>
-        </dependency>
-        <!--策略贷中公共依赖-->
-
         <!--工具依赖-->
         <dependency>
             <groupId>org.yaml</groupId>
