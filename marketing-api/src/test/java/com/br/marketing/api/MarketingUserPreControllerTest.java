@@ -104,8 +104,8 @@ public class MarketingUserPreControllerTest {
         String taskId = "1";
         dto.setTaskId(taskId);
         dto.setRequestId(apiCode+"_"+taskId+"_"+ UUID.randomUUID());
-        dto.setTotal(1L);
-        dto.setLast(1);
+        dto.setTotal("1");
+        dto.setLast("1");
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
         detailDTO.setCell(Md5Utils.cell32("18810987654"));
@@ -159,8 +159,8 @@ public class MarketingUserPreControllerTest {
         MarketingPreUserDTO dto = new MarketingPreUserDTO();
         dto.setTaskId(taskId);
         dto.setRequestId(requestId);
-        dto.setTotal(1L);
-        dto.setLast(1);
+        dto.setTotal("1");
+        dto.setLast("1");
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
         detailDTO.setCell(Md5Utils.cell32("18810987652"));
