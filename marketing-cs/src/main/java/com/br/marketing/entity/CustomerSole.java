@@ -33,6 +33,11 @@ public class CustomerSole {
      */
     private Date updateTime;
 
+    /**
+     * 去重数据范围规则
+     */
+    private String conditionInfo;
+
     public Long getId() {
         return id;
     }
@@ -79,5 +84,13 @@ public class CustomerSole {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getConditionInfo() {
+        return conditionInfo;
+    }
+
+    public void setConditionInfo(String conditionInfo) {
+        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
     }
 }
