@@ -34,7 +34,7 @@ public class LoanWarningThread implements Callable<String> {
     private String strategyStr;
     private RedisService redisService;
     private String   message;
-    private boolean isIncr;
+    private boolean firstTime;
     private JSONObject meal=new JSONObject();
     private String appSecretKey;
     private String url;
@@ -47,9 +47,8 @@ public class LoanWarningThread implements Callable<String> {
     private String isRepair;
     private String fileId;
     private Customer customer;
-    private Integer esOpen=1;
     private String baseHeadInfo;
-    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, int currentPage,boolean isIncr,Customer customer,Integer esOpen){
+    public LoanWarningThread(List<MarketingUser> list, Map<String,String> param, int currentPage,boolean firstTime,Customer customer){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -58,7 +57,7 @@ public class LoanWarningThread implements Callable<String> {
         this.path=param.get("path");
         this.strategyStr=param.get("strategyStr");
         this.redisService=Scheduler.ac.getBean(RedisService.class);
-        this.isIncr=isIncr;
+        this.firstTime=firstTime;
         this.appSecretKey=param.get("appSecretKey");
         this.url=param.get("url");
         this.sep=param.get("sep");
@@ -67,7 +66,6 @@ public class LoanWarningThread implements Callable<String> {
         this.cusBatchNumber=param.get("cusBatchNumber");
         this.isRepair=param.get("isRepair");
         this.fileId=param.get("fileId");
-        this.esOpen = esOpen;
         this.customer=customer;
         this.baseHeadInfo = param.get("baseHeadInfo");
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
@@ -163,15 +161,14 @@ public class LoanWarningThread implements Callable<String> {
                 String s="";
                 if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
-                    s= HxUtil.getReport(customer,jsonData,meal,isIncr,url);
+                    s= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
                     requestLog.setResponseTime(new Date());
-                    if(!isIncr) {
-                        try {
-                            MomUtil.sendMom(s, jsonData, requestLog, apiCode, strategyId, appSecretKey);
-                        }catch (Throwable throwable){
-                            log.error(throwable.getMessage());
-                        }
+                    try {
+                        MomUtil.sendMom(s, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+                    }catch (Throwable throwable){
+                        log.error(throwable.getMessage());
                     }
+
                 }else{
                     s = loanWarningClient.queryApi(param, apiCode);
                 }
@@ -418,14 +415,14 @@ public class LoanWarningThread implements Callable<String> {
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
                     log.info("马上进入generate");
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),esOpen,baseHeadInfo);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),esOpen,baseHeadInfo);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
                  }else{
                      log.error("画像返回错误--{}",cusNum);
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
