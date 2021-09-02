@@ -8,6 +8,7 @@ import com.br.marketing.mapper.CustomerSoleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SoleRuleConfigMapper;
 import com.br.marketing.service.RuleOfSoleService;
+import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -82,5 +83,64 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public List<MarketingCustomer> getCustomer(String search) {
         List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search);
         return list;
+    }
+
+    @Override
+    public boolean getCusUserType(Long soleId, Long customerId) {
+        CustomerSoleExample customerSoleExample = new CustomerSoleExample();
+        customerSoleExample.createCriteria()
+                .andCustomerIdEqualTo(customerId)
+                .andIsDelEqualTo(1);
+        List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
+        if(customerSoles.size()>1){
+            log.error("customerId为"+customerId+"的商户匹配了多条规则！");
+            return false;
+        }
+
+        for (CustomerSole c:customerSoles){
+            if(c.getSoleId() == soleId){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean updateStatusById(Long id, Integer status) {
+        SoleRuleConfig config = new SoleRuleConfig();
+        config.setId(id);
+        config.setStatus(status);
+        int update = soleRuleConfigMapper.updateByPrimaryKeySelective(config);
+        if (update == 1){
+            return true;
+        }else {
+            return false;
+        }
+
+    }
+
+    @Override
+    public List<SoleOptLogVO> getUpdateRecord(Long id) {
+
+
+
+
+        return null;
+    }
+
+
+    /**
+     * 商户当前规则下的场景
+     * @param soleId
+     * @param customerId
+     * @return
+     */
+    public List<CustomerSole> getUserTypeByCus(Long soleId, Long customerId) {
+        CustomerSoleExample example = new CustomerSoleExample();
+        example.createCriteria().andIsDelEqualTo(1)
+                .andSoleIdEqualTo(soleId)
+                .andCustomerIdEqualTo(customerId);
+        List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(example);
+        return customerSoles;
     }
 }
