@@ -2,10 +2,9 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 客户配置变量值字典 下拉列表vo
@@ -13,13 +12,11 @@ import lombok.Setter;
  * @author zeqiang.guo@brgroup.com
  * @dateTime 2021/9/1 17:49
  */
-@Setter
-@Getter
-@NoArgsConstructor
+@Data
 @ApiModel(value = "客户配置变量值字典")
-@AllArgsConstructor
-public class VariableDicSelectVO {
+public class VariableDicSelectVO implements Serializable {
 
+    private static final long serialVersionUID = 3260454161828573655L;
     /**
      * 字段名称
      */
@@ -37,4 +34,13 @@ public class VariableDicSelectVO {
      */
     @ApiModelProperty(value = "字段描述", dataType = "string", position = 3)
     private String fieldDesc;
+
+    public VariableDicSelectVO(String fieldName, String fieldValue, String fieldDesc) {
+        this.fieldName = fieldName;
+        this.fieldValue = fieldValue;
+        this.fieldDesc = fieldDesc;
+    }
+
+    public VariableDicSelectVO() {
+    }
 }

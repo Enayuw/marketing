@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
+import com.br.marketing.vo.ScoreRuleVO;
 
 import java.util.List;
 
@@ -30,4 +31,12 @@ public interface ScoreRuleConfigService {
      */
     PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute);
 
+    /**
+     * 保存规则
+     *
+     * @param scoreRuleVO 规则数据
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/2 14:15
+     */
+    void save(ScoreRuleVO scoreRuleVO);
 }

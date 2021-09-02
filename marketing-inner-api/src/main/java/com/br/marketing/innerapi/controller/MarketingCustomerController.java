@@ -36,10 +36,10 @@ public class MarketingCustomerController {
      * @dateTime 2021/9/1 15:14
      */
     @ApiOperation(value = "获取cid、apiCode集合", notes = "集合", httpMethod = "GET")
-    @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
+    @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CustomerSelectVO.class)})
     @GetMapping({"/list", "/list/{cid}"})
-    public ApiResult<List<CustomerSelectVO>> getCIDList(@PathVariable(value = "cid", required = false) String cid) {
+    public ApiResult<List<CustomerSelectVO>> getCidOrApiCodeList(@PathVariable(value = "cid", required = false) String cid) {
         List<CustomerSelectVO> list = marketingCustomerService.getCidOrApiCodeList(cid);
         return new ApiResult<List<CustomerSelectVO>>().setData(list).success();
     }
