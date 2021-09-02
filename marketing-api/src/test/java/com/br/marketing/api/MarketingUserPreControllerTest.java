@@ -147,7 +147,7 @@ public class MarketingUserPreControllerTest {
         dto.setRequestId(requestId);
         dto.setTaskId(taskId);
 
-        Thread.sleep(30*1000);
+        Thread.sleep(3*1000);
         ApiResult marketingPreUserStauts = marketingUserPreController.getMarketingPreUserStauts(apiCode, JSON.toJSONString(dto));
         Assert.assertEquals(marketingPreUserStauts.getCode(), "00");
         MarketingPreUserSyncDetailVO data = (MarketingPreUserSyncDetailVO) marketingPreUserStauts.getData();
