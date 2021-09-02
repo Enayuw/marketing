@@ -24,12 +24,13 @@ public class MarketingSyncInfo {
     private String requestBatch;
 
     /**
-     * 
+     * 是否最后一次传输
+     * @see com.br.marketing.common.constants.common.LastEnum
      */
     private Byte last;
 
     /**
-     * 
+     * 总数据量
      */
     private Long total;
 

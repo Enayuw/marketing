@@ -163,7 +163,7 @@ public class MarketingUserPreControllerTest {
         dto.setLast("1");
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
-        detailDTO.setCell(Md5Utils.cell32("18810987652"));
+        detailDTO.setCell(Md5Utils.cell32("18810987662"));
         detailDTO.setCustNum(new Random().nextInt(10000)+"");
         ReserveField1DTO reserveField1DTO = new ReserveField1DTO();
         reserveField1DTO.setUserType("S01");
