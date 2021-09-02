@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-public class CustUserTypeSelect {
+public class CustUserTypeSelectVO {
 
     @ApiModelProperty(value = "客户id(客户表中的主键id)")
     private String cid;

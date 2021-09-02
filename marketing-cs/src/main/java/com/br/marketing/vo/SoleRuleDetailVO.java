@@ -27,5 +27,5 @@ public class SoleRuleDetailVO {
     private String soleCycleTimes;
 
     @ApiModelProperty(value = "匹配商户列表")
-    private List<CustUserTypeSelect> soleCustom;
+    private List<CustUserTypeSelectVO> soleCustom;
 }
