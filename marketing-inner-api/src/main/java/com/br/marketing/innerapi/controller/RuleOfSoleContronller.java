@@ -5,9 +5,9 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
-import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.RuleOfSoleService;
+import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
 import io.swagger.annotations.ApiImplicitParam;
@@ -72,26 +72,26 @@ public class RuleOfSoleContronller {
             @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
     @GetMapping("/getCustomer")
-    public ApiResult<List<MarketingCustomer>> getCustomer(String search){
+    public ApiResult<List<MarketingCustomerVO>> getCustomer(String search){
         //返回 [{"id":"","cid":"","api_code":"123","name":"商户名称","short_name":"商户简称"},{}]
         try {
             //查询
-            List<MarketingCustomer> list = ruleOfSoleService.getCustomer(search);
-            return new ApiResult<List<MarketingCustomer>>().success(list);
+            List<MarketingCustomerVO> list = ruleOfSoleService.getCustomer(search);
+            return new ApiResult<List<MarketingCustomerVO>>().success(list);
         } catch (Exception ex) {
             log.error(ex.getMessage());
-            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
         }
     }
 
 
     @ApiOperation(value = "判断商户是否已经被其他规则匹配",notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = true,dataType = "Long"),
-            @ApiImplicitParam(name = "customerId",value = "商户编码",required = true,dataType = "Long")
+            @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = true,dataType = "String"),
+            @ApiImplicitParam(name = "customerId",value = "商户编码",required = true,dataType = "String")
     })
     @GetMapping("/getCusOnly")
-    public boolean getCusUserType(Long soleId, Long customerId){
+    public boolean getCusUserType(String soleId, String customerId){
         //查询
         return ruleOfSoleService.getCusUserType(soleId,customerId);
     }
@@ -99,41 +99,37 @@ public class RuleOfSoleContronller {
 
 
     @ApiOperation(value = "新增/变更去重规则",notes = "")
-    @PostMapping("/save")
-    public boolean save(@RequestBody SoleRuleDetailVO vo){
-        //根据有没有id判断是新增或者变更
-
-        //变更的时候还需要 往日志表添加信息，添加此条更改之前的规则记录
-        //存储变更记录-->表里字段是 varchar类型，需要转换一下
-        return true;
+    @PostMapping("/saveOrUpdate")
+    public boolean saveOrUpdate(@RequestBody SoleRuleDetailVO vo){
+        return ruleOfSoleService.saveOrUpdate(vo);
     }
 
 
     @ApiOperation(value = "查看去重规则",notes = "")
-    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "Integer")
+    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
     @GetMapping("/getById")
-    public String getById(Integer id){
+    public String getById(String id){
 
-
+        //string转为long  再查看
         return "去重规则实体类";
     }
 
 
     @ApiOperation(value = "操作去重规则",notes = "操作去重规则状态，开启/关闭")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "Long"),
+            @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String"),
             @ApiImplicitParam(name = "status",value = "状态(1-开启;2-禁用)",required = true,dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
-    public boolean updateStatusById(Long id,Integer status){
+    public boolean updateStatusById(String id,Integer status){
         return ruleOfSoleService.updateStatusById(id,status);
     }
 
 
     @ApiOperation(value = "变更记录查看",notes = "")
-    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "Long")
+    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
     @GetMapping("/getUpdateRecord")
-    public ApiResult<List<SoleOptLogVO>> getUpdateRecord(Long id){
+    public ApiResult<List<SoleOptLogVO>> getUpdateRecord(String id){
         //查询
         try {
             List<SoleOptLogVO> list = ruleOfSoleService.getUpdateRecord(id);

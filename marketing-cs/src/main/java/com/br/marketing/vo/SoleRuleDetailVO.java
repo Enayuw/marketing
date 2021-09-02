@@ -13,7 +13,7 @@ import java.util.List;
 public class SoleRuleDetailVO {
 
     @ApiModelProperty(value = "去重规则id")
-    private Long id;
+    private String soleId;
 
     @NotBlank(message = "名称必填")
     @ApiModelProperty(value = "去重规则名称")

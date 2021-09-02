@@ -8,15 +8,19 @@ import com.br.marketing.mapper.CustomerSoleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SoleRuleConfigMapper;
 import com.br.marketing.service.RuleOfSoleService;
+import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
+import com.br.marketing.vo.SoleRuleDetailVO;
 import com.br.marketing.vo.SoleRuleVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 去重规则业务实现
@@ -41,29 +45,21 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
         PageHelper.startPage(page, pageSize);
         List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
-        List<SoleRuleVO> soleRuleVos = new ArrayList<>();
-        CustomerSoleExample customerSoleExample;
-        for(SoleRuleConfig single:soleRuleConfigs){
+        List<SoleRuleVO> soleRuleVos = soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
-            vo.setId(single.getId());
-            vo.setSoleName(single.getSoleName());
-            vo.setSoleFields(single.getSoleFields());
-            vo.setSoleFieldsNum(single.getSoleFields().split(",").length);//去重字段统计
-            if(StringUtils.isNotEmpty(single.getSoleCycleTimes())){
-                vo.setSoleCycleTimes(single.getSoleCycleTimes());
-            }
+            BeanUtils.copyProperties(soleRuleConfig,vo);
+            //id类型转换
+            vo.setId(soleRuleConfig.getId().toString());
+            //去重字段统计
+            vo.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
             //使用商户统计
-            customerSoleExample = new CustomerSoleExample();
-            customerSoleExample.createCriteria().andSoleIdEqualTo(single.getId())
+            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
+            customerSoleExample.createCriteria().andSoleIdEqualTo(soleRuleConfig.getId())
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
             vo.setCusNum(count);
-            vo.setStatus(single.getStatus());
-            vo.setCreateTime(single.getCreateTime());
-            vo.setUpdateTime(single.getUpdateTime());
-            soleRuleVos.add(vo);
-        }
-
+            return vo;
+            }).collect(Collectors.toList());
         return PageResultReturn.setPageResult(soleRuleVos, page);
     }
 
@@ -80,16 +76,23 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     @Override
-    public List<MarketingCustomer> getCustomer(String search) {
+    public List<MarketingCustomerVO> getCustomer(String search) {
         List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search);
-        return list;
+        //返回id由Long改为string类型
+        List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
+            MarketingCustomerVO vo = new MarketingCustomerVO();
+            BeanUtils.copyProperties(marketingCustomer, vo);
+            vo.setId(marketingCustomer.getId().toString());
+            return vo;
+        }).collect(Collectors.toList());
+        return vos;
     }
 
     @Override
-    public boolean getCusUserType(Long soleId, Long customerId) {
+    public boolean getCusUserType(String soleId, String customerId) {
         CustomerSoleExample customerSoleExample = new CustomerSoleExample();
         customerSoleExample.createCriteria()
-                .andCustomerIdEqualTo(customerId)
+                .andCustomerIdEqualTo(Long.parseLong(customerId))
                 .andIsDelEqualTo(1);
         List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
         if(customerSoles.size()>1){
@@ -98,7 +101,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         }
 
         for (CustomerSole c:customerSoles){
-            if(c.getSoleId() == soleId){
+            if(soleId.equals(c.getSoleId().toString())){
                 return true;
             }
         }
@@ -106,9 +109,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     @Override
-    public boolean updateStatusById(Long id, Integer status) {
+    public boolean updateStatusById(String id, Integer status) {
         SoleRuleConfig config = new SoleRuleConfig();
-        config.setId(id);
+        config.setId(Long.parseLong(id));
         config.setStatus(status);
         int update = soleRuleConfigMapper.updateByPrimaryKeySelective(config);
         if (update == 1){
@@ -120,12 +123,25 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     @Override
-    public List<SoleOptLogVO> getUpdateRecord(Long id) {
-
+    public List<SoleOptLogVO> getUpdateRecord(String id) {
 
 
 
         return null;
+    }
+
+    @Override
+    public boolean saveOrUpdate(SoleRuleDetailVO vo) {
+        //根据有没有id判断是新增或者变更
+        if (StringUtils.isEmpty(vo.getSoleId())){
+            //新增
+        }else {
+            //变更
+            //变更的时候还需要 往日志表添加信息，添加此条更改之前的规则记录
+            //存储变更记录-->表里字段是 varchar类型，需要转换一下
+        }
+
+        return false;
     }
 
 
