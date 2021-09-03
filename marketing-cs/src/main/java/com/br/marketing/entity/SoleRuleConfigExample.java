@@ -305,76 +305,6 @@ public class SoleRuleConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andSoleCycleTimesIsNull() {
-            addCriterion("sole_cycle_times is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesIsNotNull() {
-            addCriterion("sole_cycle_times is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesEqualTo(String value) {
-            addCriterion("sole_cycle_times =", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesNotEqualTo(String value) {
-            addCriterion("sole_cycle_times <>", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesGreaterThan(String value) {
-            addCriterion("sole_cycle_times >", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesGreaterThanOrEqualTo(String value) {
-            addCriterion("sole_cycle_times >=", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesLessThan(String value) {
-            addCriterion("sole_cycle_times <", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesLessThanOrEqualTo(String value) {
-            addCriterion("sole_cycle_times <=", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesLike(String value) {
-            addCriterion("sole_cycle_times like", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesNotLike(String value) {
-            addCriterion("sole_cycle_times not like", value, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesIn(List<String> values) {
-            addCriterion("sole_cycle_times in", values, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesNotIn(List<String> values) {
-            addCriterion("sole_cycle_times not in", values, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesBetween(String value1, String value2) {
-            addCriterion("sole_cycle_times between", value1, value2, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andSoleCycleTimesNotBetween(String value1, String value2) {
-            addCriterion("sole_cycle_times not between", value1, value2, "soleCycleTimes");
-            return (Criteria) this;
-        }
-
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;
@@ -612,6 +542,66 @@ public class SoleRuleConfigExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesIsNull() {
+            addCriterion("sole_cycle_times is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesIsNotNull() {
+            addCriterion("sole_cycle_times is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesEqualTo(Integer value) {
+            addCriterion("sole_cycle_times =", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesNotEqualTo(Integer value) {
+            addCriterion("sole_cycle_times <>", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesGreaterThan(Integer value) {
+            addCriterion("sole_cycle_times >", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesGreaterThanOrEqualTo(Integer value) {
+            addCriterion("sole_cycle_times >=", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesLessThan(Integer value) {
+            addCriterion("sole_cycle_times <", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesLessThanOrEqualTo(Integer value) {
+            addCriterion("sole_cycle_times <=", value, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesIn(List<Integer> values) {
+            addCriterion("sole_cycle_times in", values, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesNotIn(List<Integer> values) {
+            addCriterion("sole_cycle_times not in", values, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesBetween(Integer value1, Integer value2) {
+            addCriterion("sole_cycle_times between", value1, value2, "soleCycleTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andSoleCycleTimesNotBetween(Integer value1, Integer value2) {
+            addCriterion("sole_cycle_times not between", value1, value2, "soleCycleTimes");
             return (Criteria) this;
         }
     }
