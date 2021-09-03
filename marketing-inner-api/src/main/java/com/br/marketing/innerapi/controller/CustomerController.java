@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/rule/customer")
 @Api(value = "客户信息", tags = "客户信息", produces = "application/json", consumes = "application/json", protocols = "http")
-public class MarketingCustomerController {
+public class CustomerController {
 
     @Resource
     private MarketingCustomerService marketingCustomerService;
