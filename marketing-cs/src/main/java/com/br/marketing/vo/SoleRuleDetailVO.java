@@ -1,18 +1,19 @@
-package com.br.marketing.dto;
+package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 页面新增去重规则 请求参数
+ */
 @Data
-public class SoleRuleDetailDTO {
+public class SoleRuleDetailVO {
 
     @ApiModelProperty(value = "去重规则id")
-    private Long id;
+    private String soleId;
 
     @NotBlank(message = "名称必填")
     @ApiModelProperty(value = "去重规则名称")
@@ -22,17 +23,9 @@ public class SoleRuleDetailDTO {
     @ApiModelProperty(value = "去重字段")
     private String soleFields;
 
-    @NotNull(message = "去重周期必填")
-    @ApiModelProperty(value = "去重时间周期")
+    @ApiModelProperty(value = "去重时间周期(T-n)")
     private String soleCycleTimes;
 
-    @ApiModelProperty(value = "匹配商户")
-    private List<Map> soleCustom;
-
-
-
-
-
-
-
+    @ApiModelProperty(value = "匹配商户列表")
+    private List<CustUserTypeSelectVO> soleCustom;
 }

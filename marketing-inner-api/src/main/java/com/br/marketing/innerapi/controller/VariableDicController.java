@@ -37,8 +37,8 @@ public class VariableDicController {
      * @dateTime 2021/9/1 15:14
      */
     @ApiOperation(value = "配置变量值字典", notes = "集合", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "query", dataType = "string")
+    @ApiImplicitParams({@ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "path", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = VariableDicSelectVO.class)})
     @GetMapping({"/list/{cid}/{apiCode}"})

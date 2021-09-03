@@ -19,11 +19,6 @@ public class SoleRuleConfig {
     private String soleFields;
 
     /**
-     * 去重时间周期
-     */
-    private String soleCycleTimes;
-
-    /**
      * 开启状态 1-开启；2-禁用；3-开启中
      */
     private Integer status;
@@ -42,6 +37,11 @@ public class SoleRuleConfig {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 去重时间周期
+     */
+    private Integer soleCycleTimes;
 
     public Long getId() {
         return id;
@@ -65,14 +65,6 @@ public class SoleRuleConfig {
 
     public void setSoleFields(String soleFields) {
         this.soleFields = soleFields == null ? null : soleFields.trim();
-    }
-
-    public String getSoleCycleTimes() {
-        return soleCycleTimes;
-    }
-
-    public void setSoleCycleTimes(String soleCycleTimes) {
-        this.soleCycleTimes = soleCycleTimes == null ? null : soleCycleTimes.trim();
     }
 
     public Integer getStatus() {
@@ -105,5 +97,13 @@ public class SoleRuleConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getSoleCycleTimes() {
+        return soleCycleTimes;
+    }
+
+    public void setSoleCycleTimes(Integer soleCycleTimes) {
+        this.soleCycleTimes = soleCycleTimes;
     }
 }

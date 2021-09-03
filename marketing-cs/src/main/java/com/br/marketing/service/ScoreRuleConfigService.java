@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
+import com.br.marketing.vo.ScoreRuleVO;
 
 import java.util.List;
 
@@ -30,4 +31,34 @@ public interface ScoreRuleConfigService {
      */
     PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute);
 
+    /**
+     * 保存规则
+     *
+     * @param scoreRuleVO 规则数据
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/2 14:15
+     */
+    void save(ScoreRuleVO scoreRuleVO);
+
+    /**
+     * 设置开启状态 1-开启；2-禁用；3-开启中
+     *
+     * @param rid    规则主键
+     * @param status 状态值
+     * @return true or false
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 11:14
+     */
+    boolean setStatus(Long rid, Integer status);
+
+    /**
+     * 获取详情
+     *
+     * @param rid  主键
+     * @param crId 规则与客户关系主键
+     * @return {@link ScoreRuleVO}
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 13:45
+     */
+    ScoreRuleVO detail(Long rid, Long crId);
 }

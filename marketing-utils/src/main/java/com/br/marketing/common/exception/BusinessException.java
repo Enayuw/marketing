@@ -33,13 +33,14 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException() {
         super();
-        ServiceResultEnum failed = ServiceResultEnum.FAILED;
+        ServiceResultEnum failed = ServiceResultEnum.SUCCESS_5;
         this.code = failed.getCode();
         this.msg = failed.getMessage();
     }
 
     public BusinessException(String msg) {
         super();
+        this.code = ServiceResultEnum.SUCCESS_5.getCode();
         this.msg = msg;
     }
 

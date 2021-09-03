@@ -3,13 +3,18 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
+import com.br.marketing.vo.ScoreRuleVO;
 import io.swagger.annotations.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 跑分配置
@@ -34,19 +39,17 @@ public class RuleOfScoreController {
      */
     @GetMapping("/page")
     @ApiOperation(value = "列表数据", notes = "获取跑分配置列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "int"
+    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", required = true
             , defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "int"
+            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", required = true
             , defaultValue = "10")
-            , @ApiImplicitParam(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "char")
+            , @ApiImplicitParam(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；2-禁用；3-开启中", paramType = "query", dataType = "enum"
-            , allowableValues = "1,2,3"
-            , examples = @Example(@ExampleProperty(mediaType = "application/json"
-            , value = "[{\"name\":\"开启\",\"value\":1},{\"name\":\"禁用\",\"value\":2},{\"name\":\"开启中\",\"value\":3}]")))
-            , @ApiImplicitParam(name = "cts", value = "创建时间开始", paramType = "query", dataType = "dateTime")
-            , @ApiImplicitParam(name = "cte", value = "创建时间结束", paramType = "query", dataType = "dateTime")
-            , @ApiImplicitParam(name = "uts", value = "更新时间开始", paramType = "query", dataType = "dateTime")
-            , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "dateTime")
+            , allowableValues = "1,2,3")
+            , @ApiImplicitParam(name = "cts", value = "创建时间开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "cte", value = "创建时间结束", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "uts", value = "更新时间开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
     public ApiResult<PageResultReturn> findListPage(@RequestParam(defaultValue = "1") int page
@@ -68,13 +71,59 @@ public class RuleOfScoreController {
     /**
      * 添加
      *
-     * @param scoreRuleConfig 接收参数pojo
+     * @param scoreRuleVO 接收参数pojo
      * @return ApiResult
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 14:28
      */
-    @PostMapping()
-    public ApiResult<?> add(@RequestBody ScoreRuleConfig scoreRuleConfig) {
-        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+    @ApiOperation(value = "添加跑分配置", notes = "新增操作", httpMethod = "POST")
+    @PostMapping("/rule")
+    @Validated
+    public ApiResult<?> save(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            FieldError fieldError = fieldErrors.get(0);
+            return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
+        }
+        scoreRuleConfigService.save(scoreRuleVO);
+        return new ApiResult<>().success();
+    }
+
+    /**
+     * 设置开启状态 1-开启；2-禁用；3-开启中
+     *
+     * @param rid    规则主键
+     * @param status 状态值
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 11:01
+     */
+    @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "PUT")
+    @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
+            , @ApiImplicitParam(name = "status", value = "状态", paramType = "path", dataType = "integer")})
+    @PutMapping("/stare/{rid}/{status}")
+    public ApiResult<?> status(@PathVariable(name = "rid") Long rid
+            , @PathVariable(name = "status") Integer status) {
+        boolean bool = scoreRuleConfigService.setStatus(rid, status);
+        if (bool) {
+            return new ApiResult<>().success(true);
+        }
+        return new ApiResult<>().success(false, "操作失败，请稍后重试");
+    }
+
+    /**
+     * 获取详情
+     *
+     * @param rid  规则主键
+     * @param crId 规则与客户关系主键
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 11:01
+     */
+    @ApiOperation(value = "详情", notes = "详情", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
+            , @ApiImplicitParam(name = "crId", value = "规则与客户关系主键", paramType = "path", dataType = "long")})
+    @GetMapping("/detail/{rid}/{crId}")
+    public ApiResult<ScoreRuleVO> detail(@PathVariable(name = "rid") Long rid, @PathVariable(name = "crId") Long crId) {
+        ScoreRuleVO scoreRuleVO = scoreRuleConfigService.detail(rid, crId);
+        return new ApiResult<ScoreRuleVO>().success(scoreRuleVO);
     }
 }
