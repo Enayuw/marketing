@@ -13,13 +13,13 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ServiceResultEnum {
 
-    // 2xxx 访问成功
-    SUCCESS("2000", "成功"),
-    SUCCESS_1("2001", "参数错误,请检查参数"),
-    SUCCESS_2("2002", "内容校验失败,请修改内容"),
-    SUCCESS_3("2003", "规则重复,请重新定义规则"),
+    // 0x 访问成功
+    SUCCESS("00", "成功"),
+    SUCCESS_1("01", "参数错误,请检查参数"),
+    SUCCESS_2("02", "内容校验失败,请修改内容"),
+    SUCCESS_3("03", "规则重复,请重新定义规则"),
     //访问成功业务自定义通用状态
-    SUCCESS_5("2005", "服务开小差了"),
+    SUCCESS_5("05", "服务开小差了"),
 
     // 5xxx 访问失败
     UNKNOWN_ERROR("5000", "遇到未知错误，请稍后重试"),
