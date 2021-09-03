@@ -14,6 +14,7 @@
         else '-' end as status
         , DATE_FORMAT(src.create_time,'%Y-%m-%d %H:%i:%s') as createTime
         , DATE_FORMAT(src.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        , bcr.id as crId
         from b_score_rule_config src
         left join b_customer_rule bcr on src.id = bcr.rule_id
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id

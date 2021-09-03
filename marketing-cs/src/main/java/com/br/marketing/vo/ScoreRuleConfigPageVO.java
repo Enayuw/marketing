@@ -21,8 +21,14 @@ public class ScoreRuleConfigPageVO {
     /**
      * 2021/8/31 16:11 规则主键
      */
-    @ApiModelProperty(value = "规则主键", dataType = "long", position = 1)
+    @ApiModelProperty(value = "规则主键", dataType = "long", position = 0)
     private Long id;
+
+    /**
+     * 2021/8/31 16:11 规则与客户关系主键
+     */
+    @ApiModelProperty(value = "规则与客户关系主键", dataType = "long", position = 1)
+    private Long crId;
 
     /**
      * 2021/8/31 16:11 规则名称

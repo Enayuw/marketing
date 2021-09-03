@@ -88,4 +88,42 @@ public class RuleOfScoreController {
         scoreRuleConfigService.save(scoreRuleVO);
         return new ApiResult<>().success();
     }
+
+    /**
+     * 设置开启状态 1-开启；2-禁用；3-开启中
+     *
+     * @param rid    规则主键
+     * @param status 状态值
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 11:01
+     */
+    @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "PUT")
+    @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
+            , @ApiImplicitParam(name = "status", value = "状态", paramType = "path", dataType = "integer")})
+    @PutMapping("/stare/{rid}/{status}")
+    public ApiResult<?> status(@PathVariable(name = "rid") Long rid
+            , @PathVariable(name = "status") Integer status) {
+        boolean bool = scoreRuleConfigService.setStatus(rid, status);
+        if (bool) {
+            return new ApiResult<>().success(true);
+        }
+        return new ApiResult<>().success(false, "操作失败，请稍后重试");
+    }
+
+    /**
+     * 获取详情
+     *
+     * @param rid  规则主键
+     * @param crId 规则与客户关系主键
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 11:01
+     */
+    @ApiOperation(value = "详情", notes = "详情", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
+            , @ApiImplicitParam(name = "crId", value = "规则与客户关系主键", paramType = "path", dataType = "long")})
+    @GetMapping("/detail/{rid}/{crId}")
+    public ApiResult<ScoreRuleVO> detail(@PathVariable(name = "rid") Long rid, @PathVariable(name = "crId") Long crId) {
+        ScoreRuleVO scoreRuleVO = scoreRuleConfigService.detail(rid, crId);
+        return new ApiResult<ScoreRuleVO>().success(scoreRuleVO);
+    }
 }
