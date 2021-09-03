@@ -616,7 +616,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
                 //解密、规则校验
-                String cell = marketingPreUserDetailDTO.getCell();
                 marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
                 encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
@@ -630,7 +629,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?"":marketingPreUserDetailDTO.getId()
                         , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
                         , marketingPreUserDetailDTO.getGroupType()
-                        , marketingPreUserDetailDTO.getReserveField1().getUserType()
+                        , finalReserveField.getUserType()
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1())
                         , marketingPreUserDetailDTO.getReserveField2()
