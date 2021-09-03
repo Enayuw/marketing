@@ -462,16 +462,19 @@ public class redis {
 
     @Test
     public void testGrovvy(){
-        MarketingUser user = new MarketingUser();
 
         GroovyClassLoader classLoader = new GroovyClassLoader();
-        Class groovyClass = classLoader.parseClass("def cal(int a, int b){\n" +
-                "    return a+b\n" +
+        Class groovyClass = classLoader.parseClass("def cal(object o){\n" +
+                "    if(o.userType=='1'){return true} \n" +
+                "       return false\n" +
                 "}");
         try {
-            Object[] param = { 8,7 };
-            GroovyObject groovyObject = (GroovyObject) groovyClass.newInstance();
-            int result = (int)groovyObject.invokeMethod("cal",param);
+//            Object[] param = { 8,7 };
+            MarketingSyncUser user = new MarketingSyncUser();
+            user.setGroupType("1");
+            GroovyObject groovyObject =
+                    (GroovyObject) groovyClass.newInstance();
+            boolean result = (boolean)groovyObject.invokeMethod("cal",user);
             System.out.println(result);
         } catch (InstantiationException e) {
             e.printStackTrace();

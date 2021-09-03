@@ -26,4 +26,26 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     Integer selectTransfersByRequestId(@Param("apiCode") String apiCode,@Param("requestId") String requestId);
 
     List<MarketingSyncUser> getPreUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("conditionTextByTaskIdAndCust")String conditionTextByTaskIdAndCust);
+
+    Long countRepeat(@Param("execSql") String execSql);
+
+    Long getSoleValidUser(@Param("execSql") String execSql);
+
+    Integer updateRepeatUserStatus(@Param("execSql") String execSql);
+
+    Long getMinIdByRuleScore(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
+            ,@Param("whereStr")String whereStr);
+
+    Long getMaxIdByRuleScore(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
+            ,@Param("whereStr")String whereStr);
+
+    Integer countByPreUserWithRule(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
+            ,@Param("whereStr")String whereStr);
+
+    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr
+            ,@Param("eTimeStr")String eTimeStr,@Param("minId")Long minId,@Param("whereStr")String whereStr);
 }

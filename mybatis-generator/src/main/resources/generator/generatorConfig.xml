@@ -59,7 +59,8 @@
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
-<!--            <columnOverride column="data_str" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+<!--            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+<!--            <columnOverride column="reserve_field2" javaType="java.lang.String" jdbcType="VARCHAR" />-->
         </table>
     </context>
 

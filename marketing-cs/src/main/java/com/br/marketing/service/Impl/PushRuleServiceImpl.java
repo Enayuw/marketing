@@ -588,7 +588,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
                 String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
+                String appletTime = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
+                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s','%s',%s)"
                         , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
                         , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
                         , marketingPreUserDetailDTO.getCell()
@@ -598,32 +599,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , marketingPreUserDetailDTO.getRegisterDate()
                         , marketingPreUserDetailDTO.getReserveField1()
                         , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate,
+                        , date, date, appletDate,appletTime,
                         marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType(),
                         marketingPreUserDetailDTO.getStatus());
                 try {
                     marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
                 } catch (Exception ex) {
-                    if (ex.getMessage().contains("IDX_taskId_custNum")) {
-                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
-                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
-                        errorDetailVO.setErrorCode("1003");
-                        errorDetailVO.setErrorMsg(errorCodeHm.get("1003"));
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
-                    } else if (ex.getMessage().contains("uk_taskId_cell")) {
-                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
-                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
-                        errorDetailVO.setErrorCode("1004");
-                        errorDetailVO.setErrorMsg(errorCodeHm.get("1004"));
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
-                    } else {
-                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
-                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
-                        errorDetailVO.setErrorCode("1005");
-                        errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
-                        log.error(ex.getMessage(),ex);
-                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
-                    }
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1005");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
+                    log.error(ex.getMessage(),ex);
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             });

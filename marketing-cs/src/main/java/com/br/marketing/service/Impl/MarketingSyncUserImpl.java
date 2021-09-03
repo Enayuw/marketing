@@ -1,0 +1,32 @@
+package com.br.marketing.service.Impl;
+
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.service.IMarketingSyncUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class MarketingSyncUserImpl implements IMarketingSyncUserService {
+
+    @Autowired
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Override
+    public Long countRepeat(String execSql) {
+        return marketingSyncInfoMapper.countRepeat(execSql);
+    }
+
+    @Override
+    public Long getSoleValidUser(String execSql) {
+        return marketingSyncInfoMapper.getSoleValidUser(execSql);
+    }
+
+
+    @Override
+    public Integer updateRepeatUserStatus(String execSql) {
+        return marketingSyncInfoMapper.updateRepeatUserStatus(execSql);
+    }
+}

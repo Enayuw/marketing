@@ -69,4 +69,44 @@
         select * from b_marketing_sync_${apiCode}
         where ${conditionTextByTaskIdAndCust}
     </select>
+    
+    <select id="countRepeat" resultType="java.lang.Long">
+        ${execSql}
+    </select>
+
+    <select id="getSoleValidUser" resultType="java.lang.Long">
+        ${execSql}
+    </select>
+
+    <update id="updateRepeatUserStatus">
+        ${execSql}
+    </update>
+    
+    <select id="getMinIdByRuleScore" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and (${whereStr})
+    </select>
+    
+    <select id="getMaxIdByRuleScore" resultType="java.lang.Long">
+        select max(id)
+        from b_marketing_sync_${apiCode}
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and (${whereStr})
+    </select>
+
+    <select id="countByPreUserWithRule" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_sync_${apiCode}
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and (${whereStr})
+    </select>
+
+    <select id="getSyncUserByRuleScore" resultType="java.util.List">
+        select *
+        from b_marketing_sync_${apiCode}
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId}]]>
+        and (${whereStr}) order by id asc limit 5000
+    </select>
 </mapper>

@@ -86,7 +86,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     from b_customer_sole
     where id = #{id,jdbcType=BIGINT}
@@ -105,12 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_customer_sole (customer_id, sole_id, is_del,
-    create_time, update_time, condition_info
-    )
-    values (#{customerId,jdbcType=BIGINT}, #{soleId,jdbcType=BIGINT}, #{isDel,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{conditionInfo,jdbcType=VARCHAR}
-    )
+    insert into b_customer_sole (customer_id, sole_id, is_del, 
+      create_time, update_time, condition_info
+      )
+    values (#{customerId,jdbcType=BIGINT}, #{soleId,jdbcType=BIGINT}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{conditionInfo,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerSole" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -196,12 +196,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_customer_sole
     set id = #{record.id,jdbcType=BIGINT},
-    customer_id = #{record.customerId,jdbcType=BIGINT},
-    sole_id = #{record.soleId,jdbcType=BIGINT},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    condition_info = #{record.conditionInfo,jdbcType=VARCHAR}
+      customer_id = #{record.customerId,jdbcType=BIGINT},
+      sole_id = #{record.soleId,jdbcType=BIGINT},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      condition_info = #{record.conditionInfo,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
