@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SoleRuleConfigMapper" >
+    <select id="selectList" resultType="com.br.marketing.entity.SoleRuleConfig" parameterType="com.br.marketing.dto.SoleRuleSearchDTO">
+        select id, sole_name, sole_fields, sole_cycle_times, status, is_del, create_time, update_time
+        from b_sole_rule_config bsrc
+        where bsrc.is_del = 1
+        <if test="status !=null and status>0">
+            and bsrc.status = #{status}
+        </if>
+        <if test="soleName !=null and soleName!=''">
+            and bsrc.sole_name like concat("%", #{soleName},"%")
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bsrc.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bsrc.create_time <=#{createTimeEnd} ]]>
+        </if>
+        <if test="updateTimeStart !=null and updateTimeStart!=''">
+            <![CDATA[  and bsrc.update_time <=#{updateTimeStart} ]]>
+        </if>
+        <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+            <![CDATA[  and bsrc.update_time >=#{updateTimeEnd} ]]>
+        </if>
+        order by bsrc.id desc
+    </select>
+
 </mapper>

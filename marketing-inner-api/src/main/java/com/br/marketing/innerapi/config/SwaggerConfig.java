@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
@@ -64,8 +65,16 @@ public class SwaggerConfig {
         if (address != null) {
             ip = address.getHostName() + "-" + address.getCanonicalHostName();
         }
-        ApiInfo apiInfo = new ApiInfo("营销平台内部api", "此在线API手册为调用营销平台技术人员提供开发参考", "1.0.0", "Terms of service", new Contact("百融云. 服务器信息: " + ip, "", ""),
-                "百融云", "https://www.brgroup.com/");
-        return apiInfo;
+//        ApiInfo apiInfo = new ApiInfo("营销平台内部api", "此在线API手册为调用营销平台技术人员提供开发参考", "1.0.0", "Terms of service", new Contact("百融云. 服务器信息: " + ip, "", ""),
+//                "百融云", "https://www.brgroup.com/");
+        return new ApiInfoBuilder()
+                .title("营销平台内部api")
+                .description("此在线API手册为调用营销平台技术人员提供开发参考")
+                .version("1.0.0")
+                .termsOfServiceUrl("Terms of service")
+                .contact(new Contact("百融云. 服务器信息: " + ip, "", ""))
+                .license("百融云")
+                .licenseUrl("https://www.brgroup.com/")
+                .build();
     }
 }
