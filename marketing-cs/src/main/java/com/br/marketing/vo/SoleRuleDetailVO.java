@@ -23,8 +23,8 @@ public class SoleRuleDetailVO {
     @ApiModelProperty(value = "去重字段")
     private String soleFields;
 
-    @ApiModelProperty(value = "去重时间周期(T-n)")
-    private String soleCycleTimes;
+    @ApiModelProperty(value = "去重时间周期")
+    private Integer soleCycleTimes;
 
     @ApiModelProperty(value = "匹配商户列表")
     private List<CustUserTypeSelectVO> soleCustom;
