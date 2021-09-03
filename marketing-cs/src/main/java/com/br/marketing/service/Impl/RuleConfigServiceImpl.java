@@ -1,0 +1,117 @@
+package com.br.marketing.service.Impl;
+
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.vo.CustomerScoreRuleVO;
+import com.br.marketing.vo.CustomerSoleRuleVO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class RuleConfigServiceImpl implements IRuleConfigService {
+
+    @Autowired
+    ScoreRuleConfigMapper scoreRuleConfigMapper;
+
+    @Autowired
+    SoleRuleConfigMapper soleRuleConfigMapper;
+
+    @Autowired
+    CustomerSoleMapper customerSoleMapper;
+
+    @Autowired
+    CustomerRuleMapper customerRuleMapper;
+
+    @Autowired
+    CustomerMapper customerMapper;
+
+    @Override
+    public Result<List<CustomerSoleRuleVO>> getSoleConfig(String apiCode) {
+
+        List<CustomerSoleRuleVO> resList = new ArrayList<>();
+        Customer customerByApiCode = customerMapper.getCustomerByApiCode(apiCode);
+
+        CustomerSoleExample customerSoleExample= new CustomerSoleExample();
+        customerSoleExample.createCriteria()
+                .andCustomerIdEqualTo(customerByApiCode.getId())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
+        if(customerSoles.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(resList).setMessage("该用户没有匹配的去重规则");
+        }
+        List<Long> soleIds = customerSoles.stream()
+                .map(t -> t.getSoleId()).collect(Collectors.toList());
+        SoleRuleConfigExample soleRuleConfigExample = new SoleRuleConfigExample();
+        soleRuleConfigExample.createCriteria()
+                .andIdIn(soleIds)
+                .andStatusEqualTo(Constants.STATUS_START)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectByExample(soleRuleConfigExample);
+
+        if(soleRuleConfigs.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该用户的去重规则是否已失效");
+        }
+
+        customerSoles.forEach(t->{
+            Optional<SoleRuleConfig> first = soleRuleConfigs.stream()
+                    .filter(k -> k.getId().equals(t.getSoleId())).findFirst();
+            if(first.isPresent()){
+                CustomerSoleRuleVO vo = new CustomerSoleRuleVO();
+                BeanUtils.copyProperties(first.get(),vo);
+                vo.setApiCode(apiCode);
+                vo.setConditionInfo(t.getConditionInfo());
+                resList.add(vo);
+            }
+        });
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
+    }
+
+    @Override
+    public Result<List<CustomerScoreRuleVO>> getScoreConfig(String apiCode) {
+        List<CustomerScoreRuleVO> resList = new ArrayList<>();
+        Customer customerByApiCode = customerMapper.getCustomerByApiCode(apiCode);
+
+        CustomerRuleExample customerRuleExample= new CustomerRuleExample();
+        customerRuleExample.createCriteria()
+                .andCustomerIdEqualTo(customerByApiCode.getId())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<CustomerRule> customerRules = customerRuleMapper.selectByExample(customerRuleExample);
+        if(customerRules.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该用户没有跑分规则");
+        }
+        List<Long> ruleIds = customerRules.stream()
+                .map(t -> t.getRuleId()).collect(Collectors.toList());
+        SoleRuleConfigExample soleRuleConfigExample = new SoleRuleConfigExample();
+        soleRuleConfigExample.createCriteria()
+                .andIdIn(ruleIds)
+                .andStatusEqualTo(Constants.STATUS_START)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectByExample(soleRuleConfigExample);
+
+        if(soleRuleConfigs.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该用户的去重规则是否已失效");
+        }
+
+        customerRules.forEach(t->{
+            Optional<SoleRuleConfig> first = soleRuleConfigs.stream()
+                    .filter(k -> k.getId().equals(t.getRuleId())).findFirst();
+            if(first.isPresent()){
+                CustomerScoreRuleVO vo = new CustomerScoreRuleVO();
+                BeanUtils.copyProperties(first.get(),vo);
+                vo.setApiCode(apiCode);
+                resList.add(vo);
+            }
+        });
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
+    }
+}

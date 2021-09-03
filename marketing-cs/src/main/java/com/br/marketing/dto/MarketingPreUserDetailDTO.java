@@ -47,4 +47,6 @@ public class MarketingPreUserDetailDTO implements Serializable {
 
     @ApiModelProperty(value = "预留剔除状态字段 1：正常，2：剔除")
     private Integer status;
+
+    private String cusBatch;
 }

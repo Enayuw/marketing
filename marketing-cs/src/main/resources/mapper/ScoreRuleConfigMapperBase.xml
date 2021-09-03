@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.ScoreRuleConfigMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ScoreRuleConfig" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="sule_name" property="suleName" jdbcType="VARCHAR" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
     <result column="rule_name_short" property="ruleNameShort" jdbcType="VARCHAR" />
     <result column="start_time" property="startTime" jdbcType="VARCHAR" />
     <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
@@ -78,7 +78,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, sule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
+    id, rule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
     strategy_id, base_info, is_del, create_time, exec_type, cycle_day, cycle_end_day, 
     push_type, status, update_time
   </sql>
@@ -116,13 +116,13 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_score_rule_config (sule_name, rule_name_short, start_time, 
+    insert into b_score_rule_config (rule_name, rule_name_short, start_time, 
       strategy_product_json, condition_info, strategy_id, 
       base_info, is_del, create_time, 
       exec_type, cycle_day, cycle_end_day, 
       push_type, status, update_time
       )
-    values (#{suleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
+    values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
       #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{baseInfo,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
       #{execType,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, 
@@ -135,8 +135,8 @@
     </selectKey>
     insert into b_score_rule_config
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="suleName != null" >
-        sule_name,
+      <if test="ruleName != null" >
+        rule_name,
       </if>
       <if test="ruleNameShort != null" >
         rule_name_short,
@@ -182,8 +182,8 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="suleName != null" >
-        #{suleName,jdbcType=VARCHAR},
+      <if test="ruleName != null" >
+        #{ruleName,jdbcType=VARCHAR},
       </if>
       <if test="ruleNameShort != null" >
         #{ruleNameShort,jdbcType=VARCHAR},
@@ -241,8 +241,8 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.suleName != null" >
-        sule_name = #{record.suleName,jdbcType=VARCHAR},
+      <if test="record.ruleName != null" >
+        rule_name = #{record.ruleName,jdbcType=VARCHAR},
       </if>
       <if test="record.ruleNameShort != null" >
         rule_name_short = #{record.ruleNameShort,jdbcType=VARCHAR},
@@ -294,7 +294,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_score_rule_config
     set id = #{record.id,jdbcType=BIGINT},
-      sule_name = #{record.suleName,jdbcType=VARCHAR},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
       rule_name_short = #{record.ruleNameShort,jdbcType=VARCHAR},
       start_time = #{record.startTime,jdbcType=VARCHAR},
       strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
@@ -316,8 +316,8 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
     update b_score_rule_config
     <set >
-      <if test="suleName != null" >
-        sule_name = #{suleName,jdbcType=VARCHAR},
+      <if test="ruleName != null" >
+        rule_name = #{ruleName,jdbcType=VARCHAR},
       </if>
       <if test="ruleNameShort != null" >
         rule_name_short = #{ruleNameShort,jdbcType=VARCHAR},
@@ -366,7 +366,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
     update b_score_rule_config
-    set sule_name = #{suleName,jdbcType=VARCHAR},
+    set rule_name = #{ruleName,jdbcType=VARCHAR},
       rule_name_short = #{ruleNameShort,jdbcType=VARCHAR},
       start_time = #{startTime,jdbcType=VARCHAR},
       strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
