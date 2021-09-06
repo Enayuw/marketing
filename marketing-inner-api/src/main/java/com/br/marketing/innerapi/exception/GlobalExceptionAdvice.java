@@ -36,7 +36,7 @@ public class GlobalExceptionAdvice {
     public ApiResult<Object> businessException(BusinessException exception, HttpServletRequest request, HttpServletResponse response) {
         Exception e = exception.getException();
         log.warn(request.getRequestURI());
-        log.error(exception.getExceptionMessage());
+        log.error(exception.getMsg());
         if (!ObjectUtils.isEmpty(e)) {
             log.error(e.getMessage(), e);
         }

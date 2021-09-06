@@ -61,4 +61,13 @@ public interface ScoreRuleConfigService {
      * @dateTime 2021/9/3 13:45
      */
     ScoreRuleVO detail(Long rid, Long crId);
+
+    /**
+     * 变更规则
+     *
+     * @param scoreRuleVO 规则数据
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 15:15
+     */
+    void modify(ScoreRuleVO scoreRuleVO);
 }

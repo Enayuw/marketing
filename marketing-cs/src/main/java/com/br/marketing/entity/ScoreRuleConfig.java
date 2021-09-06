@@ -19,7 +19,7 @@ public class ScoreRuleConfig {
     private String ruleNameShort;
 
     /**
-     * 跑分时间 格式HH:mm 
+     * 跑分时间 格式HH:mm
      */
     private String startTime;
 
@@ -64,7 +64,7 @@ public class ScoreRuleConfig {
     private Integer cycleDay;
 
     /**
-     * 
+     *
      */
     private String cycleEndDay;
 
@@ -82,6 +82,11 @@ public class ScoreRuleConfig {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 策略产品展示信息，后期有可能维护成需要配置的产品
+     */
+    private String strategyProductShow;
 
     public Long getId() {
         return id;
@@ -209,5 +214,13 @@ public class ScoreRuleConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getStrategyProductShow() {
+        return strategyProductShow;
+    }
+
+    public void setStrategyProductShow(String strategyProductShow) {
+        this.strategyProductShow = strategyProductShow;
     }
 }
