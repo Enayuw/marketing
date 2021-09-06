@@ -13,11 +13,11 @@ import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.service.MarketingSepService;
 import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -69,10 +68,9 @@ public class MergeServiceImpl implements MergeService {
     @Resource
     ProFieldsClient proFieldsClient;
     @Resource
-    TaskStatusMapper taskStatusMapper;
-    @Resource
     LoanFileMapper loanFileMapper;
-
+    @Resource
+    MarketingSepService marketingSepService;
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
@@ -88,11 +86,8 @@ public class MergeServiceImpl implements MergeService {
         List<LoanFile> pushList =new ArrayList<>();
         try{
             if(customer !=null){
-                List<LoanFile> allList=new ArrayList<>();
-                List<LoanFile> onceList=new ArrayList<>();
-                initBatchNumList(allList,onceList,customer.getApiCode());
-                pushList.addAll(mergeAllOrOnce(allList,customer));
-                pushList.addAll(mergeAllOrOnce(onceList,customer));
+                List<LoanFile> list= loanFileMapper.queryFile(customer.getApiCode());
+                pushList =mergeAllOrOnce(list,customer);
             }
 
         }catch (Exception e){
@@ -149,7 +144,7 @@ public class MergeServiceImpl implements MergeService {
                 baseHeadInfo = baseHeadInfoByTaskId.getData();
             }
             String dataInfo = "";
-            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
+            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber(),blt.getStrategyId());
             if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
                 dataInfo = fieldsInfo.getData();
             }
@@ -162,12 +157,11 @@ public class MergeServiceImpl implements MergeService {
             startTime=startTime.split(" ")[0].replace("-","");
 
             String  strategyId=blt.getStrategyId();
-            String fileName=blf.getApiCode().concat("_").concat(s).concat("_").concat(blf.getBatchNumber()).concat("_").concat(strategyId.split(":")[0])
+            String fileName=blf.getApiCode().concat("_").concat(s).concat("_").concat(blf.getBatchNumber()).concat("_").concat(strategyId)
                     .concat("_").concat(startTime).concat("_").concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
             String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
-            Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
-            String separator=Constants.sepMap.get(sep);
+            String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
             FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
 
@@ -350,54 +344,6 @@ public class MergeServiceImpl implements MergeService {
         return scores;
     }
 
-    private List<String> mergeResultFile(LoanFile blf, String date){
-        List<String> result=new ArrayList<>();
-        try{
-            String filePath = blf.getFilePath();
-            filePath= filePath.substring(0,filePath.length()-10);
-            StringBuilder targetPath=new StringBuilder();
-            targetPath.append(filePath).append(date)
-                    .append("/");
-            MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
-            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
-            String baseHeadInfo = "";
-            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
-                baseHeadInfo = baseHeadInfoByTaskId.getData();
-            }
-            String dataInfo = "";
-            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(), blt.getStrategyId());
-            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
-                dataInfo = fieldsInfo.getData();
-            }
-            String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
-            proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
-            String fileName1 = blt.getFileName();
-            fileName1=fileName1.replace(".txt","");
-            String s = fileName1.split("_")[1];
-            String startTime = blf.getCreateTime();
-            startTime=startTime.split(" ")[0].replace("-","");
-
-            String fileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_"+blf.getBatchNumber()+"_"
-                    +blt.getStrategyId()+"_"+startTime+"_"+DateHelper.getDateAddYyMmDd(0)+".txt";
-            StringBuilder head= new StringBuilder();
-            Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
-            String separator=Constants.sepMap.get(sep);
-            initHead(head,blt.getApiCode(),blt.getStrategyId(),separator,baseHeadInfo,dataInfo);
-            FileUtil.mergeAll(head.toString(),fileName,targetPath.toString(),separator);
-            result.add(fileName);
-            String errorFileName=targetPath.toString()+blf.getApiCode()+"_"+s+"_error_"+DateHelper.getDateAddYyMmDd(0)+".txt";
-            boolean b = FileUtil.mergeError(errorFileName, targetPath.toString());
-            if(b){
-                result.add(errorFileName);
-            }
-        }catch (Exception e){
-            log.error("合并出错--{}",e);
-        }finally {
-            proFieldMap.clear();
-        }
-
-        return result;
-    }
 
     /**
      * 初始化表头
@@ -520,21 +466,6 @@ public class MergeServiceImpl implements MergeService {
 
     }
 
-    /**
-     * 初始化当日需要监控的任务信息，并将增量监控和全量监控区分开来
-     * @param allList
-     */
-    private void initBatchNumList( List<LoanFile> allList, List<LoanFile> onceList, String apiCode){
 
-        List<LoanFile> list= loanFileMapper.queryFile(apiCode);
-        for(LoanFile blf :list){
-            if(blf.getType()==2){
-                onceList.add(blf);
-            }else if(blf.getType()==1){
-                allList.add(blf);
-            }
-        }
-        log.info("[PUSH]all size:{},once size:{}",allList.size(),onceList.size());
-    }
 
 }

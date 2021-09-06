@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.util.*;
@@ -165,18 +166,13 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         for (SoleOptLog log : soleOptLogs){
             SoleOptLogVO logVO = new SoleOptLogVO();
             BeanUtils.copyProperties(log, logVO);
-/*            Map<Object,Object> map = (Map)JSONObject.parseObject(log.getContent());
-            logVO.setSoleName(map.get("soleName")!=null?map.get("soleName").toString():"");
-            logVO.setSoleFields(map.get("soleFields")!=null?map.get("soleFields").toString():"");
-            logVO.setSoleCycleTimes(map.get("soleCycleTimes")!=null?map.get("soleCycleTimes").toString():"");
-            logVO.setSoleCustomers(map.get("soleCustomers")!=null?map.get("soleCustomers").toString():"");
-            logVO.setStatus(map.get("status")!=null?map.get("status").toString():"");*/
             logVOS.add(logVO);
         }
         return logVOS;
     }
 
     @Override
+    @Transactional
     public boolean saveOrUpdate(SoleRuleDetailVO vo,UserDetail userDetail) {
         //根据有没有id判断是新增或者变更
         SoleRuleConfig soleRuleConfig = new SoleRuleConfig();

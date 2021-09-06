@@ -61,7 +61,6 @@ public interface RuleOfSoleService {
      * @param vo
      * @return
      */
-    @Transactional
     boolean saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail);
 
     /**

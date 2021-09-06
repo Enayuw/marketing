@@ -88,12 +88,6 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      */
     List<MarketingTask> query360BatchNumByapiCode(String apiCode);
 
-    /**
-     * 查询分隔符
-     * @param apiCode
-     * @return
-     */
-    Integer querySep(String apiCode);
 
     /**
      * 查询scoredata字段
