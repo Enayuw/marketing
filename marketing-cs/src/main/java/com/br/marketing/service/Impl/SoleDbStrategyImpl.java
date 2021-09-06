@@ -45,11 +45,11 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             String timeStrNextSql = "";
             StringBuilder soleStr = new StringBuilder();
             String soleFields = soleRuleVO.getSoleFields();
-            String soleCycleTimes = soleRuleVO.getSoleCycleTimes();
+            Integer soleCycleTimes = soleRuleVO.getSoleCycleTimes();
             String endTimeNow =null;
             String endTimeNext =null;
             String startTime =null;
-            if(StringUtils.isNotBlank(soleCycleTimes)){
+            if(soleCycleTimes != null){
                 LocalDateTime now = LocalDateTime.now();
                 endTimeNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 endTimeNext = now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
