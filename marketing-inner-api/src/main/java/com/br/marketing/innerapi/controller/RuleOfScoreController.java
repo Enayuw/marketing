@@ -3,6 +3,8 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
@@ -39,9 +41,9 @@ public class RuleOfScoreController {
      */
     @GetMapping("/page")
     @ApiOperation(value = "列表数据", notes = "获取跑分配置列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", required = true
+    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer"
             , defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", required = true
+            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer"
             , defaultValue = "10")
             , @ApiImplicitParam(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；2-禁用；3-开启中", paramType = "query", dataType = "enum"
@@ -141,7 +143,8 @@ public class RuleOfScoreController {
             FieldError fieldError = fieldErrors.get(0);
             return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
         }
-        scoreRuleConfigService.modify(scoreRuleVO);
+        UserDetail user = ThreadContextInfo.getUser();
+        scoreRuleConfigService.modify(scoreRuleVO, user);
         return new ApiResult<>().success();
     }
 

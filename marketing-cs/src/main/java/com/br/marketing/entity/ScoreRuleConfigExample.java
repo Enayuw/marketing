@@ -1144,6 +1144,76 @@ public class ScoreRuleConfigExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andStrategyProductShowIsNull() {
+            addCriterion("strategy_product_show is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowIsNotNull() {
+            addCriterion("strategy_product_show is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowEqualTo(String value) {
+            addCriterion("strategy_product_show =", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowNotEqualTo(String value) {
+            addCriterion("strategy_product_show <>", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowGreaterThan(String value) {
+            addCriterion("strategy_product_show >", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_product_show >=", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowLessThan(String value) {
+            addCriterion("strategy_product_show <", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowLessThanOrEqualTo(String value) {
+            addCriterion("strategy_product_show <=", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowLike(String value) {
+            addCriterion("strategy_product_show like", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowNotLike(String value) {
+            addCriterion("strategy_product_show not like", value, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowIn(List<String> values) {
+            addCriterion("strategy_product_show in", values, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowNotIn(List<String> values) {
+            addCriterion("strategy_product_show not in", values, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowBetween(String value1, String value2) {
+            addCriterion("strategy_product_show between", value1, value2, "strategyProductShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductShowNotBetween(String value1, String value2) {
+            addCriterion("strategy_product_show not between", value1, value2, "strategyProductShow");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
