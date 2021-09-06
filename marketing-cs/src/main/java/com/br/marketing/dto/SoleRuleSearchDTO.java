@@ -3,7 +3,6 @@ package com.br.marketing.dto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
 
 @Data
 public class SoleRuleSearchDTO {
@@ -15,15 +14,15 @@ public class SoleRuleSearchDTO {
     private Integer status;
 
     @ApiModelProperty(value = "开始创建时间")
-    private Date createTimeStart;
+    private String createTimeStart;
 
     @ApiModelProperty(value = "结束创建时间")
-    private Date createTimeEnd;
+    private String createTimeEnd;
 
     @ApiModelProperty(value = "开始变更时间")
-    private Date updateTimeStart;
+    private String updateTimeStart;
 
     @ApiModelProperty(value = "结束变更时间")
-    private Date updateTimeEnd;
+    private String updateTimeEnd;
 
 }

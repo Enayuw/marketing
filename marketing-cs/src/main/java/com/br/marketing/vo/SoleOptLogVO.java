@@ -6,10 +6,6 @@ import java.util.Date;
 
 @Data
 public class SoleOptLogVO {
-    /**
-     *
-     */
-    private Long id;
 
     /**
      * 去重规则id

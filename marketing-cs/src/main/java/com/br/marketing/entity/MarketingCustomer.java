@@ -7,12 +7,17 @@ public class MarketingCustomer {
     private Long id;
 
     /**
+     * 合作客户ID
+     */
+    private String cid;
+
+    /**
      * 
      */
     private String apiCode;
 
     /**
-     * 备注
+     *备注
      */
     private String message;
 
@@ -57,7 +62,7 @@ public class MarketingCustomer {
     private Byte saveLog;
 
     /**
-     * 跑分顺序根据此字段倒序排序
+     *跑分顺序根据此字段倒序排序
      */
     private Byte sort;
 
@@ -72,9 +77,19 @@ public class MarketingCustomer {
     private String extendConfigInfo;
 
     /**
-     * 合作客户ID
+     * api推送并发数
      */
-    private String cid;
+    private Integer pushThreadNum;
+
+    /**
+     * 跑分结果推送类型，0文件，1 api，默认支持文件推送
+     */
+    private Integer pushType;
+
+    /**
+     * 推送地址
+     */
+    private String pushUrl;
 
     /**
      * 合作客户名称
@@ -92,6 +107,14 @@ public class MarketingCustomer {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid == null ? null : cid.trim();
     }
 
     public String getApiCode() {
@@ -198,12 +221,28 @@ public class MarketingCustomer {
         this.extendConfigInfo = extendConfigInfo == null ? null : extendConfigInfo.trim();
     }
 
-    public String getCid() {
-        return cid;
+    public Integer getPushThreadNum() {
+        return pushThreadNum;
     }
 
-    public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
+    public void setPushThreadNum(Integer pushThreadNum) {
+        this.pushThreadNum = pushThreadNum;
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public String getPushUrl() {
+        return pushUrl;
+    }
+
+    public void setPushUrl(String pushUrl) {
+        this.pushUrl = pushUrl == null ? null : pushUrl.trim();
     }
 
     public String getName() {
@@ -211,7 +250,7 @@ public class MarketingCustomer {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name == null ? null : name.trim();
     }
 
     public String getShortName() {
@@ -219,6 +258,6 @@ public class MarketingCustomer {
     }
 
     public void setShortName(String shortName) {
-        this.shortName = shortName;
+        this.shortName = shortName == null ? null : shortName.trim();
     }
 }
