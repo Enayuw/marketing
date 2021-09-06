@@ -20,5 +20,5 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      */
     List<CustomerSelectVO> getCidOrApiCodeList(@Param("cid") String cid);
 
-    List<MarketingCustomer> selectByLike(@Param("search") String search);
+    List<MarketingCustomer> selectByLike(String search);
 }
