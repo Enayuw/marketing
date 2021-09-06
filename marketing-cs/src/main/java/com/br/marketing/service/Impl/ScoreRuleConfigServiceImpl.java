@@ -7,6 +7,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -177,7 +178,31 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void modify(ScoreRuleVO scoreRuleVO) {
+    public void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
+        ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(scoreRuleVO.getId());
+        if (ObjectUtils.isEmpty(ruleConfig)) {
+            throw new BusinessException("该配置不存在");
+        }
+        ScoreOptLog scoreOptLog = new ScoreOptLog();
+        scoreOptLog.setApicode(scoreRuleVO.getApiCode());
+        scoreOptLog.setCid(scoreRuleVO.getCid());
+        scoreOptLog.setScoreRuleId(String.valueOf(ruleConfig.getId()));
+        scoreOptLog.setRuleName(ruleConfig.getRuleName());
+        scoreOptLog.setCreateTime(new Date());
+        if (ObjectUtils.isEmpty(userDetail)) {
+            throw new BusinessException("用户信息验证失败，请重新登录重试");
+        }
+        scoreOptLog.setOptUserId(userDetail.getUserId());
+        scoreOptLog.setOptUserName(userDetail.getUsername());
+        scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
+        scoreOptLog.setStrategyProductShow(ruleConfig.getStrategyProductShow());
+        scoreOptLog.setStartTime(ruleConfig.getStartTime());
+        scoreOptLog.setStatus(ruleConfig.getStatus());
+        scoreOptLog.setIsDel(1);
+        int insert = scoreOptLogMapper.insert(scoreOptLog);
+        if (insert < 1) {
+            throw new BusinessException("变更失败，变更记录添加失败");
+        }
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setId(scoreRuleVO.getId());
         rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
@@ -190,8 +215,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (i != 1) {
             throw new BusinessException("变更失败，稍后重试");
         }
-        ScoreOptLog scoreOptLog = new ScoreOptLog();
-        scoreOptLogMapper.insert(scoreOptLog);
     }
 
     /**
@@ -226,15 +249,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (list.size() < 1) {
             return;
         }
-        String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductJson().getBytes(StandardCharsets.UTF_8));
+        String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
         String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
         for (ScoreRuleConfig src : list) {
             if (rule.getId().equals(src.getId())) {
                 continue;
             }
-            String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductJson().getBytes(StandardCharsets.UTF_8));
+            String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
             String md511 = DigestUtils.md5DigestAsHex(src.getConditionInfo().getBytes(StandardCharsets.UTF_8));
-            if (md501.equals(md502) || md510.equals(md511)) {
+            if (md501.equals(md502) && md510.equals(md511)) {
                 throw new BusinessException("规则已经创建，建议调整历史规则");
             }
         }

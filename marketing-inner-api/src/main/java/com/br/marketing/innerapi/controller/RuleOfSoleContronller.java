@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
@@ -16,6 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,14 +36,14 @@ public class RuleOfSoleContronller {
     RuleOfSoleService ruleOfSoleService;
 
 
-    @GetMapping("/test")
+/*    @GetMapping("/test")
     public String test(){
-        /**
+        *//**
          * 获取用户上线文
-         */
+         *//*
         UserDetail user = ThreadContextInfo.getUser();
         return "Success";
-    }
+    }*/
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @PostMapping("/list")
@@ -51,19 +53,22 @@ public class RuleOfSoleContronller {
         try {
             PageResultReturn list = ruleOfSoleService.list(dto, page, pageSize);
             return new ApiResult<PageResultReturn>().success(list);
-        } catch (Exception ex) {
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 
 
-    @ApiOperation(value = "判断规则名称是否重复",notes = "重复返回false；没有重复返回true")
-    @ApiImplicitParam(name = "soleName",value = "规则名称",required = true,dataType = "String")
+    @ApiOperation(value = "判断规则名称是否重复",notes = "如果编辑状态需要传soleId")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "soleName",value = "规则名称",required = true,dataType = "String"),
+            @ApiImplicitParam(name = "soleId",value = "当前规则id",required = false,dataType = "String")
+    })
     @GetMapping("/getNameOnly")
-    public boolean getNameOnly(String soleName){
+    public boolean getNameOnly(String soleName,String soleId){
         //查询
-        return ruleOfSoleService.getNameOnly(soleName);
+        return ruleOfSoleService.getNameOnly(soleName,soleId);
     }
 
 
@@ -78,20 +83,20 @@ public class RuleOfSoleContronller {
             //查询
             List<MarketingCustomerVO> list = ruleOfSoleService.getCustomer(search);
             return new ApiResult<List<MarketingCustomerVO>>().success(list);
-        } catch (Exception ex) {
+        } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
-            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 
 
     @ApiOperation(value = "判断商户是否已经被其他规则匹配",notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = true,dataType = "String"),
+            @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = false,dataType = "String"),
             @ApiImplicitParam(name = "customerId",value = "商户编码",required = true,dataType = "String")
     })
     @GetMapping("/getCusOnly")
-    public boolean getCusUserType(String soleId, String customerId){
+    public boolean getCusOnly(String soleId, String customerId){
         //查询
         return ruleOfSoleService.getCusUserType(soleId,customerId);
     }
@@ -100,18 +105,24 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "新增/变更去重规则",notes = "")
     @PostMapping("/saveOrUpdate")
-    public boolean saveOrUpdate(@RequestBody SoleRuleDetailVO vo){
-        return ruleOfSoleService.saveOrUpdate(vo);
+    public boolean saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
+        //获取用户上下文
+        UserDetail user = ThreadContextInfo.getUser();
+        return ruleOfSoleService.saveOrUpdate(vo,user);
     }
 
 
     @ApiOperation(value = "查看去重规则",notes = "")
     @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
-    @GetMapping("/getById")
-    public String getById(String id){
-
-        //string转为long  再查看
-        return "去重规则实体类";
+    @GetMapping("/getSoleById")
+    public ApiResult<SoleRuleDetailVO> getSoleById(String id){
+        try {
+            SoleRuleDetailVO soleRuleDetailVO = ruleOfSoleService.getSoleById(id);
+            return new ApiResult<SoleRuleDetailVO>().success(soleRuleDetailVO);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            return new ApiResult<SoleRuleDetailVO>().fail(ServiceResultEnum.FAILED);
+        }
     }
 
 
@@ -136,21 +147,8 @@ public class RuleOfSoleContronller {
             return new ApiResult<List<SoleOptLogVO>>().success(list);
         }catch (Exception ex){
             log.error(ex.getMessage());
-            return new ApiResult<List<SoleOptLogVO>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+            return new ApiResult<List<SoleOptLogVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
-
-
-   /* @ApiOperation(value = "匹配商户下的场景",notes = "")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "cid",value = "商户编码",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "apiCode",value = "",required = true,dataType = "String")
-    })
-    @GetMapping("/getUserTypeByCid")
-    public List<Object> getUserTypeByCid(String cid, String apiCode){
-        ArrayList<Object> list = new ArrayList<>();
-        //查询
-        return list;
-    }*/
 
 }

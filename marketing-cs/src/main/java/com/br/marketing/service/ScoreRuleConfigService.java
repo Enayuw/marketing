@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 
@@ -66,8 +67,9 @@ public interface ScoreRuleConfigService {
      * 变更规则
      *
      * @param scoreRuleVO 规则数据
+     * @param userDetail  用户信息
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 15:15
      */
-    void modify(ScoreRuleVO scoreRuleVO);
+    void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail);
 }
