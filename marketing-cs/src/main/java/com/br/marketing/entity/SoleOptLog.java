@@ -14,11 +14,6 @@ public class SoleOptLog {
     private String soleId;
 
     /**
-     * 变更内容
-     */
-    private String content;
-
-    /**
      * 操作人id
      */
     private String optUserId;
@@ -43,6 +38,31 @@ public class SoleOptLog {
      */
     private Date updateTime;
 
+    /**
+     * 去重规则名称
+     */
+    private String soleName;
+
+    /**
+     * 去重字段
+     */
+    private String soleFields;
+
+    /**
+     * 去重时间周期
+     */
+    private Integer soleCycleTimes;
+
+    /**
+     * 匹配商户
+     */
+    private String customerInfo;
+
+    /**
+     * 开启状态 1-开启；2-禁用；3-开启中
+     */
+    private Integer status;
+
     public Long getId() {
         return id;
     }
@@ -57,14 +77,6 @@ public class SoleOptLog {
 
     public void setSoleId(String soleId) {
         this.soleId = soleId == null ? null : soleId.trim();
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content == null ? null : content.trim();
     }
 
     public String getOptUserId() {
@@ -105,5 +117,45 @@ public class SoleOptLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getSoleName() {
+        return soleName;
+    }
+
+    public void setSoleName(String soleName) {
+        this.soleName = soleName == null ? null : soleName.trim();
+    }
+
+    public String getSoleFields() {
+        return soleFields;
+    }
+
+    public void setSoleFields(String soleFields) {
+        this.soleFields = soleFields == null ? null : soleFields.trim();
+    }
+
+    public Integer getSoleCycleTimes() {
+        return soleCycleTimes;
+    }
+
+    public void setSoleCycleTimes(Integer soleCycleTimes) {
+        this.soleCycleTimes = soleCycleTimes;
+    }
+
+    public String getCustomerInfo() {
+        return customerInfo;
+    }
+
+    public void setCustomerInfo(String customerInfo) {
+        this.customerInfo = customerInfo == null ? null : customerInfo.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

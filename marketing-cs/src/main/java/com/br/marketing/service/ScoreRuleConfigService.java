@@ -4,6 +4,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.Marketing;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 
@@ -66,4 +67,14 @@ public interface ScoreRuleConfigService {
     ScoreRuleVO detail(Long rid, Long crId);
 
     ScoreRuleConfig getScoreRule(Long ruleId);
+
+    /**
+     * 变更规则
+     *
+     * @param scoreRuleVO 规则数据
+     * @param userDetail  用户信息
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 15:15
+     */
+    void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail);
 }

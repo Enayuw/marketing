@@ -44,17 +44,39 @@ public class BusinessException extends RuntimeException {
         this.msg = msg;
     }
 
+    public BusinessException(ServiceResultEnum resultEnum) {
+        super();
+        this.code = resultEnum.getCode();
+        this.msg = resultEnum.getMessage();
+    }
+
     public BusinessException(String code, String msg) {
         super();
         this.code = code;
         this.msg = msg;
     }
 
+    public BusinessException(String msg, Exception exception) {
+        super();
+        this.code = ServiceResultEnum.SUCCESS_5.getCode();
+        this.msg = msg;
+        this.exceptionMessage = exception.getMessage() == null ? msg : exception.getMessage();
+        this.exception = exception;
+    }
+
+    public BusinessException(String code, String msg, Exception exception) {
+        super();
+        this.code = code;
+        this.msg = msg;
+        this.exceptionMessage = exception.getMessage() == null ? msg : exception.getMessage();
+        this.exception = exception;
+    }
+
     public BusinessException(String code, String msg, String exceptionMessage, Exception exception) {
         super();
         this.code = code;
         this.msg = msg;
-        this.exceptionMessage = exceptionMessage;
+        this.exceptionMessage = exceptionMessage == null ? msg : exceptionMessage;
         this.exception = exception;
     }
 
@@ -62,7 +84,7 @@ public class BusinessException extends RuntimeException {
         super(message);
         this.code = code;
         this.msg = msg;
-        this.exceptionMessage = exceptionMessage;
+        this.exceptionMessage = exceptionMessage == null ? msg : exceptionMessage;
         this.exception = exception;
     }
 
@@ -70,7 +92,7 @@ public class BusinessException extends RuntimeException {
         super(message, cause);
         this.code = code;
         this.msg = msg;
-        this.exceptionMessage = exceptionMessage;
+        this.exceptionMessage = exceptionMessage == null ? msg : exceptionMessage;
         this.exception = exception;
     }
 
@@ -78,7 +100,7 @@ public class BusinessException extends RuntimeException {
         super(cause);
         this.code = code;
         this.msg = msg;
-        this.exceptionMessage = exceptionMessage;
+        this.exceptionMessage = exceptionMessage == null ? msg : exceptionMessage;
         this.exception = exception;
     }
 
@@ -86,7 +108,7 @@ public class BusinessException extends RuntimeException {
         super(message, cause, enableSuppression, writableStackTrace);
         this.code = code;
         this.msg = msg;
-        this.exceptionMessage = exceptionMessage;
+        this.exceptionMessage = exceptionMessage == null ? msg : exceptionMessage;
         this.exception = exception;
     }
 }

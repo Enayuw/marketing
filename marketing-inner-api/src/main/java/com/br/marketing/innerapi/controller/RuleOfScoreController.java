@@ -3,6 +3,8 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
@@ -39,9 +41,9 @@ public class RuleOfScoreController {
      */
     @GetMapping("/page")
     @ApiOperation(value = "列表数据", notes = "获取跑分配置列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", required = true
+    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer"
             , defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", required = true
+            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer"
             , defaultValue = "10")
             , @ApiImplicitParam(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；2-禁用；3-开启中", paramType = "query", dataType = "enum"
@@ -116,7 +118,7 @@ public class RuleOfScoreController {
      * @param rid  规则主键
      * @param crId 规则与客户关系主键
      * @author zeqiang.guo@brgroup.com
-     * @dateTime 2021/9/3 11:01
+     * @dateTime 2021/9/3 11:18
      */
     @ApiOperation(value = "详情", notes = "详情", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
@@ -126,4 +128,24 @@ public class RuleOfScoreController {
         ScoreRuleVO scoreRuleVO = scoreRuleConfigService.detail(rid, crId);
         return new ApiResult<ScoreRuleVO>().success(scoreRuleVO);
     }
+
+    /**
+     * 变更
+     *
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 14:11
+     */
+    @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "PUT")
+    @PutMapping("/modify")
+    public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            FieldError fieldError = fieldErrors.get(0);
+            return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
+        }
+        UserDetail user = ThreadContextInfo.getUser();
+        scoreRuleConfigService.modify(scoreRuleVO, user);
+        return new ApiResult<>().success();
+    }
+
 }

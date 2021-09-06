@@ -6,10 +6,6 @@ import java.util.Date;
 
 @Data
 public class SoleOptLogVO {
-    /**
-     *
-     */
-    private Long id;
 
     /**
      * 去重规则id
@@ -29,17 +25,17 @@ public class SoleOptLogVO {
     /**
      * 去重时间周期
      */
-    private String soleCycleTimes;
+    private Integer soleCycleTimes;
 
     /**
      * 匹配商户
      */
-    private String soleCustomers;
+    private String customerInfo;
 
     /**
      * 使用状态 启用/禁用
      */
-    private String status;
+    private Integer status;
 
     /**
      * 修改时间

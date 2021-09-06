@@ -3,8 +3,11 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -18,15 +21,19 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 跑分配置业务实现
@@ -46,6 +53,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Resource
     private CustomerRuleMapper customerRuleMapper;
+
+    @Resource
+    private ScoreOptLogMapper scoreOptLogMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
 
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
@@ -74,18 +87,19 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
         rule.setRuleName(scoreRuleVO.getRuleName());
-        rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
+        rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         rule.setStatus(1);
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
-        rule.setRuleNameShort("");
+        rule.setRuleNameShort(createNo());
         rule.setExecType(1);
         rule.setBaseInfo("");
         rule.setIsDel(1);
         rule.setCycleDay(0);
         rule.setPushType(0);
         rule.setCycleEndDay("");
+        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         int insert1 = scoreRuleConfigMapper.insert(rule);
         if (insert1 == 1) {
             CustomerRule cr = new CustomerRule();
@@ -150,7 +164,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setId(rule.getId());
         scoreRuleVO.setRuleName(rule.getRuleName());
         scoreRuleVO.setStartTime(rule.getStartTime());
-        scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
+        scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         String json = rule.getConditionInfo();
         JSONObject object = JSON.parseObject(json);
@@ -165,6 +179,102 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     public ScoreRuleConfig getScoreRule(Long ruleId) {
         return scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
+        ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(scoreRuleVO.getId());
+        if (ObjectUtils.isEmpty(ruleConfig)) {
+            throw new BusinessException("该配置不存在");
+        }
+        ScoreOptLog scoreOptLog = new ScoreOptLog();
+        scoreOptLog.setApicode(scoreRuleVO.getApiCode());
+        scoreOptLog.setCid(scoreRuleVO.getCid());
+        scoreOptLog.setScoreRuleId(String.valueOf(ruleConfig.getId()));
+        scoreOptLog.setRuleName(ruleConfig.getRuleName());
+        scoreOptLog.setCreateTime(new Date());
+        if (ObjectUtils.isEmpty(userDetail)) {
+            throw new BusinessException("用户信息验证失败，请重新登录重试");
+        }
+        scoreOptLog.setOptUserId(userDetail.getUserId());
+        scoreOptLog.setOptUserName(userDetail.getUsername());
+        scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
+        scoreOptLog.setStrategyProductShow(ruleConfig.getStrategyProductShow());
+        scoreOptLog.setStartTime(ruleConfig.getStartTime());
+        scoreOptLog.setStatus(ruleConfig.getStatus());
+        scoreOptLog.setIsDel(1);
+        int insert = scoreOptLogMapper.insert(scoreOptLog);
+        if (insert < 1) {
+            throw new BusinessException("变更失败，变更记录添加失败");
+        }
+        ScoreRuleConfig rule = new ScoreRuleConfig();
+        rule.setId(scoreRuleVO.getId());
+        rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
+        rule.setRuleName(scoreRuleVO.getRuleName());
+        rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
+        rule.setStartTime(scoreRuleVO.getStartTime());
+        rule.setStrategyId(scoreRuleVO.getStrategyId());
+        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+        int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
+        if (i != 1) {
+            throw new BusinessException("变更失败，稍后重试");
+        }
+    }
+
+    /**
+     * 去重
+     *
+     * @param rule    pojo
+     * @param cid     客户id
+     * @param apiCode 接口编码
+     */
+    private void isExist(ScoreRuleConfig rule, String cid, String apiCode) {
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        example.createCriteria().andCidEqualTo(cid).andApiCodeEqualTo(apiCode);
+        // 校验客户信息是否正确
+        List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
+        if (customerList.size() == 0) {
+            throw new BusinessException("客户信息不存在或已删除");
+        }
+        MarketingCustomer customer = customerList.get(0);
+        CustomerRuleExample crExample = new CustomerRuleExample();
+        crExample.createCriteria().andCustomerIdEqualTo(customer.getId());
+        // 根据客户主键获取客户下的跑分规则集合
+        List<CustomerRule> customerRules = customerRuleMapper.selectByExample(crExample);
+        if (customerRules == null) {
+            throw new BusinessException(ServiceResultEnum.UNKNOWN_ERROR);
+        }
+        if (customerRules.size() < 1) {
+            return;
+        }
+        List<Long> ruleIdList = customerRules.stream().map(CustomerRule::getRuleId).collect(Collectors.toList());
+        ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
+        ruleExample.createCriteria().andStrategyIdEqualTo(rule.getStrategyId()).andIdIn(ruleIdList);
+        // 获取客户下的跑分配置
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(ruleExample);
+        if (list == null) {
+            throw new BusinessException(ServiceResultEnum.UNKNOWN_ERROR);
+        }
+        if (list.size() < 1) {
+            return;
+        }
+        // 产品信息获取签名
+        String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
+        // 场景信息获取签名
+        String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
+        for (ScoreRuleConfig src : list) {
+            if (rule.getId().equals(src.getId())) {
+                continue;
+            }
+            // 已有配置产品信息获取签名
+            String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
+            // 已有配置场景信息获取签名
+            String md511 = DigestUtils.md5DigestAsHex(src.getConditionInfo().getBytes(StandardCharsets.UTF_8));
+            if (md501.equals(md502) && md510.equals(md511)) {
+                throw new BusinessException("规则已经创建，建议调整历史规则");
+            }
+        }
     }
 
 
@@ -209,6 +319,30 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             ci.deleteCharAt(index);
         }
         return ci.append("]}").toString();
+    }
+
+    /**
+     * 2021/9/3 19:10
+     * 以天为维度生成递增的编号
+     * 编码规则：日期+序号 例如：20210903001,20210903002,...,20210903999
+     */
+    private String createNo() {
+        String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = "marketing:inner:".concat(yyyyMMdd6);
+        Long index = redisChgService.incr(key);
+        if (index > 999) {
+            throw new BusinessException("抱歉，今天的编号已用尽，当天最大编号[".concat(yyyyMMdd6) + "999]");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        // 当前毫秒数
+        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime localDateTime = now.plusDays(1);
+        // 第二天凌晨毫秒数
+        long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long s = (l1 - l) / 1000;
+        redisChgService.expire(key, (int) s);
+        String prefix3 = String.format("%03d", index);
+        return yyyyMMdd6.concat(prefix3);
     }
 
 }
