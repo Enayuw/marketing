@@ -61,10 +61,10 @@ public class ScoreRuleVO implements Serializable {
     private String startTime;
 
     /**
-     * 策略产品配置信息
+     * 策略产品展示信息，后期有可能维护成需要配置的产品
      */
-    @ApiModelProperty(value = "策略产品配置信息", dataType = "string", position = 7)
-    private String strategyProductJson;
+    @ApiModelProperty(value = "策略产品展示信息，后期有可能维护成需要配置的产品", dataType = "string", position = 7)
+    private String strategyProductShow;
 
     /**
      * 策略
@@ -76,14 +76,14 @@ public class ScoreRuleVO implements Serializable {
     }
 
     public ScoreRuleVO(Long id, String ruleName, String cid, String apiCode, Set<VariableDicSelectVO> vdSet
-            , String startTime, String strategyProductJson, String strategyId) {
+            , String startTime, String strategyProductShow, String strategyId) {
         this.id = id;
         this.ruleName = ruleName;
         this.cid = cid;
         this.apiCode = apiCode;
         this.vdSet = vdSet;
         this.startTime = startTime;
-        this.strategyProductJson = strategyProductJson;
+        this.strategyProductShow = strategyProductShow;
         this.strategyId = strategyId;
     }
 }

@@ -116,7 +116,7 @@ public class RuleOfScoreController {
      * @param rid  规则主键
      * @param crId 规则与客户关系主键
      * @author zeqiang.guo@brgroup.com
-     * @dateTime 2021/9/3 11:01
+     * @dateTime 2021/9/3 11:18
      */
     @ApiOperation(value = "详情", notes = "详情", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
@@ -126,4 +126,23 @@ public class RuleOfScoreController {
         ScoreRuleVO scoreRuleVO = scoreRuleConfigService.detail(rid, crId);
         return new ApiResult<ScoreRuleVO>().success(scoreRuleVO);
     }
+
+    /**
+     * 变更
+     *
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/3 14:11
+     */
+    @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "PUT")
+    @PutMapping("/modify")
+    public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            FieldError fieldError = fieldErrors.get(0);
+            return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
+        }
+        scoreRuleConfigService.modify(scoreRuleVO);
+        return new ApiResult<>().success();
+    }
+
 }
