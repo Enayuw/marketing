@@ -14,11 +14,6 @@ public class ScoreOptLog {
     private String scoreRuleId;
 
     /**
-     * 变更内容
-     */
-    private String content;
-
-    /**
      * 操作人id
      */
     private String optUserId;
@@ -43,6 +38,41 @@ public class ScoreOptLog {
      */
     private Date updateTime;
 
+    /**
+     * 规则名称
+     */
+    private String ruleName;
+
+    /**
+     * 跑分时间 格式HH:mm
+     */
+    private String startTime;
+
+    /**
+     * 规则展示信息
+     */
+    private String conditionShowInfo;
+
+    /**
+     * 商户编号
+     */
+    private String cid;
+
+    /**
+     * 账户标识
+     */
+    private String apicode;
+
+    /**
+     * 策略产品展示信息
+     */
+    private String strategyProductShow;
+
+    /**
+     * 开启状态 1-开启；2-禁用；3-开启中
+     */
+    private Integer status;
+
     public Long getId() {
         return id;
     }
@@ -57,14 +87,6 @@ public class ScoreOptLog {
 
     public void setScoreRuleId(String scoreRuleId) {
         this.scoreRuleId = scoreRuleId == null ? null : scoreRuleId.trim();
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content == null ? null : content.trim();
     }
 
     public String getOptUserId() {
@@ -105,5 +127,61 @@ public class ScoreOptLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getRuleName() {
+        return ruleName;
+    }
+
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName == null ? null : ruleName.trim();
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime == null ? null : startTime.trim();
+    }
+
+    public String getConditionShowInfo() {
+        return conditionShowInfo;
+    }
+
+    public void setConditionShowInfo(String conditionShowInfo) {
+        this.conditionShowInfo = conditionShowInfo == null ? null : conditionShowInfo.trim();
+    }
+
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid == null ? null : cid.trim();
+    }
+
+    public String getApicode() {
+        return apicode;
+    }
+
+    public void setApicode(String apicode) {
+        this.apicode = apicode == null ? null : apicode.trim();
+    }
+
+    public String getStrategyProductShow() {
+        return strategyProductShow;
+    }
+
+    public void setStrategyProductShow(String strategyProductShow) {
+        this.strategyProductShow = strategyProductShow == null ? null : strategyProductShow.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
