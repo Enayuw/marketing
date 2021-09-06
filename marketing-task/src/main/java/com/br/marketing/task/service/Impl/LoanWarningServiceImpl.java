@@ -12,6 +12,9 @@ import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.service.MarketingSepService;
+import com.br.marketing.service.MarketingTaskExtendService;
+import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.LoanWarningThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -49,32 +52,23 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     @Resource
     MarketingTaskMapper marketingTaskMapper;
     @Resource
+    MarketingSepService marketingSepService;
+    @Resource
     MarketingUserMapper marketingUserMapper;
     @Resource
     LoanFileMapper loanFileMapper;
     @Resource
     TaskStatusMapper taskStatusMapper;
-
     @Resource
     StrategyCs strategyCS;
-
     @Resource
     RedisChgService redisChgService;
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
-
-    @Autowired
-    StrategyProductConfigMapper strategyProductConfigMapper;
-
-    @Autowired
-    IProductResultSimpleService iProductResultSimpleService;
-
-    @Autowired
-    GroupStrategyConfigMapper groupStrategyConfigMapper;
-
-    @Autowired
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
-
+    @Resource
+    MarketingTaskExtendService marketingTaskExtendService;
+    @Resource
+    ScoreRuleConfigService scoreRuleConfigService;
     private final static String RedisEsOpen="es:open";
 
     final static Integer allMonitorType = 4;
@@ -204,9 +198,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
      */
     private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num,Customer customer){
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
-        Integer sep= marketingTaskMapper.querySep(apiCode);
-        String separator= Constants.sepMap.get(sep);
-        String baseHeadInfo = this.getBaseHeadInfo(marketingTask.getId(), separator);
+        String separator=marketingSepService.querySepByApiCode(apiCode);
+        String baseHeadInfo = getBaseHeadInfo(marketingTask.getId(), separator);
         Map<String,String> paramMap =new HashedMap();
         paramMap.put("apiCode",apiCode);
         paramMap.put("batchNumber",batchNumber);
@@ -288,9 +281,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                 String descPath=path.concat("/").concat(Constants.monitorTypeMap.get(blt.getMonitorType())).concat("/").concat(blt.getApiCode()).concat("/")
                         .concat(blt.getBatchNumber()).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
                 Integer pushType=0;
-            GroupStrategyConfig groupStrategyConfig =getGroupStrategyConfig(blt);
-            if(groupStrategyConfig !=null){
-                pushType=groupStrategyConfig.getPushType();
+            ScoreRuleConfig scoreRuleConfig =getScoreRuleConfig(blt);
+            if(scoreRuleConfig !=null){
+                pushType=scoreRuleConfig.getPushType();
             }
             /**
              * 任务提交前，在stra_his_file表中插入一条数据（记录当天该批次的结果文件信息，用于结果文件合并和推送）
@@ -352,10 +345,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
                       String fileId,Customer customer){
         try {
-            Integer sep= marketingTaskMapper.querySep(blt.getApiCode());
-            String separator=Constants.sepMap.get(sep);
-
-            String baseHeadInfo = this.getBaseHeadInfo(blt.getId(), separator);
+            String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
+            String baseHeadInfo = getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer esOpenMark = StringUtils.isNotBlank(redisOpen)?Integer.valueOf(redisOpen):1;
                 Long minId= marketingUserMapper.queryMinId(blt);
@@ -405,12 +396,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     }
 
     private String getBaseHeadInfo(Long taskId,String separator){
-        Long id = Long.valueOf(taskId.toString());
-        MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
-        taskExtendExample.createCriteria().andTaskIdEqualTo(id).andIsDelEqualTo(1);
-        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
-        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getExtendShowTitle())){
-            return marketingTaskExtends.get(0).getExtendShowTitle().concat(separator);
+        MarketingTaskExtend taskExtend = marketingTaskExtendService.getMarketingTaskExtend(taskId);
+        if(taskExtend !=null&&StringUtils.isNotBlank(taskExtend.getExtendShowTitle())){
+            return taskExtend.getExtendShowTitle().concat(separator);
         }
         return "";
     }
@@ -486,61 +474,39 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
         extendExample.createCriteria()
                 .andTaskIdEqualTo(Long.valueOf(task.getId()))
                 .andIsDelEqualTo(1);
-        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()>0 && StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())){
-            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-
+        MarketingTaskExtend extend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
+        if(extend !=null){
             String groupStr = "";
-            GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
-            configExample.createCriteria()
-                    .andApiCodeEqualTo(task.getApiCode())
-                    .andGroupTypeEqualTo(taskExtend.getGroupType())
-                    .andIsDelEqualTo(1);
-            List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
-            if(groupStrategyConfigs.size()>0){
-                GroupStrategyConfig groupStrategyConfig = groupStrategyConfigs.get(0);
-                groupStr = groupStrategyConfig.getGroupTypeShort().concat("_");
+            ScoreRuleConfig scoreRule = scoreRuleConfigService.getScoreRule(extend.getRuleId());
+            if(scoreRule !=null){
+                groupStr = scoreRule.getRuleNameShort().concat("_");
             }
             Date parse = null;
             try {
-                parse = yyyy_MM_dd.parse(taskExtend.getUploadTime());
+                parse = yyyy_MM_dd.parse(extend.getUploadTime());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             String showTitle = task.getApiCode().concat("_")
-                                    .concat(taskExtend.getCusTaskId()).concat("_")
-                                    .concat(groupStr)
-                                    .concat(yyyyMMdd.format(parse)).concat("_")
-                                    .concat(yyyyMMdd.format(new Date()));
+                    .concat(extend.getCusTaskId()).concat("_")
+                    .concat(groupStr)
+                    .concat(yyyyMMdd.format(parse)).concat("_")
+                    .concat(yyyyMMdd.format(new Date()));
             return showTitle;
+
         }
         if(allMonitorType.equals(task.getMonitorType())){
             return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
         }
         return task.getCusBatch();
     }
-    private GroupStrategyConfig getGroupStrategyConfig(MarketingTask task){
+    private ScoreRuleConfig getScoreRuleConfig(MarketingTask task){
 
-        GroupStrategyConfig groupStrategyConfig=null;
-
-        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
-        extendExample.createCriteria()
-                .andTaskIdEqualTo(task.getId())
-                .andIsDelEqualTo(1);
-        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()>0&&StringUtils.isNotBlank(marketingTaskExtends.get(0).getGroupType())) {
-            MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-
-            GroupStrategyConfigExample configExample = new GroupStrategyConfigExample();
-            configExample.createCriteria()
-                    .andApiCodeEqualTo(task.getApiCode())
-                    .andGroupTypeEqualTo(taskExtend.getGroupType())
-                    .andIsDelEqualTo(1);
-            List<GroupStrategyConfig> groupStrategyConfigs = groupStrategyConfigMapper.selectByExample(configExample);
-            if (groupStrategyConfigs.size() > 0) {
-                groupStrategyConfig = groupStrategyConfigs.get(0);
-            }
+        ScoreRuleConfig scoreRuleConfig=null;
+        MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
+        if(marketingTaskExtend !=null) {
+            scoreRuleConfig= scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
         }
-        return groupStrategyConfig;
+        return scoreRuleConfig;
     }
 }

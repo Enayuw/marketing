@@ -1,6 +1,9 @@
 package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.Marketing;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 
@@ -61,4 +64,6 @@ public interface ScoreRuleConfigService {
      * @dateTime 2021/9/3 13:45
      */
     ScoreRuleVO detail(Long rid, Long crId);
+
+    ScoreRuleConfig getScoreRule(Long ruleId);
 }

@@ -64,10 +64,10 @@ public class MarketingTaskExtendExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -362,6 +362,66 @@ public class MarketingTaskExtendExample {
 
         public Criteria andCusTaskIdNotBetween(String value1, String value2) {
             addCriterion("cus_task_id not between", value1, value2, "cusTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIsNull() {
+            addCriterion("rule_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIsNotNull() {
+            addCriterion("rule_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdEqualTo(Long value) {
+            addCriterion("rule_id =", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotEqualTo(Long value) {
+            addCriterion("rule_id <>", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdGreaterThan(Long value) {
+            addCriterion("rule_id >", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("rule_id >=", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdLessThan(Long value) {
+            addCriterion("rule_id <", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdLessThanOrEqualTo(Long value) {
+            addCriterion("rule_id <=", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIn(List<Long> values) {
+            addCriterion("rule_id in", values, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotIn(List<Long> values) {
+            addCriterion("rule_id not in", values, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdBetween(Long value1, Long value2) {
+            addCriterion("rule_id between", value1, value2, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotBetween(Long value1, Long value2) {
+            addCriterion("rule_id not between", value1, value2, "ruleId");
             return (Criteria) this;
         }
 
@@ -696,7 +756,7 @@ public class MarketingTaskExtendExample {
         }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

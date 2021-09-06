@@ -136,9 +136,9 @@ public class ResultUtil {
 
         ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
                 getBean(ProductResultByConfigSimpleServiceImpl.class);
-        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode(),strategyId,esResult);
+        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user,strategyId,esResult);
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            ProductResultUtil.dealProResult(hxJson, products, sb, proFieldMap, sep, user.getApiCode());
+            ProductResultUtil.dealProResult(hxJson, products, sb,sep);
         }
         if(log.isInfoEnabled()){
             log.info("sb信息--"+sb.toString());

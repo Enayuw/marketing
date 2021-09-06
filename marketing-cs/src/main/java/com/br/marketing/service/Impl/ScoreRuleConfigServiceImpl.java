@@ -47,9 +47,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Resource
     private CustomerRuleMapper customerRuleMapper;
 
-    @Resource
-    private ScoreOptLogMapper scoreOptLogMapper;
-
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
         PageHelper.startPage(page, pageSize);
@@ -163,6 +160,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setApiCode(customer.getApiCode());
         scoreRuleVO.setCid(customer.getCid());
         return scoreRuleVO;
+    }
+
+    @Override
+    public ScoreRuleConfig getScoreRule(Long ruleId) {
+        return scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
     }
 
 

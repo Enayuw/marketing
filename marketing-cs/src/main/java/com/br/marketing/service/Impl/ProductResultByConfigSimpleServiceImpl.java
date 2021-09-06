@@ -10,6 +10,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.MarketingTaskExtendService;
+import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.ConfigByApiCodeVO;
@@ -18,40 +20,46 @@ import com.google.common.base.Joiner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 @Service
 public class ProductResultByConfigSimpleServiceImpl implements IProductResultSimpleService {
 
-    @Autowired
+    @Resource
     StrategyProductConfigMapper strategyProductConfigMapper;
 
     @Autowired
     RedisChgService redisChgService;
 
-    final static String redisKeyStrategyProduct = "strategyProductConfig:apiCode";
+    final static String redisKeyStrategyProduct = "strategyProductConfig:apiCode:strategyId";
 
     final static String redisKeyConfigByApiCode = "customer:apicode:config";
 
-    @Autowired
+    @Resource
     GroupStrategyConfigMapper groupStrategyConfigMapper;
 
-    @Autowired
+    @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
-    @Autowired
+    @Resource
     ProductFlagScoreMapper flagScoreMapper;
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
-
+    @Resource
+    MarketingTaskMapper marketingTaskMapper;
+    @Resource
+    MarketingTaskExtendService marketingTaskExtendService;
+    @Resource
+    ScoreRuleConfigService scoreRuleConfigService;
     public static List<String> flagScoreByinnerList;
 
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
-            , String sep, String apiCode,String strategyId,JSONObject esResult) {
+            , String sep, MarketingUser user,String strategyId,JSONObject esResult) {
         StringBuilder result=new StringBuilder();
-        String strategyProductConfigStr = getStrategyProductConfigStr(apiCode);
+        String strategyProductConfigStr = getStrategyProductConfigStr(user.getApiCode(),user.getBatchNumber(),strategyId);
         if(StringUtils.isEmpty(strategyProductConfigStr)){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
@@ -197,8 +205,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<String> getFieldsStrInfo(String apiCode, String strategyId) {
-        Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode, strategyId);
+    public Result<String> getFieldsStrInfo(String apiCode,String batchNumber, String strategyId) {
+        Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode,batchNumber,strategyId);
         if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
             return new Result<String>().setCode(fieldsInfo.getCode())
                     .setDate(Joiner.on(",").join(fieldsInfo.getData()));
@@ -209,8 +217,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<List<String>> getFieldsInfo(String apiCode, String strategyId) {
-        String strategyProductConfigStr = this.getStrategyProductConfigStr(apiCode);
+    public Result<List<String>> getFieldsInfo(String apiCode,String batchNumber, String strategyId) {
+        String strategyProductConfigStr = this.getStrategyProductConfigStr(apiCode,batchNumber,strategyId);
         if(StringUtils.isNotBlank(strategyProductConfigStr)){
             List<StrategyProductDetailVO> strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
                     , new TypeReference<List<StrategyProductDetailVO>>() {
@@ -235,22 +243,26 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
-    String getStrategyProductConfigStr(String apiCode){
-        String key = redisKeyStrategyProduct.concat(":").concat(apiCode);
+    String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId){
+        String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(strategyId);
         String s = redisChgService.get(key);
         if(StringUtils.isNotBlank(s)){
             return s;
         }
-        StrategyProductConfigExample productConfigExample= new StrategyProductConfigExample();
-        productConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
-        List<StrategyProductConfig> strategyProductConfigs = strategyProductConfigMapper.selectByExample(productConfigExample);
-        if(strategyProductConfigs.size()<=0){
-            return "";
+        MarketingTaskExample taskExample =new MarketingTaskExample();
+        taskExample.createCriteria().andBatchNumberEqualTo(batchNumber);
+        List<MarketingTask> taskList = marketingTaskMapper.selectByExample(taskExample);
+        if(taskList.size()>0){
+            MarketingTask task =taskList.get(0);
+            MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
+            if(marketingTaskExtend !=null) {
+                ScoreRuleConfig scoreRuleConfig= scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
+                redisChgService.set(key,scoreRuleConfig.getStrategyProductJson());
+                redisChgService.expire(key,60*60*24);
+                return scoreRuleConfig.getStrategyProductJson();
+            }
         }
-        StrategyProductConfig strategyProductConfig = strategyProductConfigs.get(0);
-        redisChgService.set(key,strategyProductConfig.getStrategyProductJson());
-        redisChgService.expire(key,60*60*24);
-        return strategyProductConfig.getStrategyProductJson();
+       return "";
     }
 
     @Override

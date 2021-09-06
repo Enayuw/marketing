@@ -24,6 +24,11 @@ public class MarketingTaskExtend {
     private String cusTaskId;
 
     /**
+     * 规则id
+     */
+    private Long ruleId;
+
+    /**
      * 场景
      */
     private String groupType;
@@ -78,6 +83,14 @@ public class MarketingTaskExtend {
 
     public void setCusTaskId(String cusTaskId) {
         this.cusTaskId = cusTaskId == null ? null : cusTaskId.trim();
+    }
+
+    public Long getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(Long ruleId) {
+        this.ruleId = ruleId;
     }
 
     public String getGroupType() {

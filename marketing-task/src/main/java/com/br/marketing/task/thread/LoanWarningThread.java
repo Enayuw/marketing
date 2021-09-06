@@ -158,22 +158,21 @@ public class LoanWarningThread implements Callable<String> {
                 }
                 jsonData.put("batch_number", blu.getBatchNumber());
                 param.put("jsonData", jsonData.toString());
-                String s="";
+                String resultStr="";
                 if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
-                    s= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
+                    resultStr= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
                     requestLog.setResponseTime(new Date());
                     try {
-                        MomUtil.sendMom(s, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
                     }catch (Throwable throwable){
                         log.error(throwable.getMessage());
                     }
 
                 }else{
-                    s = loanWarningClient.queryApi(param, apiCode);
+                    resultStr = loanWarningClient.queryApi(param, apiCode);
                 }
-                log.info("马上进入dealResult");
-                dealResult(s, fw,errorFw,blu.getCusNum(),blu.getBatchNumber(),apiCode, blu);
+                dealResult(resultStr, fw,errorFw,apiCode, blu);
             }
 
             if(errorList.size()>0){
@@ -407,14 +406,11 @@ public class LoanWarningThread implements Callable<String> {
      * 用流失预警api的返回生成结果文件
      * @param s
      */
-    private void dealResult(String s, Writer fw, Writer errorFw, String cusNum, String batchNumber, String apiCode, MarketingUser blu) throws IOException {
+    private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
         try {
-            log.info("进入dealResult");
             if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
-                log.info("进入DTM");
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    log.info("马上进入generate");
                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
                 }
             }
@@ -424,8 +420,8 @@ public class LoanWarningThread implements Callable<String> {
                          ||"100002".equals(resultJson.getString("code"))){
                      ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
                  }else{
-                     log.error("画像返回错误--{}",cusNum);
-                     ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,cusNum);
+                     log.error("画像返回错误--{}",blu.getCusNum());
+                     ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,blu.getCusNum());
                  }
             }
         }catch (Exception e){
