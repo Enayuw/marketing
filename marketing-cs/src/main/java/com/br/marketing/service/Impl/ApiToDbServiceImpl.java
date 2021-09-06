@@ -709,6 +709,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setApiCode(apiCode);
                     taskExtend.setTaskId(Long.valueOf(task.getId()));
                     taskExtend.setCusTaskId(customerScoreRuleVO.getId().toString());
+                    taskExtend.setRuleId(customerScoreRuleVO.getId());
                     taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(eTimeStr);
