@@ -219,12 +219,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     /**
      * 去重
-     * false 无重复
-     * true 有重复
+     *
+     * @param rule    pojo
+     * @param cid     客户id
+     * @param apiCode 接口编码
      */
     private void isExist(ScoreRuleConfig rule, String cid, String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(cid).andApiCodeEqualTo(apiCode);
+        // 校验客户信息是否正确
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
         if (customerList.size() == 0) {
             throw new BusinessException("客户信息不存在或已删除");
@@ -232,6 +235,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         MarketingCustomer customer = customerList.get(0);
         CustomerRuleExample crExample = new CustomerRuleExample();
         crExample.createCriteria().andCustomerIdEqualTo(customer.getId());
+        // 根据客户主键获取客户下的跑分规则集合
         List<CustomerRule> customerRules = customerRuleMapper.selectByExample(crExample);
         if (customerRules == null) {
             throw new BusinessException(ServiceResultEnum.UNKNOWN_ERROR);
@@ -242,6 +246,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         List<Long> ruleIdList = customerRules.stream().map(CustomerRule::getRuleId).collect(Collectors.toList());
         ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
         ruleExample.createCriteria().andStrategyIdEqualTo(rule.getStrategyId()).andIdIn(ruleIdList);
+        // 获取客户下的跑分配置
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(ruleExample);
         if (list == null) {
             throw new BusinessException(ServiceResultEnum.UNKNOWN_ERROR);
@@ -249,13 +254,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (list.size() < 1) {
             return;
         }
+        // 产品信息获取签名
         String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
+        // 场景信息获取签名
         String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
         for (ScoreRuleConfig src : list) {
             if (rule.getId().equals(src.getId())) {
                 continue;
             }
+            // 已有配置产品信息获取签名
             String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
+            // 已有配置场景信息获取签名
             String md511 = DigestUtils.md5DigestAsHex(src.getConditionInfo().getBytes(StandardCharsets.UTF_8));
             if (md501.equals(md502) && md510.equals(md511)) {
                 throw new BusinessException("规则已经创建，建议调整历史规则");
