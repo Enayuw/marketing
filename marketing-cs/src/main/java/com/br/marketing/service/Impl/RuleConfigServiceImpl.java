@@ -91,19 +91,19 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }
         List<Long> ruleIds = customerRules.stream()
                 .map(t -> t.getRuleId()).collect(Collectors.toList());
-        SoleRuleConfigExample soleRuleConfigExample = new SoleRuleConfigExample();
-        soleRuleConfigExample.createCriteria()
+        ScoreRuleConfigExample scoreRuleConfigExample = new ScoreRuleConfigExample();
+        scoreRuleConfigExample.createCriteria()
                 .andIdIn(ruleIds)
                 .andStatusEqualTo(Constants.STATUS_START)
                 .andIsDelEqualTo(Constants.DATA_VALID);
-        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectByExample(soleRuleConfigExample);
+        List<ScoreRuleConfig> scoreRuleConfigs = scoreRuleConfigMapper.selectByExample(scoreRuleConfigExample);
 
-        if(soleRuleConfigs.size()<=0){
+        if(scoreRuleConfigs.size()<=0){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该用户的去重规则是否已失效");
         }
 
         customerRules.forEach(t->{
-            Optional<SoleRuleConfig> first = soleRuleConfigs.stream()
+            Optional<ScoreRuleConfig> first = scoreRuleConfigs.stream()
                     .filter(k -> k.getId().equals(t.getRuleId())).findFirst();
             if(first.isPresent()){
                 CustomerScoreRuleVO vo = new CustomerScoreRuleVO();

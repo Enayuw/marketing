@@ -103,7 +103,7 @@
         and (${whereStr})
     </select>
 
-    <select id="getSyncUserByRuleScore" resultType="java.util.List">
+    <select id="getSyncUserByRuleScore" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId}]]>

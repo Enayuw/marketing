@@ -428,7 +428,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     }
 
     @Override
-    public Result pushToDb(){
+    public Result pushToDb(String code){
         /**
          * ->遍历客户表->遍历客户规则->根据用户规则的时间范围判断是否有用户上传数据
          *  ->1如果上传则跳出该规则
@@ -438,8 +438,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
          *      ->2.2如果数据未重复->匹配当前的跑分规则
          *          ->2.2.1如果匹配则入表，不匹配则跳出
          */
+
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
+        MarketingCustomerExample.Criteria criteria = customerExample.createCriteria();
+        if(StringUtils.isNotBlank(code)){
+            criteria.andApiCodeEqualTo(code).andStatusEqualTo(Byte.valueOf("1"));
+        }else{
+            criteria.andStatusEqualTo(Byte.valueOf("1"));
+        }
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
@@ -501,15 +507,19 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 String number = "";
                 int taskNum = syncInfoMapper.countByPreUserWithRule(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 if(taskNum>0){
-                    String time = LocalDateTime.parse(eTimeStr).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                    String time = LocalDateTime.parse(eTimeStr,ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                     Result<String> batchNumberRes = buildBatchNumber(apiCode
-                            ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleName()
+                            ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleNameShort()
                             ,time);
                     if(!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())){
                         continue;
                     }
                     number=batchNumberRes.getData();
                 }else{
+                    continue;
+                }
+                MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
+                if(hasTask!=null){
                     continue;
                 }
                 BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(customerScoreRuleVO.getBaseInfo()
@@ -666,10 +676,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = marketingUserMapper.countBySureUser(apiCode, number);
-                MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
-                if(hasTask!=null){
-                    continue;
-                }
                 if(actNum>0) {
                     MarketingTask task = new MarketingTask();
                     task.setApiCode(apiCode);

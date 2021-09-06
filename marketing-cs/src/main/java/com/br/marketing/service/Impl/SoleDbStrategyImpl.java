@@ -39,7 +39,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         StringBuilder soleSqlWhereToday = new StringBuilder();
         boolean rulesMark = false;
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
-            StringBuilder dbWhereStr = new StringBuilder("where is_repeat=2 ");
+            StringBuilder dbWhereStr = new StringBuilder(" where is_repeat=2 ");
             StringBuilder dbWhereTodayStr = new StringBuilder();
             String timeStrNowSql = "";
             String timeStrNextSql = "";
@@ -65,14 +65,21 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 switch (field.toLowerCase()){
                     case "cid":
                         cidMark = true;
+                        break;
                     case "apicode":
                         apiCodeMark = true;
+                        break;
                     case "taskid":
                         soleStr.append(" and ").append(String.format(" cus_batch = '%s'",syncUser.getCusBatch()));
+                        break;
                     case "cell":
                         soleStr.append(" and ").append(String.format(" cell = '%s'",syncUser.getCell()));
+                        break;
                     case "cusnum":
                         soleStr.append(" and ").append(String.format(" cust_num = '%s'",syncUser.getCustNum()));
+                        break;
+                    default:
+                        break;
                 }
             }
             if(StringUtils.isNotBlank(timeStrNowSql)){
@@ -118,7 +125,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             sqlTodayWhere = String.format("where  is_repeat=1 and %s",soleSqlWhereToday);
             sqlToday = String.format("select id from b_marketing_sync_%s %s" +
                             " order by applet_time desc limit 1"
-                    ,sqlTodayWhere,syncUser.getApiCode());
+                    ,syncUser.getApiCode(),sqlTodayWhere);
         }
 
         if(StringUtils.isNull(sqlCount)){
@@ -240,9 +247,8 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             }
         }
         if(StringUtils.isNotBlank(dbStr.toString())){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setDate(dbStr.toString().replaceFirst(conditionVo.getLogicalOperation(),""))
-                    .setMessage("规则有误");
+            return new Result<String>().setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(dbStr.toString().replaceFirst(conditionVo.getLogicalOperation(),""));
         }
         return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则有误");
     }
