@@ -206,6 +206,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreOptLog.setStartTime(ruleConfig.getStartTime());
         scoreOptLog.setStatus(ruleConfig.getStatus());
         scoreOptLog.setIsDel(1);
+        scoreOptLog.setUpdateTime(scoreOptLog.getCreateTime());
         int insert = scoreOptLogMapper.insert(scoreOptLog);
         if (insert < 1) {
             throw new BusinessException("变更失败，变更记录添加失败");
