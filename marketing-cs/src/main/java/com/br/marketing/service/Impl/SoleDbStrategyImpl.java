@@ -37,26 +37,31 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }
         StringBuilder soleSql = new StringBuilder();
         StringBuilder soleSqlWhereToday = new StringBuilder();
+        //一条数据 满足多条去重规则标志 true是多条
         boolean rulesMark = false;
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
+            //查询T+n时间内已经去重统计过的数据的where条件
             StringBuilder dbWhereStr = new StringBuilder(" where is_repeat=2 ");
+            //查询T日内的未统计的去重的数据的where条件
             StringBuilder dbWhereTodayStr = new StringBuilder();
+            //T+n时间范围
             String timeStrNowSql = "";
-            String timeStrNextSql = "";
-            StringBuilder soleStr = new StringBuilder();
-            String soleFields = soleRuleVO.getSoleFields();
             Integer soleCycleTimes = soleRuleVO.getSoleCycleTimes();
-            String endTimeNow =null;
-            String endTimeNext =null;
+            LocalDateTime now = LocalDateTime.now();
+            String endTimeNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String endTimeNext = now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            //T时间范围
+            String timeStrNextSql = String.format(" applet_date >='%s' and applet_date <'%s' ",endTimeNow,endTimeNext);
             String startTime =null;
             if(soleCycleTimes != null){
-                LocalDateTime now = LocalDateTime.now();
-                endTimeNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                endTimeNext = now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 startTime = now.minusDays(Long.valueOf(soleCycleTimes)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 timeStrNowSql = String.format(" applet_date >='%s' and applet_date <'%s' ",startTime,endTimeNext);
-                timeStrNextSql = String.format(" applet_date >='%s' and applet_date <'%s' ",endTimeNow,endTimeNext);
+
             }
+            //去重条件where
+            StringBuilder soleStr = new StringBuilder();
+            String soleFields = soleRuleVO.getSoleFields();
+            //去重字段
             String[] fields = soleFields.split(",");
 
             boolean cidMark = false;
@@ -84,6 +89,8 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             }
             if(StringUtils.isNotBlank(timeStrNowSql)){
                 dbWhereStr.append(" and ").append(timeStrNowSql);
+            }
+            if(StringUtils.isNotBlank(timeStrNextSql)){
                 dbWhereTodayStr.append(" and ").append(timeStrNextSql);
             }
             if(StringUtils.isNotBlank(soleStr.toString())){
@@ -103,6 +110,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 soleSql.append(" union ");
             }
             String todayWhere = dbWhereTodayStr.toString().replaceFirst("and", "");
+            //多规则 T日内的条件筛选
             if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
                 soleSqlWhereToday.append(" or ").append(String.format("(%s)",todayWhere));
             }else{

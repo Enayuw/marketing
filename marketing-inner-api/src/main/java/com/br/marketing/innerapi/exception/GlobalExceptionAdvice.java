@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.exception;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.exception.auth.AppException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -23,6 +24,18 @@ import static com.br.marketing.common.enums.ServiceResultEnum.UNKNOWN_ERROR;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionAdvice {
+
+    /**
+     * 自定义业务异常
+     *
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/1 10:47
+     */
+    @ExceptionHandler(value = AppException.class)
+    @ResponseBody
+    public ApiResult<Object> businessException(AppException exception, HttpServletRequest request, HttpServletResponse response) {
+        return new ApiResult<>().fail(exception.getCode(), exception.getMessage());
+    }
 
 
     /**
