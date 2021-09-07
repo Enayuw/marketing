@@ -69,6 +69,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
             vo.setCusNum(count);
+            vo.setCreateTime(DateUtils.format(soleRuleConfig.getCreateTime(),"yyyy-MM-dd HH:mm:ss"));
+            vo.setUpdateTime(DateUtils.format(soleRuleConfig.getUpdateTime(),"yyyy-MM-dd HH:mm:ss"));
             return vo;
             }).collect(Collectors.toList());
         return PageResultReturn.setPageResult(soleRuleVos, page);

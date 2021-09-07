@@ -21,7 +21,7 @@ public class SoleRuleVO {
     private Integer soleFieldsNum;
 
     @ApiModelProperty(value = "去重时间周期")
-    private String soleCycleTimes;
+    private Integer soleCycleTimes;
 
     @ApiModelProperty(value = "使用商户统计")
     private Integer cusNum;
@@ -30,8 +30,8 @@ public class SoleRuleVO {
     private Integer status;
 
     @ApiModelProperty(value = "创建时间")
-    private Date createTime;
+    private String createTime;
 
     @ApiModelProperty(value = "修改时间")
-    private Date updateTime;
+    private String updateTime;
 }
