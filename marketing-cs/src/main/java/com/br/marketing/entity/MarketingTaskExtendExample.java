@@ -754,6 +754,76 @@ public class MarketingTaskExtendExample {
             addCriterion("extend_show_title not between", value1, value2, "extendShowTitle");
             return (Criteria) this;
         }
+
+        public Criteria andStrategyProductJsonIsNull() {
+            addCriterion("strategy_product_json is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonIsNotNull() {
+            addCriterion("strategy_product_json is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonEqualTo(String value) {
+            addCriterion("strategy_product_json =", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotEqualTo(String value) {
+            addCriterion("strategy_product_json <>", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonGreaterThan(String value) {
+            addCriterion("strategy_product_json >", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_product_json >=", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLessThan(String value) {
+            addCriterion("strategy_product_json <", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLessThanOrEqualTo(String value) {
+            addCriterion("strategy_product_json <=", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonLike(String value) {
+            addCriterion("strategy_product_json like", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotLike(String value) {
+            addCriterion("strategy_product_json not like", value, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonIn(List<String> values) {
+            addCriterion("strategy_product_json in", values, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotIn(List<String> values) {
+            addCriterion("strategy_product_json not in", values, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonBetween(String value1, String value2) {
+            addCriterion("strategy_product_json between", value1, value2, "strategyProductJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyProductJsonNotBetween(String value1, String value2) {
+            addCriterion("strategy_product_json not between", value1, value2, "strategyProductJson");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

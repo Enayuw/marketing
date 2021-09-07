@@ -53,6 +53,11 @@ public class MarketingTaskExtend {
      */
     private String extendShowTitle;
 
+    /**
+     * 策略产品变量信息
+     */
+    private String strategyProductJson;
+
     public Long getId() {
         return id;
     }
@@ -131,5 +136,13 @@ public class MarketingTaskExtend {
 
     public void setExtendShowTitle(String extendShowTitle) {
         this.extendShowTitle = extendShowTitle == null ? null : extendShowTitle.trim();
+    }
+
+    public String getStrategyProductJson() {
+        return strategyProductJson;
+    }
+
+    public void setStrategyProductJson(String strategyProductJson) {
+        this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
     }
 }

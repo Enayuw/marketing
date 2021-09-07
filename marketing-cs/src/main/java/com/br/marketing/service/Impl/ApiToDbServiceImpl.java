@@ -714,6 +714,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(eTimeStr);
                     taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()):"");
+                    taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
                     marketingTaskExtendMapper.insertSelective(taskExtend);
                     TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
                     updateBatchExample.createCriteria().andBatchNumberEqualTo(number);
