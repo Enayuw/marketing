@@ -147,7 +147,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         ScoreRuleConfigExample example = new ScoreRuleConfigExample();
         example.createCriteria().andIdEqualTo(rid)
-                .andIsDelEqualTo(1).andStatusEqualTo(1);
+                .andIsDelEqualTo(1);
+//                .andIsDelEqualTo(1).andStatusEqualTo(1);
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(example);
         if (ObjectUtils.isEmpty(list) || list.size() < 1) {
             throw new BusinessException("抱歉，此规则不存在或已禁用");
