@@ -129,6 +129,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         switch (status) {
             case 1:
             case 2:
+                // TODO: 2021/9/7 禁用规则前要校验该规则是否正在使用
             case 3:
                 ruleConfig.setStatus(status);
                 break;
@@ -198,7 +199,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (ObjectUtils.isEmpty(userDetail)) {
             throw new BusinessException("用户信息验证失败，请重新登录重试");
         }
-        scoreOptLog.setOptUserId(userDetail.getUserId());
+        scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
         scoreOptLog.setOptUserName(userDetail.getUsername());
         scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
         scoreOptLog.setStrategyProductShow(ruleConfig.getStrategyProductShow());
