@@ -23,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 去重规则控制层
@@ -80,6 +81,20 @@ public class RuleOfSoleContronller {
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.SUCCESS_1);
+        }
+    }
+
+    //新增接口
+    @ApiOperation(value = "根据商户查询usertype",notes = "支持多个同时查询,返回参数格式适应前端")
+    @PostMapping("/getUserByCus")
+    public ApiResult<List<Map>> getUserByCus(@RequestBody List<MarketingCustomerVO> customerVOs){
+        try {
+            //查询
+            List<Map> list = ruleOfSoleService.getUserByCus(customerVOs);
+            return new ApiResult<List<Map>>().success(list);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult<List<Map>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 

@@ -6,9 +6,9 @@ import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RuleOfSoleService {
 
@@ -69,4 +69,11 @@ public interface RuleOfSoleService {
      * @return
      */
     SoleRuleDetailVO getSoleById(String id);
+
+    /**
+     * 根据商户查询usertype
+     * @param customerVOs
+     * @return
+     */
+    List<Map> getUserByCus(List<MarketingCustomerVO> customerVOs);
 }

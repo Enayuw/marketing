@@ -8,10 +8,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerSoleMapper;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.SoleOptLogMapper;
-import com.br.marketing.mapper.SoleRuleConfigMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -44,6 +41,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Autowired
     SoleOptLogMapper soleOptLogMapper;
+
+    @Autowired
+    private VariableDicMapper variableDicMapper;
+
 
     @Override
     public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
@@ -267,6 +268,42 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         }
         vo.setSoleCustom(soleCustomVO);
         return vo;
+    }
+
+    @Override
+    public List<Map> getUserByCus(List<MarketingCustomerVO> customerVOs) {
+        List list = new ArrayList();
+        String[] type = {"usertype","grouptype"};
+        for(MarketingCustomerVO customerVO : customerVOs){
+            Map map = new HashMap();
+            map.put("cusName",customerVO.getShortName());
+            map.put("cusId",customerVO.getCid());
+            map.put("cusCollapseVal",type);
+
+            //场景列表
+            Map usertypeMap = new HashMap();
+            usertypeMap.put("name","运营场景");
+            usertypeMap.put("type","usertype");
+            usertypeMap.put("indeterminate",false);
+            usertypeMap.put("checkAll",false);
+            usertypeMap.put("checkAllGroup",new ArrayList<>());
+            List<VariableDicSelectVO> dicSelectVOS = new ArrayList<>();
+            VariableDicExample example = new VariableDicExample();
+            example.createCriteria().andCidEqualTo(customerVO.getCid())
+                    .andApiCodeEqualTo(customerVO.getApiCode())
+                    .andIsDelEqualTo(1);
+            List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
+            if (variableDics !=null && variableDics.size()>0) {
+                dicSelectVOS = variableDics.stream().map(v -> new VariableDicSelectVO(
+                        v.getFieldName(), v.getFieldValue(), v.getFieldDesc())).collect(Collectors.toList());
+            }
+            usertypeMap.put("list",dicSelectVOS);
+
+            map.put("usertype",usertypeMap);
+            list.add(map);
+        }
+
+        return list;
     }
 
 
