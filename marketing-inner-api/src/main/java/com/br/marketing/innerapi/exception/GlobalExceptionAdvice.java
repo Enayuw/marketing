@@ -33,7 +33,7 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(value = AppException.class)
     @ResponseBody
-    public ApiResult<Object> businessException(AppException exception, HttpServletRequest request, HttpServletResponse response) {
+    public ApiResult<Object> appException(AppException exception) {
         return new ApiResult<>().fail(exception.getCode(), exception.getMessage());
     }
 
