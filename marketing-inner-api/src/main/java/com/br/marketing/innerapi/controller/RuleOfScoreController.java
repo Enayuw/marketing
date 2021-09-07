@@ -99,7 +99,7 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 11:01
      */
-    @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "PUT")
+    @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "POST")
     @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
             , @ApiImplicitParam(name = "status", value = "状态", paramType = "path", dataType = "integer")})
     @PostMapping("/stare/{rid}/{status}")
@@ -135,7 +135,7 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 14:11
      */
-    @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "PUT")
+    @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "POST")
     @PostMapping("/modify")
     public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
