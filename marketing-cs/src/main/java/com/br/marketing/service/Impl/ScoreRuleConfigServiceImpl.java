@@ -224,6 +224,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     /**
      * 去重
+     * 规则：
+     * 客户接口中的所有跑分配置不重复，根据策略、产品及场景三个属性判断数据是否重复
      *
      * @param rule    pojo
      * @param cid     客户id
