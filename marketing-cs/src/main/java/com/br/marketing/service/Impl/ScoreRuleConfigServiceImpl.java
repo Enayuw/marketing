@@ -266,7 +266,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 场景信息获取签名
         String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
         for (ScoreRuleConfig src : list) {
-            if (rule.getId().equals(src.getId())) {
+            if (src.getId().equals(rule.getId())) {
                 continue;
             }
             // 已有配置产品信息获取签名
