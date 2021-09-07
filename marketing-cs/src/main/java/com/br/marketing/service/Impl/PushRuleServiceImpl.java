@@ -510,7 +510,8 @@ public class PushRuleServiceImpl implements PushRuleService {
          * 兼容旧逻辑,如果没传，则total=0
          * */
         Long total = 0L;
-        if (null != dto.getJsonData().getTotal()) {
+        String totalStr = dto.getJsonData().getTotal();
+        if (StringUtils.isNotBlank(totalStr)) {
             try {
                 total = Long.valueOf(dto.getJsonData().getTotal());
             } catch (NumberFormatException numberFormatException) {
