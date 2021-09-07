@@ -501,7 +501,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String lastStr = dto.getJsonData().getLast();
         if (StringUtils.isNotBlank(lastStr)) {
             if(LastEnum.isLegal(lastStr)) {
-                last = Byte.valueOf(dto.getJsonData().getLast());
+                last = Byte.valueOf(lastStr);
             } else {
                 throw new CommonException(MarketingErrorInfo.LAST_ERROR);
             }
@@ -513,7 +513,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String totalStr = dto.getJsonData().getTotal();
         if (StringUtils.isNotBlank(totalStr)) {
             try {
-                total = Long.valueOf(dto.getJsonData().getTotal());
+                total = Long.valueOf(totalStr);
             } catch (NumberFormatException numberFormatException) {
                 throw new CommonException(MarketingErrorInfo.TOTAL_ERROR);
             }
