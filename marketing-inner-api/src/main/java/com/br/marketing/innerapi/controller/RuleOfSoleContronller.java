@@ -11,6 +11,7 @@ import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -30,22 +31,13 @@ import java.util.List;
 @RestController
 @Configuration
 @RequestMapping("/rule/sole")
+@Api(value = "API跑分前数据去重配置",tags = "API跑分前数据去重配置", produces = "application/json", consumes = "application/json", protocols = "http")
 public class RuleOfSoleContronller {
 
     private static final Logger log = LoggerFactory.getLogger(RuleOfSoleContronller.class);
 
     @Autowired
     RuleOfSoleService ruleOfSoleService;
-
-
-/*    @GetMapping("/test")
-    public String test(){
-        *//**
-         * 获取用户上线文
-         *//*
-        UserDetail user = ThreadContextInfo.getUser();
-        return "Success";
-    }*/
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @PostMapping("/list")
