@@ -102,7 +102,7 @@ public class RuleOfScoreController {
     @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "PUT")
     @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
             , @ApiImplicitParam(name = "status", value = "状态", paramType = "path", dataType = "integer")})
-    @PutMapping("/stare/{rid}/{status}")
+    @PostMapping("/stare/{rid}/{status}")
     public ApiResult<?> status(@PathVariable(name = "rid") Long rid
             , @PathVariable(name = "status") Integer status) {
         boolean bool = scoreRuleConfigService.setStatus(rid, status);
@@ -136,7 +136,7 @@ public class RuleOfScoreController {
      * @dateTime 2021/9/3 14:11
      */
     @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "PUT")
-    @PutMapping("/modify")
+    @PostMapping("/modify")
     public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
