@@ -168,6 +168,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStartTime(rule.getStartTime());
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
+        scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
         String json = rule.getConditionInfo();
         JSONObject object = JSON.parseObject(json);
         JSONArray arrays = object.getJSONArray("operationFactor");
