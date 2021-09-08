@@ -57,7 +57,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         if (StringUtils.isNotEmpty(dto.getUpdateTimeEnd())){
             dto.setUpdateTimeEnd(DateUtils.format(addDay(dto.getUpdateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
         }
-        dto.setSoleName(dto.getSoleName().trim());
         List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
         List<SoleRuleVO> soleRuleVos = soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
@@ -119,7 +118,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Override
     public List<MarketingCustomerVO> getCustomer(String search) {
-        List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search.trim());
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search);
         //返回id由Long改为string类型
         List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
             MarketingCustomerVO vo = new MarketingCustomerVO();
@@ -226,7 +225,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         soleRuleConfig.setCreateTime(new Date());
         soleRuleConfig.setUpdateTime(new Date());
 
-        if (StringUtils.isEmpty(vo.getSoleId()) || "".equals(vo.getSoleId().trim())){
+        if (StringUtils.isEmpty(vo.getSoleId())){
             //新增
             //insert b_sole_rule_config
             soleRuleConfig.setUpdateTime(new Date());
