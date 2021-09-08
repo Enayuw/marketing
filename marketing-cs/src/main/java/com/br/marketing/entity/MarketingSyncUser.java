@@ -49,6 +49,11 @@ public class MarketingSyncUser {
     private String groupType;
 
     /**
+     * 新场景-替代group_type
+     */
+    private String userType;
+
+    /**
      * 日期
      */
     private String registerDate;
@@ -274,5 +279,13 @@ public class MarketingSyncUser {
 
     public void setIsRepeat(Integer isRepeat) {
         this.isRepeat = isRepeat;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 }

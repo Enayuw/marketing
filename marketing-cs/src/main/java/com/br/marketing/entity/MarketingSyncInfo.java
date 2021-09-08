@@ -24,6 +24,17 @@ public class MarketingSyncInfo {
     private String requestBatch;
 
     /**
+     * 是否最后一次传输
+     * @see com.br.marketing.common.constants.common.LastEnum
+     */
+    private Byte last;
+
+    /**
+     * 总数据量
+     */
+    private Long total;
+
+    /**
      * 状态 1-进行中；2-全部成功；3-全部失败；4-部分成功
      */
     private Integer status;
@@ -88,6 +99,22 @@ public class MarketingSyncInfo {
 
     public void setRequestBatch(String requestBatch) {
         this.requestBatch = requestBatch == null ? null : requestBatch.trim();
+    }
+
+    public Byte getLast() {
+        return last;
+    }
+
+    public void setLast(Byte last) {
+        this.last = last;
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
     }
 
     public Integer getStatus() {
