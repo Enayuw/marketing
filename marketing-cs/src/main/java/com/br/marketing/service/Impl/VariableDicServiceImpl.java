@@ -28,6 +28,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
         VariableDicExample example = new VariableDicExample();
         example.createCriteria().andCidEqualTo(cid).andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
         List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
         if (ObjectUtils.isEmpty(variableDics)) {
             return null;
