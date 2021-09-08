@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.ws.rs.Consumes;
+
 /**
  * 营销数据接入接口
  */
@@ -41,6 +43,7 @@ public class MarketingUserPreController {
      */
     @ApiOperation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
+    @Consumes(value = "application/x-www-form-urlencoded")
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             long l = System.currentTimeMillis();
