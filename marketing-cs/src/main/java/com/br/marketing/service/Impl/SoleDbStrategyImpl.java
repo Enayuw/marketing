@@ -210,7 +210,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         StringBuilder dbStr = new StringBuilder();
         switch (vo.getFieldName().toLowerCase()){
             case "usertype":
-                fieldValue = syncUser.getGroupType();
+                fieldValue = syncUser.getUserType();
                 dbStr.append("user_type");
                 break;
             default:
