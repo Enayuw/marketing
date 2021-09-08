@@ -276,8 +276,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         String[] type = {"usertype","grouptype"};
         for(MarketingCustomerVO customerVO : customerVOs){
             Map map = new HashMap();
-            map.put("cusName",customerVO.getShortName());
-            map.put("cusId",customerVO.getCid());
+            map.put("shortName",customerVO.getShortName());
+            map.put("cid",customerVO.getCid());
+            map.put("apiCode",customerVO.getApiCode());
+            map.put("name",customerVO.getName());
             map.put("cusCollapseVal",type);
 
             //场景列表
