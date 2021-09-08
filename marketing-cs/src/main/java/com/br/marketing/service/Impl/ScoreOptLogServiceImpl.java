@@ -29,6 +29,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
         PageHelper.startPage(page, pageSize);
         ScoreOptLogExample example = new ScoreOptLogExample();
         example.createCriteria().andScoreRuleIdEqualTo(String.valueOf(rid)).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc");
         List<ScoreOptLog> scoreOptLogs = scoreOptLogMapper.selectByExample(example);
         return PageResultReturn.setPageResult(scoreOptLogs, page);
     }

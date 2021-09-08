@@ -64,10 +64,10 @@ public class MarketingSyncInfoExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -372,6 +372,126 @@ public class MarketingSyncInfoExample {
 
         public Criteria andRequestBatchNotBetween(String value1, String value2) {
             addCriterion("request_batch not between", value1, value2, "requestBatch");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastIsNull() {
+            addCriterion("last is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastIsNotNull() {
+            addCriterion("last is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastEqualTo(Byte value) {
+            addCriterion("last =", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotEqualTo(Byte value) {
+            addCriterion("last <>", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastGreaterThan(Byte value) {
+            addCriterion("last >", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastGreaterThanOrEqualTo(Byte value) {
+            addCriterion("last >=", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastLessThan(Byte value) {
+            addCriterion("last <", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastLessThanOrEqualTo(Byte value) {
+            addCriterion("last <=", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastIn(List<Byte> values) {
+            addCriterion("last in", values, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotIn(List<Byte> values) {
+            addCriterion("last not in", values, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastBetween(Byte value1, Byte value2) {
+            addCriterion("last between", value1, value2, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotBetween(Byte value1, Byte value2) {
+            addCriterion("last not between", value1, value2, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIsNull() {
+            addCriterion("total is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIsNotNull() {
+            addCriterion("total is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalEqualTo(Long value) {
+            addCriterion("total =", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotEqualTo(Long value) {
+            addCriterion("total <>", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThan(Long value) {
+            addCriterion("total >", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThanOrEqualTo(Long value) {
+            addCriterion("total >=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThan(Long value) {
+            addCriterion("total <", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThanOrEqualTo(Long value) {
+            addCriterion("total <=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIn(List<Long> values) {
+            addCriterion("total in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotIn(List<Long> values) {
+            addCriterion("total not in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBetween(Long value1, Long value2) {
+            addCriterion("total between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotBetween(Long value1, Long value2) {
+            addCriterion("total not between", value1, value2, "total");
             return (Criteria) this;
         }
 
@@ -736,7 +856,7 @@ public class MarketingSyncInfoExample {
         }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();
