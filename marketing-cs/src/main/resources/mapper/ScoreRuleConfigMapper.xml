@@ -23,6 +23,7 @@
             src.is_del=1
             <if test="search != null and search.trim() neq ''">
                 and (src.rule_name like CONCAT(#{search},'%')
+                or src.rule_name_short like CONCAT(#{search},'%')
                 or bmc.cid like CONCAT(#{search},'%')
                 or bmc.api_code like CONCAT(#{search},'%'))
             </if>
