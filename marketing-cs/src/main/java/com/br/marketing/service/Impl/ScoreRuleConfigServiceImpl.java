@@ -332,7 +332,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     /**
      * 2021/9/3 19:10
      * 以天为维度生成递增的编号
-     * 编码规则：日期+序号 例如：20210903001,20210903002,...,20210903999
+     * 编码规则：日期+序号 例如：R20210903001,R20210903002,...,R20210903999
      */
     private String createNo() {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -350,7 +350,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         long s = (l1 - l) / 1000;
         redisChgService.expire(key, (int) s);
         String prefix3 = String.format("%03d", index);
-        return yyyyMMdd6.concat(prefix3);
+        return "R".concat(yyyyMMdd6.concat(prefix3));
     }
 
     /**
