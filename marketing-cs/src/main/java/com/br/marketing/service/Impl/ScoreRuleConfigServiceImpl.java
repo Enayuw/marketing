@@ -75,6 +75,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO) {
+        // 检查配置名称是否已经被使用过
+        nameCheck(scoreRuleVO, 0);
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
                 .andApiCodeEqualTo(scoreRuleVO.getApiCode())
@@ -168,6 +170,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStartTime(rule.getStartTime());
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
+        scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
         String json = rule.getConditionInfo();
         JSONObject object = JSON.parseObject(json);
         JSONArray arrays = object.getJSONArray("operationFactor");
@@ -186,6 +189,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
+        if (ObjectUtils.isEmpty(userDetail)) {
+            throw new BusinessException("用户信息验证失败，请重新登录重试");
+        }
+        // 检查配置名称是否已经被使用过
+        nameCheck(scoreRuleVO, 1);
         ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(scoreRuleVO.getId());
         if (ObjectUtils.isEmpty(ruleConfig)) {
             throw new BusinessException("该配置不存在");
@@ -196,9 +204,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreOptLog.setScoreRuleId(String.valueOf(ruleConfig.getId()));
         scoreOptLog.setRuleName(ruleConfig.getRuleName());
         scoreOptLog.setCreateTime(new Date());
-        if (ObjectUtils.isEmpty(userDetail)) {
-            throw new BusinessException("用户信息验证失败，请重新登录重试");
-        }
         scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
         scoreOptLog.setOptUserName(userDetail.getUsername());
         scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
@@ -387,6 +392,18 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             ci.deleteCharAt(index);
         }
         scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
+    }
+
+    /**
+     * 2021/9/8 15:49 规则名称校验
+     */
+    private void nameCheck(ScoreRuleVO scoreRuleVO, int size) {
+        ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
+        ruleExample.createCriteria().andRuleNameEqualTo(scoreRuleVO.getRuleName()).andIsDelEqualTo(1);
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(ruleExample);
+        if (list != null && list.size() > size) {
+            throw new BusinessException("对不起，“".concat(scoreRuleVO.getRuleName()).concat("”已经被使用"));
+        }
     }
 
 }
