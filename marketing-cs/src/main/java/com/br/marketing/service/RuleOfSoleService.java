@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
@@ -39,7 +40,7 @@ public interface RuleOfSoleService {
      * @param customerId
      * @return
      */
-    boolean getCusUserType(String soleId, String customerId);
+    //List<Map> getCusOnly(String soleId, String customerIds);
 
     /**
      * 操作去重规则状态--开启/关闭
@@ -61,7 +62,7 @@ public interface RuleOfSoleService {
      * @param vo
      * @return
      */
-    boolean saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail);
+    ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail);
 
     /**
      * 查看去重规则

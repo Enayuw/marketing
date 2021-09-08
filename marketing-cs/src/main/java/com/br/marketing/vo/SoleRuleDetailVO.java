@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -33,5 +34,6 @@ public class SoleRuleDetailVO {
     private Integer soleCycleTimes;
 
     @ApiModelProperty(value = "匹配商户列表")
+    @NotEmpty(message = "匹配商户必选")
     private List<CustUserTypeSelectVO> soleCustom;
 }

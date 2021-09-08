@@ -323,7 +323,11 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
              * 全量任务提交前，在b_task_status表中插入一条数据（标识全量任务已执行，之后应该按增量处理）
              */
             TaskStatus bts=new TaskStatus();
-            bts.setAllStatus(1);
+            if(1 == blt.getMonitorType()){
+                bts.setOnceStatus(1);
+            }else if(4==blt.getMonitorType()){
+                bts.setAllStatus(1);
+            }
             bts.setApiCode(blt.getApiCode());
             bts.setBatchNumber(blt.getBatchNumber());
             bts.setFileId(blf.getId());
