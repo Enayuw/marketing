@@ -249,17 +249,13 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         if(StringUtils.isNotBlank(s)){
             return s;
         }
-        MarketingTaskExample taskExample =new MarketingTaskExample();
-        taskExample.createCriteria().andBatchNumberEqualTo(batchNumber);
-        List<MarketingTask> taskList = marketingTaskMapper.selectByExample(taskExample);
-        if(taskList.size()>0){
-            MarketingTask task =taskList.get(0);
+       MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
+        if(task !=null){
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
             if(marketingTaskExtend !=null) {
-                ScoreRuleConfig scoreRuleConfig= scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
-                redisChgService.set(key,scoreRuleConfig.getStrategyProductJson());
+                redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
                 redisChgService.expire(key,60*60*24);
-                return scoreRuleConfig.getStrategyProductJson();
+                return marketingTaskExtend.getStrategyProductJson();
             }
         }
        return "";

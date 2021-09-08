@@ -278,7 +278,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             }
                 log.warn("batchNumber:{}",blt.getBatchNumber());
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
-                String descPath=path.concat("/").concat(Constants.monitorTypeMap.get(blt.getMonitorType())).concat("/").concat(blt.getApiCode()).concat("/")
+                String descPath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
                         .concat(blt.getBatchNumber()).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
                 Integer pushType=0;
             ScoreRuleConfig scoreRuleConfig =getScoreRuleConfig(blt);
