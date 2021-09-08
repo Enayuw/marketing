@@ -166,11 +166,14 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         SoleOptLogExample example = new SoleOptLogExample();
         example.createCriteria().andIsDelEqualTo(1).andSoleIdEqualTo(id);
         List<SoleOptLog> soleOptLogs = soleOptLogMapper.selectByExample(example);
-        for (SoleOptLog log : soleOptLogs){
-            SoleOptLogVO logVO = new SoleOptLogVO();
-            BeanUtils.copyProperties(log, logVO);
-            logVOS.add(logVO);
+        if(soleOptLogs != null && soleOptLogs.size()>0){
+            for (SoleOptLog log : soleOptLogs){
+                SoleOptLogVO logVO = new SoleOptLogVO();
+                BeanUtils.copyProperties(log, logVO);
+                logVOS.add(logVO);
+            }
         }
+
         return logVOS;
     }
 
