@@ -9,10 +9,7 @@ import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerRuleMapper;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.ScoreOptLogMapper;
-import com.br.marketing.mapper.ScoreRuleConfigMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
@@ -59,6 +56,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Resource
     private RedisChgService redisChgService;
+
+    @Resource
+    private VariableDicMapper variableDicMapper;
 
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
@@ -202,7 +202,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
         scoreOptLog.setOptUserName(userDetail.getUsername());
         scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
-        scoreOptLog.setStrategyProductShow(ruleConfig.getStrategyProductShow());
+        spliceConditionInfoJsonLog(scoreOptLog);
+        String jsonStr = "{\"".concat("strategyId\":\"").concat(scoreRuleVO.getStrategyId())
+                .concat("\",\"").concat("products\":").concat(ruleConfig.getStrategyProductShow()).concat("}");
+        scoreOptLog.setStrategyProductShow(jsonStr);
         scoreOptLog.setStartTime(ruleConfig.getStartTime());
         scoreOptLog.setStatus(ruleConfig.getStatus());
         scoreOptLog.setIsDel(1);
@@ -329,7 +332,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     /**
      * 2021/9/3 19:10
      * 以天为维度生成递增的编号
-     * 编码规则：日期+序号 例如：20210903001,20210903002,...,20210903999
+     * 编码规则：日期+序号 例如：R20210903001,R20210903002,...,R20210903999
      */
     private String createNo() {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -347,7 +350,43 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         long s = (l1 - l) / 1000;
         redisChgService.expire(key, (int) s);
         String prefix3 = String.format("%03d", index);
-        return yyyyMMdd6.concat(prefix3);
+        return "R".concat(yyyyMMdd6.concat(prefix3));
+    }
+
+    /**
+     * 场景json结构拼接
+     */
+    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog) {
+        String json = scoreOptLog.getConditionShowInfo();
+        JSONObject object = JSON.parseObject(json);
+        JSONArray arrays = object.getJSONArray("operationFactor");
+        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
+        List<String> fieldNames = vdList.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
+        List<String> fieldValues = vdList.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
+        VariableDicExample example = new VariableDicExample();
+        example.createCriteria()
+                .andCidEqualTo(scoreOptLog.getCid())
+                .andApiCodeEqualTo(scoreOptLog.getApicode())
+                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
+        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
+        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
+        final char ch = ',';
+        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
+                .append(vd.getFieldName())
+                .append("\",\"fieldValue\":\"")
+                .append(vd.getFieldValue())
+                .append("\",\"fieldDesc\":\"")
+                .append(vd.getFieldDesc())
+                .append("\",\"operation\":\"=\"}").append(ch));
+        // 得到最后一个字符的索引地址
+        int index = ci.length() - 1;
+        // 取到最后一个字符
+        char c = ci.charAt(index);
+        if (c == ch) {
+            // 删除最后一个字符
+            ci.deleteCharAt(index);
+        }
+        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
     }
 
 }
