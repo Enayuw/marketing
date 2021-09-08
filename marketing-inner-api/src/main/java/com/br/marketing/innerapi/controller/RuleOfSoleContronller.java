@@ -55,7 +55,7 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "判断规则名称是否重复",notes = "如果编辑状态需要传soleId")
+    @ApiOperation(value = "判断规则名称是否重复,是否合法",notes = "如果编辑状态需要传soleId")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "soleName",value = "规则名称",required = true,dataType = "String"),
             @ApiImplicitParam(name = "soleId",value = "当前规则id",required = false,dataType = "String")

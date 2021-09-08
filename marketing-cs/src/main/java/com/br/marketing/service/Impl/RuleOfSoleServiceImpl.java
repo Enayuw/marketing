@@ -93,6 +93,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Override
     public boolean getNameOnly(String soleName,String soleId) {
+        if(StringUtils.isBlank(soleName)){
+            return false;
+        }
         SoleRuleConfigExample example = new SoleRuleConfigExample();
         example.createCriteria().andSoleNameEqualTo(soleName).andIsDelEqualTo(1);
         List<SoleRuleConfig> configs = soleRuleConfigMapper.selectByExample(example);
@@ -165,11 +168,13 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         List<SoleOptLogVO> logVOS = new ArrayList<>();
         SoleOptLogExample example = new SoleOptLogExample();
         example.createCriteria().andIsDelEqualTo(1).andSoleIdEqualTo(id);
+        example.setOrderByClause("update_time desc");
         List<SoleOptLog> soleOptLogs = soleOptLogMapper.selectByExample(example);
         if(soleOptLogs != null && soleOptLogs.size()>0){
             for (SoleOptLog log : soleOptLogs){
                 SoleOptLogVO logVO = new SoleOptLogVO();
                 BeanUtils.copyProperties(log, logVO);
+                logVO.setUpdateTime(DateUtils.format(log.getUpdateTime(),"yyyy-MM-dd HH:mm:ss"));
                 logVOS.add(logVO);
             }
         }
@@ -328,7 +333,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     /**
-     * 根据规则id查看其下的匹配商户
+     * 根据规则id查看其下的匹配商户,用在变更记录表 匹配商户字段
      * @return
      */
     public String getCusBySoleId(Long soleId){

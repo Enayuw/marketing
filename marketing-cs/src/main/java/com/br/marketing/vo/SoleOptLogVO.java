@@ -40,7 +40,7 @@ public class SoleOptLogVO {
     /**
      * 修改时间
      */
-    private Date updateTime;
+    private String updateTime;
 
     /**
      * 操作人id
