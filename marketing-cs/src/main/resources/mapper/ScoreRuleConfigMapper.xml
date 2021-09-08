@@ -5,6 +5,7 @@
     <select id="findList" resultType="com.br.marketing.vo.ScoreRuleConfigPageVO">
         select src.id
         , src.rule_name as ruleName
+        , src.rule_name_short as ruleNameShort
         , bmc.cid
         , bmc.api_code as apiCode
         , case src.status

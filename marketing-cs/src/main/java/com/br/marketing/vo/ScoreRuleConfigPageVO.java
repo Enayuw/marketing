@@ -65,4 +65,10 @@ public class ScoreRuleConfigPageVO {
      */
     @ApiModelProperty(value = "更新时间", dataType = "string", position = 7)
     private String updateTime;
+
+    /**
+     * 规则简拼
+     */
+    @ApiModelProperty(value = "规则简拼", dataType = "string", position = 8)
+    private String ruleNameShort;
 }

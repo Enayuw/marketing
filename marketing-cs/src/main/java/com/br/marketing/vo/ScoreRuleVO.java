@@ -72,6 +72,12 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "策略主键", dataType = "string", position = 6)
     private String strategyId;
 
+    /**
+     * 规则简拼
+     */
+    @ApiModelProperty(value = "规则简拼", dataType = "string", position = 7)
+    private String ruleNameShort;
+
     public ScoreRuleVO() {
     }
 
