@@ -363,6 +363,7 @@
 			`create_time`,
 			`update_time`,
 			`applet_date`,
+			`applet_time`,
 			`fail_type`,
 			`status`
 		)
