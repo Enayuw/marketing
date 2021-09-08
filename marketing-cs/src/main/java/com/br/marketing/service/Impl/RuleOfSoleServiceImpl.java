@@ -2,6 +2,8 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -55,7 +57,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         if (StringUtils.isNotEmpty(dto.getUpdateTimeEnd())){
             dto.setUpdateTimeEnd(DateUtils.format(addDay(dto.getUpdateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
         }
-
+        dto.setSoleName(dto.getSoleName().trim());
         List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
         List<SoleRuleVO> soleRuleVos = soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
@@ -117,7 +119,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Override
     public List<MarketingCustomerVO> getCustomer(String search) {
-        List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search);
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByLike(search.trim());
         //返回id由Long改为string类型
         List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
             MarketingCustomerVO vo = new MarketingCustomerVO();
@@ -128,26 +130,30 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         return vos;
     }
 
-    @Override
-    public boolean getCusUserType(String soleId, String customerId) {
-        CustomerSoleExample customerSoleExample = new CustomerSoleExample();
-        customerSoleExample.createCriteria()
-                .andCustomerIdEqualTo(Long.parseLong(customerId))
-                .andIsDelEqualTo(1);
-        List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
-        if(customerSoles.size() == 0){
-            return true;
-        }
-        if(customerSoles.size()>=1){
-            for (CustomerSole c:customerSoles){
-                if(!soleId.equals(c.getSoleId().toString())){
-                    return false;
+/*    @Override
+    public List<Map> getCusOnly(String soleId, String customerIds) {
+        List<Map> list = new ArrayList<>();
+        String[] split = customerIds.split(",");
+        for(String customerId : split){
+            Map map = new HashMap();
+            map.put("customerId",customerId.trim());
+            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
+            customerSoleExample.createCriteria()
+                    .andCustomerIdEqualTo(Long.parseLong(customerId.trim()))
+                    .andIsDelEqualTo(1);
+            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
+            if(customerSoles.size() == 0){
+                //return null;
+            }
+
+            if(customerSoles.size()>=1){
+                for (CustomerSole c:customerSoles){
+
                 }
             }
+            map.put("list",);
         }
-
-        return true;
-    }
+    }*/
 
     @Override
     public boolean updateStatusById(String id, Integer status) {
@@ -182,19 +188,45 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         return logVOS;
     }
 
+    /**
+     * 校验规则是否存在
+     * @param vo
+     * @return
+     */
+  /*  public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
+
+        for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
+            selectVO.getCid();
+            selectVO.getConditionInfo();
+        }
+        soleRuleConfigMapper.getRuleOfSoleOnly();
+
+
+    }*/
+
+
     @Override
     @Transactional
-    public boolean saveOrUpdate(SoleRuleDetailVO vo,UserDetail userDetail) {
+    public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail) {
+
+        //校验规则是否存在
+        /*boolean flag = getRuleOfSoleOnly(vo);
+        if (flag){
+            //已存在
+            return new ApiResult<Boolean>().success(false, ServiceResultEnum.SUCCESS_3);
+        }*/
+
         //根据有没有id判断是新增或者变更
         SoleRuleConfig soleRuleConfig = new SoleRuleConfig();
         soleRuleConfig.setSoleName(vo.getSoleName());
         soleRuleConfig.setSoleFields(vo.getSoleFields());
         soleRuleConfig.setSoleCycleTimes(vo.getSoleCycleTimes());
-        soleRuleConfig.setStatus(2);
+        soleRuleConfig.setStatus(1);
         soleRuleConfig.setIsDel(1);
         soleRuleConfig.setCreateTime(new Date());
         soleRuleConfig.setUpdateTime(new Date());
-        if (StringUtils.isEmpty(vo.getSoleId())){
+
+        if (StringUtils.isEmpty(vo.getSoleId()) || "".equals(vo.getSoleId().trim())){
             //新增
             //insert b_sole_rule_config
             soleRuleConfig.setUpdateTime(new Date());
@@ -250,7 +282,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 customerSoleMapper.insertSelective(customerSole);
             }
         }
-        return true;
+        return new ApiResult<Boolean>().success(true);
     }
 
     @Override

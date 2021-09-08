@@ -61,9 +61,20 @@ public class RuleOfSoleContronller {
             @ApiImplicitParam(name = "soleId",value = "当前规则id",required = false,dataType = "String")
     })
     @GetMapping("/getNameOnly")
-    public boolean getNameOnly(String soleName,String soleId){
+    public ApiResult<Boolean> getNameOnly(String soleName,String soleId){
         //查询
-        return ruleOfSoleService.getNameOnly(soleName,soleId);
+        try {
+            boolean flag = ruleOfSoleService.getNameOnly(soleName, soleId);
+            if(flag){
+                return new ApiResult<Boolean>().success(true);
+            }else {
+                return new ApiResult<Boolean>().success(false,"名称重复或者不合法，请重新输入!");
+            }
+
+        }catch (Exception ex){
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+
     }
 
 
@@ -99,25 +110,37 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "判断商户是否已经被其他规则匹配",notes = "")
+ /*   @ApiOperation(value = "判断商户是否已经被其他规则匹配",notes = "支持多个商户判断,如果多个商户用逗号分隔")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = false,dataType = "String"),
-            @ApiImplicitParam(name = "customerId",value = "商户编码",required = true,dataType = "String")
+            @ApiImplicitParam(name = "customerIds",value = "商户编码(商户列表的id)",required = true,dataType = "String")
     })
     @GetMapping("/getCusOnly")
-    public boolean getCusOnly(String soleId, String customerId){
-        //查询
-        return ruleOfSoleService.getCusUserType(soleId,customerId);
-    }
+    public ApiResult<List<Map>> getCusOnly(String soleId, String customerIds){
+        try {
+            //查询
+            List<Map> map = ruleOfSoleService.getCusOnly(soleId, customerIds);
+            return new ApiResult<List<Map>>().success(map);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            return new ApiResult<List<Map>>().fail(ServiceResultEnum.FAILED);
+        }
+
+    }*/
 
 
 
     @ApiOperation(value = "新增/变更去重规则",notes = "")
     @PostMapping("/saveOrUpdate")
-    public boolean saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
+    public ApiResult<Boolean> saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
         //获取用户上下文
-        UserDetail user = ThreadContextInfo.getUser();
-        return ruleOfSoleService.saveOrUpdate(vo,user);
+        try {
+            UserDetail user = ThreadContextInfo.getUser();
+            return ruleOfSoleService.saveOrUpdate(vo,user);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
     }
 
 
@@ -141,8 +164,18 @@ public class RuleOfSoleContronller {
             @ApiImplicitParam(name = "status",value = "状态(1-开启;2-禁用)",required = true,dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
-    public boolean updateStatusById(String id,Integer status){
-        return ruleOfSoleService.updateStatusById(id,status);
+    public ApiResult<Boolean> updateStatusById(String id,Integer status){
+        //查询
+        try {
+            boolean flag = ruleOfSoleService.updateStatusById(id,status);
+            if(flag){
+                return new ApiResult<Boolean>().success(true,"操作成功！");
+            }else {
+                return new ApiResult<Boolean>().success(false,"操作失败！");
+            }
+        }catch (Exception ex){
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
     }
 
 

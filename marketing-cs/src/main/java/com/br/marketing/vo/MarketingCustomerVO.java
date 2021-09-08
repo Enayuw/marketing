@@ -2,6 +2,7 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotEmpty;
 
 @Data
 public class MarketingCustomerVO {
@@ -22,6 +23,7 @@ public class MarketingCustomerVO {
      * 合作客户ID
      */
     @ApiModelProperty(value = "合作客户ID")
+    @NotEmpty(message = "客户id必传")
     private String cid;
 
     /**
