@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
+
 /**
  * 客户 cid、apiCode 信息vo
  *
@@ -29,4 +31,33 @@ public class CustomerSelectVO {
      */
     @ApiModelProperty(value = "接口编码", dataType = "string", position = 1)
     private String apiCode;
+
+    /**
+     * 合作客户名称
+     */
+    @ApiModelProperty(value = "合作客户名称", dataType = "string", position = 2)
+    private String name;
+
+    /**
+     * 合作客户简称
+     */
+    @ApiModelProperty(value = "合作客户简称", dataType = "string", position = 3)
+    private String shortName;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomerSelectVO that = (CustomerSelectVO) o;
+        return Objects.equals(cid, that.cid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cid);
+    }
 }
