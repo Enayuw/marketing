@@ -41,7 +41,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         boolean rulesMark = false;
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
             //查询T+n时间内已经去重统计过的数据的where条件
-            StringBuilder dbWhereStr = new StringBuilder(" where is_repeat=2 ");
+            StringBuilder dbWhereStr = new StringBuilder(" is_repeat=2 ");
             //查询T日内的未统计的去重的数据的where条件
             StringBuilder dbWhereTodayStr = new StringBuilder();
             //T+n时间范围
@@ -105,10 +105,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 //todo 需要查询多张apicode表
             }
 
-            if(StringUtils.isNotBlank(soleSql.toString())){
-                rulesMark =true;
-                soleSql.append(" union ");
-            }
+
             String todayWhere = dbWhereTodayStr.toString().replaceFirst("and", "");
             //多规则 T日内的条件筛选
             if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
@@ -117,27 +114,20 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 soleSqlWhereToday.append(String.format("(%s)",todayWhere));
             }
 
-            soleSql.append(" select count(*) as num")
-                    .append(" from b_marketing_sync_"+soleRuleVO.getApiCode())
-                    .append(dbWhereStr);
+            if(StringUtils.isNotBlank(soleSql.toString())){
+                rulesMark =true;
+                soleSql.append(" or ");
+            }
+            soleSql.append(String.format("(%s)",dbWhereStr));
         }
-        String sqlCount = null;
+        String sqlCount = String.format("select count(*) from b_marketing_sync_%s where %s",syncUser.getApiCode(),soleSql);
         String sqlToday = null;
         String sqlTodayWhere = null;
-        if(rulesMark){
-            sqlCount = String.format("select sum(num) from (%s)",soleSql);
-        }else{
-            sqlCount = soleSql.toString();
-        }
         if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
             sqlTodayWhere = String.format("where  is_repeat=1 and %s",soleSqlWhereToday);
             sqlToday = String.format("select id from b_marketing_sync_%s %s" +
                             " order by applet_time asc limit 1"
                     ,syncUser.getApiCode(),sqlTodayWhere);
-        }
-
-        if(StringUtils.isNull(sqlCount)){
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该数据没有生成去重规则");
         }
 
         Long  size= iMarketingSyncUserService.countRepeat(sqlCount);
@@ -225,10 +215,12 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 if(StringUtils.isNull(vo.getFieldValue())&&StringUtils.isNull(fieldValue)){
                     dbStr.append("=null");
                     result =true;
-                }
-                if(StringUtils.isNotNull(vo.getFieldValue())&&vo.getFieldValue().equals(fieldValue)){
+                }else if(StringUtils.isNotNull(vo.getFieldValue())&&vo.getFieldValue().equals(fieldValue)){
                     dbStr.append(String.format("='%s'",fieldValue));
                     result=true;
+                }else{
+                    dbStr.append(String.format("='%s'",vo.getFieldValue()));
+                    result=false;
                 }
                 break;
             default:
