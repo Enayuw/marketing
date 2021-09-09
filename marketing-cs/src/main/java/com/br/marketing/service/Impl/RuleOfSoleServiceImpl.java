@@ -317,6 +317,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             Map map = new HashMap();
             map.put("shortName",customerVO.getShortName());
             map.put("cid",customerVO.getCid());
+            map.put("id",customerVO.getId());
             map.put("apiCode",customerVO.getApiCode());
             map.put("name",customerVO.getName());
             map.put("cusCollapseVal",type);
