@@ -24,5 +24,7 @@ public interface SoleRuleConfigMapper extends SoleRuleConfigMapperBase {
      * 是否有重复的去重规则
      * @return
      */
-    int getRuleOfSoleOnly(Long soleId, String soleFields, Integer soleCycleTimes, String cid, String conditionInfo);
+    int getRuleOfSoleOnly(@Param("soleId") Long soleId, @Param("soleFields") String soleFields,
+                          @Param("soleCycleTimes") Integer soleCycleTimes, @Param("cid") Long cid,
+                          @Param("conditionInfo") String conditionInfo);
 }

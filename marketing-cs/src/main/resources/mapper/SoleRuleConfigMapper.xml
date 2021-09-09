@@ -34,5 +34,21 @@
 
     <select id="getRuleOfSoleOnly" resultType="int" parameterType="string">
         select count(*) from b_sole_rule_config c,b_customer_sole s where c.id=s.sole_id
+        and c.is_del=1 and s.is_del=1
+        <if test="soleFields !=null and soleFields!=''">
+            and c.sole_fields = #{soleFields}
+        </if>
+        <if test="soleCycleTimes !=null">
+            and c.sole_cycle_times = #{soleCycleTimes}
+        </if>
+        <if test="cid !=null and cid!=''">
+            and s.customer_id=#{cid}
+        </if>
+        <if test="conditionInfo !=null and conditionInfo!=''">
+            and s.condition_info=#{conditionInfo}
+        </if>
+        <if test="soleId !=null and soleId!=''">
+            and s.sole_id!=#{soleId} and c.id!=#{soleId}
+        </if>
     </select>
 </mapper>

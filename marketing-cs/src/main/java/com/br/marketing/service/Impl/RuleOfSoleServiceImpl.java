@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -166,12 +167,16 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
      * @return
      */
     public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
-        Long soleId = Long.parseLong(vo.getSoleId());
+        Long soleId = null;
+        if (StringUtils.isNotEmpty(vo.getSoleId())){
+            soleId = Long.parseLong(vo.getSoleId());
+        }
+
         String soleFields = vo.getSoleFields();
         Integer soleCycleTimes = vo.getSoleCycleTimes();
         for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
-            String cid = selectVO.getCid();
-            String conditionInfo = (String)JSON.toJSON(selectVO.getConditionInfo());
+            Long cid = Long.parseLong(selectVO.getCid());
+            String conditionInfo = selectVO.getConditionInfo().toJSONString();
             int count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo);
             if(count>0){
                 return false;
@@ -186,11 +191,11 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail) {
 
         //校验规则是否存在
-        /*boolean flag = getRuleOfSoleOnly(vo);
-        if (flag){
+        boolean flag = getRuleOfSoleOnly(vo);
+        if (!flag){
             //已存在
             return new ApiResult<Boolean>().success(false, ServiceResultEnum.SUCCESS_3);
-        }*/
+        }
 
         //根据有没有id判断是新增或者变更
         SoleRuleConfig soleRuleConfig = new SoleRuleConfig();
