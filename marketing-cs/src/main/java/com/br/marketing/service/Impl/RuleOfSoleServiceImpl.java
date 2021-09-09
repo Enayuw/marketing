@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -49,20 +48,21 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
 
     @Override
-    public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
+    public PageResultReturn list(int page, int pageSize, String soleName, Integer status,
+                                 String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd) {
+
+        if (StringUtils.isNotEmpty(createTimeEnd)){
+            createTimeEnd = DateUtils.format(addDay(createTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
+        if (StringUtils.isNotEmpty(updateTimeEnd)){
+            updateTimeEnd = DateUtils.format(addDay(updateTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
         PageHelper.startPage(page, pageSize);
-        if (StringUtils.isNotEmpty(dto.getCreateTimeEnd())){
-            dto.setCreateTimeEnd(DateUtils.format(addDay(dto.getCreateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
-        }
-        if (StringUtils.isNotEmpty(dto.getUpdateTimeEnd())){
-            dto.setUpdateTimeEnd(DateUtils.format(addDay(dto.getUpdateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
-        }
-        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
-        List<SoleRuleVO> soleRuleVos = soleRuleConfigs.stream().map(soleRuleConfig -> {
+        List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
+                createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
+        soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
             BeanUtils.copyProperties(soleRuleConfig,vo);
-            //id类型转换
-            vo.setId(soleRuleConfig.getId().toString());
             //去重字段统计
             vo.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
             //使用商户统计
@@ -71,11 +71,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
             vo.setCusNum(count);
-            vo.setCreateTime(DateUtils.format(soleRuleConfig.getCreateTime(),"yyyy-MM-dd HH:mm:ss"));
-            vo.setUpdateTime(DateUtils.format(soleRuleConfig.getUpdateTime(),"yyyy-MM-dd HH:mm:ss"));
             return vo;
             }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(soleRuleVos, page);
+        return PageResultReturn.setPageResult(soleRuleConfigs, page);
     }
 
     private Date addDay(String date, Integer addDays, String format) {
@@ -129,30 +127,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         return vos;
     }
 
-/*    @Override
-    public List<Map> getCusOnly(String soleId, String customerIds) {
-        List<Map> list = new ArrayList<>();
-        String[] split = customerIds.split(",");
-        for(String customerId : split){
-            Map map = new HashMap();
-            map.put("customerId",customerId.trim());
-            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
-            customerSoleExample.createCriteria()
-                    .andCustomerIdEqualTo(Long.parseLong(customerId.trim()))
-                    .andIsDelEqualTo(1);
-            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
-            if(customerSoles.size() == 0){
-                //return null;
-            }
-
-            if(customerSoles.size()>=1){
-                for (CustomerSole c:customerSoles){
-
-                }
-            }
-            map.put("list",);
-        }
-    }*/
 
     @Override
     public boolean updateStatusById(String id, Integer status) {
@@ -188,20 +162,28 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     /**
-     * 校验规则是否存在
+     * 校验是否有重复的去重规则
      * @param vo
      * @return
      */
-  /*  public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
-
-        for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
-            selectVO.getCid();
-            selectVO.getConditionInfo();
+    public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
+        Long soleId = null;
+        if (StringUtils.isNotEmpty(vo.getSoleId())){
+            soleId = Long.parseLong(vo.getSoleId());
         }
-        soleRuleConfigMapper.getRuleOfSoleOnly();
 
-
-    }*/
+        String soleFields = vo.getSoleFields();
+        Integer soleCycleTimes = vo.getSoleCycleTimes();
+        for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
+            Long cid = Long.parseLong(selectVO.getCid());
+            String conditionInfo = selectVO.getConditionInfo().toJSONString();
+            int count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo);
+            if(count>0){
+                return false;
+            }
+        }
+        return true;
+    }
 
 
     @Override
@@ -209,11 +191,11 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail) {
 
         //校验规则是否存在
-        /*boolean flag = getRuleOfSoleOnly(vo);
-        if (flag){
+        boolean flag = getRuleOfSoleOnly(vo);
+        if (!flag){
             //已存在
             return new ApiResult<Boolean>().success(false, ServiceResultEnum.SUCCESS_3);
-        }*/
+        }
 
         //根据有没有id判断是新增或者变更
         SoleRuleConfig soleRuleConfig = new SoleRuleConfig();
@@ -317,6 +299,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             Map map = new HashMap();
             map.put("shortName",customerVO.getShortName());
             map.put("cid",customerVO.getCid());
+            map.put("id",customerVO.getId());
             map.put("apiCode",customerVO.getApiCode());
             map.put("name",customerVO.getName());
             map.put("cusCollapseVal",type);

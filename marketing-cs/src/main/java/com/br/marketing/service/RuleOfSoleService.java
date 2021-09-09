@@ -15,10 +15,10 @@ public interface RuleOfSoleService {
 
     /**
      * 查询去重规则列表
-     * @param dto
+     * @param
      * @return
      */
-    PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize);
+    PageResultReturn list(int page, int pageSize, String soleName, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd);
 
     /**
      * 判断规则名称是否重复

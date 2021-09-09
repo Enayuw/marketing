@@ -3,21 +3,36 @@
 <mapper namespace="com.br.marketing.mapper.MarketingCustomerMapper">
     <select id="getCidOrApiCodeList" resultType="com.br.marketing.vo.CustomerSelectVO">
         select
-        <if test="cid == null or cid.trim() eq ''">
-            cid
-        </if>
-        <if test="cid != null and cid.trim() neq ''">
-            api_code
-        </if>
-        from b_marketing_customer
+        bmc.cid
+        ,bmc.api_code
+        ,bmc.name, bmc.short_name
+        from b_marketing_customer bmc
         where
-        status=1 and
+        bmc.status=1 and
         <if test="cid == null or cid.trim() eq ''">
-            ISNULL(cid) = 0 group by cid
+            ISNULL(bmc.cid) = 0
         </if>
         <if test="cid != null and cid.trim() neq ''">
-            cid=#{cid}
+            bmc.cid=#{cid}
         </if>
+        order by bmc.id desc
+
+        <!--        select-->
+        <!--        <if test="cid == null or cid.trim() eq ''">-->
+        <!--            cid-->
+        <!--        </if>-->
+        <!--        <if test="cid != null and cid.trim() neq ''">-->
+        <!--            api_code-->
+        <!--        </if>-->
+        <!--        from b_marketing_customer-->
+        <!--        where-->
+        <!--        status=1 and-->
+        <!--        <if test="cid == null or cid.trim() eq ''">-->
+        <!--            ISNULL(cid) = 0 group by cid-->
+        <!--        </if>-->
+        <!--        <if test="cid != null and cid.trim() neq ''">-->
+        <!--            cid=#{cid}-->
+        <!--        </if>-->
 
     </select>
 

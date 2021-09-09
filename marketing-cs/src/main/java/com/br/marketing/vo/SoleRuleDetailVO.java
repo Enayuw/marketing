@@ -30,7 +30,7 @@ public class SoleRuleDetailVO {
 
     @ApiModelProperty(value = "去重时间周期")
     @Min(value = 0)
-    @Max(value = 60)
+    @Max(value = 180)
     private Integer soleCycleTimes;
 
     @ApiModelProperty(value = "匹配商户列表")

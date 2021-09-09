@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -58,6 +59,7 @@ public class ScoreRuleVO implements Serializable {
      */
     @ApiModelProperty(value = "跑分时间 格式HH:mm", dataType = "string", position = 8)
     @NotEmpty(message = "跑分时间不可为空")
+    @Pattern(regexp = "^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$", message = "诶呦喂！时间格式不正确(格式HH:mm)")
     private String startTime;
 
     /**
