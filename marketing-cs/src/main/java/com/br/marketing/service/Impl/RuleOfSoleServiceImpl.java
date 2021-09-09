@@ -50,19 +50,18 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Override
     public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
-        PageHelper.startPage(page, pageSize);
+
         if (StringUtils.isNotEmpty(dto.getCreateTimeEnd())){
             dto.setCreateTimeEnd(DateUtils.format(addDay(dto.getCreateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
         }
         if (StringUtils.isNotEmpty(dto.getUpdateTimeEnd())){
             dto.setUpdateTimeEnd(DateUtils.format(addDay(dto.getUpdateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
         }
-        List<SoleRuleConfig> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
-        List<SoleRuleVO> soleRuleVos = soleRuleConfigs.stream().map(soleRuleConfig -> {
+        PageHelper.startPage(page, pageSize);
+        List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
+        soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
             BeanUtils.copyProperties(soleRuleConfig,vo);
-            //id类型转换
-            vo.setId(soleRuleConfig.getId().toString());
             //去重字段统计
             vo.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
             //使用商户统计
@@ -71,11 +70,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
             vo.setCusNum(count);
-            vo.setCreateTime(DateUtils.format(soleRuleConfig.getCreateTime(),"yyyy-MM-dd HH:mm:ss"));
-            vo.setUpdateTime(DateUtils.format(soleRuleConfig.getUpdateTime(),"yyyy-MM-dd HH:mm:ss"));
             return vo;
             }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(soleRuleVos, page);
+        return PageResultReturn.setPageResult(soleRuleConfigs, page);
     }
 
     private Date addDay(String date, Integer addDays, String format) {

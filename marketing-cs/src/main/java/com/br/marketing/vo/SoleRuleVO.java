@@ -9,7 +9,7 @@ import java.util.Date;
 public class SoleRuleVO {
 
     @ApiModelProperty(value = "去重规则id")
-    private String id;
+    private Long id;
 
     @ApiModelProperty(value = "去重规则名称")
     private String soleName;
