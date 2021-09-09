@@ -61,17 +61,15 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
         soleRuleConfigs.stream().map(soleRuleConfig -> {
-            SoleRuleVO vo = new SoleRuleVO();
-            BeanUtils.copyProperties(soleRuleConfig,vo);
             //去重字段统计
-            vo.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
+            soleRuleConfig.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
             //使用商户统计
             CustomerSoleExample customerSoleExample = new CustomerSoleExample();
             customerSoleExample.createCriteria().andSoleIdEqualTo(soleRuleConfig.getId())
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
-            vo.setCusNum(count);
-            return vo;
+            soleRuleConfig.setCusNum(count);
+            return soleRuleConfig;
             }).collect(Collectors.toList());
         return PageResultReturn.setPageResult(soleRuleConfigs, page);
     }
