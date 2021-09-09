@@ -461,7 +461,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 时间处理
                 String startTime = customerScoreRuleVO.getStartTime();
                 LocalDateTime nowTime = LocalDateTime.now();
-                String validTimeStr = LocalDate.now().format(ymd).concat(" " + startTime + ":00");
+                LocalDate nowData = LocalDate.now();
+                String validTimeStr = nowData.format(ymd).concat(" " + startTime + ":00");
                 LocalDateTime validTime = LocalDateTime.parse(validTimeStr,ymdhms);
                 //筛选数据范围时间
                 String sTimeStr = "",eTimeStr = "";
@@ -469,12 +470,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //任务的开始时间和结束时间
                 String taskStart="",taskEnd="";
                 if(nowTime.compareTo(validTime)>0){
-                    sTimeStr = validTime.minusDays(1L).format(ymdhms);
+                    sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.format(ymdhms);
                     taskStart = LocalDate.now().format(ymd);
                     taskEnd = LocalDate.now().plusDays(1L).format(ymd);
                 }else{
-                    sTimeStr = validTime.minusDays(2L).format(ymdhms);
+                    sTimeStr = nowData.minusDays(2L).format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.minusDays(1L).format(ymdhms);
                     taskStart = LocalDate.now().minusDays(1L).format(ymd);
                     taskEnd = LocalDate.now().format(ymd);
@@ -545,116 +546,110 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             minId = marketingSyncUser.getId() + 1;
                         }
                         threadPool.submit(()->{
-                            Result<Integer> soleRes = soleStrategyService
-                                    .actionSole(soleConfig.getData(), marketingSyncUser);
-                            if(ResultCode.SUCCESS.getValue().equals(soleRes.getCode())) {
-                                if (Integer.valueOf(1).equals(soleRes.getData())) {
-                                    //region 用户上传表头配置处理
-                                    JSONObject extendJson = new JSONObject();
-                                    Integer ia = 0, ib = 1, ic = 2;
-                                    if (baseHeadConfigVO != null) {
-                                        JSONObject icData = null;
-                                        if (StringUtils.isNotBlank(marketingSyncUser.getReserveField1())) {
-                                            try {
-                                                icData = JSON.parseObject(marketingSyncUser.getReserveField1());
-                                            } catch (Exception ex) {
-                                                log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
-                                                        , marketingSyncUser.getApiCode(), marketingSyncUser.getId());
-                                            }
-                                        }
-                                        for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
-                                            String str = "";
-                                            if (ia.equals(head.getType())) {
-                                                str = "";
-                                            } else if (ib.equals(head.getType())) {
-                                                switch (head.getName().toLowerCase()) {
-                                                    case "apicode":
-                                                        str = marketingSyncUser.getApiCode();
-                                                        break;
-                                                    case "cusbatch":
-                                                        str = marketingSyncUser.getCusBatch();
-                                                        break;
-                                                    case "taskid":
-                                                        str = marketingSyncUser.getCusBatch();
-                                                        break;
-                                                    case "requestbatch":
-                                                        str = marketingSyncUser.getRequestBatch();
-                                                        break;
-                                                    case "requestid":
-                                                        str = marketingSyncUser.getRequestBatch();
-                                                        break;
-                                                    case "custnum":
-                                                        str = marketingSyncUser.getCustNum();
-                                                        break;
-                                                    case "idcard":
-                                                        str = StringUtils.isBlank(marketingSyncUser.getFailType())
-                                                                && StringUtils.isNotBlank(marketingSyncUser.getIdCard())
-                                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                                .decode(marketingSyncUser.getIdCard()).getBytes())
-                                                                : marketingSyncUser.getIdCard();
-                                                        break;
-                                                    case "id":
-                                                        str = StringUtils.isBlank(marketingSyncUser.getFailType())
-                                                                && StringUtils.isNotBlank(marketingSyncUser.getIdCard())
-                                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                                .decode(marketingSyncUser.getIdCard()).getBytes())
-                                                                : marketingSyncUser.getIdCard();
-                                                        break;
-                                                    case "cell":
-                                                        str = StringUtils.isBlank(marketingSyncUser.getFailType())
-                                                                && StringUtils.isNotBlank(marketingSyncUser.getCell())
-                                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                                .decode(marketingSyncUser.getCell()).getBytes())
-                                                                : marketingSyncUser.getCell();
-                                                        break;
-                                                    case "name":
-                                                        str = StringUtils.isBlank(marketingSyncUser.getFailType())
-                                                                && StringUtils.isNotBlank(marketingSyncUser.getName())
-                                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                                .decode(marketingSyncUser.getName()).getBytes())
-                                                                : marketingSyncUser.getName();
-                                                        break;
-                                                    case "grouptype":
-                                                        str = marketingSyncUser.getGroupType();
-                                                        break;
-                                                    case "registerdate":
-                                                        str = marketingSyncUser.getRegisterDate();
-                                                        break;
-                                                    /* 2021-8-18 14:41:12
-                                                     * 回传文件结果表头新增字段：
-                                                     * createTime 基础字段
-                                                     */
-                                                    case "createtime": // 客户数据上传日期（精确到日）
-                                                        str = marketingSyncUser.getAppletDate();
-                                                        break;
-                                                    default:
-                                                        str = "";
-                                                }
-                                            } else if (ic.equals(head.getType())) {
-                                                if (icData != null) {
-                                                    str = icData.getString(head.getName());
-                                                }
-                                            } else {
-                                                str = "";
-                                            }
-                                            extendJson.put(head.getName(), str);
-                                        }
-                                        ;
+                            //region 用户上传表头配置处理
+                            JSONObject extendJson = new JSONObject();
+                            Integer ia = 0, ib = 1, ic = 2;
+                            if (baseHeadConfigVO != null) {
+                                JSONObject icData = null;
+                                if (StringUtils.isNotBlank(marketingSyncUser.getReserveField1())) {
+                                    try {
+                                        icData = JSON.parseObject(marketingSyncUser.getReserveField1());
+                                    } catch (Exception ex) {
+                                        log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
+                                                , marketingSyncUser.getApiCode(), marketingSyncUser.getId());
                                     }
-                                    //endregion
-                                    String s = LocalDateTime.now().format(ymdhms);
-                                    // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
-                                    String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')"
-                                            , apiCode, batchNumber, marketingSyncUser.getCustNum()
-                                            , marketingSyncUser.getCell()
-                                            , StringUtils.isBlank(marketingSyncUser.getIdCard()) ? "" : marketingSyncUser.getIdCard()
-                                            , StringUtils.isBlank(marketingSyncUser.getName()) ? "" : marketingSyncUser.getName(), s, s
-                                            , marketingSyncUser.getFailType() == null ? "" : marketingSyncUser.getFailType()
-                                            , marketingSyncUser.getStatus()
-                                            , JSON.toJSONString(extendJson));
-                                    marketingUserMapper.insertByRequestId(apiCode, dataSql);
                                 }
+                                for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
+                                    String str = "";
+                                    if (ia.equals(head.getType())) {
+                                        str = "";
+                                    } else if (ib.equals(head.getType())) {
+                                        switch (head.getName().toLowerCase()) {
+                                            case "apicode":
+                                                str = marketingSyncUser.getApiCode();
+                                                break;
+                                            case "cusbatch":
+                                                str = marketingSyncUser.getCusBatch();
+                                                break;
+                                            case "taskid":
+                                                str = marketingSyncUser.getCusBatch();
+                                                break;
+                                            case "requestbatch":
+                                                str = marketingSyncUser.getRequestBatch();
+                                                break;
+                                            case "requestid":
+                                                str = marketingSyncUser.getRequestBatch();
+                                                break;
+                                            case "custnum":
+                                                str = marketingSyncUser.getCustNum();
+                                                break;
+                                            case "idcard":
+                                                str = StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                        && StringUtils.isNotBlank(marketingSyncUser.getIdCard())
+                                                        ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                        .decode(marketingSyncUser.getIdCard()).getBytes())
+                                                        : marketingSyncUser.getIdCard();
+                                                break;
+                                            case "id":
+                                                str = StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                        && StringUtils.isNotBlank(marketingSyncUser.getIdCard())
+                                                        ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                        .decode(marketingSyncUser.getIdCard()).getBytes())
+                                                        : marketingSyncUser.getIdCard();
+                                                break;
+                                            case "cell":
+                                                str = StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                        && StringUtils.isNotBlank(marketingSyncUser.getCell())
+                                                        ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                        .decode(marketingSyncUser.getCell()).getBytes())
+                                                        : marketingSyncUser.getCell();
+                                                break;
+                                            case "name":
+                                                str = StringUtils.isBlank(marketingSyncUser.getFailType())
+                                                        && StringUtils.isNotBlank(marketingSyncUser.getName())
+                                                        ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                        .decode(marketingSyncUser.getName()).getBytes())
+                                                        : marketingSyncUser.getName();
+                                                break;
+                                            case "grouptype":
+                                                str = marketingSyncUser.getGroupType();
+                                                break;
+                                            case "registerdate":
+                                                str = marketingSyncUser.getRegisterDate();
+                                                break;
+                                            /* 2021-8-18 14:41:12
+                                             * 回传文件结果表头新增字段：
+                                             * createTime 基础字段
+                                             */
+                                            case "createtime": // 客户数据上传日期（精确到日）
+                                                str = marketingSyncUser.getAppletDate();
+                                                break;
+                                            default:
+                                                str = "";
+                                        }
+                                    } else if (ic.equals(head.getType())) {
+                                        if (icData != null) {
+                                            str = icData.getString(head.getName());
+                                        }
+                                    } else {
+                                        str = "";
+                                    }
+                                    extendJson.put(head.getName(), str);
+                                }
+                                ;
                             }
+                            //endregion
+                            String s = LocalDateTime.now().format(ymdhms);
+                            // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
+                            String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')"
+                                    , apiCode, batchNumber, marketingSyncUser.getCustNum()
+                                    , marketingSyncUser.getCell()
+                                    , StringUtils.isBlank(marketingSyncUser.getIdCard()) ? "" : marketingSyncUser.getIdCard()
+                                    , StringUtils.isBlank(marketingSyncUser.getName()) ? "" : marketingSyncUser.getName(), s, s
+                                    , marketingSyncUser.getFailType() == null ? "" : marketingSyncUser.getFailType()
+                                    , marketingSyncUser.getStatus()
+                                    , JSON.toJSONString(extendJson));
+                            marketingUserMapper.insertByRequestId(apiCode, dataSql);
                         });
                     }
                 }

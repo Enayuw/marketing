@@ -86,6 +86,7 @@
         select min(id)
         from b_marketing_sync_${apiCode}
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and is_repeat in (1,2)
         and (${whereStr})
     </select>
     
@@ -93,6 +94,7 @@
         select max(id)
         from b_marketing_sync_${apiCode}
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and is_repeat in (1,2)
         and (${whereStr})
     </select>
 
@@ -100,6 +102,7 @@
         select count(1)
         from b_marketing_sync_${apiCode}
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        and is_repeat in (1,2)
         and (${whereStr})
     </select>
 
@@ -107,6 +110,7 @@
         select *
         from b_marketing_sync_${apiCode}
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId}]]>
+        and is_repeat in (1,2)
         and (${whereStr}) order by id asc limit 5000
     </select>
 </mapper>

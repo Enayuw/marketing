@@ -132,7 +132,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
             sqlTodayWhere = String.format("where  is_repeat=1 and %s",soleSqlWhereToday);
             sqlToday = String.format("select id from b_marketing_sync_%s %s" +
-                            " order by applet_time desc limit 1"
+                            " order by applet_time asc limit 1"
                     ,syncUser.getApiCode(),sqlTodayWhere);
         }
 
@@ -142,6 +142,9 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
 
         Long  size= iMarketingSyncUserService.countRepeat(sqlCount);
         if(size >=1){
+            String updateInValidSql = String.format("update b_marketing_sync_%s set is_repeat=3 where id = %d"
+                    ,syncUser.getApiCode(),syncUser.getId());
+            iMarketingSyncUserService.updateRepeatUserStatus(updateInValidSql);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(2);
         }
 

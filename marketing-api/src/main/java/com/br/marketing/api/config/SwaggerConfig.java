@@ -36,6 +36,9 @@ public class SwaggerConfig {
      */
     @Bean
     public Docket apiConfig() {
+        HashSet set = new HashSet();
+        set.add("application/json");
+        set.add("application/x-www-form-urlencoded");
         Docket docket = new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).select()
                 .apis(RequestHandlerSelectors.basePackage("com.br.marketing.api.controller"))
                 .paths((String input) -> {

@@ -30,6 +30,9 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.ScoreRuleConfigService;
+import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.*;
 import com.google.common.base.Joiner;
 
@@ -45,6 +48,7 @@ import com.br.marketing.service.PushRuleService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -87,6 +91,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Autowired
     MarketingCustomerMapper marketingCustomerMapper;
@@ -166,6 +173,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
     final static String marketingPreUserTable = "b_marketing_sync_";
+
+    @Autowired
+    IRuleConfigService iRuleConfigService;
+
+    @Autowired
+    SoleStrategyService soleStrategyService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -572,6 +585,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //规则校验方式-isCheck
         MerchantParam merchantParam = null;
         String apiCode = marketingSyncInfo.getApiCode();
+        Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
         try {
             merchantParam = IceClient.getMerchantParam(apiCode);
         } catch (Exception e) {
@@ -621,25 +635,34 @@ public class PushRuleServiceImpl implements PushRuleService {
                 encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
-                String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+                Date nowData = new Date();
+                String date = DateUtils.format(nowData, "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
                 String appletTime = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s','%s','%s',%s)"
-                        , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
-                        , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
-                        , marketingPreUserDetailDTO.getCell()
-                        , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?"":marketingPreUserDetailDTO.getId()
-                        , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
-                        , marketingPreUserDetailDTO.getGroupType()
-                        , finalReserveField.getUserType()
-                        , marketingPreUserDetailDTO.getRegisterDate()
-                        , JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1())
-                        , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate,appletTime
-                        ,marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType()
-                        ,marketingPreUserDetailDTO.getStatus());
+                MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+                marketingSyncUser.setApiCode(apiCode);
+                marketingSyncUser.setCusBatch(marketingSyncInfo.getCusBatch());
+                marketingSyncUser.setRequestBatch(marketingSyncInfo.getRequestBatch());
+                marketingSyncUser.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
+                marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
+                marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
+                marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
+                marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
+                marketingSyncUser.setReserveField1(JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1()));
+                marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
+                marketingSyncUser.setCreateTime(nowData);
+                marketingSyncUser.setUpdateTime(nowData);
+                marketingSyncUser.setAppletDate(appletDate);
+                marketingSyncUser.setStatus(marketingPreUserDetailDTO.getStatus());
+                marketingSyncUser.setFailType(marketingPreUserDetailDTO.getFailType());
+                marketingSyncUser.setAppletTime(marketingSyncInfo.getCreateTime());
+                marketingSyncUser.setUserType(finalReserveField.getUserType());
                 try {
-                    marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
+                    marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
+                    if(ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())){
+                        soleStrategyService.actionSole(soleConfig.getData(),marketingSyncUser);
+                    }
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
@@ -675,6 +698,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
+        Date nowData2 = new Date();
         if (errorSize == 0) {
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
         } else if (errorSize == futures.size()) {
@@ -683,7 +707,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-            errorInfo.setCreateTime(new Date());
+            errorInfo.setCreateTime(nowData2);
             errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
@@ -693,7 +717,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-            errorInfo.setCreateTime(new Date());
+            errorInfo.setCreateTime(nowData2);
             errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
