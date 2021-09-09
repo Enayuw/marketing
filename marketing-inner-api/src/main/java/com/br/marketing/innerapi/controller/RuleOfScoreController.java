@@ -137,6 +137,7 @@ public class RuleOfScoreController {
      */
     @ApiOperation(value = "变更", notes = "变更操作", httpMethod = "POST")
     @PostMapping("/modify")
+    @Validated
     public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
