@@ -41,12 +41,19 @@ public class RuleOfSoleContronller {
     RuleOfSoleService ruleOfSoleService;
 
     @ApiOperation(value = "去重规则列表",notes = "")
-    @PostMapping("/list")
-    public ApiResult<PageResultReturn> list(@RequestBody SoleRuleSearchDTO dto,
-                                            @RequestParam(defaultValue = "1") int page,
-                                            @RequestParam(defaultValue = "10") int pageSize){
+    @GetMapping("/list")
+    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int page
+                                            , @RequestParam(defaultValue = "10") int pageSize
+                                            , @RequestParam(required = false) String soleName
+                                            , @RequestParam(required = false) Integer status
+                                            , @RequestParam(required = false) String createTimeStart
+                                            , @RequestParam(required = false) String createTimeEnd
+                                            , @RequestParam(required = false) String updateTimeStart
+                                            , @RequestParam(required = false) String updateTimeEnd
+                                            ){
         try {
-            PageResultReturn list = ruleOfSoleService.list(dto, page, pageSize);
+            PageResultReturn list = ruleOfSoleService.list(page, pageSize,soleName,status,
+                    createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
             return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());

@@ -3,11 +3,9 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -49,16 +47,18 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
 
     @Override
-    public PageResultReturn list(SoleRuleSearchDTO dto, int page, int pageSize) {
+    public PageResultReturn list(int page, int pageSize, String soleName, Integer status,
+                                 String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd) {
 
-        if (StringUtils.isNotEmpty(dto.getCreateTimeEnd())){
-            dto.setCreateTimeEnd(DateUtils.format(addDay(dto.getCreateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
+        if (StringUtils.isNotEmpty(createTimeEnd)){
+            createTimeEnd = DateUtils.format(addDay(createTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
-        if (StringUtils.isNotEmpty(dto.getUpdateTimeEnd())){
-            dto.setUpdateTimeEnd(DateUtils.format(addDay(dto.getUpdateTimeEnd(), 1, "yyyy-MM-dd"), "yyyy-MM-dd"));
+        if (StringUtils.isNotEmpty(updateTimeEnd)){
+            updateTimeEnd = DateUtils.format(addDay(updateTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
         PageHelper.startPage(page, pageSize);
-        List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(dto);
+        List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
+                createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
         soleRuleConfigs.stream().map(soleRuleConfig -> {
             SoleRuleVO vo = new SoleRuleVO();
             BeanUtils.copyProperties(soleRuleConfig,vo);
@@ -126,30 +126,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         return vos;
     }
 
-/*    @Override
-    public List<Map> getCusOnly(String soleId, String customerIds) {
-        List<Map> list = new ArrayList<>();
-        String[] split = customerIds.split(",");
-        for(String customerId : split){
-            Map map = new HashMap();
-            map.put("customerId",customerId.trim());
-            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
-            customerSoleExample.createCriteria()
-                    .andCustomerIdEqualTo(Long.parseLong(customerId.trim()))
-                    .andIsDelEqualTo(1);
-            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
-            if(customerSoles.size() == 0){
-                //return null;
-            }
-
-            if(customerSoles.size()>=1){
-                for (CustomerSole c:customerSoles){
-
-                }
-            }
-            map.put("list",);
-        }
-    }*/
 
     @Override
     public boolean updateStatusById(String id, Integer status) {
@@ -185,20 +161,24 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     /**
-     * 校验规则是否存在
+     * 校验是否有重复的去重规则
      * @param vo
      * @return
      */
-  /*  public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
-
+    public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
+        Long soleId = Long.parseLong(vo.getSoleId());
+        String soleFields = vo.getSoleFields();
+        Integer soleCycleTimes = vo.getSoleCycleTimes();
         for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
-            selectVO.getCid();
-            selectVO.getConditionInfo();
+            String cid = selectVO.getCid();
+            String conditionInfo = (String)JSON.toJSON(selectVO.getConditionInfo());
+            int count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo);
+            if(count>0){
+                return false;
+            }
         }
-        soleRuleConfigMapper.getRuleOfSoleOnly();
-
-
-    }*/
+        return true;
+    }
 
 
     @Override

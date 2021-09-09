@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SoleRuleConfigMapper" >
-    <select id="selectList" resultType="com.br.marketing.vo.SoleRuleVO" parameterType="com.br.marketing.dto.SoleRuleSearchDTO">
+    <select id="selectList" resultType="com.br.marketing.vo.SoleRuleVO">
         select id,
         sole_name as soleName,
         sole_fields as soleFields,
@@ -32,4 +32,7 @@
         order by bsrc.id desc
     </select>
 
+    <select id="getRuleOfSoleOnly" resultType="int" parameterType="string">
+        select count(*) from b_sole_rule_config c,b_customer_sole s where c.id=s.sole_id
+    </select>
 </mapper>
