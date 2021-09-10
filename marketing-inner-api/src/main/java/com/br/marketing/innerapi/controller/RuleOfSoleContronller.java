@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.RuleOfSoleService;
@@ -117,26 +116,6 @@ public class RuleOfSoleContronller {
     }
 
 
- /*   @ApiOperation(value = "判断商户是否已经被其他规则匹配",notes = "支持多个商户判断,如果多个商户用逗号分隔")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "soleId",value = "当前去重规则编码",required = false,dataType = "String"),
-            @ApiImplicitParam(name = "customerIds",value = "商户编码(商户列表的id)",required = true,dataType = "String")
-    })
-    @GetMapping("/getCusOnly")
-    public ApiResult<List<Map>> getCusOnly(String soleId, String customerIds){
-        try {
-            //查询
-            List<Map> map = ruleOfSoleService.getCusOnly(soleId, customerIds);
-            return new ApiResult<List<Map>>().success(map);
-        }catch (Exception ex){
-            log.error(ex.getMessage());
-            return new ApiResult<List<Map>>().fail(ServiceResultEnum.FAILED);
-        }
-
-    }*/
-
-
-
     @ApiOperation(value = "新增/变更去重规则",notes = "")
     @PostMapping("/saveOrUpdate")
     public ApiResult<Boolean> saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
@@ -174,7 +153,8 @@ public class RuleOfSoleContronller {
     public ApiResult<Boolean> updateStatusById(String id,Integer status){
         //查询
         try {
-            boolean flag = ruleOfSoleService.updateStatusById(id,status);
+            UserDetail user = ThreadContextInfo.getUser();
+            boolean flag = ruleOfSoleService.updateStatusById(id,status,user);
             if(flag){
                 return new ApiResult<Boolean>().success(true,"操作成功！");
             }else {

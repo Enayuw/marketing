@@ -2,7 +2,6 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.SoleRuleSearchDTO;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
@@ -35,20 +34,12 @@ public interface RuleOfSoleService {
     List<MarketingCustomerVO> getCustomer(String search);
 
     /**
-     * 判断商户是否已经被其他规则匹配
-     * @param soleId
-     * @param customerId
-     * @return
-     */
-    //List<Map> getCusOnly(String soleId, String customerIds);
-
-    /**
      * 操作去重规则状态--开启/关闭
      * @param id
      * @param status
      * @return
      */
-    boolean updateStatusById(String id, Integer status);
+    boolean updateStatusById(String id, Integer status,UserDetail user);
 
     /**
      * 变更记录查看

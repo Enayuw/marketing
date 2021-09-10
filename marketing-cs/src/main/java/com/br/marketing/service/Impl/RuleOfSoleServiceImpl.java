@@ -131,12 +131,32 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
 
     @Override
-    public boolean updateStatusById(String id, Integer status) {
+    public boolean updateStatusById(String id, Integer status,UserDetail userDetail) {
         SoleRuleConfig config = new SoleRuleConfig();
         config.setId(Long.parseLong(id));
         config.setStatus(status);
         int update = soleRuleConfigMapper.updateByPrimaryKeySelective(config);
         if (update == 1){
+            //insert b_sole_opt_log 变更日志表
+            //变更内容(规则名称、字段、时间、匹配商户、使用状态)其中匹配商户内容为 简称+apicode 拼接的字符串
+            SoleRuleConfig soleRuleConfig = soleRuleConfigMapper.selectByPrimaryKey(Long.parseLong(id));
+            SoleOptLog soleOptLog = new SoleOptLog();
+            soleOptLog.setSoleId(id);
+            soleOptLog.setSoleName(soleRuleConfig.getSoleName());
+            soleOptLog.setSoleFields(soleRuleConfig.getSoleFields());
+            soleOptLog.setSoleCycleTimes(soleRuleConfig.getSoleCycleTimes());
+            soleOptLog.setStatus(soleRuleConfig.getStatus());
+            //根据规则id查看其下的匹配商户
+            String soleCustomers = getCusBySoleId(Long.parseLong(id));
+            soleOptLog.setCustomerInfo(soleCustomers);
+            soleOptLog.setOptUserId(userDetail.getUserId());
+            soleOptLog.setOptUserName(userDetail.getUsername());
+            /*soleOptLog.setOptUserId("sjj");
+            soleOptLog.setOptUserName("sjj");*/
+            soleOptLog.setUpdateTime(new Date());
+            soleOptLog.setCreateTime(new Date());
+            soleOptLog.setIsDel(1);
+            soleOptLogMapper.insert(soleOptLog);
             return true;
         }else {
             return false;
@@ -205,15 +225,14 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         soleRuleConfig.setSoleFields(vo.getSoleFields());
         soleRuleConfig.setSoleCycleTimes(vo.getSoleCycleTimes());
         soleRuleConfig.setIsDel(1);
-        soleRuleConfig.setCreateTime(new Date());
+        soleRuleConfig.setStatus(1);
         soleRuleConfig.setUpdateTime(new Date());
 
         if (StringUtils.isEmpty(vo.getSoleId())){
             //新增
             //insert b_sole_rule_config
-            soleRuleConfig.setUpdateTime(new Date());
+            soleRuleConfig.setCreateTime(new Date());
             int soleId = soleRuleConfigMapper.insert(soleRuleConfig);
-            soleRuleConfig.setStatus(1);
             vo.setSoleId(soleRuleConfig.getId().toString());
             if (soleId<=0 || StringUtils.isNull(soleId)){
                 log.error("去重规则配置表 保存失败！");
@@ -221,30 +240,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             }
         }else {
             //变更
-            //insert b_sole_opt_log
-            SoleOptLog soleOptLog = new SoleOptLog();
-            soleOptLog.setSoleId(vo.getSoleId());
-            //变更内容(规则名称、字段、时间、匹配商户、使用状态)其中匹配商户内容为 简称+apicode 拼接的字符串
-            SoleRuleConfig old = soleRuleConfigMapper.selectByPrimaryKey(Long.parseLong(vo.getSoleId()));
-            soleOptLog.setSoleName(old.getSoleName());
-            soleOptLog.setSoleFields(old.getSoleFields());
-            soleOptLog.setSoleCycleTimes(old.getSoleCycleTimes());
-            soleOptLog.setStatus(old.getStatus());
-            //根据规则id查看其下的匹配商户
-            String soleCustomers = getCusBySoleId(old.getId());
-            soleOptLog.setCustomerInfo(soleCustomers);
-            soleOptLog.setOptUserId(userDetail.getUserId());
-            soleOptLog.setOptUserName(userDetail.getUsername());
-            /*soleOptLog.setOptUserId("测试用户id");
-            soleOptLog.setOptUserName("测试用户名称");*/
-            soleOptLog.setUpdateTime(new Date());
-            soleOptLog.setCreateTime(new Date());
-            soleOptLog.setIsDel(1);
-            soleOptLogMapper.insertSelective(soleOptLog);
             //update b_sole_rule_config
             soleRuleConfig.setId(Long.parseLong(vo.getSoleId()));
-            soleRuleConfig.setStatus(2);
-            soleRuleConfig.setUpdateTime(new Date());
             soleRuleConfigMapper.updateByPrimaryKey(soleRuleConfig);
             //逻辑删除旧数据 update b_customer_sole
             CustomerSole customerSole = new CustomerSole();
@@ -266,6 +263,26 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 customerSoleMapper.insertSelective(customerSole);
             }
         }
+        //insert b_sole_opt_log 变更日志表
+        //变更内容(规则名称、字段、时间、匹配商户、使用状态)其中匹配商户内容为 简称+apicode 拼接的字符串
+        SoleOptLog soleOptLog = new SoleOptLog();
+        soleOptLog.setSoleId(vo.getSoleId());
+        soleOptLog.setSoleName(vo.getSoleName());
+        soleOptLog.setSoleFields(vo.getSoleFields());
+        soleOptLog.setSoleCycleTimes(vo.getSoleCycleTimes());
+        soleOptLog.setStatus(1);
+        //根据规则id查看其下的匹配商户
+        String soleCustomers = getCusBySoleId(Long.parseLong(vo.getSoleId()));
+        soleOptLog.setCustomerInfo(soleCustomers);
+        soleOptLog.setOptUserId(userDetail.getUserId());
+        soleOptLog.setOptUserName(userDetail.getUsername());
+        /*soleOptLog.setOptUserId("sjj");
+        soleOptLog.setOptUserName("sjj");*/
+        soleOptLog.setUpdateTime(new Date());
+        soleOptLog.setCreateTime(new Date());
+        soleOptLog.setIsDel(1);
+        soleOptLogMapper.insert(soleOptLog);
+
         return new ApiResult<Boolean>().success(true);
     }
 
