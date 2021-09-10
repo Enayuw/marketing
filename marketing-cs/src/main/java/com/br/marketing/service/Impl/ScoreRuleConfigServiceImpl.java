@@ -226,6 +226,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
+        // 默认开启
+//        rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
         if (i != 1) {
@@ -401,7 +403,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
         ruleExample.createCriteria().andRuleNameEqualTo(scoreRuleVO.getRuleName()).andIsDelEqualTo(1);
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(ruleExample);
-        if (list != null && list.size() > size) {
+        if (list != null && list.size() > 0) {
+            if (!ObjectUtils.isEmpty(scoreRuleVO.getId())) {
+                List<ScoreRuleConfig> collect = list.stream().filter(
+                        scoreRuleConfig -> !scoreRuleConfig.getId().equals(scoreRuleVO.getId()))
+                        .collect(Collectors.toList());
+                if (collect.size() < 1) {
+                    return;
+                }
+            }
             throw new BusinessException("对不起，“".concat(scoreRuleVO.getRuleName()).concat("”已经被使用"));
         }
     }
