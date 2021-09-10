@@ -470,12 +470,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //任务的开始时间和结束时间
                 String taskStart="",taskEnd="";
                 if(nowTime.compareTo(validTime)>0){
-                    sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
+                    sTimeStr = nowData.format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.format(ymdhms);
                     taskStart = LocalDate.now().format(ymd);
                     taskEnd = LocalDate.now().plusDays(1L).format(ymd);
                 }else{
-                    sTimeStr = nowData.minusDays(2L).format(ymd).concat(" 00:00:00");
+                    sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.minusDays(1L).format(ymdhms);
                     taskStart = LocalDate.now().minusDays(1L).format(ymd);
                     taskEnd = LocalDate.now().format(ymd);
