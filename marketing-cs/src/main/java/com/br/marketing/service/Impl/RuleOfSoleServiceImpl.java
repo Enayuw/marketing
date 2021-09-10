@@ -204,7 +204,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         soleRuleConfig.setSoleName(vo.getSoleName());
         soleRuleConfig.setSoleFields(vo.getSoleFields());
         soleRuleConfig.setSoleCycleTimes(vo.getSoleCycleTimes());
-        soleRuleConfig.setStatus(1);
         soleRuleConfig.setIsDel(1);
         soleRuleConfig.setCreateTime(new Date());
         soleRuleConfig.setUpdateTime(new Date());
@@ -214,6 +213,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             //insert b_sole_rule_config
             soleRuleConfig.setUpdateTime(new Date());
             int soleId = soleRuleConfigMapper.insert(soleRuleConfig);
+            soleRuleConfig.setStatus(1);
             vo.setSoleId(soleRuleConfig.getId().toString());
             if (soleId<=0 || StringUtils.isNull(soleId)){
                 log.error("去重规则配置表 保存失败！");
@@ -243,8 +243,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleOptLogMapper.insertSelective(soleOptLog);
             //update b_sole_rule_config
             soleRuleConfig.setId(Long.parseLong(vo.getSoleId()));
+            soleRuleConfig.setStatus(2);
             soleRuleConfig.setUpdateTime(new Date());
-            soleRuleConfigMapper.updateByPrimaryKeySelective(soleRuleConfig);
+            soleRuleConfigMapper.updateByPrimaryKey(soleRuleConfig);
             //逻辑删除旧数据 update b_customer_sole
             CustomerSole customerSole = new CustomerSole();
             customerSole.setIsDel(9);
