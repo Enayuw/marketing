@@ -409,8 +409,6 @@
 			`task_time` datetime DEFAULT NULL COMMENT '导入任务用户表时间',
 			`is_repeat` int(11) DEFAULT '1' COMMENT '是否重复 1-未去重; 2-不重复;3-重复;',
 			PRIMARY KEY (`id`),
-			UNIQUE KEY `IDX_taskId_custNum` (`cus_batch`,`cust_num`),
-			UNIQUE KEY `uk_taskId_cell` (`cus_batch`,`cell`),
 			KEY `idx_appletDate` (`applet_date`),
 		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
