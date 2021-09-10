@@ -57,6 +57,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         if (StringUtils.isNotEmpty(updateTimeEnd)){
             updateTimeEnd = DateUtils.format(addDay(updateTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
+        if (StringUtils.isNotEmpty(soleName) && soleName.contains("_")){
+            soleName = soleName.replace("_", "\\_");
+        }
+
         PageHelper.startPage(page, pageSize);
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
