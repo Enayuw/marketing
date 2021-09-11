@@ -12,7 +12,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
-import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
@@ -62,9 +61,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Resource
     private RedisChgService redisChgService;
 
-    @Resource
-    private VariableDicMapper variableDicMapper;
-
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
         PageHelper.startPage(page, pageSize);
@@ -81,7 +77,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
         // 检查配置名称是否已经被使用过
-        nameCheck(scoreRuleVO, 0);
+        nameCheck(scoreRuleVO);
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
                 .andApiCodeEqualTo(scoreRuleVO.getApiCode())
@@ -226,7 +222,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             throw new BusinessException("用户信息验证失败，请重新登录重试");
         }
         // 检查配置名称是否已经被使用过
-        nameCheck(scoreRuleVO, 1);
+        nameCheck(scoreRuleVO);
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setId(scoreRuleVO.getId());
         rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
@@ -370,46 +366,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         return "R".concat(yyyyMMdd6.concat(prefix3));
     }
 
-    /**
-     * 场景json结构拼接
-     */
-//    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog) {
-//        String json = scoreOptLog.getConditionShowInfo();
-//        JSONObject object = JSON.parseObject(json);
-//        JSONArray arrays = object.getJSONArray("operationFactor");
-//        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
-//        List<String> fieldNames = vdList.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
-//        List<String> fieldValues = vdList.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
-//        VariableDicExample example = new VariableDicExample();
-//        example.createCriteria()
-//                .andCidEqualTo(scoreOptLog.getCid())
-//                .andApiCodeEqualTo(scoreOptLog.getApicode())
-//                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
-//        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
-//        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
-//        final char ch = ',';
-//        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
-//                .append(vd.getFieldName())
-//                .append("\",\"fieldValue\":\"")
-//                .append(vd.getFieldValue())
-//                .append("\",\"fieldDesc\":\"")
-//                .append(vd.getFieldDesc())
-//                .append("\",\"operation\":\"=\"}").append(ch));
-//        // 得到最后一个字符的索引地址
-//        int index = ci.length() - 1;
-//        // 取到最后一个字符
-//        char c = ci.charAt(index);
-//        if (c == ch) {
-//            // 删除最后一个字符
-//            ci.deleteCharAt(index);
-//        }
-//        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
-//    }
 
     /**
      * 2021/9/8 15:49 规则名称校验
      */
-    private void nameCheck(ScoreRuleVO scoreRuleVO, int size) {
+    private void nameCheck(ScoreRuleVO scoreRuleVO) {
         ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
         ruleExample.createCriteria().andRuleNameEqualTo(scoreRuleVO.getRuleName()).andIsDelEqualTo(1);
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(ruleExample);
