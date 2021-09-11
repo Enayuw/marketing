@@ -69,7 +69,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
         scoreOptLog.setUpdateTime(scoreOptLog.getCreateTime());
         int insert = scoreOptLogMapper.insert(scoreOptLog);
         if (insert < 1) {
-            throw new BusinessException("变更失败，变更记录添加失败");
+            throw new BusinessException("很遗憾小主，变更记录添加失败");
         }
         return insert;
     }
