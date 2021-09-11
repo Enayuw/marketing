@@ -84,7 +84,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                 .andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
         if (customerList.size() == 0) {
-            throw new BusinessException("客户信息不存在或已删除");
+            throw new BusinessException("抱歉小主，客户不存在或已删除");
         }
         MarketingCustomer customer = customerList.get(0);
         ScoreRuleConfig rule = new ScoreRuleConfig();
@@ -121,21 +121,21 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String key = "marketing:inner:".concat(yyyyMMdd6);
         redisChgService.incrBy(key, -1L);
-        throw new BusinessException("配置保存失败，请稍后重试！");
+        throw new BusinessException("很遗憾小主，配置保存失败");
     }
 
     @Override
     public boolean setStatus(Long rid, Long crId, Integer status, UserDetail userDetail) {
         ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(rid);
         if (ObjectUtils.isEmpty(rule) || rule.getIsDel() != 1) {
-            throw new BusinessException("抱歉，规则无效或不存在");
+            throw new BusinessException("抱歉小主，规则无效或不存在");
         }
         if (rule.getStatus().equals(status)) {
             return true;
         }
         CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
         if (!rule.getId().equals(customerRule.getRuleId())) {
-            throw new BusinessException("抱歉，数据异常");
+            throw new BusinessException("抱歉小主，数据异常");
         }
         ScoreRuleConfig ruleConfig = new ScoreRuleConfig();
         ruleConfig.setId(rid);
@@ -147,11 +147,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                 ruleConfig.setStatus(status);
                 break;
             default:
-                throw new BusinessException("警告，非法的状态");
+                throw new BusinessException("警告小主，非法的状态");
         }
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(ruleConfig);
         if (i < 1) {
-            throw new BusinessException("抱歉，操作失败，请稍后重试");
+            throw new BusinessException("很遗憾小主，操作失败");
         }
         ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
         BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
@@ -168,7 +168,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     public ScoreRuleVO detail(Long rid, Long crId) {
         CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
         if (ObjectUtils.isEmpty(customerRule) || !customerRule.getRuleId().equals(rid) || customerRule.getIsDel() != 1) {
-            throw new BusinessException("抱歉，数据异常或已删除");
+            throw new BusinessException("抱歉小主，数据异常或已删除");
         }
         ScoreRuleConfigExample example = new ScoreRuleConfigExample();
         example.createCriteria().andIdEqualTo(rid)
@@ -176,13 +176,13 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 //                .andIsDelEqualTo(1).andStatusEqualTo(1);
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(example);
         if (ObjectUtils.isEmpty(list) || list.size() < 1) {
-            throw new BusinessException("抱歉，此规则不存在或已禁用");
+            throw new BusinessException("抱歉小主，此规则不存在或已删除");
         }
         MarketingCustomerExample mcExample = new MarketingCustomerExample();
         mcExample.createCriteria().andIdEqualTo(customerRule.getCustomerId()).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(mcExample);
         if (customerList.size() == 0) {
-            throw new BusinessException("客户信息不存在或已删除");
+            throw new BusinessException("抱歉小主，客户不存在或已删除");
         }
         ScoreRuleConfig rule = list.get(0);
         MarketingCustomer customer = customerList.get(0);
@@ -219,7 +219,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
         if (ObjectUtils.isEmpty(userDetail)) {
-            throw new BusinessException("用户信息验证失败，请重新登录重试");
+            throw new BusinessException("素不相识的小主，请登录后重试");
         }
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO);
@@ -235,7 +235,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
         if (i != 1) {
-            throw new BusinessException("变更失败，稍后重试");
+            throw new BusinessException("很遗憾小主，变更失败");
         }
         // 记录变更日志
         scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
@@ -256,7 +256,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 校验客户信息是否正确
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
         if (customerList.size() == 0) {
-            throw new BusinessException("客户信息不存在或已删除");
+            throw new BusinessException("很遗憾小主，客户["
+                    .concat(cid)
+                    .concat(":")
+                    .concat(apiCode)
+                    .concat("]不存在或已删除"));
         }
         MarketingCustomer customer = customerList.get(0);
         CustomerRuleExample crExample = new CustomerRuleExample();
@@ -293,7 +297,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             // 已有配置场景信息获取签名
             String md511 = DigestUtils.md5DigestAsHex(src.getConditionInfo().getBytes(StandardCharsets.UTF_8));
             if (md501.equals(md502) && md510.equals(md511)) {
-                throw new BusinessException("规则已经创建，建议调整历史规则");
+                throw new BusinessException("报告小主，找到相似的规则["
+                        .concat(src.getRuleName())
+                        .concat("(")
+                        .concat(src.getRuleNameShort())
+                        .concat(")],建议使用该规则"));
             }
         }
     }
@@ -345,14 +353,14 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     /**
      * 2021/9/3 19:10
      * 以天为维度生成递增的编号
-     * 编码规则：日期+序号 例如：R20210903001,R20210903002,...,R20210903999
+     * 编码规则：R+日期+序号（三位） 例如：R20210903001,R20210903002,...,R20210903999
      */
     private String createNo() {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String key = "marketing:inner:".concat(yyyyMMdd6);
         Long index = redisChgService.incr(key);
         if (index > 999) {
-            throw new BusinessException("抱歉，今天的编号已用尽，当天最大编号[".concat(yyyyMMdd6) + "999]");
+            throw new BusinessException("很遗憾小主，今天的规则编号(".concat(yyyyMMdd6) + "999)已经用尽");
         }
         LocalDateTime now = LocalDateTime.now();
         // 当前毫秒数
@@ -383,7 +391,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                     return;
                 }
             }
-            throw new BusinessException("对不起，“".concat(scoreRuleVO.getRuleName()).concat("”已经被使用"));
+            throw new BusinessException("哇塞小主，“".concat(scoreRuleVO.getRuleName()).concat("”已经被使用"));
         }
     }
 
