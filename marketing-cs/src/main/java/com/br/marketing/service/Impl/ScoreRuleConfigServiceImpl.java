@@ -9,13 +9,18 @@ import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CustomerRuleMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.ScoreRuleConfigMapper;
+import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -52,7 +57,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     private CustomerRuleMapper customerRuleMapper;
 
     @Resource
-    private ScoreOptLogMapper scoreOptLogMapper;
+    private ScoreOptLogService scoreOptLogService;
 
     @Resource
     private RedisChgService redisChgService;
@@ -74,7 +79,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void save(ScoreRuleVO scoreRuleVO) {
+    public void save(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO, 0);
         MarketingCustomerExample example = new MarketingCustomerExample();
@@ -111,6 +116,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             cr.setIsDel(1);
             int insert2 = customerRuleMapper.insert(cr);
             if (insert2 > 0) {
+                scoreRuleVO.setId(rule.getId());
+                // 记录变更日志
+                scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
                 return;
             }
         }
@@ -118,13 +126,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
     @Override
-    public boolean setStatus(Long rid, Integer status) {
+    public boolean setStatus(Long rid, Long crId, Integer status, UserDetail userDetail) {
         ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(rid);
         if (ObjectUtils.isEmpty(rule) || rule.getIsDel() != 1) {
             throw new BusinessException("抱歉，规则无效或不存在");
         }
         if (rule.getStatus().equals(status)) {
             return true;
+        }
+        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
+        if (!rule.getId().equals(customerRule.getRuleId())) {
+            throw new BusinessException("抱歉，数据异常");
         }
         ScoreRuleConfig ruleConfig = new ScoreRuleConfig();
         ruleConfig.setId(rid);
@@ -139,7 +151,18 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                 throw new BusinessException("警告，非法的状态");
         }
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(ruleConfig);
-        return i == 1;
+        if (i < 1) {
+            throw new BusinessException("抱歉，操作失败，请稍后重试");
+        }
+        ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
+        BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
+        scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
+        MarketingCustomer customer = marketingCustomerMapper.selectByPrimaryKey(customerRule.getCustomerId());
+        scoreRuleVO.setCid(customer.getCid());
+        scoreRuleVO.setApiCode(customer.getApiCode());
+        // 记录变更日志
+        scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
+        return true;
     }
 
     @Override
@@ -171,14 +194,21 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
-        String json = rule.getConditionInfo();
-        JSONObject object = JSON.parseObject(json);
-        JSONArray arrays = object.getJSONArray("operationFactor");
-        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
-        scoreRuleVO.setVdSet(new HashSet<>(vdList));
+        scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
         scoreRuleVO.setApiCode(customer.getApiCode());
         scoreRuleVO.setCid(customer.getCid());
         return scoreRuleVO;
+    }
+
+    /**
+     * 2021/9/11 11:43
+     * 解析json
+     */
+    private Set<VariableDicSelectVO> getVdSet(String json) {
+        JSONObject object = JSON.parseObject(json);
+        JSONArray arrays = object.getJSONArray("operationFactor");
+        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
+        return new HashSet<>(vdList);
     }
 
     @Override
@@ -194,31 +224,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO, 1);
-        ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(scoreRuleVO.getId());
-        if (ObjectUtils.isEmpty(ruleConfig)) {
-            throw new BusinessException("该配置不存在");
-        }
-        ScoreOptLog scoreOptLog = new ScoreOptLog();
-        scoreOptLog.setApicode(scoreRuleVO.getApiCode());
-        scoreOptLog.setCid(scoreRuleVO.getCid());
-        scoreOptLog.setScoreRuleId(String.valueOf(ruleConfig.getId()));
-        scoreOptLog.setRuleName(ruleConfig.getRuleName());
-        scoreOptLog.setCreateTime(new Date());
-        scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
-        scoreOptLog.setOptUserName(userDetail.getUsername());
-        scoreOptLog.setConditionShowInfo(ruleConfig.getConditionInfo());
-        spliceConditionInfoJsonLog(scoreOptLog);
-        String jsonStr = "{\"".concat("strategyId\":\"").concat(scoreRuleVO.getStrategyId())
-                .concat("\",\"").concat("products\":").concat(ruleConfig.getStrategyProductShow()).concat("}");
-        scoreOptLog.setStrategyProductShow(jsonStr);
-        scoreOptLog.setStartTime(ruleConfig.getStartTime());
-        scoreOptLog.setStatus(ruleConfig.getStatus());
-        scoreOptLog.setIsDel(1);
-        scoreOptLog.setUpdateTime(scoreOptLog.getCreateTime());
-        int insert = scoreOptLogMapper.insert(scoreOptLog);
-        if (insert < 1) {
-            throw new BusinessException("变更失败，变更记录添加失败");
-        }
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setId(scoreRuleVO.getId());
         rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
@@ -227,12 +232,14 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
         // 默认开启
-//        rule.setStatus(1);
+        rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
         if (i != 1) {
             throw new BusinessException("变更失败，稍后重试");
         }
+        // 记录变更日志
+        scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
     }
 
     /**
@@ -363,38 +370,38 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     /**
      * 场景json结构拼接
      */
-    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog) {
-        String json = scoreOptLog.getConditionShowInfo();
-        JSONObject object = JSON.parseObject(json);
-        JSONArray arrays = object.getJSONArray("operationFactor");
-        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
-        List<String> fieldNames = vdList.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
-        List<String> fieldValues = vdList.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
-        VariableDicExample example = new VariableDicExample();
-        example.createCriteria()
-                .andCidEqualTo(scoreOptLog.getCid())
-                .andApiCodeEqualTo(scoreOptLog.getApicode())
-                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
-        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
-        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
-        final char ch = ',';
-        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
-                .append(vd.getFieldName())
-                .append("\",\"fieldValue\":\"")
-                .append(vd.getFieldValue())
-                .append("\",\"fieldDesc\":\"")
-                .append(vd.getFieldDesc())
-                .append("\",\"operation\":\"=\"}").append(ch));
-        // 得到最后一个字符的索引地址
-        int index = ci.length() - 1;
-        // 取到最后一个字符
-        char c = ci.charAt(index);
-        if (c == ch) {
-            // 删除最后一个字符
-            ci.deleteCharAt(index);
-        }
-        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
-    }
+//    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog) {
+//        String json = scoreOptLog.getConditionShowInfo();
+//        JSONObject object = JSON.parseObject(json);
+//        JSONArray arrays = object.getJSONArray("operationFactor");
+//        List<VariableDicSelectVO> vdList = arrays.toJavaList(VariableDicSelectVO.class);
+//        List<String> fieldNames = vdList.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
+//        List<String> fieldValues = vdList.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
+//        VariableDicExample example = new VariableDicExample();
+//        example.createCriteria()
+//                .andCidEqualTo(scoreOptLog.getCid())
+//                .andApiCodeEqualTo(scoreOptLog.getApicode())
+//                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
+//        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
+//        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
+//        final char ch = ',';
+//        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
+//                .append(vd.getFieldName())
+//                .append("\",\"fieldValue\":\"")
+//                .append(vd.getFieldValue())
+//                .append("\",\"fieldDesc\":\"")
+//                .append(vd.getFieldDesc())
+//                .append("\",\"operation\":\"=\"}").append(ch));
+//        // 得到最后一个字符的索引地址
+//        int index = ci.length() - 1;
+//        // 取到最后一个字符
+//        char c = ci.charAt(index);
+//        if (c == ch) {
+//            // 删除最后一个字符
+//            ci.deleteCharAt(index);
+//        }
+//        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
+//    }
 
     /**
      * 2021/9/8 15:49 规则名称校验

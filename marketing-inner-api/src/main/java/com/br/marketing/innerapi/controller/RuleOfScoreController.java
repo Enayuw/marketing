@@ -87,7 +87,8 @@ public class RuleOfScoreController {
             FieldError fieldError = fieldErrors.get(0);
             return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
         }
-        scoreRuleConfigService.save(scoreRuleVO);
+        UserDetail user = ThreadContextInfo.getUser();
+        scoreRuleConfigService.save(scoreRuleVO, user);
         return new ApiResult<>().success();
     }
 
@@ -101,11 +102,14 @@ public class RuleOfScoreController {
      */
     @ApiOperation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "POST")
     @ApiImplicitParams({@ApiImplicitParam(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
+            , @ApiImplicitParam(name = "crId", value = "规则与客户关系主键", paramType = "path", dataType = "long")
             , @ApiImplicitParam(name = "status", value = "状态", paramType = "path", dataType = "integer")})
-    @PostMapping("/stare/{rid}/{status}")
+    @PostMapping("/stare/{rid}/{crId}/{status}")
     public ApiResult<?> status(@PathVariable(name = "rid") Long rid
+            , @PathVariable(name = "crId") Long crId
             , @PathVariable(name = "status") Integer status) {
-        boolean bool = scoreRuleConfigService.setStatus(rid, status);
+        UserDetail user = ThreadContextInfo.getUser();
+        boolean bool = scoreRuleConfigService.setStatus(rid, crId, status, user);
         if (bool) {
             return new ApiResult<>().success(true);
         }

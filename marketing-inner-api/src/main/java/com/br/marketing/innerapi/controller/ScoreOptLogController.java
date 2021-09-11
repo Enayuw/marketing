@@ -44,12 +44,17 @@ public class ScoreOptLogController {
             , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer"
             , defaultValue = "10")
             , @ApiImplicitParam(name = "rid", value = "配置主键", paramType = "query", dataType = "long")
+            , @ApiImplicitParam(name = "cid", value = "客户id", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreOptLog.class)})
     public ApiResult<PageResultReturn> findListPage(@RequestParam(defaultValue = "1") int page
-            , @RequestParam(defaultValue = "10") int pageSize, @RequestParam Long rid
+            , @RequestParam(defaultValue = "10") int pageSize
+            , @RequestParam Long rid
+            , @RequestParam String cid
+            , @RequestParam String apiCode
     ) {
-        PageResultReturn listPage = scoreOptLogService.findListPage(page, pageSize, rid);
+        PageResultReturn listPage = scoreOptLogService.findListPage(page, pageSize, rid, cid, apiCode);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
