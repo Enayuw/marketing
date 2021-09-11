@@ -99,7 +99,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setStatus(1);
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
-        rule.setRuleNameShort(createNo());
         rule.setExecType(1);
         rule.setBaseInfo("");
         rule.setIsDel(1);
@@ -107,6 +106,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPushType(0);
         rule.setCycleEndDay("");
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+        rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
         if (insert1 == 1) {
             CustomerRule cr = new CustomerRule();
@@ -122,6 +122,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                 return;
             }
         }
+        String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = "marketing:inner:".concat(yyyyMMdd6);
+        redisChgService.incrBy(key, -1L);
         throw new BusinessException("配置保存失败，请稍后重试！");
     }
 
