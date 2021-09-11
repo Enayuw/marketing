@@ -164,7 +164,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setCid(customer.getCid());
         scoreRuleVO.setApiCode(customer.getApiCode());
         // 记录变更日志
-        scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
+        scoreOptLogService.save(scoreRuleVO, status, userDetail);
         return true;
     }
 
