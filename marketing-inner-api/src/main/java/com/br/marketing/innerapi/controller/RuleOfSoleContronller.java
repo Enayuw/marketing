@@ -166,17 +166,19 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "变更记录查看",notes = "")
+    @ApiOperation(value = "变更记录查看",notes = "支持分页")
     @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
     @GetMapping("/getUpdateRecord")
-    public ApiResult<List<SoleOptLogVO>> getUpdateRecord(String id){
+    public ApiResult<PageResultReturn> getUpdateRecord(@RequestParam(required = true) String id,
+                                                       @RequestParam(defaultValue = "1") int page,
+                                                       @RequestParam(defaultValue = "10") int pageSize){
         //查询
         try {
-            List<SoleOptLogVO> list = ruleOfSoleService.getUpdateRecord(id);
-            return new ApiResult<List<SoleOptLogVO>>().success(list);
+            PageResultReturn list = ruleOfSoleService.getUpdateRecord(id,page,pageSize);
+            return new ApiResult<PageResultReturn>().success(list);
         }catch (Exception ex){
             log.error(ex.getMessage());
-            return new ApiResult<List<SoleOptLogVO>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
         }
     }
 
