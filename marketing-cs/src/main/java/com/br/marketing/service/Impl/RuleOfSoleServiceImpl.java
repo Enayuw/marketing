@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 去重规则业务实现
@@ -159,6 +160,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleOptLog.setCreateTime(new Date());
             soleOptLog.setIsDel(1);
             soleOptLogMapper.insert(soleOptLog);
+            List<String> apiCodeBySoleId = getApiCodeBySoleId(Long.parseLong(id));
+            apiCodeBySoleId.forEach(t->{ruleRedisService.delSoleConfigRedis(t);});
             return true;
         }else {
             return false;
@@ -389,4 +392,23 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         return cus.deleteCharAt(cus.length()-1).toString();
     }
 
+
+    public List<String> getApiCodeBySoleId(Long soleId){
+        ArrayList<String> apiCodes = new ArrayList<>();
+        CustomerSoleExample example = new CustomerSoleExample();
+        example.createCriteria().andSoleIdEqualTo(soleId).andIsDelEqualTo(1);
+        List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(example);
+        StringBuilder cus = new StringBuilder();
+        if (customerSoles.size()==0){
+            return apiCodes;
+        }
+        List<Long> customerIds = customerSoles.stream().map(t -> t.getCustomerId()).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andIdIn(customerIds);
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        for (MarketingCustomer customer : marketingCustomers){
+            apiCodes.add(customer.getApiCode());
+        }
+        return apiCodes;
+    }
 }
