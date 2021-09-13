@@ -172,7 +172,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     @Override
     public PageResultReturn getUpdateRecord(String id,int page,int pageSize) {
         PageHelper.startPage(page, pageSize);
-        List<SoleOptLog> soleOptLogs = soleOptLogMapper.selectListById(Long.parseLong(id));
+        List<SoleOptLogVO> soleOptLogs = soleOptLogMapper.selectListById(Long.parseLong(id));
         return PageResultReturn.setPageResult(soleOptLogs, page);
     }
 

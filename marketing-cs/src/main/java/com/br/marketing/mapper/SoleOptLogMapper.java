@@ -1,6 +1,6 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.SoleOptLog;
+import com.br.marketing.vo.SoleOptLogVO;
 
 import java.util.List;
 
@@ -11,6 +11,6 @@ public interface SoleOptLogMapper extends SoleOptLogMapperBase{
      * @param parseLong
      * @return
      */
-    List<SoleOptLog> selectListById(long parseLong);
+    List<SoleOptLogVO> selectListById(long parseLong);
 
 }
