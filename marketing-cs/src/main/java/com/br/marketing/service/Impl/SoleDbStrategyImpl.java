@@ -39,6 +39,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         StringBuilder soleSqlWhereToday = new StringBuilder();
         //一条数据 满足多条去重规则标志 true是多条
         boolean rulesMark = false;
+        //region 多规则拼接
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
             //查询T+n时间内已经去重统计过的数据的where条件
             StringBuilder dbWhereStr = new StringBuilder(" is_repeat=2 ");
@@ -120,6 +121,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             }
             soleSql.append(String.format("(%s)",dbWhereStr));
         }
+        //endregion
         String sqlCount = String.format("select count(*) from b_marketing_sync_%s where %s",syncUser.getApiCode(),soleSql);
         String sqlToday = null;
         String sqlTodayWhere = null;
@@ -143,9 +145,9 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             String updateValidSql = String.format("update b_marketing_sync_%s set is_repeat=2 where id = %d"
                     ,syncUser.getApiCode(),syncUser.getId());
             iMarketingSyncUserService.updateRepeatUserStatus(updateValidSql);
-            String updateInvalidSql = String.format("update b_marketing_sync_%s set is_repeat=3 %s and id!=%d"
-            ,syncUser.getApiCode(),sqlTodayWhere,syncUser.getId());
-            iMarketingSyncUserService.updateRepeatUserStatus(updateInvalidSql);
+//            String updateInvalidSql = String.format("update b_marketing_sync_%s set is_repeat=3 %s and id!=%d"
+//            ,syncUser.getApiCode(),sqlTodayWhere,syncUser.getId());
+//            iMarketingSyncUserService.updateRepeatUserStatus(updateInvalidSql);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(1);
         }else{
             String updateInValidSql = String.format("update b_marketing_sync_%s set is_repeat=3 where id = %d"
