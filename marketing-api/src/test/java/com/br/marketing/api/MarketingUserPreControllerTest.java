@@ -2,6 +2,7 @@ package com.br.marketing.api;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.encryption.Md5Utils;
+import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.controller.MarketingUserPreController;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
@@ -17,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -36,6 +39,21 @@ public class MarketingUserPreControllerTest {
     //4 模拟只传userType
     //5 模拟既传groupType又传userType
 
+
+    //模拟数禾数据传输
+    //@Test
+    public void testReceiveMarketingPreUserSync0() throws UnsupportedEncodingException {
+        //content内容是AES加密过的内容
+        //pwdKey是用户原始的appKey
+        String s = AESAlgorithmUtil.decrypt("ndVryl-a0j7mX1Z4ALMn_Lu3vlUY-NNEcMriLojLXljuUgR2r4w2fjINTSJ0AcxCMWbhzPJjhIMV8CoLHoKxO7YdNoDGilGeTGr1kDKbUSYfGjrlEoJp1EYULNrbNGyVZdXjtWaSVcaJkBlZmUAhpZy1TonfyrSlynuJhRD_mKxs7oJbnvB_HLZSFh5CwfmgLBgMSNKM4EVCm0uGxa-wgWJRYPeoQt3MkWPB-rB_WMHgj1S0btR5a_xP0TccTzskVQ2bLkhNIsu3oWAhO2iyL7QZIyqnh1Ge8hHopDSwAbbzNR1oHXyxvR9Q3_4OlyEclghVKy0NAYJkLNEDWwJeD7Sm5m7jKqgjqiBj0fpVMN2Ti20MG8oGvMzKJcjuOWz7mz3RYr2Z4RHLrsMEXz3ZG8_Pqy5CP9rIAW1ZVWYiQ-Ye5-DzgWPVR-GJmmRksFoHRFv8okbYuHff7Aqh20I-ZLukHaKjJ_AVVJ3SLTqtOT2KxdY0g58jZTiliashJQRegZv_SP2KBLXghat72KKHhk9gzqHzyJ4-ObumWQ0BiGfQV2NGNgY7aguBj7iqDv09wrCGzqz7XyFTlGpaQewIbQ", "31ba331c8e9ccbb7e0ee5c91b41f6e790cdb60f100777aea24b6f1986f8dc92e");
+        //输出的是URLEncode加密过的数据
+        System.out.println(s);
+        //此时才是真正的数据
+        String jsonData = URLDecoder.decode(s,"UTF-8");
+        String apiCode = "123";
+        ApiNoDataResult apiNoDataResult = marketingUserPreController.receiveMarketingPreUserSync(apiCode, jsonData);
+        Assert.assertEquals(apiNoDataResult.getCode(), "00");
+    }
 
     //模拟没有传输last和total
     //@Test
