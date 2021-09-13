@@ -92,6 +92,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setRuleName(scoreRuleVO.getRuleName());
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+        rule.setUpdateTime(rule.getCreateTime());
         rule.setStatus(1);
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
