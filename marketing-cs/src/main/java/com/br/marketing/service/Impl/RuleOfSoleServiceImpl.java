@@ -170,22 +170,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     }
 
     @Override
-    public List<SoleOptLogVO> getUpdateRecord(String id) {
-        List<SoleOptLogVO> logVOS = new ArrayList<>();
-        SoleOptLogExample example = new SoleOptLogExample();
-        example.createCriteria().andIsDelEqualTo(1).andSoleIdEqualTo(id);
-        example.setOrderByClause("update_time desc");
-        List<SoleOptLog> soleOptLogs = soleOptLogMapper.selectByExample(example);
-        if(soleOptLogs != null && soleOptLogs.size()>0){
-            for (SoleOptLog log : soleOptLogs){
-                SoleOptLogVO logVO = new SoleOptLogVO();
-                BeanUtils.copyProperties(log, logVO);
-                logVO.setUpdateTime(DateUtils.format(log.getUpdateTime(),"yyyy-MM-dd HH:mm:ss"));
-                logVOS.add(logVO);
-            }
-        }
-
-        return logVOS;
+    public PageResultReturn getUpdateRecord(String id,int page,int pageSize) {
+        PageHelper.startPage(page, pageSize);
+        List<SoleOptLog> soleOptLogs = soleOptLogMapper.selectListById(Long.parseLong(id));
+        return PageResultReturn.setPageResult(soleOptLogs, page);
     }
 
     /**

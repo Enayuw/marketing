@@ -46,7 +46,7 @@ public interface RuleOfSoleService {
      * @param id
      * @return
      */
-    List<SoleOptLogVO> getUpdateRecord(String id);
+    PageResultReturn getUpdateRecord(String id,int page,int pageSize);
 
     /**
      * 新增/变更去重规则

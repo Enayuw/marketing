@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SoleOptLogMapper" >
+    <select id="selectListById" resultType="com.br.marketing.entity.SoleOptLog">
+        select sole_id as soleId,
+        sole_name as soleName,
+        sole_fields as soleFields,
+        sole_cycle_times soleCycleTimes,
+        customer_info as customerInfo,
+        `status` as status,
+        DATE_FORMAT(update_time,'%Y-%m-%d %H:%i:%s') as updateTime,
+        opt_user_id as optUserId,
+        opt_user_name as optUserName
+        from b_sole_opt_log
+        where is_del=1 and sole_id= #{id}
+        order by update_time desc
+    </select>
+
 </mapper>
