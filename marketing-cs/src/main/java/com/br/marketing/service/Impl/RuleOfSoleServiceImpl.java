@@ -46,6 +46,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     @Autowired
     private VariableDicMapper variableDicMapper;
 
+    @Autowired
+    RuleRedisServiceImpl ruleRedisService;
 
     @Override
     public PageResultReturn list(int page, int pageSize, String soleName, Integer status,
@@ -261,6 +263,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 customerSole.setUpdateTime(new Date());
                 customerSole.setConditionInfo(s.getConditionInfo().toJSONString());
                 customerSoleMapper.insertSelective(customerSole);
+                ruleRedisService.delSoleConfigRedis(s.getApiCode());
             }
         }
         //insert b_sole_opt_log 变更日志表

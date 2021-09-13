@@ -35,8 +35,16 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
     @Autowired
     CustomerMapper customerMapper;
 
+    @Autowired
+    RuleRedisServiceImpl ruleRedisService;
+
     @Override
     public Result<List<CustomerSoleRuleVO>> getSoleConfig(String apiCode) {
+
+        Result<List<CustomerSoleRuleVO>> soleConfigRedis = ruleRedisService.getSoleConfigRedis(apiCode);
+        if(ResultCode.SUCCESS.getValue().equals(soleConfigRedis.getCode())){
+            return soleConfigRedis;
+        }
 
         List<CustomerSoleRuleVO> resList = new ArrayList<>();
         Customer customerByApiCode = customerMapper.getCustomerByApiCode(apiCode);
@@ -73,6 +81,9 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
                 resList.add(vo);
             }
         });
+        if(resList.size()>0){
+            ruleRedisService.setSoleConfigRedis(apiCode,resList);
+        }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
     }
 
