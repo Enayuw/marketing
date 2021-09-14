@@ -30,6 +30,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
     IMarketingSyncUserService iMarketingSyncUserService;
 
     /**
+     *  去重方法
      *  新建两条where条件，一条是T-1前，一条是T日
      *  遍历所有的去重规则，进行where条件拼接（参与去重的数据源为 未去重数据（1） 和 不重复的数据（2））
      *  T-1 前的数据有 -> 则认为重复（3）
