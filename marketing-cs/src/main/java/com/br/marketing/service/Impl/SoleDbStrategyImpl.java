@@ -29,37 +29,48 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
     @Autowired
     IMarketingSyncUserService iMarketingSyncUserService;
 
+    /**
+     *  新建两条where条件，一条是T-1前，一条是T日
+     *  遍历所有的去重规则，进行where条件拼接（参与去重的数据源为 未去重数据（1） 和 不重复的数据（2））
+     *  T-1 前的数据有 -> 则认为重复（3）
+     *            无 -> 获取T日 满足条件的最小时间的数据id  相等  -> 不重复（2）
+     *                                               不相等 -> 重复（3）
+     */
     @Override
     public Result<Integer> actionSole(List<CustomerSoleRuleVO> soleRuleVOS, MarketingSyncUser syncUser) {
         List<CustomerSoleRuleVO> customerSoleRuleVO = this.matchSoleRule(soleRuleVOS, syncUser);
         if(customerSoleRuleVO.size()<=0){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(1).setMessage("数据无需去重");
         }
+        /** 多规则T-1日内的wehere条件 */
         StringBuilder soleSql = new StringBuilder();
+        /** 多规则T日内的wehere条件 */
         StringBuilder soleSqlWhereToday = new StringBuilder();
         //一条数据 满足多条去重规则标志 true是多条
         boolean rulesMark = false;
         //region 多规则拼接
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
-            //查询T+n时间内已经去重统计过的数据的where条件
-            StringBuilder dbWhereStr = new StringBuilder(" is_repeat=2 ");
-            //查询T日内的未统计的去重的数据的where条件
+            /** 查询T-1时间内已经去重统计过的数据的where条件 */
+            StringBuilder dbWhereStr = new StringBuilder(" is_repeat in (1,2) ");
+            /** 查询T日内的未统计的去重的数据的where条件 */
             StringBuilder dbWhereTodayStr = new StringBuilder();
-            //T+n时间范围
-            String timeStrNowSql = "";
-            Integer soleCycleTimes = soleRuleVO.getSoleCycleTimes();
+
             LocalDateTime now = LocalDateTime.now();
             String endTimeNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String endTimeNext = now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            //T时间范围
-            String timeStrNextSql = String.format(" applet_date >='%s' and applet_date <'%s' ",endTimeNow,endTimeNext);
-            String startTime =null;
-            if(soleCycleTimes != null){
-                startTime = now.minusDays(Long.valueOf(soleCycleTimes)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                timeStrNowSql = String.format(" applet_date >='%s' and applet_date <'%s' ",startTime,endTimeNext);
 
-            }
-            //去重条件where
+            /** T时间范围 */
+            String timeStrNextSql = String.format(" applet_date >='%s' and applet_date <'%s' ",endTimeNow,endTimeNext);
+
+            /** T-1时间范围 */
+            Integer soleCycleTimes = soleRuleVO.getSoleCycleTimes();
+            String timeStrNowSql = soleCycleTimes != null
+                    ?   String.format(" applet_date >='%s' and applet_date <'%s' "
+                        ,now.minusDays(Long.valueOf(soleCycleTimes)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                        ,endTimeNow)
+                    :   String.format(" applet_date <'%s' ",endTimeNow);
+
+            /** 去重字段的where条件 */
             StringBuilder soleStr = new StringBuilder();
             String soleFields = soleRuleVO.getSoleFields();
             //去重字段
@@ -88,45 +99,59 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                         break;
                 }
             }
+
+            /** 拼接T-1的时间范围 */
             if(StringUtils.isNotBlank(timeStrNowSql)){
                 dbWhereStr.append(" and ").append(timeStrNowSql);
             }
+
+            /** 拼接T的时间范围 */
             if(StringUtils.isNotBlank(timeStrNextSql)){
                 dbWhereTodayStr.append(" and ").append(timeStrNextSql);
             }
+
+            /** 拼接去重字段条件 */
             if(StringUtils.isNotBlank(soleStr.toString())){
                 dbWhereStr.append(soleStr);
                 dbWhereTodayStr.append(soleStr);
             }
-            if(StringUtils.isNotBlank(dbWhereStr.toString())){
+
+            /** 拼接场景条件 */
+            if(StringUtils.isNotBlank(soleRuleVO.getConditionDbDesc())){
                 dbWhereStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
                 dbWhereTodayStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
             }
+
             if(cidMark&&!apiCodeMark){
                 //todo 需要查询多张apicode表
             }
 
-
             String todayWhere = dbWhereTodayStr.toString().replaceFirst("and", "");
-            //多规则 T日内的条件筛选
+            /**
+             * T日范围多规则条件用or拼接
+             */
             if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
-                soleSqlWhereToday.append(" or ").append(String.format("(%s)",todayWhere));
-            }else{
-                soleSqlWhereToday.append(String.format("(%s)",todayWhere));
+                soleSqlWhereToday.append(" or ");
             }
+            soleSqlWhereToday.append(String.format("(%s)",todayWhere));
 
+            /**
+             * T-1日范围多规则条件用or拼接
+             */
             if(StringUtils.isNotBlank(soleSql.toString())){
-                rulesMark =true;
                 soleSql.append(" or ");
             }
             soleSql.append(String.format("(%s)",dbWhereStr));
         }
         //endregion
+        /** 查询T-1日前满足去重规则的数据条数 */
         String sqlCount = String.format("select count(*) from b_marketing_sync_%s where %s",syncUser.getApiCode(),soleSql);
+
+        /** 查询今日时间满足去重规则最早的数据id */
         String sqlToday = null;
         String sqlTodayWhere = null;
         if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
-            sqlTodayWhere = String.format("where  is_repeat=1 and %s",soleSqlWhereToday);
+            sqlTodayWhere = String.format("where  is_repeat in (1,2) and %s",soleSqlWhereToday);
             sqlToday = String.format("select id from b_marketing_sync_%s %s" +
                             " order by applet_time asc limit 1"
                     ,syncUser.getApiCode(),sqlTodayWhere);
@@ -139,7 +164,6 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             iMarketingSyncUserService.updateRepeatUserStatus(updateInValidSql);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(2);
         }
-
         Long soleValidUser = iMarketingSyncUserService.getSoleValidUser(sqlToday);
         if(syncUser.getId().equals(soleValidUser)){
             String updateValidSql = String.format("update b_marketing_sync_%s set is_repeat=2 where id = %d"

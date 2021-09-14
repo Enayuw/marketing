@@ -39,7 +39,7 @@ public class SwaggerConfig {
         HashSet set = new HashSet();
         set.add("application/json");
         set.add("application/x-www-form-urlencoded");
-        Docket docket = new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).select()
+        Docket docket = new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).produces(set).consumes(set).select()
                 .apis(RequestHandlerSelectors.basePackage("com.br.marketing.api.controller"))
                 .paths((String input) -> {
                     if ("prod".equals(proAction.toLowerCase())) {
