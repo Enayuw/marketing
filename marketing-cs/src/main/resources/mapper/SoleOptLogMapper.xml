@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SoleOptLogMapper" >
-    <select id="selectListById" resultType="com.br.marketing.entity.SoleOptLog">
+    <select id="selectListById" resultType="com.br.marketing.vo.SoleOptLogVO">
         select sole_id as soleId,
         sole_name as soleName,
         sole_fields as soleFields,
