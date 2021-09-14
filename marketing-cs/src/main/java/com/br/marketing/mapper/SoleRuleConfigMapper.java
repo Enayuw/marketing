@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.SoleRuleConfig;
 import com.br.marketing.vo.SoleRuleVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -27,4 +28,10 @@ public interface SoleRuleConfigMapper extends SoleRuleConfigMapperBase {
     int getRuleOfSoleOnly(@Param("soleId") Long soleId, @Param("soleFields") String soleFields,
                           @Param("soleCycleTimes") Integer soleCycleTimes, @Param("cid") Long cid,
                           @Param("conditionInfo") String conditionInfo);
+
+    /**
+     * 修改去重规则
+     * @param soleRuleConfig
+     */
+    void updateById(SoleRuleConfig soleRuleConfig);
 }

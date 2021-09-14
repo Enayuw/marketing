@@ -235,7 +235,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             //变更
             //update b_sole_rule_config
             soleRuleConfig.setId(Long.parseLong(vo.getSoleId()));
-            soleRuleConfigMapper.updateByPrimaryKey(soleRuleConfig);
+            soleRuleConfigMapper.updateById(soleRuleConfig);
             //逻辑删除旧数据 update b_customer_sole
             CustomerSole customerSole = new CustomerSole();
             customerSole.setIsDel(9);
@@ -270,7 +270,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         soleOptLog.setCustomerInfo(soleCustomers);
         soleOptLog.setOptUserId(userDetail.getUserId());
         soleOptLog.setOptUserName(userDetail.getUsername());
-        /*soleOptLog.setOptUserId("sjj");
+       /* soleOptLog.setOptUserId("sjj");
         soleOptLog.setOptUserName("sjj");*/
         soleOptLog.setUpdateTime(new Date());
         soleOptLog.setCreateTime(new Date());
