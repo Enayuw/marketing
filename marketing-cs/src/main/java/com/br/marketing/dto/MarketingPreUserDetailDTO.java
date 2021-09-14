@@ -34,7 +34,7 @@ public class MarketingPreUserDetailDTO implements Serializable {
     private String registerDate;
 
     @ApiModelProperty(value = "业务保留字段1")
-    private ReserveField1DTO reserveField1;
+    private String reserveField1;
 
     @ApiModelProperty(value = "业务保留字段2")
     private String reserveField2;
