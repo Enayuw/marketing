@@ -641,7 +641,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , marketingPreUserDetailDTO.getGroupType()
                         , finalReserveField.getUserType()
                         , marketingPreUserDetailDTO.getRegisterDate()
-                        , JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1())
+                        , JSON.toJSONString(finalReserveField)
                         , marketingPreUserDetailDTO.getReserveField2()
                         , date, date, appletDate,
                         marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType(),
