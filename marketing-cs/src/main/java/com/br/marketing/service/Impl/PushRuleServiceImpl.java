@@ -172,7 +172,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
-    final static String marketingPreUserTable = "b_marketing_sync_";
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
 
     @Autowired
     IRuleConfigService iRuleConfigService;
@@ -596,7 +597,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             isCheck = merchantParam.getIsCheck();
         }
         long l = System.currentTimeMillis();
-        marketingUserMapper.createMarketingPreUserTable(marketingPreUserTable.concat(marketingSyncInfo.getApiCode()));
+        tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);

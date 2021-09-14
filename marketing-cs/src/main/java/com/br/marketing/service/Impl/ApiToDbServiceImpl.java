@@ -95,6 +95,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
     @Override
     public Long getTaskContextId(){
         return redisChgService.incr(redisElasticJobKey);
@@ -449,8 +452,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
-            String tableName="b_marketing_user_"+apiCode;
-            marketingUserMapper.createUserTable(tableName);
+            tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
             Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
             if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
