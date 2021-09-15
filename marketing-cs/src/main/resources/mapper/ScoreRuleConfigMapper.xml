@@ -47,6 +47,6 @@
                 date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{ute},'%Y-%m-%d %H:%i:%s')
             </if>
         </where>
-        order by src.create_time desc, src.update_time desc
+        order by src.update_time desc, src.create_time desc
     </select>
 </mapper>
