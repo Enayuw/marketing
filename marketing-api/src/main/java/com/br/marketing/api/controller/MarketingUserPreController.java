@@ -43,33 +43,16 @@ public class MarketingUserPreController {
     @ApiOperation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
-        try {
-            long l = System.currentTimeMillis();
             Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
-            if (log.isInfoEnabled()) {
-                log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
-            }
             return new ApiNoDataResult().fromResult(result);
-        } catch (CommonException ex) {
-            log.error(ex.getMessage());
-            MarketingErrorInfo info = ex.getInfo();
-            return new ApiNoDataResult().setCode(info.getErrorCode()).setMessage(info.getErrorMsg());
-        }
     }
 
     @ApiOperation(value = "转化人员")
     @PostMapping("/transferUser")
     @SaveLog
     public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData){
-        try {
-            long l = System.currentTimeMillis();
             Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
             return new ApiNoDataResult().fromResult(result);
-        } catch (CommonException ex) {
-            log.error(ex.getMessage());
-            MarketingErrorInfo info = ex.getInfo();
-            return new ApiNoDataResult().setCode(info.getErrorCode()).setMessage(info.getErrorMsg());
-        }
     }
 
     /**

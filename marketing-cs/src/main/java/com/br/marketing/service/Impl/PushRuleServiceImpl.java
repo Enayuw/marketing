@@ -486,6 +486,9 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result insertMarketingPreUserText(String apiCode, String jsonData) {
+        if(apiCode.equals("132")){
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
+        }
         //region check
         long l1 = System.currentTimeMillis();
         RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();

@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
@@ -124,15 +125,21 @@ public class ErrorControllerAspect {
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
-                obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
+                if(e instanceof CommonException){
+                    CommonException commenException = (CommonException) e;
+                    obj.setCode(commenException.getInfo().getErrorCode());
+                    obj.setMessage(commenException.getInfo().getErrorMsg());
+                }else {
+                    obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
+                    obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+                }
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                if(saveLog != null){
+                if (saveLog != null) {
                     interfaceLog.setCode(2);
-                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis()-startTime));
+                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
                     interfaceLog.setCreateTime(new Date());
                 }
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,saveLog==null?null:interfaceLog);
-                obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, saveLog == null ? null : interfaceLog);
                 return obj;
             } catch (Exception ee) {
                 log.error("异常结果生成异常", ee);
