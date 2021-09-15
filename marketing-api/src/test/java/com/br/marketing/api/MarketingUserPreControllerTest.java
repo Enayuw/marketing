@@ -185,7 +185,7 @@ public class MarketingUserPreControllerTest {
         detailDTO.setCustNum(new Random().nextInt(10000)+"");
         ReserveField1DTO reserveField1DTO = new ReserveField1DTO();
         reserveField1DTO.setUserType("S01");
-        detailDTO.setReserveField1(reserveField1DTO);
+        detailDTO.setReserveField1(JSON.toJSONString(reserveField1DTO));
         dataItems.add(detailDTO);
         dto.setDataItems(dataItems);
         System.out.println(JSON.toJSONString(dto));

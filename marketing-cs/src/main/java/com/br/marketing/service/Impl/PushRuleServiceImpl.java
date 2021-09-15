@@ -486,9 +486,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result insertMarketingPreUserText(String apiCode, String jsonData) {
-        if(apiCode.equals("132")){
-            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
-        }
         //region check
         long l1 = System.currentTimeMillis();
         RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
@@ -608,13 +605,22 @@ public class PushRuleServiceImpl implements PushRuleService {
             //1 数禾、萨摩耶：只有groupType
             //2 宜信：既有groupType,又有userType
             //3 未来客户：只有userType
-            ReserveField1DTO reserveField1 = marketingPreUserDetailDTO.getReserveField1();
-            if (null == reserveField1) {
+            String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
+            ReserveField1DTO reserveField1 = null;
+            if (StringUtils.isBlank(reserveField1Str)) {
                 reserveField1 = new ReserveField1DTO();
                 reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
             } else {
-                if (StringUtils.isBlank(reserveField1.getUserType())) {
+                try {
+                    reserveField1 = JSON.parseObject(reserveField1Str, new TypeReference<ReserveField1DTO>() {
+                    }.getType());
+                    if (StringUtils.isBlank(reserveField1.getUserType())) {
+                        reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                    }
+                } catch (JSONException ex) {
+                    reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                    reserveField1.setExtStr(reserveField1Str);
                 }
             }
             Integer finalIsCheck = isCheck;
@@ -811,12 +817,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             if(transferUserVO.getGroupType().length()>100){
                 throw new CommonException(MarketingErrorInfo.GROUP_TYPE_ERROR);
             }
-
-            if(StringUtils.isNotBlank(transferUserVO.getReserveField2())
-                    &&transferUserVO.getReserveField2().length()>500){
-                throw new ParamValidErrorException("该批次数据含有reserveField2超过长度数据");
-            }
-
 
             //endregion
 

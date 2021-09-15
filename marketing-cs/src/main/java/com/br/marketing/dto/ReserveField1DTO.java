@@ -55,4 +55,6 @@ public class ReserveField1DTO implements Serializable {
     private String ifSettle;
     @ApiModelProperty(value = "结清时间", example = "yyyy-mm-dd hh:mm:ss")
     private String settleTime;
+    @ApiModelProperty(value = "紧急扩展字段", example = "客户传输的任意值")
+    private String extStr;
 }
