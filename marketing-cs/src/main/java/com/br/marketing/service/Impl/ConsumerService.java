@@ -1,7 +1,9 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.rabbitmq.client.Channel;
@@ -9,14 +11,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 @Service
 public class ConsumerService {
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
 
     private static final Logger log = LoggerFactory.getLogger(ConsumerService.class);
     @Autowired
@@ -48,6 +59,8 @@ public class ConsumerService {
                     , new String(message.getBody(), StandardCharsets.UTF_8)
                     , e.getMessage());
             log.error(error,e);
+            alarmClient.sendAlarm(error,"消费异常",appName,secretKey,
+                    Constants.sendCodeMap.get("sysError"));
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             } catch (IOException ioException) {
