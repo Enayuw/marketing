@@ -579,9 +579,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result<Boolean> insertMarketingPreUserSync(Long infoId) {
-        if(infoId.equals(2222)){
-            throw new RuntimeException("是否阻塞队列");
-        }
         Boolean isContinue = Boolean.FALSE;
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         MarketingPreUserDTO dto = JSON.parseObject(marketingSyncInfo.getJsonData(), new TypeReference<MarketingPreUserDTO>() {

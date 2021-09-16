@@ -43,7 +43,11 @@ public class ConsumerService {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            String error = String.format("路由键：%s,\r\n消息内容：%s,\r\n错误信息：%s"
+                    , message.getMessageProperties().getReceivedRoutingKey()
+                    , new String(message.getBody(), StandardCharsets.UTF_8)
+                    , e.getMessage());
+            log.error(error,e);
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             } catch (IOException ioException) {
