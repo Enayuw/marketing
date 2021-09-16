@@ -5,6 +5,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.rabbitmq.client.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,12 +18,13 @@ import java.util.function.Function;
 @Service
 public class ConsumerService {
 
+    private static final Logger log = LoggerFactory.getLogger(ConsumerService.class);
     @Autowired
     private RabbitMqProducter producter;
 
     public <T> void consumerRun(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
-        Result<Boolean> apply = method.apply(t);
         try {
+            Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
              *      根据返回结果来判断是否需要重新推送队列 false-不需要；true需要
@@ -39,8 +42,13 @@ public class ConsumerService {
             } else {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            try {
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 

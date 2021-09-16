@@ -101,16 +101,6 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 }
             }
 
-            /** 拼接T-1的时间范围 */
-            if(StringUtils.isNotBlank(timeStrNowSql)){
-                dbWhereStr.append(" and ").append(timeStrNowSql);
-            }
-
-            /** 拼接T的时间范围 */
-            if(StringUtils.isNotBlank(timeStrNextSql)){
-                dbWhereTodayStr.append(" and ").append(timeStrNextSql);
-            }
-
             /** 拼接去重字段条件 */
             if(StringUtils.isNotBlank(soleStr.toString())){
                 dbWhereStr.append(soleStr);
@@ -123,8 +113,14 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 dbWhereTodayStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
             }
 
-            if(cidMark&&!apiCodeMark){
-                //todo 需要查询多张apicode表
+            /** 拼接T-1的时间范围 */
+            if(StringUtils.isNotBlank(timeStrNowSql)){
+                dbWhereStr.append(" and ").append(timeStrNowSql);
+            }
+
+            /** 拼接T的时间范围 */
+            if(StringUtils.isNotBlank(timeStrNextSql)){
+                dbWhereTodayStr.append(" and ").append(timeStrNextSql);
             }
 
             String todayWhere = dbWhereTodayStr.toString().replaceFirst("and", "");
