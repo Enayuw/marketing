@@ -32,19 +32,23 @@
             </if>
             <if test="cts != null and cts.trim() neq ''">
                 and
-                date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{cts},'%Y-%m-%d %H:%i:%s')
+                <!--                 date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{cts},'%Y-%m-%d %H:%i:%s') -->
+                date_format(src.create_time,'%Y-%m-%d') &gt;= str_to_date(#{cts},'%Y-%m-%d')
             </if>
             <if test="cte != null and cte.trim() neq ''">
                 and
-                date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{cte},'%Y-%m-%d %H:%i:%s')
+                <!--                 date_format(src.create_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{cte},'%Y-%m-%d %H:%i:%s') -->
+                date_format(src.create_time,'%Y-%m-%d') &lt;= str_to_date(#{cte},'%Y-%m-%d')
             </if>
             <if test="uts != null and uts.trim() neq ''">
                 and
-                date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{uts},'%Y-%m-%d %H:%i:%s')
+                <!--                 date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &gt;= str_to_date(#{uts},'%Y-%m-%d %H:%i:%s') -->
+                date_format(src.update_time,'%Y-%m-%d') &gt;= str_to_date(#{uts},'%Y-%m-%d')
             </if>
             <if test="ute != null and ute.trim() neq ''">
                 and
-                date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{ute},'%Y-%m-%d %H:%i:%s')
+                <!--                 date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{ute},'%Y-%m-%d %H:%i:%s') -->
+                date_format(src.update_time,'%Y-%m-%d') &lt;= str_to_date(#{ute},'%Y-%m-%d')
             </if>
         </where>
         order by src.update_time desc, src.create_time desc
