@@ -137,4 +137,9 @@
             </if>
         </trim>
     </insert>
+    <select id="selectMarketingSyncUserById" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where id = #{id}
+    </select>
 </mapper>

@@ -1,0 +1,99 @@
+package com.br.marketing.fast.task.client;
+
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.Customer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+/**
+ * Created by Bairong on 2020/4/16.
+ */
+@Slf4j
+@Service
+public class HxClient {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
+        log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Pinpoint-Sampled", "s0");
+        JSONObject json=new JSONObject();
+        json.put("jsonMeal",jsonMeal);
+        json.put("id", jsonData.getString("idCard"));
+        json.put("name",jsonData.getString("name"));
+        json.put("cell",jsonData.getString("cell"));
+        if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
+            json.put("pass_date", jsonData.getString("passDate"));
+        }
+        if(StringUtils.isNotEmpty(jsonData.getString("user_date"))){
+            json.put("user_date", jsonData.getString("user_date"));
+        }
+        if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
+            json.put("decodeFailType", jsonData.getString("decodeFailType"));
+        }
+        json.put("originApiCode",customer.getApiCode());
+        JSONObject extDataJson=new JSONObject();
+        if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
+            extDataJson.put("isRepair",jsonData.getString("isRepair"));
+        }
+        /**
+         * 0不留存，1留存
+         */
+        if(firstTime ||customer.getSaveLog()==1){
+            extDataJson.put("isSaveLog","1");
+        }else{
+            extDataJson.put("isSaveLog","0");
+        }
+        json.put("ExtData",extDataJson);
+        json.put("ifDeactivated", "0");
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("jsonData", json.toString());
+        //公共apicode
+        paramMap.add("apiCode", Constants.PUBLIC_APICODE);
+
+
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
+       // log.info("画像请求参数 --- {}", paramMap.toString());
+        String result="";
+        try {
+            result = restTemplate.postForObject(url, requestEntity, String.class);
+        }catch (Exception e){
+            log.warn(" 画像错误 ---{}---重试",paramMap.toString(),e);
+            try{
+                result = restTemplate.postForObject(url, requestEntity, String.class);
+                log.warn(" 画像重试返回结果 ---{}",result);
+            }catch (Exception e1){
+                log.error(" 画像重试错误 -{}--{}",jsonData.getString("batch_number"),jsonData.getString("cusNum"),e);
+            }
+        }
+        log.info("画像结果 --- {}", result);
+        return result;
+    }
+
+    public String hauXiangFlat(String json){
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Pinpoint-Sampled", "s0");
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("tokenid", "aa");
+        paramMap.add("jsonData", json);
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
+        String paramJson = "";
+        try {
+            paramJson = restTemplate.postForObject("http://k8s.brapp.com/huaxiang-api2/huaxiang/flat", requestEntity, String.class);
+        } catch (Exception e) {
+            log.error("hauXiangFlat出错了",e);
+        }
+        return paramJson;
+    }
+
+}

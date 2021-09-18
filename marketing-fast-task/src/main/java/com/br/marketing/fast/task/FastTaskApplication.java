@@ -17,42 +17,23 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient
 @MapperScan("com.br.marketing.mapper")
 @EnableBatchProcessing(modular = true)
+@EnableTransactionManagement
 @Slf4j
 public class FastTaskApplication {
+
+    public static  ApplicationContext ac;
+
     public static void main(String[] args) {
-        ConfigurableApplicationContext run = SpringApplication.run(FastTaskApplication.class, args);
-
-        JobRegistry jobRegistry = run.getBean(JobRegistry.class);
-        Job job = null;
-        try {
-            job = jobRegistry.getJob("scoreFastJob");
-        } catch (NoSuchJobException e) {
-            e.printStackTrace();
-        }
-        JobLauncher jobLauncher = run.getBean(JobLauncher.class);
-        JobExecution jobExecution = null;
-        try {
-            jobExecution = jobLauncher.run(job,null);
-        } catch (JobExecutionAlreadyRunningException e) {
-            e.printStackTrace();
-        } catch (JobRestartException e) {
-            e.printStackTrace();
-        } catch (JobInstanceAlreadyCompleteException e) {
-            e.printStackTrace();
-        } catch (JobParametersInvalidException e) {
-            e.printStackTrace();
-        }
-        if (!jobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-//            throw new RuntimeException(format("%s Job execution failed.", jobName));
-        }
-
+        ac = SpringApplication.run(FastTaskApplication.class, args);
     }
 }

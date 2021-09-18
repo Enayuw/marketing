@@ -13,6 +13,7 @@ import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.CustomerSoleRuleVO;
 import com.br.marketing.vo.RuleConditionFactorVo;
 import com.br.marketing.vo.RuleConditionVo;
+import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,9 +51,11 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         //一条数据 满足多条去重规则标志 true是多条
         boolean rulesMark = false;
         //region 多规则拼接
+        List<String> countSqls = new ArrayList<>();
+        List<String> todaySqls = new ArrayList<>();
         for (CustomerSoleRuleVO soleRuleVO : customerSoleRuleVO) {
             /** 查询T-1时间内已经去重统计过的数据的where条件 */
-            StringBuilder dbWhereStr = new StringBuilder(" is_repeat in (1,2) ");
+            StringBuilder dbWhereStr = new StringBuilder();
             /** 查询T日内的未统计的去重的数据的where条件 */
             StringBuilder dbWhereTodayStr = new StringBuilder();
 
@@ -87,14 +90,14 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                     case "apicode":
                         apiCodeMark = true;
                         break;
-                    case "taskid":
-                        soleStr.append(" and ").append(String.format(" cus_batch = '%s'",syncUser.getCusBatch()));
-                        break;
                     case "cell":
                         soleStr.append(" and ").append(String.format(" cell = '%s'",syncUser.getCell()));
                         break;
                     case "cusnum":
                         soleStr.append(" and ").append(String.format(" cust_num = '%s'",syncUser.getCustNum()));
+                        break;
+                    case "taskid":
+                        soleStr.append(" and ").append(String.format(" cus_batch = '%s'",syncUser.getCusBatch()));
                         break;
                     default:
                         break;
@@ -113,6 +116,10 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 dbWhereTodayStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
             }
 
+            /** 去重字段筛选 */
+            dbWhereStr.append(" and ").append(" is_repeat in (1,2) ");
+            dbWhereTodayStr.append(" and ").append(" is_repeat in (1,2) ");
+
             /** 拼接T-1的时间范围 */
             if(StringUtils.isNotBlank(timeStrNowSql)){
                 dbWhereStr.append(" and ").append(timeStrNowSql);
@@ -123,52 +130,55 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 dbWhereTodayStr.append(" and ").append(timeStrNextSql);
             }
 
-            String todayWhere = dbWhereTodayStr.toString().replaceFirst("and", "");
-            /**
-             * T日范围多规则条件用or拼接
-             */
-            if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
-                soleSqlWhereToday.append(" or ");
-            }
-            soleSqlWhereToday.append(String.format("(%s)",todayWhere));
-
-            /**
-             * T-1日范围多规则条件用or拼接
-             */
-            if(StringUtils.isNotBlank(soleSql.toString())){
-                soleSql.append(" or ");
-            }
-            soleSql.append(String.format("(%s)",dbWhereStr));
+            /** 查询T-1日前满足去重规则的数据条数 */
+            String sqlCount = String.format("select count(*) from b_marketing_sync_%s where %s"
+                    ,syncUser.getApiCode(),dbWhereStr.toString().replaceFirst("and", ""));
+            countSqls.add(sqlCount);
+            /** 查询T日满足去重规则的数据条数 */
+            String sqlToday = String.format("select id,applet_time from b_marketing_sync_%s where %s order by applet_time asc,id asc limit 1"
+                    , syncUser.getApiCode(), dbWhereTodayStr.toString().replaceFirst("and", ""));
+            todaySqls.add(sqlToday);
         }
         //endregion
-        /** 查询T-1日前满足去重规则的数据条数 */
-        String sqlCount = String.format("select count(*) from b_marketing_sync_%s where %s",syncUser.getApiCode(),soleSql);
 
-        /** 查询今日时间满足去重规则最早的数据id */
-        String sqlToday = null;
-        String sqlTodayWhere = null;
-        if(StringUtils.isNotBlank(soleSqlWhereToday.toString())){
-            sqlTodayWhere = String.format("where  is_repeat in (1,2) and %s",soleSqlWhereToday);
-            sqlToday = String.format("select id from b_marketing_sync_%s %s" +
-                            " order by applet_time asc limit 1"
-                    ,syncUser.getApiCode(),sqlTodayWhere);
+        boolean countMark = false;
+        for (String countSql : countSqls) {
+            Long  size= iMarketingSyncUserService.countRepeat(countSql);
+            if(size>=1){
+                countMark = true;
+                break;
+            }
         }
 
-        Long  size= iMarketingSyncUserService.countRepeat(sqlCount);
-        if(size >=1){
+        if(countMark){
             String updateInValidSql = String.format("update b_marketing_sync_%s set is_repeat=3 where id = %d"
                     ,syncUser.getApiCode(),syncUser.getId());
             iMarketingSyncUserService.updateRepeatUserStatus(updateInValidSql);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(2);
         }
-        Long soleValidUser = iMarketingSyncUserService.getSoleValidUser(sqlToday);
-        if(syncUser.getId().equals(soleValidUser)){
+        TodayIdTimeBySoleVo soleVo = null;
+        for (String todaySql : todaySqls) {
+            TodayIdTimeBySoleVo soleValidUser = iMarketingSyncUserService.getSoleValidUser(todaySql);
+            if(soleVo==null){
+                soleVo = soleValidUser;
+            }else{
+                if(soleVo.getAppletTime().compareTo(soleValidUser.getAppletTime())<0){
+                    continue;
+                }
+                if(soleVo.getAppletTime().compareTo(soleValidUser.getAppletTime())>0){
+                    soleVo = soleValidUser;
+                    continue;
+                }
+                if(soleVo.getId()>soleValidUser.getId()){
+                    soleVo = soleValidUser;
+                    continue;
+                }
+            }
+        }
+        if(soleVo!=null&&syncUser.getId().equals(soleVo.getId())){
             String updateValidSql = String.format("update b_marketing_sync_%s set is_repeat=2 where id = %d"
                     ,syncUser.getApiCode(),syncUser.getId());
             iMarketingSyncUserService.updateRepeatUserStatus(updateValidSql);
-//            String updateInvalidSql = String.format("update b_marketing_sync_%s set is_repeat=3 %s and id!=%d"
-//            ,syncUser.getApiCode(),sqlTodayWhere,syncUser.getId());
-//            iMarketingSyncUserService.updateRepeatUserStatus(updateInvalidSql);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(1);
         }else{
             String updateInValidSql = String.format("update b_marketing_sync_%s set is_repeat=3 where id = %d"

@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
+import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     Long countRepeat(@Param("execSql") String execSql);
 
-    Long getSoleValidUser(@Param("execSql") String execSql);
+    TodayIdTimeBySoleVo getSoleValidUser(@Param("execSql") String execSql);
 
     Integer updateRepeatUserStatus(@Param("execSql") String execSql);
 

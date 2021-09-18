@@ -31,10 +31,6 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-batch</artifactId>
-        </dependency>
     </dependencies>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
