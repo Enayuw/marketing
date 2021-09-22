@@ -256,10 +256,13 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
        MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
         if(task !=null){
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
-            if(marketingTaskExtend !=null) {
+            if(marketingTaskExtend !=null&&StringUtils.isNotBlank(marketingTaskExtend.getStrategyProductJson())) {
                 redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
                 redisChgService.expire(key,60*60*24);
                 return marketingTaskExtend.getStrategyProductJson();
+            }else{
+                redisChgService.set(key,"");
+                redisChgService.expire(key,60*5);
             }
         }
        return "";
