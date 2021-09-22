@@ -4,9 +4,6 @@ package com.br.marketing.fast.task.config;
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
-import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,12 +20,7 @@ import java.util.*;
 @Slf4j
 public class DataSourceConfig {
 
-    private static String DB_NAME = "names";
-    private static String DB_DEFAULT_NAME="defaultname";
-    private static String DB_DEFAULT_VALUE = "aos.datasource";
     private static final String DATASOURCE_TYPE_DEFAULT = "com.alibaba.druid.pool.DruidDataSource";
-
-    private static final String DB_DRUID="spring.datasource.druid";
 
     @Autowired
     Environment environment;
@@ -121,9 +113,9 @@ public class DataSourceConfig {
     }
 
 
-    @Bean
-    BatchConfigurer configurer() {
-        return new DefaultBatchConfigurer(defaultDatSource);
-    }
+//    @Bean
+//    BatchConfigurer configurer() {
+//        return new DefaultBatchConfigurer(defaultDatSource);
+//    }
 
 }

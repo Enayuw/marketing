@@ -618,6 +618,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                             case "grouptype":
                                                 str = marketingSyncUser.getGroupType();
                                                 break;
+                                            case "usertype":
+                                                str = marketingSyncUser.getUserType();
+                                                break;
                                             case "registerdate":
                                                 str = marketingSyncUser.getRegisterDate();
                                                 break;
