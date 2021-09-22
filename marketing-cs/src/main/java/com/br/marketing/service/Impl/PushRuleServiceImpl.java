@@ -391,9 +391,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
                 if(taskExtendInfoVO !=null){
                     pushMarketingUserDetailVariablesDTO.setUpdate(taskExtendInfoVO.getUploadTime());
-                    pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
-                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
                 }
+                pushMarketingUserDetailVariablesDTO.setTaskId(marketingHistory.getTaskId());
+                pushMarketingUserDetailVariablesDTO.setGroupType(marketingHistory.getUserType());
 
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);

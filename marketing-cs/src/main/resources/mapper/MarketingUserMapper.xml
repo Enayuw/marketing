@@ -380,7 +380,7 @@
 	<insert id="insertByRequestId" parameterType="java.lang.String">
 		insert into
 		b_marketing_user_${apiCode}
-		(api_code,batch_number,cus_num,cell,id_card,name,create_time,update_time,decodeFailType,status,extend_json)
+		(api_code,batch_number,cus_num,cell,id_card,name,create_time,update_time,decodeFailType,status,extend_json,task_id,user_type)
 		values ${valuesStr}
 	</insert>
 	<update id="createMarketingPreUserTable" parameterType="java.lang.String">
@@ -410,7 +410,9 @@
 			`is_repeat` int(11) DEFAULT '1' COMMENT '是否重复 1-未去重; 2-不重复;3-重复;',
 			PRIMARY KEY (`id`),
 			KEY `idx_appletDate` (`applet_date`),
-		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`)
+		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`),
+			KEY `idx_marketing_sync_code_cell_t_n_u_r_a` (`cell`,`cus_batch`,`cust_num`,`user_type`,`is_repeat`,`applet_date`),
+			KEY `idx_marketing_sync_code_cust_t_u_r_a` (`cust_num`,`cus_batch`,`user_type`,`is_repeat`,`applet_date`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
 	</update>
 

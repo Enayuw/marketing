@@ -153,6 +153,8 @@ public class ResultUtil {
                 mh.setBatchNumber(user.getBatchNumber());
                 mh.setFileId(fileId);
                 mh.setReserveField(esResult.toJSONString());
+                mh.setTaskId(user.getTaskId());
+                mh.setUserType(user.getUserType());
                 writeEs(mh,meal,hxJson);
             }
         }
