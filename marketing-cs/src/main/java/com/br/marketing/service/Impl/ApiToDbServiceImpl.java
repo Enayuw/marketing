@@ -618,6 +618,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                             case "grouptype":
                                                 str = marketingSyncUser.getGroupType();
                                                 break;
+                                            case "usertype":
+                                                str = marketingSyncUser.getUserType();
+                                                break;
                                             case "registerdate":
                                                 str = marketingSyncUser.getRegisterDate();
                                                 break;
@@ -645,14 +648,16 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             //endregion
                             String s = LocalDateTime.now().format(ymdhms);
                             // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
-                            String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')"
+                            String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s','%s','%s')"
                                     , apiCode, batchNumber, marketingSyncUser.getCustNum()
                                     , marketingSyncUser.getCell()
                                     , StringUtils.isBlank(marketingSyncUser.getIdCard()) ? "" : marketingSyncUser.getIdCard()
                                     , StringUtils.isBlank(marketingSyncUser.getName()) ? "" : marketingSyncUser.getName(), s, s
                                     , marketingSyncUser.getFailType() == null ? "" : marketingSyncUser.getFailType()
                                     , marketingSyncUser.getStatus()
-                                    , JSON.toJSONString(extendJson));
+                                    , JSON.toJSONString(extendJson)
+                                    ,marketingSyncUser.getCusBatch()
+                                    ,marketingSyncUser.getUserType());
                             marketingUserMapper.insertByRequestId(apiCode, dataSql);
                         });
                     }

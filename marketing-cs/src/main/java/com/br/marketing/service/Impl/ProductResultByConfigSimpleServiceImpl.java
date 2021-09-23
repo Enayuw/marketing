@@ -36,6 +36,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     final static String redisKeyConfigByApiCode = "customer:apicode:config";
 
+    final static String redisKeyFlagScore = "flagscore:product";
+
     @Resource
     GroupStrategyConfigMapper groupStrategyConfigMapper;
 
@@ -53,6 +55,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     MarketingTaskExtendService marketingTaskExtendService;
 
     public static List<String> flagScoreByinnerList;
+
+
 
     @Override
     public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
@@ -244,10 +248,13 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
        MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
         if(task !=null){
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
-            if(marketingTaskExtend !=null) {
+            if(marketingTaskExtend !=null&&StringUtils.isNotBlank(marketingTaskExtend.getStrategyProductJson())) {
                 redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
                 redisChgService.expire(key,60*60*24);
                 return marketingTaskExtend.getStrategyProductJson();
+            }else{
+                redisChgService.set(key,"");
+                redisChgService.expire(key,60*5);
             }
         }
        return "";
@@ -255,8 +262,10 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Override
     public Result<List<String>> getFlagProduct() {
-        if(flagScoreByinnerList!=null&&flagScoreByinnerList.size()>0){
-            return new Result<List<String>>().setCode(ResultCode.SUCCESS.getValue()).setDate(flagScoreByinnerList);
+        String s = redisChgService.get(redisKeyFlagScore);
+        if(StringUtils.isNotBlank(s)){
+            return new Result<List<String>>().setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(new ArrayList<>(Arrays.asList(s.split(","))));
         }
         ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
         flagScoreExample.createCriteria().andIsDelEqualTo(1);
@@ -265,6 +274,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             return new Result<List<String>>().setCode(ResultCode.FAIL.getValue());
         }else{
             flagScoreByinnerList = new ArrayList<>(Arrays.asList(productFlagScores.get(0).getFlagScoreProduct().split(",")));
+            redisChgService.set(redisKeyFlagScore,productFlagScores.get(0).getFlagScoreProduct());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue())
                     .setDate(flagScoreByinnerList);
         }

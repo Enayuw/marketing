@@ -185,5 +185,6 @@
         <module>marketing-check</module>
         <module>marketing-sync</module>
         <module>mybatis-generator</module>
+        <module>marketing-fast-task</module>
     </modules>
 </project>

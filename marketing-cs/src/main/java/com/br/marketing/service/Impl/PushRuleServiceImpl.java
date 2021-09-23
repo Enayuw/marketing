@@ -391,9 +391,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
                 if(taskExtendInfoVO !=null){
                     pushMarketingUserDetailVariablesDTO.setUpdate(taskExtendInfoVO.getUploadTime());
-                    pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
-                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
                 }
+                pushMarketingUserDetailVariablesDTO.setTaskId(marketingHistory.getTaskId());
+                pushMarketingUserDetailVariablesDTO.setGroupType(marketingHistory.getUserType());
 
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
@@ -659,7 +659,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
-                marketingSyncUser.setReserveField1(JSON.toJSONString(marketingPreUserDetailDTO.getReserveField1()));
+                marketingSyncUser.setReserveField1(JSON.toJSONString(finalReserveField));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);

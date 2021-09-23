@@ -48,7 +48,9 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
 
         List<CustomerSoleRuleVO> resList = new ArrayList<>();
         Customer customerByApiCode = customerMapper.getCustomerByApiCode(apiCode);
-
+        if(customerByApiCode == null){
+            return  new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该用户不存在");
+        }
         CustomerSoleExample customerSoleExample= new CustomerSoleExample();
         customerSoleExample.createCriteria()
                 .andCustomerIdEqualTo(customerByApiCode.getId())

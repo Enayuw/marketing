@@ -74,7 +74,7 @@
         ${execSql}
     </select>
 
-    <select id="getSoleValidUser" resultType="java.lang.Long">
+    <select id="getSoleValidUser" resultType="com.br.marketing.vo.TodayIdTimeBySoleVo">
         ${execSql}
     </select>
 
