@@ -1,7 +1,5 @@
 package com.br.marketing.task.job;
 
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
@@ -10,7 +8,6 @@ import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.List;

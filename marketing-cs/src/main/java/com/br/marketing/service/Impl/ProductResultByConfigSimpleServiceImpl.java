@@ -51,8 +51,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     MarketingTaskMapper marketingTaskMapper;
     @Resource
     MarketingTaskExtendService marketingTaskExtendService;
-    @Resource
-    ScoreRuleConfigService scoreRuleConfigService;
+
     public static List<String> flagScoreByinnerList;
 
     @Override
@@ -67,15 +66,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
                 , new TypeReference<List<StrategyProductDetailVO>>() {
         }.getType());
         StrategyProductDetailVO strategyProductDetailVO = null;
-        if(strategyProductDetailVOs.size()>1){
-            Optional<StrategyProductDetailVO> first = strategyProductDetailVOs.stream()
-                    .filter(t -> t.getStrategyId().equals(strategyId))
-                    .findFirst();
-            if(first.isPresent()){
-                strategyProductDetailVO = first.get();
-            }
-        }else{
-            strategyProductDetailVO = strategyProductDetailVOs.get(0);
+        if(strategyProductDetailVOs.size()>0){
+            strategyProductDetailVO=strategyProductDetailVOs.get(0);
         }
 
         if(strategyProductDetailVO == null){
