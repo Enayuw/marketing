@@ -333,8 +333,8 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             bts.setFileId(blf.getId());
             taskStatusMapper.insertTaskStatus(bts);
 
-            Boolean firstTime=blt.getFirstTime()==null?Boolean.FALSE:blt.getFirstTime();
-            core(blt,descPath,firstTime,strategyStr,warrningExecutor,blf.getId().toString(),customer);
+            //Boolean firstTime=blt.getFirstTime()==null?Boolean.FALSE:blt.getFirstTime();
+            core(blt,descPath,true,strategyStr,warrningExecutor,blf.getId().toString(),customer);
 
         }
 
@@ -426,7 +426,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     if (1 == blt.getMonitorType()) {
                         List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
                         if (bts.size()==0) {
-                            blt.setFirstTime(Boolean.TRUE);
+                            //blt.setFirstTime(Boolean.TRUE);
                             taskList.add(blt);
                         }
                     }else if(4 == blt.getMonitorType()){
@@ -450,14 +450,10 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                             TaskStatusExample statusExample= new TaskStatusExample();
                             statusExample.createCriteria()
                                     .andBatchNumberEqualTo(blt.getBatchNumber())
-                                    .andAllStatusEqualTo(1);
-                            List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
-                            if(taskStatuses.size()<=0){
-                                blt.setFirstTime(Boolean.TRUE);
-                            }
-                            statusExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(DateHelper.getDateAdd(0))
+                                    .andAllStatusEqualTo(1)
+                                    .andCreateTimeGreaterThanOrEqualTo(DateHelper.getDateAdd(0))
                                     .andCreateTimeLessThan(DateHelper.getDateAdd(1));
-                             taskStatuses = taskStatusMapper.selectByExample(statusExample);
+                            List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
                             if(taskStatuses.size()<=0) {
                                 taskList.add(blt);
                             }
