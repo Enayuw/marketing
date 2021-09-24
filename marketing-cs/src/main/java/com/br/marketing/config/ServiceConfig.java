@@ -21,7 +21,7 @@ public class ServiceConfig {
 
     @Bean("currentDbpool")
     public ThreadPoolExecutor getcurrentDbpool(){
-        return new ThreadPoolExecutor(50,50,10L, TimeUnit.SECONDS
+        return new ThreadPoolExecutor(2,2,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("currentDb-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
