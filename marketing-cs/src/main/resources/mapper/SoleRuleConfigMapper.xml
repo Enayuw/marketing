@@ -29,7 +29,7 @@
         <if test="updateTimeEnd !=null and updateTimeEnd!=''">
             <![CDATA[  and bsrc.update_time <#{updateTimeEnd} ]]>
         </if>
-        order by bsrc.id desc
+        order by bsrc.create_time desc
     </select>
 
     <select id="getRuleOfSoleOnly" resultType="int" parameterType="string">
