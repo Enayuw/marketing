@@ -669,9 +669,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setAppletTime(marketingSyncInfo.getCreateTime());
                 marketingSyncUser.setUserType(finalReserveField.getUserType());
                 try {
+                    Long st1 = System.currentTimeMillis();
+                    Long et1 = null;
+                    Long et2 = null;
                     marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
+                    et1 = System.currentTimeMillis()-st1;
                     if(ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())){
+                        Long st2 = System.currentTimeMillis();
                         soleStrategyService.actionSole(soleConfig.getData(),marketingSyncUser);
+                        et2 = System.currentTimeMillis()-st2;
+                    }
+                    if(log.isInfoEnabled()){
+                        log.info(String.format("数据入库时间耗时：%d，数据去重时间：%d",et1,et2));
                     }
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
