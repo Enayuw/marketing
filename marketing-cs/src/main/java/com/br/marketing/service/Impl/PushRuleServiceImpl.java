@@ -22,6 +22,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.dto.*;
@@ -171,6 +172,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     RobotaiApiServiceClient robotaiApiServiceClient;
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
+
+    final String redisKeySoleNum = "sole:thread:num";
 
     @Autowired
     TableCreateServiceImpl tableCreateService;
@@ -579,6 +582,11 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result<Boolean> insertMarketingPreUserSync(Long infoId) {
+        String s = redisChgService.get(redisKeySoleNum);
+        Integer soleNum = 20;
+        if(StringUtils.isNotBlank(s)){
+            soleNum = Integer.valueOf(s);
+        }
         Boolean isContinue = Boolean.FALSE;
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         MarketingPreUserDTO dto = JSON.parseObject(marketingSyncInfo.getJsonData(), new TypeReference<MarketingPreUserDTO>() {
@@ -696,11 +704,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum,soleNum);
         List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
-            futures = currentDbPoolExecutor.invokeAll(list);
+            futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(),e);
+        } finally {
+            threadPool.shutdown();
         }
         if (futures != null && !futures.isEmpty()) {
             for (int i = 0; i < futures.size(); i++) {
