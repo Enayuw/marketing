@@ -587,6 +587,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(StringUtils.isNotBlank(s)){
             soleNum = Integer.valueOf(s);
         }
+        if(log.isInfoEnabled()){
+            log.info(String.format("去重线程数：%d",soleNum));
+        }
         Boolean isContinue = Boolean.FALSE;
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         MarketingPreUserDTO dto = JSON.parseObject(marketingSyncInfo.getJsonData(), new TypeReference<MarketingPreUserDTO>() {
