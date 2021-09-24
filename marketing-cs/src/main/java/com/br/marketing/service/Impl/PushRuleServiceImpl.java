@@ -695,12 +695,26 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 ,marketingSyncUser.getId(),et1,et2));
                     }
                 } catch (Exception ex) {
-                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
-                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
-                    errorDetailVO.setErrorCode("1005");
-                    errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
-                    log.error(ex.getMessage(),ex);
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    if (ex.getMessage().contains("IDX_taskId_custNum")) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1003");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1003"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    } else if (ex.getMessage().contains("uk_taskId_cell")) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1004");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1004"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    }else {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1005");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
+                        log.error(ex.getMessage(), ex);
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    }
                 }
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             });
