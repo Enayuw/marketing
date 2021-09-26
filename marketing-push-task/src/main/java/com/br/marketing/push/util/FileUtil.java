@@ -395,55 +395,6 @@ public class FileUtil {
     }
 
 
-    public static List<String> merge360(String head, String s1, String destPath, String startTime, String batchNumber,
-                                        String strategyId, String apiCode, int max, String sep) {
-        log.info("开始合并文件 结果文件名称:{},需要合并的目录:{},max:{}", s1, destPath, max);
-        File writeName = new File(destPath);
-        if (!writeName.exists()) {
-            log.warn("{},不存在", destPath);
-            return new ArrayList<>();
-        }
-        List<String> fileNmaes = getFileNames(writeName);
-        String headstring = head.substring(0, head.length() - 1);
-        int i = countStr(headstring, sep);
-        int rownum = 0;
-        int fileNo = 0;
-        List<String> result = new ArrayList<>();
-        List<String> zipFileResult = new ArrayList<>();
-        for (String name : fileNmaes) {
-            log.info("开始合并文件 小文件名称:{}", name);
-            try (FileReader read = new FileReader(destPath + "/" + name);
-                 BufferedReader br = new BufferedReader(read);) {
-                String row;
-                while ((row = br.readLine()) != null) {
-                    row = row.substring(0, row.length() - 1);
-                    int i1 = countStr(row, sep);
-                    if (i == i1) {
-                        if (rownum == max) {
-                            fileNo++;
-                            writeResultFile(result, fileNo, s1, destPath, zipFileResult, startTime, batchNumber, strategyId, apiCode, headstring);
-                            result = new ArrayList<>();
-                            rownum = 0;
-                        }
-                        result.add(row);
-                        rownum++;
-                    } else {
-                        log.warn("head--{},row:{}", i, i1);
-                        log.warn("row:{}", row);
-                    }
-                }
-            } catch (Exception e) {
-                log.error("merge360 error", e);
-            }
-        }
-        if (result.size() > 0) {
-            log.info("最后一个文件");
-            fileNo++;
-            writeResultFile(result, fileNo, s1, destPath, zipFileResult, startTime, batchNumber, strategyId, apiCode, headstring);
-        }
-        return zipFileResult;
-    }
-
     private static void writeResultFile(List<String> result, int fileNo, String s1, String destPath, List<String> zipFileResult,
                                         String startTime, String batchNumber, String strategyId, String apiCode, String headstring) {
         String fileName = apiCode + "_" + s1 + "_" + fileNo + "_" + batchNumber + "_" + strategyId.split(":")[0] + "_" + startTime
@@ -465,19 +416,5 @@ public class FileUtil {
         zipFileResult.add(destPath + "/" + zipFile);
     }
 
-    /**
-     * 查找某个值在数组中的索引
-     *
-     * @param array 数组
-     * @param value 给定的值
-     * @return 索引
-     */
-    public static int findIndex(String[] array, String value) {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i].equals(value)) {
-                return i;
-            }
-        }
-        return -1;
-    }
+
 }

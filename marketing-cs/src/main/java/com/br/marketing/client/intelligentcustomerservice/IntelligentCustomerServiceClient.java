@@ -54,7 +54,7 @@ public class IntelligentCustomerServiceClient {
             log.setHttpStatus(String.valueOf(transfer.getHttpCode()));
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             log.setCode(jsonObject.getString("code"));
-            if("000000".equals(jsonObject.getString("code"))){
+            if("00".equals(jsonObject.getString("code"))){
                 result.setCode(ResultCode.SUCCESS.getValue());
             }else{
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));

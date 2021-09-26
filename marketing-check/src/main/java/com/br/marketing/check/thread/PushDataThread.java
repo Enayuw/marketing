@@ -48,8 +48,8 @@ public class PushDataThread implements Callable<String>{
         JSONArray dataItems =new JSONArray();
         marketingHistoryList.forEach(marketingHistory -> {
             JSONObject item=new JSONObject();
-            item.put("taskId",taskExtendInfoVO.getCusTaskId());
-            item.put("groupType",taskExtendInfoVO.getGroupType());
+            item.put("taskId",marketingHistory.getTaskId());
+            item.put("groupType",marketingHistory.getUserType());
             item.put("custNum",marketingHistory.getCusNum());
             JSONObject resultJson=JSONObject.parseObject(marketingHistory.getReserveField()) ;
             resultJson.put("times",times);

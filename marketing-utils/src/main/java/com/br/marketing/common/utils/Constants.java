@@ -151,4 +151,5 @@ public class Constants {
 
     public static final String LOAN_BUSINESSTYPECODE = "A202";
     public static final Integer DATA_VALID = 1;
+    public static final Integer STATUS_START = 1;
 }

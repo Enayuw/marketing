@@ -54,12 +54,14 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_marketing_transfer_7410437" domainObjectName="MarketingTransfer" >
+        <table tableName="b_fast_task_condition" domainObjectName="FastTaskCondition" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
-<!--            <columnOverride column="data_str" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+<!--            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+<!--            <columnOverride column="reserve_field2" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+<!--            <columnOverride column="strategy_product_json" javaType="java.lang.String" jdbcType="VARCHAR" />-->
         </table>
     </context>
 

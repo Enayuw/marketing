@@ -25,6 +25,8 @@
 			`decodeFailType` VARCHAR (50) DEFAULT NULL COMMENT '解密失败类型 MD5、Sha256、SM3',
 			`status` INT (10) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
 			`extend_json` varchar(1000) null comment '扩展信息字段',
+			`task_id` varchar(100) DEFAULT NULL COMMENT '客户批次号',
+			`user_type` varchar(255) DEFAULT NULL COMMENT '新场景-替代group_type',
 			PRIMARY KEY (`id`),
 			KEY `index_api_code` (`api_code`, `batch_number`) USING BTREE,
 			KEY `index_create_time` (`create_time`) USING BTREE,
@@ -363,6 +365,7 @@
 			`create_time`,
 			`update_time`,
 			`applet_date`,
+			`applet_time`,
 			`fail_type`,
 			`status`
 		)
@@ -379,7 +382,7 @@
 	<insert id="insertByRequestId" parameterType="java.lang.String">
 		insert into
 		b_marketing_user_${apiCode}
-		(api_code,batch_number,cus_num,cell,id_card,name,create_time,update_time,decodeFailType,status,extend_json)
+		(api_code,batch_number,cus_num,cell,id_card,name,create_time,update_time,decodeFailType,status,extend_json,task_id,user_type)
 		values ${valuesStr}
 	</insert>
 	<update id="createMarketingPreUserTable" parameterType="java.lang.String">
@@ -403,11 +406,15 @@
 			`applet_date` varchar(50) DEFAULT NULL COMMENT '执行日期',
 			`status` int(1) DEFAULT '1' COMMENT '预留剔除状态字段 1：正常，2：剔除',
 			`fail_type` varchar(50) DEFAULT NULL COMMENT '类型 MD5、Sha256',
+			`applet_time` datetime DEFAULT NULL COMMENT '用户上传时间',
+			`is_task` int(11) DEFAULT '1' COMMENT '是否导入任务数据 1-未导入;2-导入',
+			`task_time` datetime DEFAULT NULL COMMENT '导入任务用户表时间',
+			`is_repeat` int(11) DEFAULT '1' COMMENT '是否重复 1-未去重; 2-不重复;3-重复;',
 			PRIMARY KEY (`id`),
-			UNIQUE KEY `IDX_taskId_custNum` (`cus_batch`,`cust_num`),
-			UNIQUE KEY `uk_taskId_cell` (`cus_batch`,`cell`),
 			KEY `idx_appletDate` (`applet_date`),
-		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`)
+		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`),
+			KEY `idx_marketing_sync_code_cell_t_n_u_r_a` (`cell`,`cus_batch`,`cust_num`,`user_type`,`is_repeat`,`applet_date`),
+			KEY `idx_marketing_sync_code_cust_t_u_r_a` (`cust_num`,`cus_batch`,`user_type`,`is_repeat`,`applet_date`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
 	</update>
 

@@ -6,11 +6,13 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="task_id" property="taskId" jdbcType="BIGINT" />
     <result column="cus_task_id" property="cusTaskId" jdbcType="VARCHAR" />
+    <result column="rule_id" property="ruleId" jdbcType="BIGINT" />
     <result column="group_type" property="groupType" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="upload_time" property="uploadTime" jdbcType="VARCHAR" />
     <result column="extend_show_title" property="extendShowTitle" jdbcType="VARCHAR" />
+    <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -71,8 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, task_id, cus_task_id, group_type, is_del, create_time, upload_time, 
-    extend_show_title
+    id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time, 
+    extend_show_title, strategy_product_json
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
@@ -109,11 +111,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_task_extend (api_code, task_id, cus_task_id, 
-      group_type, is_del, create_time, 
-      upload_time, extend_show_title)
+      rule_id, group_type, is_del, 
+      create_time, upload_time, extend_show_title, 
+      strategy_product_json)
     values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
-      #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR})
+      #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR}, 
+      #{strategyProductJson,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -130,6 +134,9 @@
       <if test="cusTaskId != null" >
         cus_task_id,
       </if>
+      <if test="ruleId != null" >
+        rule_id,
+      </if>
       <if test="groupType != null" >
         group_type,
       </if>
@@ -145,6 +152,9 @@
       <if test="extendShowTitle != null" >
         extend_show_title,
       </if>
+      <if test="strategyProductJson != null" >
+        strategy_product_json,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -155,6 +165,9 @@
       </if>
       <if test="cusTaskId != null" >
         #{cusTaskId,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null" >
+        #{ruleId,jdbcType=BIGINT},
       </if>
       <if test="groupType != null" >
         #{groupType,jdbcType=VARCHAR},
@@ -170,6 +183,9 @@
       </if>
       <if test="extendShowTitle != null" >
         #{extendShowTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyProductJson != null" >
+        #{strategyProductJson,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -194,6 +210,9 @@
       <if test="record.cusTaskId != null" >
         cus_task_id = #{record.cusTaskId,jdbcType=VARCHAR},
       </if>
+      <if test="record.ruleId != null" >
+        rule_id = #{record.ruleId,jdbcType=BIGINT},
+      </if>
       <if test="record.groupType != null" >
         group_type = #{record.groupType,jdbcType=VARCHAR},
       </if>
@@ -209,6 +228,9 @@
       <if test="record.extendShowTitle != null" >
         extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
       </if>
+      <if test="record.strategyProductJson != null" >
+        strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -220,11 +242,13 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       task_id = #{record.taskId,jdbcType=BIGINT},
       cus_task_id = #{record.cusTaskId,jdbcType=VARCHAR},
+      rule_id = #{record.ruleId,jdbcType=BIGINT},
       group_type = #{record.groupType,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       upload_time = #{record.uploadTime,jdbcType=VARCHAR},
-      extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR}
+      extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
+      strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -241,6 +265,9 @@
       <if test="cusTaskId != null" >
         cus_task_id = #{cusTaskId,jdbcType=VARCHAR},
       </if>
+      <if test="ruleId != null" >
+        rule_id = #{ruleId,jdbcType=BIGINT},
+      </if>
       <if test="groupType != null" >
         group_type = #{groupType,jdbcType=VARCHAR},
       </if>
@@ -256,6 +283,9 @@
       <if test="extendShowTitle != null" >
         extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
       </if>
+      <if test="strategyProductJson != null" >
+        strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -264,11 +294,13 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       task_id = #{taskId,jdbcType=BIGINT},
       cus_task_id = #{cusTaskId,jdbcType=VARCHAR},
+      rule_id = #{ruleId,jdbcType=BIGINT},
       group_type = #{groupType,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       upload_time = #{uploadTime,jdbcType=VARCHAR},
-      extend_show_title = #{extendShowTitle,jdbcType=VARCHAR}
+      extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
+      strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

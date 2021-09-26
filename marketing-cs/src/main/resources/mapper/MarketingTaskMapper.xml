@@ -141,9 +141,7 @@
 	<select id="queryScoreData" parameterType="map" resultType="java.lang.String">
 		select fields from b_loan_scoredata where api_code=#{apiCode} and strategyid=#{strategyId} and status=1
 	</select>
-	<select id="querySep" parameterType="java.lang.String" resultType="java.lang.Integer">
-		SELECT sep FROM b_marketing_sep WHERE api_code=#{apiCode}
-	</select>
+
 	<select id="queryBltForCusBatch" parameterType="java.lang.String" resultType="java.lang.String">
 		SELECT
 		a.cus_batch
