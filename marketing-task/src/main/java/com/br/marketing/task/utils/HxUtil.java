@@ -1,5 +1,6 @@
 package com.br.marketing.task.utils;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -13,6 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
+import java.util.function.Consumer;
 
 /**
  * Created by Bairong on 2020/4/16.
@@ -26,7 +28,28 @@ public class HxUtil {
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
         JSONObject json=new JSONObject();
-        json.put("jsonMeal",jsonMeal);
+        JSONObject extendConfigInfoJson=new JSONObject();
+        String extendConfigInfo=customer.getExtendConfigInfo();
+        if(StringUtils.isNotBlank(extendConfigInfo)){
+            try{
+                extendConfigInfoJson=JSONObject.parseObject(extendConfigInfo);
+            }catch (Exception e){
+                log.error("客户扩展字段格式化异常,apiCode={},data={}",customer.getApiCode(),extendConfigInfo);
+            }
+        }
+        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
+        String userType=jsonData.getString("userType");
+        if(StringUtils.isNotBlank(replaceApiCode)&&
+                !customer.getApiCode().equals(replaceApiCode)&&
+                ("S01".equalsIgnoreCase(userType)||"S03".equalsIgnoreCase(userType)||"S05".equalsIgnoreCase(userType))){
+            StringBuilder meal = new StringBuilder();
+            jsonMeal.keySet().forEach(product -> meal.append(product));
+            json.put("meal",meal);
+            json.put("customerId",replaceApiCode);
+        }else{
+            json.put("jsonMeal", jsonMeal);
+            json.put("originApiCode", customer.getApiCode());
+        }
         json.put("id", jsonData.getString("idCard"));
         json.put("name",jsonData.getString("name"));
         json.put("cell",jsonData.getString("cell"));
@@ -39,7 +62,7 @@ public class HxUtil {
         if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
             json.put("decodeFailType", jsonData.getString("decodeFailType"));
         }
-        json.put("originApiCode",customer.getApiCode());
+
         JSONObject extDataJson=new JSONObject();
         if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
             extDataJson.put("isRepair",jsonData.getString("isRepair"));
