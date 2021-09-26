@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SoleOptLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.SoleOptLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sole_id" property="soleId" jdbcType="VARCHAR" />
+    <result column="opt_user_id" property="optUserId" jdbcType="VARCHAR" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="sole_name" property="soleName" jdbcType="VARCHAR" />
+    <result column="sole_fields" property="soleFields" jdbcType="VARCHAR" />
+    <result column="sole_cycle_times" property="soleCycleTimes" jdbcType="INTEGER" />
+    <result column="customer_info" property="customerInfo" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, sole_id, opt_user_id, opt_user_name, is_del, create_time, update_time, sole_name, 
+    sole_fields, sole_cycle_times, customer_info, status
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SoleOptLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_sole_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_sole_opt_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_sole_opt_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.SoleOptLogExample" >
+    delete from b_sole_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.SoleOptLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_sole_opt_log (sole_id, opt_user_id, opt_user_name, 
+      is_del, create_time, update_time, 
+      sole_name, sole_fields, sole_cycle_times, 
+      customer_info, status)
+    values (#{soleId,jdbcType=VARCHAR}, #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{soleName,jdbcType=VARCHAR}, #{soleFields,jdbcType=VARCHAR}, #{soleCycleTimes,jdbcType=INTEGER}, 
+      #{customerInfo,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.SoleOptLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_sole_opt_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="soleId != null" >
+        sole_id,
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id,
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="soleName != null" >
+        sole_name,
+      </if>
+      <if test="soleFields != null" >
+        sole_fields,
+      </if>
+      <if test="soleCycleTimes != null" >
+        sole_cycle_times,
+      </if>
+      <if test="customerInfo != null" >
+        customer_info,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="soleId != null" >
+        #{soleId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserId != null" >
+        #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="soleName != null" >
+        #{soleName,jdbcType=VARCHAR},
+      </if>
+      <if test="soleFields != null" >
+        #{soleFields,jdbcType=VARCHAR},
+      </if>
+      <if test="soleCycleTimes != null" >
+        #{soleCycleTimes,jdbcType=INTEGER},
+      </if>
+      <if test="customerInfo != null" >
+        #{customerInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.SoleOptLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_sole_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_sole_opt_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.soleId != null" >
+        sole_id = #{record.soleId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optUserId != null" >
+        opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optUserName != null" >
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.soleName != null" >
+        sole_name = #{record.soleName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.soleFields != null" >
+        sole_fields = #{record.soleFields,jdbcType=VARCHAR},
+      </if>
+      <if test="record.soleCycleTimes != null" >
+        sole_cycle_times = #{record.soleCycleTimes,jdbcType=INTEGER},
+      </if>
+      <if test="record.customerInfo != null" >
+        customer_info = #{record.customerInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_sole_opt_log
+    set id = #{record.id,jdbcType=BIGINT},
+      sole_id = #{record.soleId,jdbcType=VARCHAR},
+      opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      sole_name = #{record.soleName,jdbcType=VARCHAR},
+      sole_fields = #{record.soleFields,jdbcType=VARCHAR},
+      sole_cycle_times = #{record.soleCycleTimes,jdbcType=INTEGER},
+      customer_info = #{record.customerInfo,jdbcType=VARCHAR},
+      status = #{record.status,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.SoleOptLog" >
+    update b_sole_opt_log
+    <set >
+      <if test="soleId != null" >
+        sole_id = #{soleId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="soleName != null" >
+        sole_name = #{soleName,jdbcType=VARCHAR},
+      </if>
+      <if test="soleFields != null" >
+        sole_fields = #{soleFields,jdbcType=VARCHAR},
+      </if>
+      <if test="soleCycleTimes != null" >
+        sole_cycle_times = #{soleCycleTimes,jdbcType=INTEGER},
+      </if>
+      <if test="customerInfo != null" >
+        customer_info = #{customerInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SoleOptLog" >
+    update b_sole_opt_log
+    set sole_id = #{soleId,jdbcType=VARCHAR},
+      opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      sole_name = #{soleName,jdbcType=VARCHAR},
+      sole_fields = #{soleFields,jdbcType=VARCHAR},
+      sole_cycle_times = #{soleCycleTimes,jdbcType=INTEGER},
+      customer_info = #{customerInfo,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

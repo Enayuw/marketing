@@ -25,7 +25,7 @@ public class DataController {
 
     @GetMapping("testApiToDb")
     public String testApiToDb(){
-        iApiToDbService.pushToDb();
+        iApiToDbService.pushToDb("7410437");
         return "success";
     }
     @PostMapping("pushTest")

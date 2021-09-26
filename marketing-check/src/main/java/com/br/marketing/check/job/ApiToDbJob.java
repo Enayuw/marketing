@@ -18,6 +18,6 @@ public class ApiToDbJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        iApiToDbService.pushToDb();
+        iApiToDbService.pushToDb(null);
     }
 }

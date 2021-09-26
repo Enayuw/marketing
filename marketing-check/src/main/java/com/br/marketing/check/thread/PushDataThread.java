@@ -48,8 +48,8 @@ public class PushDataThread implements Callable<String>{
         JSONArray dataItems =new JSONArray();
         marketingHistoryList.forEach(marketingHistory -> {
             JSONObject item=new JSONObject();
-            item.put("taskId",taskExtendInfoVO.getCusTaskId());
-            item.put("groupType",taskExtendInfoVO.getGroupType());
+            item.put("taskId",marketingHistory.getTaskId());
+            item.put("groupType",marketingHistory.getUserType());
             item.put("custNum",marketingHistory.getCusNum());
             JSONObject resultJson=JSONObject.parseObject(marketingHistory.getReserveField()) ;
             resultJson.put("times",times);
@@ -70,10 +70,14 @@ public class PushDataThread implements Callable<String>{
         String resultStr=result.get("data")!=null?result.get("data").toString():"";
         String code="9999";
         if(StringUtils.isNotBlank(resultStr)){
-            JSONObject resultJson =JSONObject.parseObject(resultStr);
-            code=resultJson.getString("code");
-        }
+            try{
+                JSONObject resultJson =JSONObject.parseObject(resultStr);
+                code=resultJson.getString("code");
+            }catch (Exception e){
 
+            }
+
+        }
         if(!(Boolean) result.get("result")){
             PushErrorLog pushErrorLog =new PushErrorLog();
             pushErrorLog.setCreateTime(new Date());

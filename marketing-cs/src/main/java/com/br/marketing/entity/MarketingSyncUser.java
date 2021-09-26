@@ -49,9 +49,24 @@ public class MarketingSyncUser {
     private String groupType;
 
     /**
+     * 新场景-替代group_type
+     */
+    private String userType;
+
+    /**
      * 日期
      */
     private String registerDate;
+
+    /**
+     * 预留字段1
+     */
+    private String reserveField1;
+
+    /**
+     * 预留字段2
+     */
+    private String reserveField2;
 
     /**
      * 创建时间
@@ -79,14 +94,24 @@ public class MarketingSyncUser {
     private String failType;
 
     /**
-     * 预留字段1
+     * 用户上传时间
      */
-    private String reserveField1;
+    private Date appletTime;
 
     /**
-     * 预留字段2
+     * 是否导入任务数据 1-未导入;2-导入
      */
-    private String reserveField2;
+    private Integer isTask;
+
+    /**
+     * 导入任务用户表时间
+     */
+    private Date taskTime;
+
+    /**
+     * 是否重复 1-未去重; 2-不重复;3-重复;
+     */
+    private Integer isRepeat;
 
     public Long getId() {
         return id;
@@ -168,6 +193,22 @@ public class MarketingSyncUser {
         this.registerDate = registerDate == null ? null : registerDate.trim();
     }
 
+    public String getReserveField1() {
+        return reserveField1;
+    }
+
+    public void setReserveField1(String reserveField1) {
+        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    }
+
+    public String getReserveField2() {
+        return reserveField2;
+    }
+
+    public void setReserveField2(String reserveField2) {
+        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -208,19 +249,43 @@ public class MarketingSyncUser {
         this.failType = failType == null ? null : failType.trim();
     }
 
-    public String getReserveField1() {
-        return reserveField1;
+    public Date getAppletTime() {
+        return appletTime;
     }
 
-    public void setReserveField1(String reserveField1) {
-        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    public void setAppletTime(Date appletTime) {
+        this.appletTime = appletTime;
     }
 
-    public String getReserveField2() {
-        return reserveField2;
+    public Integer getIsTask() {
+        return isTask;
     }
 
-    public void setReserveField2(String reserveField2) {
-        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
+    public void setIsTask(Integer isTask) {
+        this.isTask = isTask;
+    }
+
+    public Date getTaskTime() {
+        return taskTime;
+    }
+
+    public void setTaskTime(Date taskTime) {
+        this.taskTime = taskTime;
+    }
+
+    public Integer getIsRepeat() {
+        return isRepeat;
+    }
+
+    public void setIsRepeat(Integer isRepeat) {
+        this.isRepeat = isRepeat;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 }

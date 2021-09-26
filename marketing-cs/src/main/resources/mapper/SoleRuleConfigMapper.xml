@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SoleRuleConfigMapper" >
+    <select id="selectList" resultType="com.br.marketing.vo.SoleRuleVO">
+        select id,
+        sole_name as soleName,
+        sole_fields as soleFields,
+        sole_cycle_times as soleCycleTimes,
+        status,
+        DATE_FORMAT(bsrc.create_time,'%Y-%m-%d %H:%i:%s') as createTime,
+        DATE_FORMAT(bsrc.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        from b_sole_rule_config bsrc
+        where bsrc.is_del = 1
+        <if test="status !=null and status>0">
+            and bsrc.status = #{status}
+        </if>
+        <if test="soleName !=null and soleName!=''">
+            and bsrc.sole_name like concat("%", #{soleName},"%")
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bsrc.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bsrc.create_time <#{createTimeEnd} ]]>
+        </if>
+        <if test="updateTimeStart !=null and updateTimeStart!=''">
+            <![CDATA[  and bsrc.update_time >=#{updateTimeStart} ]]>
+        </if>
+        <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+            <![CDATA[  and bsrc.update_time <#{updateTimeEnd} ]]>
+        </if>
+        order by bsrc.create_time desc
+    </select>
+
+    <select id="getRuleOfSoleOnly" resultType="int" parameterType="string">
+        select count(*) from b_sole_rule_config c,b_customer_sole s where c.id=s.sole_id
+        and c.is_del=1 and s.is_del=1
+        <if test="soleFields !=null and soleFields!=''">
+            and c.sole_fields = #{soleFields}
+        </if>
+        <if test="soleCycleTimes !=null">
+            and c.sole_cycle_times = #{soleCycleTimes}
+        </if>
+        <if test="cid !=null and cid!=''">
+            and s.customer_id=#{cid}
+        </if>
+        <if test="conditionInfo !=null and conditionInfo!=''">
+            and s.condition_info=#{conditionInfo}
+        </if>
+        <if test="soleId !=null and soleId!=''">
+            and s.sole_id!=#{soleId} and c.id!=#{soleId}
+        </if>
+    </select>
+
+    <update id="updateById" parameterType="com.br.marketing.entity.SoleRuleConfig" >
+        update b_sole_rule_config
+        <set >
+            sole_cycle_times = #{soleCycleTimes,jdbcType=INTEGER},
+            <if test="soleName != null" >
+                sole_name = #{soleName,jdbcType=VARCHAR},
+            </if>
+            <if test="soleFields != null" >
+                sole_fields = #{soleFields,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null" >
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="isDel != null" >
+                is_del = #{isDel,jdbcType=INTEGER},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

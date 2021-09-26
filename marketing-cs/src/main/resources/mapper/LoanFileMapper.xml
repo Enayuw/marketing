@@ -306,6 +306,7 @@
 		where
 		api_code=#{apiCode}
 		AND batch_number=#{batchNumber}
+		AND status=3
 		AND create_time>date_add(curdate(), interval -1 day)
 
 	</update>

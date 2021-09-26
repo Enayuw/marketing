@@ -111,7 +111,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             for (int i = 1; i <= totalPage; i++) {
                 queryBaseBean.setPageSize(500);
                 queryBaseBean.setSearchAfter(searchAfterStr);
-                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean,"cus_num,batch_number,request_time,file_id,reserve_field");
+                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean,"cus_num,batch_number,request_time,file_id,reserve_field,task_id,user_type");
                 if (marketingHistories.size() > 0) {
                     searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
                     pushExecutor.submit(new PushDataThread(customer,extendInfosByFileIds.get(0),marketingHistories,straHisFiles.size()));
@@ -178,8 +178,11 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 String resultStr=result.get("data")!=null?result.get("data").toString():"";
                 String code="9999";
                 if(StringUtils.isNotBlank(resultStr)){
-                    JSONObject resultJson =JSONObject.parseObject(resultStr);
-                    code=resultJson.getString("code");
+                    try {
+                        JSONObject resultJson =JSONObject.parseObject(resultStr);
+                        code=resultJson.getString("code");
+                    }catch (Exception e){
+                    }
                 }
                 if((Boolean) result.get("result")){
                     pushErrorLog.setStatus(1);

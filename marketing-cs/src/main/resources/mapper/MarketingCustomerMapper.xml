@@ -1,4 +1,50 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingCustomerMapper" >
+<mapper namespace="com.br.marketing.mapper.MarketingCustomerMapper">
+    <select id="getCidOrApiCodeList" resultType="com.br.marketing.vo.CustomerSelectVO">
+        select
+        bmc.cid
+        ,bmc.api_code
+        ,bmc.name, bmc.short_name
+        from b_marketing_customer bmc
+        where
+        bmc.status=1 and
+        <if test="cid == null or cid.trim() eq ''">
+            ISNULL(bmc.cid) = 0
+        </if>
+        <if test="cid != null and cid.trim() neq ''">
+            bmc.cid=#{cid}
+        </if>
+        order by bmc.id desc
+
+        <!--        select-->
+        <!--        <if test="cid == null or cid.trim() eq ''">-->
+        <!--            cid-->
+        <!--        </if>-->
+        <!--        <if test="cid != null and cid.trim() neq ''">-->
+        <!--            api_code-->
+        <!--        </if>-->
+        <!--        from b_marketing_customer-->
+        <!--        where-->
+        <!--        status=1 and-->
+        <!--        <if test="cid == null or cid.trim() eq ''">-->
+        <!--            ISNULL(cid) = 0 group by cid-->
+        <!--        </if>-->
+        <!--        <if test="cid != null and cid.trim() neq ''">-->
+        <!--            cid=#{cid}-->
+        <!--        </if>-->
+
+    </select>
+
+    <select id="selectByLike" resultType="com.br.marketing.entity.MarketingCustomer" parameterType="string">
+        select id,cid,api_code,name,short_name
+        from b_marketing_customer bmc
+        where bmc.status = 1
+        <if test="value !=null and value!=''">
+            and bmc.short_name like concat("%", #{value},"%")
+            or bmc.api_code like concat("%", #{value},"%")
+        </if>
+        order by bmc.id desc
+    </select>
+
 </mapper>

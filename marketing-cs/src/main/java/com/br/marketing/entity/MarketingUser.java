@@ -32,6 +32,8 @@ public class MarketingUser {
     private Integer status;
     private String decodeFailType;
     private String extendJson;
+    private String taskId;
+    private String userType;
     public MarketingUser() {
     }
 
@@ -75,6 +77,8 @@ public class MarketingUser {
                 ", status=" + status +
                 ", decodeFailType='" + decodeFailType + '\'' +
                 ", extendJson='" + extendJson + '\'' +
+                ", taskId='" + taskId + '\'' +
+                ", userType='" + userType + '\'' +
                 '}';
     }
 }

@@ -38,7 +38,22 @@
             <artifactId>spring-data-redis</artifactId>
             <version>1.7.2.RELEASE</version>
         </dependency>
-
+<!--        <dependency>-->
+<!--            <groupId>org.redisson</groupId>-->
+<!--            <artifactId>redisson-spring-boot-starter</artifactId>-->
+<!--            <version>3.16.1</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.redisson</groupId>-->
+<!--                    <artifactId>redisson-spring-data-25</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.redisson</groupId>-->
+<!--            <artifactId>redisson-spring-data-18</artifactId>-->
+<!--            <version>3.16.1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.shardingsphere</groupId>
             <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
@@ -167,12 +182,6 @@
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
             <version>0.1.54</version>
-        </dependency>
-        <!--istio -->
-        <dependency>
-            <groupId>com.br.transfer</groupId>
-            <artifactId>header-transfer-spring-boot-starter</artifactId>
-            <version>1.0.0</version>
         </dependency>
     </dependencies>
     <build>
