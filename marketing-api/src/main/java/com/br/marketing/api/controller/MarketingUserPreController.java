@@ -6,6 +6,8 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
 import com.br.marketing.service.PushRuleService;
@@ -47,9 +49,10 @@ public class MarketingUserPreController {
                 log.info("接入营销人员接口耗时：{}", (System.currentTimeMillis() - l));
             }
             return new ApiNoDataResult().fromResult(result);
-        } catch (ParamValidErrorException ex) {
+        } catch (CommonException ex) {
             log.error(ex.getMessage());
-            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+            MarketingErrorInfo info = ex.getInfo();
+            return new ApiNoDataResult().setCode(info.getErrorCode()).setMessage(info.getErrorMsg());
         }
     }
 
@@ -61,9 +64,10 @@ public class MarketingUserPreController {
             long l = System.currentTimeMillis();
             Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
             return new ApiNoDataResult().fromResult(result);
-        } catch (ParamValidErrorException ex) {
+        } catch (CommonException ex) {
             log.error(ex.getMessage());
-            return new ApiNoDataResult().setCode("100006").setMessage(ex.getMessage());
+            MarketingErrorInfo info = ex.getInfo();
+            return new ApiNoDataResult().setCode(info.getErrorCode()).setMessage(info.getErrorMsg());
         }
     }
 
@@ -83,12 +87,14 @@ public class MarketingUserPreController {
                     }.getType());
             o.setApiCode(apiCode);
             return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
-        } catch (ParamValidErrorException ex) {
+        } catch (CommonException ex) {
             log.error(ex.getMessage());
-            return new ApiResult().setCode("100006").setMessage(ex.getMessage());
+            MarketingErrorInfo info = ex.getInfo();
+            return new ApiResult().setCode(info.getErrorCode()).setMessage(info.getErrorMsg());
         } catch (JSONException ex) {
-
-            return new ApiResult().setCode("100006").setMessage("jsonData解析异常");
+            return new ApiResult()
+                    .setCode(MarketingErrorInfo.JSON_DATA_ERROR.getErrorCode())
+                    .setMessage(MarketingErrorInfo.JSON_DATA_ERROR.getErrorMsg());
 
         }
     }

@@ -49,6 +49,11 @@ public class MarketingSyncUser {
     private String groupType;
 
     /**
+     * 新场景-替代group_type
+     */
+    private String userType;
+
+    /**
      * 日期
      */
     private String registerDate;
@@ -222,5 +227,13 @@ public class MarketingSyncUser {
 
     public void setReserveField2(String reserveField2) {
         this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 }

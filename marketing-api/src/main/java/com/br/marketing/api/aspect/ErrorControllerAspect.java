@@ -5,6 +5,7 @@ import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
@@ -123,7 +124,7 @@ public class ErrorControllerAspect {
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
-                obj.setCode("100001");
+                obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
                 if(saveLog != null){
                     interfaceLog.setCode(2);
@@ -131,7 +132,7 @@ public class ErrorControllerAspect {
                     interfaceLog.setCreateTime(new Date());
                 }
                 errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,saveLog==null?null:interfaceLog);
-                obj.setMessage("系统错误");
+                obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
                 return obj;
             } catch (Exception ee) {
                 log.error("异常结果生成异常", ee);
