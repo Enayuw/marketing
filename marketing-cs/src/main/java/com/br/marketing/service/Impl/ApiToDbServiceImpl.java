@@ -452,6 +452,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
+            tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
             Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
