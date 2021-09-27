@@ -51,6 +51,7 @@ public class HxUtil {
         json.put("id", jsonData.getString("idCard"));
         json.put("name",jsonData.getString("name"));
         json.put("cell",jsonData.getString("cell"));
+        //渠道标识 计费需要
         json.put("channelType", jsonData.getString("userType"));
         if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
             json.put("pass_date", jsonData.getString("passDate"));
