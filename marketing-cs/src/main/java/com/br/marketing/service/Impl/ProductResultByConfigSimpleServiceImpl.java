@@ -240,7 +240,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId){
-        String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(strategyId);
+        String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(strategyId).concat(":").concat(batchNumber);
         String s = redisChgService.get(key);
         if(StringUtils.isNotBlank(s)){
             return s;
@@ -250,7 +250,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
             if(marketingTaskExtend !=null&&StringUtils.isNotBlank(marketingTaskExtend.getStrategyProductJson())) {
                 redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
-                redisChgService.expire(key,60*60*24);
+                redisChgService.expire(key,60*60);
                 return marketingTaskExtend.getStrategyProductJson();
             }else{
                 redisChgService.set(key,"");
