@@ -452,6 +452,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
+            tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
             Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
@@ -704,10 +705,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     task.setTaskNumber(taskNum);
                     String s = DateUtils.format(new Date(), "yyyy-MM-dd");
                     task.setMonitorType(customerScoreRuleVO.getExecType());
-                    if (Integer.valueOf(1).equals(customerScoreRuleVO.getExecType())) {
-                        task.setStartDate(taskStart);
-                        task.setCloseDate(taskEnd);
-                    } else {
+                    if(Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
                         MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
                         if (task1 != null) {
                             task.setStartDate(task1.getStartDate());
@@ -717,6 +715,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
                         }
                         task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
+                    }else if(Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())){
+                        task.setMonitorType(4);
+                        task.setStartDate(taskStart);
+                        task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
+                        task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
+                    }else{
+                        task.setStartDate(taskStart);
+                        task.setCloseDate(taskEnd);
                     }
                     task.setContextId(getTaskContextId());
                     marketingTaskMapper.insertTask(task);
