@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.task.Scheduler;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,13 +40,10 @@ public class HxUtil {
         }
         String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
         String userType=jsonData.getString("userType");
-        if(StringUtils.isNotBlank(replaceApiCode)&&
-                !customer.getApiCode().equals(replaceApiCode)&&
-                ("S01".equalsIgnoreCase(userType)||"S03".equalsIgnoreCase(userType)||"S05".equalsIgnoreCase(userType))){
+        if(isReplace(extendConfigInfoJson,customer,userType)){
             StringBuilder meal = new StringBuilder();
             jsonMeal.keySet().forEach(product -> meal.append(product));
             json.put("meal",meal);
-            json.put("customerId",replaceApiCode);
         }else{
             json.put("jsonMeal", jsonMeal);
             json.put("originApiCode", customer.getApiCode());
@@ -81,7 +79,9 @@ public class HxUtil {
         paramMap.add("jsonData", json.toString());
         //公共apicode
         paramMap.add("apiCode", Constants.PUBLIC_APICODE);
-
+        if(isReplace(extendConfigInfoJson,customer,userType)){
+            paramMap.add("customerId", replaceApiCode);
+        }
 
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
        // log.info("画像请求参数 --- {}", paramMap.toString());
@@ -117,4 +117,13 @@ public class HxUtil {
         return paramJson;
     }
 
+    private static Boolean isReplace(JSONObject extendConfigInfoJson ,Customer customer,String userType){
+        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
+        if(StringUtils.isNotBlank(replaceApiCode)&&
+                !customer.getApiCode().equals(replaceApiCode)&&
+                ("S01".equalsIgnoreCase(userType)||"S03".equalsIgnoreCase(userType)||"S05".equalsIgnoreCase(userType))) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
 }
