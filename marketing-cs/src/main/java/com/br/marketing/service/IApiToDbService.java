@@ -11,7 +11,7 @@ public interface IApiToDbService {
 
     Long getTaskContextId();
 
-    Result<String> buildBatchNumber(String apiCode,String cusBatch,String groupType,String time);
+    Result<String> buildBatchNumber(String apiCode,String cusBatch,String groupType,String time,Integer isOnly);
 
     Result<Boolean> consumerUserToDb(Long synInfoId);
 }
