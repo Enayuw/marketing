@@ -10,10 +10,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.SoleRuleConfig;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.vo.CustomerSoleRuleVO;
-import com.br.marketing.vo.RuleConditionFactorVo;
-import com.br.marketing.vo.RuleConditionVo;
-import com.br.marketing.vo.TodayIdTimeBySoleVo;
+import com.br.marketing.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -352,6 +349,45 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         return res;
     }
 
+    @Override
+    public List<CustomerScoreRuleVO> matchScoreRule(List<CustomerScoreRuleVO> scoreRuleVos,String userType){
+        MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+        marketingSyncUser.setUserType(userType);
+        List<CustomerScoreRuleVO> res = new ArrayList<>();
+        for (CustomerScoreRuleVO scoreRuleVO : scoreRuleVos) {
+            RuleConditionVo conditionVo = JSON.parseObject(scoreRuleVO.getConditionInfo(), new TypeReference<RuleConditionVo>() {
+            }.getType());
+
+            StringBuilder dbStr = new StringBuilder();
+            if("or".equals(conditionVo.getLogicalOperation())){
+                boolean orResult = false;
+                for (RuleConditionFactorVo ruleConditionFactorVo : conditionVo.getOperationFactor()) {
+                    Result<Boolean> booleanResult = this.matchSoleRuleOperation(ruleConditionFactorVo, marketingSyncUser);
+                    if(booleanResult.getData()){
+                        orResult = true;
+                    }
+                }
+                if(orResult) {
+                    res.add(scoreRuleVO);
+                }
+            }
+
+            if("and".equals(conditionVo.getLogicalOperation())){
+                boolean andResult = true;
+                for (RuleConditionFactorVo ruleConditionFactorVo : conditionVo.getOperationFactor()) {
+                    Result<Boolean> booleanResult = this.matchSoleRuleOperation(ruleConditionFactorVo, marketingSyncUser);
+                    dbStr.append(" and ").append(booleanResult.getMessage());
+                    if(!booleanResult.getData()){
+                        andResult = false;
+                    }
+                }
+                if(andResult){
+                    res.add(scoreRuleVO);
+                }
+            }
+        }
+        return res;
+    }
 
     private Result<Boolean> matchSoleRuleOperation(RuleConditionFactorVo vo, MarketingSyncUser syncUser){
 
@@ -384,6 +420,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(result).setMessage(dbStr.toString());
     }
+
 
 
     @Override

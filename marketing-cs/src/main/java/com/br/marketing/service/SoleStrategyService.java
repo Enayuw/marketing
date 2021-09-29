@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.SoleRuleConfig;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.CustomerSoleRuleVO;
 import com.br.marketing.vo.RuleConditionVo;
 
@@ -18,6 +19,8 @@ public interface SoleStrategyService {
      * @return
      */
     Result<Integer> actionSole(List<CustomerSoleRuleVO> soleRuleVOS, MarketingSyncUser syncUser);
+
+    List<CustomerScoreRuleVO> matchScoreRule(List<CustomerScoreRuleVO> scoreRuleVos, String userType);
 
     Result<String> analysisCondition(String conditionVo);
 }
