@@ -78,7 +78,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public void push(Customer customer) {
         ExecutorService pushExecutor;
         if(customer.getPushThreadNum()!=null){
-            pushExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+            pushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
         }else{
             pushExecutor = BrExecutors.getThreadPool(20,20);
         }
@@ -143,7 +143,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public void retry(Customer customer) {
         ExecutorService retryPushExecutor;
         if(customer.getPushThreadNum()!=null){
-            retryPushExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+            retryPushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
         }else{
             retryPushExecutor = BrExecutors.getThreadPool(20,20);
         }
