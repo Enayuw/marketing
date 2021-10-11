@@ -15,6 +15,8 @@ public class TableCreateServiceImpl {
 
     final static String marketingUserTable = "b_marketing_user_";
 
+    final static String marketingTransferUserTable = "b_marketing_transfer_sync_";
+
     @PostConstruct
     void init(){
         tableNameSet = new HashSet<String>();
@@ -27,6 +29,14 @@ public class TableCreateServiceImpl {
         String tableName = marketingPreUserTable.concat(apiCode);
         if(!tableNameSet.contains(tableName)){
             marketingUserMapper.createMarketingPreUserTable(tableName);
+            tableNameSet.add(tableName);
+        }
+    }
+
+    public void createMarketingTransferUserTable(String cid){
+        String tableName = marketingTransferUserTable.concat(cid);
+        if(!tableNameSet.contains(tableName)){
+            marketingUserMapper.createMarketingTransferUserTable(tableName);
             tableNameSet.add(tableName);
         }
     }

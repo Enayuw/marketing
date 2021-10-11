@@ -20,6 +20,7 @@ public class MQConstants {
 
     //异步处理人员入库的队列
     public static final String MARKETING_PRE_USER_RECEIVE = "Marketing_PreUser_Receive";
+    public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
     public static final String MARKETING_USER_RECEIVE = "Marketing_User_Receive";
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing_Push_CustomerService_Search_Delay";
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH = "Marketing_Push_CustomerService_Search";
@@ -33,6 +34,7 @@ public class MQConstants {
     public static final String CHECK_ROUTING_KEY = "checkRoutingKey";
 
     public static final String ROUTING_KEY_MARKETING_PRE_USER_RECEIVE = "Marketing.PreUser.Receive";
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
     public static final String ROUTING_KEY_MARKETING_USER_RECEIVE = "Marketing.User.Receive";
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing.Push.CustomerService.Search.Delay";
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing.Push.CustomerService";

@@ -3,6 +3,7 @@ package com.br.marketing.api.aspect;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -125,6 +126,67 @@ public class ErrorControllerAspect {
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
+                if(e instanceof CommonException){
+                    CommonException commenException = (CommonException) e;
+                    obj.setCode(commenException.getInfo().getErrorCode());
+                    obj.setMessage(commenException.getInfo().getErrorMsg());
+                }else {
+                    obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
+                    obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+                }
+                final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
+                if (saveLog != null) {
+                    interfaceLog.setCode(2);
+                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
+                    interfaceLog.setCreateTime(new Date());
+                }
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, saveLog == null ? null : interfaceLog);
+                return obj;
+            } catch (Exception ee) {
+                log.error("异常结果生成异常", ee);
+                //无法正确生成返回结果，接着抛出异常
+                throw e;
+            }
+        }
+
+    }
+
+    /**
+     * 捕获ApiNoDataResult 形式输出的接口异常
+     * @param jp
+     * @return
+     * @throws Throwable
+     */
+    @Around("execution(public com.br.marketing.common.commondto.ApiResult com.br.marketing.api.controller..*.*(..))")
+    public Object handApiResultException(ProceedingJoinPoint jp) throws Throwable {
+
+        long startTime = System.currentTimeMillis();
+        Method sMethod = ((MethodSignature) jp.getSignature()).getMethod();
+        SaveLog saveLog = sMethod.getAnnotation(SaveLog.class);
+        CalledInterfaceLog interfaceLog = new CalledInterfaceLog();
+        if(saveLog!=null){
+            interfaceLog.setRequestId(UUID.randomUUID().toString());
+            String parms = Arrays.asList(jp.getArgs()).stream().map(t -> t.toString()).collect(Collectors.joining("&"));
+            interfaceLog.setRequestParam(parms.length()>5000
+                    ?parms.substring(0,5000)
+                    :parms);
+            interfaceLog.setMethodName(httpServletRequest.getRequestURI());
+        }
+
+        try {
+            Object rvt = jp.proceed();
+            if(saveLog!=null) {
+                interfaceLog.setResult(JSON.toJSONString(rvt));
+                interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
+                interfaceLog.setCreateTime(new Date());
+                logDbpool.submit(() -> {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                });
+            }
+            return rvt;
+        } catch (Throwable e) {
+            try {
+                ApiResult obj = new ApiResult();
                 if(e instanceof CommonException){
                     CommonException commenException = (CommonException) e;
                     obj.setCode(commenException.getInfo().getErrorCode());

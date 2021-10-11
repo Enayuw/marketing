@@ -88,6 +88,25 @@ public class RabbitMqConfig {
     }
 
     /**
+     * marketing 转化数据队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE)
+    public Queue transferQueue() {
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE, true);
+    }
+
+    /**
+     * 绑定——转化数据队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding transferBinding() {
+        return BindingBuilder.bind(transferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE);
+    }
+    /**
      * 延迟队列-查询推送智能客服状态
      *
      * @return

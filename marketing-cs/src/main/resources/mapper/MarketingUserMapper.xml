@@ -416,4 +416,52 @@
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
 	</update>
 
+<update id="createMarketingTransferUserTable" parameterType="java.lang.String">
+	CREATE TABLE IF NOT EXISTS ${tableName} (
+	  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+	  `cid` varchar(10) NOT NULL COMMENT 'cid',
+	  `t_cid` varchar(10) default null  comment '分表cid',
+	  `api_code` varchar(10) NOT NULL COMMENT '商户编号',
+	  `request_id` varchar(100) DEFAULT NULL COMMENT '请求批次号',
+	  `org_name` varchar(255) DEFAULT NULL COMMENT '机构名称',
+	  `cust_num` varchar(100) DEFAULT NULL COMMENT '客户案件编号',
+	  `source` varchar(100) DEFAULT NULL COMMENT '数据源',
+	  `user_type` varchar(100) DEFAULT NULL COMMENT '机构运营场景',
+	  `type` varchar(100) DEFAULT NULL COMMENT '转化节点',
+	  `custom_name` varchar(100) DEFAULT NULL COMMENT '客群名称',
+	  `if_register` varchar(3) DEFAULT NULL COMMENT '是否注册 1是0否',
+	  `register_time` varchar(30) DEFAULT NULL COMMENT '注册时间 yyyy-mm-dd hh:mm:ss:SSS',
+	  `if_login` varchar(3) DEFAULT NULL COMMENT '是否登录 1是0否',
+	  `login_time` varchar(30) DEFAULT NULL COMMENT '登录时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `if_apply` varchar(3) DEFAULT NULL COMMENT '是否进件 1是0否',
+	  `apply_dt` varchar(30) DEFAULT NULL COMMENT '进件时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `apply_time` varchar(30) DEFAULT NULL COMMENT '审批时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `apply_result` varchar(3) DEFAULT NULL COMMENT '审批结果 1是0否',
+	  `refuse_time` varchar(30) DEFAULT NULL COMMENT '拒绝时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `audit_time` varchar(30) DEFAULT NULL COMMENT '授信时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `audit_amount` varchar(20) DEFAULT NULL COMMENT '授信总金额',
+	  `if_lent` varchar(3) DEFAULT NULL COMMENT '是否提现 1是0否',
+	  `lent_time` varchar(30) DEFAULT NULL COMMENT '提现时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `lent_amount` varchar(20) DEFAULT NULL COMMENT '提现金额',
+	  `unlent_amount` varchar(20) DEFAULT NULL COMMENT '未提现额度',
+	  `if_settle` varchar(3) DEFAULT NULL COMMENT '是否结清 1是0否',
+	  `settle_time` varchar(30) DEFAULT NULL COMMENT '结清时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `activity` varchar(100) DEFAULT NULL COMMENT '活动类型',
+	  `case_status` varchar(100) DEFAULT NULL COMMENT '结案状态 0未结案1已结案',
+	  `case_effective` varchar(3) DEFAULT NULL COMMENT '案件有效性 0无效1有效',
+	  `if_transform` varchar(3) DEFAULT NULL COMMENT '是否转化 1是0否',
+	  `transform_time` varchar(30) DEFAULT NULL COMMENT '转化时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `insert_time` varchar(30) DEFAULT NULL COMMENT '创建时间yyyy-mm-dd hh:mm:ss:SSS',
+	  `reserve_field1` varchar(100) DEFAULT NULL COMMENT '业务保留字段1',
+	  `reserve_field2` varchar(100) DEFAULT NULL COMMENT '业务保留字段2',
+	  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+	  `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+	  `request_data` varchar(20) DEFAULT NULL COMMENT '客户请求日期',
+	  `request_time` varchar(20) DEFAULT NULL COMMENT '客户请求时间',
+	  PRIMARY KEY (`id`),
+	  KEY `idx_unique_transfer_syncinfo_request_id` (`request_id`),
+	  KEY `idx_transfer_syncinfo_code` (`api_code`),
+	  KEY `idx_transfer_syncinfo_cust_num` (`cust_num`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户转化数据记录表';
+</update>
 </mapper>
