@@ -375,6 +375,146 @@ public class MarketingTransferInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andLastIsNull() {
+            addCriterion("last is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastIsNotNull() {
+            addCriterion("last is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastEqualTo(String value) {
+            addCriterion("last =", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotEqualTo(String value) {
+            addCriterion("last <>", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastGreaterThan(String value) {
+            addCriterion("last >", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastGreaterThanOrEqualTo(String value) {
+            addCriterion("last >=", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastLessThan(String value) {
+            addCriterion("last <", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastLessThanOrEqualTo(String value) {
+            addCriterion("last <=", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastLike(String value) {
+            addCriterion("last like", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotLike(String value) {
+            addCriterion("last not like", value, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastIn(List<String> values) {
+            addCriterion("last in", values, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotIn(List<String> values) {
+            addCriterion("last not in", values, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastBetween(String value1, String value2) {
+            addCriterion("last between", value1, value2, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastNotBetween(String value1, String value2) {
+            addCriterion("last not between", value1, value2, "last");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIsNull() {
+            addCriterion("total is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIsNotNull() {
+            addCriterion("total is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalEqualTo(String value) {
+            addCriterion("total =", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotEqualTo(String value) {
+            addCriterion("total <>", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThan(String value) {
+            addCriterion("total >", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThanOrEqualTo(String value) {
+            addCriterion("total >=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThan(String value) {
+            addCriterion("total <", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThanOrEqualTo(String value) {
+            addCriterion("total <=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLike(String value) {
+            addCriterion("total like", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotLike(String value) {
+            addCriterion("total not like", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIn(List<String> values) {
+            addCriterion("total in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotIn(List<String> values) {
+            addCriterion("total not in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBetween(String value1, String value2) {
+            addCriterion("total between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotBetween(String value1, String value2) {
+            addCriterion("total not between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;

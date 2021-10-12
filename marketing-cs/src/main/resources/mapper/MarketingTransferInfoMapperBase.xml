@@ -6,6 +6,8 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="request_id" property="requestId" jdbcType="VARCHAR" />
     <result column="org_name" property="orgName" jdbcType="VARCHAR" />
+    <result column="last" property="last" jdbcType="VARCHAR" />
+    <result column="total" property="total" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="json_data" property="jsonData" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -72,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_id, org_name, status, json_data, create_time, update_time, 
-    error_info, actual_num
+    id, api_code, request_id, org_name, last, total, status, json_data, create_time, 
+    update_time, error_info, actual_num
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTransferInfoExample" >
     select
@@ -110,13 +112,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_transfer_info (api_code, request_id, org_name, 
-      status, json_data, create_time, 
-      update_time, error_info, actual_num
-      )
+      last, total, status, 
+      json_data, create_time, update_time, 
+      error_info, actual_num)
     values (#{apiCode,jdbcType=VARCHAR}, #{requestId,jdbcType=VARCHAR}, #{orgName,jdbcType=VARCHAR}, 
-      #{status,jdbcType=INTEGER}, #{jsonData,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{errorInfo,jdbcType=VARCHAR}, #{actualNum,jdbcType=INTEGER}
-      )
+      #{last,jdbcType=VARCHAR}, #{total,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{jsonData,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{errorInfo,jdbcType=VARCHAR}, #{actualNum,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTransferInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -132,6 +134,12 @@
       </if>
       <if test="orgName != null" >
         org_name,
+      </if>
+      <if test="last != null" >
+        last,
+      </if>
+      <if test="total != null" >
+        total,
       </if>
       <if test="status != null" >
         status,
@@ -161,6 +169,12 @@
       </if>
       <if test="orgName != null" >
         #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="last != null" >
+        #{last,jdbcType=VARCHAR},
+      </if>
+      <if test="total != null" >
+        #{total,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -203,6 +217,12 @@
       <if test="record.orgName != null" >
         org_name = #{record.orgName,jdbcType=VARCHAR},
       </if>
+      <if test="record.last != null" >
+        last = #{record.last,jdbcType=VARCHAR},
+      </if>
+      <if test="record.total != null" >
+        total = #{record.total,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null" >
         status = #{record.status,jdbcType=INTEGER},
       </if>
@@ -232,6 +252,8 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       request_id = #{record.requestId,jdbcType=VARCHAR},
       org_name = #{record.orgName,jdbcType=VARCHAR},
+      last = #{record.last,jdbcType=VARCHAR},
+      total = #{record.total,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=INTEGER},
       json_data = #{record.jsonData,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -253,6 +275,12 @@
       </if>
       <if test="orgName != null" >
         org_name = #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="last != null" >
+        last = #{last,jdbcType=VARCHAR},
+      </if>
+      <if test="total != null" >
+        total = #{total,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         status = #{status,jdbcType=INTEGER},
@@ -280,6 +308,8 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       request_id = #{requestId,jdbcType=VARCHAR},
       org_name = #{orgName,jdbcType=VARCHAR},
+      last = #{last,jdbcType=VARCHAR},
+      total = #{total,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},
       json_data = #{jsonData,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},

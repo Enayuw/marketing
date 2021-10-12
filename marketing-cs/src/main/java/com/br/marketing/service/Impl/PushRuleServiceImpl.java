@@ -804,7 +804,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (transferDataDTO == null) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
-        if (!StringUtils.isNotBlank(transferDataDTO.getRequestId())) {
+        if (!StringUtils.isNotBlank(transferDataDTO.getRequestId())||transferDataDTO.getRequestId().length()>100) {
             throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
         int size = transferDataDTO.getDataItems().size();
@@ -945,19 +945,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS"));
+                res = LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(":000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS"));
+                res = LocalDateTime.parse(s.concat(":000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(":00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS"));
+                res = LocalDateTime.parse(s.concat(":00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(":00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS"));
+                res = LocalDateTime.parse(s.concat(":00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(" 00:00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm;ss:SSS"));
+                res = LocalDateTime.parse(s.concat(" 00:00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
             } else {
                 res = data;
             }

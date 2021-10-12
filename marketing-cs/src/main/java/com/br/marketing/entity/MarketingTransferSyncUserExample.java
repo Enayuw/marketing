@@ -5,6 +5,17 @@ import java.util.Date;
 import java.util.List;
 
 public class MarketingTransferSyncUserExample {
+
+    private String tCid;
+
+    public String gettCid() {
+        return tCid;
+    }
+
+    public void settCid(String tCid) {
+        this.tCid = tCid;
+    }
+
     protected String orderByClause;
 
     protected boolean distinct;

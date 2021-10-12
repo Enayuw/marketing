@@ -24,6 +24,16 @@ public class MarketingTransferInfo {
     private String orgName;
 
     /**
+     * 是否最后一次上传 0-非最后一次，1最后一次
+     */
+    private String last;
+
+    /**
+     * 如果last=1,则会校验total是否一致
+     */
+    private String total;
+
+    /**
      * 状态 1-进行中；2-全部成功；3-全部失败；4-部分成功
      */
     private Integer status;
@@ -83,6 +93,22 @@ public class MarketingTransferInfo {
 
     public void setOrgName(String orgName) {
         this.orgName = orgName == null ? null : orgName.trim();
+    }
+
+    public String getLast() {
+        return last;
+    }
+
+    public void setLast(String last) {
+        this.last = last == null ? null : last.trim();
+    }
+
+    public String getTotal() {
+        return total;
+    }
+
+    public void setTotal(String total) {
+        this.total = total == null ? null : total.trim();
     }
 
     public Integer getStatus() {
