@@ -78,6 +78,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1003","重复客户编号");
         errorCodeHm.put("1004","重复电话");
         errorCodeHm.put("1005","入库异常");
+        errorCodeHm.put("1006","参数过长");
     }
 
     @Autowired
@@ -864,6 +865,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                     errorDetailVO.setErrorMsg(errorCodeHm.get("1002"));
                     return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
+                if(transferDataItemDTO.getUserType().length()>100){
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1006");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1006"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
                 Date nowData = new Date();
                 String requestDate = DateUtils.format(transferInfo.getCreateTime(), "yyyy-MM-dd");
                 String requestTime = DateUtils.format(transferInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
@@ -1182,7 +1190,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 content = StringUtils.isBlank(user.getName())?"":user.getName();
                 break;
         }
-        if (decodeClient.isMd5(content)) {
+        if (DecodeClient.isMd5(content)) {
             //cell md5
             content = decodeClient.query(content, type, "md5", "");
             if (StringUtils.isBlank(content)&&"cell".equals(type)) {
