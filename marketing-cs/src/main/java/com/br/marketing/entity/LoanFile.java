@@ -42,6 +42,7 @@ public class LoanFile extends BaseRowModel {
     private String showTitle;
     private Integer pushType;
     private Integer pushStatus;
+    private Integer indexNum;
     @Override
     public String toString() {
         return "LoanFile{" +
@@ -65,6 +66,7 @@ public class LoanFile extends BaseRowModel {
                 ", md5='" + md5 + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", showTitle='" + showTitle + '\'' +
+                ", indexNum='" + indexNum + '\'' +
                 '}';
     }
 }

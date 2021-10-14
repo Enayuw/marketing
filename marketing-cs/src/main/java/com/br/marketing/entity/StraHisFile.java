@@ -118,6 +118,11 @@ public class StraHisFile {
      */
     private Integer pushStatus;
 
+    /**
+     * 分片个数
+     */
+    private Integer indexNum;
+
     public Long getId() {
         return id;
     }
@@ -300,5 +305,13 @@ public class StraHisFile {
 
     public void setPushStatus(Integer pushStatus) {
         this.pushStatus = pushStatus;
+    }
+
+    public Integer getIndexNum() {
+        return indexNum;
+    }
+
+    public void setIndexNum(Integer indexNum) {
+        this.indexNum = indexNum;
     }
 }

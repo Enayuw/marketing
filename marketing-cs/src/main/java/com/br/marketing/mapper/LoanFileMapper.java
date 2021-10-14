@@ -13,6 +13,7 @@ import java.util.Map;
 @Repository
 public interface LoanFileMapper {
     Integer insertFile(LoanFile blf);
+
     List<LoanFile> queryFile(String apiCode);
     List<LoanFile> queryUploadFile(String apiCode);
 

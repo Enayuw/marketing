@@ -1584,6 +1584,66 @@ public class StraHisFileExample {
             addCriterion("push_status not between", value1, value2, "pushStatus");
             return (Criteria) this;
         }
+
+        public Criteria andIndexNumIsNull() {
+            addCriterion("index_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumIsNotNull() {
+            addCriterion("index_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumEqualTo(Integer value) {
+            addCriterion("index_num =", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumNotEqualTo(Integer value) {
+            addCriterion("index_num <>", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumGreaterThan(Integer value) {
+            addCriterion("index_num >", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("index_num >=", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumLessThan(Integer value) {
+            addCriterion("index_num <", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumLessThanOrEqualTo(Integer value) {
+            addCriterion("index_num <=", value, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumIn(List<Integer> values) {
+            addCriterion("index_num in", values, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumNotIn(List<Integer> values) {
+            addCriterion("index_num not in", values, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumBetween(Integer value1, Integer value2) {
+            addCriterion("index_num between", value1, value2, "indexNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("index_num not between", value1, value2, "indexNum");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
