@@ -3,6 +3,7 @@ package com.br.marketing.task.job;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.service.Impl.ConcurrentScoreServiceImpl;
 import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -53,8 +54,8 @@ public class TaskConcurrentJob extends AbstractSimpleElasticJob {
             try {
                 if(customer.getStatus() ==1 && customer.getTaskTime()==1){
                     log.warn("开始执行跑批任务，apicode={}",customer.getApiCode());
-                    LoanWarningService loanWarningService=Scheduler.ac.getBean(LoanWarningServiceImpl.class);
-                    loanWarningService.concurrentProcess(customer,context);
+                    LoanWarningService loanWarningService=Scheduler.ac.getBean(ConcurrentScoreServiceImpl.class);
+                    loanWarningService.process(customer,context);
                 }
             } catch (Exception e) {
                 log.error("程序跑批异常，apiCode={}",customer.getApiCode());
