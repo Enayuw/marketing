@@ -154,7 +154,8 @@
 			api_code,
 			`type`,
 			file_path,
-			create_time
+			create_time,
+		   	index_num
 		FROM
 			stra_his_file
 		WHERE

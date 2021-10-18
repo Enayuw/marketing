@@ -16,7 +16,7 @@ import com.br.marketing.service.MarketingSepService;
 import com.br.marketing.service.MarketingTaskExtendService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.task.service.LoanWarningService;
-import com.br.marketing.task.thread.LoanWarningThread;
+import com.br.marketing.task.thread.MarketingThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
@@ -79,6 +79,15 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     final static Integer allMonitorType = 4;
 
+    /**
+     * 1、initBatchNumList 方法统计出所有需要跑分的任务，并且每个任务属性上新增了分片信息和分片个数
+     * 2、generateTask 执行跑分，会生成 跑分记录，跑分分片状态表记录
+     * 3、失败数据重试
+     * 4、删掉失败数据的redis
+     * 5、修改跑分分片状态表记录 并且查询该分片所在的任务是不是都已经跑完，如果跑完更新跑分记录表。
+     * @param customer
+     * @param context
+     */
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
         ExecutorService warrningExecutor;
@@ -122,7 +131,19 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
                         if(task!=null) {
-                            this.retry(apiCode,batchNumber,errorFile,warrningExecutor,i,customer);
+                            String[] split = errorFile.split("/");
+                            if(split.length>2){
+                                for (Integer shardingItem : context.getShardingItems()) {
+                                    if(Integer.valueOf(split[split.length-2]).equals(shardingItem)) {
+                                        this.retry(apiCode, batchNumber, errorFile, warrningExecutor, i, customer, shardingItem, context.getShardingTotalCount());
+                                    }else{
+                                        continue;
+                                    }
+                                }
+                            }else{
+                                continue;
+                            }
+
                             i++;
                         }
                     }
@@ -138,12 +159,22 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         }catch (Exception e){
                         }
                     }
-
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
-                        if(task!=null&&itemList.contains(Integer.valueOf(task.getContextId().toString())%count)) {
-                            redisChgService.hdel(hkey,errorFile);
+                        if(task!=null) {
+                            String[] split = errorFile.split("/");
+                            if(split.length>2){
+                                for (Integer shardingItem : context.getShardingItems()) {
+                                    if(Integer.valueOf(split[split.length-2]).equals(shardingItem)) {
+                                        redisChgService.hdel(hkey,errorFile);
+                                    }else{
+                                        continue;
+                                    }
+                                }
+                            }else{
+                                continue;
+                            }
                         }
                     }
                 }
@@ -151,39 +182,31 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 log.error("重新处理异常数据出错",e);
             }
             for (MarketingTask task : taskList) {
-                Map<String,String> param =new HashedMap();
-                param.put("apiCode",apiCode);
-                param.put("batchNumber",task.getBatchNumber());
-                loanFileMapper.updateFileComplete(param);
-            }
+                TaskStatusDistribute updateRecord = new TaskStatusDistribute();
+                updateRecord.setStatus(2);
+                updateRecord.setFileId(task.getFileId());
+                updateRecord.setDistributeIndex(task.getIndex());
+                TaskStatusDistributeExample example = new TaskStatusDistributeExample();
+                example.createCriteria()
+                        .andFileIdEqualTo(task.getFileId())
+                        .andDistributeIndexEqualTo(task.getIndex())
+                        .andIsDelEqualTo(Constants.DATA_VALID);
+                taskStatusDistributeMapper.updateByExampleSelective(updateRecord,example);
 
-            try {
-                String hkey= Constants.HX_FLAG_98_NUM+":"+apiCode;
-                Set<String> hkeys = redisChgService.hkeys(hkey);
-                Integer sum=0;
-                for (String batchNumber : hkeys) {
-                    for (MarketingTask task : taskList) {
-                        if(task.getBatchNumber().equals(batchNumber)){
-                            if(task!=null&&itemList.contains(Integer.valueOf(task.getContextId().toString())%count)) {
-                                String flagKey=Constants.HX_FLAG_98_NUM+ batchNumber+"_"+DateHelper.getDateAddYyMmDd(0);
-                                String num = redisChgService.get(flagKey);
-                                if(StringUtils.isNotEmpty(num)&&Integer.parseInt(num)>0){
-                                    sum+=Integer.parseInt(num);
-                                }
-                                redisChgService.expire(flagKey,5);
-                            }
-                        }
-                    }
-                }
-                if(sum>0){
-                    HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                            String.format("【紧急报警】【%s】营销平台客户监控- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
-                                    ,apiCode,sum));
-                    log.error("hxResult product flag error",hxResultRuntimeException);
-                }
+                StraHisFile file = straHisFileMapper.selectByPrimaryKey(task.getId());
 
-            }catch (Exception e){
-                log.error("发送报警出错",e);
+                TaskStatusDistributeExample selStatusExample = new TaskStatusDistributeExample();
+                selStatusExample.createCriteria()
+                        .andFileIdEqualTo(task.getFileId())
+                        .andStatusEqualTo(2)
+                        .andIsDelEqualTo(Constants.DATA_VALID);
+                int statusCount = taskStatusDistributeMapper.countByExample(selStatusExample);
+                if(file.getIndexNum().equals(statusCount)){
+                    StraHisFile updateFile = new StraHisFile();
+                    updateFile.setId(task.getFileId());
+                    updateFile.setStatus(1);
+                    straHisFileMapper.updateByPrimaryKey(updateFile);
+                }
             }
         }catch (Exception e){
             log.error("预警调度出错",e);
@@ -199,8 +222,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      * @param warrningExecutor 线程池
      * @param num 文件编号
      */
-    private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor,Integer num,Customer customer){
+    private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor
+            ,Integer num,Customer customer,Integer index,Integer indexCount){
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
+        marketingTask.setIndex(index);
+        marketingTask.setIndexCount(indexCount);
         String separator=marketingSepService.querySepByApiCode(apiCode);
         String baseHeadInfo = getBaseHeadInfo(marketingTask.getId(), separator);
         Map<String,String> paramMap =new HashedMap();
@@ -254,7 +280,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new LoanWarningThread(list, param,currentPage,true,customer));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -347,26 +373,38 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             statusDistribute.setUpdateTime(new Date());
 
             if(blt.getIndexCount()>1&&blt.getActualNumber()>250000){
+                /* 数据分片策略 0片从最小id开始,最后一篇是maxid*/
                 Integer sepValue = Integer.valueOf(String.valueOf((maxId - minId) / blt.getIndexCount()));
-                statusDistribute.setStartId(minId+(blt.getIndex()*sepValue));
-                statusDistribute.setEndId(minId+((blt.getIndex()+1)*sepValue));
+                statusDistribute.setStartId(minId+
+                        (Integer.valueOf(0).equals(blt.getIndex())
+                                ?blt.getIndex()*sepValue
+                                :blt.getIndex()*sepValue+1));
+                statusDistribute.setEndId(minId+
+                        (blt.getIndex().equals(blt.getIndexCount()-1)
+                                ?maxId
+                                :((blt.getIndex()+1)*sepValue)));
+                statusDistribute.setPreNum(statusDistribute.getEndId()-statusDistribute.getStartId());
+                minId = statusDistribute.getStartId();
+                maxId = statusDistribute.getEndId();
             }else{
                 if(blt.getIndex().equals(0)){
                     statusDistribute.setStartId(minId);
                     statusDistribute.setEndId(maxId);
                     statusDistribute.setPreNum(blt.getActualNumber().longValue());
                     statusDistribute.setActualNum(blt.getActualNumber().longValue());
-                    taskStatusDistributeMapper.insertSelective(statusDistribute);
                 }else{
                     return;
                 }
             }
+            taskStatusDistributeMapper.insertSelective(statusDistribute);
                 if(minId !=null && minId>0L) {
                     Long begin = minId - 1;
                     int currentPage = 1;
                     long start = System.currentTimeMillis();
-                    while (begin < maxId) {
+                    Boolean sizeMark = Boolean.TRUE;
+                    while (begin < maxId && sizeMark ) {
                         blt.setBegin(begin);
+                        blt.setEnd(maxId);
                         List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
                         if (list.size() > 0) {
                             begin = list.get(list.size() - 1).getId();
@@ -384,8 +422,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             param.put("fileId", fileId);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new LoanWarningThread(list, param,currentPage,firstTime,customer));
+                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt));
                             Thread.sleep(100);
+                        }else{
+                            sizeMark = Boolean.FALSE;
                         }
                         currentPage++;
                     }
@@ -497,11 +537,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             queryParams.put("batchNumber",blf.getBatchNumber());
             LoanFile loanFile = loanFileMapper.selectFileComplete(queryParams);
             if(loanFile!=null){
+                task.setFileId(loanFile.getId());
                 return true;
             }
 
             if(redisChgService.setnx(key,v,2).equals(1L)){
                 loanFileMapper.insertFile(loanFile);
+                task.setFileId(loanFile.getId());
                 if(pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);

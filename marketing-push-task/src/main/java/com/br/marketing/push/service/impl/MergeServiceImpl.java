@@ -163,8 +163,10 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
-            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator);
-
+            for (int i = 0; i < blf.getIndexNum(); i++) {
+                StringBuilder disTargetPath = targetPath.append(i).append("/");
+                FileUtil.mergeAll(head.toString(),filePathAndName,disTargetPath.toString(),separator);
+            }
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);

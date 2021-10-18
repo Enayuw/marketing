@@ -110,6 +110,11 @@ public class MarketingTask {
      */
     private Integer indexCount;
 
+    /**
+     * 跑分记录id
+     */
+    private Long fileId;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -149,6 +154,7 @@ public class MarketingTask {
                 ", isFirstTime=" + firstTime +
                 ", index=" + index +
                 ", indexCount=" + indexCount +
+                ", fileId=" + fileId +
                 '}';
     }
 }
