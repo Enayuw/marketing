@@ -201,15 +201,24 @@ public class FileUtil {
      * @param pathName 结果文件名称
      * @param destPath 需要合并的目录
      */
-    public static void mergeAll(String head, String pathName, String destPath, String sep) {
+    public static void mergeAll(String head, String pathName, String destPath, String sep,Integer indexNum) {
         log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}", pathName, destPath);
         long l = System.currentTimeMillis();
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
 
-        File writeName = new File(destPath);
-        if (!writeName.exists()) {
+        List<String> fileNmaes = new ArrayList<>();
+        for (Integer i = 0; i < indexNum; i++) {
+            String path = destPath.concat(String.valueOf(i)).concat("/");
+            File writeName = new File(path);
+            if (!writeName.exists()) {
+                continue;
+            }
+            List<String> filenms = getFileNames(writeName);
+            fileNmaes.addAll(filenms);
+        }
+        if(fileNmaes.size()==0){
             return;
         }
         File file1 = new File(pathName);
@@ -217,7 +226,7 @@ public class FileUtil {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file1), StandardCharsets.UTF_8));) {
-            List<String> fileNmaes = getFileNames(writeName);
+
             int rownum = 1;
             String headstring = head.substring(0, head.length() - 1);
             if (destPath.indexOf("error") == -1) {

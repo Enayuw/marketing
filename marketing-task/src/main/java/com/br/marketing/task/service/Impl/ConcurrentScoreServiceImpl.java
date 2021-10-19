@@ -403,11 +403,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     Long begin = minId - 1;
                     int currentPage = 1;
                     long start = System.currentTimeMillis();
+                    Integer actNum = 0;
                     Boolean sizeMark = Boolean.TRUE;
                     while (begin < maxId && sizeMark ) {
                         blt.setBegin(begin);
                         blt.setEnd(maxId);
                         List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
+                        actNum+=list.size();
                         if (list.size() > 0) {
                             begin = list.get(list.size() - 1).getId();
                             Map<String, String> param = new HashMap<>();
@@ -432,11 +434,16 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         currentPage++;
                     }
                     long endtime = System.currentTimeMillis();
+
                     if (log.isWarnEnabled()) {
                         log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                                 .concat(String.valueOf(endtime - start)).concat("~~轮询总次数：")
                                 .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark.toString()))));
                     }
+                    TaskStatusDistribute updateStatus = new TaskStatusDistribute();
+                    updateStatus.setActualNum(Long.valueOf(actNum));
+                    updateStatus.setId(statusDistribute.getId());
+                    taskStatusDistributeMapper.updateByPrimaryKeySelective(updateStatus);
                 }else{
                     log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s",blt.getApiCode(),blt.getBatchNumber()));
                 }
