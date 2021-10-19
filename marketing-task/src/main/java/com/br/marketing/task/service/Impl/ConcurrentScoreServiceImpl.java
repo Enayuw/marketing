@@ -370,7 +370,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             statusDistribute.setCreateTime(new Date());
             statusDistribute.setUpdateTime(new Date());
 
-            if(blt.getIndexCount()>1&&blt.getActualNumber()>250000){
+            if(blt.getIndexCount()>1&&blt.getActualNumber()>10){
                 /* 数据分片策略 0片从最小id开始,最后一篇是maxid*/
                 Integer sepValue = Integer.valueOf(String.valueOf((maxId - minId) / blt.getIndexCount()));
                 statusDistribute.setStartId(minId+
@@ -562,6 +562,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             queryParams.put("batchNumber",blf.getBatchNumber());
             LoanFile loanFile = loanFileMapper.selectFileComplete(queryParams);
             if(loanFile!=null){
+                blf.setId(loanFile.getId());
                 task.setFileId(loanFile.getId());
                 return true;
             }
