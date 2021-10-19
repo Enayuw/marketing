@@ -97,4 +97,15 @@ public interface PushRuleService {
      * @return
      */
     Result<MarketingSyncUser> queryCustInfo(String cid, String custNum);
+
+
+    /**
+     * 异步消费接口转化数据推送至客服
+     *
+     * @param infoId  客户转化基础信息id
+     * @return Result
+     * @author Guo Zeqiang
+     * @dateTime 2021/10/13 10:53
+     */
+    Result<Boolean> pushTransferDataToCustomer(Long infoId);
 }
