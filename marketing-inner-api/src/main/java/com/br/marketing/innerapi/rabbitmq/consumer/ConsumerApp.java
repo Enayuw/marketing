@@ -36,12 +36,12 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-//    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, containerFactory = "primaryContainerFactory")
-//    public void consumerPreUser(Channel channel, Message message) {
-//        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-//        }.getType());
-//        /*消费逻辑*/
-//        consumerService.consumerRun(channel, message, pushRuleService::pushTransferDataToCustomer, o, null);
-//    }
+    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, containerFactory = "primaryContainerFactory")
+    public void consumerPreUser(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushRuleService::pushTransferDataToCustomer, o, null);
+    }
 
 }
