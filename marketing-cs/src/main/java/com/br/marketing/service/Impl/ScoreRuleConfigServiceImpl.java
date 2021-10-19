@@ -122,6 +122,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String key = "marketing:inner:".concat(yyyyMMdd6);
         redisChgService.incrBy(key, -1L);
+        redisChgService.expire(key, getKeyExpiration());
         throw new BusinessException("很遗憾小主，配置保存失败");
     }
 
@@ -363,16 +364,25 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (index > 999) {
             throw new BusinessException("很遗憾小主，今天的规则编号(".concat(yyyyMMdd6) + "999)已经用尽");
         }
+        redisChgService.expire(key, getKeyExpiration());
+        String prefix3 = String.format("%03d", index);
+        return "R".concat(yyyyMMdd6.concat(prefix3));
+    }
+
+
+    /**
+     * 获取当前时间到第二天凌晨的秒
+     *
+     * @dateTime 2021/10/19 9:21
+     */
+    private int getKeyExpiration() {
         LocalDateTime now = LocalDateTime.now();
         // 当前毫秒数
         long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         LocalDateTime localDateTime = now.plusDays(1);
         // 第二天凌晨毫秒数
         long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        long s = (l1 - l) / 1000;
-        redisChgService.expire(key, (int) s);
-        String prefix3 = String.format("%03d", index);
-        return "R".concat(yyyyMMdd6.concat(prefix3));
+        return (int) (l1 - l) / 1000;
     }
 
 
