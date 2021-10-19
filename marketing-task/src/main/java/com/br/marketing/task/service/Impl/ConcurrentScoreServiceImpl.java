@@ -191,7 +191,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         .andIsDelEqualTo(Constants.DATA_VALID);
                 taskStatusDistributeMapper.updateByExampleSelective(updateRecord,example);
 
-                StraHisFile file = straHisFileMapper.selectByPrimaryKey(task.getId());
+                StraHisFile file = straHisFileMapper.selectByPrimaryKey(task.getFileId());
 
                 TaskStatusDistributeExample selStatusExample = new TaskStatusDistributeExample();
                 selStatusExample.createCriteria()
