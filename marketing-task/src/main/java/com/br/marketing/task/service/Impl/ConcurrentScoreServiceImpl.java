@@ -203,7 +203,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     StraHisFile updateFile = new StraHisFile();
                     updateFile.setId(task.getFileId());
                     updateFile.setStatus(1);
-                    straHisFileMapper.updateByPrimaryKey(updateFile);
+                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
         }catch (Exception e){
