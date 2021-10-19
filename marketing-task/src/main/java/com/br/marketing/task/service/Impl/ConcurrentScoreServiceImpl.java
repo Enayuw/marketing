@@ -4,10 +4,7 @@ import java.util.Date;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.mapper.*;
@@ -20,6 +17,7 @@ import com.br.marketing.task.thread.MarketingThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -392,6 +390,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     statusDistribute.setEndId(maxId);
                     statusDistribute.setPreNum(blt.getActualNumber().longValue());
                     statusDistribute.setActualNum(blt.getActualNumber().longValue());
+                    StraHisFile file = new StraHisFile();
+                    file.setIndexNum(1);
+                    file.setId(Long.valueOf(fileId));
+                    straHisFileMapper.updateByPrimaryKeySelective(file);
                 }else{
                     return;
                 }
@@ -471,9 +473,17 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     continue;
                 }
                 if (1 == blt.getMonitorType()) {
+                    List<TaskStatus> bts = taskStatusMapper.queryOnceBts(blt.getBatchNumber());
+                    if (bts.size()>0) {
+                        continue;
+                    }
                     context.getShardingItems().forEach(t->{
                         if(taskCanAction(blt,t)){
-                            taskList.add(blt);
+                            MarketingTask task = new MarketingTask();
+                            BeanUtils.copyProperties(blt,task);
+                            task.setIndex(t);
+                            task.setIndexCount(context.getShardingTotalCount());
+                            taskList.add(task);
                         }
                     });
                 }else if(4 == blt.getMonitorType()){
@@ -493,9 +503,24 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         continue;
                     }
                     if(days%cycleDay==0){
+                        TaskStatusExample statusExample= new TaskStatusExample();
+                        statusExample.createCriteria()
+                                .andBatchNumberEqualTo(blt.getBatchNumber())
+                                .andAllStatusEqualTo(1)
+                                .andCreateTimeGreaterThanOrEqualTo(DateHelper.getDateAdd(0))
+                                .andCreateTimeLessThan(DateHelper.getDateAdd(1));
+                        List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
+                        if(taskStatuses.size()>0) {
+                            continue;
+                        }
+
                         context.getShardingItems().forEach(t->{
                             if(taskCanAction(blt,t)){
-                                taskList.add(blt);
+                                MarketingTask task = new MarketingTask();
+                                BeanUtils.copyProperties(blt,task);
+                                task.setIndex(t);
+                                task.setIndexCount(context.getShardingTotalCount());
+                                taskList.add(task);
                             }
                         });
                     }
@@ -542,8 +567,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             }
 
             if(redisChgService.setnx(key,v,2).equals(1L)){
-                loanFileMapper.insertFile(loanFile);
-                task.setFileId(loanFile.getId());
+                loanFileMapper.insertFile(blf);
+                task.setFileId(blf.getId());
                 if(pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);

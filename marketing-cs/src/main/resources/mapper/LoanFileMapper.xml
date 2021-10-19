@@ -286,7 +286,7 @@
         	expected_num,
 			show_title,
 			push_type,
-		    index_count
+		    index_num
         	)
         	 VALUES (
         	 #{apiCode},
@@ -299,7 +299,7 @@
         	 #{expectedNum},
 			 #{showTitle},
 			 #{pushType},
-			 #{indexCount}
+			 #{indexNum}
         	 )
 	</insert>
 	<update id="updateFileComplete" parameterType="map">
