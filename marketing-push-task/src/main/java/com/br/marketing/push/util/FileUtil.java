@@ -207,22 +207,7 @@ public class FileUtil {
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
-
-        List<String> fileNmaes = new ArrayList<>();
-        for (Integer i = 0; i < indexNum; i++) {
-            String path = destPath.concat(String.valueOf(i)).concat("/");
-            File writeName = new File(path);
-            if (!writeName.exists()) {
-                continue;
-            }
-            List<String> filenms = getFileNames(writeName);
-            fileNmaes.addAll(filenms);
-        }
-        if(fileNmaes.size()==0){
-            return;
-        }
         File file1 = new File(pathName);
-
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file1), StandardCharsets.UTF_8));) {
@@ -233,15 +218,20 @@ public class FileUtil {
                 fw.append(headstring + "\r\n");
             }
             int i = countStr(headstring, sep);
-            for (String name : fileNmaes) {
-                read = new FileReader(destPath + "/" + name);
-                br = new BufferedReader(read);
-                String row;
-                while ((row = br.readLine()) != null) {
-                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep,name));
+            for (Integer k = 0; k < indexNum; k++) {
+                String path = destPath.concat(String.valueOf(k)).concat("/");
+                File writeName = new File(path);
+                List<String> fileNmaes = getFileNames(writeName);
+                for (String name : fileNmaes) {
+                    read = new FileReader(path + "/" + name);
+                    br = new BufferedReader(read);
+                    String row;
+                    while ((row = br.readLine()) != null) {
+                        mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
+                    }
+                    br.close();
+                    read.close();
                 }
-                br.close();
-                read.close();
             }
             /**
              * 等待所有任务都执行完成
