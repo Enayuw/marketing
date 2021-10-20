@@ -64,17 +64,17 @@ public class DtbStrategyClient {
         urlVariables.put("apiCode",apiCode);
         urlVariables.put("code",strategyId);
         String result = "";
-        String url = "http://strategycenter-service/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}";
+//        String url = "http://strategycenter-service/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}";
         try {
-//            result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service/" +
-//                    "dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
-            result = restTemplate.getForObject(url, String.class, urlVariables);
+            result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service/" +
+                    "dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+//            result = restTemplate.getForObject(url, String.class, urlVariables);
         }catch (Exception e){
             log.warn("调用数据策略错误",e);
             try {
-//                result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service" +
-//                        "/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
-                result = restTemplate.getForObject(url, String.class, urlVariables);
+                result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service" +
+                        "/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+//                result = restTemplate.getForObject(url, String.class, urlVariables);
             }catch (Exception e1){
                 log.error("调用数据策略重试错误",e1);
             }
