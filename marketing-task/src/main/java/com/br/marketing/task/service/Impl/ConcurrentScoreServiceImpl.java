@@ -542,6 +542,20 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     private boolean taskCanAction(MarketingTask task,Integer index){
         Date nowDayStartTime = DateHelper.getNowDayStartTime();
         Date newDay = DateHelper.addDays(nowDayStartTime, 1);
+
+        StraHisFileExample fileExample = new StraHisFileExample();
+        fileExample.createCriteria()
+                .andBatchNumberEqualTo(task.getBatchNumber())
+                .andCreateTimeGreaterThanOrEqualTo(nowDayStartTime)
+                .andCreateTimeLessThan(newDay);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        if(straHisFiles.size()>0){
+            StraHisFile file = straHisFiles.get(0);
+            if(file.getIndexNum()>0&&(index>file.getIndexNum()-1)){
+                return false;
+            }
+        }
+
         TaskStatusDistributeExample example = new TaskStatusDistributeExample();
         example.createCriteria()
                 .andBatchNumberEqualTo(task.getBatchNumber())
