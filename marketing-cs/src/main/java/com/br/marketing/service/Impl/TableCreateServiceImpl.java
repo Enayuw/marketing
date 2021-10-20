@@ -1,11 +1,16 @@
 package com.br.marketing.service.Impl;
 
+
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 
 @Service
 public class TableCreateServiceImpl {
@@ -15,6 +20,8 @@ public class TableCreateServiceImpl {
 
     final static String marketingUserTable = "b_marketing_user_";
 
+    final static String marketingTransferUserTable = "b_marketing_transfer_sync_";
+
     @PostConstruct
     void init(){
         tableNameSet = new HashSet<String>();
@@ -23,10 +30,37 @@ public class TableCreateServiceImpl {
     @Autowired
     MarketingUserMapper marketingUserMapper;
 
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
+
+    /**
+     * 根据apiCode查询tcid
+     * @param apiCode
+     * @return
+     */
+    public String getTcId(String apiCode){
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if(marketingCustomers.size()==0){
+            return null;
+        }
+        String s1 = marketingCustomers.get(0).getCid().replaceFirst("-", "");
+        return s1;
+    }
+
     public void createMarketingSyncUserTable(String apiCode){
         String tableName = marketingPreUserTable.concat(apiCode);
         if(!tableNameSet.contains(tableName)){
             marketingUserMapper.createMarketingPreUserTable(tableName);
+            tableNameSet.add(tableName);
+        }
+    }
+
+    public void createMarketingTransferUserTable(String cid){
+        String tableName = marketingTransferUserTable.concat(cid);
+        if(!tableNameSet.contains(tableName)){
+            marketingUserMapper.createMarketingTransferUserTable(tableName);
             tableNameSet.add(tableName);
         }
     }

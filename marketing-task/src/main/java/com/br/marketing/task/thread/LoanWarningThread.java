@@ -119,6 +119,7 @@ public class LoanWarningThread implements Callable<String> {
                 requestLog.setRequestTime(new Date());
 
                 JSONObject jsonData = new JSONObject();
+                jsonData.put("userType",blu.getUserType());
                 jsonData.put("cusNum", blu.getCusNum());
                 jsonData.put("idCard",instance.decode(blu.getIdCard()));
                 jsonData.put("name", instance.decode(blu.getName()));

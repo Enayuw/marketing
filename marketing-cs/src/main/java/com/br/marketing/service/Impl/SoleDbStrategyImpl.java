@@ -10,10 +10,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.SoleRuleConfig;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.vo.CustomerSoleRuleVO;
-import com.br.marketing.vo.RuleConditionFactorVo;
-import com.br.marketing.vo.RuleConditionVo;
-import com.br.marketing.vo.TodayIdTimeBySoleVo;
+import com.br.marketing.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,11 +177,11 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
 
     /**
      *  去重方法
-     *  新建两条where条件，一条是T-1前，一条是T日
-     *  遍历所有的去重规则，进行where条件拼接（参与去重的数据源为 未去重数据（1） 和 不重复的数据（2））
-     *  T-1 前的数据有 -> 则认为重复（3）
-     *            无 -> 获取T日 满足条件的最小时间的数据id  相等  -> 不重复（2）
-     *                                               不相等 -> 重复（3）
+     *  1、matchSoleRule方法匹配出涉及到的去重规则
+     *  2、遍历去重规则 进行多条去重规则sql的拼接（sql逻辑 获取该规则下时间最早的那一条id）
+     *  3、遍历去重sql执行
+     *      sql获取到的id与当前这条数据id进行比较 如果遍历所有sql id都是一样的，认为未重复，有一个id不匹配，就认为是重复的。
+     *      更新该条数据状态 （1-未去重（默认）；2-未重复；3-重复）
      */
     @Override
     public Result<Integer> actionSole(List<CustomerSoleRuleVO> soleRuleVOS, MarketingSyncUser syncUser) {
@@ -352,6 +349,45 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         return res;
     }
 
+    @Override
+    public List<CustomerScoreRuleVO> matchScoreRule(List<CustomerScoreRuleVO> scoreRuleVos,String userType){
+        MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+        marketingSyncUser.setUserType(userType);
+        List<CustomerScoreRuleVO> res = new ArrayList<>();
+        for (CustomerScoreRuleVO scoreRuleVO : scoreRuleVos) {
+            RuleConditionVo conditionVo = JSON.parseObject(scoreRuleVO.getConditionInfo(), new TypeReference<RuleConditionVo>() {
+            }.getType());
+
+            StringBuilder dbStr = new StringBuilder();
+            if("or".equals(conditionVo.getLogicalOperation())){
+                boolean orResult = false;
+                for (RuleConditionFactorVo ruleConditionFactorVo : conditionVo.getOperationFactor()) {
+                    Result<Boolean> booleanResult = this.matchSoleRuleOperation(ruleConditionFactorVo, marketingSyncUser);
+                    if(booleanResult.getData()){
+                        orResult = true;
+                    }
+                }
+                if(orResult) {
+                    res.add(scoreRuleVO);
+                }
+            }
+
+            if("and".equals(conditionVo.getLogicalOperation())){
+                boolean andResult = true;
+                for (RuleConditionFactorVo ruleConditionFactorVo : conditionVo.getOperationFactor()) {
+                    Result<Boolean> booleanResult = this.matchSoleRuleOperation(ruleConditionFactorVo, marketingSyncUser);
+                    dbStr.append(" and ").append(booleanResult.getMessage());
+                    if(!booleanResult.getData()){
+                        andResult = false;
+                    }
+                }
+                if(andResult){
+                    res.add(scoreRuleVO);
+                }
+            }
+        }
+        return res;
+    }
 
     private Result<Boolean> matchSoleRuleOperation(RuleConditionFactorVo vo, MarketingSyncUser syncUser){
 
@@ -384,6 +420,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(result).setMessage(dbStr.toString());
     }
+
 
 
     @Override

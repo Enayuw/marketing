@@ -88,6 +88,46 @@ public class RabbitMqConfig {
     }
 
     /**
+     * marketing 转化数据队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE)
+    public Queue transferQueue() {
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE, true);
+    }
+
+    /**
+     * 绑定——转化数据队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding transferBinding() {
+        return BindingBuilder.bind(transferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE);
+    }
+
+    /**
+     * marketing 转化数据推送客服队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER)
+    public Queue transferPushCustomerQueue() {
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE, true);
+    }
+
+    /**
+     * 绑定——转化数据推送客服队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding transferPushCustomerBinding() {
+        return BindingBuilder.bind(transferPushCustomerQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER);
+    }
+
+    /**
      * 延迟队列-查询推送智能客服状态
      *
      * @return
@@ -239,7 +279,14 @@ public class RabbitMqConfig {
     public SimpleRabbitListenerContainerFactory primaryContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
-        return containerFactory(configurer, connectionFactory);
+        return containerFactory(configurer, connectionFactory,null);
+    }
+
+    @Bean(name = "fiveDataContainerFactory")
+    public SimpleRabbitListenerContainerFactory fiveDataContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return containerFactory(configurer, connectionFactory,5);
     }
 
     /**
@@ -251,9 +298,12 @@ public class RabbitMqConfig {
      */
     private SimpleRabbitListenerContainerFactory containerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
-            ConnectionFactory connectionFactory) {
+            ConnectionFactory connectionFactory,Integer prefetchCount) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        if(prefetchCount!=null&&prefetchCount>0){
+            factory.setPrefetchCount(prefetchCount);
+        }
         configurer.configure(factory, connectionFactory);
         return factory;
     }

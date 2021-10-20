@@ -4,6 +4,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
+import com.br.marketing.vo.MarketingTransferUserStatusVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 
@@ -56,6 +57,7 @@ public interface PushRuleService {
 
 
     Result insertBatchTransferUser(String apiCode,String jsonData);
+
     /**
      * 消费异步推送人员信息
      *
@@ -64,6 +66,18 @@ public interface PushRuleService {
      */
     Result<Boolean> insertMarketingPreUserSync(Long infoId);
 
+    /**
+     * 插入转化数据
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
+    Result insertTransferData(String apiCode, String jsonData);
+
+
+    Result consumerTransferData(Long id);
+
+    Result<MarketingTransferUserStatusVO> getTransferDataStatus(String apiCode,String requestId);
 
     /**
      * 获取营销人员数据状态
