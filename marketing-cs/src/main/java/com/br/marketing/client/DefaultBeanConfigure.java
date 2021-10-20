@@ -36,7 +36,7 @@ public class DefaultBeanConfigure {
     @Primary
     @Bean
     //根据环境变量RPC_MODE（在marmot deployment.yaml配置）来决定是否去除ribbon负载均衡功能，配置值为ISTIO_ETCD时，加载该bean，禁用ribbon
-    @ConditionalOnExpression("#{'ISTIO_ETCD'.equals('${rpc.mode}')}")
+//    @ConditionalOnExpression("#{'ISTIO_ETCD'.equals('${rpc.mode}')}")
     RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
                 HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000).build());
