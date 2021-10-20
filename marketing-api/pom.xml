@@ -83,11 +83,11 @@
             <version>2.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okio/okio -->
-        <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio</artifactId>
-            <version>1.9.0</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.squareup.okio</groupId>-->
+        <!--            <artifactId>okio</artifactId>-->
+        <!--            <version>1.9.0</version>-->
+        <!--        </dependency>-->
 
         <!-- 消息队列 -->
         <dependency>
@@ -150,6 +150,18 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!--本地开发环境-->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
     <build>
         <resources>
             <resource>
@@ -164,6 +176,10 @@
                     <include>**/*.xml</include>
                     <include>**/*.properties</include>
                 </includes>
+            </resource>
+            <resource>
+                <targetPath>${project.build.directory}/classes</targetPath>
+                <directory>src/main/resources/${profiles.active}</directory>
             </resource>
         </resources>
         <plugins>

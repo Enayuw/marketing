@@ -5,7 +5,7 @@ sharding:
       ds0:
         url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
-        password: f9daIYUIAXQkeyVbDoOI
+        password: M6teKbFVl1odfOCkC1JA
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
         filters: stat
@@ -37,14 +37,14 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-test
+      virtual-host: marketing-flow
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-test
+      virtual-host: marketing-flow
     listener:
       retry:
         enabled: true
@@ -57,7 +57,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: k8s-prod-a
+  flag: ${CONF_CLUSTER}
 otherConfig:
   alarm:
     secretKey: a9c57e4138807a9e18b439cd9dab275b

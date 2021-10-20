@@ -4,15 +4,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /** 规则引擎访问客户端，通过ribbon调用规则引擎
  * @author Wang Weiwei
@@ -21,9 +18,9 @@ import java.util.Set;
 @Service
 @Slf4j
 public class DtbStrategyClient {
-    @Resource
+    /*@Resource
     @LoadBalanced
-    private RestTemplate loadBalanced;
+    private RestTemplate loadBalanced;*/
     @Resource
     RestTemplate restTemplate;
     /**
@@ -66,15 +63,18 @@ public class DtbStrategyClient {
         Map<String,Object> urlVariables = new HashMap<>();
         urlVariables.put("apiCode",apiCode);
         urlVariables.put("code",strategyId);
-        String  result="";
-        try{
-            result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service/" +
-                    "dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+        String result = "";
+        String url = "http://strategycenter-service/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}";
+        try {
+//            result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service/" +
+//                    "dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+            result = restTemplate.getForObject(url, String.class, urlVariables);
         }catch (Exception e){
             log.warn("调用数据策略错误",e);
-            try{
-                result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service" +
-                        "/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+            try {
+//                result = restTemplate.getForObject("http://k8s.brapp.com/compass-api/api/strategycenter-service" +
+//                        "/dataStrategy/getDtbByCode?apiCode={apiCode}&code={code}", String.class, urlVariables);
+                result = restTemplate.getForObject(url, String.class, urlVariables);
             }catch (Exception e1){
                 log.error("调用数据策略重试错误",e1);
             }
@@ -142,7 +142,7 @@ public class DtbStrategyClient {
      *     "code":"000000"
      * }
      * */
-    public String getStrategyList(String sessionId) {
+    /*public String getStrategyList(String sessionId) {
         Map<String,Object> urlVariables = new HashMap<>();
         urlVariables.put("sessionId",sessionId);
         urlVariables.put("type",6);
@@ -151,10 +151,10 @@ public class DtbStrategyClient {
                 "/list?sessionId={sessionId}&type={type}", String.class, urlVariables);
         log.info("数据策略返回值 --- {}", result);
         return result;
-    }
+    }*/
 
 
-    public String getAllStrategy(String sessionId){
+    /*public String getAllStrategy(String sessionId){
         log.info("查询策略信息--{}",sessionId);
         Map<String, Object> urlVariables = new HashMap<>();
         urlVariables.put("sessionId",sessionId);
@@ -162,6 +162,6 @@ public class DtbStrategyClient {
                 "?sessionId={sessionId}", String.class,urlVariables);
         log.info("贷中微服务返回结果--{}",forObject);
         return forObject;
-    }
+    }*/
 
 }
