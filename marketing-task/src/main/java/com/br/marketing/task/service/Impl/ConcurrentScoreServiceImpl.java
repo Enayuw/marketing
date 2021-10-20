@@ -543,6 +543,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         Date nowDayStartTime = DateHelper.getNowDayStartTime();
         Date newDay = DateHelper.addDays(nowDayStartTime, 1);
 
+        //region 防止程序运行中 添加分片导致的数据多跑
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria()
                 .andBatchNumberEqualTo(task.getBatchNumber())
