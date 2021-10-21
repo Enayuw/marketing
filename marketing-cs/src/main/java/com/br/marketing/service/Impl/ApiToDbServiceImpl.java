@@ -152,7 +152,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     continue;
                 }
                 // 规则启用时间是当天 并且 （跑分时间大于当前自然时间 并且 跑分时间大于规则开启时间）
-                if(ruleOpenDay.equals(nowDay)&&!(ruleTime.compareTo(date)>0&&ruleTime.compareTo(ruleOpenTime)>0)){
+                if(ruleOpenDay.equals(nowDay)&&!(date.compareTo(ruleTime)>=0&&ruleTime.compareTo(ruleOpenTime)>0)){
                     continue;
                 }
                 //endregion
