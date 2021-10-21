@@ -135,6 +135,28 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
                 //region 遍历规则
 
+                //region 判断当前规则的启用时间
+                Date ruleOpenTime = customerScoreRuleVO.getUpdateTime();
+                if(ruleOpenTime == null){
+                    ruleOpenTime = customerScoreRuleVO.getCreateTime();
+                }
+                Date date = new Date();
+                String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
+                String nowDay = new SimpleDateFormat("yyyy-MM-dd").format(date);
+                Date ruleTime = null;
+                try {
+                    ruleTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                            .parse(nowDay.concat(" ").concat(customerScoreRuleVO.getStartTime()).concat(":00"));
+                } catch (ParseException e) {
+                    log.error(e.getMessage(),e);
+                    continue;
+                }
+                // 规则启用时间是当天 并且 （跑分时间大于当前自然时间 并且 跑分时间大于规则开启时间）
+                if(ruleOpenDay.equals(nowDay)&&!(ruleTime.compareTo(date)>0&&ruleTime.compareTo(ruleOpenTime)>0)){
+                    continue;
+                }
+                //endregion
+
                 //region 时间处理
                 String startTime = customerScoreRuleVO.getStartTime();
                 LocalDateTime nowTime = LocalDateTime.now();
