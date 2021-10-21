@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -1645,21 +1646,31 @@ public class PushRuleServiceImpl implements PushRuleService {
                 // 重试休眠
                 TimeUnit.SECONDS.sleep(count < 4 ? count : 3);
             } catch (RestClientException | InterruptedException e) {
-                value = 0;
+                value = -1;
                 log.error(e.getMessage(), e);
             }
             count++;
         } while (value != 200 && count < retrySum);
-        assert responseEntity != null;
+        int pushStatus = 1;
+        if (ObjectUtils.isEmpty(responseEntity)) {
+            String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
+                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
+            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+            return new PushTransferCustomerLog(
+                    requestDTO.getApiCode()
+                    , requestDTO.getJsonData()
+                    , rowSize
+                    , pushStatus
+            );
+        }
         String body = responseEntity.getBody();
         JSONObject result = JSONObject.parseObject(body);
-        assert statusCode != null;
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
         String code = String.valueOf(result.get("code"));
-        int pushStatus = 0;
-        if (value != 200 || !"00".equals(code)) {
-            pushStatus = 1;
+        if (value == 200 || "00".equals(code)) {
+            pushStatus = 0;
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
@@ -1671,8 +1682,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 , requestDTO.getJsonData()
                 , body
                 , code
-                , result.get("message").toString()
-                , result.get("accessNumber").toString()
+                , result.get("message") == null ? "" : result.get("message").toString()
+                , result.get("accessNumber") == null ? "" : result.get("accessNumber").toString()
                 , rowSize
                 , value
                 , reasonPhrase
