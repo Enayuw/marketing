@@ -100,6 +100,21 @@ public class MarketingTask {
      */
     private Boolean firstTime;
 
+    /**
+     * 分片索引
+     */
+    private Integer index;
+
+    /**
+     * 分片数量
+     */
+    private Integer indexCount;
+
+    /**
+     * 跑分记录id
+     */
+    private Long fileId;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -137,6 +152,9 @@ public class MarketingTask {
                 ", dataVolume=" + dataVolume +'\'' +
                 ", context_id=" + contextId +
                 ", isFirstTime=" + firstTime +
+                ", index=" + index +
+                ", indexCount=" + indexCount +
+                ", fileId=" + fileId +
                 '}';
     }
 }
