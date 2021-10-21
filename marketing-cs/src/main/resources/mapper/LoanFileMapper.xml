@@ -154,7 +154,8 @@
 			api_code,
 			`type`,
 			file_path,
-			create_time
+			create_time,
+		   	index_num
 		FROM
 			stra_his_file
 		WHERE
@@ -284,7 +285,8 @@
         	file_path,
         	expected_num,
 			show_title,
-			push_type
+			push_type,
+		    index_num
         	)
         	 VALUES (
         	 #{apiCode},
@@ -296,7 +298,8 @@
         	 #{filePath},
         	 #{expectedNum},
 			 #{showTitle},
-			 #{pushType}
+			 #{pushType},
+			 #{indexNum}
         	 )
 	</insert>
 	<update id="updateFileComplete" parameterType="map">

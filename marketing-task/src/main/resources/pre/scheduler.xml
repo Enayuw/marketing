@@ -26,20 +26,20 @@
                    connection-timeout-milliseconds="60000"/>
 
 
-    <job:simple id="taskJob"
-                class="com.br.marketing.task.job.TaskJob"
-                cron="0 0/30 * * * ? "
-                description="跑批任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="2"
-                sharding-item-parameters="0=A,1=B"
-                monitor-execution="true"
-                failover="true"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="taskJob"-->
+<!--                class="com.br.marketing.task.job.TaskJob"-->
+<!--                cron="0 0/30 * * * ? "-->
+<!--                description="跑批任务"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="2"-->
+<!--                sharding-item-parameters="0=A,1=B"-->
+<!--                monitor-execution="true"-->
+<!--                failover="true"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="taskJob-QA-task"
                 class="com.br.marketing.task.job.QaTaskJob"
                 cron="0 0 11 1/1 1/1 ? 2055-2056"
