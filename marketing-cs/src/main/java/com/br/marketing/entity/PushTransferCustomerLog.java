@@ -1,10 +1,9 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+
 public class PushTransferCustomerLog {
     /**
      *
@@ -137,6 +136,13 @@ public class PushTransferCustomerLog {
         this.rowSize = rowSize;
         this.httpStatus = httpStatus;
         this.httpReasonPhrase = httpReasonPhrase;
+        this.pushStatus = pushStatus;
+    }
+
+    public PushTransferCustomerLog(String apiCode, String requestBody, Integer rowSize, Integer pushStatus) {
+        this.apiCode = apiCode;
+        this.requestBody = requestBody;
+        this.rowSize = rowSize;
         this.pushStatus = pushStatus;
     }
 
