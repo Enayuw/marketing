@@ -73,7 +73,7 @@ public class ConsumerApp {
     }
 
     /**
-     * 消费 营销平台数据导入异步处理
+     * 消费 转化数据导入异步处理
      *
      * @param channel 通道
      * @param message 消息体
