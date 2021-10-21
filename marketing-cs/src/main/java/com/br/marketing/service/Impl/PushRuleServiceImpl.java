@@ -849,6 +849,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setCreateTime(new Date());
             transferInfo.setJsonData(jsonData);
             transferInfo.setActualNum(size);
+            transferInfo.setLast(transferDataDTO.getLast());
+            transferInfo.setTotal(transferDataDTO.getTotal());
             marketingTransferInfoMapper.insertSelective(transferInfo);
             producter.send("Marketing.Transfer.Receive", transferInfo.getId().toString());
         } catch (DuplicateKeyException keyException) {

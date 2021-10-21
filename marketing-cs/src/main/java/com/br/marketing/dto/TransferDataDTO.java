@@ -8,5 +8,7 @@ import java.util.List;
 public class TransferDataDTO {
     private String  requestId;
     private String orgName;
+    private String last;
+    private String total;
     private List<TransferDataItemDTO> dataItems;
 }
