@@ -1,4 +1,6 @@
 package com.br.marketing.task.service.Impl;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSONArray;
@@ -579,13 +581,23 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
             String key = "distribute:taskfile:".concat(blf.getBatchNumber().concat(":").concat(dateAddYyMmDd));
             String v = String.valueOf(System.currentTimeMillis());
-            HashMap queryParams = new HashMap();
-            queryParams.put("apiCode",blf.getApiCode());
-            queryParams.put("batchNumber",blf.getBatchNumber());
-            LoanFile loanFile = loanFileMapper.selectFileComplete(queryParams);
-            if(loanFile!=null){
-                blf.setId(loanFile.getId());
-                task.setFileId(loanFile.getId());
+            Date nowDate = null;
+            try {
+                nowDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .parse(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 00:00:00"));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            StraHisFileExample hisFileExample = new StraHisFileExample();
+            hisFileExample.createCriteria()
+                    .andApiCodeEqualTo(blf.getApiCode())
+                    .andBatchNumberEqualTo(blf.getBatchNumber())
+                    .andCreateTimeGreaterThanOrEqualTo(nowDate);
+            List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(hisFileExample);
+            if(straHisFiles.size()>0){
+                StraHisFile file = straHisFiles.get(0);
+                blf.setId(file.getId());
+                task.setFileId(file.getId());
                 return true;
             }
 
