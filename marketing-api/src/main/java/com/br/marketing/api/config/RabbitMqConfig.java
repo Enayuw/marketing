@@ -114,7 +114,7 @@ public class RabbitMqConfig {
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER)
     public Queue transferPushCustomerQueue() {
-        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE, true);
+        return new Queue(MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, true);
     }
 
     /**
