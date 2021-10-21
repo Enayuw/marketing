@@ -127,6 +127,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private PushTransferCustomerLogMapper pushTransferCustomerLogMapper;
 
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
         Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
@@ -963,7 +970,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER,id.toString());
+        producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -1355,6 +1362,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional
     public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
         Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.FAIL.getValue());
+        result.setDate(true);
         String key = null;
         try {
             // 传输标记
@@ -1378,7 +1387,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             Long apiCodeCount = getApiCodeCount(key);
             // 检查缓存
             if (apiCodeCount < 0) {
-                result.setCode(ResultCode.FAIL.getValue());
                 log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
@@ -1387,7 +1395,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 检查db，再次确认
             List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
             if (statusList != null && statusList.size() > 0) {
-                result.setCode(ResultCode.FAIL.getValue());
                 log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
@@ -1405,14 +1412,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (countStatus == null || countStatus == 0) {
                             transferStatus = 2;
                         } else {
-                            result.setCode(ResultCode.FAIL.getValue());
                             log.error("该客户[{}]当前日期[{}]有补偿数据数据[{}]尚未成功同步至智能客服", apiCode, yyyyMMdd, countStatus);
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
                         }
                     } else {
-                        result.setCode(ResultCode.FAIL.getValue());
+
                         log.error("该客户[{}]当前日期[{}]有补偿数据数据尚未成功同步至智能客服", apiCode, yyyyMMdd);
                         redisChgService.incrBy(key, -1);
                         redisChgService.expire(key, getKeyExpiration());
@@ -1427,7 +1433,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } else {
                         Integer integer = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndStatus(apiCode, createTime, 0);
                         if (integer == null || integer == 0) {
-                            result.setCode(ResultCode.FAIL.getValue());
                             log.error("该客户[{}]当前日期[{}]缓存数据与db记录数有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
@@ -1439,7 +1444,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } else if (apiCodeCount > 1) {
                     transferStatus = 1;
                 } else {
-                    result.setCode(ResultCode.FAIL.getValue());
                     log.error("该客户[{}]当前日期[{}]缓存数据有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
                     redisChgService.incrBy(key, -1);
                     redisChgService.expire(key, getKeyExpiration());
@@ -1516,7 +1520,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (task.isCompletedAbnormally()) {
                             Throwable exception = task.getException();
                             if (exception != null) {
-                                result.setCode(ResultCode.FAIL.getValue()).setMessage(exception.getMessage());
+                                result.setMessage(exception.getMessage());
                                 log.error(exception.getMessage(), exception);
                                 return result;
                             }
@@ -1524,7 +1528,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } else {
                         if (!task.isDone()) {
                             task.isCancelled();
-                            result.setCode(ResultCode.FAIL.getValue()).setMessage("任务未完成");
+                            result.setMessage("任务未完成");
                             return result;
                         }
                         log.info("等待任务超时，任务已经处理完成");
@@ -1557,10 +1561,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }).collect(Collectors.toList());
                 boolean bool = pushTransferCustomerLogMapper.bathInsert(collect);
                 if (bool) {
-                    log.info("推送客服失败数据已保存记录，本次保存[{}]", collect.size());
+                    log.info("推送客服数据已保存记录，本次保存[{}]", collect.size());
                 } else {
-                    result.setCode(ResultCode.FAIL.getValue()).setMessage("保存记录失败！");
-                    log.error("保存推送失败记录失败：apiCode:{};requestId:{};tcId:{};infoId:{};失败数据量:{}"
+                    result.setMessage("保存记录失败！");
+                    log.error("保存推送记录失败：apiCode:{};requestId:{};tcId:{};infoId:{};失败数据量:{}"
                             , apiCode, requestId, tcId, infoId, collect.size());
                     redisChgService.incrBy(key, -1);
                     redisChgService.expire(key, getKeyExpiration());
@@ -1568,10 +1572,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+            result.setDate(false);
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            result.setCode(ResultCode.FAIL.getValue()).setMessage(e.getMessage());
+            result.setMessage(e.getMessage());
             if (key != null) {
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
@@ -1609,7 +1614,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param requestDTO 数据集合
      * @param retrySum   指定最大重试次数，包括第一次执行，默认1次
      * @param rowSize    发送数据量
-     * @param rowSize    发送数据量
      * @return false 失败；true 成功； 失败需要写入失败日志，以便后续补发
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 17:51
@@ -1646,22 +1650,33 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             count++;
         } while (value != 200 && count < retrySum);
+        assert responseEntity != null;
         String body = responseEntity.getBody();
         JSONObject result = JSONObject.parseObject(body);
+        assert statusCode != null;
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
         String code = String.valueOf(result.get("code"));
+        int pushStatus = 0;
+        if (value != 200 || !"00".equals(code)) {
+            pushStatus = 1;
+            String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
+                    "\n接口返回http状态码[%d],http短语[%s];" +
+                    "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
+            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+        }
         return new PushTransferCustomerLog(
                 requestDTO.getApiCode()
-                , JSONObject.toJSONString(requestDTO.getJsonData())
+                , requestDTO.getJsonData()
                 , body
                 , code
-                , String.valueOf(result.get("message"))
-                , String.valueOf(result.get("accessNumber"))
+                , result.get("message").toString()
+                , result.get("accessNumber").toString()
                 , rowSize
                 , value
                 , reasonPhrase
-                , value == 200 && "00".equals(code) ? 0 : 1
+                , pushStatus
         );
     }
 
