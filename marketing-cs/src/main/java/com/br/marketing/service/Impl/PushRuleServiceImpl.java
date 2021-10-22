@@ -1368,7 +1368,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional
     public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
         Result<Boolean> result = new Result<>();
-        result.setCode(ResultCode.FAIL.getValue());
+        result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(true);
         String key = null;
         try {
@@ -1377,7 +1377,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("客户转化基础信息不存在");
+                result.setMessage("客户转化基础信息不存在");
                 log.error("主键为[{}]的客户转化基础信息不存在", infoId);
                 return result;
             }
@@ -1475,6 +1475,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PageHelper.startPage(page, pageSize);
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
+                if (size < 1) {
+                    PushTransferCustomerLog pushTransferCustomerLog = new PushTransferCustomerLog();
+                    pushTransferCustomerLog.setTransferInfoId(infoId);
+                    pushTransferCustomerLog.setApiCode(apiCode);
+                    pushTransferCustomerLog.setRequestId(requestId);
+                    pushTransferCustomerLog.setPushStatus(4);
+                    pushTransferCustomerLog.setRowSize(0);
+                    logListAll.add(pushTransferCustomerLog);
+                }
                 PageInfo<?> pageList = new PageInfo<>(transferList);
                 // 总页数
                 int pages = pageList.getPages();
@@ -1577,11 +1586,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return result;
                 }
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+            result.setMessage("成功");
             result.setDate(false);
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
             if (key != null) {
                 redisChgService.incrBy(key, -1);
