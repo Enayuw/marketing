@@ -1624,7 +1624,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private PushTransferCustomerLog sendTransferDataToCustomer(final PushCustomerRequestDTO requestDTO
             , int retrySum
             , final int rowSize) {
-        int count = 0;
+        int count = 1;
         if (retrySum < 1) {
             retrySum = 1;
         }
@@ -1652,7 +1652,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.error(e.getMessage(), e);
             }
             count++;
-        } while (value != 200 && count < retrySum);
+        } while (value != 200 && count <= retrySum);
         int pushStatus = 1;
         if (ObjectUtils.isEmpty(responseEntity)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
