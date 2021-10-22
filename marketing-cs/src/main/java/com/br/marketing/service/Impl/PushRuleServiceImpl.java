@@ -1513,7 +1513,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     transferSyncUserList = null;
                     transferSyncUserListTask = transferList;
                 }
-                if (transferSyncUserListTask != null) {
+                if (transferSyncUserListTask != null && transferSyncUserListTask.size() > 0) {
                     // 4.2 推送转化数据,每次200条，失败后重试3次，标记为同步中
                     PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserListTask, 0, transferSyncUserListTask.size());
                     List<PushTransferCustomerLog> logList = FORK_JOIN_POOL.invoke(task);
