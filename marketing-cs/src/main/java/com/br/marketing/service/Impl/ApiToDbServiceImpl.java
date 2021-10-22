@@ -135,28 +135,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
                 //region 遍历规则
 
-                //region 判断当前规则的启用时间
-                Date ruleOpenTime = customerScoreRuleVO.getUpdateTime();
-                if(ruleOpenTime == null){
-                    ruleOpenTime = customerScoreRuleVO.getCreateTime();
-                }
-                Date date = new Date();
-                String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
-                String nowDay = new SimpleDateFormat("yyyy-MM-dd").format(date);
-                Date ruleTime = null;
-                try {
-                    ruleTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                            .parse(nowDay.concat(" ").concat(customerScoreRuleVO.getStartTime()).concat(":00"));
-                } catch (ParseException e) {
-                    log.error(e.getMessage(),e);
-                    continue;
-                }
-                // 规则启用时间是当天 并且 （跑分时间大于当前自然时间 并且 跑分时间大于规则开启时间）
-                if(ruleOpenDay.equals(nowDay)&&!(date.compareTo(ruleTime)>=0&&ruleTime.compareTo(ruleOpenTime)>0)){
-                    continue;
-                }
-                //endregion
-
                 //region 时间处理
                 String startTime = customerScoreRuleVO.getStartTime();
                 LocalDateTime nowTime = LocalDateTime.now();
@@ -191,6 +169,17 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     eTime =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
                 } catch (ParseException e) {
                     e.printStackTrace();
+                }
+
+                Date ruleOpenTime = customerScoreRuleVO.getUpdateTime();
+                if(ruleOpenTime == null){
+                    ruleOpenTime = customerScoreRuleVO.getCreateTime();
+                }
+                String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
+                String eTimeDay = new SimpleDateFormat("yyyy-MM-dd").format(eTime);
+                // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
+                if(ruleOpenDay.equals(eTimeDay)&&eTime.compareTo(ruleOpenTime)<=0){
+                    continue;
                 }
                 //endregion
 
