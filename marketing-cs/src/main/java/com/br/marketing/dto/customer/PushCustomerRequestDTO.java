@@ -142,7 +142,7 @@ public class PushCustomerRequestDTO implements Serializable {
      * #isPassApplyLargeAmount   申请大额提额是否通过 1:是、0:否                                    raiseLimitResult         申请大额提额是否通过
      * activity                 活动类型                                                         type                     转化节点
      * yiXinCreateTime          宜信明细创建时间yyyy-mm-dd hh:mm:ss                               insertTime               创建时间yyyy-MM-dd hh:mm:ss:SSS
-     * #loantResult              放款状态                                                         loantResult              放款状态
+     * #loanResult              放款状态                                                         loanResult              放款状态
      * <p>
      * <p>
      * 客服转化接口与智能运营转化接口字段映射对应
@@ -223,7 +223,7 @@ public class PushCustomerRequestDTO implements Serializable {
         /**
          * 放款状态
          */
-        private String loantResult;
+        private String loanResult;
 
 
         public static List<PushTransferToCustomerDTO> ListOf(List<MarketingTransferSyncUser> list) {
@@ -266,7 +266,7 @@ public class PushCustomerRequestDTO implements Serializable {
                 , String registerChannel, String registerTime, String isImport, String importTime, String auditResult
                 , String creditAmount, String isApplyLoan, String isLoan, String loanTime, String loanAmount
                 , String registerNode, String isApplyLargeAmount, String applyLargeAmountTime
-                , String isPassApplyLargeAmount, String activity, String yiXinCreateTime, String loantResult) {
+                , String isPassApplyLargeAmount, String activity, String yiXinCreateTime, String loanResult) {
             this.caseNum = caseNum;
             this.isRegister = isRegister;
             this.registerChannel = registerChannel;
@@ -285,7 +285,7 @@ public class PushCustomerRequestDTO implements Serializable {
             this.isPassApplyLargeAmount = isPassApplyLargeAmount;
             this.activity = activity;
             this.yiXinCreateTime = yiXinCreateTime;
-            this.loantResult = loantResult;
+            this.loanResult = loanResult;
         }
 
         public PushTransferToCustomerDTO(String caseNum, String isRegister
@@ -310,13 +310,13 @@ public class PushCustomerRequestDTO implements Serializable {
                 this.isApplyLargeAmount = "";
                 this.applyLargeAmountTime = "";
                 this.isPassApplyLargeAmount = "";
-                this.loantResult = "";
+                this.loanResult = "";
             } else {
                 this.isApplyLoan = reserveField1.getApplyLoan() == null ? "" : reserveField1.getApplyLoan();
                 this.isApplyLargeAmount = reserveField1.getRaiseLimit() == null ? "" : reserveField1.getRaiseLimit();
                 this.applyLargeAmountTime = reserveField1.getRaiseLimitTime() == null ? "" : reserveField1.getRaiseLimitTime();
                 this.isPassApplyLargeAmount = reserveField1.getRaiseLimitResult() == null ? "" : reserveField1.getRaiseLimitResult();
-                this.loantResult = reserveField1.getLoantResult() == null ? "" : reserveField1.getLoantResult();
+                this.loanResult = reserveField1.getLoanResult() == null ? "" : reserveField1.getLoanResult();
                 this.registerChannel = reserveField1.getRegisterChannel() == null ? "" : reserveField1.getRegisterChannel();
             }
         }
@@ -465,12 +465,12 @@ public class PushCustomerRequestDTO implements Serializable {
             this.yiXinCreateTime = yiXinCreateTime;
         }
 
-        public String getLoantResult() {
-            return loantResult;
+        public String getLoanResult() {
+            return loanResult;
         }
 
-        public void setLoantResult(String loantResult) {
-            this.loantResult = loantResult;
+        public void setLoanResult(String loanResult) {
+            this.loanResult = loanResult;
         }
 
     }
@@ -500,19 +500,19 @@ public class PushCustomerRequestDTO implements Serializable {
         /**
          * 放款状态; 同转化表“放款状态”
          */
-        private String loantResult;
+        private String loanResult;
         /**
          * 注册渠道; 1是0否，同转化表“是否申请放款”
          */
         private String registerChannel;
 
         public ReserveField1(String applyLoan, String raiseLimit, String raiseLimitTime, String raiseLimitResult
-                , String loantResult, String registerChannel) {
+                , String loanResult, String registerChannel) {
             this.applyLoan = applyLoan;
             this.raiseLimit = raiseLimit;
             this.raiseLimitTime = raiseLimitTime;
             this.raiseLimitResult = raiseLimitResult;
-            this.loantResult = loantResult;
+            this.loanResult = loanResult;
             this.registerChannel = registerChannel;
         }
 
@@ -551,12 +551,12 @@ public class PushCustomerRequestDTO implements Serializable {
             this.raiseLimitResult = raiseLimitResult;
         }
 
-        public String getLoantResult() {
-            return loantResult;
+        public String getLoanResult() {
+            return loanResult;
         }
 
-        public void setLoantResult(String loantResult) {
-            this.loantResult = loantResult;
+        public void setLoanResult(String loanResult) {
+            this.loanResult = loanResult;
         }
 
         public String getRegisterChannel() {
