@@ -973,7 +973,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        if(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+        ||updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -1365,7 +1368,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional
     public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
         Result<Boolean> result = new Result<>();
-        result.setCode(ResultCode.FAIL.getValue());
+        result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(true);
         String key = null;
         try {
@@ -1374,7 +1377,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("客户转化基础信息不存在");
+                result.setMessage("客户转化基础信息不存在");
                 log.error("主键为[{}]的客户转化基础信息不存在", infoId);
                 return result;
             }
@@ -1472,6 +1475,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PageHelper.startPage(page, pageSize);
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
+                if (size < 1) {
+                    PushTransferCustomerLog pushTransferCustomerLog = new PushTransferCustomerLog();
+                    pushTransferCustomerLog.setTransferInfoId(infoId);
+                    pushTransferCustomerLog.setApiCode(apiCode);
+                    pushTransferCustomerLog.setRequestId(requestId);
+                    pushTransferCustomerLog.setPushStatus(4);
+                    pushTransferCustomerLog.setRowSize(0);
+                    logListAll.add(pushTransferCustomerLog);
+                }
                 PageInfo<?> pageList = new PageInfo<>(transferList);
                 // 总页数
                 int pages = pageList.getPages();
@@ -1513,7 +1525,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     transferSyncUserList = null;
                     transferSyncUserListTask = transferList;
                 }
-                if (transferSyncUserListTask != null) {
+                if (transferSyncUserListTask != null && transferSyncUserListTask.size() > 0) {
                     // 4.2 推送转化数据,每次200条，失败后重试3次，标记为同步中
                     PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserListTask, 0, transferSyncUserListTask.size());
                     List<PushTransferCustomerLog> logList = FORK_JOIN_POOL.invoke(task);
@@ -1574,11 +1586,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return result;
                 }
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+            result.setMessage("成功");
             result.setDate(false);
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
             if (key != null) {
                 redisChgService.incrBy(key, -1);
@@ -1624,7 +1637,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private PushTransferCustomerLog sendTransferDataToCustomer(final PushCustomerRequestDTO requestDTO
             , int retrySum
             , final int rowSize) {
-        int count = 0;
+        int count = 1;
         if (retrySum < 1) {
             retrySum = 1;
         }
@@ -1652,7 +1665,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.error(e.getMessage(), e);
             }
             count++;
-        } while (value != 200 && count < retrySum);
+        } while (value != 200 && count <= retrySum);
         int pushStatus = 1;
         if (ObjectUtils.isEmpty(responseEntity)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
@@ -1671,8 +1684,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
         String code = String.valueOf(result.get("code"));
-        if (value == 200 || "00".equals(code)) {
+        if (value == 200) {
             pushStatus = 0;
+            if (!"00".equals(code)) {
+                // 客服业务中出现的非正常状态码放弃补偿
+                pushStatus = 4;
+            }
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);

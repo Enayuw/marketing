@@ -6,6 +6,7 @@ import com.br.marketing.mapper.PushTransferCustomerLogMapper;
 import com.br.marketing.service.PushTransferCustomerLogService;
 import com.github.pagehelper.PageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -22,9 +23,15 @@ public class PushTransferCustomerLogServiceImpl implements PushTransferCustomerL
 
 
     @Override
-    public PageResultReturn findListByStatusIs0(int page, int pageSize) {
+    public PageResultReturn findListByStatusIs1(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems) {
         PageHelper.startPage(page, pageSize);
-        List<PushTransferCustomerLog> list = pushTransferCustomerLogMapper.findListByStatusIs0();
+        List<PushTransferCustomerLog> list = pushTransferCustomerLogMapper.findListByStatusIs1(shardingTotalCount, shardingItems);
         return PageResultReturn.setPageResult(list, page);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int update(PushTransferCustomerLog pushTransferCustomerLog) {
+        return pushTransferCustomerLogMapper.updateByPrimaryKey(pushTransferCustomerLog);
     }
 }
