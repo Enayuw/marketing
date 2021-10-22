@@ -1671,8 +1671,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
         String code = String.valueOf(result.get("code"));
-        if (value == 200 || "00".equals(code)) {
+        if (value == 200) {
             pushStatus = 0;
+            if (!"00".equals(code)) {
+                // 客服业务中出现的非正常状态码放弃补偿
+                pushStatus = 4;
+            }
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
