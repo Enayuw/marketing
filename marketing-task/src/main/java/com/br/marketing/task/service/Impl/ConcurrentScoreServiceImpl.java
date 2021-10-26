@@ -545,7 +545,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         Date nowDayStartTime = DateHelper.getNowDayStartTime();
         Date newDay = DateHelper.addDays(nowDayStartTime, 1);
 
-        //region 防止程序运行中 添加分片导致的数据多跑
+        //防止程序运行中 添加分片导致的数据多跑
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria()
                 .andBatchNumberEqualTo(task.getBatchNumber())
@@ -558,7 +558,20 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 return false;
             }
         }
-
+        //一次性任务，该分片只有有状态数据就不能跑
+        if(task.getMonitorType().equals(1)){
+            TaskStatusDistributeExample exampleOnce = new TaskStatusDistributeExample();
+            exampleOnce.createCriteria()
+                    .andBatchNumberEqualTo(task.getBatchNumber())
+                    .andDistributeIndexEqualTo(index)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            List<TaskStatusDistribute> exampleOnceStatus = taskStatusDistributeMapper.selectByExample(exampleOnce);
+            if(exampleOnceStatus.size()>0){
+                return false;
+            }else{
+                return true;
+            }
+        }
         TaskStatusDistributeExample example = new TaskStatusDistributeExample();
         example.createCriteria()
                 .andBatchNumberEqualTo(task.getBatchNumber())
