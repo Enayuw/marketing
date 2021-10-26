@@ -1716,8 +1716,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (value == 200) {
             pushStatus = 0;
             if (!"00".equals(code)) {
-                // 客服业务中出现的非正常状态码放弃补偿
-                pushStatus = 4;
+                // 客服业务中出现的非正常状态码全部补偿
+                pushStatus = 1;
             }
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
