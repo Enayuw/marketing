@@ -5,7 +5,6 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.PushTransferCustomerLog;
-import com.br.marketing.entity.PushTransferCustomerLogExample;
 import com.br.marketing.service.PushTransferCustomerLogService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -61,8 +60,6 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         int compensateTimes = 5;
         Long start = System.currentTimeMillis();
         log.warn("【转化数据同步客服补偿任务】调度开始");
-        PushTransferCustomerLogExample example = new PushTransferCustomerLogExample();
-        example.createCriteria().andPushStatusEqualTo(1);
         PageResultReturn listByStatusIs1 = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
         List<PushTransferCustomerLog> rows = (List<PushTransferCustomerLog>) listByStatusIs1.getRows();
         HttpHeaders tempHeaders = new HttpHeaders();
@@ -98,7 +95,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             String code = String.valueOf(result.get("code"));
             if (value == 200) {
                 updateLog.setPushStatus(2);
-                if (!"00".equals(code)) {
+                if (!"00".equals(code) && updateLog.getCompensateTimes() >= compensateTimes) {
                     updateLog.setPushStatus(4);
                 }
                 String smg = String.format("apiCode:[%s]补偿依然失败！" +
@@ -112,7 +109,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             updateLog.setHttpReasonPhrase(reasonPhrase);
             updateLog.setServiceCode(code);
             updateLog.setMessage(result.get("message") == null ? "" : result.get("message").toString());
-            updateLog.setSwiftNumber(result.get("message") == null ? "" : result.get("message").toString());
+            updateLog.setSwiftNumber(result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                    ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString());
             pushTransferCustomerLogService.update(updateLog);
             postParameters.clear();
         }
