@@ -95,11 +95,11 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
             String code = String.valueOf(result.get("code"));
             if (value == 200) {
-                if ("900028".equals(code) && updateLog.getCompensateTimes() >= compensateTimes) {
+                if ("900028".equals(code)) {
                     updateLog.setPushStatus(4);
                     String smg = String.format("##apiCode:[%s];requestId:[%s]补偿依然失败!已补偿[%d],原因：未配置资源方！" +
                             "\n接口返回http状态码[%d],http短语[%s];" +
-                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), customerLog.getCompensateTimes(), value, reasonPhrase, body);
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     log.warn(smg);
                     alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
                             Constants.sendCodeMap.get("sysError"));
@@ -107,11 +107,11 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                     updateLog.setPushStatus(2);
                     log.info(String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
                             "\n接口返回http状态码[%d],http短语[%s];" +
-                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), customerLog.getCompensateTimes(), value, reasonPhrase, body));
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body));
                 } else {
                     String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
                             "\n接口返回http状态码[%d],http短语[%s];" +
-                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), customerLog.getCompensateTimes(), value, reasonPhrase, body);
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     log.error(smg);
                     alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
                             Constants.sendCodeMap.get("sysError"));
