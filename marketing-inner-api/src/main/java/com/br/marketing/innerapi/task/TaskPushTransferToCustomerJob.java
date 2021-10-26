@@ -1,4 +1,4 @@
-package com.br.marketing.innerapi.job;
+package com.br.marketing.innerapi.task;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
