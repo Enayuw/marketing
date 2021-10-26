@@ -3,7 +3,6 @@ package com.br.marketing.innerapi.task;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.PushTransferCustomerLog;
 import com.br.marketing.service.PushTransferCustomerLogService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -60,8 +59,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         int compensateTimes = 5;
         Long start = System.currentTimeMillis();
         log.warn("【转化数据同步客服补偿任务】调度开始");
-        PageResultReturn listByStatusIs1 = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
-        List<PushTransferCustomerLog> rows = (List<PushTransferCustomerLog>) listByStatusIs1.getRows();
+        List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
         HttpHeaders tempHeaders = new HttpHeaders();
         tempHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         tempHeaders.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
@@ -81,8 +79,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             ResponseEntity<String> responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
             HttpStatus statusCode = responseEntity.getStatusCode();
             if (ObjectUtils.isEmpty(responseEntity)) {
-                String smg = String.format("%s : apiCode[%s]补偿失败！接口不能正常访问"
-                        , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode());
+                String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
+                        , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
                         Constants.sendCodeMap.get("sysError"));
                 continue;
@@ -98,9 +96,9 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 if (!"00".equals(code) && updateLog.getCompensateTimes() >= compensateTimes) {
                     updateLog.setPushStatus(4);
                 }
-                String smg = String.format("apiCode:[%s]补偿依然失败！" +
+                String smg = String.format("apiCode:[%s];requestId:[%s]补偿依然失败！" +
                         "\n接口返回http状态码[%d],http短语[%s];" +
-                        "\n返回体[%s]", customerLog.getApiCode(), value, reasonPhrase, body);
+                        "\n返回体[%s]", customerLog.getApiCode(), customerLog.getRequestId(), value, reasonPhrase, body);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
                         Constants.sendCodeMap.get("sysError"));
             }

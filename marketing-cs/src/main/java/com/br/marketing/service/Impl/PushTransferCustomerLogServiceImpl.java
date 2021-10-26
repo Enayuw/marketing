@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.PushTransferCustomerLog;
 import com.br.marketing.mapper.PushTransferCustomerLogMapper;
 import com.br.marketing.service.PushTransferCustomerLogService;
@@ -23,10 +22,9 @@ public class PushTransferCustomerLogServiceImpl implements PushTransferCustomerL
 
 
     @Override
-    public PageResultReturn findListByStatusIs1(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems) {
+    public List<PushTransferCustomerLog> findListByStatusIs1(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems) {
         PageHelper.startPage(page, pageSize);
-        List<PushTransferCustomerLog> list = pushTransferCustomerLogMapper.findListByStatusIs1(shardingTotalCount, shardingItems);
-        return PageResultReturn.setPageResult(list, page);
+        return pushTransferCustomerLogMapper.findListByStatusIs1(shardingTotalCount, shardingItems);
     }
 
     @Override
