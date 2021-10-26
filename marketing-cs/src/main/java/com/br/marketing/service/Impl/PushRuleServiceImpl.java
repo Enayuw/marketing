@@ -1390,7 +1390,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             Long apiCodeCount = getApiCodeCount(key);
             // 检查缓存
             if (apiCodeCount < 0) {
-                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                result.setDate(false);
+//                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1398,7 +1403,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 检查db，再次确认
             List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
             if (statusList != null && statusList.size() > 0) {
-                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                result.setDate(false);
+//                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1415,14 +1425,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (countStatus == null || countStatus == 0) {
                             transferStatus = 2;
                         } else {
-                            log.error("该客户[{}]当前日期[{}]有补偿数据数据[{}]尚未成功同步至智能客服", apiCode, yyyyMMdd, countStatus);
+                            String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据[%d]尚未成功同步至智能客服"
+                                    , apiCode, yyyyMMdd, countStatus);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("sysError"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
                         }
                     } else {
-
-                        log.error("该客户[{}]当前日期[{}]有补偿数据数据尚未成功同步至智能客服", apiCode, yyyyMMdd);
+                        String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据尚未成功同步至智能客服"
+                                , apiCode, yyyyMMdd);
+                        log.error(smg);
+                        alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                Constants.sendCodeMap.get("sysError"));
                         redisChgService.incrBy(key, -1);
                         redisChgService.expire(key, getKeyExpiration());
                         return result;
@@ -1436,7 +1453,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } else {
                         Integer integer = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndStatus(apiCode, createTime, 0);
                         if (integer == null || integer == 0) {
-                            log.error("该客户[{}]当前日期[{}]缓存数据与db记录数有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
+                            String smg = String.format("该客户[%s]当前日期[%s]缓存数据与db记录数有异常，消息[%d]退回到队列"
+                                    , apiCode, yyyyMMdd, infoId);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("sysError"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
@@ -1447,7 +1468,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } else if (apiCodeCount > 1) {
                     transferStatus = 1;
                 } else {
-                    log.error("该客户[{}]当前日期[{}]缓存数据有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
+                    String smg = String.format("该客户[%s]当前日期[%s]缓存数据有异常，消息[%d]退回到队列"
+                            , apiCode, yyyyMMdd, infoId);
+                    log.error(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("sysError"));
                     redisChgService.incrBy(key, -1);
                     redisChgService.expire(key, getKeyExpiration());
                     return result;
