@@ -973,8 +973,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        if(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
-        ||updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)){
+        if (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
@@ -1680,6 +1680,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         final HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
         ResponseEntity<String> responseEntity = null;
         HttpStatus statusCode = null;
+        String body;
+        JSONObject result;
+        String code;
         int value;
         do {
             log.info("########################第【{}/{}】次调用接口", count, retrySum);
@@ -1687,16 +1690,22 @@ public class PushRuleServiceImpl implements PushRuleService {
                 responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
                 statusCode = responseEntity.getStatusCode();
                 value = statusCode.value();
+                body = responseEntity.getBody();
+                result = JSONObject.parseObject(body);
+                code = String.valueOf(result.get("code"));
                 // 重试休眠
                 TimeUnit.SECONDS.sleep(count < 4 ? count : 3);
             } catch (RestClientException | InterruptedException e) {
                 value = -1;
+                body = "";
+                result = null;
+                code = "";
                 log.error(e.getMessage(), e);
             }
             count++;
-        } while (value != 200 && count <= retrySum);
-        int pushStatus = 1;
-        if (ObjectUtils.isEmpty(responseEntity)) {
+        } while ((value != 200 || !"00".equals(code)) && count <= retrySum);
+        int pushStatus = 0;
+        if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
                     , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
@@ -1705,20 +1714,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                     requestDTO.getApiCode()
                     , requestDTO.getJsonData()
                     , rowSize
-                    , pushStatus
+                    , 1
             );
         }
-        String body = responseEntity.getBody();
-        JSONObject result = JSONObject.parseObject(body);
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
-        String code = String.valueOf(result.get("code"));
-        if (value == 200) {
-            pushStatus = 0;
-            if (!"00".equals(code)) {
-                // 客服业务中出现的非正常状态码全部补偿
-                pushStatus = 1;
-            }
+        if (value != 200 || !"00".equals(code)) {
+            // 客服业务中出现的非正常状态码全部补偿
+            pushStatus = 1;
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
@@ -1731,7 +1734,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 , body
                 , code
                 , result.get("message") == null ? "" : result.get("message").toString()
-                , result.get("accessNumber") == null ? "" : result.get("accessNumber").toString()
+                , result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString()
                 , rowSize
                 , value
                 , reasonPhrase
