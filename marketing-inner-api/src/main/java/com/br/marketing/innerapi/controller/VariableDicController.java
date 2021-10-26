@@ -1,13 +1,19 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.VariableDicService;
+import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import io.swagger.annotations.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -22,6 +28,8 @@ import java.util.List;
 @RequestMapping(value = "/rule/vd")
 @Api(value = "客户配置变量值", tags = "客户配置变量值字典", produces = "application/json", consumes = "application/json", protocols = "http")
 public class VariableDicController {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
 
     @Resource
     private VariableDicService variableDicService;
@@ -47,4 +55,48 @@ public class VariableDicController {
         List<VariableDicSelectVO> list = variableDicService.findListByCidAndApiCode(cid, apiCode);
         return new ApiResult<List<VariableDicSelectVO>>().setData(list).success();
     }
+
+
+    @GetMapping("/getVariableDicList")
+    @ApiOperation(value = "客户配置变量值列表数据", notes = "客户配置变量值列表数据", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
+    })
+    public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int page
+            , @RequestParam(defaultValue = "10") int pageSize
+            , @RequestParam(required = false) String cid
+            , @RequestParam(required = false) String apiCode) {
+        PageResultReturn listPage = variableDicService.getVariableDicList(page, pageSize, cid, apiCode);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    }
+
+
+    @ApiOperation(value = "新增/变更客户配置变量值字典",notes = "新增/变更客户配置变量值字典")
+    @PostMapping("/saveOrUpdateVariableDic")
+    public ApiResult<Boolean> saveOrUpdateVariableDic(@RequestBody @Validated VariableDicListVO vo){
+        try {
+            //获取用户上下文
+            UserDetail user = ThreadContextInfo.getUser();
+            return variableDicService.saveOrUpdateVariableDic(vo,user);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+    }
+
+    /*@ApiOperation(value = "删除客户配置变量值字典",notes = "删除客户配置变量值字典")
+    @GetMapping("/delete")
+    public ApiResult<Boolean> delete(Integer id){
+        try {
+            return variableDicService.delete(id);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+    }*/
 }

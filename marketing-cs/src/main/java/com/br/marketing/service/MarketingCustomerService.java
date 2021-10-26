@@ -1,6 +1,10 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.CustomerSelectVO;
+import com.br.marketing.vo.MarketingCustomerListVO;
 
 import java.util.List;
 
@@ -23,4 +27,22 @@ public interface MarketingCustomerService {
      * @dateTime 2021/9/1 15:35
      */
     List<CustomerSelectVO> getCidOrApiCodeList(String cid);
+
+    /**
+     * 获取客户信息列表数据
+     * @param page
+     * @param pageSize
+     * @param cid
+     * @param apiCode
+     * @return
+     */
+    PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode);
+
+    /**
+     * 新增/变更用户信息
+     * @param vo
+     * @param user
+     * @return
+     */
+    ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, UserDetail user);
 }
