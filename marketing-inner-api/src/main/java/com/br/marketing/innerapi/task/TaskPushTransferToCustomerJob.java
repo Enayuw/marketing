@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -56,7 +57,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         List<Integer> shardingItems = context.getShardingItems();
         // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
-        int compensateTimes = 5;
+        // 设置最大重试次数
+        int compensateTimes = StringUtils.isEmpty(context.getJobParameter()) ? 5 : Integer.parseInt(context.getJobParameter());
         Long start = System.currentTimeMillis();
         log.warn("【转化数据同步客服补偿任务】调度开始");
         List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
