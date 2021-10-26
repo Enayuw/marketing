@@ -31,5 +31,5 @@ public interface PushTransferCustomerLogService {
      * @author Guo Zeqiang
      * @dateTime 2021/10/14 17:53
      */
-    int update(PushTransferCustomerLog pushTransferCustomerLog);
+    int updateByPrimaryKeySelective(PushTransferCustomerLog pushTransferCustomerLog);
 }

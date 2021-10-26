@@ -29,7 +29,7 @@ public class PushTransferCustomerLogServiceImpl implements PushTransferCustomerL
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int update(PushTransferCustomerLog pushTransferCustomerLog) {
-        return pushTransferCustomerLogMapper.updateByPrimaryKey(pushTransferCustomerLog);
+    public int updateByPrimaryKeySelective(PushTransferCustomerLog pushTransferCustomerLog) {
+        return pushTransferCustomerLogMapper.updateByPrimaryKeySelective(pushTransferCustomerLog);
     }
 }

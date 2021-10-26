@@ -109,7 +109,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             updateLog.setMessage(result.get("message") == null ? "" : result.get("message").toString());
             updateLog.setSwiftNumber(result.get("accessNumber") == null ? result.get("swiftNumber") == null
                     ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString());
-            pushTransferCustomerLogService.update(updateLog);
+            pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
             postParameters.clear();
         }
         Long end = System.currentTimeMillis();
