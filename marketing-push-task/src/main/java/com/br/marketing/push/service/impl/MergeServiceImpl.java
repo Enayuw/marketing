@@ -13,6 +13,7 @@ import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.TaskStatusDistributeMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
 import com.br.marketing.service.IProductResultSimpleService;
@@ -73,6 +74,8 @@ public class MergeServiceImpl implements MergeService {
     MarketingSepService marketingSepService;
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
+    @Autowired
+    TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     private Map<String,String> proFieldMap=new HashMap<>();
     private static final Pattern MYREGEX1 = Pattern.compile("_");
@@ -163,7 +166,10 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
-            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,blf.getIndexNum());
+            TaskStatusDistributeExample taskStatusDistributeExample = new TaskStatusDistributeExample();
+            taskStatusDistributeExample.createCriteria().andFileIdEqualTo(blf.getId());
+            List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(taskStatusDistributeExample);
+            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,blf.getIndexNum(),taskStatusDistributes);
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
