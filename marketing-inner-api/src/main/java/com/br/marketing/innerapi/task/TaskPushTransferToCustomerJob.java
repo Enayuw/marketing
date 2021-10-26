@@ -97,7 +97,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             if (value == 200) {
                 if ("900028".equals(code)) {
                     updateLog.setPushStatus(4);
-                    String smg = String.format("##apiCode:[%s];requestId:[%s]补偿依然失败!已补偿[%d],原因：未配置资源方！" +
+                    String smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
                             "\n接口返回http状态码[%d],http短语[%s];" +
                             "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     log.warn(smg);
