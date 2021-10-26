@@ -97,13 +97,20 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             if (value == 200) {
                 if (!"00".equals(code) && updateLog.getCompensateTimes() >= compensateTimes) {
                     updateLog.setPushStatus(4);
-                    String smg = String.format("apiCode:[%s];requestId:[%s]补偿依然失败！" +
+                    log.warn(String.format("##apiCode:[%s];requestId:[%s]补偿依然失败！" +
                             "\n接口返回http状态码[%d],http短语[%s];" +
-                            "\n返回体[%s]", customerLog.getApiCode(), customerLog.getRequestId(), value, reasonPhrase, body);
-                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("sysError"));
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), value, reasonPhrase, body));
                 } else if ("00".equals(code)) {
                     updateLog.setPushStatus(2);
+                    log.info(String.format("@@apiCode:[%s];requestId:[%s]补偿成功！" +
+                            "\n接口返回http状态码[%d],http短语[%s];" +
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), value, reasonPhrase, body));
+                } else {
+                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！" +
+                            "\n接口返回http状态码[%d],http短语[%s];" +
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), value, reasonPhrase, body);
+                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("sysError"));
                 }
             }
             updateLog.setHttpStatus(value);
