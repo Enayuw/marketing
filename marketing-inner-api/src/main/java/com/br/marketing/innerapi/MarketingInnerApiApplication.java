@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.ImportResource;
 
 
 /**
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @UpdateRemark 修改内容
  * @Version 1.0
  */
+@ImportResource(locations = {"classpath:scheduler.xml"})
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient

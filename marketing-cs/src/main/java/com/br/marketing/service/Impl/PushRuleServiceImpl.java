@@ -1377,8 +1377,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
-                result.setMessage("客户转化基础信息不存在");
-                log.error("主键为[{}]的客户转化基础信息不存在", infoId);
+                result.setDate(false);
+                String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
+                log.error(smg);
+                result.setMessage(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 return result;
             }
             MarketingTransferInfo info = list.get(0);
