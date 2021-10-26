@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
-import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.VariableDicListVO;
