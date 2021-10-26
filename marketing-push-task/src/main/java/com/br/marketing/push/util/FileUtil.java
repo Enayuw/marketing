@@ -221,7 +221,8 @@ public class FileUtil {
             }
             int i = countStr(headstring, sep);
             for (Integer k = 0; k < indexNum; k++) {
-                Optional<TaskStatusDistribute> first = taskStatusDistributes.stream().filter(t -> t.getDistributeIndex().equals(indexNum)).findFirst();
+                Integer index = k;
+                Optional<TaskStatusDistribute> first = taskStatusDistributes.stream().filter(t -> t.getDistributeIndex().equals(index)).findFirst();
                 if(first.isPresent()&&first.get().getActualNum()>0){
                     String path = destPath.concat(String.valueOf(k)).concat("/");
                     File writeName = new File(path);
