@@ -86,4 +86,18 @@ public class CustomerController {
         }
     }
 
+    @ApiOperation(value = "apiCode是否重复",notes = "apiCode是否重复")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "客户配置id(编辑状态需要)", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
+    })
+    @GetMapping("/apiCodeOnly")
+    public ApiResult<Boolean> apiCodeOnly(@RequestParam(required = false) String id,@RequestParam(required = true) String apiCode){
+        try {
+            return marketingCustomerService.apiCodeOnly(id,apiCode);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+    }
+
 }

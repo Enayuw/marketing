@@ -45,4 +45,11 @@ public interface MarketingCustomerService {
      * @return
      */
     ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, UserDetail user);
+
+    /**
+     * apiCode是否重复
+     * @param apiCode
+     * @return
+     */
+    ApiResult<Boolean> apiCodeOnly(String id,String apiCode);
 }

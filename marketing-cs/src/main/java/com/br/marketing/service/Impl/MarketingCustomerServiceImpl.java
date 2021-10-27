@@ -2,11 +2,11 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TableCodeEnum;
-import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.EntityOptLog;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,5 +120,26 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         }
 
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public ApiResult<Boolean> apiCodeOnly(String id,String apiCode) {
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo((byte) 1);
+        List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
+        if (select != null && select.size()>0){
+            if(StringUtils.isEmpty(id)){
+                return new ApiResult<Boolean>().success(false,"apicode已存在！");
+            }
+            for(MarketingCustomer single:select){
+                if(id.equals(single.getId().toString())){
+                    return new ApiResult<Boolean>().success(true);
+                }
+            }
+            return new ApiResult<Boolean>().success(false,"apicode已存在！");
+        }else {
+            return new ApiResult<Boolean>().success(true);
+        }
+
     }
 }
