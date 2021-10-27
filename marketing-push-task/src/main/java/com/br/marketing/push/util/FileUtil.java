@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtil;
+import com.br.marketing.entity.TaskStatusDistribute;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 /**
  * Created by Bairong on 2019/9/2.
@@ -201,38 +203,41 @@ public class FileUtil {
      * @param pathName 结果文件名称
      * @param destPath 需要合并的目录
      */
-    public static void mergeAll(String head, String pathName, String destPath, String sep) {
+    public static void mergeAll(String head, String pathName, String destPath, String sep, Integer indexNum, List<TaskStatusDistribute> taskStatusDistributes) {
         log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}", pathName, destPath);
         long l = System.currentTimeMillis();
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
-
-        File writeName = new File(destPath);
-        if (!writeName.exists()) {
-            return;
-        }
         File file1 = new File(pathName);
-
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file1), StandardCharsets.UTF_8));) {
-            List<String> fileNmaes = getFileNames(writeName);
+
             int rownum = 1;
             String headstring = head.substring(0, head.length() - 1);
             if (destPath.indexOf("error") == -1) {
                 fw.append(headstring + "\r\n");
             }
             int i = countStr(headstring, sep);
-            for (String name : fileNmaes) {
-                read = new FileReader(destPath + "/" + name);
-                br = new BufferedReader(read);
-                String row;
-                while ((row = br.readLine()) != null) {
-                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep,name));
+            for (Integer k = 0; k < indexNum; k++) {
+                Integer index = k;
+                Optional<TaskStatusDistribute> first = taskStatusDistributes.stream().filter(t -> t.getDistributeIndex().equals(index)).findFirst();
+                if(first.isPresent()&&first.get().getActualNum()>0){
+                    String path = destPath.concat(String.valueOf(k)).concat("/");
+                    File writeName = new File(path);
+                    List<String> fileNmaes = getFileNames(writeName);
+                    for (String name : fileNmaes) {
+                        read = new FileReader(path + "/" + name);
+                        br = new BufferedReader(read);
+                        String row;
+                        while ((row = br.readLine()) != null) {
+                            mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
+                        }
+                        br.close();
+                        read.close();
+                    }
                 }
-                br.close();
-                read.close();
             }
             /**
              * 等待所有任务都执行完成

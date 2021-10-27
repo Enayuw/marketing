@@ -1,0 +1,84 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+        username: u_pd_marketing
+        password: qTODziGYQsq11aw8Js2V
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 5
+        maxWait: 60000
+        minIdle: 5
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
+eureka:
+  client:
+    service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/
+
+spring:
+  rabbitmq:
+    zw:
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
+otherConfig:
+  alarm:
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  userCenter:
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  customerService:
+    apiCode: 4000296
+

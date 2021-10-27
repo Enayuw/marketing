@@ -8,6 +8,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -249,5 +250,22 @@ public class DateHelper {
             e.printStackTrace();
         }
         return day + "天" + hour + "小时" + min + "分" + sec + "秒";
+    }
+
+    public static Date getNowDayStartTime(){
+        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).concat(" 00:00:00");
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
+        } catch (ParseException e) {
+            log.error(e.getMessage(),e);
+            return null;
+        }
+    }
+
+    public static Date addDays(Date date,Integer days){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.DAY_OF_MONTH, days);
+        return c.getTime();
     }
 }

@@ -78,35 +78,28 @@ public class VaildHxResultUtil {
                 continue;
             }
           if(!"0".equals(string)&&!"1".equals(string)){
-                if("98".equals(string)){
-                    String flagKey=Constants.HX_FLAG_98_NUM+ lu.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0);
-                    redisChgService.incr(flagKey);
-                    String hkey= Constants.HX_FLAG_98_NUM+":"+apiCode;
-                    redisChgService.hset(hkey,lu.getBatchNumber(),"1");
-                }else {
-                    /**
-                     * ScoreData未命中时不返回flag
-                     * 需要特殊处理
-                     */
-                    if(StringUtils.isEmpty(string)){
-                        if("ScoreData".equals(key)){
-                            continue;
-                        }else{
-                            errorList.add(lu);
-                            result=false;
-                        }
-                    }
-
-                    if("99".equals(string)){
-                        errorList.add(lu);
-                        result=false;
-                    }
-                    HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                            String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
-                                    ,apiCode,apiCode,flag,string));
-                    log.error("hxResult product flag error",hxResultRuntimeException);
+            /**
+             * ScoreData未命中时不返回flag
+             * 需要特殊处理
+             */
+            if(StringUtils.isEmpty(string)){
+                if("ScoreData".equals(key)){
+                    continue;
+                }else{
+                    errorList.add(lu);
+                    result=false;
                 }
-                break;
+            }
+
+            if("99".equals(string)){
+                errorList.add(lu);
+                result=false;
+            }
+            HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
+                    String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
+                            ,apiCode,apiCode,flag,string));
+            log.error("hxResult product flag error",hxResultRuntimeException);
+        break;
             }
         }
         return result;
