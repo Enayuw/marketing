@@ -1,5 +1,7 @@
 package com.br.marketing.mapper;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.vo.SyncConfigVO;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +21,11 @@ public interface SyncConfigMapper extends SyncConfigMapperBase {
     List<SyncConfig> queryConfig(String type);
 
     SyncConfig queryConfigByConditaion(SyncConfig loanSyncConfig);
+
+    /**
+     * 客户sftp账号列表
+     * @param apiCode
+     * @return
+     */
+    List<SyncConfigVO> getSftpList(@Param("apiCode")String apiCode);
 }

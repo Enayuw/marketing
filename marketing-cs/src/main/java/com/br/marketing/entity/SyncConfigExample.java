@@ -64,10 +64,10 @@ public class SyncConfigExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -115,52 +115,52 @@ public class SyncConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andIdEqualTo(Integer value) {
+        public Criteria andIdEqualTo(Long value) {
             addCriterion("id =", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotEqualTo(Integer value) {
+        public Criteria andIdNotEqualTo(Long value) {
             addCriterion("id <>", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThan(Integer value) {
+        public Criteria andIdGreaterThan(Long value) {
             addCriterion("id >", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThanOrEqualTo(Integer value) {
+        public Criteria andIdGreaterThanOrEqualTo(Long value) {
             addCriterion("id >=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThan(Integer value) {
+        public Criteria andIdLessThan(Long value) {
             addCriterion("id <", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThanOrEqualTo(Integer value) {
+        public Criteria andIdLessThanOrEqualTo(Long value) {
             addCriterion("id <=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdIn(List<Integer> values) {
+        public Criteria andIdIn(List<Long> values) {
             addCriterion("id in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotIn(List<Integer> values) {
+        public Criteria andIdNotIn(List<Long> values) {
             addCriterion("id not in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdBetween(Integer value1, Integer value2) {
+        public Criteria andIdBetween(Long value1, Long value2) {
             addCriterion("id between", value1, value2, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotBetween(Integer value1, Integer value2) {
+        public Criteria andIdNotBetween(Long value1, Long value2) {
             addCriterion("id not between", value1, value2, "id");
             return (Criteria) this;
         }
@@ -232,66 +232,6 @@ public class SyncConfigExample {
 
         public Criteria andApiCodeNotBetween(String value1, String value2) {
             addCriterion("api_code not between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIsNull() {
-            addCriterion("type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIsNotNull() {
-            addCriterion("type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeEqualTo(Integer value) {
-            addCriterion("type =", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotEqualTo(Integer value) {
-            addCriterion("type <>", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThan(Integer value) {
-            addCriterion("type >", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("type >=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThan(Integer value) {
-            addCriterion("type <", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("type <=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIn(List<Integer> values) {
-            addCriterion("type in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotIn(List<Integer> values) {
-            addCriterion("type not in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeBetween(Integer value1, Integer value2) {
-            addCriterion("type between", value1, value2, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("type not between", value1, value2, "type");
             return (Criteria) this;
         }
 
@@ -492,6 +432,76 @@ public class SyncConfigExample {
 
         public Criteria andTargetPathNotBetween(String value1, String value2) {
             addCriterion("target_path not between", value1, value2, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathIsNull() {
+            addCriterion("callback_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathIsNotNull() {
+            addCriterion("callback_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathEqualTo(String value) {
+            addCriterion("callback_path =", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathNotEqualTo(String value) {
+            addCriterion("callback_path <>", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathGreaterThan(String value) {
+            addCriterion("callback_path >", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathGreaterThanOrEqualTo(String value) {
+            addCriterion("callback_path >=", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathLessThan(String value) {
+            addCriterion("callback_path <", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathLessThanOrEqualTo(String value) {
+            addCriterion("callback_path <=", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathLike(String value) {
+            addCriterion("callback_path like", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathNotLike(String value) {
+            addCriterion("callback_path not like", value, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathIn(List<String> values) {
+            addCriterion("callback_path in", values, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathNotIn(List<String> values) {
+            addCriterion("callback_path not in", values, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathBetween(String value1, String value2) {
+            addCriterion("callback_path between", value1, value2, "callbackPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallbackPathNotBetween(String value1, String value2) {
+            addCriterion("callback_path not between", value1, value2, "callbackPath");
             return (Criteria) this;
         }
 
@@ -1684,9 +1694,69 @@ public class SyncConfigExample {
             addCriterion("exclusion_time not between", value1, value2, "exclusionTime");
             return (Criteria) this;
         }
+
+        public Criteria andTypeIsNull() {
+            addCriterion("type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIsNotNull() {
+            addCriterion("type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeEqualTo(Integer value) {
+            addCriterion("type =", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotEqualTo(Integer value) {
+            addCriterion("type <>", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThan(Integer value) {
+            addCriterion("type >", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("type >=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThan(Integer value) {
+            addCriterion("type <", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("type <=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIn(List<Integer> values) {
+            addCriterion("type in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotIn(List<Integer> values) {
+            addCriterion("type not in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeBetween(Integer value1, Integer value2) {
+            addCriterion("type between", value1, value2, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("type not between", value1, value2, "type");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

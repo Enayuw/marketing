@@ -1,11 +1,9 @@
-package com.br.marketing.innerapi.job;
+package com.br.marketing.innerapi.task;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.PushTransferCustomerLog;
-import com.br.marketing.entity.PushTransferCustomerLogExample;
 import com.br.marketing.service.PushTransferCustomerLogService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -47,9 +46,9 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
-    @Value("${otherConfig.alarm.outsideAppName:00}")
+    @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
     @Override
@@ -58,13 +57,11 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         List<Integer> shardingItems = context.getShardingItems();
         // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
-        int compensateTimes = 5;
+        // 设置最大重试次数
+        int compensateTimes = StringUtils.isEmpty(context.getJobParameter()) ? 5 : Integer.parseInt(context.getJobParameter());
         Long start = System.currentTimeMillis();
         log.warn("【转化数据同步客服补偿任务】调度开始");
-        PushTransferCustomerLogExample example = new PushTransferCustomerLogExample();
-        example.createCriteria().andPushStatusEqualTo(1);
-        PageResultReturn listByStatusIs1 = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
-        List<PushTransferCustomerLog> rows = (List<PushTransferCustomerLog>) listByStatusIs1.getRows();
+        List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
         HttpHeaders tempHeaders = new HttpHeaders();
         tempHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         tempHeaders.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
@@ -84,36 +81,49 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             ResponseEntity<String> responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
             HttpStatus statusCode = responseEntity.getStatusCode();
             if (ObjectUtils.isEmpty(responseEntity)) {
-                String smg = String.format("%s : apiCode[%s]补偿失败！接口不能正常访问"
-                        , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode());
+                String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
+                        , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 continue;
             }
             String body = responseEntity.getBody();
+            updateLog.setResponseBody(body);
             int value = statusCode.value();
             JSONObject result = JSONObject.parseObject(body);
             String reasonPhrase = statusCode.getReasonPhrase();
             log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
             String code = String.valueOf(result.get("code"));
             if (value == 200) {
-                updateLog.setPushStatus(2);
-                if (!"00".equals(code)) {
+                if ("900028".equals(code)) {
                     updateLog.setPushStatus(4);
+                    String smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
+                            "\n接口返回http状态码[%d],http短语[%s];" +
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
+                } else if ("00".equals(code)) {
+                    updateLog.setPushStatus(2);
+                    log.info(String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
+                            "\n接口返回http状态码[%d],http短语[%s];" +
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body));
+                } else {
+                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
+                            "\n接口返回http状态码[%d],http短语[%s];" +
+                            "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                    log.error(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
                 }
-                String smg = String.format("apiCode:[%s]补偿依然失败！" +
-                        "\n接口返回http状态码[%d],http短语[%s];" +
-                        "\n返回体[%s]", customerLog.getApiCode(), value, reasonPhrase, body);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
             }
-            updateLog.setRequestBody(body);
             updateLog.setHttpStatus(value);
             updateLog.setHttpReasonPhrase(reasonPhrase);
             updateLog.setServiceCode(code);
             updateLog.setMessage(result.get("message") == null ? "" : result.get("message").toString());
-            updateLog.setSwiftNumber(result.get("message") == null ? "" : result.get("message").toString());
-            pushTransferCustomerLogService.update(updateLog);
+            updateLog.setSwiftNumber(result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                    ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString());
+            pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
             postParameters.clear();
         }
         Long end = System.currentTimeMillis();

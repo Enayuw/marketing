@@ -6,17 +6,12 @@ public class SyncConfig {
     /**
      * 
      */
-    private Integer id;
+    private Long id;
 
     /**
-     * 
+     * 商户编号
      */
     private String apiCode;
-
-    /**
-     * 同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp
-     */
-    private Integer type;
 
     /**
      * 文件类型  1 数据文件 2 错误文件
@@ -24,14 +19,19 @@ public class SyncConfig {
     private Integer dataType;
 
     /**
-     * 需要同步文件的源目录。
+     * 需要同步客户文件的源目录。
      */
     private String srcPath;
 
     /**
-     * 需要同步文件的目的目录
+     * 需要同步到公司文件的目的目录
      */
     private String targetPath;
+
+    /**
+     * 回传到客户目的目录
+     */
+    private String callbackPath;
 
     /**
      * 文件后缀，以逗号分隔。例如：".zip,.success"
@@ -109,12 +109,12 @@ public class SyncConfig {
     private Date updateTime;
 
     /**
-     * 文件服务器类型
+     * 客户文件服务器类型
      */
     private String srcType;
 
     /**
-     * 文件服务器类型
+     * 公司文件服务器类型
      */
     private String targetType;
 
@@ -123,11 +123,16 @@ public class SyncConfig {
      */
     private String exclusionTime;
 
-    public Integer getId() {
+    /**
+     * 同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp
+     */
+    private Integer type;
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -137,14 +142,6 @@ public class SyncConfig {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
     }
 
     public Integer getDataType() {
@@ -169,6 +166,14 @@ public class SyncConfig {
 
     public void setTargetPath(String targetPath) {
         this.targetPath = targetPath == null ? null : targetPath.trim();
+    }
+
+    public String getCallbackPath() {
+        return callbackPath;
+    }
+
+    public void setCallbackPath(String callbackPath) {
+        this.callbackPath = callbackPath == null ? null : callbackPath.trim();
     }
 
     public String getSuffix() {
@@ -313,5 +318,13 @@ public class SyncConfig {
 
     public void setExclusionTime(String exclusionTime) {
         this.exclusionTime = exclusionTime == null ? null : exclusionTime.trim();
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }

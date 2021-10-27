@@ -245,7 +245,7 @@ public class PushCustomerRequestDTO implements Serializable {
                         transfer.getRegisterTime(),
                         transfer.getIfApply(),
                         transfer.getApplyDt(),
-                        transfer.getApplyResult(),
+                        StringUtils.isEmpty(transfer.getApplyResult()) ? "NULL" : ("0".equals(transfer.getApplyResult()) ? "DENY" : "1".equals(transfer.getApplyResult()) ? "PASS" : "NULL"),
                         transfer.getAuditAmount(),
                         transfer.getIfLent(),
                         transfer.getLentTime(),

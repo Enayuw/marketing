@@ -1,6 +1,5 @@
 package com.br.marketing.service;
 
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.PushTransferCustomerLog;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public interface PushTransferCustomerLogService {
      * @author Guo Zeqiang
      * @dateTime 2021/10/14 17:53
      */
-    PageResultReturn findListByStatusIs1(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems);
+    List<PushTransferCustomerLog> findListByStatusIs1(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems);
 
     /**
      * 更新数据
@@ -32,5 +31,5 @@ public interface PushTransferCustomerLogService {
      * @author Guo Zeqiang
      * @dateTime 2021/10/14 17:53
      */
-    int update(PushTransferCustomerLog pushTransferCustomerLog);
+    int updateByPrimaryKeySelective(PushTransferCustomerLog pushTransferCustomerLog);
 }

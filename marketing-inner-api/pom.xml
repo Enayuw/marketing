@@ -108,11 +108,11 @@
             <artifactId>spring-data-redis</artifactId>
             <version>1.7.2.RELEASE</version>
         </dependency>
-        <dependency>
-            <groupId>com.br.ice.service</groupId>
-            <artifactId>alarm-rely-new</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.br.ice.service</groupId>-->
+        <!--            <artifactId>alarm-rely-new</artifactId>-->
+        <!--            <version>3.0.0-SNAPSHOT</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>user-center-new</artifactId>

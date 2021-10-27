@@ -26,22 +26,17 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             + "</script>")
     boolean bathInsert(@Param("logs") List<PushTransferCustomerLog> logs);
 
-    @Select("SELECT transfer_info_id,\n" +
-            "       api_code,\n" +
-            "       request_id,\n" +
-            "       t_cid,\n" +
-            "       transfer_info_time,\n" +
-            "       compensate_times,\n" +
-            "       push_status,\n" +
-            "       transfer_status,\n" +
-            "       service_code,\n" +
-            "       request_body\n" +
-            "FROM b_marketing_push_transfer_customer_log\n" +
-            "WHERE mod(id, #{shardingTotalCount}) in \n" +
-            "<foreach collection = 'shardingItems' item='sharding'  open='(' close=')' separator=','> "
+    @Select("<script> SELECT id," +
+            "api_code," +
+            "request_id," +
+            "compensate_times," +
+            "request_body " +
+            "FROM b_marketing_push_transfer_customer_log " +
+            "WHERE mod(id, #{shardingTotalCount}) in " +
+            "<foreach collection = 'shardingItems' item='sharding' open='(' close=')' separator=','> "
             + "#{sharding}"
             + "</foreach> "
-            + " and push_status = 1")
+            + " and push_status = 1 </script>")
     List<PushTransferCustomerLog> findListByStatusIs1(@Param("shardingTotalCount") int shardingTotalCount, @Param("shardingItems") List<Integer> shardingItems);
 
     /**
