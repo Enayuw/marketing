@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import java.util.Date;
+
 public class MarketingCustomer {
     /**
      * 
@@ -17,7 +19,7 @@ public class MarketingCustomer {
     private String apiCode;
 
     /**
-     *备注
+     * 备注
      */
     private String message;
 
@@ -62,7 +64,7 @@ public class MarketingCustomer {
     private Byte saveLog;
 
     /**
-     *跑分顺序根据此字段倒序排序
+     * 跑分顺序根据此字段倒序排序
      */
     private Byte sort;
 
@@ -100,6 +102,16 @@ public class MarketingCustomer {
      * 合作客户简称
      */
     private String shortName;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 
     public Long getId() {
         return id;
@@ -259,5 +271,21 @@ public class MarketingCustomer {
 
     public void setShortName(String shortName) {
         this.shortName = shortName == null ? null : shortName.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }
