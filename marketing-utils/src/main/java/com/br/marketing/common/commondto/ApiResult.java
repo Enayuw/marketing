@@ -43,7 +43,7 @@ public class ApiResult<T> {
 
     public ApiResult<T> fromResult(Result<T> result) {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            this.code = "00";
+            this.code = "000000";
         } else {
             this.code = "100001";
         }

@@ -51,7 +51,7 @@ public class VariableDicServiceImpl implements VariableDicService {
         PageHelper.startPage(page, pageSize);
         try {
             List<VariableDicListVO> list = variableDicMapper.getVariableDicList(cid,apiCode);
-            return PageResultReturn.setPageResult(list, page);
+            return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

@@ -52,7 +52,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         PageHelper.startPage(page, pageSize);
         try {
             List<MarketingCustomerListVO> list = marketingCustomerMapper.getCustomerList(cid,apiCode);
-            return PageResultReturn.setPageResult(list, page);
+            return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
