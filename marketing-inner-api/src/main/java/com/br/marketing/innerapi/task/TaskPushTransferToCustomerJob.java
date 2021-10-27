@@ -84,7 +84,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
                         , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 continue;
             }
             String body = responseEntity.getBody();
@@ -102,7 +102,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                             "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     log.warn(smg);
                     alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("sysError"));
+                            Constants.sendCodeMap.get("pushToCustomer"));
                 } else if ("00".equals(code)) {
                     updateLog.setPushStatus(2);
                     log.info(String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
@@ -114,7 +114,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                             "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     log.error(smg);
                     alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("sysError"));
+                            Constants.sendCodeMap.get("pushToCustomer"));
                 }
             }
             updateLog.setHttpStatus(value);

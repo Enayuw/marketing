@@ -1382,7 +1382,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.error(smg);
                 result.setMessage(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 return result;
             }
             MarketingTransferInfo info = list.get(0);
@@ -1402,7 +1402,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
                 log.error(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1415,7 +1415,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
                 log.error(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1436,7 +1436,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                     , apiCode, yyyyMMdd, countStatus);
                             log.error(smg);
                             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("sysError"));
+                                    Constants.sendCodeMap.get("pushToCustomer"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
@@ -1446,7 +1446,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 , apiCode, yyyyMMdd);
                         log.error(smg);
                         alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                Constants.sendCodeMap.get("sysError"));
+                                Constants.sendCodeMap.get("pushToCustomer"));
                         redisChgService.incrBy(key, -1);
                         redisChgService.expire(key, getKeyExpiration());
                         return result;
@@ -1464,7 +1464,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                     , apiCode, yyyyMMdd, infoId);
                             log.error(smg);
                             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("sysError"));
+                                    Constants.sendCodeMap.get("pushToCustomer"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
@@ -1479,7 +1479,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , apiCode, yyyyMMdd, infoId);
                     log.error(smg);
                     alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("sysError"));
+                            Constants.sendCodeMap.get("pushToCustomer"));
                     redisChgService.incrBy(key, -1);
                     redisChgService.expire(key, getKeyExpiration());
                     return result;
