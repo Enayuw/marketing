@@ -96,12 +96,13 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setStatus(1);
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
-        rule.setExecType(1);
-        rule.setBaseInfo("");
+        rule.setExecType(scoreRuleVO.getExecType());
+        rule.setBaseInfo(scoreRuleVO.getBaseInfo());
         rule.setIsDel(1);
-        rule.setCycleDay(0);
+        rule.setCycleDay(scoreRuleVO.getCycleDay());
         rule.setPushType(0);
-        rule.setCycleEndDay("");
+        rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
+        rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
@@ -197,6 +198,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
         scoreRuleVO.setApiCode(customer.getApiCode());
         scoreRuleVO.setCid(customer.getCid());
+        scoreRuleVO.setExecType(rule.getExecType());
+        scoreRuleVO.setBaseInfo(rule.getBaseInfo());
+        scoreRuleVO.setCycleDay(rule.getCycleDay());
+        scoreRuleVO.setCycleEndDay(rule.getCycleEndDay());
+        scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
         return scoreRuleVO;
     }
 
@@ -231,6 +237,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setStartTime(scoreRuleVO.getStartTime());
         rule.setStrategyId(scoreRuleVO.getStrategyId());
+        rule.setExecType(scoreRuleVO.getExecType());
+        rule.setBaseInfo(scoreRuleVO.getBaseInfo());
+        rule.setCycleDay(scoreRuleVO.getCycleDay());
+        rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
+        rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
         // 默认开启
         rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
