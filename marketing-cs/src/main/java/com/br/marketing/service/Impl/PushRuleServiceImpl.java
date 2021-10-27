@@ -130,9 +130,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
-    @Value("${otherConfig.alarm.outsideAppName:00}")
+    @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
     @Override
