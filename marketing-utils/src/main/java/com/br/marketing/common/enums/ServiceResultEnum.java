@@ -14,7 +14,7 @@ import lombok.Getter;
 public enum ServiceResultEnum {
 
     // 0x 访问成功
-    SUCCESS("00", "成功"),
+    SUCCESS("000000", "成功"),
     SUCCESS_1("01", "参数错误,请检查参数"),
     SUCCESS_2("02", "内容校验失败,请修改内容"),
     SUCCESS_3("03", "规则重复,请重新定义规则"),

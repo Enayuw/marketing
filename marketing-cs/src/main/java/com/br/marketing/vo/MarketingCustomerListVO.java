@@ -70,6 +70,8 @@ public class MarketingCustomerListVO {
      * 跑分顺序根据此字段倒序排序
      */
     @ApiModelProperty(value = "跑分顺序")
+    @Min(1)
+    @Max(127)
     private Byte sort;
 
     /**

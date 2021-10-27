@@ -11,7 +11,7 @@ public interface SyncConfigMapperBase {
 
     int deleteByExample(SyncConfigExample example);
 
-    int deleteByPrimaryKey(Integer id);
+    int deleteByPrimaryKey(Long id);
 
     int insert(SyncConfig record);
 
@@ -19,7 +19,7 @@ public interface SyncConfigMapperBase {
 
     List<SyncConfig> selectByExample(SyncConfigExample example);
 
-    SyncConfig selectByPrimaryKey(Integer id);
+    SyncConfig selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") SyncConfig record, @Param("example") SyncConfigExample example);
 
