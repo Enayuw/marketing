@@ -1,0 +1,34 @@
+package com.br.marketing.common.enums;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * 一个表对应的一个code
+ *
+ * @author songjuanjuan
+ * @dateTime 2021/10/26 17:30
+ */
+@Getter
+@AllArgsConstructor
+public enum TableCodeEnum {
+
+
+    MARKETING_CUSTOMER("01", "b_marketing_customer","MarketingCustomer");
+
+    /**
+     * 表对应的码值
+     */
+    private final String tableCode;
+
+    /**
+     * 表名
+     */
+    private final String tableName;
+
+    /**
+     * 表对应的实体
+     */
+    private final String tableEntity;
+
+}

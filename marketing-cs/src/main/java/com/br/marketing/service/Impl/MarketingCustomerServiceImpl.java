@@ -1,9 +1,13 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.TableCodeEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.EntityOptLog;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -11,11 +15,12 @@ import com.br.marketing.vo.MarketingCustomerListVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +35,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
+    private EntityOptLogMapper entityOptLogMapper;
 
     @Override
     public List<CustomerSelectVO> getCidOrApiCodeList(String cid) {
@@ -53,6 +61,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, UserDetail user) {
         //新增、变更，还需要记录变更日志，加个日志表
         MarketingCustomer marketingCustomer = new MarketingCustomer();
@@ -67,18 +76,49 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setPushUrl(vo.getPushUrl()!=null?vo.getPushUrl():"");
         marketingCustomer.setName(vo.getName());
         marketingCustomer.setShortName(vo.getShortName());
+        marketingCustomer.setUpdateTime(new Date());
         if(StringUtils.isEmpty(vo.getId())){
             //新增
             marketingCustomer.setCid(vo.getCid());
             marketingCustomer.setApiCode(vo.getApiCode());
             marketingCustomer.setCreateTime(new Date());
-            marketingCustomerMapper.insert(marketingCustomer);
+            marketingCustomerMapper.insertSelective(marketingCustomer);
         }else {
-            //编辑
-            marketingCustomer.setUpdateTime(new Date());
-            marketingCustomerMapper.updateByPrimaryKeySelective(marketingCustomer);
-        }
+            //更新记录到日志表
+            EntityOptLog entityOptLog = new EntityOptLog();
+            entityOptLog.setSourceObj(TableCodeEnum.MARKETING_CUSTOMER.getTableName());
+            entityOptLog.setSourceEntity(TableCodeEnum.MARKETING_CUSTOMER.getTableEntity());
+            entityOptLog.setSourceId(vo.getId().toString());
 
+            StringBuilder content = new StringBuilder();
+            MarketingCustomer customerOld = marketingCustomerMapper.selectByPrimaryKey(vo.getId());
+
+            content.append("【message】=【"+customerOld.getMessage()+"】"+"->【"+marketingCustomer.getMessage()+"】,");
+            content.append("【threadNum】=【"+customerOld.getThreadNum()+"】"+"->【"+marketingCustomer.getThreadNum()+"】,");
+            content.append("【sort】=【"+customerOld.getSort()+"】"+"->【"+marketingCustomer.getSort()+"】,");
+            content.append("【status】=【"+customerOld.getStatus()+"】"+"->【"+marketingCustomer.getStatus()+"】,");
+            content.append("【extendConfigInfo】=【"+customerOld.getExtendConfigInfo()+"】"+"->【"+marketingCustomer.getExtendConfigInfo()+"】,");
+            content.append("【pushType】=【"+customerOld.getPushType()+"】"+"->【"+marketingCustomer.getPushType()+"】,");
+            content.append("【pushThreadNum】=【"+customerOld.getPushThreadNum()+"】"+"->【"+marketingCustomer.getPushThreadNum()+"】,");
+            content.append("【pushUrl】=【"+customerOld.getPushUrl()+"】"+"->【"+marketingCustomer.getPushUrl()+"】,");
+            content.append("【name】=【"+customerOld.getName()+"】"+"->【"+marketingCustomer.getName()+"】,");
+            content.append("【shortName】=【"+customerOld.getShortName()+"】"+"->【"+marketingCustomer.getShortName()+"】,");
+
+            entityOptLog.setContent(content.toString());
+            entityOptLog.setOptUserId(user.getUserId());
+            entityOptLog.setOptUserName(user.getUsername());
+            /*entityOptLog.setOptUserId("xxx");
+            entityOptLog.setOptUserName("xxxx");*/
+            entityOptLog.setCreateTime(new Date());
+            int i = entityOptLogMapper.insertSelective(entityOptLog);
+            if (StringUtils.isEmpty(i)){
+                log.error("插入日志表 b_entity_opt_log 失败!");
+            }
+            //编辑
+            marketingCustomer.setId(vo.getId());
+            marketingCustomerMapper.updateByPrimaryKeySelective(marketingCustomer);
+
+        }
 
         return new ApiResult<Boolean>().success(true);
     }
