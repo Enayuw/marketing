@@ -135,6 +135,7 @@ public class Constants {
         sendCodeMap.put("dataFileVolumn", "50002");
         sendCodeMap.put("uploadSuccess", "50000");
         sendCodeMap.put("fileUploadFtp", "50003");
+        sendCodeMap.put("pushToCustomer", "60002");
     }
 
     public static final String REDIS_STMT_RULE_PREFIX = "redisMonitor_";
