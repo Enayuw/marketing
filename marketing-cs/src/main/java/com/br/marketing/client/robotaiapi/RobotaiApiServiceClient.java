@@ -12,11 +12,14 @@ import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.MomCommonUtil;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class RobotaiApiServiceClient {
@@ -33,13 +36,17 @@ public class RobotaiApiServiceClient {
     @Autowired
     MomCommonUtil momCommonUtil;
 
+    @Qualifier("logDbpool")
+    @Autowired
+    public ThreadPoolExecutor logDbpool;
+
     public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto,String requestId){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             InterfaceLog interfaceLog = new InterfaceLog();
             interfaceLog.setApiCode(dto.getApiCode());
             interfaceLog.setSwiftNumber(requestId);
-            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil).setUrl(robotOutboundUrl)
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
                     .setInterfaceLog(interfaceLog)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();

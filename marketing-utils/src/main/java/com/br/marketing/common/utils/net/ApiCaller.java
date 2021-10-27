@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 public class ApiCaller {
@@ -23,10 +24,11 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil) {
+    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil,ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
         this.momCommonUtil = momCommonUtil;
+        this.logPool = threadPoolExecutor;
     }
 
     private InterfaceLog interfaceLog = new InterfaceLog();
@@ -52,7 +54,11 @@ public class ApiCaller {
 
     protected String encodeName = "utf-8";
 
+    private ThreadPoolExecutor logPool;
 
+    public void setLogPool(ThreadPoolExecutor logPool) {
+        this.logPool = logPool;
+    }
 
     public String getUrl() {
         return url;
@@ -112,7 +118,9 @@ public class ApiCaller {
                 interfaceLog.setCostTime(System.currentTimeMillis() - start);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
-                momCommonUtil.sendMQ(interfaceLog);
+                logPool.submit(()->{
+                    momCommonUtil.sendMQ(interfaceLog);
+                });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
