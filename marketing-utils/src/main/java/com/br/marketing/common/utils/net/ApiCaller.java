@@ -3,12 +3,16 @@ package com.br.marketing.common.utils.net;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 public class ApiCaller {
@@ -52,7 +56,9 @@ public class ApiCaller {
 
     protected String encodeName = "utf-8";
 
-
+    @Qualifier("logDbpool")
+    @Autowired
+    public ThreadPoolExecutor logDbpool;
 
     public String getUrl() {
         return url;
@@ -112,7 +118,9 @@ public class ApiCaller {
                 interfaceLog.setCostTime(System.currentTimeMillis() - start);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
-                momCommonUtil.sendMQ(interfaceLog);
+                logDbpool.submit(()->{
+                    momCommonUtil.sendMQ(interfaceLog);
+                });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
