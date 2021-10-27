@@ -26,8 +26,18 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             + "</script>")
     boolean bathInsert(@Param("logs") List<PushTransferCustomerLog> logs);
 
-    @Select("SELECT id, transfer_info_id, api_code, request_id, request_body, compensate_times FROM b_marketing_push_transfer_customer_log WHERE status=0")
-    List<PushTransferCustomerLog> findListByStatusIs0();
+    @Select("<script> SELECT id," +
+            "api_code," +
+            "request_id," +
+            "compensate_times," +
+            "request_body " +
+            "FROM b_marketing_push_transfer_customer_log " +
+            "WHERE mod(id, #{shardingTotalCount}) in " +
+            "<foreach collection = 'shardingItems' item='sharding' open='(' close=')' separator=','> "
+            + "#{sharding}"
+            + "</foreach> "
+            + " and push_status = 1 </script>")
+    List<PushTransferCustomerLog> findListByStatusIs1(@Param("shardingTotalCount") int shardingTotalCount, @Param("shardingItems") List<Integer> shardingItems);
 
     /**
      * 根据ApiCode createTime 统计当天数据量

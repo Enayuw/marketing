@@ -81,7 +81,7 @@ public class PushTransferCustomerLog {
     private Integer compensateTimes;
 
     /**
-     * 推送状态：0 一次性成功; 1 补偿中；2 已补偿；3 超出补偿次数；4 废弃
+     * 推送状态：0 一次性成功; 1 补偿中；2 已补偿；3 超出补偿次数；4 放弃补偿
      */
     private Integer pushStatus;
 

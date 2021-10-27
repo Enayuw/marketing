@@ -973,7 +973,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        if (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)) {
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -1365,7 +1368,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional
     public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
         Result<Boolean> result = new Result<>();
-        result.setCode(ResultCode.FAIL.getValue());
+        result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(true);
         String key = null;
         try {
@@ -1374,8 +1377,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("客户转化基础信息不存在");
-                log.error("主键为[{}]的客户转化基础信息不存在", infoId);
+                result.setDate(false);
+                String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
+                log.error(smg);
+                result.setMessage(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 return result;
             }
             MarketingTransferInfo info = list.get(0);
@@ -1390,7 +1397,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             Long apiCodeCount = getApiCodeCount(key);
             // 检查缓存
             if (apiCodeCount < 0) {
-                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                result.setDate(false);
+//                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1398,7 +1410,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 检查db，再次确认
             List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
             if (statusList != null && statusList.size() > 0) {
-                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                result.setDate(false);
+//                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
@@ -1415,14 +1432,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (countStatus == null || countStatus == 0) {
                             transferStatus = 2;
                         } else {
-                            log.error("该客户[{}]当前日期[{}]有补偿数据数据[{}]尚未成功同步至智能客服", apiCode, yyyyMMdd, countStatus);
+                            String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据[%d]尚未成功同步至智能客服"
+                                    , apiCode, yyyyMMdd, countStatus);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("sysError"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
                         }
                     } else {
-
-                        log.error("该客户[{}]当前日期[{}]有补偿数据数据尚未成功同步至智能客服", apiCode, yyyyMMdd);
+                        String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据尚未成功同步至智能客服"
+                                , apiCode, yyyyMMdd);
+                        log.error(smg);
+                        alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                Constants.sendCodeMap.get("sysError"));
                         redisChgService.incrBy(key, -1);
                         redisChgService.expire(key, getKeyExpiration());
                         return result;
@@ -1436,7 +1460,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } else {
                         Integer integer = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndStatus(apiCode, createTime, 0);
                         if (integer == null || integer == 0) {
-                            log.error("该客户[{}]当前日期[{}]缓存数据与db记录数有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
+                            String smg = String.format("该客户[%s]当前日期[%s]缓存数据与db记录数有异常，消息[%d]退回到队列"
+                                    , apiCode, yyyyMMdd, infoId);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("sysError"));
                             redisChgService.incrBy(key, -1);
                             redisChgService.expire(key, getKeyExpiration());
                             return result;
@@ -1447,7 +1475,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } else if (apiCodeCount > 1) {
                     transferStatus = 1;
                 } else {
-                    log.error("该客户[{}]当前日期[{}]缓存数据有异常，消息[{}]退回到队列", apiCode, yyyyMMdd, infoId);
+                    String smg = String.format("该客户[%s]当前日期[%s]缓存数据有异常，消息[%d]退回到队列"
+                            , apiCode, yyyyMMdd, infoId);
+                    log.error(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("sysError"));
                     redisChgService.incrBy(key, -1);
                     redisChgService.expire(key, getKeyExpiration());
                     return result;
@@ -1472,6 +1504,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PageHelper.startPage(page, pageSize);
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
+                if (size < 1) {
+                    PushTransferCustomerLog pushTransferCustomerLog = new PushTransferCustomerLog();
+                    pushTransferCustomerLog.setTransferInfoId(infoId);
+                    pushTransferCustomerLog.setApiCode(apiCode);
+                    pushTransferCustomerLog.setRequestId(requestId);
+                    pushTransferCustomerLog.setPushStatus(4);
+                    pushTransferCustomerLog.setRowSize(0);
+                    logListAll.add(pushTransferCustomerLog);
+                }
                 PageInfo<?> pageList = new PageInfo<>(transferList);
                 // 总页数
                 int pages = pageList.getPages();
@@ -1513,7 +1554,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     transferSyncUserList = null;
                     transferSyncUserListTask = transferList;
                 }
-                if (transferSyncUserListTask != null) {
+                if (transferSyncUserListTask != null && transferSyncUserListTask.size() > 0) {
                     // 4.2 推送转化数据,每次200条，失败后重试3次，标记为同步中
                     PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserListTask, 0, transferSyncUserListTask.size());
                     List<PushTransferCustomerLog> logList = FORK_JOIN_POOL.invoke(task);
@@ -1574,11 +1615,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return result;
                 }
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+            result.setMessage("成功");
             result.setDate(false);
             return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
             if (key != null) {
                 redisChgService.incrBy(key, -1);
@@ -1624,7 +1666,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private PushTransferCustomerLog sendTransferDataToCustomer(final PushCustomerRequestDTO requestDTO
             , int retrySum
             , final int rowSize) {
-        int count = 0;
+        int count = 1;
         if (retrySum < 1) {
             retrySum = 1;
         }
@@ -1638,6 +1680,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         final HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
         ResponseEntity<String> responseEntity = null;
         HttpStatus statusCode = null;
+        String body;
+        JSONObject result;
+        String code;
         int value;
         do {
             log.info("########################第【{}/{}】次调用接口", count, retrySum);
@@ -1645,16 +1690,22 @@ public class PushRuleServiceImpl implements PushRuleService {
                 responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
                 statusCode = responseEntity.getStatusCode();
                 value = statusCode.value();
+                body = responseEntity.getBody();
+                result = JSONObject.parseObject(body);
+                code = String.valueOf(result.get("code"));
                 // 重试休眠
                 TimeUnit.SECONDS.sleep(count < 4 ? count : 3);
             } catch (RestClientException | InterruptedException e) {
                 value = -1;
+                body = "";
+                result = null;
+                code = "";
                 log.error(e.getMessage(), e);
             }
             count++;
-        } while (value != 200 && count < retrySum);
-        int pushStatus = 1;
-        if (ObjectUtils.isEmpty(responseEntity)) {
+        } while ((value != 200 || !"00".equals(code)) && count <= retrySum);
+        int pushStatus = 0;
+        if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
                     , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
@@ -1663,16 +1714,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                     requestDTO.getApiCode()
                     , requestDTO.getJsonData()
                     , rowSize
-                    , pushStatus
+                    , 1
             );
         }
-        String body = responseEntity.getBody();
-        JSONObject result = JSONObject.parseObject(body);
         String reasonPhrase = statusCode.getReasonPhrase();
         log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
-        String code = String.valueOf(result.get("code"));
-        if (value == 200 || "00".equals(code)) {
-            pushStatus = 0;
+        if (value != 200 || !"00".equals(code)) {
+            // 客服业务中出现的非正常状态码全部补偿
+            pushStatus = 1;
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
@@ -1685,7 +1734,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 , body
                 , code
                 , result.get("message") == null ? "" : result.get("message").toString()
-                , result.get("accessNumber") == null ? "" : result.get("accessNumber").toString()
+                , result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString()
                 , rowSize
                 , value
                 , reasonPhrase
