@@ -66,7 +66,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         PageHelper.startPage(page, pageSize);
         try {
             List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute);
-            return PageResultReturn.setPageResult(list, page);
+            return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

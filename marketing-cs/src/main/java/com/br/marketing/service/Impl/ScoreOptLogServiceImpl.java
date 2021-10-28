@@ -45,7 +45,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
                 .andCidEqualTo(cid).andApicodeEqualTo(apiCode);
         example.setOrderByClause("create_time desc");
         List<ScoreOptLog> scoreOptLogs = scoreOptLogMapper.selectByExample(example);
-        return PageResultReturn.setPageResult(scoreOptLogs, page);
+        return PageResultReturn.setPageResult(scoreOptLogs, page, pageSize);
     }
 
     @Override
