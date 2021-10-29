@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PhoneSaleMapper" >
+    <select id="getPushDassData" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        select
+        `id` as id,
+        `uid` as uid,
+        `phone_aes` as phone,
+        `name_aes` as nameSec,
+        `cid_aes` as cid,
+        `sex` as sex,
+        `score` as score,
+        `risk_score` as riskScore,
+        `org_name` as orgName,
+        `source` as source,
+        `user_type` as userType,
+        `type` as type,
+        `custom_name` as customName,
+        `if_register` as ifRegister,
+        `register_time` as registerTime,
+        `if_login` as ifLogin,
+        `login_time` as loginTime,
+        `if_apply` as ifApply,
+        `apply_dt` as applyDt,
+        `apply_time` as  applyTime,
+        `apply_result` as applyResult,
+        `refuse_time` as refuseTime,
+        `audit_time` as auditTime,
+        `audit_amount` as auditAmount,
+        `if_lent` as ifLent,
+        `lent_time` as lentTime,
+        `lent_amount` as lentAmount,
+        `unlent_amount` as unlentAmount,
+        `if_settle` as ifSettle,
+        `settle_time` as settleTime,
+        `extra_set` as extraSet
+        from b_phone_sale
+        where local_id = #{localId}
+        <if test="dataId != null and dataId>0">
+            id > #{dataId}
+        </if>
+        order by id asc limit 1000;
+    </select>
+</mapper>

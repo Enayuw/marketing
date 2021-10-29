@@ -27,10 +27,11 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil) {
+    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil,ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
         this.momCommonUtil = momCommonUtil;
+        this.logDbPool = threadPoolExecutor;
     }
 
     private InterfaceLog interfaceLog = new InterfaceLog();
@@ -56,9 +57,11 @@ public class ApiCaller {
 
     protected String encodeName = "utf-8";
 
-    @Qualifier("logDbpool")
-    @Autowired
-    public ThreadPoolExecutor logDbpool;
+    private ThreadPoolExecutor logDbPool;
+
+    public void setLogPool(ThreadPoolExecutor logPool) {
+        this.logDbPool = logPool;
+    }
 
     public String getUrl() {
         return url;
@@ -118,7 +121,7 @@ public class ApiCaller {
                 interfaceLog.setCostTime(System.currentTimeMillis() - start);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
-                logDbpool.submit(()->{
+                logDbPool.submit(()->{
                     momCommonUtil.sendMQ(interfaceLog);
                 });
             } catch (Exception ex) {
