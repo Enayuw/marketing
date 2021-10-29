@@ -69,6 +69,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setSort(vo.getSort());
         marketingCustomer.setStatus((byte) 1);
         marketingCustomer.setExtendConfigInfo(vo.getExtendConfigInfo());
+        marketingCustomer.setType("all,once");
         //push_type如果为1,push_url、push_thread_num必须不为空
         marketingCustomer.setPushType(vo.getPushType()!=null?vo.getPushType():0);
         marketingCustomer.setPushThreadNum(vo.getPushThreadNum()!=null?vo.getPushThreadNum():0);
