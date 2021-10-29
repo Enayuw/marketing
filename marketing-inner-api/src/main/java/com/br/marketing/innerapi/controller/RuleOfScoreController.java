@@ -41,9 +41,9 @@ public class RuleOfScoreController {
      */
     @GetMapping("/page")
     @ApiOperation(value = "列表数据", notes = "获取跑分配置列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer"
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer"
             , defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer"
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer"
             , defaultValue = "10")
             , @ApiImplicitParam(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；2-禁用；3-开启中", paramType = "query", dataType = "enum"
@@ -54,8 +54,8 @@ public class RuleOfScoreController {
             , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
-    public ApiResult<PageResultReturn> findListPage(@RequestParam(defaultValue = "1") int page
-            , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
+            , @RequestParam(name = "size", defaultValue = "10") int pageSize
             , @RequestParam(required = false) String search
             , @RequestParam(required = false) Integer status
             , @RequestParam(required = false) String cts
