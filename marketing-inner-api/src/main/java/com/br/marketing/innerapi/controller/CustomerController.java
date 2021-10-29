@@ -56,7 +56,7 @@ public class CustomerController {
     @GetMapping("/getCustomerList")
     @ApiOperation(value = "客户信息列表数据", notes = "获取客户信息列表数据", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "ize", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
