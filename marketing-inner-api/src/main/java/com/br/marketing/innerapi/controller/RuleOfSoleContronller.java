@@ -41,8 +41,8 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @GetMapping("/list")
-    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int page
-                                            , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
+                                            , @RequestParam(defaultValue = "10") int size
                                             , @RequestParam(required = false) String soleName
                                             , @RequestParam(required = false) Integer status
                                             , @RequestParam(required = false) String createTimeStart
@@ -51,7 +51,7 @@ public class RuleOfSoleContronller {
                                             , @RequestParam(required = false) String updateTimeEnd
                                             ){
         try {
-            PageResultReturn list = ruleOfSoleService.list(page, pageSize,soleName,status,
+            PageResultReturn list = ruleOfSoleService.list(current, size,soleName,status,
                     createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
             return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {
@@ -172,11 +172,11 @@ public class RuleOfSoleContronller {
     @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
     @GetMapping("/getUpdateRecord")
     public ApiResult<PageResultReturn> getUpdateRecord(@RequestParam(required = true) String id,
-                                                       @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int pageSize){
+                                                       @RequestParam(defaultValue = "1") int current,
+                                                       @RequestParam(defaultValue = "10") int size){
         //查询
         try {
-            PageResultReturn list = ruleOfSoleService.getUpdateRecord(id,page,pageSize);
+            PageResultReturn list = ruleOfSoleService.getUpdateRecord(id,current,size);
             return new ApiResult<PageResultReturn>().success(list);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);

@@ -61,11 +61,11 @@ public class CustomerController {
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
-    public ApiResult<PageResultReturn> getCustomerList(@RequestParam(defaultValue = "1") int page
-                                                        , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> getCustomerList(@RequestParam(defaultValue = "1") int current
+                                                        , @RequestParam(defaultValue = "10") int size
                                                         , @RequestParam(required = false) String cid
                                                         , @RequestParam(required = false) String apiCode) {
-        PageResultReturn listPage = marketingCustomerService.getCustomerList(page, pageSize, cid, apiCode);
+        PageResultReturn listPage = marketingCustomerService.getCustomerList(current, size, cid, apiCode);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
