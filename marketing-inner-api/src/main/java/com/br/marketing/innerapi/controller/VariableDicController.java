@@ -58,16 +58,16 @@ public class VariableDicController {
 
     @GetMapping("/getVariableDicList")
     @ApiOperation(value = "客户配置变量值列表数据", notes = "客户配置变量值列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
-    public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int page
-            , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int current
+            , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String cid
             , @RequestParam(required = false) String apiCode) {
-        PageResultReturn listPage = variableDicService.getVariableDicList(page, pageSize, cid, apiCode);
+        PageResultReturn listPage = variableDicService.getVariableDicList(current, size, cid, apiCode);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

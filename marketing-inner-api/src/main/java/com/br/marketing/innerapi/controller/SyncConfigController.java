@@ -31,15 +31,15 @@ public class SyncConfigController {
 
     @GetMapping("/getSftpList")
     @ApiOperation(value = "客户sftp账号列表", notes = "客户sftp账号列表", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
-    public ApiResult<PageResultReturn> getSftpList(@RequestParam(defaultValue = "1") int page
-                                                        , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> getSftpList(@RequestParam(defaultValue = "1") int current
+                                                        , @RequestParam(defaultValue = "10") int size
                                                         , @RequestParam(required = false) String apiCode) {
-        PageResultReturn listPage = syncConfigService.getSftpList(page, pageSize, apiCode);
+        PageResultReturn listPage = syncConfigService.getSftpList(current, size, apiCode);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
