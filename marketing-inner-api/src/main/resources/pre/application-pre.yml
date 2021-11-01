@@ -94,10 +94,10 @@ api:
   robotAiApiService:
     baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
-    base2Url: http://robotai-api-service/api
-    pushTransferUrl: ${api.robotAiApiService.base2Url}/robotOutbound
   customerService:
     apiCode: 4000296
+  pushTransfer:
+    urlMap: "{'7410846':'http://robotai-api-service/api/robotOutbound','7410787':'http://robotai-api-service/api/robotOutbound'}" # eg: "{'apiCode':'url',apiCode:'url'}"
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

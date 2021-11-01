@@ -13,7 +13,7 @@
                         http://www.dangdang.com/schema/ddframe/job 
                         http://www.dangdang.com/schema/ddframe/job/job.xsd 
                         ">
-    <context:component-scan base-package="com.br.marketing.task.job"/>
+    <context:component-scan base-package="com.br.marketing.innerapi.task"/>
 
     <reg:zookeeper id="regCenter"
                    server-lists="${SERVER_LISTS}"
@@ -26,38 +26,10 @@
                    connection-timeout-milliseconds="60000"/>
 
 
-<!--    <job:simple id="taskJob"-->
-<!--                class="com.br.marketing.task.job.TaskJob"-->
-<!--                cron="0 0/30 * * * ? "-->
-<!--                description="跑批任务"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="2"-->
-<!--                sharding-item-parameters="0=A,1=B"-->
-<!--                monitor-execution="true"-->
-<!--                failover="true"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
-    <job:simple id="taskCurrentJob"
-                class="com.br.marketing.task.job.TaskConcurrentJob"
+    <job:simple id="taskPushTransferToCustomerJob"
+                class="com.br.marketing.innerapi.task.TaskPushTransferToCustomerJob"
                 cron="0 0/30 * * * ? "
-                description="多片跑批任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="2"
-                sharding-item-parameters="0=A,1=B"
-                monitor-execution="true"
-                failover="true"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-    <job:simple id="taskJob-QA-task"
-                class="com.br.marketing.task.job.QaTaskJob"
-                cron="0 0 11 1/1 1/1 ? 2055-2056"
-                description="跑批任务-测试专用"
+                description="接口转化推送客服失败记录补偿任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="2"
                 sharding-item-parameters="0=A,1=B"

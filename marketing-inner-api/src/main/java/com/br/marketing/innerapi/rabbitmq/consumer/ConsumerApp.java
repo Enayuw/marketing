@@ -41,7 +41,7 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushRuleService::pushTransferDataToCustomer, o, null);
+        consumerService.consumerRun(channel, message, pushRuleService::pushPersonalTransferData, o, null);
     }
 
 }

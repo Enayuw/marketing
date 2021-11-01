@@ -72,6 +72,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -122,8 +123,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource(name = "loadBalanced")
     private RestTemplate restTemplate;
 
-    @Value("${api.robotAiApiService.pushTransferUrl:http://robotai-api-service/api/robotOutbound}")
-    private String pushTransferUrl;
+    @Value("#{${api.pushTransfer.urlMap:'-1:NULL'}}")
+    private Map<String, String> pushTransferUrlMap;
 
     @Resource
     private PushTransferCustomerLogMapper pushTransferCustomerLogMapper;
@@ -1364,12 +1365,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 队列模式，false 后人先出，true 先进先出
             false);
 
+    private static final Pattern urlRegex = Pattern.compile("^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]");
+
     @Override
     @Transactional
-    public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
+    public synchronized Result<Boolean> pushPersonalTransferData(Long infoId) {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
-        result.setDate(true);
         String key = null;
         try {
             // 传输标记
@@ -1388,6 +1390,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingTransferInfo info = list.get(0);
             String apiCode = info.getApiCode();
             Date createTime = info.getCreateTime();
+            if (!pushTransferUrlMap.containsKey(apiCode)) {
+                result.setDate(false);
+                return result;
+            }
+            result.setDate(true);
             //        String yyyyMMdd = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             // 格式化入库时间
             String yyyyMMdd = createTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
@@ -1406,6 +1413,19 @@ public class PushRuleServiceImpl implements PushRuleService {
                 redisChgService.incrBy(key, -1);
                 redisChgService.expire(key, getKeyExpiration());
                 return result;
+            } else if (apiCodeCount == 1) {
+                Matcher matcher = urlRegex.matcher(pushTransferUrlMap.get(apiCode));
+                if (!matcher.matches()) {
+                    result.setDate(false);
+                    redisChgService.incrBy(key, -1);
+                    redisChgService.expire(key, getKeyExpiration());
+                    String smg = String.format("该客户[%s]在此日期[%s]配置的推送地址[%s]错误，因此本条[%d]消息将重放队列"
+                            , apiCode, yyyyMMdd, pushTransferUrlMap.get(apiCode), infoId);
+                    log.error(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
+                    return result;
+                }
             }
             // 检查db，再次确认
             List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
@@ -1687,7 +1707,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         do {
             log.info("########################第【{}/{}】次调用接口", count, retrySum);
             try {
-                responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
+                responseEntity = restTemplate.postForEntity(pushTransferUrlMap.get(requestDTO.getApiCode())
+                        , stringHttpEntity, String.class);
                 statusCode = responseEntity.getStatusCode();
                 value = statusCode.value();
                 body = responseEntity.getBody();

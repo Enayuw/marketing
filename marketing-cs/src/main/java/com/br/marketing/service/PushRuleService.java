@@ -1,7 +1,10 @@
 package com.br.marketing.service;
 
-import com.br.marketing.dto.*;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.dto.CustomerBatchNumDTO;
+import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
+import com.br.marketing.dto.PushCustomerDTO;
+import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.br.marketing.vo.MarketingTransferUserStatusVO;
@@ -9,7 +12,6 @@ import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 
 import javax.validation.Valid;
-import java.text.ParseException;
 import java.util.List;
 
 public interface PushRuleService {
@@ -102,10 +104,10 @@ public interface PushRuleService {
     /**
      * 异步消费接口转化数据推送至客服
      *
-     * @param infoId  客户转化基础信息id
+     * @param infoId 客户转化基础信息id
      * @return Result
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 10:53
      */
-    Result<Boolean> pushTransferDataToCustomer(Long infoId);
+    Result<Boolean> pushPersonalTransferData(Long infoId);
 }
