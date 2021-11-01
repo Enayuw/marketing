@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 接口转化推送客服失败记录补偿任务
@@ -38,8 +39,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
     @Resource(name = "loadBalanced")
     private RestTemplate restTemplate;
 
-    @Value("${api.robotAiApiService.pushTransferUrl:http://robotai-api-service/api/robotOutbound}")
-    private String pushTransferUrl;
+    @Value("#{${api.pushTransfer.urlMap:'-1:NULL'}}")
+    private Map<String, String> pushTransferUrlMap;
 
     @Resource
     private PushTransferCustomerLogService pushTransferCustomerLogService;
@@ -67,6 +68,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         tempHeaders.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
         tempHeaders.setAccept(Collections.singletonList(MediaType.ALL));
         MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
+        String apiCode;
         for (PushTransferCustomerLog customerLog : rows) {
             PushTransferCustomerLog updateLog = new PushTransferCustomerLog();
             updateLog.setId(customerLog.getId());
@@ -78,7 +80,11 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             postParameters.add("apiCode", customerLog.getApiCode());
             postParameters.add("jsonData", customerLog.getRequestBody());
             HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
+            apiCode = customerLog.getApiCode();
+            if (!pushTransferUrlMap.containsKey(apiCode)) {
+                continue;
+            }
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pushTransferUrlMap.get(apiCode), stringHttpEntity, String.class);
             HttpStatus statusCode = responseEntity.getStatusCode();
             if (ObjectUtils.isEmpty(responseEntity)) {
                 String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"

@@ -62,12 +62,27 @@ otherConfig:
   alarm:
     secretKey: a9c57e4138807a9e18b439cd9dab275b
     appName: marketing
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
+    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideAppName: marketing-out
   userCenter:
     appName: loan-strategy
     appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  warning:
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: 10.100.123.65
+    sftpPort: 9999
+    sftpUser: BRmarketing_pre
+    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
+  proxy:
+    proxy_host_zw: 192.168.22.169
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
@@ -81,3 +96,15 @@ api:
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   customerService:
     apiCode: 4000296
+  pushTransfer:
+    urlMap: "{'3710012':'http://robotai-api-service/api/robotOutbound'}" # eg: "{'apiCode':'url',apiCode:'url'}"
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+corn:
+  taskJob: 0 0/30 * * * ?
