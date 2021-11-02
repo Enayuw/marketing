@@ -1,5 +1,7 @@
 package com.br.marketing.client.dassservice.input;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.List;
 @Data
 public class DassImportDataDTO {
 
+    @JsonIgnore
     private Long id;
 
     /**
@@ -28,12 +31,14 @@ public class DassImportDataDTO {
     /**
      * 变量key-value
      */
-    private String recv_data = "";
+    @JSONField(name = "recv_data")
+    private String recvData = "";
 
     /**
      * 数组变量list
      */
-    private List recv_vars = new ArrayList<>();
+    @JSONField(name = "recv_vars")
+    private List recvVars = new ArrayList<>();
 
     /**
      * 姓
@@ -63,18 +68,21 @@ public class DassImportDataDTO {
     /**
      * 机构运营场景
      */
-    private String user_type;
+    @JSONField(name = "user_type")
+    private String userType;
 
 
     /**
      * 产品信息
      */
-    private String product_name;
+    @JSONField(name = "product_name")
+    private String productName;
 
     /**
      * 乐花卡类型（1 人工结清 2人工未结清）
      */
-    private String flag_type;
+    @JSONField(name = "flag_type")
+    private String flagType;
 
     /**
      * 机器人转化节点类型
@@ -89,42 +97,50 @@ public class DassImportDataDTO {
     /**
      * 是否注册
      */
-    private String if_register;
+    @JSONField(name = "if_register")
+    private String ifRegister;
 
     /**
      * 注册时间
      */
-    private String register_time;
+    @JSONField(name = "register_time")
+    private String registerTime;
 
     /**
      * 是否登录
      */
-    private String if_login;
+    @JSONField(name = "if_login")
+    private String ifLogin;
 
     /**
      * 登录时间
      */
-    private String login_time;
+    @JSONField(name = "login_time")
+    private String loginTime;
 
     /**
      * 是否进件
      */
-    private String if_apply;
+    @JSONField(name = "if_apply")
+    private String ifApply;
 
     /**
      * 进件时间
      */
-    private String apply_dt;
+    @JSONField(name = "apply_dt")
+    private String applyDt;
 
     /**
      * 审批时间
      */
-    private String apply_time;
+    @JSONField(name = "apply_time")
+    private String applyTime;
 
     /**
      * 审批结果
      */
-    private String apply_result;
+    @JSONField(name = "apply_result")
+    private String applyResult;
 
     /**
      * 页面节点
@@ -139,47 +155,56 @@ public class DassImportDataDTO {
     /**
      * 拒绝时间
      */
-    private String refuse_time;
+    @JSONField(name = "refuse_time")
+    private String refuseTime;
 
     /**
      * 授信时间
      */
-    private String audit_time;
+    @JSONField(name = "audit_time")
+    private String auditTime;
 
     /**
      * 授信总金额
      */
-    private String audit_amount;
+    @JSONField(name = "audit_amount")
+    private String auditAmount;
 
     /**
      * 是否提现
      */
-    private String if_lent;
+    @JSONField(name = "if_lent")
+    private String ifLent;
 
     /**
      * 提现时间
      */
-    private String lent_time;
+    @JSONField(name = "lent_time")
+    private String lentTime;
 
     /**
      * 提现金额
      */
-    private String lent_amount;
+    @JSONField(name = "lent_amount")
+    private String lentAmount;
 
     /**
      * 未提现额度
      */
-    private String unlent_amount;
+    @JSONField(name = "unlent_amount")
+    private String unlentAmount;
 
     /**
      * 是否结清
      */
-    private String if_settle;
+    @JSONField(name = "if_settle")
+    private String ifSettle;
 
     /**
      * 结清时间
      */
-    private String settle_time;
+    @JSONField(name = "settle_time")
+    private String settleTime;
 
     /**
      * 0-无活动  1-红包  2-24%利率  3-30%利率
