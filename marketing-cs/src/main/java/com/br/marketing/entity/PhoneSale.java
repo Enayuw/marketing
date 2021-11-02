@@ -69,34 +69,24 @@ public class PhoneSale {
     private String nameAes;
 
     /**
-     * 身份证号
-     */
-    private String cid;
-
-    /**
-     * 身份证id aes加密
-     */
-    private String cidAes;
-
-    /**
      * 性别
      */
-    private String sex;
+    private String gender;
 
     /**
      * 营销分
      */
-    private String score;
+    private String marketscore;
 
     /**
      * 风控分
      */
-    private String riskScore;
+    private String riskscore;
 
     /**
      * 机构名称
      */
-    private String orgName;
+    private String orgname;
 
     /**
      * 数据源
@@ -109,14 +99,24 @@ public class PhoneSale {
     private String userType;
 
     /**
+     * 产品信息
+     */
+    private String productName;
+
+    /**
+     * 乐花卡类型（1 人工结清 2人工未结清）
+     */
+    private String flagType;
+
+    /**
      * 机器人转化节点类型
      */
     private String type;
 
     /**
-     * 客群名称
+     * 意向等级
      */
-    private String customName;
+    private String level;
 
     /**
      * 是否注册
@@ -157,6 +157,16 @@ public class PhoneSale {
      * 审批结果
      */
     private String applyResult;
+
+    /**
+     * 页面节点
+     */
+    private String pagenode;
+
+    /**
+     * 1人工 2机器人
+     */
+    private String optype;
 
     /**
      * 拒绝时间
@@ -209,14 +219,19 @@ public class PhoneSale {
     private String activity;
 
     /**
-     * 上传时间
+     * 推荐产品
      */
-    private String day;
+    private String production;
+
+    /**
+     * 经营地区
+     */
+    private String region;
 
     /**
      * 扩展字段
      */
-    private String extraSet;
+    private String extend;
 
     /**
      * 创建时间
@@ -332,52 +347,36 @@ public class PhoneSale {
         this.nameAes = nameAes == null ? null : nameAes.trim();
     }
 
-    public String getCid() {
-        return cid;
+    public String getGender() {
+        return gender;
     }
 
-    public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
+    public void setGender(String gender) {
+        this.gender = gender == null ? null : gender.trim();
     }
 
-    public String getCidAes() {
-        return cidAes;
+    public String getMarketscore() {
+        return marketscore;
     }
 
-    public void setCidAes(String cidAes) {
-        this.cidAes = cidAes == null ? null : cidAes.trim();
+    public void setMarketscore(String marketscore) {
+        this.marketscore = marketscore == null ? null : marketscore.trim();
     }
 
-    public String getSex() {
-        return sex;
+    public String getRiskscore() {
+        return riskscore;
     }
 
-    public void setSex(String sex) {
-        this.sex = sex == null ? null : sex.trim();
+    public void setRiskscore(String riskscore) {
+        this.riskscore = riskscore == null ? null : riskscore.trim();
     }
 
-    public String getScore() {
-        return score;
+    public String getOrgname() {
+        return orgname;
     }
 
-    public void setScore(String score) {
-        this.score = score == null ? null : score.trim();
-    }
-
-    public String getRiskScore() {
-        return riskScore;
-    }
-
-    public void setRiskScore(String riskScore) {
-        this.riskScore = riskScore == null ? null : riskScore.trim();
-    }
-
-    public String getOrgName() {
-        return orgName;
-    }
-
-    public void setOrgName(String orgName) {
-        this.orgName = orgName == null ? null : orgName.trim();
+    public void setOrgname(String orgname) {
+        this.orgname = orgname == null ? null : orgname.trim();
     }
 
     public String getSource() {
@@ -396,6 +395,22 @@ public class PhoneSale {
         this.userType = userType == null ? null : userType.trim();
     }
 
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName == null ? null : productName.trim();
+    }
+
+    public String getFlagType() {
+        return flagType;
+    }
+
+    public void setFlagType(String flagType) {
+        this.flagType = flagType == null ? null : flagType.trim();
+    }
+
     public String getType() {
         return type;
     }
@@ -404,12 +419,12 @@ public class PhoneSale {
         this.type = type == null ? null : type.trim();
     }
 
-    public String getCustomName() {
-        return customName;
+    public String getLevel() {
+        return level;
     }
 
-    public void setCustomName(String customName) {
-        this.customName = customName == null ? null : customName.trim();
+    public void setLevel(String level) {
+        this.level = level == null ? null : level.trim();
     }
 
     public String getIfRegister() {
@@ -474,6 +489,22 @@ public class PhoneSale {
 
     public void setApplyResult(String applyResult) {
         this.applyResult = applyResult == null ? null : applyResult.trim();
+    }
+
+    public String getPagenode() {
+        return pagenode;
+    }
+
+    public void setPagenode(String pagenode) {
+        this.pagenode = pagenode == null ? null : pagenode.trim();
+    }
+
+    public String getOptype() {
+        return optype;
+    }
+
+    public void setOptype(String optype) {
+        this.optype = optype == null ? null : optype.trim();
     }
 
     public String getRefuseTime() {
@@ -556,20 +587,28 @@ public class PhoneSale {
         this.activity = activity == null ? null : activity.trim();
     }
 
-    public String getDay() {
-        return day;
+    public String getProduction() {
+        return production;
     }
 
-    public void setDay(String day) {
-        this.day = day == null ? null : day.trim();
+    public void setProduction(String production) {
+        this.production = production == null ? null : production.trim();
     }
 
-    public String getExtraSet() {
-        return extraSet;
+    public String getRegion() {
+        return region;
     }
 
-    public void setExtraSet(String extraSet) {
-        this.extraSet = extraSet == null ? null : extraSet.trim();
+    public void setRegion(String region) {
+        this.region = region == null ? null : region.trim();
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 
     public Date getCreateTime() {

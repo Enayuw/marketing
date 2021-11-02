@@ -59,7 +59,8 @@
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
-            <columnOverride column="extra_set" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />
+<!--            <columnOverride column="retry_param" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="json_data" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="reserve_field2" javaType="java.lang.String" jdbcType="VARCHAR" />-->

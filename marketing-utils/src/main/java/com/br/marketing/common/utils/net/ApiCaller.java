@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 
 @Slf4j
 public class ApiCaller {

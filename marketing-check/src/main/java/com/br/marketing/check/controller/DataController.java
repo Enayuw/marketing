@@ -1,6 +1,7 @@
 package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.service.DataService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.DataTest;
@@ -8,7 +9,9 @@ import com.br.marketing.mapper.DataTestMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.PushDataService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.mbeans.ServiceMBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.serviceloader.ServiceFactoryBean;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

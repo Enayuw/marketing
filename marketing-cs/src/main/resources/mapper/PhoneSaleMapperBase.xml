@@ -15,16 +15,16 @@
     <result column="phone_aes" property="phoneAes" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="name_aes" property="nameAes" jdbcType="VARCHAR" />
-    <result column="cid" property="cid" jdbcType="VARCHAR" />
-    <result column="cid_aes" property="cidAes" jdbcType="VARCHAR" />
-    <result column="sex" property="sex" jdbcType="VARCHAR" />
-    <result column="score" property="score" jdbcType="VARCHAR" />
-    <result column="risk_score" property="riskScore" jdbcType="VARCHAR" />
-    <result column="org_name" property="orgName" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="VARCHAR" />
+    <result column="marketscore" property="marketscore" jdbcType="VARCHAR" />
+    <result column="riskscore" property="riskscore" jdbcType="VARCHAR" />
+    <result column="orgname" property="orgname" jdbcType="VARCHAR" />
     <result column="source" property="source" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="flag_type" property="flagType" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="VARCHAR" />
-    <result column="custom_name" property="customName" jdbcType="VARCHAR" />
+    <result column="level" property="level" jdbcType="VARCHAR" />
     <result column="if_register" property="ifRegister" jdbcType="VARCHAR" />
     <result column="register_time" property="registerTime" jdbcType="VARCHAR" />
     <result column="if_login" property="ifLogin" jdbcType="VARCHAR" />
@@ -33,6 +33,8 @@
     <result column="apply_dt" property="applyDt" jdbcType="VARCHAR" />
     <result column="apply_time" property="applyTime" jdbcType="VARCHAR" />
     <result column="apply_result" property="applyResult" jdbcType="VARCHAR" />
+    <result column="pagenode" property="pagenode" jdbcType="VARCHAR" />
+    <result column="optype" property="optype" jdbcType="VARCHAR" />
     <result column="refuse_time" property="refuseTime" jdbcType="VARCHAR" />
     <result column="audit_time" property="auditTime" jdbcType="VARCHAR" />
     <result column="audit_amount" property="auditAmount" jdbcType="VARCHAR" />
@@ -43,8 +45,9 @@
     <result column="if_settle" property="ifSettle" jdbcType="VARCHAR" />
     <result column="settle_time" property="settleTime" jdbcType="VARCHAR" />
     <result column="activity" property="activity" jdbcType="VARCHAR" />
-    <result column="day" property="day" jdbcType="VARCHAR" />
-    <result column="extra_set" property="extraSet" jdbcType="VARCHAR" />
+    <result column="production" property="production" jdbcType="VARCHAR" />
+    <result column="region" property="region" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -108,11 +111,11 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_cid, api_code, sync_log_id, batch_id, local_id, status, data_message, uid, 
-    phone, phone_aes, name, name_aes, cid, cid_aes, sex, score, risk_score, org_name, 
-    source, user_type, type, custom_name, if_register, register_time, if_login, login_time, 
-    if_apply, apply_dt, apply_time, apply_result, refuse_time, audit_time, audit_amount, 
-    if_lent, lent_time, lent_amount, unlent_amount, if_settle, settle_time, activity, 
-    day, extra_set, create_time, update_time
+    phone, phone_aes, name, name_aes, gender, marketscore, riskscore, orgname, source, 
+    user_type, product_name, flag_type, type, level, if_register, register_time, if_login, 
+    login_time, if_apply, apply_dt, apply_time, apply_result, pagenode, optype, refuse_time, 
+    audit_time, audit_amount, if_lent, lent_time, lent_amount, unlent_amount, if_settle, 
+    settle_time, activity, production, region, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExample" >
     select
@@ -152,32 +155,34 @@
       batch_id, local_id, status, 
       data_message, uid, phone, 
       phone_aes, name, name_aes, 
-      cid, cid_aes, sex, score, 
-      risk_score, org_name, source, 
-      user_type, type, custom_name, 
-      if_register, register_time, if_login, 
-      login_time, if_apply, apply_dt, 
-      apply_time, apply_result, refuse_time, 
+      gender, marketscore, riskscore, 
+      orgname, source, user_type, 
+      product_name, flag_type, type, 
+      level, if_register, register_time, 
+      if_login, login_time, if_apply, 
+      apply_dt, apply_time, apply_result, 
+      pagenode, optype, refuse_time, 
       audit_time, audit_amount, if_lent, 
       lent_time, lent_amount, unlent_amount, 
       if_settle, settle_time, activity, 
-      day, extra_set, create_time, 
-      update_time)
+      production, region, extend, 
+      create_time, update_time)
     values (#{apiCid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{syncLogId,jdbcType=VARCHAR}, 
       #{batchId,jdbcType=VARCHAR}, #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{dataMessage,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
       #{phoneAes,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{nameAes,jdbcType=VARCHAR}, 
-      #{cid,jdbcType=VARCHAR}, #{cidAes,jdbcType=VARCHAR}, #{sex,jdbcType=VARCHAR}, #{score,jdbcType=VARCHAR}, 
-      #{riskScore,jdbcType=VARCHAR}, #{orgName,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
-      #{userType,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{customName,jdbcType=VARCHAR}, 
-      #{ifRegister,jdbcType=VARCHAR}, #{registerTime,jdbcType=VARCHAR}, #{ifLogin,jdbcType=VARCHAR}, 
-      #{loginTime,jdbcType=VARCHAR}, #{ifApply,jdbcType=VARCHAR}, #{applyDt,jdbcType=VARCHAR}, 
-      #{applyTime,jdbcType=VARCHAR}, #{applyResult,jdbcType=VARCHAR}, #{refuseTime,jdbcType=VARCHAR}, 
+      #{gender,jdbcType=VARCHAR}, #{marketscore,jdbcType=VARCHAR}, #{riskscore,jdbcType=VARCHAR}, 
+      #{orgname,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
+      #{productName,jdbcType=VARCHAR}, #{flagType,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{level,jdbcType=VARCHAR}, #{ifRegister,jdbcType=VARCHAR}, #{registerTime,jdbcType=VARCHAR}, 
+      #{ifLogin,jdbcType=VARCHAR}, #{loginTime,jdbcType=VARCHAR}, #{ifApply,jdbcType=VARCHAR}, 
+      #{applyDt,jdbcType=VARCHAR}, #{applyTime,jdbcType=VARCHAR}, #{applyResult,jdbcType=VARCHAR}, 
+      #{pagenode,jdbcType=VARCHAR}, #{optype,jdbcType=VARCHAR}, #{refuseTime,jdbcType=VARCHAR}, 
       #{auditTime,jdbcType=VARCHAR}, #{auditAmount,jdbcType=VARCHAR}, #{ifLent,jdbcType=VARCHAR}, 
       #{lentTime,jdbcType=VARCHAR}, #{lentAmount,jdbcType=VARCHAR}, #{unlentAmount,jdbcType=VARCHAR}, 
       #{ifSettle,jdbcType=VARCHAR}, #{settleTime,jdbcType=VARCHAR}, #{activity,jdbcType=VARCHAR}, 
-      #{day,jdbcType=VARCHAR}, #{extraSet,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{production,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSale" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -221,23 +226,17 @@
       <if test="nameAes != null" >
         name_aes,
       </if>
-      <if test="cid != null" >
-        cid,
+      <if test="gender != null" >
+        gender,
       </if>
-      <if test="cidAes != null" >
-        cid_aes,
+      <if test="marketscore != null" >
+        marketscore,
       </if>
-      <if test="sex != null" >
-        sex,
+      <if test="riskscore != null" >
+        riskscore,
       </if>
-      <if test="score != null" >
-        score,
-      </if>
-      <if test="riskScore != null" >
-        risk_score,
-      </if>
-      <if test="orgName != null" >
-        org_name,
+      <if test="orgname != null" >
+        orgname,
       </if>
       <if test="source != null" >
         source,
@@ -245,11 +244,17 @@
       <if test="userType != null" >
         user_type,
       </if>
+      <if test="productName != null" >
+        product_name,
+      </if>
+      <if test="flagType != null" >
+        flag_type,
+      </if>
       <if test="type != null" >
         type,
       </if>
-      <if test="customName != null" >
-        custom_name,
+      <if test="level != null" >
+        level,
       </if>
       <if test="ifRegister != null" >
         if_register,
@@ -274,6 +279,12 @@
       </if>
       <if test="applyResult != null" >
         apply_result,
+      </if>
+      <if test="pagenode != null" >
+        pagenode,
+      </if>
+      <if test="optype != null" >
+        optype,
       </if>
       <if test="refuseTime != null" >
         refuse_time,
@@ -305,11 +316,14 @@
       <if test="activity != null" >
         activity,
       </if>
-      <if test="day != null" >
-        day,
+      <if test="production != null" >
+        production,
       </if>
-      <if test="extraSet != null" >
-        extra_set,
+      <if test="region != null" >
+        region,
+      </if>
+      <if test="extend != null" >
+        extend,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -355,23 +369,17 @@
       <if test="nameAes != null" >
         #{nameAes,jdbcType=VARCHAR},
       </if>
-      <if test="cid != null" >
-        #{cid,jdbcType=VARCHAR},
+      <if test="gender != null" >
+        #{gender,jdbcType=VARCHAR},
       </if>
-      <if test="cidAes != null" >
-        #{cidAes,jdbcType=VARCHAR},
+      <if test="marketscore != null" >
+        #{marketscore,jdbcType=VARCHAR},
       </if>
-      <if test="sex != null" >
-        #{sex,jdbcType=VARCHAR},
+      <if test="riskscore != null" >
+        #{riskscore,jdbcType=VARCHAR},
       </if>
-      <if test="score != null" >
-        #{score,jdbcType=VARCHAR},
-      </if>
-      <if test="riskScore != null" >
-        #{riskScore,jdbcType=VARCHAR},
-      </if>
-      <if test="orgName != null" >
-        #{orgName,jdbcType=VARCHAR},
+      <if test="orgname != null" >
+        #{orgname,jdbcType=VARCHAR},
       </if>
       <if test="source != null" >
         #{source,jdbcType=VARCHAR},
@@ -379,11 +387,17 @@
       <if test="userType != null" >
         #{userType,jdbcType=VARCHAR},
       </if>
+      <if test="productName != null" >
+        #{productName,jdbcType=VARCHAR},
+      </if>
+      <if test="flagType != null" >
+        #{flagType,jdbcType=VARCHAR},
+      </if>
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
       </if>
-      <if test="customName != null" >
-        #{customName,jdbcType=VARCHAR},
+      <if test="level != null" >
+        #{level,jdbcType=VARCHAR},
       </if>
       <if test="ifRegister != null" >
         #{ifRegister,jdbcType=VARCHAR},
@@ -408,6 +422,12 @@
       </if>
       <if test="applyResult != null" >
         #{applyResult,jdbcType=VARCHAR},
+      </if>
+      <if test="pagenode != null" >
+        #{pagenode,jdbcType=VARCHAR},
+      </if>
+      <if test="optype != null" >
+        #{optype,jdbcType=VARCHAR},
       </if>
       <if test="refuseTime != null" >
         #{refuseTime,jdbcType=VARCHAR},
@@ -439,11 +459,14 @@
       <if test="activity != null" >
         #{activity,jdbcType=VARCHAR},
       </if>
-      <if test="day != null" >
-        #{day,jdbcType=VARCHAR},
+      <if test="production != null" >
+        #{production,jdbcType=VARCHAR},
       </if>
-      <if test="extraSet != null" >
-        #{extraSet,jdbcType=VARCHAR},
+      <if test="region != null" >
+        #{region,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -501,23 +524,17 @@
       <if test="record.nameAes != null" >
         name_aes = #{record.nameAes,jdbcType=VARCHAR},
       </if>
-      <if test="record.cid != null" >
-        cid = #{record.cid,jdbcType=VARCHAR},
+      <if test="record.gender != null" >
+        gender = #{record.gender,jdbcType=VARCHAR},
       </if>
-      <if test="record.cidAes != null" >
-        cid_aes = #{record.cidAes,jdbcType=VARCHAR},
+      <if test="record.marketscore != null" >
+        marketscore = #{record.marketscore,jdbcType=VARCHAR},
       </if>
-      <if test="record.sex != null" >
-        sex = #{record.sex,jdbcType=VARCHAR},
+      <if test="record.riskscore != null" >
+        riskscore = #{record.riskscore,jdbcType=VARCHAR},
       </if>
-      <if test="record.score != null" >
-        score = #{record.score,jdbcType=VARCHAR},
-      </if>
-      <if test="record.riskScore != null" >
-        risk_score = #{record.riskScore,jdbcType=VARCHAR},
-      </if>
-      <if test="record.orgName != null" >
-        org_name = #{record.orgName,jdbcType=VARCHAR},
+      <if test="record.orgname != null" >
+        orgname = #{record.orgname,jdbcType=VARCHAR},
       </if>
       <if test="record.source != null" >
         source = #{record.source,jdbcType=VARCHAR},
@@ -525,11 +542,17 @@
       <if test="record.userType != null" >
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
+      <if test="record.productName != null" >
+        product_name = #{record.productName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flagType != null" >
+        flag_type = #{record.flagType,jdbcType=VARCHAR},
+      </if>
       <if test="record.type != null" >
         type = #{record.type,jdbcType=VARCHAR},
       </if>
-      <if test="record.customName != null" >
-        custom_name = #{record.customName,jdbcType=VARCHAR},
+      <if test="record.level != null" >
+        level = #{record.level,jdbcType=VARCHAR},
       </if>
       <if test="record.ifRegister != null" >
         if_register = #{record.ifRegister,jdbcType=VARCHAR},
@@ -554,6 +577,12 @@
       </if>
       <if test="record.applyResult != null" >
         apply_result = #{record.applyResult,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pagenode != null" >
+        pagenode = #{record.pagenode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optype != null" >
+        optype = #{record.optype,jdbcType=VARCHAR},
       </if>
       <if test="record.refuseTime != null" >
         refuse_time = #{record.refuseTime,jdbcType=VARCHAR},
@@ -585,11 +614,14 @@
       <if test="record.activity != null" >
         activity = #{record.activity,jdbcType=VARCHAR},
       </if>
-      <if test="record.day != null" >
-        day = #{record.day,jdbcType=VARCHAR},
+      <if test="record.production != null" >
+        production = #{record.production,jdbcType=VARCHAR},
       </if>
-      <if test="record.extraSet != null" >
-        extra_set = #{record.extraSet,jdbcType=VARCHAR},
+      <if test="record.region != null" >
+        region = #{record.region,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -617,16 +649,16 @@
       phone_aes = #{record.phoneAes,jdbcType=VARCHAR},
       name = #{record.name,jdbcType=VARCHAR},
       name_aes = #{record.nameAes,jdbcType=VARCHAR},
-      cid = #{record.cid,jdbcType=VARCHAR},
-      cid_aes = #{record.cidAes,jdbcType=VARCHAR},
-      sex = #{record.sex,jdbcType=VARCHAR},
-      score = #{record.score,jdbcType=VARCHAR},
-      risk_score = #{record.riskScore,jdbcType=VARCHAR},
-      org_name = #{record.orgName,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      marketscore = #{record.marketscore,jdbcType=VARCHAR},
+      riskscore = #{record.riskscore,jdbcType=VARCHAR},
+      orgname = #{record.orgname,jdbcType=VARCHAR},
       source = #{record.source,jdbcType=VARCHAR},
       user_type = #{record.userType,jdbcType=VARCHAR},
+      product_name = #{record.productName,jdbcType=VARCHAR},
+      flag_type = #{record.flagType,jdbcType=VARCHAR},
       type = #{record.type,jdbcType=VARCHAR},
-      custom_name = #{record.customName,jdbcType=VARCHAR},
+      level = #{record.level,jdbcType=VARCHAR},
       if_register = #{record.ifRegister,jdbcType=VARCHAR},
       register_time = #{record.registerTime,jdbcType=VARCHAR},
       if_login = #{record.ifLogin,jdbcType=VARCHAR},
@@ -635,6 +667,8 @@
       apply_dt = #{record.applyDt,jdbcType=VARCHAR},
       apply_time = #{record.applyTime,jdbcType=VARCHAR},
       apply_result = #{record.applyResult,jdbcType=VARCHAR},
+      pagenode = #{record.pagenode,jdbcType=VARCHAR},
+      optype = #{record.optype,jdbcType=VARCHAR},
       refuse_time = #{record.refuseTime,jdbcType=VARCHAR},
       audit_time = #{record.auditTime,jdbcType=VARCHAR},
       audit_amount = #{record.auditAmount,jdbcType=VARCHAR},
@@ -645,8 +679,9 @@
       if_settle = #{record.ifSettle,jdbcType=VARCHAR},
       settle_time = #{record.settleTime,jdbcType=VARCHAR},
       activity = #{record.activity,jdbcType=VARCHAR},
-      day = #{record.day,jdbcType=VARCHAR},
-      extra_set = #{record.extraSet,jdbcType=VARCHAR},
+      production = #{record.production,jdbcType=VARCHAR},
+      region = #{record.region,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
@@ -692,23 +727,17 @@
       <if test="nameAes != null" >
         name_aes = #{nameAes,jdbcType=VARCHAR},
       </if>
-      <if test="cid != null" >
-        cid = #{cid,jdbcType=VARCHAR},
+      <if test="gender != null" >
+        gender = #{gender,jdbcType=VARCHAR},
       </if>
-      <if test="cidAes != null" >
-        cid_aes = #{cidAes,jdbcType=VARCHAR},
+      <if test="marketscore != null" >
+        marketscore = #{marketscore,jdbcType=VARCHAR},
       </if>
-      <if test="sex != null" >
-        sex = #{sex,jdbcType=VARCHAR},
+      <if test="riskscore != null" >
+        riskscore = #{riskscore,jdbcType=VARCHAR},
       </if>
-      <if test="score != null" >
-        score = #{score,jdbcType=VARCHAR},
-      </if>
-      <if test="riskScore != null" >
-        risk_score = #{riskScore,jdbcType=VARCHAR},
-      </if>
-      <if test="orgName != null" >
-        org_name = #{orgName,jdbcType=VARCHAR},
+      <if test="orgname != null" >
+        orgname = #{orgname,jdbcType=VARCHAR},
       </if>
       <if test="source != null" >
         source = #{source,jdbcType=VARCHAR},
@@ -716,11 +745,17 @@
       <if test="userType != null" >
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
+      <if test="productName != null" >
+        product_name = #{productName,jdbcType=VARCHAR},
+      </if>
+      <if test="flagType != null" >
+        flag_type = #{flagType,jdbcType=VARCHAR},
+      </if>
       <if test="type != null" >
         type = #{type,jdbcType=VARCHAR},
       </if>
-      <if test="customName != null" >
-        custom_name = #{customName,jdbcType=VARCHAR},
+      <if test="level != null" >
+        level = #{level,jdbcType=VARCHAR},
       </if>
       <if test="ifRegister != null" >
         if_register = #{ifRegister,jdbcType=VARCHAR},
@@ -745,6 +780,12 @@
       </if>
       <if test="applyResult != null" >
         apply_result = #{applyResult,jdbcType=VARCHAR},
+      </if>
+      <if test="pagenode != null" >
+        pagenode = #{pagenode,jdbcType=VARCHAR},
+      </if>
+      <if test="optype != null" >
+        optype = #{optype,jdbcType=VARCHAR},
       </if>
       <if test="refuseTime != null" >
         refuse_time = #{refuseTime,jdbcType=VARCHAR},
@@ -776,11 +817,14 @@
       <if test="activity != null" >
         activity = #{activity,jdbcType=VARCHAR},
       </if>
-      <if test="day != null" >
-        day = #{day,jdbcType=VARCHAR},
+      <if test="production != null" >
+        production = #{production,jdbcType=VARCHAR},
       </if>
-      <if test="extraSet != null" >
-        extra_set = #{extraSet,jdbcType=VARCHAR},
+      <if test="region != null" >
+        region = #{region,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -805,16 +849,16 @@
       phone_aes = #{phoneAes,jdbcType=VARCHAR},
       name = #{name,jdbcType=VARCHAR},
       name_aes = #{nameAes,jdbcType=VARCHAR},
-      cid = #{cid,jdbcType=VARCHAR},
-      cid_aes = #{cidAes,jdbcType=VARCHAR},
-      sex = #{sex,jdbcType=VARCHAR},
-      score = #{score,jdbcType=VARCHAR},
-      risk_score = #{riskScore,jdbcType=VARCHAR},
-      org_name = #{orgName,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      marketscore = #{marketscore,jdbcType=VARCHAR},
+      riskscore = #{riskscore,jdbcType=VARCHAR},
+      orgname = #{orgname,jdbcType=VARCHAR},
       source = #{source,jdbcType=VARCHAR},
       user_type = #{userType,jdbcType=VARCHAR},
+      product_name = #{productName,jdbcType=VARCHAR},
+      flag_type = #{flagType,jdbcType=VARCHAR},
       type = #{type,jdbcType=VARCHAR},
-      custom_name = #{customName,jdbcType=VARCHAR},
+      level = #{level,jdbcType=VARCHAR},
       if_register = #{ifRegister,jdbcType=VARCHAR},
       register_time = #{registerTime,jdbcType=VARCHAR},
       if_login = #{ifLogin,jdbcType=VARCHAR},
@@ -823,6 +867,8 @@
       apply_dt = #{applyDt,jdbcType=VARCHAR},
       apply_time = #{applyTime,jdbcType=VARCHAR},
       apply_result = #{applyResult,jdbcType=VARCHAR},
+      pagenode = #{pagenode,jdbcType=VARCHAR},
+      optype = #{optype,jdbcType=VARCHAR},
       refuse_time = #{refuseTime,jdbcType=VARCHAR},
       audit_time = #{auditTime,jdbcType=VARCHAR},
       audit_amount = #{auditAmount,jdbcType=VARCHAR},
@@ -833,8 +879,9 @@
       if_settle = #{ifSettle,jdbcType=VARCHAR},
       settle_time = #{settleTime,jdbcType=VARCHAR},
       activity = #{activity,jdbcType=VARCHAR},
-      day = #{day,jdbcType=VARCHAR},
-      extra_set = #{extraSet,jdbcType=VARCHAR},
+      production = #{production,jdbcType=VARCHAR},
+      region = #{region,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}

@@ -115,19 +115,17 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(1).andTypeEqualTo(1);
+        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(3).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         syncConfigs.forEach(t->{
-            boolean conditionMark = StringUtils.isNotBlank(t.getSrcSftpHost()) && t.getSrcSftpPort() != null && t.getSrcSftpPort() > 0
-                    && StringUtils.isNotBlank(t.getSrcSftpUser()) && StringUtils.isNotBlank(t.getSrcSftpPwd());
-            if(conditionMark){
+            if(StringUtils.isNotBlank(t.getTargetPath())){
                 Map<String, Set<String>> map = new HashMap<>();
-                SftpClient sftpClient = new SftpClient(t.getTargetSftpHost(), t.getTargetSftpPort(), t.getTargetSftpUser(),t.getTargetSftpPwd());
+                SftpClient sftpClient = new SftpClient(sftpHost, sftpPort,sftpUsername,sftpPwd);
                 try {
                     sftpClient.connect();
                     SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient,t);
                     if (!map.isEmpty()) {
-                        log.info("----------SftpToDb开始处理新上传的数据文件-------------");
+                        log.info("----------获取运营需要推送DASS结果数据-------------");
                         long start = System.currentTimeMillis();
                         dealDataFile(map, sftpClient,t);
                         long end = System.currentTimeMillis();
@@ -136,7 +134,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                         }
                     }
                 } catch (JSchException e) {
-                    log.error("SftpToDbJob,sftp连接失败", e);
+                    log.error("SftpToDbByResultDataJob,sftp连接失败", e);
                 } catch (Exception e) {
                     log.error("获取sftp上的数据文件列表出错", e);
                 } finally {
@@ -164,11 +162,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();
-            MerchantParam merchantParam = SftpToDbUtils.vaildApicode(srcPath);
-            if (merchantParam == null) {
-                log.error("vaildApicode error {}", srcPath);
-                continue;
-            }
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
 
@@ -176,7 +169,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                 if(fileName.endsWith(".txt")){
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
-                    context.setMerchantParam(merchantParam);
                     context.setSftpZipFilePath(srcPath);
                     context.setApiCode(apiCode);
                     //设置zip文件名
@@ -189,7 +181,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                             continue;
                         }
                         LocalFile localFile = new LocalFile();
-                        localFile.setCid("");
                         localFile.setApiCode(syncConfig.getApiCode());
                         localFile.setSrcPath(context.getSftpZipFilePath());
                         localFile.setFileName(context.getTxtFileName());

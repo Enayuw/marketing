@@ -94,10 +94,6 @@ public class SftpToDbByDXService {
     }
 
     public Boolean actionTxtFile(FileContext context,LocalFile localFile) {
-        StringBuilder errorMessage=new StringBuilder("数据文件异常,");
-        if(!fileCheckService.checkTxtfile(context,errorMessage)){
-            return false;
-        }
         String txtFilePathAndName=context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
@@ -286,129 +282,132 @@ public class SftpToDbByDXService {
     private Result setDataByPhone(String row,PhoneSale phoneSale,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark){
         List<String> datas = Splitter.on(",").splitToList(row);
         JSONObject jo = null;
-        String error = "uid不能为空;phone不能为空;orgName不能为空;source不能为空;userType不能为空;type不能为空;customName不能为空;";
+        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
         for (int i = 0; i < datas.size(); i++) {
             String sureaddress = address.get(i);
             switch (sureaddress){
                 case "uid":
                     if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("uid不能为空;","");
+                        error=error.replace("uid不能为空;","");
                     }
                     phoneSale.setUid(datas.get(i));
                     break;
                 case "phone":
                     if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("phone不能为空;","");
-                        phoneSale.setPhone(datas.get(i));
-                        phoneSale.setPhoneAes(AESUtil.aesEncrypty(datas.get(i),aesKey));
+                        error=error.replace("phone不能为空;","");
+                        phoneSale.setPhone(AESUtil.aesEncrypty(datas.get(i),aesKey));
+                        phoneSale.setPhoneAes(datas.get(i));
                     }
                     break;
                 case "name":
-                    phoneSale.setName(datas.get(i));
                     if(StringUtils.isNotBlank(datas.get(i))){
-                        phoneSale.setNameAes(DigestUtils.md5DigestAsHex(datas.get(i).getBytes()));
+                        error=error.replace("name不能为空;","");
+                        phoneSale.setName(datas.get(i));
                     }
                     break;
-                case "cid":
-                    phoneSale.setCid(datas.get(i));
+                case "gender":
+                    phoneSale.setGender(datas.get(i));
                     break;
-                case "sex":
-                    phoneSale.setSex(datas.get(i));
+                case "marketscore":
+                    phoneSale.setMarketscore(datas.get(i));
                     break;
-                case "score":
-                    phoneSale.setScore(datas.get(i));
+                case "riskscore":
+                    phoneSale.setRiskscore(datas.get(i));
                     break;
-                case "riskScore":
-                    phoneSale.setRiskScore(datas.get(i));
-                    break;
-                case "orgName":
+                case "orgname":
                     if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("orgName不能为空;","");
+                        error=error.replace("orgName不能为空;","");
+                        phoneSale.setOrgname(datas.get(i));
                     }
-                    phoneSale.setOrgName(datas.get(i));
                     break;
                 case "source":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("source不能为空;","");
-                    }
                     phoneSale.setSource(datas.get(i));
                     break;
-                case "userType":
+                case "user_type":
                     if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("userType不能为空;","");
+                        error=error.replace("user_type不能为空;","");
+                        phoneSale.setUserType(datas.get(i));
                     }
-                    phoneSale.setUserType(datas.get(i));
+                    break;
+                case "product_name":
+                    phoneSale.setProductName(datas.get(i));
+                    break;
+                case "flag_type":
+                    phoneSale.setFlagType(datas.get(i));
                     break;
                 case "type":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("type不能为空;","");
-                    }
                     phoneSale.setType(datas.get(i));
                     break;
-                case "customName":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error.replace("customName不能为空;","");
-                    }
-                    phoneSale.setCustomName(datas.get(i));
+                case "level":
+                    phoneSale.setLevel(datas.get(i));
                     break;
-                case "ifRegister":
+                case "if_register":
                     phoneSale.setIfRegister(datas.get(i));
                     break;
-                case "registerTime":
+                case "register_time":
                     phoneSale.setRegisterTime(datas.get(i));
                     break;
-                case "ifLogin":
+                case "if_login":
                     phoneSale.setIfLogin(datas.get(i));
                     break;
-                case "loginTime":
+                case "login_time":
                     phoneSale.setLoginTime(datas.get(i));
                     break;
-                case "ifApply":
+                case "if_apply":
                     phoneSale.setIfApply(datas.get(i));
                     break;
-                case "applyDt":
+                case "apply_dt":
                     phoneSale.setApplyDt(datas.get(i));
                     break;
-                case "applyTime":
+                case "apply_time":
                     phoneSale.setApplyTime(datas.get(i));
                     break;
-                case "applyResult":
+                case "apply_result":
                     phoneSale.setApplyResult(datas.get(i));
                     break;
-                case "refuseTime":
+                case "pagenode":
+                    phoneSale.setPagenode(datas.get(i));
+                    break;
+                case "optype":
+                    phoneSale.setOptype(datas.get(i));
+                    break;
+                case "refuse_time":
                     phoneSale.setRefuseTime(datas.get(i));
                     break;
-                case "auditTime":
+                case "audit_time":
                     phoneSale.setAuditTime(datas.get(i));
                     break;
-                case "auditAmount":
+                case "audit_amount":
                     phoneSale.setAuditAmount(datas.get(i));
                     break;
-                case "ifLent":
+                case "if_lent":
                     phoneSale.setIfLent(datas.get(i));
                     break;
-                case "lentTime":
+                case "lent_time":
                     phoneSale.setLentTime(datas.get(i));
                     break;
-                case "lentAmount":
+                case "lent_amount":
                     phoneSale.setLentAmount(datas.get(i));
                     break;
-                case "unlentAmount":
+                case "unlent_amount":
                     phoneSale.setUnlentAmount(datas.get(i));
                     break;
-                case "ifSettle":
+                case "if_settle":
                     phoneSale.setIfSettle(datas.get(i));
                     break;
-                case "settleTime":
+                case "settle_time":
                     phoneSale.setSettleTime(datas.get(i));
                     break;
                 case "activity":
                     phoneSale.setActivity(datas.get(i));
                     break;
-                case "day":
-                    phoneSale.setDay(datas.get(i));
+                case "production":
+                    phoneSale.setProduction(datas.get(i));
                     break;
-                case "extraSet":
+                case "region":
+                    phoneSale.setRegion(datas.get(i));
+                    break;
+                case "extend":
                     String s = extSetFields.get(i);
                     if(StringUtils.isNotBlank(s)){
                         if(jo==null){
@@ -419,7 +418,7 @@ public class SftpToDbByDXService {
                     break;
             }
             if(jo !=null){
-                phoneSale.setExtraSet(jo.toJSONString());
+                phoneSale.setExtend(jo.toJSONString());
             }
         }
         if(datas.size() != address.size()){

@@ -99,8 +99,9 @@ public class SftpToDbUtils {
                         log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理");
                         continue;
                     }
-                    String[] names = fileName.split(".");
-                    if (StringUtils.isNotEmpty(fileName) && (suffixs.contains(names[names.length-1]))) {
+                    String[] names = fileName.split("\\.");
+                    String name = ".".concat(names[names.length - 1]);
+                    if (StringUtils.isNotEmpty(fileName) && (suffixs.contains(name))) {
                         Set<String> set = map.get(path);
                         if (set == null) {
                             set = new HashSet<>();
@@ -300,10 +301,8 @@ public class SftpToDbUtils {
         Boolean uidMark = false;
         Boolean phoneMark = false;
         Boolean orgNameMark = false;
-        Boolean sourceMark = false;
         Boolean userTypeMark = false;
-        Boolean typeMark = false;
-        Boolean customNameMark = false;
+        Boolean nameMark = false;
         Boolean startExt = false;
         for (int i = 0; i < heads.size(); i++) {
             String s = heads.get(i);
@@ -317,34 +316,28 @@ public class SftpToDbUtils {
                 case "phone":
                     phoneMark = true;
                     break;
-                case "orgName":
+                case "orgname":
                     orgNameMark = true;
                     break;
-                case "source":
-                    sourceMark = true;
-                    break;
-                case "userType":
+                case "user_type":
                     userTypeMark = true;
                     break;
-                case "type":
-                    typeMark = true;
-                    break;
-                case "customName":
-                    customNameMark = true;
+                case "name":
+                    nameMark = true;
                     break;
             }
 
-            if(s.equals("extraSet")){
+            if(s.equals("extend")){
                 startExt = true;
             }
             if(startExt){
-                address.put(i,"extraSet");
+                address.put(i,"extend");
                 extra.put(i,s);
             }else{
                 address.put(i,s);
             }
         }
-        if(!(uidMark&&phoneMark&&orgNameMark&&sourceMark&&userTypeMark&&typeMark&&customNameMark)){
+        if(!(uidMark&&phoneMark&&orgNameMark&&userTypeMark&&nameMark)){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
         }
         HashMap<String, Object> statisticsHeadRS = new HashMap<>();
