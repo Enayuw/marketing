@@ -28,4 +28,15 @@ public interface SyncConfigService {
      * @return
      */
     PageResultReturn getSftpList(int page, int pageSize, String apiCode);
+
+    /**
+     * 编辑sftp配置信息
+     * @param id
+     * @param apiCode
+     * @param srcPath
+     * @param targePath
+     * @return
+     */
+    ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath);
+
 }

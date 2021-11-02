@@ -76,4 +76,20 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         return new ApiResult<Boolean>().success(true);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath) {
+        SyncConfig syncConfig = new SyncConfig();
+        syncConfig.setId(Long.parseLong(id));
+        syncConfig.setApiCode(apiCode);
+        syncConfig.setSrcPath(srcPath);
+        syncConfig.setTargetPath(targePath);
+        syncConfig.setUpdateTime(new Date());
+        int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
+        if (StringUtils.isEmpty(update) || update<=0){
+            log.error("编辑sftp配置信息失败！");
+        }
+        return new ApiResult<Boolean>().success(true);
+    }
+
 }
