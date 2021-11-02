@@ -66,4 +66,23 @@ public class SyncConfigController {
         }
     }
 
+    @ApiOperation(value = "编辑sftp配置信息",notes = "编辑sftp配置信息")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "SFTP配置id",paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "srcPath", value = "源目录", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "targePath", value = "目标目录", paramType = "query", dataType = "string")
+    })
+    @GetMapping("/editSftp")
+    public ApiResult<Boolean> editSftp(@RequestParam(required = true) String id,
+                                       @RequestParam(required = true) String apiCode,
+                                       @RequestParam(required = true) String srcPath,
+                                       @RequestParam(required = true) String targePath){
+        try {
+            return syncConfigService.editSftp(id,apiCode,srcPath,targePath);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+    }
+
 }
