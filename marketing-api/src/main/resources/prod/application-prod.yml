@@ -62,6 +62,8 @@ otherConfig:
   alarm:
     secretKey: b58783d4b67f942166f2ffad298080e4
     appName: marketing
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
   encodeMapping:
     appName: loan-warning
     appSecretKey: a938d0e974746651a11ddcdbcea31404
