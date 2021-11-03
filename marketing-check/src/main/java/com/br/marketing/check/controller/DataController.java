@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.mbeans.ServiceMBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.serviceloader.ServiceFactoryBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -59,14 +60,16 @@ public class DataController {
     @GetMapping("retryMethod")
     public String retryMethod(@RequestParam("serviceName")String serviceName,@RequestParam("methodName")String methodName,@RequestParam("params")String params){
         String[] split = params.split("\\|");
-        ServiceMBean methodBean = (ServiceMBean) CkeckApplication.ac.getBean(serviceName);
-        try {
-            methodBean.invoke(methodName, split, null);
-        } catch (MBeanException e) {
-            e.printStackTrace();
-        } catch (ReflectionException e) {
-            e.printStackTrace();
-        }
+//        Bean methodBean = (Bean) CkeckApplication.ac.getBean(serviceName);
+//        try {
+//            methodBean.invoke(methodName, split, null);
+//        } catch (MBeanException e) {
+//            e.printStackTrace();
+//        } catch (ReflectionException e) {
+//            e.printStackTrace();
+//        }
+        
+        return "success";
     }
 
 }

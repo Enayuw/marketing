@@ -75,7 +75,8 @@ public class DefaultBeanConfigure {
 
         provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000).setDefaultCredentialsProvider(provider).build());
+                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000)
+                        .setProxy(proxy).setDefaultCredentialsProvider(provider).build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
         httpRequestFactory.setReadTimeout(5000);
