@@ -36,11 +36,14 @@ import java.util.Map;
 public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
 
-    @Resource(name = "loadBalanced")
+    @Resource
     private RestTemplate restTemplate;
 
-    @Value("#{${api.pushTransfer.urlMap:'-1:NULL'}}")
-    private Map<String, String> pushTransferUrlMap;
+    @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:'7410787:true'}}")
+    private Map<String, Boolean> tailorApiCodeMap;
+
+    @Value("${api.pushTransfer.robotAi.robotOutboundUrl:'http://robotai-api-service/api/robotOutbound'}")
+    private String robotOutboundUrl;
 
     @Resource
     private PushTransferCustomerLogService pushTransferCustomerLogService;
@@ -81,10 +84,10 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             postParameters.add("jsonData", customerLog.getRequestBody());
             HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
             apiCode = customerLog.getApiCode();
-            if (!pushTransferUrlMap.containsKey(apiCode)) {
+            if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
                 continue;
             }
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pushTransferUrlMap.get(apiCode), stringHttpEntity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(robotOutboundUrl, stringHttpEntity, String.class);
             HttpStatus statusCode = responseEntity.getStatusCode();
             if (ObjectUtils.isEmpty(responseEntity)) {
                 String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"

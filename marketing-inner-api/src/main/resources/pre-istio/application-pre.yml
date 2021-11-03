@@ -97,7 +97,12 @@ api:
   customerService:
     apiCode: 4000296
   pushTransfer:
-    urlMap: "{'3710012':'http://robotai-api-service/api/robotOutbound'}" # eg: "{'apiCode':'url',apiCode:'url'}"
+    robotAi:
+      baseUrl: http://robotai-api-service/api
+      robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
+      tailor:
+        # eg: "{'apiCode':'true',apiCode:'false'}"
+        apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true'}"
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
