@@ -122,7 +122,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private RestTemplate restTemplate;
 
-    @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:'7410787:true'}}")
+    @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:{'7410787':true}}}")
     private Map<String, Boolean> tailorApiCodeMap;
 
     @Value("${api.pushTransfer.robotAi.robotOutboundUrl:'http://robotai-api-service/api/robotOutbound'}")
