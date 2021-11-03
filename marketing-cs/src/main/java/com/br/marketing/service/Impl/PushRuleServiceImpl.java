@@ -1716,7 +1716,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         int pushStatus = 0;
         if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
-                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
+                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count - 1);
             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
             return new PushTransferCustomerLog(
