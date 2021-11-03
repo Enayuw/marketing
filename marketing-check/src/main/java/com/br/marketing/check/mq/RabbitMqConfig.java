@@ -42,6 +42,16 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMqConfig {
     public static final int MQ_LISTENER = 1;
 
+    /**
+     * marketing 通用交换机
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETINGEXCHANGER_NAME)
+    public TopicExchange gateExchange() {
+        return new TopicExchange(MQConstants.MARKETINGEXCHANGER_NAME, true, false);
+    }
+
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {
         return new TopicExchange(MQConstants.EX_CHANGER_NAME,true,false);
@@ -53,6 +63,15 @@ public class RabbitMqConfig {
     @Bean(name = "bindingCheckQueue")
     public Binding bindingCheckQueue() {
         return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.CHECK_ROUTING_KEY);
+    }
+
+    @Bean(name = MQConstants.MARKETING_PUSH_DASS_SCORE)
+    public Queue pushDassQueue() {
+        return new Queue(MQConstants.MARKETING_PUSH_DASS_SCORE, true, false, false);
+    }
+    @Bean(name = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE)
+    public Binding bindingPushDassQueue() {
+        return BindingBuilder.bind(pushDassQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE);
     }
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {

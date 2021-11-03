@@ -1,5 +1,6 @@
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
 import org.junit.Test;
@@ -9,9 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -32,6 +35,14 @@ public class AlarmAndNoticeTest {
 
     @Resource
     LoanFileMapper loanFileMapper;
+
+    @Test
+    public void testAes(){
+        String s = AESUtil.aesEncrypty("18822755999","ovksl39fcl13m9dF");
+        String s1 = DigestUtils.md5DigestAsHex("王晓二".getBytes());
+        String s2 = DigestUtils.md5DigestAsHex("120222199007077719".getBytes());
+        System.out.println(s+"。。。"+s1+"。。。"+s2);
+    }
 
     @Test
     public void test(){
