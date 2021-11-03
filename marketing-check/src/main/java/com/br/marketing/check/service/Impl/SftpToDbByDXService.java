@@ -20,6 +20,7 @@ import com.br.marketing.entity.PhoneSale;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
@@ -50,6 +51,9 @@ public class SftpToDbByDXService {
      */
     @Resource
     LoadResultMapper loadResultMapper;
+
+    @Autowired
+    RabbitMqProducter producter;
     /**
      * The File ckeck servicce.
      */
@@ -164,6 +168,7 @@ public class SftpToDbByDXService {
             updateFile.setComplete("3");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
         }
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
