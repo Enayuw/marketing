@@ -34,8 +34,8 @@ public class DataController {
     }
 
     @GetMapping("testApiToDb")
-    public String testApiToDb(){
-        iApiToDbService.pushToDb();
+    public String testApiToDb(@RequestParam("apiCode") String apiCode){
+        iApiToDbService.pushToDb(apiCode,null);
         return "success";
     }
 

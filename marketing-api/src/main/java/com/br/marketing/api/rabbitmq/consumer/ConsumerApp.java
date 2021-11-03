@@ -2,6 +2,7 @@ package com.br.marketing.api.rabbitmq.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
@@ -64,11 +65,23 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_PreUser_Receive", containerFactory = "primaryContainerFactory")
+    @RabbitListener(queues = "Marketing_PreUser_Receive", containerFactory = "fiveDataContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
     }
 
+    /**
+     * 消费 转化数据导入异步处理
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE, containerFactory = "fiveDataContainerFactory")
+    public void consumerTransferUser(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
+    }
 }

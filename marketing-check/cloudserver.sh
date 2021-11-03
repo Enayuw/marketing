@@ -98,6 +98,11 @@ else
     echo "未开启Pinpoint"
 fi
 
+if [[ $RPC_MODE == 'ISTIO_ETCD' ]] ; then
+    TTL_AGENT="-javaagent:/opt/springcloud/data/ttl-agent/transmittable-thread-local-2.11.5.jar"
+fi
+
+
 #Rasp
 RASP_OPTIONS=""
 if [[ $RASP_ENABLE == 'true' ]] ; then
@@ -123,10 +128,10 @@ SPEED_ENV=${SPEED_ENV}
 
 echo $MAIN_CLASS
 
-JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV  -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
+JAVA_CMD="$CLOUDSERVER_JAVA_CMD $TTL_AGENT $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -Xbootclasspath/a:$SERVICE_HOME/config/$CONF_ENV  -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
 #JAVA_CMD="$CLOUDSERVER_JAVA_CMD $JAVA_OPTIONS $PINPOINT_OPTIONS $RASP_OPTIONS -Dspeed.env=$SPEED_ENV -DjarPath=$SERVICE_HOME/lib/$APP_JAR_NAME -jar $SERVICE_HOME/lib/$APP_JAR_NAME "
 
-PARAMS=" --server.tomcat.max-threads=1000 --spring.profiles.active=$CONF_ENV"
+PARAMS=" --server.tomcat.max-threads=1000"
 
 RETVAL=0
 

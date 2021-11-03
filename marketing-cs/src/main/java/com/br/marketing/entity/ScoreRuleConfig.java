@@ -1,0 +1,226 @@
+package com.br.marketing.entity;
+
+import java.util.Date;
+
+public class ScoreRuleConfig {
+    /**
+     * 主键id
+     */
+    private Long id;
+
+    /**
+     * 规则名称
+     */
+    private String ruleName;
+
+    /**
+     * 规则简拼
+     */
+    private String ruleNameShort;
+
+    /**
+     * 跑分时间 格式HH:mm
+     */
+    private String startTime;
+
+    /**
+     * 策略产品配置信息
+     */
+    private String strategyProductJson;
+
+    /**
+     * 规则信息
+     */
+    private String conditionInfo;
+
+    /**
+     * 策略
+     */
+    private String strategyId;
+
+    /**
+     * 返回用户基本字段表头 字段用逗号分隔
+     */
+    private String baseInfo;
+
+    /**
+     * 是否有效1-有效；9-无效；
+     */
+    private Integer isDel;
+
+    /**
+     * 入库时间
+     */
+    private Date createTime;
+
+    /**
+     * 任务执行策略 1-一次性全量；2-周期性全量
+     */
+    private Integer execType;
+
+    /**
+     * 周期天数
+     */
+    private Integer cycleDay;
+
+    /**
+     *
+     */
+    private String cycleEndDay;
+
+    /**
+     * 推送客户类型 0 文件，1 api 默认支持文件推送
+     */
+    private Integer pushType;
+
+    /**
+     * 开启状态 1-开启；2-禁用；3-开启中
+     */
+    private Integer status;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
+    /**
+     * 策略产品展示信息，后期有可能维护成需要配置的产品
+     */
+    private String strategyProductShow;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getRuleName() {
+        return ruleName;
+    }
+
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName == null ? null : ruleName.trim();
+    }
+
+    public String getRuleNameShort() {
+        return ruleNameShort;
+    }
+
+    public void setRuleNameShort(String ruleNameShort) {
+        this.ruleNameShort = ruleNameShort == null ? null : ruleNameShort.trim();
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime == null ? null : startTime.trim();
+    }
+
+    public String getStrategyProductJson() {
+        return strategyProductJson;
+    }
+
+    public void setStrategyProductJson(String strategyProductJson) {
+        this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
+    }
+
+    public String getConditionInfo() {
+        return conditionInfo;
+    }
+
+    public void setConditionInfo(String conditionInfo) {
+        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
+    }
+
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId == null ? null : strategyId.trim();
+    }
+
+    public String getBaseInfo() {
+        return baseInfo;
+    }
+
+    public void setBaseInfo(String baseInfo) {
+        this.baseInfo = baseInfo == null ? null : baseInfo.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Integer getExecType() {
+        return execType;
+    }
+
+    public void setExecType(Integer execType) {
+        this.execType = execType;
+    }
+
+    public Integer getCycleDay() {
+        return cycleDay;
+    }
+
+    public void setCycleDay(Integer cycleDay) {
+        this.cycleDay = cycleDay;
+    }
+
+    public String getCycleEndDay() {
+        return cycleEndDay;
+    }
+
+    public void setCycleEndDay(String cycleEndDay) {
+        this.cycleEndDay = cycleEndDay == null ? null : cycleEndDay.trim();
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getStrategyProductShow() {
+        return strategyProductShow;
+    }
+
+    public void setStrategyProductShow(String strategyProductShow) {
+        this.strategyProductShow = strategyProductShow;
+    }
+}

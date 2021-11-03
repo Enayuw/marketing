@@ -58,6 +58,11 @@ public class Constants {
 
     public static Map<String, String> requestCodeMap = new HashMap<>();
 
+    public static Map<String, String> monitorTypeMap = new HashMap<>();
+    static {
+        monitorTypeMap.put("1","once");
+        monitorTypeMap.put("4","all");
+    }
     static {
         requestCodeMap.put("00", "00");
         requestCodeMap.put("1001", "Md5");
@@ -130,6 +135,7 @@ public class Constants {
         sendCodeMap.put("dataFileVolumn", "50002");
         sendCodeMap.put("uploadSuccess", "50000");
         sendCodeMap.put("fileUploadFtp", "50003");
+        sendCodeMap.put("pushToCustomer", "60002");
     }
 
     public static final String REDIS_STMT_RULE_PREFIX = "redisMonitor_";
@@ -146,4 +152,5 @@ public class Constants {
 
     public static final String LOAN_BUSINESSTYPECODE = "A202";
     public static final Integer DATA_VALID = 1;
+    public static final Integer STATUS_START = 1;
 }

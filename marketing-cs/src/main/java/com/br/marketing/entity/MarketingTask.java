@@ -95,6 +95,26 @@ public class MarketingTask {
 
     private Integer dataVolume;
 
+    /**
+     * 是否首次跑数，首次记录日志，否则不记录
+     */
+    private Boolean firstTime;
+
+    /**
+     * 分片索引
+     */
+    private Integer index;
+
+    /**
+     * 分片数量
+     */
+    private Integer indexCount;
+
+    /**
+     * 跑分记录id
+     */
+    private Long fileId;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -131,6 +151,10 @@ public class MarketingTask {
                 ", isRepair='" + isRepair + '\'' +
                 ", dataVolume=" + dataVolume +'\'' +
                 ", context_id=" + contextId +
+                ", isFirstTime=" + firstTime +
+                ", index=" + index +
+                ", indexCount=" + indexCount +
+                ", fileId=" + fileId +
                 '}';
     }
 }

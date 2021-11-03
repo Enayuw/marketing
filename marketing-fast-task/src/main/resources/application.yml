@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: marketing-fast-task
+  profiles:
+    active: pre
+  aop:
+    proxy-target-class: true
+    auto: true
+  threadpool:
+    queueCapacity: 50000
+    # 线程池所使用的缓冲队列
+    corePoolSize: 30
+    # 线程池维护线程的最少数量
+    maxPoolSize: 35
+    # 线程池维护线程的最大数量
+    keepAliveSeconds: 30000
+    # 线程池维护线程所允许的空闲时间
+    threadNamePrefix: ThreadPool-Common
+    # 线程池所生产的线程名前缀
+
+server:
+  port: 18777
+  maxHttpPostSize: 209715200
+eureka:
+  instance:
+    appname: ${spring.application.name}
+    virtualHostName: ${spring.application.name}
+    secureVirtualHostName: ${spring.application.name}
+    nonSecurePort: ${server.port}
+
+    #注册服务默认心跳时间为30秒（Indicates how often (in seconds) the eureka config needs to send heartbeats to eureka server to indicate that
+    #it is still alive. If the heartbeats are not received for the period specified in leaseExpirationDurationInSeconds,
+    #eureka server will remove the instance from its view, there by disallowing traffic to this instance）
+    leaseRenewalIntervalInSeconds: 2
+
+    #服务最后一次心跳到服务被移除的时间，默认90秒
+    lease-expiration-duration-in-seconds: 4
+
+    #实例使用ip代替hostName
+    preferIpAddress: true
+    status-page-url-path: /health
+    #服务初始化状态 枚举值如：UP、DOWN、STARTING、OUT_OF_SERVICE、UNKNOWN，不设置默认为UP
+    initial-status: OUT_OF_SERVICE
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    healthcheck:
+      enabled: true
+    registryFetchIntervalSeconds: 2
+    instance-info-replication-interval-seconds: 4
+    initial-instance-info-replication-interval-seconds: 4
+
+    #Indicates how often(in seconds) to poll for changes to eureka server information. Eureka servers could be added or removed and this setting controls how soon the eureka clients should know about it.
+    eureka-service-url-poll-interval-seconds: 2
+
+    #Indicates whether server can redirect a config request to a backup server/cluster.
+    #If set to false, the server will handle the request directly, If set to true, it may send HTTP redirect to the config, with a new server location.
+    allow-redirects: true
+  server:
+    enableSelfPreservation: false
+
+    #服务端调用evict频率,如果此值设置过大，会导致服务停止后不能及时被发现，默认60s
+    eviction-interval-timer-in-ms: 2000
+mybatis:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

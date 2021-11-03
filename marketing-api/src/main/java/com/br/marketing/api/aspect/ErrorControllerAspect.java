@@ -3,8 +3,11 @@ package com.br.marketing.api.aspect;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
@@ -123,15 +126,82 @@ public class ErrorControllerAspect {
         } catch (Throwable e) {
             try {
                 ApiNoDataResult obj = new ApiNoDataResult();
-                obj.setCode("100001");
+                if(e instanceof CommonException){
+                    CommonException commenException = (CommonException) e;
+                    obj.setCode(commenException.getInfo().getErrorCode());
+                    obj.setMessage(commenException.getInfo().getErrorMsg());
+                }else {
+                    obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
+                    obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+                }
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                if(saveLog != null){
+                if (saveLog != null) {
                     interfaceLog.setCode(2);
-                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis()-startTime));
+                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
                     interfaceLog.setCreateTime(new Date());
                 }
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,saveLog==null?null:interfaceLog);
-                obj.setMessage("系统错误");
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, saveLog == null ? null : interfaceLog);
+                return obj;
+            } catch (Exception ee) {
+                log.error("异常结果生成异常", ee);
+                //无法正确生成返回结果，接着抛出异常
+                throw e;
+            }
+        }
+
+    }
+
+    /**
+     * 捕获ApiNoDataResult 形式输出的接口异常
+     * @param jp
+     * @return
+     * @throws Throwable
+     */
+    @Around("execution(public com.br.marketing.common.commondto.ApiResult com.br.marketing.api.controller..*.*(..))")
+    public Object handApiResultException(ProceedingJoinPoint jp) throws Throwable {
+
+        long startTime = System.currentTimeMillis();
+        Method sMethod = ((MethodSignature) jp.getSignature()).getMethod();
+        SaveLog saveLog = sMethod.getAnnotation(SaveLog.class);
+        CalledInterfaceLog interfaceLog = new CalledInterfaceLog();
+        if(saveLog!=null){
+            interfaceLog.setRequestId(UUID.randomUUID().toString());
+            String parms = Arrays.asList(jp.getArgs()).stream().map(t -> t.toString()).collect(Collectors.joining("&"));
+            interfaceLog.setRequestParam(parms.length()>5000
+                    ?parms.substring(0,5000)
+                    :parms);
+            interfaceLog.setMethodName(httpServletRequest.getRequestURI());
+        }
+
+        try {
+            Object rvt = jp.proceed();
+            if(saveLog!=null) {
+                interfaceLog.setResult(JSON.toJSONString(rvt));
+                interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
+                interfaceLog.setCreateTime(new Date());
+                logDbpool.submit(() -> {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                });
+            }
+            return rvt;
+        } catch (Throwable e) {
+            try {
+                ApiResult obj = new ApiResult();
+                if(e instanceof CommonException){
+                    CommonException commenException = (CommonException) e;
+                    obj.setCode(commenException.getInfo().getErrorCode());
+                    obj.setMessage(commenException.getInfo().getErrorMsg());
+                }else {
+                    obj.setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode());
+                    obj.setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+                }
+                final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
+                if (saveLog != null) {
+                    interfaceLog.setCode(2);
+                    interfaceLog.setExpire(String.valueOf(System.currentTimeMillis() - startTime));
+                    interfaceLog.setCreateTime(new Date());
+                }
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, saveLog == null ? null : interfaceLog);
                 return obj;
             } catch (Exception ee) {
                 log.error("异常结果生成异常", ee);
@@ -151,33 +221,31 @@ public class ErrorControllerAspect {
      */
     private void errorHandle(String typeName,String methodName,Object[] args,Throwable e,CalledInterfaceLog interfaceLog){
         StringBuilder params = new StringBuilder();
-        String br = "<br/>";
+        String rn = "\r\n";
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
-                params.append(String.format("Index:%d,Data:%s ", i, args[i])).append(br);
+                params.append(String.format("Index:%d,Data:%s ", i, args[i])).append(rn);
             }
         }
         UUID uuid = UUID.randomUUID();
         StringBuilder stringBuilder = new StringBuilder()
-                .append(br).append(String.format("环境：%s", env))
-                .append(br).append(String.format("logId：%s", uuid))
-                .append(br).append(String.format("方法：%s.%s", typeName, methodName))
-                .append(br).append(String.format("参数：%s", params.toString()))
-                .append(br).append(String.format("Exception：%s", e.toString()))
-                .append(br).append(" StackTrace：");
+                .append(String.format("环境：%s", env)).append(rn)
+                .append(String.format("logId：%s", uuid)).append(rn)
+                .append(String.format("方法：%s.%s", typeName, methodName)).append(rn)
+                .append(String.format("参数：%s", params.toString())).append(rn)
+                .append(String.format("Exception：%s", e.toString())).append(rn)
+                .append(" StackTrace：");
         for (int i = 0; i < e.getStackTrace().length; i++) {
-            stringBuilder.append(br).append(e.getStackTrace()[i]);
+            stringBuilder.append(e.getStackTrace()[i]).append(rn);
         }
         StringBuilder stringBuilderMail = new StringBuilder()
-                .append(br).append(String.format("环境：%s", env))
-                .append(br).append(String.format("logId：%s", uuid))
-                .append(br).append(String.format("方法：%s.%s", typeName, methodName))
-                .append(br).append(String.format("参数：%s", params.toString()));
-        systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(), "Marketing-Api");
+                .append(String.format("环境：%s", env)).append(rn)
+                .append(String.format("logId：%s", uuid)).append(rn)
+                .append(String.format("方法：%s.%s", typeName, methodName)).append(rn)
+                .append(String.format("参数：%s", params.toString()));
         if (log.isErrorEnabled()) {
             log.error(stringBuilder.toString());
         }
-
         if(interfaceLog!=null){
             String s = stringBuilder.toString();
             interfaceLog.setResult(s.length()>=5000?s.substring(0,5000):s);
@@ -185,5 +253,6 @@ public class ErrorControllerAspect {
                 interfaceLogMapper.insertSelective(interfaceLog);
             });
         }
+        systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(), "Marketing-Api");
     }
 }

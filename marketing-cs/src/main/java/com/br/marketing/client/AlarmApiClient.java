@@ -62,7 +62,7 @@ public class AlarmApiClient implements ApplicationContextAware {
             service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
             sendMailData(content,title,appName,secretKey,exceptionCode,service);
         }catch (Exception e){
-//            log.error("发送邮件异常",e);e
+            log.error("发送邮件异常", e);
         }
 
     }

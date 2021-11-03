@@ -14,8 +14,7 @@ import java.util.Set;
 @Slf4j
 public class ProductResultUtil {
 
-    public static void dealProResult(JSONObject hxJson, Set<String> products,StringBuilder sb,
-                                     Map<String, String> proFieldMap,String sep,String apiCode){
+    public static void dealProResult(JSONObject hxJson, Set<String> products,StringBuilder sb,String sep){
         if(!hxJson.isEmpty()){
             StringBuilder result=new StringBuilder();
             if(products.contains("scorencashonszyxxy")){

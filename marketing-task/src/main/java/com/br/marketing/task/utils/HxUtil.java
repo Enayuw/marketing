@@ -1,10 +1,12 @@
 package com.br.marketing.task.utils;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.task.Scheduler;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
+import java.util.function.Consumer;
 
 /**
  * Created by Bairong on 2020/4/16.
@@ -21,15 +24,34 @@ import java.text.DecimalFormat;
 public class HxUtil {
     private static RestTemplate restTemplate = Scheduler.ac.getBean(RestTemplate.class);
 
-    public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean notSaveLog, String url) {
+    public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
         log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
         JSONObject json=new JSONObject();
-        json.put("jsonMeal",jsonMeal);
+        JSONObject extendConfigInfoJson=new JSONObject();
+        String extendConfigInfo=customer.getExtendConfigInfo();
+        if(StringUtils.isNotBlank(extendConfigInfo)){
+            try{
+                extendConfigInfoJson=JSONObject.parseObject(extendConfigInfo);
+            }catch (Exception e){
+                log.error("客户扩展字段格式化异常,apiCode={},data={}",customer.getApiCode(),extendConfigInfo);
+            }
+        }
+        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
+        String userType=jsonData.getString("userType");
+        if(isReplace(extendConfigInfoJson,customer,userType)){
+            StringBuilder meal = new StringBuilder();
+            jsonMeal.keySet().forEach(product -> meal.append(product));
+            json.put("meal",meal);
+        }else{
+            json.put("jsonMeal", jsonMeal);
+            json.put("originApiCode", customer.getApiCode());
+        }
         json.put("id", jsonData.getString("idCard"));
         json.put("name",jsonData.getString("name"));
         json.put("cell",jsonData.getString("cell"));
+
         if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
             json.put("pass_date", jsonData.getString("passDate"));
         }
@@ -39,18 +61,21 @@ public class HxUtil {
         if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
             json.put("decodeFailType", jsonData.getString("decodeFailType"));
         }
-        json.put("originApiCode",customer.getApiCode());
+
         JSONObject extDataJson=new JSONObject();
         if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
             extDataJson.put("isRepair",jsonData.getString("isRepair"));
         }
+        //渠道标识 计费需要
+        extDataJson.put("channelType", jsonData.getString("userType"));
+
         /**
          * 0不留存，1留存
          */
-        if(notSaveLog ||customer.getSaveLog()==0){
-            extDataJson.put("isSaveLog","0");
-        }else{
+        if(firstTime ||customer.getSaveLog()==1){
             extDataJson.put("isSaveLog","1");
+        }else{
+            extDataJson.put("isSaveLog","0");
         }
         json.put("ExtData",extDataJson);
         json.put("ifDeactivated", "0");
@@ -58,7 +83,9 @@ public class HxUtil {
         paramMap.add("jsonData", json.toString());
         //公共apicode
         paramMap.add("apiCode", Constants.PUBLIC_APICODE);
-
+        if(isReplace(extendConfigInfoJson,customer,userType)){
+            paramMap.add("customerId", replaceApiCode);
+        }
 
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
        // log.info("画像请求参数 --- {}", paramMap.toString());
@@ -94,4 +121,13 @@ public class HxUtil {
         return paramJson;
     }
 
+    private static Boolean isReplace(JSONObject extendConfigInfoJson ,Customer customer,String userType){
+        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
+        if(StringUtils.isNotBlank(replaceApiCode)&&
+                !customer.getApiCode().equals(replaceApiCode)&&
+                ("S01".equalsIgnoreCase(userType)||"S03".equalsIgnoreCase(userType)||"S05".equalsIgnoreCase(userType))) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
 }

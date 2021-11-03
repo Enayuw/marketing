@@ -1,54 +1,78 @@
 package com.br.marketing.service.Impl;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import cn.hutool.core.convert.Convert;
-import com.alibaba.fastjson.*;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.common.LastEnum;
+import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.dto.*;
+import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
-import com.br.marketing.vo.*;
-import com.google.common.base.Joiner;
-
-import java.util.*;
-
-import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.vo.*;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.google.common.base.Joiner;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,15 +80,16 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
 
-    private static HashMap<String,String> errorCodeHm;
+    private static HashMap<String, String> errorCodeHm;
 
     static {
         errorCodeHm = new HashMap();
-        errorCodeHm.put("1001","无客户编号");
-        errorCodeHm.put("1002","无grouptype或cell");
-        errorCodeHm.put("1003","重复客户编号");
-        errorCodeHm.put("1004","重复电话");
-        errorCodeHm.put("1005","入库异常");
+        errorCodeHm.put("1001", "无客户编号");
+        errorCodeHm.put("1002", "无grouptype或userType或cell");
+        errorCodeHm.put("1003", "重复客户编号");
+        errorCodeHm.put("1004", "重复电话");
+        errorCodeHm.put("1005", "入库异常");
+        errorCodeHm.put("1006", "参数过长");
     }
 
     @Autowired
@@ -86,10 +111,29 @@ public class PushRuleServiceImpl implements PushRuleService {
     MarketingUserMapper marketingUserMapper;
 
     @Autowired
+    MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Autowired
     MarketingCustomerMapper marketingCustomerMapper;
 
     @Autowired
     DecodeClient decodeClient;
+
+    @Resource(name = "loadBalanced")
+    private RestTemplate restTemplate;
+
+    @Value("${api.robotAiApiService.pushTransferUrl:http://robotai-api-service/api/robotOutbound}")
+    private String pushTransferUrl;
+
+    @Resource
+    private PushTransferCustomerLogMapper pushTransferCustomerLogMapper;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.secretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.appName:00}")
+    private String appName;
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
@@ -149,6 +193,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     MarketingSyncErrorInfoMapper marketingSyncErrorInfoMapper;
 
     @Autowired
+    MarketingTransferInfoMapper marketingTransferInfoMapper;
+
+    @Autowired
+    MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Autowired
     AlarmApiClient alarmApiClient;
 
     @Autowired
@@ -162,7 +212,18 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKey_apiCode_taskId = "marketing:preuser:";
 
-    final static String marketingPreUserTable = "b_marketing_sync_";
+    final String redisKeySoleNum = "sole:thread:num";
+
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
+    @Autowired
+    IRuleConfigService iRuleConfigService;
+
+    @Autowired
+    SoleStrategyService soleStrategyService;
+
+    final static Byte customerStatus = Byte.valueOf("1");
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -183,7 +244,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingStrategyProduct> marketingStrategyProductsDb = marketingStrategyProductMapper.selectByExample(productExample);
         List<MarketingStrategyProduct> marketingStrategyProducts = marketingStrategyProductsDb.stream().filter(t ->
                 dto.getProductName().equals(t.getProductName())
-                && dto.getProductVersion().equals(t.getProductVersion())).collect(Collectors.toList());
+                        && dto.getProductVersion().equals(t.getProductVersion())).collect(Collectors.toList());
         if (marketingStrategyProducts.size() <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次和所筛选的模型是否匹配");
         }
@@ -237,7 +298,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region insert db
 
-        StraHisFileExample straHisFileExample= new StraHisFileExample();
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         List<String> showTitles = straHisFiles.stream().map(t -> t.getShowTitle()).collect(Collectors.toList());
@@ -291,10 +352,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
 
-        HashMap<Long,TaskExtendInfoVO> hsTaskExtend = new HashMap<>();
+        HashMap<Long, TaskExtendInfoVO> hsTaskExtend = new HashMap<>();
         List<TaskExtendInfoVO> extendInfosByFileIds = straHisFileMapper.getExtendInfosByFileIds(fileIds);
-        extendInfosByFileIds.forEach(t->{
-            hsTaskExtend.put(t.getFileId(),t);
+        extendInfosByFileIds.forEach(t -> {
+            hsTaskExtend.put(t.getFileId(), t);
         });
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
@@ -372,11 +433,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
                 }
                 TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
-                if(taskExtendInfoVO !=null){
+                if (taskExtendInfoVO != null) {
                     pushMarketingUserDetailVariablesDTO.setUpdate(taskExtendInfoVO.getUploadTime());
-                    pushMarketingUserDetailVariablesDTO.setTaskId(taskExtendInfoVO.getCusTaskId());
-                    pushMarketingUserDetailVariablesDTO.setGroupType(taskExtendInfoVO.getGroupType());
                 }
+                pushMarketingUserDetailVariablesDTO.setTaskId(marketingHistory.getTaskId());
+                pushMarketingUserDetailVariablesDTO.setGroupType(marketingHistory.getUserType());
 
                 dto1.setVariables(pushMarketingUserDetailVariablesDTO);
                 userDetailDTOS.add(dto1);
@@ -477,30 +538,47 @@ public class PushRuleServiceImpl implements PushRuleService {
             dto.setJsonData(JSON.parseObject(jsonData, new TypeReference<MarketingPreUserDTO>() {
             }.getType()));
         } catch (JSONException ex) {
-            if (ex.getMessage().contains("not match")) {
-                throw new ParamValidErrorException("请核实下是否jsonData过长，jsonData解析异常", ex);
-            } else {
-                throw new ParamValidErrorException("jsonData解析异常", ex);
-            }
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
         if (log.isInfoEnabled()) {
             log.info("反序列化耗时:{}", (System.currentTimeMillis() - l1));
         }
-        if (!StringUtils.isNotBlank(dto.getApiCode())) {
-            throw new ParamValidErrorException("apiCode必传");
-        }
         if (dto.getJsonData() == null) {
-            throw new ParamValidErrorException("jsonData必传");
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
         if (!StringUtils.isNotBlank(dto.getJsonData().getTaskId())) {
-            throw new ParamValidErrorException("taskid必传");
+            throw new CommonException(MarketingErrorInfo.TASK_ID_ERROR);
         }
         if (!StringUtils.isNotBlank(dto.getJsonData().getRequestId())) {
-            throw new ParamValidErrorException("requestId必传");
+            throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
+        }
+        /**
+         * 兼容旧逻辑,如果没传，则last=0，非最后一次，
+         * */
+        byte last = 0;
+        String lastStr = dto.getJsonData().getLast();
+        if (StringUtils.isNotBlank(lastStr)) {
+            if (LastEnum.isLegal(lastStr)) {
+                last = Byte.valueOf(lastStr);
+            } else {
+                throw new CommonException(MarketingErrorInfo.LAST_ERROR);
+            }
+        }
+        /**
+         * 兼容旧逻辑,如果没传，则total=0
+         * */
+        Long total = 0L;
+        String totalStr = dto.getJsonData().getTotal();
+        if (StringUtils.isNotBlank(totalStr)) {
+            try {
+                total = Long.valueOf(totalStr);
+            } catch (NumberFormatException numberFormatException) {
+                throw new CommonException(MarketingErrorInfo.TOTAL_ERROR);
+            }
         }
         int size = dto.getJsonData().getDataItems().size();
         if (size > 2000) {
-            throw new ParamValidErrorException("传输的数据不要超过2000条");
+            throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
         if (log.isInfoEnabled()) {
             log.info("check耗时:{}", (System.currentTimeMillis() - l1));
@@ -512,6 +590,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
             syncInfo.setRequestBatch(dto.getJsonData().getRequestId());
+            syncInfo.setLast(last);
+            syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
@@ -528,7 +608,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (log.isInfoEnabled()) {
                 log.error("文本插入耗时:{}", (System.currentTimeMillis() - l));
             }
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("请核实下该批次内有重复的requestId");
+            throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
             throw ex;
         }
@@ -543,6 +623,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result<Boolean> insertMarketingPreUserSync(Long infoId) {
+        String s = redisChgService.get(redisKeySoleNum);
+        Integer soleNum = 20;
+        if (StringUtils.isNotBlank(s)) {
+            soleNum = Integer.valueOf(s);
+        }
+        if (log.isInfoEnabled()) {
+            log.info(String.format("去重线程数：%d", soleNum));
+        }
         Boolean isContinue = Boolean.FALSE;
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         MarketingPreUserDTO dto = JSON.parseObject(marketingSyncInfo.getJsonData(), new TypeReference<MarketingPreUserDTO>() {
@@ -550,6 +638,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //规则校验方式-isCheck
         MerchantParam merchantParam = null;
         String apiCode = marketingSyncInfo.getApiCode();
+        Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
         try {
             merchantParam = IceClient.getMerchantParam(apiCode);
         } catch (Exception e) {
@@ -560,11 +649,34 @@ public class PushRuleServiceImpl implements PushRuleService {
             isCheck = merchantParam.getIsCheck();
         }
         long l = System.currentTimeMillis();
-        marketingUserMapper.createMarketingPreUserTable(marketingPreUserTable.concat(marketingSyncInfo.getApiCode()));
+        tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
+            //此处会处理三种场景的数据
+            //1 数禾、萨摩耶：只有groupType
+            //2 宜信：既有groupType,又有userType
+            //3 未来客户：只有userType
+            String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
+            ReserveField1DTO reserveField1 = null;
+            if (StringUtils.isBlank(reserveField1Str)) {
+                reserveField1 = new ReserveField1DTO();
+                reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+            } else {
+                try {
+                    reserveField1 = JSON.parseObject(reserveField1Str, new TypeReference<ReserveField1DTO>() {
+                    }.getType());
+                    if (StringUtils.isBlank(reserveField1.getUserType())) {
+                        reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                    }
+                } catch (JSONException ex) {
+                    reserveField1 = new ReserveField1DTO();
+                    reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                    reserveField1.setExtStr(reserveField1Str);
+                }
+            }
             Integer finalIsCheck = isCheck;
+            ReserveField1DTO finalReserveField = reserveField1;
             list.add(() -> {
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -572,7 +684,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     errorDetailVO.setErrorMsg(errorCodeHm.get("1001"));
                     return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
-                if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getGroupType())
+                if (!StringUtils.isNotBlank(finalReserveField.getUserType())
                         || !StringUtils.isNotBlank(marketingPreUserDetailDTO.getCell())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
@@ -581,28 +693,48 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                 }
                 //解密、规则校验
-                String cell = marketingPreUserDetailDTO.getCell();
                 marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-                encodeMapping(marketingPreUserDetailDTO,"cell", finalIsCheck);
-                encodeMapping(marketingPreUserDetailDTO,"id", finalIsCheck);
-                encodeMapping(marketingPreUserDetailDTO,"name", finalIsCheck);
-                String date = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+                encodeMapping(marketingPreUserDetailDTO, "cell", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO, "id", finalIsCheck);
+                encodeMapping(marketingPreUserDetailDTO, "name", finalIsCheck);
+                Date nowData = new Date();
+                String date = DateUtils.format(nowData, "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String dataStr = String.format("( '%s','%s','%s','%s','%s','%s','%s','%s' ,'%s' ,'%s' ,'%s' ,'%s','%s','%s','%s',%s)"
-                        , marketingSyncInfo.getApiCode(), marketingSyncInfo.getCusBatch()
-                        , marketingSyncInfo.getRequestBatch(), marketingPreUserDetailDTO.getCustNum()
-                        , marketingPreUserDetailDTO.getCell()
-                        , StringUtils.isBlank(marketingPreUserDetailDTO.getId())?"":marketingPreUserDetailDTO.getId()
-                        , StringUtils.isBlank(marketingPreUserDetailDTO.getName())?"":marketingPreUserDetailDTO.getName()
-                        , marketingPreUserDetailDTO.getGroupType()
-                        , marketingPreUserDetailDTO.getRegisterDate()
-                        , marketingPreUserDetailDTO.getReserveField1()
-                        , marketingPreUserDetailDTO.getReserveField2()
-                        , date, date, appletDate,
-                        marketingPreUserDetailDTO.getFailType() == null ? "" : marketingPreUserDetailDTO.getFailType(),
-                        marketingPreUserDetailDTO.getStatus());
+                String appletTime = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
+                MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+                marketingSyncUser.setApiCode(apiCode);
+                marketingSyncUser.setCusBatch(marketingSyncInfo.getCusBatch());
+                marketingSyncUser.setRequestBatch(marketingSyncInfo.getRequestBatch());
+                marketingSyncUser.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
+                marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
+                marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
+                marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
+                marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
+                marketingSyncUser.setReserveField1(JSON.toJSONString(finalReserveField));
+                marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
+                marketingSyncUser.setCreateTime(nowData);
+                marketingSyncUser.setUpdateTime(nowData);
+                marketingSyncUser.setAppletDate(appletDate);
+                marketingSyncUser.setStatus(marketingPreUserDetailDTO.getStatus());
+                marketingSyncUser.setFailType(marketingPreUserDetailDTO.getFailType());
+                marketingSyncUser.setAppletTime(marketingSyncInfo.getCreateTime());
+                marketingSyncUser.setUserType(finalReserveField.getUserType());
                 try {
-                    marketingUserMapper.insertBatchMarketingPreUserByDatas(marketingSyncInfo.getApiCode(), dataStr);
+                    Long st1 = System.currentTimeMillis();
+                    Long et1 = null;
+                    Long et2 = null;
+                    marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
+                    et1 = System.currentTimeMillis() - st1;
+                    if (ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())) {
+                        Long st2 = System.currentTimeMillis();
+                        soleStrategyService.actionSole(soleConfig.getData(), marketingSyncUser);
+                        et2 = System.currentTimeMillis() - st2;
+                    }
+                    if (log.isInfoEnabled()) {
+                        log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
+                                , marketingSyncUser.getId(), et1, et2));
+                    }
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -621,7 +753,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
                         errorDetailVO.setErrorCode("1005");
                         errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
-                        log.error(ex.getMessage(),ex);
+                        log.error(ex.getMessage(), ex);
                         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                     }
                 }
@@ -630,11 +762,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
         List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
-            futures = currentDbPoolExecutor.invokeAll(list);
+            futures = threadPool.invokeAll(list);
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
+        } finally {
+            threadPool.shutdown();
         }
         if (futures != null && !futures.isEmpty()) {
             for (int i = 0; i < futures.size(); i++) {
@@ -645,13 +780,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorBuild.add(result.getData());
                     }
                 } catch (Exception e) {
-                    log.error(e.getMessage(),e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
+        Date nowData2 = new Date();
         if (errorSize == 0) {
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
         } else if (errorSize == futures.size()) {
@@ -660,7 +796,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-            errorInfo.setCreateTime(new Date());
+            errorInfo.setCreateTime(nowData2);
             errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
@@ -670,7 +806,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
             errorInfo.setCusBatch(marketingSyncInfo.getCusBatch());
             errorInfo.setRequestBatch(marketingSyncInfo.getRequestBatch());
-            errorInfo.setCreateTime(new Date());
+            errorInfo.setCreateTime(nowData2);
             errorInfo.setErrorInfo(JSON.toJSONString(errorBuild));
             marketingSyncErrorInfoMapper.insertMarketingSigle(errorInfo);
             updateSyncInfo.setErrorId(errorInfo.getId());
@@ -682,55 +818,267 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+    @Override
+    public Result insertTransferData(String apiCode, String jsonData) {
+        //region check
+        long l1 = System.currentTimeMillis();
+        TransferDataDTO transferDataDTO = null;
+        try {
+            transferDataDTO = JSON.parseObject(jsonData, new TypeReference<TransferDataDTO>() {
+            }.getType());
+        } catch (JSONException ex) {
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
+        }
+        if (transferDataDTO == null) {
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
+        }
+        if (!StringUtils.isNotBlank(transferDataDTO.getRequestId()) || transferDataDTO.getRequestId().length() > 100) {
+            throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
+        }
+        int size = transferDataDTO.getDataItems().size();
+        if (size > 2000) {
+            throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
+        }
+        //endregion
+        long l = System.currentTimeMillis();
+        try {
+            MarketingTransferInfo transferInfo = new MarketingTransferInfo();
+            transferInfo.setApiCode(apiCode);
+            transferInfo.setRequestId(transferDataDTO.getRequestId());
+            transferInfo.setOrgName(transferDataDTO.getOrgName());
+            transferInfo.setCreateTime(new Date());
+            transferInfo.setJsonData(jsonData);
+            transferInfo.setActualNum(size);
+            transferInfo.setLast(transferDataDTO.getLast());
+            transferInfo.setTotal(transferDataDTO.getTotal());
+            marketingTransferInfoMapper.insertSelective(transferInfo);
+            producter.send("Marketing.Transfer.Receive", transferInfo.getId().toString());
+        } catch (DuplicateKeyException keyException) {
+            throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
+        } catch (Exception ex) {
+            throw ex;
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    @Override
+    public Result consumerTransferData(Long id) {
+        Integer soleNum = 20;
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        TransferDataDTO dto = JSON.parseObject(transferInfo.getJsonData(), new TypeReference<TransferDataDTO>() {
+        }.getType());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).andStatusEqualTo(customerStatus);
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if (marketingCustomers.size() == 0) {
+            throw new RuntimeException(String.format("该apicode:%s 没有维护cid信息,消费有问题", transferInfo.getApiCode()));
+        }
+        String cid = marketingCustomers.get(0).getCid();
+        String tcid = cid.replaceFirst("-", "");
+        tableCreateService.createMarketingTransferUserTable(tcid);
+        ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
+        for (int i = 0; i < dto.getDataItems().size(); i++) {
+            TransferDataItemDTO transferDataItemDTO = dto.getDataItems().get(i);
+            list.add(() -> {
+                if (!StringUtils.isNotBlank(transferDataItemDTO.getCustNum())) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setErrorCode("1001");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1001"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
+                if (!StringUtils.isNotBlank(transferDataItemDTO.getUserType())) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1002");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1002"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
+                if (transferDataItemDTO.getUserType().length() > 100) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1006");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1006"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
+                Date nowData = new Date();
+                String requestDate = DateUtils.format(transferInfo.getCreateTime(), "yyyy-MM-dd");
+                String requestTime = DateUtils.format(transferInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
+                MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+                BeanUtils.copyProperties(transferDataItemDTO, transferSyncUser);
+                transferSyncUser.setRequestId(transferInfo.getRequestId());
+                transferSyncUser.setApiCode(transferInfo.getApiCode());
+                transferSyncUser.setOrgName(transferInfo.getOrgName());
+                transferSyncUser.setRequestData(requestDate);
+                transferSyncUser.setRequestTime(requestTime);
+                transferSyncUser.setCreateTime(nowData);
+                transferSyncUser.setCid(cid);
+                transferSyncUser.settCid(tcid);
+                transferSyncUser.setRegisterTime(dateTimeComplet(transferDataItemDTO.getRegisterTime()));
+                transferSyncUser.setLoginTime(dateTimeComplet(transferDataItemDTO.getLoginTime()));
+                transferSyncUser.setApplyDt(dateTimeComplet(transferDataItemDTO.getApplyDt()));
+                transferSyncUser.setApplyTime(dateTimeComplet(transferDataItemDTO.getApplyTime()));
+                transferSyncUser.setRefuseTime(dateTimeComplet(transferDataItemDTO.getRefuseTime()));
+                transferSyncUser.setAuditTime(dateTimeComplet(transferDataItemDTO.getAuditTime()));
+                transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
+                transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
+                transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
+                try {
+                    marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
+                } catch (Exception ex) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1005");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1005"));
+                    log.error(ex.getMessage(), ex);
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            });
+        }
+        List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
+        Integer errorSize = 0;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        try {
+            futures = threadPool.invokeAll(list);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            threadPool.shutdown();
+        }
+        if (futures != null && !futures.isEmpty()) {
+            for (int i = 0; i < futures.size(); i++) {
+                try {
+                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
+                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                        errorSize++;
+                        errorBuild.add(result.getData());
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        MarketingTransferInfo updateSyncInfo = new MarketingTransferInfo();
+        updateSyncInfo.setId(id);
+        updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
+        if (errorSize == 0) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
+        } else if (errorSize == futures.size()) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
+            updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
+        } else if (errorSize < futures.size()) {
+            updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success_part);
+            updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
+        }
+        marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
+        if (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)) {
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+
+    private String dateTimeComplet(String data) {
+        String res = "";
+        try {
+            if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", data)) {
+                String s = data.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}$", data)) {
+                String s = data.replaceAll("/", "-");
+                res = LocalDateTime.parse(s.concat(":000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}$", data)) {
+                String s = data.replaceAll("/", "-");
+                res = LocalDateTime.parse(s.concat(":00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", data)) {
+                String s = data.replaceAll("/", "-");
+                res = LocalDateTime.parse(s.concat(":00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", data)) {
+                String s = data.replaceAll("/", "-");
+                res = LocalDateTime.parse(s.concat(" 00:00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+            } else {
+                res = data;
+            }
+        } catch (Exception ex) {
+            res = data;
+            log.error(ex.getMessage(), ex);
+        }
+        return res;
+    }
+
+    @Override
+    public Result<MarketingTransferUserStatusVO> getTransferDataStatus(String apiCode, String requestId) {
+        if (StringUtils.isBlank(requestId)) {
+            throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
+        }
+        MarketingTransferInfoExample transferInfoExample = new MarketingTransferInfoExample();
+        transferInfoExample.createCriteria().andRequestIdEqualTo(requestId).andApiCodeEqualTo(apiCode);
+        List<MarketingTransferInfo> marketingTransferInfos = marketingTransferInfoMapper.selectByExample(transferInfoExample);
+        if (marketingTransferInfos.size() <= 0) {
+            throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
+        }
+        MarketingTransferInfo transferInfo = marketingTransferInfos.get(0);
+        MarketingTransferUserStatusVO vo = new MarketingTransferUserStatusVO();
+        vo.setApiCode(transferInfo.getApiCode());
+        vo.setRequestId(transferInfo.getRequestId());
+        vo.setStatus(transferInfo.getStatus());
+        if (StringUtils.isNotBlank(transferInfo.getErrorInfo())) {
+            List<MarketingPreUserErrorDetailVO> o = JSON.parseObject(transferInfo.getErrorInfo(), new TypeReference<List<MarketingPreUserErrorDetailVO>>() {
+            }.getType());
+            vo.setErrorInfo(o);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Result insertBatchTransferUser(String apiCode, String jsonData){
-        JSONObject jsonObject =null;
+    public Result insertBatchTransferUser(String apiCode, String jsonData) {
+        JSONObject jsonObject = null;
         try {
             jsonObject = JSON.parseObject(jsonData);
-        }catch (Exception ex){
-            throw new ParamValidErrorException("参数解析异常");
+        } catch (Exception ex) {
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
         String requestId = jsonObject.getString("requestId");
-        if(StringUtils.isBlank(requestId)){
-            throw new ParamValidErrorException("requestId不能为空");
+        if (StringUtils.isBlank(requestId)) {
+            throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
-        if(requestId.length()>100){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("requestId不能超过100");
+        if (requestId.length() > 100) {
+            throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
 
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if(marketingCustomers.size()<=0){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("该apicode未配置");
+        if (marketingCustomers.size() <= 0) {
+            throw new CommonException(MarketingErrorInfo.API_CODE_AUTH_ERROR);
         }
         String cid = marketingCustomers.get(0).getCid();
-        if(StringUtils.isBlank(cid)){
-            return new Result().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("该apicode的cid非法");
+        if (StringUtils.isBlank(cid)) {
+            throw new CommonException(MarketingErrorInfo.API_CODE_AUTH_ERROR);
         }
 
         marketingSyncInfoMapper.createMarketingTransferTable("b_marketing_transfer_".concat(apiCode));
         Integer hasData = marketingSyncInfoMapper.selectTransfersByRequestId(apiCode, requestId);
-        if(hasData>0){
-            throw new ParamValidErrorException("requestId数据已存在");
+        if (hasData > 0) {
+            throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         }
 
         List<TransferUserVO> transfers = new ArrayList<>();
         try {
             transfers = JSON.parseObject(jsonObject.getString("dataItems"), new TypeReference<List<TransferUserVO>>() {
             }.getType());
-        }catch (Exception ex){
-            throw new ParamValidErrorException("参数解析异常");
+        } catch (Exception ex) {
+            throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
-        if(transfers.size()>100){
-            throw new ParamValidErrorException("最多传输100条数据");
+        if (transfers.size() > 100) {
+            throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
-        if(transfers.size()==0){
-            throw new ParamValidErrorException("未传输数据");
+        if (transfers.size() == 0) {
+            throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
 
 
@@ -740,73 +1088,62 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            StringBuilder sql = new StringBuilder();
             TransferUserVO transferUserVO = transfers.get(i);
             //region 校验参数
-            if(StringUtils.isBlank(transferUserVO.getTaskId())){
-                throw new ParamValidErrorException("该批次数据含有taskId为空数据");
+            if (StringUtils.isBlank(transferUserVO.getTaskId())) {
+                throw new CommonException(MarketingErrorInfo.TASK_ID_ERROR);
             }
 
-            if(transferUserVO.getTaskId().length()>50){
-                throw new ParamValidErrorException("该批次数据含有taskId超过长度数据");
+            if (transferUserVO.getTaskId().length() > 50) {
+                throw new CommonException(MarketingErrorInfo.TASK_ID_ERROR);
             }
 
-            if(StringUtils.isBlank(transferUserVO.getCustNum())){
-                throw new ParamValidErrorException("该批次数据含有custNum为空数据");
+            if (StringUtils.isBlank(transferUserVO.getCustNum())) {
+                throw new CommonException(MarketingErrorInfo.CUST_NUM_ERROR);
             }
 
-            if(transferUserVO.getCustNum().length()>100){
-                throw new ParamValidErrorException("该批次数据含有custNum超过长度数据");
+            if (transferUserVO.getCustNum().length() > 100) {
+                throw new CommonException(MarketingErrorInfo.CUST_NUM_ERROR);
             }
 
-            if(StringUtils.isBlank(transferUserVO.getGroupType())){
-                throw new ParamValidErrorException("该批次数据含有groupType为空数据");
+            if (StringUtils.isBlank(transferUserVO.getGroupType())) {
+                throw new CommonException(MarketingErrorInfo.GROUP_TYPE_ERROR);
             }
 
-            if(transferUserVO.getGroupType().length()>100){
-                throw new ParamValidErrorException("该批次数据含有groupType超过长度数据");
+            if (transferUserVO.getGroupType().length() > 100) {
+                throw new CommonException(MarketingErrorInfo.GROUP_TYPE_ERROR);
             }
-
-            if(StringUtils.isNotBlank(transferUserVO.getReserveField1())
-                    &&transferUserVO.getReserveField1().length()>500){
-                throw new ParamValidErrorException("该批次数据含有reserveField1超过长度数据");
-            }
-
-            if(StringUtils.isNotBlank(transferUserVO.getReserveField2())
-                    &&transferUserVO.getReserveField2().length()>500){
-                throw new ParamValidErrorException("该批次数据含有reserveField2超过长度数据");
-            }
-
 
             //endregion
 
             //region 拼接sql
             Date parse = null;
             try {
-                if(StringUtils.isNotBlank(transferUserVO.getTransformTime())) {
+                if (StringUtils.isNotBlank(transferUserVO.getTransformTime())) {
                     parse = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferUserVO.getTransformTime());
                 }
             } catch (Exception e) {
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("转化时间格式错误");
+                throw new CommonException(MarketingErrorInfo.TIME_FORMAT_ERROR);
             }
             MarketingTransfer transfer = new MarketingTransfer();
             transfer.setApiCode(apiCode);
             transfer.setRequestId(requestId);
             transfer.setTaskId(transferUserVO.getTaskId());
             transfer.setCustNum(transferUserVO.getCustNum());
-            transfer.setTransformTime(parse==null?null:(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(parse)));
+            transfer.setTransformTime(parse == null ? null : (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(parse)));
             transfer.setCreateTime(new Date());
             transfer.setGroupType(transferUserVO.getGroupType());
             transfer.setReserveField1(transferUserVO.getReserveField1());
             transfer.setReserveField2(transferUserVO.getReserveField2());
-            if(i==0){
+            if (i == 0) {
                 sqlByTaskAndCustNum.append(String.format("(cus_batch = '%s' and cust_num = '%s')"
-                        ,transferUserVO.getTaskId()
-                        ,transferUserVO.getCustNum()));
+                        , transferUserVO.getTaskId()
+                        , transferUserVO.getCustNum()));
             }
-            if(i>0){
+            if (i > 0) {
 //                sql.append(",");
                 sqlByTaskAndCustNum.append(" or ")
                         .append(String.format("(cus_batch = '%s' and cust_num = '%s')"
-                                ,transferUserVO.getTaskId()
-                                ,transferUserVO.getCustNum()));
+                                , transferUserVO.getTaskId()
+                                , transferUserVO.getCustNum()));
             }
 
             //endregion
@@ -817,13 +1154,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 //        if(StringUtils.isNotBlank(sql.toString())){
 //            marketingSyncInfoMapper.insertBatchTransfer(sql.toString());
 //        }
-        HashMap<String,MarketingSyncUser> hmPreUser = new HashMap();
-        if(StringUtils.isNotBlank(sqlByTaskAndCustNum.toString())){
+        HashMap<String, MarketingSyncUser> hmPreUser = new HashMap();
+        if (StringUtils.isNotBlank(sqlByTaskAndCustNum.toString())) {
             List<MarketingSyncUser> preUserByTaskAndCust = marketingSyncInfoMapper.getPreUserByTaskAndCust(apiCode, sqlByTaskAndCustNum.toString());
             for (MarketingSyncUser marketingSyncUser : preUserByTaskAndCust) {
                 hmPreUser.put(marketingSyncUser.getCusBatch()
                         .concat("_")
-                        .concat(marketingSyncUser.getCustNum()),marketingSyncUser);
+                        .concat(marketingSyncUser.getCustNum()), marketingSyncUser);
             }
         }
         //region 拼接客服接口参数
@@ -842,10 +1179,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingSyncUser marketingSyncUser = hmPreUser.get(transfer.getTaskId()
                     .concat("_")
                     .concat(transfer.getCustNum()));
-            if(marketingSyncUser!=null){
+            if (marketingSyncUser != null) {
                 data.setPhone(StringUtils.isBlank(marketingSyncUser.getFailType())
-                        ?BrCipherMaker.getInstance().decode(marketingSyncUser.getCell())
-                        :marketingSyncUser.getCell());
+                        ? BrCipherMaker.getInstance().decode(marketingSyncUser.getCell())
+                        : marketingSyncUser.getCell());
             }
             data.setDataId(transfer.getId().toString());
             conversionDataList.add(data);
@@ -859,9 +1196,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //todo 调用客服接口
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO,requestId);
-        if(String.valueOf("9999").equals(transferRobotOutboundVO.getCode())){
-            throw new RuntimeException(transferRobotOutboundVO.getMessage());
+        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
+        if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
+            throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -873,51 +1210,51 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param isCheck
      * @return
      */
-    private void encodeMapping(MarketingPreUserDetailDTO user,String type, Integer isCheck) {
+    private void encodeMapping(MarketingPreUserDetailDTO user, String type, Integer isCheck) {
         String content = "";
-        switch (type){
+        switch (type) {
             case "cell":
-                content = StringUtils.isBlank(user.getCell())?"":user.getCell();
+                content = StringUtils.isBlank(user.getCell()) ? "" : user.getCell();
                 break;
             case "id":
-                content = StringUtils.isBlank(user.getId())?"":user.getId();
+                content = StringUtils.isBlank(user.getId()) ? "" : user.getId();
                 break;
             case "name":
-                content = StringUtils.isBlank(user.getName())?"":user.getName();
+                content = StringUtils.isBlank(user.getName()) ? "" : user.getName();
                 break;
         }
-        if (decodeClient.isMd5(content)) {
+        if (DecodeClient.isMd5(content)) {
             //cell md5
             content = decodeClient.query(content, type, "md5", "");
-            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
+            if (StringUtils.isBlank(content) && "cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
         } else if (content.length() == 64) {
             //cell sha256
             content = decodeClient.query(content, type, "sha", "");
-            if (StringUtils.isBlank(content)&&"cell".equals(type)) {
+            if (StringUtils.isBlank(content) && "cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
         }
         //明文规则校验
         UserValidator userValidator = new UserValidator(isCheck);
-        if (StringUtils.isNotBlank(content)&&"cell".equals(type)) {
+        if (StringUtils.isNotBlank(content) && "cell".equals(type)) {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }
-        if (StringUtils.isNotBlank(content)&&"id".equals(type)) {
+        if (StringUtils.isNotBlank(content) && "id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setId(BrCipherMaker.getInstance().encode(content));
         }
-        if (StringUtils.isNotBlank(content)&&"name".equals(type)) {
+        if (StringUtils.isNotBlank(content) && "name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
@@ -941,7 +1278,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .andRequestBatchEqualTo(dto.getRequestId());
         List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
         if (marketingSyncInfos.size() <= 0) {
-            return marketingPreUserSyncDetailVOResult.setCode(ResultCode.FAIL.getValue()).setMessage("该批次信息不存在");
+            throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
         }
         MarketingSyncInfo syncInfo = marketingSyncInfos.get(0);
         vo.setApiCode(syncInfo.getApiCode());
@@ -1005,5 +1342,447 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    //初始化一个ForkJoinPool
+    private static final ForkJoinPool FORK_JOIN_POOL = new ForkJoinPool(Math.min(0x7fff, Runtime.getRuntime().availableProcessors()),
+//            ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+            new ForkJoinPool.ForkJoinWorkerThreadFactory() {
+                @Override
+                public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+                    ForkJoinWorkerThread workerThread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+                    workerThread.setName("br-push-forkJoin-pool-" + workerThread.getPoolIndex());
+                    return workerThread;
+                }
+            },
+            new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread t, Throwable e) {
+                    log.error("推送客服任务异常：任务线程:[{}]\n{}", t.getName(), e.getMessage(), e);
+                }
+            },
+            // 队列模式，false 后人先出，true 先进先出
+            false);
+
+    @Override
+    @Transactional
+    public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(true);
+        String key = null;
+        try {
+            // 传输标记
+            final int transferStatus;
+            // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
+            List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
+            if (CollectionUtils.isEmpty(list)) {
+                result.setDate(false);
+                String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
+                log.error(smg);
+                result.setMessage(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
+                return result;
+            }
+            MarketingTransferInfo info = list.get(0);
+            String apiCode = info.getApiCode();
+            Date createTime = info.getCreateTime();
+            //        String yyyyMMdd = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            // 格式化入库时间
+            String yyyyMMdd = createTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                    .format(DateTimeFormatter.BASIC_ISO_DATE);
+            key = "marketing:inner:push:".concat(yyyyMMdd).concat(":").concat(apiCode);
+//            redisChgService.del(key);
+            Long apiCodeCount = getApiCodeCount(key);
+            // 检查缓存
+            if (apiCodeCount < 0) {
+                result.setDate(false);
+//                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
+                redisChgService.incrBy(key, -1);
+                redisChgService.expire(key, getKeyExpiration());
+                return result;
+            }
+            // 检查db，再次确认
+            List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
+            if (statusList != null && statusList.size() > 0) {
+                result.setDate(false);
+//                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
+                String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
+                log.error(smg);
+                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
+                redisChgService.incrBy(key, -1);
+                redisChgService.expire(key, getKeyExpiration());
+                return result;
+            }
+            // 如果是最后一次传
+            if ("1".equals(info.getLast())) {
+                Integer dbCount = marketingTransferInfoMapper.countByApiCodAnd(apiCode, createTime);
+                if (Objects.equals(apiCodeCount, Long.valueOf(dbCount))) {
+                    transferStatus = 2;
+                } else {
+                    Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
+                    if (Objects.equals(i, dbCount - 1)) {
+                        Integer countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime);
+                        if (countStatus == null || countStatus == 0) {
+                            transferStatus = 2;
+                        } else {
+                            String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据[%d]尚未成功同步至智能客服"
+                                    , apiCode, yyyyMMdd, countStatus);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("pushToCustomer"));
+                            redisChgService.incrBy(key, -1);
+                            redisChgService.expire(key, getKeyExpiration());
+                            return result;
+                        }
+                    } else {
+                        String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据尚未成功同步至智能客服"
+                                , apiCode, yyyyMMdd);
+                        log.error(smg);
+                        alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                Constants.sendCodeMap.get("pushToCustomer"));
+                        redisChgService.incrBy(key, -1);
+                        redisChgService.expire(key, getKeyExpiration());
+                        return result;
+                    }
+                }
+            } else {
+                if (apiCodeCount == 1) {
+                    Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
+                    if (i == null || i == 0) {
+                        transferStatus = 0;
+                    } else {
+                        Integer integer = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndStatus(apiCode, createTime, 0);
+                        if (integer == null || integer == 0) {
+                            String smg = String.format("该客户[%s]当前日期[%s]缓存数据与db记录数有异常，消息[%d]退回到队列"
+                                    , apiCode, yyyyMMdd, infoId);
+                            log.error(smg);
+                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                                    Constants.sendCodeMap.get("pushToCustomer"));
+                            redisChgService.incrBy(key, -1);
+                            redisChgService.expire(key, getKeyExpiration());
+                            return result;
+                        } else {
+                            transferStatus = 1;
+                        }
+                    }
+                } else if (apiCodeCount > 1) {
+                    transferStatus = 1;
+                } else {
+                    String smg = String.format("该客户[%s]当前日期[%s]缓存数据有异常，消息[%d]退回到队列"
+                            , apiCode, yyyyMMdd, infoId);
+                    log.error(smg);
+                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
+                    redisChgService.incrBy(key, -1);
+                    redisChgService.expire(key, getKeyExpiration());
+                    return result;
+                }
+            }
+            String requestId = info.getRequestId();
+            // 2 获取分表后缀
+            String tcId = tableCreateService.getTcId(apiCode);
+
+            // 3 获取转化数据,
+            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
+            example.settCid(tcId);
+            int page = 1;
+            final int pageSize = 2000;
+            final int retrySum = 2;
+            List<PushTransferCustomerLog> logListAll = new ArrayList<>();
+            boolean flag = true;
+            List<MarketingTransferSyncUser> transferSyncUserList;
+            List<MarketingTransferSyncUser> transferSyncUserListTask;
+            for (; ; ) {
+                PageHelper.startPage(page, pageSize);
+                List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+                int size = transferList.size();
+                if (size < 1) {
+                    PushTransferCustomerLog pushTransferCustomerLog = new PushTransferCustomerLog();
+                    pushTransferCustomerLog.setTransferInfoId(infoId);
+                    pushTransferCustomerLog.setApiCode(apiCode);
+                    pushTransferCustomerLog.setRequestId(requestId);
+                    pushTransferCustomerLog.setPushStatus(4);
+                    pushTransferCustomerLog.setRowSize(0);
+                    logListAll.add(pushTransferCustomerLog);
+                }
+                PageInfo<?> pageList = new PageInfo<>(transferList);
+                // 总页数
+                int pages = pageList.getPages();
+                // 处理开始标记
+                if (transferStatus == 0 && flag) {
+                    flag = false;
+                    if (size > 200) {
+                        transferSyncUserList = transferList.subList(0, 200);
+                        transferSyncUserListTask = transferList.subList(200, size);
+                    } else {
+                        transferSyncUserList = transferList;
+                        transferSyncUserListTask = null;
+                    }
+                    // 4.1 推送转化数据,每次200条，失败后重试2次,标记为同步开始
+                    PushTransferCustomerLog log = sendTransferDataToCustomer(
+                            new PushCustomerRequestDTO(apiCode, transferStatus, transferSyncUserList), retrySum, transferSyncUserList.size());
+                    log.setTransferStatus(transferStatus);
+                    logListAll.add(log);
+                } else if (transferStatus == 2 && pages == 1) { // 处理结束标记
+                    if (size > 200) {
+                        int len = (size - 200);
+                        transferSyncUserList = transferList.subList(len, size);
+                        transferSyncUserListTask = transferList.subList(0, len);
+                    } else {
+                        Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
+                        if (i == null || i < 1) {
+                            int s = size / 2;
+                            transferSyncUserList = transferList.subList(s, size);
+                            PushTransferCustomerLog log = sendTransferDataToCustomer(
+                                    new PushCustomerRequestDTO(apiCode, 0, transferList.subList(0, s)), retrySum, 0);
+                            log.setTransferStatus(transferStatus);
+                            logListAll.add(log);
+                        } else {
+                            transferSyncUserList = transferList;
+                        }
+                        transferSyncUserListTask = null;
+                    }
+                } else {
+                    transferSyncUserList = null;
+                    transferSyncUserListTask = transferList;
+                }
+                if (transferSyncUserListTask != null && transferSyncUserListTask.size() > 0) {
+                    // 4.2 推送转化数据,每次200条，失败后重试3次，标记为同步中
+                    PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserListTask, 0, transferSyncUserListTask.size());
+                    List<PushTransferCustomerLog> logList = FORK_JOIN_POOL.invoke(task);
+                    logListAll.addAll(logList);
+                    boolean b = FORK_JOIN_POOL.awaitQuiescence(5, TimeUnit.SECONDS);
+                    if (b) {
+                        if (task.isCompletedAbnormally()) {
+                            Throwable exception = task.getException();
+                            if (exception != null) {
+                                result.setMessage(exception.getMessage());
+                                log.error(exception.getMessage(), exception);
+                                return result;
+                            }
+                        }
+                    } else {
+                        if (!task.isDone()) {
+                            task.isCancelled();
+                            result.setMessage("任务未完成");
+                            return result;
+                        }
+                        log.info("等待任务超时，任务已经处理完成");
+                    }
+                }
+                if (transferStatus == 2 && transferSyncUserList != null) {
+                    // 4.3 推送转化数据,每次200条，失败后重试2次，标记为同步终止
+                    PushTransferCustomerLog log = sendTransferDataToCustomer(
+                            new PushCustomerRequestDTO(apiCode, transferStatus, transferSyncUserList)
+                            , retrySum, transferSyncUserList.size());
+                    log.setTransferStatus(transferStatus);
+                    logListAll.add(log);
+                    redisChgService.incrBy(key, -(apiCodeCount * 2));
+                    redisChgService.expire(key, getKeyExpiration());
+                }
+                // 总记录数
+                long total = pageList.getTotal();
+                if ((pages == page && transferList.size() <= total) || transferList.size() == 0) {
+                    break;
+                }
+                page++;
+            }
+            // 5 推送记录日志
+            if (logListAll.size() > 0) {
+                List<PushTransferCustomerLog> collect = logListAll.stream().peek(failLog -> {
+                    failLog.setRequestId(requestId);
+                    failLog.settCid(tcId);
+                    failLog.setTransferInfoId(infoId);
+                    failLog.setTransferInfoTime(createTime);
+                }).collect(Collectors.toList());
+                boolean bool = pushTransferCustomerLogMapper.bathInsert(collect);
+                if (bool) {
+                    log.info("推送客服数据已保存记录，本次保存[{}]", collect.size());
+                } else {
+                    result.setMessage("保存记录失败！");
+                    log.error("保存推送记录失败：apiCode:{};requestId:{};tcId:{};infoId:{};失败数据量:{}"
+                            , apiCode, requestId, tcId, infoId, collect.size());
+                    redisChgService.incrBy(key, -1);
+                    redisChgService.expire(key, getKeyExpiration());
+                    return result;
+                }
+            }
+            result.setMessage("成功");
+            result.setDate(false);
+            return result;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
+            result.setMessage(e.getMessage());
+            if (key != null) {
+                redisChgService.incrBy(key, -1);
+                redisChgService.expire(key, getKeyExpiration());
+            }
+            return result;
+        }
+    }
+
+    private synchronized Long getApiCodeCount(String key) {
+        Long incr = redisChgService.incr(key);
+        int keyExpiration = getKeyExpiration();
+        redisChgService.expire(key, keyExpiration);
+        return incr;
+    }
+
+    /**
+     * 获取当前时间到第二天凌晨的秒
+     *
+     * @dateTime 2021/10/19 9:21
+     */
+    private int getKeyExpiration() {
+        final LocalDateTime now = LocalDateTime.now();
+        // 当前毫秒数
+        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime localDateTime = now.plusDays(1);
+        // 第二天凌晨毫秒数
+        long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return (int) (l1 - l) / 1000;
+    }
+
+
+    /**
+     * 发送转化数据到客服
+     *
+     * @param requestDTO 数据集合
+     * @param retrySum   指定最大重试次数，包括第一次执行，默认1次
+     * @param rowSize    发送数据量
+     * @return false 失败；true 成功； 失败需要写入失败日志，以便后续补发
+     * @author Guo Zeqiang
+     * @dateTime 2021/10/13 17:51
+     */
+    private PushTransferCustomerLog sendTransferDataToCustomer(final PushCustomerRequestDTO requestDTO
+            , int retrySum
+            , final int rowSize) {
+        int count = 1;
+        if (retrySum < 1) {
+            retrySum = 1;
+        }
+        final HttpHeaders tempHeaders = new HttpHeaders();
+        tempHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        tempHeaders.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
+        tempHeaders.setAccept(Collections.singletonList(MediaType.ALL));
+        MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
+        postParameters.add("apiCode", requestDTO.getApiCode());
+        postParameters.add("jsonData", requestDTO.getJsonData());
+        final HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
+        ResponseEntity<String> responseEntity = null;
+        HttpStatus statusCode = null;
+        String body;
+        JSONObject result;
+        String code;
+        int value;
+        do {
+            log.info("########################第【{}/{}】次调用接口", count, retrySum);
+            try {
+                responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
+                statusCode = responseEntity.getStatusCode();
+                value = statusCode.value();
+                body = responseEntity.getBody();
+                result = JSONObject.parseObject(body);
+                code = String.valueOf(result.get("code"));
+                // 重试休眠
+                TimeUnit.SECONDS.sleep(count < 4 ? count : 3);
+            } catch (RestClientException | InterruptedException e) {
+                value = -1;
+                body = "";
+                result = null;
+                code = "";
+                log.error(e.getMessage(), e);
+            }
+            count++;
+        } while ((value != 200 || !"00".equals(code)) && count <= retrySum);
+        int pushStatus = 0;
+        if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
+            String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
+                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
+            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+            return new PushTransferCustomerLog(
+                    requestDTO.getApiCode()
+                    , requestDTO.getJsonData()
+                    , rowSize
+                    , 1
+            );
+        }
+        String reasonPhrase = statusCode.getReasonPhrase();
+        log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
+        if (value != 200 || !"00".equals(code)) {
+            // 客服业务中出现的非正常状态码全部补偿
+            pushStatus = 1;
+            String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
+                    "\n接口返回http状态码[%d],http短语[%s];" +
+                    "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
+            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+        }
+        return new PushTransferCustomerLog(
+                requestDTO.getApiCode()
+                , requestDTO.getJsonData()
+                , body
+                , code
+                , result.get("message") == null ? "" : result.get("message").toString()
+                , result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString()
+                , rowSize
+                , value
+                , reasonPhrase
+                , pushStatus
+        );
+    }
+
+
+    // 处理任务
+    private class PushTransferDataToCustomerTask extends RecursiveTask<List<PushTransferCustomerLog>> {
+
+        private static final long serialVersionUID = 4930523513045970753L;
+        private final List<MarketingTransferSyncUser> list;
+        private final int start;
+        private final int end;
+
+        public PushTransferDataToCustomerTask(List<MarketingTransferSyncUser> list, int start, int end) {
+            super();
+            this.list = list;
+            this.start = start;
+            this.end = end;
+        }
+
+        @SneakyThrows
+        @Override
+        protected List<PushTransferCustomerLog> compute() {
+            List<PushTransferCustomerLog> logList = new ArrayList<>();
+            int threshold = 200;
+            if ((end - start) <= threshold) {
+                log.info("++++++++++++++++=====分段数据：【{}】-【{}】", start, end);
+                List<MarketingTransferSyncUser> transferSyncUserList = list.subList(start, end);
+                int transferStatus = 1;
+                int retrySum = 3;
+                PushTransferCustomerLog log = sendTransferDataToCustomer(
+                        new PushCustomerRequestDTO(transferSyncUserList.get(0).getApiCode(), transferStatus, transferSyncUserList)
+                        , retrySum, transferSyncUserList.size());
+                log.setTransferStatus(transferStatus);
+                logList.add(log);
+            } else {
+                int middle = (end + start) / 2;
+                PushTransferDataToCustomerTask taskLeft = new PushTransferDataToCustomerTask(list, start, middle);
+                PushTransferDataToCustomerTask taskRight = new PushTransferDataToCustomerTask(list, middle, end);
+                invokeAll(taskLeft, taskRight);
+                logList.addAll(taskLeft.join());
+                logList.addAll(taskRight.join());
+            }
+            return logList;
+        }
     }
 }

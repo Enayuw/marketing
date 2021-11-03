@@ -1,0 +1,300 @@
+package com.br.marketing.entity;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
+public class PushTransferCustomerLog {
+    /**
+     *
+     */
+    private Long id;
+
+    /**
+     * 客户转化数据请求主键
+     */
+    private Long transferInfoId;
+
+    /**
+     * 商户编号
+     */
+    private String apiCode;
+
+    /**
+     * 请求批次号
+     */
+    private String requestId;
+
+    /**
+     * 分表cid
+     */
+    private String tCid;
+
+    /**
+     * 请求体json
+     */
+    private String requestBody;
+
+    /**
+     * 响应体
+     */
+    private String responseBody;
+
+    /**
+     * 返回的业务状态码
+     */
+    private String serviceCode;
+
+    /**
+     * 返回的业务提示消息
+     */
+    private String message;
+
+    /**
+     * 智能客服返回流水号
+     */
+    private String swiftNumber;
+
+    /**
+     * 发送的数据量
+     */
+    private Integer rowSize;
+
+    /**
+     * 入库时间
+     */
+    private Date createTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
+    /**
+     * 客户转化数据请求落库时间
+     */
+    private Date transferInfoTime;
+
+    /**
+     * 补偿次数
+     */
+    private Integer compensateTimes;
+
+    /**
+     * 推送状态：0 一次性成功; 1 补偿中；2 已补偿；3 超出补偿次数；4 放弃补偿
+     */
+    private Integer pushStatus;
+
+    /**
+     * 传送状态：0 开始传送；1 传送中；2 传送结束
+     */
+    private Integer transferStatus;
+
+    /**
+     * http状态码
+     */
+    private Integer httpStatus;
+
+    /**
+     * http说明短语
+     */
+    private String httpReasonPhrase;
+
+    public PushTransferCustomerLog() {
+    }
+
+    public PushTransferCustomerLog(Long id, Long transferInfoId, String apiCode, String requestId, String tCid, String requestBody, String responseBody, String serviceCode, String message, String swiftNumber, Integer rowSize, Date createTime, Date updateTime, Date transferInfoTime, Integer compensateTimes, Integer pushStatus, Integer transferStatus, Integer httpStatus, String httpReasonPhrase) {
+        this.id = id;
+        this.transferInfoId = transferInfoId;
+        this.apiCode = apiCode;
+        this.requestId = requestId;
+        this.tCid = tCid;
+        this.requestBody = requestBody;
+        this.responseBody = responseBody;
+        this.serviceCode = serviceCode;
+        this.message = message;
+        this.swiftNumber = swiftNumber;
+        this.rowSize = rowSize;
+        this.createTime = createTime;
+        this.updateTime = updateTime;
+        this.transferInfoTime = transferInfoTime;
+        this.compensateTimes = compensateTimes;
+        this.pushStatus = pushStatus;
+        this.transferStatus = transferStatus;
+        this.httpStatus = httpStatus;
+        this.httpReasonPhrase = httpReasonPhrase;
+    }
+
+    public PushTransferCustomerLog(String apiCode, String requestBody, String responseBody, String serviceCode, String message
+            , String swiftNumber, Integer rowSize, Integer httpStatus, String httpReasonPhrase, Integer pushStatus) {
+        this.apiCode = apiCode;
+        this.requestBody = requestBody;
+        this.responseBody = responseBody;
+        this.serviceCode = serviceCode;
+        this.message = message;
+        this.swiftNumber = swiftNumber;
+        this.rowSize = rowSize;
+        this.httpStatus = httpStatus;
+        this.httpReasonPhrase = httpReasonPhrase;
+        this.pushStatus = pushStatus;
+    }
+
+    public PushTransferCustomerLog(String apiCode, String requestBody, Integer rowSize, Integer pushStatus) {
+        this.apiCode = apiCode;
+        this.requestBody = requestBody;
+        this.rowSize = rowSize;
+        this.pushStatus = pushStatus;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getTransferInfoId() {
+        return transferInfoId;
+    }
+
+    public void setTransferInfoId(Long transferInfoId) {
+        this.transferInfoId = transferInfoId;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
+    }
+
+    public String gettCid() {
+        return tCid;
+    }
+
+    public void settCid(String tCid) {
+        this.tCid = tCid == null ? null : tCid.trim();
+    }
+
+    public String getRequestBody() {
+        return requestBody;
+    }
+
+    public void setRequestBody(String requestBody) {
+        this.requestBody = requestBody == null ? null : requestBody.trim();
+    }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.responseBody = responseBody == null ? null : responseBody.trim();
+    }
+
+    public String getServiceCode() {
+        return serviceCode;
+    }
+
+    public void setServiceCode(String serviceCode) {
+        this.serviceCode = serviceCode == null ? null : serviceCode.trim();
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message == null ? null : message.trim();
+    }
+
+    public String getSwiftNumber() {
+        return swiftNumber;
+    }
+
+    public void setSwiftNumber(String swiftNumber) {
+        this.swiftNumber = swiftNumber == null ? null : swiftNumber.trim();
+    }
+
+    public Integer getRowSize() {
+        return rowSize;
+    }
+
+    public void setRowSize(Integer rowSize) {
+        this.rowSize = rowSize;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Date getTransferInfoTime() {
+        return transferInfoTime;
+    }
+
+    public void setTransferInfoTime(Date transferInfoTime) {
+        this.transferInfoTime = transferInfoTime;
+    }
+
+    public Integer getCompensateTimes() {
+        return compensateTimes;
+    }
+
+    public void setCompensateTimes(Integer compensateTimes) {
+        this.compensateTimes = compensateTimes;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
+    }
+
+    public Integer getTransferStatus() {
+        return transferStatus;
+    }
+
+    public void setTransferStatus(Integer transferStatus) {
+        this.transferStatus = transferStatus;
+    }
+
+    public Integer getHttpStatus() {
+        return httpStatus;
+    }
+
+    public void setHttpStatus(Integer httpStatus) {
+        this.httpStatus = httpStatus;
+    }
+
+    public String getHttpReasonPhrase() {
+        return httpReasonPhrase;
+    }
+
+    public void setHttpReasonPhrase(String httpReasonPhrase) {
+        this.httpReasonPhrase = httpReasonPhrase == null ? null : httpReasonPhrase.trim();
+    }
+}

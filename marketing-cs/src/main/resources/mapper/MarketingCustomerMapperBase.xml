@@ -3,6 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingCustomerMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCustomer" >
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="message" property="message" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="VARCHAR" />
@@ -16,7 +17,11 @@
     <result column="sort" property="sort" jdbcType="TINYINT" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
-    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="push_thread_num" property="pushThreadNum" jdbcType="INTEGER" />
+    <result column="push_type" property="pushType" jdbcType="INTEGER" />
+    <result column="push_url" property="pushUrl" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="short_name" property="shortName" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,8 +82,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, message, type, thread_num, task_time, finish_date, push_customer, check_black_list, 
-    check_redis_number, save_log, sort, status, extend_config_info, cid
+    id, cid, api_code, message, type, thread_num, task_time, finish_date, push_customer,
+    check_black_list, check_redis_number, save_log, sort, status, extend_config_info,
+    push_thread_num, push_type, push_url, name, short_name
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
     select
@@ -95,7 +101,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_customer
     where id = #{id,jdbcType=BIGINT}
@@ -114,16 +120,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_customer (api_code, message, type, 
-      thread_num, task_time, finish_date, 
-      push_customer, check_black_list, check_redis_number, 
-      save_log, sort, status, 
-      extend_config_info, cid)
-    values (#{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
-      #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, #{finishDate,jdbcType=TINYINT}, 
-      #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT}, #{checkRedisNumber,jdbcType=TINYINT}, 
-      #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT}, #{status,jdbcType=TINYINT}, 
-      #{extendConfigInfo,jdbcType=VARCHAR}, #{cid,jdbcType=VARCHAR})
+    insert into b_marketing_customer (cid, api_code, message,
+    type, thread_num, task_time,
+    finish_date, push_customer, check_black_list,
+    check_redis_number, save_log, sort,
+    status, extend_config_info, push_thread_num,
+    push_type, push_url, name,
+    short_name)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR},
+    #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT},
+    #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT},
+    #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT},
+    #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER},
+    #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+    #{shortName,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -131,6 +141,9 @@
     </selectKey>
     insert into b_marketing_customer
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        cid,
+      </if>
       <if test="apiCode != null" >
         api_code,
       </if>
@@ -170,11 +183,26 @@
       <if test="extendConfigInfo != null" >
         extend_config_info,
       </if>
-      <if test="cid != null" >
-        cid,
+      <if test="pushThreadNum != null" >
+        push_thread_num,
+      </if>
+      <if test="pushType != null" >
+        push_type,
+      </if>
+      <if test="pushUrl != null" >
+        push_url,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="shortName != null" >
+        short_name,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
@@ -214,8 +242,20 @@
       <if test="extendConfigInfo != null" >
         #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
-      <if test="cid != null" >
-        #{cid,jdbcType=VARCHAR},
+      <if test="pushThreadNum != null" >
+        #{pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushType != null" >
+        #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="pushUrl != null" >
+        #{pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="shortName != null" >
+        #{shortName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -230,6 +270,9 @@
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -270,8 +313,20 @@
       <if test="record.extendConfigInfo != null" >
         extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
       </if>
-      <if test="record.cid != null" >
-        cid = #{record.cid,jdbcType=VARCHAR},
+      <if test="record.pushThreadNum != null" >
+        push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushType != null" >
+        push_type = #{record.pushType,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushUrl != null" >
+        push_url = #{record.pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.shortName != null" >
+        short_name = #{record.shortName,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -281,20 +336,25 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_customer
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      message = #{record.message,jdbcType=VARCHAR},
-      type = #{record.type,jdbcType=VARCHAR},
-      thread_num = #{record.threadNum,jdbcType=INTEGER},
-      task_time = #{record.taskTime,jdbcType=TINYINT},
-      finish_date = #{record.finishDate,jdbcType=TINYINT},
-      push_customer = #{record.pushCustomer,jdbcType=TINYINT},
-      check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
-      check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
-      save_log = #{record.saveLog,jdbcType=TINYINT},
-      sort = #{record.sort,jdbcType=TINYINT},
-      status = #{record.status,jdbcType=TINYINT},
-      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
-      cid = #{record.cid,jdbcType=VARCHAR}
+    cid = #{record.cid,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    message = #{record.message,jdbcType=VARCHAR},
+    type = #{record.type,jdbcType=VARCHAR},
+    thread_num = #{record.threadNum,jdbcType=INTEGER},
+    task_time = #{record.taskTime,jdbcType=TINYINT},
+    finish_date = #{record.finishDate,jdbcType=TINYINT},
+    push_customer = #{record.pushCustomer,jdbcType=TINYINT},
+    check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
+    check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
+    save_log = #{record.saveLog,jdbcType=TINYINT},
+    sort = #{record.sort,jdbcType=TINYINT},
+    status = #{record.status,jdbcType=TINYINT},
+    extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+    push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
+    push_type = #{record.pushType,jdbcType=INTEGER},
+    push_url = #{record.pushUrl,jdbcType=VARCHAR},
+    name = #{record.name,jdbcType=VARCHAR},
+    short_name = #{record.shortName,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -302,6 +362,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     update b_marketing_customer
     <set >
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
@@ -341,15 +404,28 @@
       <if test="extendConfigInfo != null" >
         extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
-      <if test="cid != null" >
-        cid = #{cid,jdbcType=VARCHAR},
+      <if test="pushThreadNum != null" >
+        push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushType != null" >
+        push_type = #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="pushUrl != null" >
+        push_url = #{pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="shortName != null" >
+        short_name = #{shortName,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCustomer" >
     update b_marketing_customer
-    set api_code = #{apiCode,jdbcType=VARCHAR},
+    set cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
       message = #{message,jdbcType=VARCHAR},
       type = #{type,jdbcType=VARCHAR},
       thread_num = #{threadNum,jdbcType=INTEGER},
@@ -362,7 +438,11 @@
       sort = #{sort,jdbcType=TINYINT},
       status = #{status,jdbcType=TINYINT},
       extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
-      cid = #{cid,jdbcType=VARCHAR}
+      push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
+      push_type = #{pushType,jdbcType=INTEGER},
+      push_url = #{pushUrl,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      short_name = #{shortName,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

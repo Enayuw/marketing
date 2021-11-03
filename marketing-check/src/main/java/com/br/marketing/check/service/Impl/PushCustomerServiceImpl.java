@@ -78,7 +78,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public void push(Customer customer) {
         ExecutorService pushExecutor;
         if(customer.getPushThreadNum()!=null){
-            pushExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+            pushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
         }else{
             pushExecutor = BrExecutors.getThreadPool(20,20);
         }
@@ -111,7 +111,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             for (int i = 1; i <= totalPage; i++) {
                 queryBaseBean.setPageSize(500);
                 queryBaseBean.setSearchAfter(searchAfterStr);
-                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean,"cus_num,batch_number,request_time,file_id,reserve_field");
+                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean,"cus_num,batch_number,request_time,file_id,reserve_field,task_id,user_type");
                 if (marketingHistories.size() > 0) {
                     searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
                     pushExecutor.submit(new PushDataThread(customer,extendInfosByFileIds.get(0),marketingHistories,straHisFiles.size()));
@@ -143,7 +143,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public void retry(Customer customer) {
         ExecutorService retryPushExecutor;
         if(customer.getPushThreadNum()!=null){
-            retryPushExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+            retryPushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
         }else{
             retryPushExecutor = BrExecutors.getThreadPool(20,20);
         }

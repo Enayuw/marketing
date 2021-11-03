@@ -6,6 +6,8 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cus_batch" property="cusBatch" jdbcType="VARCHAR" />
     <result column="request_batch" property="requestBatch" jdbcType="VARCHAR" />
+    <result column="last" property="last" jdbcType="TINYINT" />
+    <result column="total" property="total" jdbcType="BIGINT" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -75,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cus_batch, request_batch, status, create_time, update_time, error_id, 
-    actual_num, is_upload
+    id, api_code, cus_batch, request_batch, last, total, status, create_time, update_time, 
+    error_id, actual_num, is_upload
   </sql>
   <sql id="Blob_Column_List" >
     json_data
@@ -134,13 +136,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_sync_info (api_code, cus_batch, request_batch, 
-      status, create_time, update_time, 
-      error_id, actual_num, is_upload, 
-      json_data)
+      last, total, status, 
+      create_time, update_time, error_id, 
+      actual_num, is_upload, json_data
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{cusBatch,jdbcType=VARCHAR}, #{requestBatch,jdbcType=VARCHAR}, 
-      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{errorId,jdbcType=BIGINT}, #{actualNum,jdbcType=INTEGER}, #{isUpload,jdbcType=INTEGER}, 
-      #{jsonData,jdbcType=LONGVARCHAR})
+      #{last,jdbcType=TINYINT}, #{total,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{errorId,jdbcType=BIGINT}, 
+      #{actualNum,jdbcType=INTEGER}, #{isUpload,jdbcType=INTEGER}, #{jsonData,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -156,6 +160,12 @@
       </if>
       <if test="requestBatch != null" >
         request_batch,
+      </if>
+      <if test="last != null" >
+        last,
+      </if>
+      <if test="total != null" >
+        total,
       </if>
       <if test="status != null" >
         status,
@@ -188,6 +198,12 @@
       </if>
       <if test="requestBatch != null" >
         #{requestBatch,jdbcType=VARCHAR},
+      </if>
+      <if test="last != null" >
+        #{last,jdbcType=TINYINT},
+      </if>
+      <if test="total != null" >
+        #{total,jdbcType=BIGINT},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -233,6 +249,12 @@
       <if test="record.requestBatch != null" >
         request_batch = #{record.requestBatch,jdbcType=VARCHAR},
       </if>
+      <if test="record.last != null" >
+        last = #{record.last,jdbcType=TINYINT},
+      </if>
+      <if test="record.total != null" >
+        total = #{record.total,jdbcType=BIGINT},
+      </if>
       <if test="record.status != null" >
         status = #{record.status,jdbcType=INTEGER},
       </if>
@@ -265,6 +287,8 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       request_batch = #{record.requestBatch,jdbcType=VARCHAR},
+      last = #{record.last,jdbcType=TINYINT},
+      total = #{record.total,jdbcType=BIGINT},
       status = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -282,6 +306,8 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       request_batch = #{record.requestBatch,jdbcType=VARCHAR},
+      last = #{record.last,jdbcType=TINYINT},
+      total = #{record.total,jdbcType=BIGINT},
       status = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -303,6 +329,12 @@
       </if>
       <if test="requestBatch != null" >
         request_batch = #{requestBatch,jdbcType=VARCHAR},
+      </if>
+      <if test="last != null" >
+        last = #{last,jdbcType=TINYINT},
+      </if>
+      <if test="total != null" >
+        total = #{total,jdbcType=BIGINT},
       </if>
       <if test="status != null" >
         status = #{status,jdbcType=INTEGER},
@@ -333,6 +365,8 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cus_batch = #{cusBatch,jdbcType=VARCHAR},
       request_batch = #{requestBatch,jdbcType=VARCHAR},
+      last = #{last,jdbcType=TINYINT},
+      total = #{total,jdbcType=BIGINT},
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
@@ -347,6 +381,8 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cus_batch = #{cusBatch,jdbcType=VARCHAR},
       request_batch = #{requestBatch,jdbcType=VARCHAR},
+      last = #{last,jdbcType=TINYINT},
+      total = #{total,jdbcType=BIGINT},
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

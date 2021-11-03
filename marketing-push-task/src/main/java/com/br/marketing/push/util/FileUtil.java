@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtil;
+import com.br.marketing.entity.TaskStatusDistribute;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 /**
  * Created by Bairong on 2019/9/2.
@@ -201,38 +203,41 @@ public class FileUtil {
      * @param pathName 结果文件名称
      * @param destPath 需要合并的目录
      */
-    public static void mergeAll(String head, String pathName, String destPath, String sep) {
+    public static void mergeAll(String head, String pathName, String destPath, String sep, Integer indexNum, List<TaskStatusDistribute> taskStatusDistributes) {
         log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}", pathName, destPath);
         long l = System.currentTimeMillis();
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
-
-        File writeName = new File(destPath);
-        if (!writeName.exists()) {
-            return;
-        }
         File file1 = new File(pathName);
-
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file1), StandardCharsets.UTF_8));) {
-            List<String> fileNmaes = getFileNames(writeName);
+
             int rownum = 1;
             String headstring = head.substring(0, head.length() - 1);
             if (destPath.indexOf("error") == -1) {
                 fw.append(headstring + "\r\n");
             }
             int i = countStr(headstring, sep);
-            for (String name : fileNmaes) {
-                read = new FileReader(destPath + "/" + name);
-                br = new BufferedReader(read);
-                String row;
-                while ((row = br.readLine()) != null) {
-                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep,name));
+            for (Integer k = 0; k < indexNum; k++) {
+                Integer index = k;
+                Optional<TaskStatusDistribute> first = taskStatusDistributes.stream().filter(t -> t.getDistributeIndex().equals(index)).findFirst();
+                if(first.isPresent()&&first.get().getActualNum()>0){
+                    String path = destPath.concat(String.valueOf(k)).concat("/");
+                    File writeName = new File(path);
+                    List<String> fileNmaes = getFileNames(writeName);
+                    for (String name : fileNmaes) {
+                        read = new FileReader(path + "/" + name);
+                        br = new BufferedReader(read);
+                        String row;
+                        while ((row = br.readLine()) != null) {
+                            mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
+                        }
+                        br.close();
+                        read.close();
+                    }
                 }
-                br.close();
-                read.close();
             }
             /**
              * 等待所有任务都执行完成
@@ -395,55 +400,6 @@ public class FileUtil {
     }
 
 
-    public static List<String> merge360(String head, String s1, String destPath, String startTime, String batchNumber,
-                                        String strategyId, String apiCode, int max, String sep) {
-        log.info("开始合并文件 结果文件名称:{},需要合并的目录:{},max:{}", s1, destPath, max);
-        File writeName = new File(destPath);
-        if (!writeName.exists()) {
-            log.warn("{},不存在", destPath);
-            return new ArrayList<>();
-        }
-        List<String> fileNmaes = getFileNames(writeName);
-        String headstring = head.substring(0, head.length() - 1);
-        int i = countStr(headstring, sep);
-        int rownum = 0;
-        int fileNo = 0;
-        List<String> result = new ArrayList<>();
-        List<String> zipFileResult = new ArrayList<>();
-        for (String name : fileNmaes) {
-            log.info("开始合并文件 小文件名称:{}", name);
-            try (FileReader read = new FileReader(destPath + "/" + name);
-                 BufferedReader br = new BufferedReader(read);) {
-                String row;
-                while ((row = br.readLine()) != null) {
-                    row = row.substring(0, row.length() - 1);
-                    int i1 = countStr(row, sep);
-                    if (i == i1) {
-                        if (rownum == max) {
-                            fileNo++;
-                            writeResultFile(result, fileNo, s1, destPath, zipFileResult, startTime, batchNumber, strategyId, apiCode, headstring);
-                            result = new ArrayList<>();
-                            rownum = 0;
-                        }
-                        result.add(row);
-                        rownum++;
-                    } else {
-                        log.warn("head--{},row:{}", i, i1);
-                        log.warn("row:{}", row);
-                    }
-                }
-            } catch (Exception e) {
-                log.error("merge360 error", e);
-            }
-        }
-        if (result.size() > 0) {
-            log.info("最后一个文件");
-            fileNo++;
-            writeResultFile(result, fileNo, s1, destPath, zipFileResult, startTime, batchNumber, strategyId, apiCode, headstring);
-        }
-        return zipFileResult;
-    }
-
     private static void writeResultFile(List<String> result, int fileNo, String s1, String destPath, List<String> zipFileResult,
                                         String startTime, String batchNumber, String strategyId, String apiCode, String headstring) {
         String fileName = apiCode + "_" + s1 + "_" + fileNo + "_" + batchNumber + "_" + strategyId.split(":")[0] + "_" + startTime
@@ -465,19 +421,5 @@ public class FileUtil {
         zipFileResult.add(destPath + "/" + zipFile);
     }
 
-    /**
-     * 查找某个值在数组中的索引
-     *
-     * @param array 数组
-     * @param value 给定的值
-     * @return 索引
-     */
-    public static int findIndex(String[] array, String value) {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i].equals(value)) {
-                return i;
-            }
-        }
-        return -1;
-    }
+
 }

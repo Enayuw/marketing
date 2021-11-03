@@ -24,6 +24,11 @@ public class MarketingTaskExtend {
     private String cusTaskId;
 
     /**
+     * 规则id
+     */
+    private Long ruleId;
+
+    /**
      * 场景
      */
     private String groupType;
@@ -47,6 +52,11 @@ public class MarketingTaskExtend {
      * 扩展表头字段
      */
     private String extendShowTitle;
+
+    /**
+     * 策略产品变量信息
+     */
+    private String strategyProductJson;
 
     public Long getId() {
         return id;
@@ -78,6 +88,14 @@ public class MarketingTaskExtend {
 
     public void setCusTaskId(String cusTaskId) {
         this.cusTaskId = cusTaskId == null ? null : cusTaskId.trim();
+    }
+
+    public Long getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(Long ruleId) {
+        this.ruleId = ruleId;
     }
 
     public String getGroupType() {
@@ -118,5 +136,13 @@ public class MarketingTaskExtend {
 
     public void setExtendShowTitle(String extendShowTitle) {
         this.extendShowTitle = extendShowTitle == null ? null : extendShowTitle.trim();
+    }
+
+    public String getStrategyProductJson() {
+        return strategyProductJson;
+    }
+
+    public void setStrategyProductJson(String strategyProductJson) {
+        this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
     }
 }

@@ -2,6 +2,7 @@
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,9 +17,7 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.*;
-import com.br.marketing.entity.MarketingStrategyProduct;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
@@ -42,10 +41,11 @@ import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.entity.ProInSys;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.script.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.*;
@@ -75,28 +76,28 @@ public class redis {
         }
     }
 
-//    @Resource
-//    RedisService redisService;
+    @Resource
+    RedisService redisService;
 //
-//    @Test
-//    public void test(){
-//       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-//        String s = redisService.get("productionMng-allProductions");
-//        JSONArray array=new JSONArray();
-//        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-//        Iterator<ProInSys> iterator = proInSys.iterator();
-//        while (iterator.hasNext()){
-//            ProInSys pro=iterator.next();
-//            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-//                iterator.remove();
-//            }
-//        }
-//        if(proInSys.size()>0){
-//            String json= JSONObject.toJSONString(proInSys);
-//            array=JSONArray.parseArray(json);
-//        }
-//        System.out.println(array);
-//    }
+    @Test
+    public void test(){
+       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
+        String s = redisService.get("productionMng-allProductions");
+        JSONArray array=new JSONArray();
+        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
+        Iterator<ProInSys> iterator = proInSys.iterator();
+        while (iterator.hasNext()){
+            ProInSys pro=iterator.next();
+            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
+                iterator.remove();
+            }
+        }
+        if(proInSys.size()>0){
+            String json= JSONObject.toJSONString(proInSys);
+            array=JSONArray.parseArray(json);
+        }
+        System.out.println(array);
+    }
 
     @Autowired
     RedisChgService redisChgService;
@@ -446,7 +447,7 @@ public class redis {
 //            } catch (InterruptedException e) {
 //                e.printStackTrace();
 //            }
-//        }
+//        }redis存1亿条数据占用内存
 
     }
 
@@ -457,6 +458,50 @@ public class redis {
     public void testGroup(){
         List<CustGroupTempVO> groupTypes = marketingUserMapper.selectGroupByCodeAndTime("7410437", "2021-07-13");
         System.out.println(groupTypes.toString());
+    }
+
+    @Test
+    public void testGrovvy(){
+
+        GroovyClassLoader classLoader = new GroovyClassLoader();
+        Class groovyClass = classLoader.parseClass("def cal(object o){\n" +
+                "    if(o.userType=='1'){return true} \n" +
+                "       return false\n" +
+                "}");
+        try {
+//            Object[] param = { 8,7 };
+            MarketingSyncUser user = new MarketingSyncUser();
+            user.setGroupType("1");
+            GroovyObject groovyObject =
+                    (GroovyObject) groovyClass.newInstance();
+            boolean result = (boolean)groovyObject.invokeMethod("cal",user);
+            System.out.println(result);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void testBF(){
+//            Config config = new Config();
+//            config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+//            config.useSingleServer().setPassword("1234");
+//            //构造Redisson
+//            RedissonClient redisson = Redisson.create(config);
+//
+//            RBloomFilter<String> bloomFilter = redisson.getBloomFilter("phoneList");
+//            //初始化布隆过滤器：预计元素为100000000L,偏差率为3%
+//            bloomFilter.tryInit(100000000L,0.03);
+//            //将号码10086插入到布隆过滤器中
+//            bloomFilter.add("10086");
+//
+//            //判断下面号码是否在布隆过滤器中
+//            //输出false
+//            System.out.println(bloomFilter.contains("123456"));
+//            //输出true
+//            System.out.println(bloomFilter.contains("10086"));
     }
 
 /*@Resource
