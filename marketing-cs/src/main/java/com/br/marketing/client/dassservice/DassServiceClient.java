@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
@@ -29,7 +30,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DassServiceClient {
 
-
+    @Value("${api.dass.aesKey:00}")
+    private String ascKey;
 
     @Value("${api.dass.SecretKey:00}")
     private String secretKey;
@@ -61,6 +63,10 @@ public class DassServiceClient {
                     continue;
                 }
                 Object o = beanMap.get(k);
+                if(String.valueOf(k).equals("phone")){
+                    sortList.add(AESUtil.decrypt(String.valueOf(o),ascKey));
+                    continue;
+                }
                 if(o == null){
                     continue;
                 }else if(o instanceof String){
@@ -78,10 +84,6 @@ public class DassServiceClient {
         });
         Collections.sort(sortList);
         String param = Joiner.on("").join(sortList);
-        String sk = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ4W9Hw1Kb6g0RevKSeKqriBCup3x8V2G2J63imkypbtPV+RJjq4eCqcd7s2FI/9eTSMw17675Ey9MkKndIckvpxT1iCtUnuRbg1ICtZ127t65GhOPchBzWHoC+rG56Rw4NhpsvpIGC1y4EUx26TyNop7HRekKwosAnnl6QDWBEdAgMB\n" +
-                "AAECgYAkX7W7CmRjdw8E+wlmDrK/JvnC/vJZDZa5bvnE7SSr20Qew//ezOjhLQUjbwsGIlUL8UNWjDgo2WeXBjlPycFLP8YN/+gUPR/bfftUY4cTnWzAAKKyUJBeyt3SqaeYcUhW3aUCUlaVAb8ZdyIu4WlHYHhlkSoXrDRvnqlJmyj8wQJBAMzApuvsJDZIX6qvMGR6YTvqPIsl47+qIlk7iTUfwbjGz5zlFtu4IRd\n" +
-                "+ZVdHlncg5arrl+lOw33rkHhxtnV8jO0CQQDFqGsIPk4Nnwsx9XtCCrYePvgydzEAT1nr4gBUkXbvavMyJKsQWI5AXUAInNuqxRvNfjh3GMaWstIsMQJyDj7xAkEAglL1bCEIA40ZZ1jO4oWKskorcx4Q0oQGDOn6MVgfQ+83YlPmsr+GQJ/w/RbRzM2hoaMHNDcv80wmzqMCUdGPGQJAKIHuhX73UhVRHwj3HL7DOg\n" +
-                "mfpgAFW9HnVM85UBuLq19YveMD59KuPISf1eQHpMTGgOOoQMgkEshNCF9259cBkQJBAKIlpXnTHvv2M96B7w7T1RYVvjke4LLpCbAVd8fBciOdFLmMh0+FThxGWijgfow1XYaPrU0DlfLpkfLrgk3LWUQ=";
         String sign = DigestUtils.md5DigestAsHex(String.format(secretKey + "%s", param).getBytes());
         HashMap requestParam = new HashMap();
         requestParam.put("ts",l);
