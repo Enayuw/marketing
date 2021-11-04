@@ -281,6 +281,39 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
+    public Result<String> getFlagProductStr() {
+        ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
+        flagScoreExample.createCriteria().andIsDelEqualTo(1);
+        List<ProductFlagScore> productFlagScores = flagScoreMapper.selectByExample(flagScoreExample);
+        if(productFlagScores.size()<=0){
+            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate("");
+        }else{
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(productFlagScores.get(0).getFlagScoreProduct());
+        }
+    }
+
+    @Override
+    public Result<String> updateFlagProduct(String productStr) {
+        ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
+        flagScoreExample.createCriteria().andIsDelEqualTo(1);
+        List<ProductFlagScore> productFlagScores = flagScoreMapper.selectByExample(flagScoreExample);
+        if(productFlagScores.size()<=0){
+            ProductFlagScore productFlagScore = new ProductFlagScore();
+            productFlagScore.setFlagScoreProduct(productStr);
+            flagScoreMapper.insertSelective(productFlagScore);
+        }else{
+            ProductFlagScore productFlagScore = productFlagScores.get(0);
+            productFlagScore.setFlagScoreProduct(productStr);
+            flagScoreMapper.updateByPrimaryKeySelective(productFlagScore);
+        }
+        if(redisChgService.exists(redisKeyFlagScore)){
+            redisChgService.del(redisKeyFlagScore);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
     public Result<ConfigByApiCodeVO> getConfigByApiCode(String apiCode) {
         String key = redisKeyConfigByApiCode.concat(":").concat(apiCode);
         String s = redisChgService.get(key);

@@ -1,8 +1,11 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.SyncConfigVO;
@@ -13,7 +16,6 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -55,6 +57,12 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         syncConfig.setUpdateTime(null);
         SyncConfig syncConfigNew = new SyncConfig();
 
+        //判重
+        boolean only = sftpOnly(null, apiCode, syncConfig.getDataType(), syncConfig.getType());
+        if(!only){
+            return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
+        }
+
         try {
             ConvertUtils.register(new DateConverter(null), java.util.Date.class);
             BeanUtils.copyProperties(syncConfigNew,syncConfig);
@@ -79,6 +87,13 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath) {
+        SyncConfig select = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
+        //判重
+        boolean only = sftpOnly(id, apiCode, select.getDataType(), select.getType());
+        if(!only){
+            return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
+        }
+
         SyncConfig syncConfig = new SyncConfig();
         syncConfig.setId(Long.parseLong(id));
         syncConfig.setApiCode(apiCode);
@@ -90,6 +105,34 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             log.error("编辑sftp配置信息失败！");
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    //对aipCode,dataType,type判重
+    public boolean sftpOnly(String id,String aipCode,Integer dataType,Integer type){
+        SyncConfigExample example = new SyncConfigExample();
+        example.createCriteria().andApiCodeEqualTo(aipCode)
+                .andDataTypeEqualTo(dataType)
+                .andTypeEqualTo(type)
+                .andStatusEqualTo(1);
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(example);
+        if(StringUtils.isEmpty(id)){
+            //新增
+            if(syncConfigs.size() == 0){
+                return true;
+            }
+            return false;
+        }
+        //编辑
+        if(syncConfigs != null && syncConfigs.size()>1){
+            log.error("apicode="+aipCode+",dataType="+dataType+",type="+type+"的配置存在多条！");
+            return false;
+        }
+        for (SyncConfig s : syncConfigs){
+            if(StringUtils.isNotEmpty(id) && id.equals(s.getId().toString())){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

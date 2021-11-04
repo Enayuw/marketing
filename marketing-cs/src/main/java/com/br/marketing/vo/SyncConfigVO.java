@@ -18,4 +18,7 @@ public class SyncConfigVO {
     @ApiModelProperty(value = "目的目录")
     private String targePath;
 
+    @ApiModelProperty(value = "同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp")
+    private Integer type;
+
 }
