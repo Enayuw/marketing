@@ -1,11 +1,14 @@
 package com.br.marketing.service;
 
+import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
+import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.br.marketing.vo.MarketingTransferUserStatusVO;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -102,7 +105,7 @@ public interface PushRuleService {
 
 
     /**
-     * 异步消费接口转化数据推送至客服
+     * 异步消费接口转化数据推送至客服 私人订制
      *
      * @param infoId 客户转化基础信息id
      * @return Result
@@ -110,4 +113,13 @@ public interface PushRuleService {
      * @dateTime 2021/10/13 10:53
      */
     Result<Boolean> pushPersonalTransferData(Long infoId);
+
+    /**
+     * 异步消费接口转化数据推送至客服 通用
+     *
+     * @param transferInfo 客户转化基础信息
+     * @author Guo Zeqiang
+     * @dateTime 2021/11/4 10:53
+     */
+    TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo);
 }

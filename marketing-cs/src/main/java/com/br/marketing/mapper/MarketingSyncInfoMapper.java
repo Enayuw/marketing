@@ -8,6 +8,7 @@ import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<String> getCusBatchByApiAndTime(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime,@Param("endTime") String endTime);
@@ -39,14 +40,17 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             ,@Param("whereStr")String whereStr);
 
     Long getMaxIdByRuleScore(@Param("apiCode")String apiCode
-            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
-            ,@Param("whereStr")String whereStr);
+            , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
 
-    Integer countByPreUserWithRule(@Param("apiCode")String apiCode
-            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
-            ,@Param("whereStr")String whereStr);
+    Integer countByPreUserWithRule(@Param("apiCode") String apiCode
+            , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
 
-    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode")String apiCode
-            ,@Param("sTimeStr")String sTimeStr
-            ,@Param("eTimeStr")String eTimeStr,@Param("minId")Long minId,@Param("whereStr")String whereStr);
+    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode") String apiCode
+            , @Param("sTimeStr") String sTimeStr
+            , @Param("eTimeStr") String eTimeStr, @Param("minId") Long minId, @Param("whereStr") String whereStr);
+
+    List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
+
 }

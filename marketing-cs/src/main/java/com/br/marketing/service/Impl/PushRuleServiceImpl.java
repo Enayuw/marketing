@@ -18,6 +18,7 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
+import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -56,10 +57,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -1391,11 +1389,21 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingTransferInfo info = list.get(0);
             String apiCode = info.getApiCode();
             Date createTime = info.getCreateTime();
+            result.setDate(true);
             if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
-                result.setDate(false);
+                TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(info);
+                Assert.notNull(outboundVO, "客服接口异常！");
+                if (outboundVO.getCode().equals("00")) {
+                    result.setDate(false);
+                    return result;
+                }
+                String smg = String.format("apiCode为[%s]的客户转化数据推送失败;日期[%s];\n应答内容:[%s]"
+                        , apiCode, DateUtils.format(createTime), outboundVO.toString());
+                log.warn(smg);
+                alarmClient.sendAlarm(smg, "接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
                 return result;
             }
-            result.setDate(true);
             //        String yyyyMMdd = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             // 格式化入库时间
             String yyyyMMdd = createTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
@@ -1406,26 +1414,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 检查缓存
             if (apiCodeCount < 0) {
                 result.setDate(false);
-//                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
                 String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
-                log.error(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
-                redisChgService.incrBy(key, -1);
-                redisChgService.expire(key, getKeyExpiration());
+                sendAlarm(smg, key);
                 return result;
             }
             // 检查db，再次确认
             List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
             if (statusList != null && statusList.size() > 0) {
                 result.setDate(false);
-//                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
                 String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
-                log.error(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
-                redisChgService.incrBy(key, -1);
-                redisChgService.expire(key, getKeyExpiration());
+                sendAlarm(smg, key);
                 return result;
             }
             // 如果是最后一次传
@@ -1442,21 +1440,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                         } else {
                             String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据[%d]尚未成功同步至智能客服"
                                     , apiCode, yyyyMMdd, countStatus);
-                            log.error(smg);
-                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("pushToCustomer"));
-                            redisChgService.incrBy(key, -1);
-                            redisChgService.expire(key, getKeyExpiration());
+                            sendAlarm(smg, key);
                             return result;
                         }
                     } else {
                         String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据尚未成功同步至智能客服"
                                 , apiCode, yyyyMMdd);
-                        log.error(smg);
-                        alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                Constants.sendCodeMap.get("pushToCustomer"));
-                        redisChgService.incrBy(key, -1);
-                        redisChgService.expire(key, getKeyExpiration());
+                        sendAlarm(smg, key);
                         return result;
                     }
                 }
@@ -1470,11 +1460,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (integer == null || integer == 0) {
                             String smg = String.format("该客户[%s]当前日期[%s]缓存数据与db记录数有异常，消息[%d]退回到队列"
                                     , apiCode, yyyyMMdd, infoId);
-                            log.error(smg);
-                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("pushToCustomer"));
-                            redisChgService.incrBy(key, -1);
-                            redisChgService.expire(key, getKeyExpiration());
+                            sendAlarm(smg, key);
                             return result;
                         } else {
                             transferStatus = 1;
@@ -1485,11 +1471,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } else {
                     String smg = String.format("该客户[%s]当前日期[%s]缓存数据有异常，消息[%d]退回到队列"
                             , apiCode, yyyyMMdd, infoId);
-                    log.error(smg);
-                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("pushToCustomer"));
-                    redisChgService.incrBy(key, -1);
-                    redisChgService.expire(key, getKeyExpiration());
+                    sendAlarm(smg, key);
                     return result;
                 }
             }
@@ -1638,6 +1620,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
+
+    private void sendAlarm(String smg, String key) {
+        log.warn(smg);
+        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                Constants.sendCodeMap.get("pushToCustomer"));
+        redisChgService.incrBy(key, -1);
+        redisChgService.expire(key, getKeyExpiration());
+    }
+
     private synchronized Long getApiCodeCount(String key) {
         Long incr = redisChgService.incr(key);
         int keyExpiration = getKeyExpiration();
@@ -1733,7 +1724,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushStatus = 1;
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
-                    "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
+                    "\n应答消息[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
             alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
         }
@@ -1793,5 +1784,54 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             return logList;
         }
+    }
+
+    @Override
+    public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo) {
+        Assert.notNull(transferInfo, "转化信息不可为null");
+        String apiCode = transferInfo.getApiCode();
+        Assert.notNull(apiCode, "'apiCode'不可为null");
+        String requestId = transferInfo.getRequestId();
+        Assert.notNull(transferInfo, "'requestId'不可为null");
+        // 1 获取分表后缀
+        String tcId = tableCreateService.getTcId(apiCode);
+        // 2 获取转化数据
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
+        example.settCid(tcId);
+        int page = 1;
+        final int pageSize = 2000;
+        PageHelper.startPage(page, pageSize);
+        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(transferList)) {
+            String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
+            alarmClient.sendAlarm(smg, "通用标准接口转化数据同步到智能客服提醒", appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+            return null;
+        }
+        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+        Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
+                MarketingSyncUser::getCustNum, syncUser -> syncUser
+                , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+        Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
+        List<ConversionData> conversionDataArray = new ArrayList<>();
+        transferList.forEach(transfer -> {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(transfer.getId().toString());
+            conversionData.setCid(transfer.getCid());
+            conversionData.setGroupType(transfer.getUserType());
+            conversionData.setInversionStatus(transfer.getIfTransform());
+            conversionData.setPartnerProcessDate(transfer.getCustomName());
+            conversionData.setPhone(map.getOrDefault(transfer.getCustNum(), new MarketingSyncUser("")).getCell());
+            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+            BeanUtils.copyProperties(transfer, vo);
+            conversionData.setInversionInfo(JSON.toJSONString(vo));
+            conversionDataArray.add(conversionData);
+        });
+        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+        robotOutboundDTO.setApiCode(apiCode);
+        robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
+        return robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
     }
 }
