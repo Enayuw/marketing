@@ -58,6 +58,7 @@
 		, api_code as apiCode
 		, src_path as srcPath
 		, target_path as targePath
+		, type as type
 		from b_sync_config sc
 		<where>
 			status = 1

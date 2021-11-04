@@ -18,6 +18,7 @@ public enum ServiceResultEnum {
     SUCCESS_1("01", "参数错误,请检查参数"),
     SUCCESS_2("02", "内容校验失败,请修改内容"),
     SUCCESS_3("03", "规则重复,请重新定义规则"),
+    SUCCESS_4("100004", "此配置已存在!"),
     //访问成功业务自定义通用状态
     SUCCESS_5("05", "服务开小差了"),
 
