@@ -6,6 +6,11 @@
         select src.id
         , src.rule_name as ruleName
         , src.rule_name_short as ruleNameShort
+        , src.strategy_product_json as strategyProductJson
+        , src.base_info as baseInfo
+        , src.exec_type as execType
+        , src.cycle_day as cycleDay
+        , src.cycle_end_day as cycleEndDay
         , bmc.cid
         , bmc.api_code as apiCode
         , case src.status
