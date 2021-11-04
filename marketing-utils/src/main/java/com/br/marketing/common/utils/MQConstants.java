@@ -26,6 +26,7 @@ public class MQConstants {
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing_Push_CustomerService_Search_Delay";
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH = "Marketing_Push_CustomerService_Search";
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing_Push_CustomerService";
+    public static final String MARKETING_PUSH_DASS_SCORE = "Marketing_Push_Dass_Score";
 
     /**
      * routingkey
@@ -40,6 +41,7 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing.Transfer.Push.Customer";
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing.Push.CustomerService.Search.Delay";
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing.Push.CustomerService";
+    public static final String ROUTING_KEY_MARKETING_PUSH_DASS_SCORE = "Marketing.Push.Dass.Score";
 
 
 }
