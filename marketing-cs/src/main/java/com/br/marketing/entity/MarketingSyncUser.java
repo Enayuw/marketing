@@ -288,4 +288,11 @@ public class MarketingSyncUser {
     public void setUserType(String userType) {
         this.userType = userType;
     }
+
+    public MarketingSyncUser() {
+    }
+
+    public MarketingSyncUser(String cell) {
+        this.cell = cell;
+    }
 }
