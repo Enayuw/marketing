@@ -31,5 +31,9 @@ public interface IProductResultSimpleService {
 
     Result<List<String>> getFlagProduct();
 
+    Result<String> getFlagProductStr();
+
+    Result<String> updateFlagProduct(String productStr);
+
     Result<ConfigByApiCodeVO> getConfigByApiCode(String apiCode);
 }

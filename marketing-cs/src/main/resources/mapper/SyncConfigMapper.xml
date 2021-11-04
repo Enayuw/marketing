@@ -53,4 +53,19 @@
 			)
 	</insert>
 
+	<select id="getSftpList" resultType="com.br.marketing.vo.SyncConfigVO">
+		select id
+		, api_code as apiCode
+		, src_path as srcPath
+		, target_path as targePath
+		, type as type
+		from b_sync_config sc
+		<where>
+			status = 1
+			<if test="apiCode != null and apiCode.trim() neq ''">
+				and api_code like CONCAT('%',#{apiCode},'%')
+			</if>
+		</where>
+		order by create_time desc
+	</select>
 </mapper>

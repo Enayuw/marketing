@@ -41,8 +41,8 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @GetMapping("/list")
-    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int page
-                                            , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
+                                            , @RequestParam(defaultValue = "10") int size
                                             , @RequestParam(required = false) String soleName
                                             , @RequestParam(required = false) Integer status
                                             , @RequestParam(required = false) String createTimeStart
@@ -51,11 +51,11 @@ public class RuleOfSoleContronller {
                                             , @RequestParam(required = false) String updateTimeEnd
                                             ){
         try {
-            PageResultReturn list = ruleOfSoleService.list(page, pageSize,soleName,status,
+            PageResultReturn list = ruleOfSoleService.list(current, size,soleName,status,
                     createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
             return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
@@ -78,6 +78,7 @@ public class RuleOfSoleContronller {
             }
 
         }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
 
@@ -96,7 +97,7 @@ public class RuleOfSoleContronller {
             List<MarketingCustomerVO> list = ruleOfSoleService.getCustomer(search);
             return new ApiResult<List<MarketingCustomerVO>>().success(list);
         } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
@@ -110,7 +111,7 @@ public class RuleOfSoleContronller {
             List<Map> list = ruleOfSoleService.getUserByCus(customerVOs);
             return new ApiResult<List<Map>>().success(list);
         } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<List<Map>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
@@ -124,7 +125,7 @@ public class RuleOfSoleContronller {
             UserDetail user = ThreadContextInfo.getUser();
             return ruleOfSoleService.saveOrUpdate(vo,user);
         }catch (Exception ex){
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
     }
@@ -138,7 +139,7 @@ public class RuleOfSoleContronller {
             SoleRuleDetailVO soleRuleDetailVO = ruleOfSoleService.getSoleById(id);
             return new ApiResult<SoleRuleDetailVO>().success(soleRuleDetailVO);
         }catch (Exception ex){
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<SoleRuleDetailVO>().fail(ServiceResultEnum.FAILED);
         }
     }
@@ -161,6 +162,7 @@ public class RuleOfSoleContronller {
                 return new ApiResult<Boolean>().success(false,"操作失败！");
             }
         }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
     }
@@ -170,14 +172,14 @@ public class RuleOfSoleContronller {
     @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
     @GetMapping("/getUpdateRecord")
     public ApiResult<PageResultReturn> getUpdateRecord(@RequestParam(required = true) String id,
-                                                       @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int pageSize){
+                                                       @RequestParam(defaultValue = "1") int current,
+                                                       @RequestParam(defaultValue = "10") int size){
         //查询
         try {
-            PageResultReturn list = ruleOfSoleService.getUpdateRecord(id,page,pageSize);
+            PageResultReturn list = ruleOfSoleService.getUpdateRecord(id,current,size);
             return new ApiResult<PageResultReturn>().success(list);
         }catch (Exception ex){
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
         }
     }
