@@ -1,10 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.convert.Convert;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.*;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -40,6 +37,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.PushTransferRobotaiLogService;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -128,6 +126,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private PushTransferCustomerLogMapper pushTransferCustomerLogMapper;
+
+    @Resource
+    private PushTransferRobotaiLogService pushTransferRobotaiLogService;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -1382,7 +1383,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
                 log.error(smg);
                 result.setMessage(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
+                alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                         Constants.sendCodeMap.get("pushToCustomer"));
                 return result;
             }
@@ -1391,17 +1392,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             Date createTime = info.getCreateTime();
             result.setDate(true);
             if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
-                TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(info);
-                Assert.notNull(outboundVO, "客服接口异常！");
-                if (outboundVO.getCode().equals("00")) {
+                try {
+                    info.setId(infoId);
+                    pushTransferData(info);
                     result.setDate(false);
-                    return result;
+                } catch (Exception exception) {
+                    log.error(exception.getMessage(), exception);
+                    alarmClient.sendAlarm(exception.getMessage(), "接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
                 }
-                String smg = String.format("apiCode为[%s]的客户转化数据推送失败;日期[%s];\n应答内容:[%s]"
-                        , apiCode, DateUtils.format(createTime), outboundVO.toString());
-                log.warn(smg);
-                alarmClient.sendAlarm(smg, "接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
                 return result;
             }
             //        String yyyyMMdd = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -1786,6 +1785,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
+
     @Override
     public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo) {
         Assert.notNull(transferInfo, "转化信息不可为null");
@@ -1803,9 +1803,50 @@ public class PushRuleServiceImpl implements PushRuleService {
         final int pageSize = 2000;
         PageHelper.startPage(page, pageSize);
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+        TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+        TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+        if (!outboundVO.getAccessNumber().equals("-1")) {
+            pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+        }
+        return outboundVO;
+    }
+
+    @Override
+    public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
+        Assert.notNull(dto, "转化信息不可为null");
+        TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
+        try {
+            outboundVO = robotaiApiServiceClient.pushRobotai(dto, transferInfo.getRequestId());
+            if (outboundVO.getCode().equals("00")) {
+                Object o = (outboundVO.getData());
+                JSONObject object = JSON.parseObject(o.toString());
+                Object unsuccessfulData = object.get("unsuccessfulData");
+                JSONArray array = JSON.parseArray(unsuccessfulData.toString());
+                if (array.size() < 1) {
+                    outboundVO.setAccessNumber("-1");
+                    return outboundVO;
+                }
+            } else if (outboundVO.getCode().equals("9999")) {
+                outboundVO.setCode("");
+                outboundVO.setAccessNumber("");
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            outboundVO = new TransferRobotOutboundVO<>();
+            outboundVO.setMessage(e.getMessage());
+        }
+        return outboundVO;
+    }
+
+    @Override
+    public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
+            , List<MarketingTransferSyncUser> transferList) {
+        String title = "接口转化(通用标准)数据同步到智能客服警告";
+        Assert.notNull(transferInfo, "转化信息不可为null");
+        String apiCode = transferInfo.getApiCode();
         if (CollectionUtils.isEmpty(transferList)) {
             String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
-            alarmClient.sendAlarm(smg, "通用标准接口转化数据同步到智能客服提醒", appName, secretKey,
+            alarmClient.sendAlarm(smg, title, appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
             return null;
         }
@@ -1832,6 +1873,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
-        return robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
+        return robotOutboundDTO;
     }
 }
