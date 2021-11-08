@@ -1,5 +1,6 @@
 package com.br.marketing.check.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.service.DataService;
@@ -18,7 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/data/")
@@ -58,17 +63,35 @@ public class DataController {
     }
 
     @GetMapping("retryMethod")
-    public String retryMethod(@RequestParam("serviceName")String serviceName,@RequestParam("methodName")String methodName,@RequestParam("params")String params){
-        String[] split = params.split("\\|");
-//        Bean methodBean = (Bean) CkeckApplication.ac.getBean(serviceName);
-//        try {
-//            methodBean.invoke(methodName, split, null);
-//        } catch (MBeanException e) {
-//            e.printStackTrace();
-//        } catch (ReflectionException e) {
-//            e.printStackTrace();
-//        }
-        
+    public String retryMethod(@RequestParam("serviceName")String serviceName,@RequestParam("methodName")String methodName
+            ,@RequestParam("params")String params,@RequestParam("paramTypeStr")String paramTypeStr){
+        Class<?> paramType = null;
+        try {
+            paramType = Class.forName(paramTypeStr);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Object o = JSON.parseObject(params, paramType);
+        if(!CkeckApplication.ac.containsBean(serviceName)){
+            throw new RuntimeException("找不到对应的bean");
+        }
+        Object bean = CkeckApplication.ac.getBean(serviceName);
+        List<Object> pa = new ArrayList<>();
+        Method method = null;
+        try {
+            method = bean.getClass().getMethod(methodName, paramType);
+        } catch (NoSuchMethodException e) {
+            log.error(String.format("在bean %s 中不存在该方法 %s",serviceName,methodName));
+            e.printStackTrace();
+        }
+        try {
+            method.invoke(bean, o);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
         return "success";
     }
 
