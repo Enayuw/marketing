@@ -1,12 +1,17 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.PhoneSale;
 import com.br.marketing.entity.PhoneSaleExample;
+import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.service.PushDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,7 +32,10 @@ public class PushDataServiceImpl implements PushDataService{
     @Autowired
     @Qualifier("currentDbpool")
     ThreadPoolExecutor currentDbPoolExecutor;
-    
+
+    @Autowired
+    RetryMainLogMapper retryMainLogMapper;
+
     @Override
     public Result pushDassData(Long id) {
         Boolean isContiue = false;
@@ -37,9 +45,24 @@ public class PushDataServiceImpl implements PushDataService{
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
+                DassImportAdapDTO dto = new DassImportAdapDTO();
+                dto.setList(phoneSales);
                 minId = phoneSale.getId();
                 currentDbPoolExecutor.submit(()->{
-                        dassServiceClient.postHermesUserData(phoneSales, 0);
+                    Result result = dassServiceClient.postHermesUserData(dto);
+                    if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                        RetryMainLog mainLog = new RetryMainLog();
+                        mainLog.setRetryType(1);
+                        mainLog.setRetryParam(JSON.toJSONString(dto));
+                        mainLog.setRetryParamType(dto.getClass().getName());
+                        mainLog.setRetryService("dassServiceClient");
+                        mainLog.setRetryMethod("postHermesUserData");
+                        mainLog.setRetryNum(0);
+                        mainLog.setRetryMaxNum(3);
+                        mainLog.setRetryStatus(1);
+                        mainLog.setCreateTime(new Date());
+                        retryMainLogMapper.insertSelective(mainLog);
+                    }
                 });
             }else{
                 actionMark=false;
