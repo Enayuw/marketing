@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
@@ -9,6 +10,7 @@ import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.br.marketing.vo.MarketingTransferUserStatusVO;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -61,7 +63,7 @@ public interface PushRuleService {
     Result insertMarketingPreUserText(String apiCode, String jsonData);
 
 
-    Result insertBatchTransferUser(String apiCode,String jsonData);
+    Result insertBatchTransferUser(String apiCode, String jsonData);
 
     /**
      * 消费异步推送人员信息
@@ -73,6 +75,7 @@ public interface PushRuleService {
 
     /**
      * 插入转化数据
+     *
      * @param apiCode
      * @param jsonData
      * @return
@@ -82,7 +85,7 @@ public interface PushRuleService {
 
     Result consumerTransferData(Long id);
 
-    Result<MarketingTransferUserStatusVO> getTransferDataStatus(String apiCode,String requestId);
+    Result<MarketingTransferUserStatusVO> getTransferDataStatus(String apiCode, String requestId);
 
     /**
      * 获取营销人员数据状态
@@ -91,7 +94,6 @@ public interface PushRuleService {
      * @return
      */
     Result<MarketingPreUserSyncDetailVO> getMarketingPreUserSyncStatus(@Valid MarketingPreUserSyncStatusDTO dto);
-
 
 
     /**
@@ -122,4 +124,21 @@ public interface PushRuleService {
      * @dateTime 2021/11/4 10:53
      */
     TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo);
+
+    /**
+     * 异步消费接口转化数据推送至客服 通用
+     *
+     * @param dto 推送数据
+     * @author Guo Zeqiang
+     * @dateTime 2021/11/4 10:53
+     */
+    TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo);
+
+    /**
+     * 获取推送数据
+     *
+     * @author Guo Zeqiang
+     * @dateTime 2021/11/4 10:53
+     */
+    TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo, List<MarketingTransferSyncUser> transferList);
 }

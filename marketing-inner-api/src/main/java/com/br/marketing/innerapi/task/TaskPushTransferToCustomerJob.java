@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 接口转化推送客服失败记录补偿任务
+ * 私人订制 接口转化推送客服失败记录补偿任务
  *
  * @author zeqiang.guo@brgroup.com
  * @dateTime 2021/10/14 17:48
@@ -58,6 +58,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        String title = "接口转化(私人订制)数据同步到智能客服补偿任务警告";
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
         // 总分片数
@@ -65,7 +66,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         // 设置最大重试次数
         int compensateTimes = StringUtils.isEmpty(context.getJobParameter()) ? 5 : Integer.parseInt(context.getJobParameter());
         Long start = System.currentTimeMillis();
-        log.warn("【转化数据同步客服补偿任务】调度开始");
+        log.warn("私人订制【转化数据同步客服补偿任务】调度开始");
         List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200, shardingTotalCount, shardingItems);
         HttpHeaders tempHeaders = new HttpHeaders();
         tempHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -94,7 +95,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 if (ObjectUtils.isEmpty(responseEntity)) {
                     String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
                             , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
-                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+                    alarmClient.sendAlarm(smg, title, appName, secretKey,
                             Constants.sendCodeMap.get("pushToCustomer"));
                     continue;
                 }
@@ -112,7 +113,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                                 "\n接口返回http状态码[%d],http短语[%s];" +
                                 "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                         log.warn(smg);
-                        alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
+                        alarmClient.sendAlarm(smg, title, appName, secretKey,
                                 Constants.sendCodeMap.get("pushToCustomer"));
                     } else if ("00".equals(code)) {
                         updateLog.setPushStatus(2);
@@ -124,7 +125,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                                 "\n接口返回http状态码[%d],http短语[%s];" +
                                 "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                         log.error(smg);
-                        alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
+                        alarmClient.sendAlarm(smg, title, appName, secretKey,
                                 Constants.sendCodeMap.get("pushToCustomer"));
                     }
                 }
@@ -138,13 +139,13 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d],可能原因接口不可访问;" +
                         "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), e.getMessage());
                 log.error(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据补偿同步到智能客服失败", appName, secretKey,
+                alarmClient.sendAlarm(smg, title, appName, secretKey,
                         Constants.sendCodeMap.get("pushToCustomer"));
             }
             pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
             postParameters.clear();
         }
         Long end = System.currentTimeMillis();
-        log.warn("【转化数据同步客服补偿任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
+        log.warn("私人订制【转化数据同步客服补偿任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
     }
 }
