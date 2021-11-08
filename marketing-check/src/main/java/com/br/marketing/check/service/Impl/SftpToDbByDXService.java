@@ -2,21 +2,20 @@ package com.br.marketing.check.service.Impl;
 import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.service.AbstractDataToDbService;
 import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
+import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.entity.LoadResult;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.PhoneSale;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -35,6 +34,7 @@ import java.io.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 /**
  * @Author: Bairong
@@ -73,6 +73,11 @@ public class SftpToDbByDXService {
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
+
+    @Autowired
+    DecodeClient decodeClient;
+
+    private static String phoneReg = "^([\\+]*[0-9]+)$";
 
     private final static Integer SPLITSIZE=5000;
 
@@ -288,6 +293,7 @@ public class SftpToDbByDXService {
         List<String> datas = Splitter.on(",").splitToList(row);
         JSONObject jo = null;
         String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
+        Boolean phoneMark = Boolean.TRUE;
         for (int i = 0; i < datas.size(); i++) {
             String sureaddress = address.get(i);
             switch (sureaddress){
@@ -300,8 +306,13 @@ public class SftpToDbByDXService {
                 case "phone":
                     if(StringUtils.isNotBlank(datas.get(i))){
                         error=error.replace("phone不能为空;","");
-                        phoneSale.setPhone(AESUtil.aesEncrypty(datas.get(i),aesKey));
+                        Result<String> stringResult = decryptPhone(datas.get(i));
                         phoneSale.setPhoneAes(datas.get(i));
+                        if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+                            phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(),aesKey));
+                        }else{
+                            phoneMark = Boolean.FALSE;
+                        }
                     }
                     break;
                 case "name":
@@ -430,42 +441,65 @@ public class SftpToDbByDXService {
             phoneSale.setStatus(2);
             phoneSale.setDataMessage("表头和该行数据不一致");
             errorMark.getAndIncrement();
-        }
-        if(!StringUtils.isEmpty(error)){
+        }else if(!StringUtils.isEmpty(error)){
             phoneSale.setStatus(2);
             phoneSale.setDataMessage(error);
             errorMark.getAndIncrement();
+        }else if(!phoneMark){
+            phoneSale.setStatus(2);
+            phoneSale.setDataMessage("手机号解密失败");
+            errorMark.getAndIncrement();
         }
+        Date date = new Date();
+        phoneSale.setCreateTime(date);
+        phoneSale.setUpdateTime(date);
         phoneSaleMapper.insertSelective(phoneSale);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    /**
-     * 处理三要素校验失败的内容
-     * @param context 参数对象
-     */
-    private void dealErrorResultFile(FileContext context) {
+    Result<String> decryptPhone(String phone){
+
         /**
-         * 处理解密校验失败的三要素
+         * 判断是否全是数字格式
+         *      是数字格式 成功
+         *      不是数字 进行aes解密
+         *          判断解密后的文本是否是手机号
+         *              是手机号 成功
+         *              不是手机号 进行md5 ，sha256解密 判断是密文是否是手机号
+         *                  是手机号 成功
+         *                  不是 失败
          */
-        String errorFilePathAndName=context.getErrorFilePath().concat(context.getErrorDataFileName());
-        SftpClient client=(SftpClient)context.getBaseFtpClient();
-        int erroNUm = MyFileUtil.getTotalLines(new File(errorFilePathAndName));
-        if(erroNUm>1){
-            File errorresultFile=new File(errorFilePathAndName);
-            if(errorresultFile.isFile()){
-                try {
-                    String sftpInErrorPath=Constants.SFTP_IN_ERROR_PATH.replace("apiCode",context.getTask().getApiCode());
-                    client.uploadFile(sftpInErrorPath,context.getErrorDataFileName(),errorFilePathAndName);
-                    File successFile=new File(errorFilePathAndName+".success");
-                    successFile.createNewFile();
-                    if(successFile.exists()){
-                        client.uploadFile(sftpInErrorPath,context.getErrorDataFileName()+".success",errorFilePathAndName+".success");
+        Result<String> objectResult = new Result<>();
+        boolean isNum = Pattern.matches(phoneReg, phone);
+        if(isNum){
+            objectResult.setDate(phone);
+            objectResult.setCode(ResultCode.SUCCESS.getValue());
+        }else{
+            String s = AESUtil.aesDecrypt(phone, aesKey);
+            if(CellUtils.isValidateCell(phone)){
+                objectResult.setDate(s);
+                objectResult.setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                String res = "";
+                if (DecodeClient.isMd5(phone)) {
+                    //cell md5
+                    res = decodeClient.query(phone, "cell", "md5", "");
+                } else {
+                    //cell sha256
+                    res = decodeClient.query(phone, "cell", "sha", "");
+                }
+                if(StringUtils.isBlank(res)){
+                    objectResult.setCode(ResultCode.FAIL.getValue());
+                }else{
+                    if(CellUtils.isValidateCell(res)){
+                        objectResult.setCode(ResultCode.SUCCESS.getValue());
+                        objectResult.setDate(res);
+                    }else{
+                        objectResult.setCode(ResultCode.FAIL.getValue());
                     }
-                } catch (Exception e) {
-                    log.error("上传错误文件到sftp出错",e);
                 }
             }
         }
+        return objectResult;
     }
 }
