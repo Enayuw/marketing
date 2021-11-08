@@ -109,8 +109,8 @@
     <select id="getSyncUserByRuleScore" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
-        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId}]]>
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId} and id <= #{maxId}]]>
         and is_repeat in (1,2)
-        and (${whereStr}) order by id asc limit 5000
+        and (${whereStr}) order by id asc
     </select>
 </mapper>

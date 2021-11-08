@@ -225,21 +225,25 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理marketingUser
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
+                Long maxId = syncInfoMapper
+                        .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
                 while (execMark) {
                     String batchNumber = number;
-                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId, conditionRes.getData());
-                    if(syncUserByRuleScore.size()<=0){
+                    Long nowMaxId = minId+5000;
+
+                    if(nowMaxId>=maxId){
                         execMark = false;
+                    }
+                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
+                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId,nowMaxId,conditionRes.getData());
+                    if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
+                    minId = nowMaxId+1;
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
-                        if (i == syncUserByRuleScore.size() - 1) {
-                            minId = marketingSyncUser.getId() + 1;
-                        }
                         threadPool.submit(()->{
                             try {
                                 //region 用户上传表头配置处理
@@ -520,21 +524,25 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理marketingUser
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, startTimeJob, endTimeJob, conditionRes.getData());
+                Long maxId = syncInfoMapper
+                        .getMaxIdByRuleScore(apiCode, startTimeJob, endTimeJob, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
                 while (execMark) {
                     String batchNumber = number;
-                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId, conditionRes.getData());
-                    if(syncUserByRuleScore.size()<=0){
+                    Long nowMaxId = minId+5000;
+
+                    if(nowMaxId>=maxId){
                         execMark = false;
+                    }
+                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
+                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId,nowMaxId, conditionRes.getData());
+                    if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
+                    minId = nowMaxId+1;
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
-                        if (i == syncUserByRuleScore.size() - 1) {
-                            minId = marketingSyncUser.getId() + 1;
-                        }
                         threadPool.submit(()->{
                             try {
                                 //region 用户上传表头配置处理
