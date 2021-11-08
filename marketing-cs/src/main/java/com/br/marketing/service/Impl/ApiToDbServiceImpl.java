@@ -127,7 +127,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
             if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
                 continue;
             }
@@ -483,7 +482,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
             if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
                 continue;
             }
