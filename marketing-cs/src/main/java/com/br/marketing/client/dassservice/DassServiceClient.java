@@ -105,6 +105,7 @@ public class DassServiceClient {
                     .postTransferStr();
             long end = System.currentTimeMillis();
             interfaceLog.setHttpCode(transfer.getHttpCode());
+            interfaceLog.setResult(transfer.getResult());
             interfaceLog.setExpire(String.valueOf(end-start));
             if (transfer.getHttpCode() == 200) {
                 result.setCode(ResultCode.SUCCESS.getValue());

@@ -175,7 +175,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     context.setTxtFileName(fileName);
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
-                        StringBuilder errorMessage = new StringBuilder("压缩文件异常,");
                         context.setLocalTxtFilePath(path.concat("sftp_dianxiao_data/").concat(apiCode).concat("/"));
                         if(!sftpToDbByDXService.dowloadFile(context)){
                             continue;
