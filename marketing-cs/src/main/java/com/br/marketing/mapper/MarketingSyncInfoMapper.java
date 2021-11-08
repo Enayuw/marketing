@@ -40,16 +40,16 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             ,@Param("whereStr")String whereStr);
 
     Long getMaxIdByRuleScore(@Param("apiCode")String apiCode
-            , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
-            , @Param("whereStr") String whereStr);
+            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
+            ,@Param("whereStr")String whereStr);
 
-    Integer countByPreUserWithRule(@Param("apiCode") String apiCode
-            , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
-            , @Param("whereStr") String whereStr);
+    Integer countByPreUserWithRule(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
+            ,@Param("whereStr")String whereStr);
 
-    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode") String apiCode
-            , @Param("sTimeStr") String sTimeStr
-            , @Param("eTimeStr") String eTimeStr, @Param("minId") Long minId, @Param("whereStr") String whereStr);
+    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode")String apiCode
+            ,@Param("sTimeStr")String sTimeStr
+            ,@Param("eTimeStr")String eTimeStr,@Param("minId")Long minId,@Param("maxId")Long maxId,@Param("whereStr")String whereStr);
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
