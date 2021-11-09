@@ -73,7 +73,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        String title = "接口转化(私人订制)数据同步到智能客服补偿任务警告";
+        String title = "\n接口转化(私人订制)数据同步到智能客服补偿任务警告";
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
         // 总分片数
@@ -190,7 +190,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
     }
 
     private void sendAlarm(String smg) {
-        String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
+        String title = "\n接口转化(通用标准)数据同步到智能客服补偿任务警告";
         log.warn(smg);
         alarmClient.sendAlarm(smg, title, appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));

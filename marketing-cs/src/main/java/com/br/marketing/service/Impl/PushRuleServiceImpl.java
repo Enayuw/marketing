@@ -1382,7 +1382,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
                 log.error(smg);
                 result.setMessage(smg);
-                alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                         Constants.sendCodeMap.get("pushToCustomer"));
                 return result;
             }
@@ -1397,7 +1397,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     result.setDate(false);
                 } catch (Exception exception) {
                     log.error(exception.getMessage(), exception);
-                    alarmClient.sendAlarm(exception.getMessage(), "接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
+                    alarmClient.sendAlarm(exception.getMessage(), "\n接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
                             Constants.sendCodeMap.get("pushToCustomer"));
                 }
                 return result;
@@ -1579,13 +1579,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void sendAlarm(String smg) {
         log.warn(smg);
-        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+        alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
     }
 
     private void sendAlarm(String smg, String key) {
         log.warn(smg);
-        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+        alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
         redisChgService.incrBy(key, -1);
         redisChgService.expire(key, getKeyExpiration());
@@ -1670,7 +1670,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
                     , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count - 1);
-            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
             return new PushTransferCustomerLog(
                     requestDTO.getApiCode()
@@ -1687,7 +1687,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n应答消息[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
-            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
         }
         return new PushTransferCustomerLog(
@@ -1804,7 +1804,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
             , List<MarketingTransferSyncUser> transferList) {
-        String title = "接口转化(通用标准)数据同步到智能客服警告";
+        String title = "\n接口转化(通用标准)数据同步到智能客服警告";
         Assert.notNull(transferInfo, "转化信息不可为null");
         String apiCode = transferInfo.getApiCode();
         if (CollectionUtils.isEmpty(transferList)) {
