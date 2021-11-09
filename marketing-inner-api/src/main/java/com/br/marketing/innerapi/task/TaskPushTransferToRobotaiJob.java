@@ -98,6 +98,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                     TransferRobotOutboundDTO outboundDTO = getTransferRobotOutbound(robotaiLog, info, array);
                     outboundVO = ruleService.pushTransferData(outboundDTO, info);
                     if (!outboundVO.getAccessNumber().equals("-1")) {
+                        info.setId(robotaiLog.getTransferInfoId());
                         pushTransferRobotaiLogService.saveLog(info, outboundDTO, outboundVO);
                     } else {
                         log.warn("通用标准转化数据推送部分成功！apiCode[{}]", apiCode);
