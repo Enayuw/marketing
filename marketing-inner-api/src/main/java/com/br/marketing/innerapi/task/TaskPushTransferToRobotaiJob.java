@@ -160,13 +160,13 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                         , outboundVO.getCode(), outboundVO.getMessage());
                 sendAlarm(smg);
             } else {
-                String requestBody = updateLog.getRequestBody();
+                String responseBody = updateLog.getResponseBody();
                 String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]" +
                                 "\n业务返回状态码[%s];" +
                                 "\n业务应答消息[%s]" +
                                 "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
                         , outboundVO.getCode(), outboundVO.getMessage(),
-                        requestBody.length() > 300 ? requestBody.substring(0, 300).concat("...") : requestBody);
+                        responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
                 sendAlarm(smg);
             }
             updateLog.setMessage(outboundVO.getMessage());
