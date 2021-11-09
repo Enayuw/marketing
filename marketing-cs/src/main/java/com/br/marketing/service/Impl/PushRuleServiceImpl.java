@@ -1824,9 +1824,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             ConversionData conversionData = new ConversionData();
             conversionData.setDataId(transfer.getId().toString());
             conversionData.setCid(transfer.getCid());
+            conversionData.setCaseNum(transfer.getCustNum());
             conversionData.setGroupType(transfer.getUserType());
             conversionData.setInversionStatus(transfer.getIfTransform());
-            conversionData.setPartnerProcessDate(transfer.getCustomName());
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
             conversionData.setPhone(map.getOrDefault(transfer.getCustNum(), new MarketingSyncUser("")).getCell());
             TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
             BeanUtils.copyProperties(transfer, vo);
