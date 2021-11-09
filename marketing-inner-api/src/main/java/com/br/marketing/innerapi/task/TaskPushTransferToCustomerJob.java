@@ -127,8 +127,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 if (ObjectUtils.isEmpty(responseEntity)) {
                     String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
                             , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
-                    alarmClient.sendAlarm(smg, title, appName, secretKey,
-                            Constants.sendCodeMap.get("pushToCustomer"));
+                    sendAlarm(smg);
                     continue;
                 }
                 String body = responseEntity.getBody();
@@ -139,28 +138,24 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
                 String code = String.valueOf(result.get("code"));
                 if (value == 200) {
+                    String smg;
                     if ("900028".equals(code)) {
                         updateLog.setPushStatus(4);
-                        String smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
-                                "\n接口返回http状态码[%d],http短语[%s];" +
-                                "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
-                        log.warn(smg);
-                        alarmClient.sendAlarm(smg, title, appName, secretKey,
-                                Constants.sendCodeMap.get("pushToCustomer"));
+                        smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
+                                "\n返回http状态码[%d],http短语[%s];" +
+                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     } else if ("00".equals(code)) {
                         count++;
                         updateLog.setPushStatus(2);
-                        log.info(String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
-                                "\n接口返回http状态码[%d],http短语[%s];" +
-                                "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body));
+                        smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
+                                "\n返回http状态码[%d],http短语[%s];" +
+                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     } else {
-                        String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
-                                "\n接口返回http状态码[%d],http短语[%s];" +
-                                "\n应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
-                        log.error(smg);
-                        alarmClient.sendAlarm(smg, title, appName, secretKey,
-                                Constants.sendCodeMap.get("pushToCustomer"));
+                        smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
+                                "\n返回http状态码[%d],http短语[%s];" +
+                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
                     }
+                    sendAlarm(smg);
                 }
                 updateLog.setHttpStatus(value);
                 updateLog.setHttpReasonPhrase(reasonPhrase);
@@ -171,13 +166,18 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             } catch (RestClientException e) {
                 String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d],可能原因接口不可访问;" +
                         "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), e.getMessage());
-                log.error(smg);
-                alarmClient.sendAlarm(smg, title, appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
+                sendAlarm(smg);
             }
             pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
             postParameters.clear();
         }
         return count;
+    }
+
+    private void sendAlarm(String smg) {
+        String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
+        log.warn(smg);
+        alarmClient.sendAlarm(smg, title, appName, secretKey,
+                Constants.sendCodeMap.get("pushToCustomer"));
     }
 }
