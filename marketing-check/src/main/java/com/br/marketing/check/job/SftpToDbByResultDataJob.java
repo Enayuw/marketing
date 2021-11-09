@@ -1,4 +1,6 @@
 package com.br.marketing.check.job;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
@@ -171,7 +173,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);
                     context.setApiCode(apiCode);
-                    //设置zip文件名
                     context.setTxtFileName(fileName);
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
@@ -189,8 +190,9 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                         localFileMapper.insertSelective(localFile);
 
                         try {
-                            sftpClient.rename(srcPath + successFile, srcPath + successFile + ".bak");
-                            sftpClient.rename(srcPath + fileName, srcPath + fileName + ".bak");
+                            String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                            sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
+                            sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             sftpToDbByDXService.actionTxtFile(context,localFile);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);

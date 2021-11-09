@@ -147,7 +147,7 @@ public class SftpToDbByDXService {
                             PhoneSale phoneSale = new PhoneSale();
                             phoneSale.setApiCode(localFile.getApiCode());
                             phoneSale.setLocalId(localFile.getId().toString());
-                            setDataByPhone(trim,phoneSale,address,extSetField,errorMark);
+                            setDataByPhone(trim,phoneSale,address,extSetField,errorMark,lineNum);
                         });
                     }
                 }
@@ -167,12 +167,13 @@ public class SftpToDbByDXService {
                 }catch (Exception e){
                 }
             }
-        if(errorMark.get()>0){
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
+            updateFile.setActualNumber(line);
+        if(errorMark.get()>0){
             updateFile.setComplete("3");
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
         }
+            localFileMapper.updateByPrimaryKeySelective(updateFile);
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
         }catch (Exception e){
             log.error(e.getMessage(),e);
@@ -289,171 +290,182 @@ public class SftpToDbByDXService {
     }
 
 
-    private Result setDataByPhone(String row,PhoneSale phoneSale,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark){
-        List<String> datas = Splitter.on(",").splitToList(row);
-        JSONObject jo = null;
-        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
-        Boolean phoneMark = Boolean.TRUE;
-        for (int i = 0; i < datas.size(); i++) {
-            String sureaddress = address.get(i);
-            switch (sureaddress){
-                case "uid":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error=error.replace("uid不能为空;","");
-                    }
-                    phoneSale.setUid(datas.get(i));
-                    break;
-                case "phone":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error=error.replace("phone不能为空;","");
-                        Result<String> stringResult = decryptPhone(datas.get(i));
-                        phoneSale.setPhoneAes(datas.get(i));
-                        if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
-                            phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(),aesKey));
-                        }else{
-                            phoneMark = Boolean.FALSE;
-                        }
-                    }
-                    break;
-                case "name":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error=error.replace("name不能为空;","");
-                        phoneSale.setName(datas.get(i));
-                    }
-                    break;
-                case "gender":
-                    phoneSale.setGender(datas.get(i));
-                    break;
-                case "marketscore":
-                    phoneSale.setMarketscore(datas.get(i));
-                    break;
-                case "riskscore":
-                    phoneSale.setRiskscore(datas.get(i));
-                    break;
-                case "orgname":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error=error.replace("orgName不能为空;","");
-                        phoneSale.setOrgname(datas.get(i));
-                    }
-                    break;
-                case "source":
-                    phoneSale.setSource(datas.get(i));
-                    break;
-                case "user_type":
-                    if(StringUtils.isNotBlank(datas.get(i))){
-                        error=error.replace("user_type不能为空;","");
-                        phoneSale.setUserType(datas.get(i));
-                    }
-                    break;
-                case "product_name":
-                    phoneSale.setProductName(datas.get(i));
-                    break;
-                case "flag_type":
-                    phoneSale.setFlagType(datas.get(i));
-                    break;
-                case "type":
-                    phoneSale.setType(datas.get(i));
-                    break;
-                case "level":
-                    phoneSale.setLevel(datas.get(i));
-                    break;
-                case "if_register":
-                    phoneSale.setIfRegister(datas.get(i));
-                    break;
-                case "register_time":
-                    phoneSale.setRegisterTime(datas.get(i));
-                    break;
-                case "if_login":
-                    phoneSale.setIfLogin(datas.get(i));
-                    break;
-                case "login_time":
-                    phoneSale.setLoginTime(datas.get(i));
-                    break;
-                case "if_apply":
-                    phoneSale.setIfApply(datas.get(i));
-                    break;
-                case "apply_dt":
-                    phoneSale.setApplyDt(datas.get(i));
-                    break;
-                case "apply_time":
-                    phoneSale.setApplyTime(datas.get(i));
-                    break;
-                case "apply_result":
-                    phoneSale.setApplyResult(datas.get(i));
-                    break;
-                case "pagenode":
-                    phoneSale.setPagenode(datas.get(i));
-                    break;
-                case "optype":
-                    phoneSale.setOptype(datas.get(i));
-                    break;
-                case "refuse_time":
-                    phoneSale.setRefuseTime(datas.get(i));
-                    break;
-                case "audit_time":
-                    phoneSale.setAuditTime(datas.get(i));
-                    break;
-                case "audit_amount":
-                    phoneSale.setAuditAmount(datas.get(i));
-                    break;
-                case "if_lent":
-                    phoneSale.setIfLent(datas.get(i));
-                    break;
-                case "lent_time":
-                    phoneSale.setLentTime(datas.get(i));
-                    break;
-                case "lent_amount":
-                    phoneSale.setLentAmount(datas.get(i));
-                    break;
-                case "unlent_amount":
-                    phoneSale.setUnlentAmount(datas.get(i));
-                    break;
-                case "if_settle":
-                    phoneSale.setIfSettle(datas.get(i));
-                    break;
-                case "settle_time":
-                    phoneSale.setSettleTime(datas.get(i));
-                    break;
-                case "activity":
-                    phoneSale.setActivity(datas.get(i));
-                    break;
-                case "production":
-                    phoneSale.setProduction(datas.get(i));
-                    break;
-                case "region":
-                    phoneSale.setRegion(datas.get(i));
-                    break;
-                case "extend":
-                    String s = extSetFields.get(i);
-                    if(StringUtils.isNotBlank(s)){
-                        if(jo==null){
-                            jo = new JSONObject();
-                        }
-                        jo.put(s,datas.get(i));
-                    }
-                    break;
+    private Result setDataByPhone(String row,PhoneSale phoneSale,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark,Integer line){
+        try {
+            List<String> datas = Splitter.on(",").splitToList(row);
+            JSONObject jo = null;
+            String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
+            Boolean phoneMark = Boolean.TRUE;
+            if (datas.size() != address.size()) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                errorMark.getAndIncrement();
+                phoneSaleMapper.insertSelective(phoneSale);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            if(jo !=null){
-                phoneSale.setExtend(jo.toJSONString());
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("uid不能为空;", "");
+                        }
+                        phoneSale.setUid(datas.get(i));
+                        break;
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("phone不能为空;", "");
+                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            phoneSale.setPhoneAes(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
+                            } else {
+                                phoneMark = Boolean.FALSE;
+                            }
+                        }
+                        break;
+                    case "name":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("name不能为空;", "");
+                            phoneSale.setName(datas.get(i));
+                        }
+                        break;
+                    case "gender":
+                        phoneSale.setGender(datas.get(i));
+                        break;
+                    case "marketscore":
+                        phoneSale.setMarketscore(datas.get(i));
+                        break;
+                    case "riskscore":
+                        phoneSale.setRiskscore(datas.get(i));
+                        break;
+                    case "orgname":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("orgName不能为空;", "");
+                            phoneSale.setOrgname(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        phoneSale.setSource(datas.get(i));
+                        break;
+                    case "user_type":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("user_type不能为空;", "");
+                            phoneSale.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "product_name":
+                        phoneSale.setProductName(datas.get(i));
+                        break;
+                    case "flag_type":
+                        phoneSale.setFlagType(datas.get(i));
+                        break;
+                    case "type":
+                        phoneSale.setType(datas.get(i));
+                        break;
+                    case "level":
+                        phoneSale.setLevel(datas.get(i));
+                        break;
+                    case "if_register":
+                        phoneSale.setIfRegister(datas.get(i));
+                        break;
+                    case "register_time":
+                        phoneSale.setRegisterTime(datas.get(i));
+                        break;
+                    case "if_login":
+                        phoneSale.setIfLogin(datas.get(i));
+                        break;
+                    case "login_time":
+                        phoneSale.setLoginTime(datas.get(i));
+                        break;
+                    case "if_apply":
+                        phoneSale.setIfApply(datas.get(i));
+                        break;
+                    case "apply_dt":
+                        phoneSale.setApplyDt(datas.get(i));
+                        break;
+                    case "apply_time":
+                        phoneSale.setApplyTime(datas.get(i));
+                        break;
+                    case "apply_result":
+                        phoneSale.setApplyResult(datas.get(i));
+                        break;
+                    case "pagenode":
+                        phoneSale.setPagenode(datas.get(i));
+                        break;
+                    case "optype":
+                        phoneSale.setOptype(datas.get(i));
+                        break;
+                    case "refuse_time":
+                        phoneSale.setRefuseTime(datas.get(i));
+                        break;
+                    case "audit_time":
+                        phoneSale.setAuditTime(datas.get(i));
+                        break;
+                    case "audit_amount":
+                        phoneSale.setAuditAmount(datas.get(i));
+                        break;
+                    case "if_lent":
+                        phoneSale.setIfLent(datas.get(i));
+                        break;
+                    case "lent_time":
+                        phoneSale.setLentTime(datas.get(i));
+                        break;
+                    case "lent_amount":
+                        phoneSale.setLentAmount(datas.get(i));
+                        break;
+                    case "unlent_amount":
+                        phoneSale.setUnlentAmount(datas.get(i));
+                        break;
+                    case "if_settle":
+                        phoneSale.setIfSettle(datas.get(i));
+                        break;
+                    case "settle_time":
+                        phoneSale.setSettleTime(datas.get(i));
+                        break;
+                    case "activity":
+                        phoneSale.setActivity(datas.get(i));
+                        break;
+                    case "production":
+                        phoneSale.setProduction(datas.get(i));
+                        break;
+                    case "region":
+                        phoneSale.setRegion(datas.get(i));
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, datas.get(i));
+                        }
+                        break;
+                }
+                if (jo != null) {
+                    phoneSale.setExtend(jo.toJSONString());
+                }
             }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+                errorMark.getAndIncrement();
+            } else if (!phoneMark) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+                errorMark.getAndIncrement();
+            }
+            Date date = new Date();
+            phoneSale.setCreateTime(date);
+            phoneSale.setUpdateTime(date);
+            phoneSaleMapper.insertSelective(phoneSale);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            phoneSale.setStatus(2);
+            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            errorMark.getAndIncrement();
+            phoneSaleMapper.insertSelective(phoneSale);
         }
-        if(datas.size() != address.size()){
-            phoneSale.setStatus(2);
-            phoneSale.setDataMessage("表头和该行数据不一致");
-            errorMark.getAndIncrement();
-        }else if(!StringUtils.isEmpty(error)){
-            phoneSale.setStatus(2);
-            phoneSale.setDataMessage(error);
-            errorMark.getAndIncrement();
-        }else if(!phoneMark){
-            phoneSale.setStatus(2);
-            phoneSale.setDataMessage("手机号解密失败");
-            errorMark.getAndIncrement();
-        }
-        Date date = new Date();
-        phoneSale.setCreateTime(date);
-        phoneSale.setUpdateTime(date);
-        phoneSaleMapper.insertSelective(phoneSale);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -474,30 +486,34 @@ public class SftpToDbByDXService {
         if(isNum){
             objectResult.setDate(phone);
             objectResult.setCode(ResultCode.SUCCESS.getValue());
-        }else{
-            String s = AESUtil.aesDecrypt(phone, aesKey);
-            if(CellUtils.isValidateCell(phone)){
+            return objectResult;
+        }
+
+        if(phone.length()%16==0){
+            String s = AESUtil.decrypt(phone, aesKey);
+            if(StringUtils.isNotBlank(s)&&CellUtils.isValidateCell(s)){
                 objectResult.setDate(s);
                 objectResult.setCode(ResultCode.SUCCESS.getValue());
+                return objectResult;
+            }
+        }
+
+        String res = "";
+        if (DecodeClient.isMd5(phone)) {
+            //cell md5
+            res = decodeClient.query(phone, "cell", "md5", "");
+        } else {
+            //cell sha256
+            res = decodeClient.query(phone, "cell", "sha", "");
+        }
+        if(StringUtils.isBlank(res)){
+            objectResult.setCode(ResultCode.FAIL.getValue());
+        }else{
+            if(CellUtils.isValidateCell(res)){
+                objectResult.setCode(ResultCode.SUCCESS.getValue());
+                objectResult.setDate(res);
             }else{
-                String res = "";
-                if (DecodeClient.isMd5(phone)) {
-                    //cell md5
-                    res = decodeClient.query(phone, "cell", "md5", "");
-                } else {
-                    //cell sha256
-                    res = decodeClient.query(phone, "cell", "sha", "");
-                }
-                if(StringUtils.isBlank(res)){
-                    objectResult.setCode(ResultCode.FAIL.getValue());
-                }else{
-                    if(CellUtils.isValidateCell(res)){
-                        objectResult.setCode(ResultCode.SUCCESS.getValue());
-                        objectResult.setDate(res);
-                    }else{
-                        objectResult.setCode(ResultCode.FAIL.getValue());
-                    }
-                }
+                objectResult.setCode(ResultCode.FAIL.getValue());
             }
         }
         return objectResult;

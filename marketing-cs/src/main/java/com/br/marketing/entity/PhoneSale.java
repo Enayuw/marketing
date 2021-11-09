@@ -24,11 +24,6 @@ public class PhoneSale {
     private String syncLogId;
 
     /**
-     * 内部批次id
-     */
-    private String batchId;
-
-    /**
      * 本地文件记录id
      */
     private String localId;
@@ -273,14 +268,6 @@ public class PhoneSale {
 
     public void setSyncLogId(String syncLogId) {
         this.syncLogId = syncLogId == null ? null : syncLogId.trim();
-    }
-
-    public String getBatchId() {
-        return batchId;
-    }
-
-    public void setBatchId(String batchId) {
-        this.batchId = batchId == null ? null : batchId.trim();
     }
 
     public String getLocalId() {

@@ -340,10 +340,6 @@ public class SftpToDbUtils {
         if(!(uidMark&&phoneMark&&orgNameMark&&userTypeMark&&nameMark)){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
         }
-        HashMap<String, Object> statisticsHeadRS = new HashMap<>();
-        statisticsHeadRS.put("size",heads.size());
-        statisticsHeadRS.put("extraMark",extraMark);
-        statisticsHeadRS.put("head",heads);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 }

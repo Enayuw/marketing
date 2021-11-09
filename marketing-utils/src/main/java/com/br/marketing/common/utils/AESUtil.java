@@ -124,8 +124,11 @@ public class AESUtil {
         } catch (Exception var5) {
             var5.printStackTrace();
         }
-
-        return new String(output);
+        if(output==null){
+            return "";
+        }else{
+            return new String(output);
+        }
     }
 
     public static String decrypt(Cipher cipher, byte[] encryptedBytes) {
