@@ -489,13 +489,11 @@ public class SftpToDbByDXService {
             return objectResult;
         }
 
-        if(phone.length()%16==0){
-            String s = AESUtil.decrypt(phone, aesKey);
-            if(StringUtils.isNotBlank(s)&&CellUtils.isValidateCell(s)){
-                objectResult.setDate(s);
-                objectResult.setCode(ResultCode.SUCCESS.getValue());
-                return objectResult;
-            }
+        String s = AESUtil.decrypt(phone, aesKey);
+        if(StringUtils.isNotBlank(s)&&CellUtils.isValidateCell(s)){
+            objectResult.setDate(s);
+            objectResult.setCode(ResultCode.SUCCESS.getValue());
+            return objectResult;
         }
 
         String res = "";
