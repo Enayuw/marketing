@@ -1828,7 +1828,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             conversionData.setGroupType(transfer.getUserType());
             conversionData.setInversionStatus(transfer.getIfTransform());
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            conversionData.setPhone(map.getOrDefault(transfer.getCustNum(), new MarketingSyncUser("")).getCell());
+            conversionData.setPhone(map.containsKey(transfer.getCustNum())
+                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
             TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
             BeanUtils.copyProperties(transfer, vo);
             conversionData.setInversionInfo(JSON.toJSONString(vo));
