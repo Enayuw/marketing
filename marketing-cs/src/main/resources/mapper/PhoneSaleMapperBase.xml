@@ -6,7 +6,6 @@
     <result column="api_cid" property="apiCid" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="sync_log_id" property="syncLogId" jdbcType="VARCHAR" />
-    <result column="batch_id" property="batchId" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
@@ -110,12 +109,12 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_cid, api_code, sync_log_id, batch_id, local_id, status, data_message, uid, 
-    phone, phone_aes, name, name_aes, gender, marketscore, riskscore, orgname, source, 
-    user_type, product_name, flag_type, type, level, if_register, register_time, if_login, 
-    login_time, if_apply, apply_dt, apply_time, apply_result, pagenode, optype, refuse_time, 
-    audit_time, audit_amount, if_lent, lent_time, lent_amount, unlent_amount, if_settle, 
-    settle_time, activity, production, region, extend, create_time, update_time
+    id, api_cid, api_code, sync_log_id, local_id, status, data_message, uid, phone, phone_aes, 
+    name, name_aes, gender, marketscore, riskscore, orgname, source, user_type, product_name, 
+    flag_type, type, level, if_register, register_time, if_login, login_time, if_apply, 
+    apply_dt, apply_time, apply_result, pagenode, optype, refuse_time, audit_time, audit_amount, 
+    if_lent, lent_time, lent_amount, unlent_amount, if_settle, settle_time, activity, 
+    production, region, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExample" >
     select
@@ -152,37 +151,37 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_phone_sale (api_cid, api_code, sync_log_id, 
-      batch_id, local_id, status, 
-      data_message, uid, phone, 
-      phone_aes, name, name_aes, 
-      gender, marketscore, riskscore, 
-      orgname, source, user_type, 
-      product_name, flag_type, type, 
-      level, if_register, register_time, 
-      if_login, login_time, if_apply, 
-      apply_dt, apply_time, apply_result, 
-      pagenode, optype, refuse_time, 
-      audit_time, audit_amount, if_lent, 
-      lent_time, lent_amount, unlent_amount, 
-      if_settle, settle_time, activity, 
-      production, region, extend, 
-      create_time, update_time)
+      local_id, status, data_message, 
+      uid, phone, phone_aes, 
+      name, name_aes, gender, 
+      marketscore, riskscore, orgname, 
+      source, user_type, product_name, 
+      flag_type, type, level, 
+      if_register, register_time, if_login, 
+      login_time, if_apply, apply_dt, 
+      apply_time, apply_result, pagenode, 
+      optype, refuse_time, audit_time, 
+      audit_amount, if_lent, lent_time, 
+      lent_amount, unlent_amount, if_settle, 
+      settle_time, activity, production, 
+      region, extend, create_time, 
+      update_time)
     values (#{apiCid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{syncLogId,jdbcType=VARCHAR}, 
-      #{batchId,jdbcType=VARCHAR}, #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{dataMessage,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
-      #{phoneAes,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{nameAes,jdbcType=VARCHAR}, 
-      #{gender,jdbcType=VARCHAR}, #{marketscore,jdbcType=VARCHAR}, #{riskscore,jdbcType=VARCHAR}, 
-      #{orgname,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
-      #{productName,jdbcType=VARCHAR}, #{flagType,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
-      #{level,jdbcType=VARCHAR}, #{ifRegister,jdbcType=VARCHAR}, #{registerTime,jdbcType=VARCHAR}, 
-      #{ifLogin,jdbcType=VARCHAR}, #{loginTime,jdbcType=VARCHAR}, #{ifApply,jdbcType=VARCHAR}, 
-      #{applyDt,jdbcType=VARCHAR}, #{applyTime,jdbcType=VARCHAR}, #{applyResult,jdbcType=VARCHAR}, 
-      #{pagenode,jdbcType=VARCHAR}, #{optype,jdbcType=VARCHAR}, #{refuseTime,jdbcType=VARCHAR}, 
-      #{auditTime,jdbcType=VARCHAR}, #{auditAmount,jdbcType=VARCHAR}, #{ifLent,jdbcType=VARCHAR}, 
-      #{lentTime,jdbcType=VARCHAR}, #{lentAmount,jdbcType=VARCHAR}, #{unlentAmount,jdbcType=VARCHAR}, 
-      #{ifSettle,jdbcType=VARCHAR}, #{settleTime,jdbcType=VARCHAR}, #{activity,jdbcType=VARCHAR}, 
-      #{production,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
+      #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{phoneAes,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{nameAes,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, 
+      #{marketscore,jdbcType=VARCHAR}, #{riskscore,jdbcType=VARCHAR}, #{orgname,jdbcType=VARCHAR}, 
+      #{source,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{productName,jdbcType=VARCHAR}, 
+      #{flagType,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR}, 
+      #{ifRegister,jdbcType=VARCHAR}, #{registerTime,jdbcType=VARCHAR}, #{ifLogin,jdbcType=VARCHAR}, 
+      #{loginTime,jdbcType=VARCHAR}, #{ifApply,jdbcType=VARCHAR}, #{applyDt,jdbcType=VARCHAR}, 
+      #{applyTime,jdbcType=VARCHAR}, #{applyResult,jdbcType=VARCHAR}, #{pagenode,jdbcType=VARCHAR}, 
+      #{optype,jdbcType=VARCHAR}, #{refuseTime,jdbcType=VARCHAR}, #{auditTime,jdbcType=VARCHAR}, 
+      #{auditAmount,jdbcType=VARCHAR}, #{ifLent,jdbcType=VARCHAR}, #{lentTime,jdbcType=VARCHAR}, 
+      #{lentAmount,jdbcType=VARCHAR}, #{unlentAmount,jdbcType=VARCHAR}, #{ifSettle,jdbcType=VARCHAR}, 
+      #{settleTime,jdbcType=VARCHAR}, #{activity,jdbcType=VARCHAR}, #{production,jdbcType=VARCHAR}, 
+      #{region,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSale" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -198,9 +197,6 @@
       </if>
       <if test="syncLogId != null" >
         sync_log_id,
-      </if>
-      <if test="batchId != null" >
-        batch_id,
       </if>
       <if test="localId != null" >
         local_id,
@@ -341,9 +337,6 @@
       </if>
       <if test="syncLogId != null" >
         #{syncLogId,jdbcType=VARCHAR},
-      </if>
-      <if test="batchId != null" >
-        #{batchId,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
         #{localId,jdbcType=VARCHAR},
@@ -497,9 +490,6 @@
       <if test="record.syncLogId != null" >
         sync_log_id = #{record.syncLogId,jdbcType=VARCHAR},
       </if>
-      <if test="record.batchId != null" >
-        batch_id = #{record.batchId,jdbcType=VARCHAR},
-      </if>
       <if test="record.localId != null" >
         local_id = #{record.localId,jdbcType=VARCHAR},
       </if>
@@ -640,7 +630,6 @@
       api_cid = #{record.apiCid,jdbcType=VARCHAR},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       sync_log_id = #{record.syncLogId,jdbcType=VARCHAR},
-      batch_id = #{record.batchId,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=INTEGER},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
@@ -699,9 +688,6 @@
       </if>
       <if test="syncLogId != null" >
         sync_log_id = #{syncLogId,jdbcType=VARCHAR},
-      </if>
-      <if test="batchId != null" >
-        batch_id = #{batchId,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
         local_id = #{localId,jdbcType=VARCHAR},
@@ -840,7 +826,6 @@
     set api_cid = #{apiCid,jdbcType=VARCHAR},
       api_code = #{apiCode,jdbcType=VARCHAR},
       sync_log_id = #{syncLogId,jdbcType=VARCHAR},
-      batch_id = #{batchId,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},
       data_message = #{dataMessage,jdbcType=VARCHAR},

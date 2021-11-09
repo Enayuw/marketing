@@ -21,10 +21,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
-import com.br.marketing.mapper.MarketingStrategyProductMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
 import com.br.marketing.vo.TaskExtendInfoVO;
@@ -608,4 +605,30 @@ public class redis {
         System.out.println(redisTemplate.executePipelined(sessionCallback));
     }*/
 
+    @Autowired
+    SyncLogMapper syncLogMapper;
+
+    @Test
+    public void testmapsql(){
+        Map<String,String> params=new HashMap<>();
+        params.put("apiCode","7410784");
+        params.put("fileName","abc");
+//        params.put("createFileTime",createFileTime);
+//        params.put("srcPath",syncConfig.getSrcSftpHost().concat(":").concat(syncConfig.getSrcPath()));
+        List<SyncLog> syncLogs = syncLogMapper.querySyncLog(params);
+
+        params.put("createFileTime","2021-11-09");
+        syncLogMapper.querySyncLog(params);
+        List<SyncLog> syncLogs2 = syncLogMapper.querySyncLog(params);
+    }
+
+
+    @Test
+    public void testaesde(){
+        try {
+            String ovksl39fcl13m9dF = AESUtil.decrypt("63dfcbc706b801a9f59c76474bafa661", "ovksl39fcl13m9dF");
+        }catch (Exception ex){
+
+        }
+    }
 }
