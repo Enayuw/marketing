@@ -38,6 +38,8 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void testAes(){
+        String phone = AESUtil.aesDecrypt("p5ho9PDsqrnJz9CJYNHyqA==", "ovksl39fcl13m9dF");
+        System.out.println("解密："+phone);
         String s = AESUtil.aesEncrypty("18822755999","ovksl39fcl13m9dF");
         String s1 = DigestUtils.md5DigestAsHex("王晓二".getBytes());
         String s2 = DigestUtils.md5DigestAsHex("120222199007077719".getBytes());
