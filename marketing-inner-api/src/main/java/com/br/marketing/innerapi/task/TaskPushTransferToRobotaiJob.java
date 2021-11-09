@@ -31,6 +31,21 @@ import java.util.stream.Collectors;
 
 /**
  * 通用标准 接口转化推送客服失败记录补偿任务
+ * <p>
+ * 重试情况：
+ * 1. 网络问题，没有请求到客服接口
+ * 容错机制：将本次接口请求数据直接保存到日志记录表。
+ * 补偿调度任务触发时将保存的记录重新发起请求，并计算重试次数，成功接收后更新状态为已补偿。
+ * <p>
+ * 2. 客服返回非“00”状态的业务状态码，默认全部数据错误
+ * 容错机制：将本次请求及应答消息记录日志记录表。
+ * 补偿调度任务触发时解析返回消息中错误数据，并重新从转化数据表中获取数据，封装成请求发送给客服，并计算重试次数，成功接收后更新状态为已补偿。
+ * <p>
+ * 3. 客服返回“00”状态的业务状态码，但有错误数据返回
+ * 容错机制：将本次请求及应答消息记录日志记录表。
+ * 补偿调度任务触发时解析返回消息中错误数据（非全部），并重新从转化数据表中获取数据，封装成请求发送给客服，原记录更新状态为已补偿，新请求失败后会重新记录到日志。后续调度任务继续重试。
+ * <p>
+ * 注：所有请求成功接收的调用，不记录日志，调度任务默认为30分钟/次，默认重试5次
  *
  * @author zeqiang.guo@brgroup.com
  * @dateTime 2021/11/05 17:48
@@ -145,13 +160,13 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                         , outboundVO.getCode(), outboundVO.getMessage());
                 sendAlarm(smg);
             } else {
-                String requestBody = updateLog.getRequestBody();
+                String responseBody = updateLog.getResponseBody();
                 String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]" +
                                 "\n业务返回状态码[%s];" +
                                 "\n业务应答消息[%s]" +
                                 "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
                         , outboundVO.getCode(), outboundVO.getMessage(),
-                        requestBody.length() > 300 ? requestBody.substring(0, 300).concat("...") : requestBody);
+                        responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
                 sendAlarm(smg);
             }
             updateLog.setMessage(outboundVO.getMessage());
