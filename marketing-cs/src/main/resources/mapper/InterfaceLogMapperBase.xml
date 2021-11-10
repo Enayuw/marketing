@@ -11,6 +11,7 @@
     <result column="http_code" property="httpCode" jdbcType="INTEGER" />
     <result column="call_time" property="callTime" jdbcType="INTEGER" />
     <result column="expire" property="expire" jdbcType="VARCHAR" />
+    <result column="extend_info" property="extendInfo" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -73,7 +74,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, request_id, request_param, url, header, result, http_code, call_time, expire, 
-    create_time
+    extend_info, create_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.InterfaceLogExample" >
     select
@@ -111,12 +112,12 @@
     </selectKey>
     insert into b_interface_log (request_id, request_param, url, 
       header, result, http_code, 
-      call_time, expire, create_time
-      )
+      call_time, expire, extend_info, 
+      create_time)
     values (#{requestId,jdbcType=VARCHAR}, #{requestParam,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, 
       #{header,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{httpCode,jdbcType=INTEGER}, 
-      #{callTime,jdbcType=INTEGER}, #{expire,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}
-      )
+      #{callTime,jdbcType=INTEGER}, #{expire,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.InterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -148,6 +149,9 @@
       <if test="expire != null" >
         expire,
       </if>
+      <if test="extendInfo != null" >
+        extend_info,
+      </if>
       <if test="createTime != null" >
         create_time,
       </if>
@@ -176,6 +180,9 @@
       </if>
       <if test="expire != null" >
         #{expire,jdbcType=VARCHAR},
+      </if>
+      <if test="extendInfo != null" >
+        #{extendInfo,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -218,6 +225,9 @@
       <if test="record.expire != null" >
         expire = #{record.expire,jdbcType=VARCHAR},
       </if>
+      <if test="record.extendInfo != null" >
+        extend_info = #{record.extendInfo,jdbcType=VARCHAR},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -237,6 +247,7 @@
       http_code = #{record.httpCode,jdbcType=INTEGER},
       call_time = #{record.callTime,jdbcType=INTEGER},
       expire = #{record.expire,jdbcType=VARCHAR},
+      extend_info = #{record.extendInfo,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -269,6 +280,9 @@
       <if test="expire != null" >
         expire = #{expire,jdbcType=VARCHAR},
       </if>
+      <if test="extendInfo != null" >
+        extend_info = #{extendInfo,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -285,6 +299,7 @@
       http_code = #{httpCode,jdbcType=INTEGER},
       call_time = #{callTime,jdbcType=INTEGER},
       expire = #{expire,jdbcType=VARCHAR},
+      extend_info = #{extendInfo,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>

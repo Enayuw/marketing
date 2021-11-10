@@ -81,6 +81,7 @@ public class PushDataServiceImpl implements PushDataService{
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 DassImportAdapDTO dto = new DassImportAdapDTO();
+                dto.setLocalId(id);
                 dto.setList(phoneSales);
                 minId = phoneSale.getId();
                 threadPool.submit(()->{
