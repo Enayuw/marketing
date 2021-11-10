@@ -237,10 +237,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }
                     List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
                             .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId,nowMaxId,conditionRes.getData());
+                    minId = nowMaxId+1;
                     if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
-                    minId = nowMaxId+1;
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
                         threadPool.submit(()->{
@@ -535,10 +535,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }
                     List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
                             .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId,nowMaxId, conditionRes.getData());
+                    minId = nowMaxId+1;
                     if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
-                    minId = nowMaxId+1;
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
                         threadPool.submit(()->{
