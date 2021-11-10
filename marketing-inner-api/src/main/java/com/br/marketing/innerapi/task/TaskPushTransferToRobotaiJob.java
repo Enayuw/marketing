@@ -92,8 +92,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
         List<PushTransferRobotaiLog> rows = pushTransferRobotaiLogMapper.findListByStatusIs0(shardingTotalCount, shardingItems);
         String apiCode;
         for (PushTransferRobotaiLog robotaiLog : rows) {
+            PushTransferRobotaiLog updateLog = new PushTransferRobotaiLog();
             try {
-                PushTransferRobotaiLog updateLog = new PushTransferRobotaiLog();
                 updateLog.setId(robotaiLog.getId());
                 updateLog.setCompensateTimes(robotaiLog.getCompensateTimes() + 1);
                 // 检查补偿次数
@@ -120,16 +120,16 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                             if (!outboundVO.getAccessNumber().equals("-1")) {
                                 info.setId(robotaiLog.getTransferInfoId());
                                 pushTransferRobotaiLogService.saveLog(info, outboundDTO, outboundVO);
-                                String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d];" +
+                                String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d]/共[%d];" +
                                                 "\n更新原记录为已补偿,并生成新记录！" +
                                                 "\n业务返回状态码[%s];" +
-                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
+                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
                                 sendAlarm(smg);
                             } else {
-                                String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]" +
+                                String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]/共[%d]" +
                                                 "\n业务返回状态码[%s];" +
-                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
+                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
                                 sendAlarm(smg);
                             }
@@ -168,19 +168,19 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 updateLog.setResponseBody(JSON.toJSONString(outboundVO.getData()));
                 if (outboundVO.getAccessNumber().equals("-1")) {
                     updateLog.setPushStatus(1);
-                    String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
+                    String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]/共[%d]" +
                                     "\n业务返回状态码[%s];" +
-                                    "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
+                                    "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage());
                     sendAlarm(smg);
                 } else {
                     String responseBody = updateLog.getResponseBody();
-                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]" +
+                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]/共[%d]" +
                                     "\n业务返回状态码[%s];" +
                                     "\n业务应答消息[%s]" +
-                                    "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes()
+                                    "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage(),
-                            responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
+                            (responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody));
                     sendAlarm(smg);
                 }
                 updateLog.setMessage(outboundVO.getMessage());
@@ -210,7 +210,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     }
 
     private void sendAlarm(String smg) {
-        String title = "\n接口转化(通用标准)数据同步到智能客服补偿任务警告";
+        String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
         log.warn(smg);
         alarmClient.sendAlarm(smg, title, appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
