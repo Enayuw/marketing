@@ -123,7 +123,7 @@ public interface PushRuleService {
      * @author Guo Zeqiang
      * @dateTime 2021/11/4 10:53
      */
-    TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo);
+    List<TransferRobotOutboundVO<UnsuccessfulData>> pushTransferData(MarketingTransferInfo transferInfo);
 
     /**
      * 异步消费接口转化数据推送至客服 通用
