@@ -34,13 +34,13 @@ public class RuleOfProductController {
     @GetMapping("/getPorductContent")
     @ApiOperation(value = "获取产品集合信息")
     public ApiResult<String> getPorductContent(){
-        return new ApiResult<String>().fromResult(iProductResultSimpleService.getFlagProductStr());
+        return new ApiResult<String>().fromResult(iProductResultSimpleService.getFlagProductStr(),1);
     }
 
 
     @GetMapping("/updateProductContent")
     @ApiOperation(value = "修改产品集合信息")
     public ApiResult updateProductContent(@RequestParam("flagScoreContent") String flagScoreContent){
-        return new ApiResult().fromResult(iProductResultSimpleService.updateFlagProduct(flagScoreContent));
+        return new ApiResult().fromResult(iProductResultSimpleService.updateFlagProduct(flagScoreContent),1);
     }
 }

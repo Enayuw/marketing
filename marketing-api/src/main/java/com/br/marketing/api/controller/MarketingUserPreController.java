@@ -70,7 +70,7 @@ public class MarketingUserPreController {
                     new TypeReference<MarketingPreUserSyncStatusDTO>() {
                     }.getType());
             o.setApiCode(apiCode);
-            return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o));
+            return new ApiResult().fromResult(pushRuleService.getMarketingPreUserSyncStatus(o),null);
         } catch (CommonException ex) {
             log.error(ex.getMessage());
             MarketingErrorInfo info = ex.getInfo();
