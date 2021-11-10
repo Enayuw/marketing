@@ -122,7 +122,7 @@ public class HttpProxyClient {
 			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
 			post.setEntity(requestEntity);
 			post.setHeader("content-type","application/json");
-			RequestConfig requestConfig= getRequestConfig(isPorxy);
+			RequestConfig requestConfig= getRequestConfig(isPorxy,10000);
 			post.setConfig(requestConfig);
 			HttpResponse response = null;
 			if(isPorxy){
@@ -196,6 +196,28 @@ public class HttpProxyClient {
 		}else {
 			return	RequestConfig.custom()
 					.setSocketTimeout(6000)
+					.setConnectTimeout(1000)
+					.setConnectionRequestTimeout(1000)
+					.build();
+		}
+	}
+
+	/**
+	 * 配置信息
+	 * @param isProxy 是否代理
+	 * @return RequestConfig requestConfig
+	 */
+	public   RequestConfig getRequestConfig(Boolean isProxy,Integer sockTimeout) {
+		if(isProxy) {
+			return RequestConfig.custom()
+					.setSocketTimeout(sockTimeout)
+					.setConnectTimeout(1000)
+					.setProxy(new HttpHost(proxyHost, proxyPort ))
+					.setConnectionRequestTimeout(1000)
+					.build();
+		}else {
+			return	RequestConfig.custom()
+					.setSocketTimeout(sockTimeout)
 					.setConnectTimeout(1000)
 					.setConnectionRequestTimeout(1000)
 					.build();
