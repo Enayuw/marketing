@@ -1781,7 +1781,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 page++;
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                throw e;
             }
         }
         return list;
@@ -1825,45 +1825,41 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
             , List<MarketingTransferSyncUser> transferList) {
-        try {
-            String title = "\n接口转化(通用标准)数据同步到智能客服警告";
-            Assert.notNull(transferInfo, "转化信息不可为null");
-            String apiCode = transferInfo.getApiCode();
-            if (CollectionUtils.isEmpty(transferList)) {
-                String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
-                alarmClient.sendAlarm(smg, title, appName, secretKey,
-                        Constants.sendCodeMap.get("sysError"));
-                return null;
-            }
-            Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-            Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
-                    MarketingSyncUser::getCustNum, syncUser -> syncUser
-                    , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
-            Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
-            List<ConversionData> conversionDataArray = new ArrayList<>();
-            transferList.forEach(transfer -> {
-                ConversionData conversionData = new ConversionData();
-                conversionData.setDataId(transfer.getId().toString());
-                conversionData.setCid(transfer.getCid());
-                conversionData.setCaseNum(transfer.getCustNum());
-                conversionData.setGroupType(transfer.getUserType());
-                conversionData.setInversionStatus(transfer.getIfTransform());
-                conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                conversionData.setPhone(map.containsKey(transfer.getCustNum())
-                        ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
-                TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-                BeanUtils.copyProperties(transfer, vo);
-                conversionData.setInversionInfo(JSON.toJSONString(vo));
-                conversionDataArray.add(conversionData);
-            });
-            TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
-            robotOutboundDTO.setApiCode(apiCode);
-            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
-            return robotOutboundDTO;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+        String title = "\n接口转化(通用标准)数据同步到智能客服警告";
+        Assert.notNull(transferInfo, "转化信息不可为null");
+        String apiCode = transferInfo.getApiCode();
+        if (CollectionUtils.isEmpty(transferList)) {
+            String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
+            alarmClient.sendAlarm(smg, title, appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
             return null;
         }
+        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+        Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
+                MarketingSyncUser::getCustNum, syncUser -> syncUser
+                , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
+                        && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+        Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
+        List<ConversionData> conversionDataArray = new ArrayList<>();
+        transferList.forEach(transfer -> {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(transfer.getId().toString());
+            conversionData.setCid(transfer.getCid());
+            conversionData.setCaseNum(transfer.getCustNum());
+            conversionData.setGroupType(transfer.getUserType());
+            conversionData.setInversionStatus(transfer.getIfTransform());
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            conversionData.setPhone(map.containsKey(transfer.getCustNum())
+                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
+            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+            BeanUtils.copyProperties(transfer, vo);
+            conversionData.setInversionInfo(JSON.toJSONString(vo));
+            conversionDataArray.add(conversionData);
+        });
+        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+        robotOutboundDTO.setApiCode(apiCode);
+        robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
+        return robotOutboundDTO;
     }
 }
