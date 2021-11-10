@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +80,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
+        shardingItems.add(0);
+        shardingItems.add(1);
         // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
         // 设置最大重试次数
@@ -138,14 +141,18 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                         }
                     }
                 } else if (StringUtils.isEmpty(robotaiLog.getServiceCode())) {
-                    outboundVO = ruleService.pushTransferData(JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
-                    }), info);
+                    TransferRobotOutboundDTO outboundDTO = JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
+                    });
+                    outboundDTO.getJsonData().setAccessNumber(UUID.randomUUID().toString());
+                    outboundVO = ruleService.pushTransferData(outboundDTO, info);
                 } else {
                     JSONObject object = JSON.parseObject(robotaiLog.getResponseBody());
                     Object unsuccessfulData = object.get("unsuccessfulData");
                     if (ObjectUtils.isEmpty(unsuccessfulData)) {
-                        outboundVO = ruleService.pushTransferData(JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
-                        }), info);
+                        TransferRobotOutboundDTO outboundDTO = JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
+                        });
+                        outboundDTO.getJsonData().setAccessNumber(UUID.randomUUID().toString());
+                        outboundVO = ruleService.pushTransferData(outboundDTO, info);
                     } else {
                         JSONArray array = JSONArray.parseArray(unsuccessfulData.toString());
                         if (array.size() > 0) {
