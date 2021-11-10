@@ -9,6 +9,11 @@ public class RetryMainLog {
     private Long id;
 
     /**
+     * 发号自增id
+     */
+    private Long incrId;
+
+    /**
      * 重试类型 1-方法重试；2-接口重试
      */
     private Integer retryType;
@@ -64,6 +69,14 @@ public class RetryMainLog {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getIncrId() {
+        return incrId;
+    }
+
+    public void setIncrId(Long incrId) {
+        this.incrId = incrId;
     }
 
     public Integer getRetryType() {

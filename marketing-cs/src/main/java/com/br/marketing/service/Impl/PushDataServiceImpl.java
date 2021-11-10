@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.PhoneSale;
@@ -69,6 +70,7 @@ public class PushDataServiceImpl implements PushDataService{
                         mainLog.setRetryMaxNum(3);
                         mainLog.setRetryStatus(1);
                         mainLog.setCreateTime(new Date());
+                        mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
                         retryMainLogMapper.insertSelective(mainLog);
                     }
                 });

@@ -30,29 +30,36 @@ public class RetryServiceImpl {
 
     public void retry(){
 
-        RetryMainLogExample mainLogExample = new RetryMainLogExample();
-        mainLogExample.createCriteria()
-                .andRetryStatusEqualTo(1);
-
-        List<RetryMainLog> retryMainLogs = retryMainLogMapper.selectByExample(mainLogExample);
-        for (RetryMainLog retryMainLog : retryMainLogs) {
-            RetryMainLog updateMainLog = new RetryMainLog();
-            updateMainLog.setId(retryMainLog.getId());
-            Result result = new Result();
-            if(Integer.valueOf(1).equals(retryMainLog.getRetryType())){
-                 result = retryInnerService(retryMainLog);
-            }
-            updateMainLog.setRetryNum(retryMainLog.getRetryNum()+1);
-            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
-                updateMainLog.setRetryStatus(2);
-            }else{
-                if(updateMainLog.getRetryNum()>=retryMainLog.getRetryMaxNum()){
-                    retryMainLog.setRetryStatus(3);
-                }
-            }
-            retryMainLogMapper.updateByPrimaryKeySelective(updateMainLog);
+        Long minIdByNeedRetryData = retryMainLogMapper.getMinIdByNeedRetryData();
+        if(minIdByNeedRetryData==null){
+            return;
         }
-
+        boolean exec = Boolean.TRUE;
+        while(exec){
+            List<RetryMainLog> retryMainLogs = retryMainLogMapper.getNeedRetryData(minIdByNeedRetryData);
+            if(retryMainLogs.size()<=0){
+                exec = Boolean.FALSE;
+                continue;
+            }
+            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId();
+            for (RetryMainLog retryMainLog : retryMainLogs) {
+                RetryMainLog updateMainLog = new RetryMainLog();
+                updateMainLog.setId(retryMainLog.getId());
+                Result result = new Result();
+                if(Integer.valueOf(1).equals(retryMainLog.getRetryType())){
+                    result = retryInnerService(retryMainLog);
+                }
+                updateMainLog.setRetryNum(retryMainLog.getRetryNum()+1);
+                if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    updateMainLog.setRetryStatus(2);
+                }else{
+                    if(updateMainLog.getRetryNum()>=retryMainLog.getRetryMaxNum()){
+                        updateMainLog.setRetryStatus(3);
+                    }
+                }
+                retryMainLogMapper.updateByPrimaryKeySelective(updateMainLog);
+            }
+        }
     }
 
     public Result retryInnerService(RetryMainLog retryMainLog){

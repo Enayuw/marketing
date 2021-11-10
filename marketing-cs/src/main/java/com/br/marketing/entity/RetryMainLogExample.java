@@ -165,6 +165,66 @@ public class RetryMainLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andIncrIdIsNull() {
+            addCriterion("incr_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdIsNotNull() {
+            addCriterion("incr_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdEqualTo(Long value) {
+            addCriterion("incr_id =", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdNotEqualTo(Long value) {
+            addCriterion("incr_id <>", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdGreaterThan(Long value) {
+            addCriterion("incr_id >", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("incr_id >=", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdLessThan(Long value) {
+            addCriterion("incr_id <", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdLessThanOrEqualTo(Long value) {
+            addCriterion("incr_id <=", value, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdIn(List<Long> values) {
+            addCriterion("incr_id in", values, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdNotIn(List<Long> values) {
+            addCriterion("incr_id not in", values, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdBetween(Long value1, Long value2) {
+            addCriterion("incr_id between", value1, value2, "incrId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIncrIdNotBetween(Long value1, Long value2) {
+            addCriterion("incr_id not between", value1, value2, "incrId");
+            return (Criteria) this;
+        }
+
         public Criteria andRetryTypeIsNull() {
             addCriterion("retry_type is null");
             return (Criteria) this;

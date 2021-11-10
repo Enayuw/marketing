@@ -79,7 +79,7 @@ public class DefaultBeanConfigure {
                         .setProxy(proxy).setDefaultCredentialsProvider(provider).build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
-        httpRequestFactory.setReadTimeout(5000);
+        httpRequestFactory.setReadTimeout(10000);
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         restTemplate.getMessageConverters()
                 .set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));

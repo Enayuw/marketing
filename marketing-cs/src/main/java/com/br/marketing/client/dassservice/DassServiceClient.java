@@ -96,8 +96,8 @@ public class DassServiceClient {
         interfaceLog.setRequestParam(JSON.toJSONString(requestParam));
         interfaceLog.setUrl(postHermesUserDataUrl);
         interfaceLog.setCreateTime(new Date());
+        long start = System.currentTimeMillis();
         try {
-            long start = System.currentTimeMillis();
             ThirdApiResultTransfer transfer = new ApiCaller(isProxy.equals("0") ? restTemplate : restTemplateByProxy)
                     .setRequestParam(requestParam)
                     .setUrl(postHermesUserDataUrl)
@@ -113,6 +113,8 @@ public class DassServiceClient {
                 result.setCode(ResultCode.FAIL.getValue());
             }
         }catch (Exception ex){
+            long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end-start));
             interfaceLog.setResult("程序异常："+ex.getMessage());
             log.error(ex.getMessage(),ex);
         }

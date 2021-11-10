@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.RetryMainLogMapper" >
+    <select id="getMinIdByNeedRetryData" resultType="java.lang.Long">
+        select min(incr_id)
+        from b_retry_main_log
+        where status = 1
+        order by incr_id asc;
+    </select>
+
+    <select id="getNeedRetryData" resultType="com.br.marketing.entity.RetryMainLog" parameterType="java.lang.Long">
+        select *
+        from b_retry_main_log
+        where status = 1
+        and incr_id >= #{minId}
+        order by incr_id asc limit 5000;
+    </select>
 </mapper>
