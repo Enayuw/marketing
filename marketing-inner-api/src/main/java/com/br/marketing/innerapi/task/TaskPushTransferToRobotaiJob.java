@@ -198,15 +198,19 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     }
 
     private TransferRobotOutboundDTO getTransferRobotOutbound(PushTransferRobotaiLog robotaiLog, MarketingTransferInfo info, JSONArray array) {
-        List<Long> dataIds = array.stream().map(obj -> {
-            JSONObject js = (JSONObject) obj;
-            return Long.parseLong(js.get("dataId").toString());
-        }).collect(Collectors.toList());
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andIdIn(dataIds);
-        example.settCid(robotaiLog.gettCid());
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return ruleService.getTransferRobotOutbound(info, transferList);
+        try {
+            List<Long> dataIds = array.stream().map(obj -> {
+                JSONObject js = (JSONObject) obj;
+                return Long.parseLong(js.get("dataId").toString());
+            }).collect(Collectors.toList());
+            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+            example.createCriteria().andIdIn(dataIds);
+            example.settCid(robotaiLog.gettCid());
+            List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            return ruleService.getTransferRobotOutbound(info, transferList);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     private void sendAlarm(String smg) {
