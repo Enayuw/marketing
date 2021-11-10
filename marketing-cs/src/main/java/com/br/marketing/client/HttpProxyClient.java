@@ -104,6 +104,35 @@ public class HttpProxyClient {
 		}
 	}
 
+	/**
+	 * http发送
+	 * @param param 参数
+	 * @param url 发送地址
+	 * @return String 返回信息
+	 */
+	public  HashMap<String,String> sendByCode(String param, String url,Boolean isPorxy) {
+		HttpClient httpClient =getHttpClient(isPorxy);
+		HashMap<String,String> res = new HashMap<>();
+		try {
+			HttpPost post = new HttpPost(url);
+			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
+			post.setEntity(requestEntity);
+			post.setHeader("content-type","application/json");
+			RequestConfig requestConfig= getRequestConfig(isPorxy);
+			post.setConfig(requestConfig);
+			HttpResponse response = httpClient.execute(post);
+			int statusCode = response.getStatusLine().getStatusCode();
+			res.put("httpcode",String.valueOf(statusCode));
+			String result = EntityUtils.toString(response.getEntity());
+			res.put("content",result);
+			post.releaseConnection();
+		} catch (Exception e) {
+			log.error("url={} param={}", url, param, e);
+			res.put("content",e.getMessage());
+		}
+		return res;
+	}
+
 
 	/**
 	 * 获取httpClient
