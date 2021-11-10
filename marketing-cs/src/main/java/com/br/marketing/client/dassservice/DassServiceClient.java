@@ -2,6 +2,7 @@ package com.br.marketing.client.dassservice;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.common.commondto.Result;
@@ -44,9 +45,14 @@ public class DassServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
+
+//    @Autowired
+//    @Qualifier("restTemplateByProxy")
+//    RestTemplate restTemplateByProxy;
+
+
     @Autowired
-    @Qualifier("restTemplateByProxy")
-    RestTemplate restTemplateByProxy;
+    HttpProxyClient httpProxyClient;
 
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
@@ -98,16 +104,22 @@ public class DassServiceClient {
         interfaceLog.setCreateTime(new Date());
         long start = System.currentTimeMillis();
         try {
-            ThirdApiResultTransfer transfer = new ApiCaller(isProxy.equals("0") ? restTemplate : restTemplateByProxy)
-                    .setRequestParam(requestParam)
-                    .setUrl(postHermesUserDataUrl)
-                    .setContentType(MediaType.APPLICATION_JSON_UTF8)
-                    .postTransferStr();
+            HashMap<String,String> hashMap = httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postHermesUserDataUrl, isProxy.equals("0") ? false : true);
+//            ThirdApiResultTransfer transfer = new ApiCaller(isProxy.equals("0") ? restTemplate : restTemplateByProxy)
+//                    .setRequestParam(requestParam)
+//                    .setUrl(postHermesUserDataUrl)
+//                    .setContentType(MediaType.APPLICATION_JSON_UTF8)
+//                    .postTransferStr();
             long end = System.currentTimeMillis();
-            interfaceLog.setHttpCode(transfer.getHttpCode());
-            interfaceLog.setResult(transfer.getResult());
+            Integer code = null;
+            if(StringUtils.isNotBlank(hashMap.get("httpcode"))){
+                code = Integer.valueOf(hashMap.get("httpcode"));
+                interfaceLog.setHttpCode(Integer.valueOf(hashMap.get("httpcode")));
+            }
+
+            interfaceLog.setResult(hashMap.get("content"));
             interfaceLog.setExpire(String.valueOf(end-start));
-            if (transfer.getHttpCode() == 200) {
+            if (Integer.valueOf(200).equals(code)) {
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
