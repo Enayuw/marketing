@@ -23,6 +23,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -142,14 +143,19 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 } else {
                     JSONObject object = JSON.parseObject(robotaiLog.getResponseBody());
                     Object unsuccessfulData = object.get("unsuccessfulData");
-                    JSONArray array = JSONArray.parseArray(unsuccessfulData.toString());
-                    if (array.size() > 0) {
-                        //                    TransferRobotOutboundDTO outboundDTO1 = JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
-                        //                    });
-                        TransferRobotOutboundDTO outboundDTO = getTransferRobotOutbound(robotaiLog, info, array);
-                        //                    outboundDTO1.getJsonData().setConversionData(outboundDTO.getJsonData().getConversionData());
-                        outboundVO = ruleService.pushTransferData(outboundDTO, info);
-                        updateLog.setRequestBody(JSON.toJSONString(outboundDTO));
+                    if (ObjectUtils.isEmpty(unsuccessfulData)) {
+                        outboundVO = ruleService.pushTransferData(JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
+                        }), info);
+                    } else {
+                        JSONArray array = JSONArray.parseArray(unsuccessfulData.toString());
+                        if (array.size() > 0) {
+                            //                    TransferRobotOutboundDTO outboundDTO1 = JSON.parseObject(robotaiLog.getRequestBody(), new TypeReference<TransferRobotOutboundDTO>() {
+                            //                    });
+                            TransferRobotOutboundDTO outboundDTO = getTransferRobotOutbound(robotaiLog, info, array);
+                            //                    outboundDTO1.getJsonData().setConversionData(outboundDTO.getJsonData().getConversionData());
+                            outboundVO = ruleService.pushTransferData(outboundDTO, info);
+                            updateLog.setRequestBody(JSON.toJSONString(outboundDTO));
+                        }
                     }
                 }
                 updateLog.setResponseBody(JSON.toJSONString(outboundVO.getData()));
