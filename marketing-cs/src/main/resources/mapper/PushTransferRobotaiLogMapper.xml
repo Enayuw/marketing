@@ -5,8 +5,10 @@
         SELECT id,
         api_code,
         t_cid,
+        transfer_info_id,
         service_code,
         request_id,
+        row_size,
         compensate_times,
         response_body,
         request_body
