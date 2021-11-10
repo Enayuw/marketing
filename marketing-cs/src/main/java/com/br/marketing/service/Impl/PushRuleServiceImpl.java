@@ -1579,13 +1579,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void sendAlarm(String smg) {
         log.warn(smg);
-        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+        alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
     }
 
     private void sendAlarm(String smg, String key) {
         log.warn(smg);
-        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+        alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
         redisChgService.incrBy(key, -1);
         redisChgService.expire(key, getKeyExpiration());
@@ -1670,7 +1670,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
                     , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count - 1);
-            alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
             return new PushTransferCustomerLog(
                     requestDTO.getApiCode()
@@ -1687,7 +1687,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n应答消息[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
-            alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
         }
         return new PushTransferCustomerLog(
@@ -1766,19 +1766,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         final int pageSize = 500;
         List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
         for (; ; ) {
-            PageHelper.startPage(page, pageSize);
-            List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-            TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
-            TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
-            if (!outboundVO.getAccessNumber().equals("-1")) {
-                pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+            try {
+                PageHelper.startPage(page, pageSize);
+                List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+                TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+                TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+                if (!outboundVO.getAccessNumber().equals("-1")) {
+                    pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+                }
+                list.add(outboundVO);
+                PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
+                if (page == pageInfo.getPages() || transferList.size() == 0) {
+                    break;
+                }
+                page++;
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
-            list.add(outboundVO);
-            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
-            if (page == pageInfo.getPages() || transferList.size() == 0) {
-                break;
-            }
-            page++;
         }
         return list;
     }
@@ -1821,40 +1825,45 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
             , List<MarketingTransferSyncUser> transferList) {
-        String title = "\n接口转化(通用标准)数据同步到智能客服警告";
-        Assert.notNull(transferInfo, "转化信息不可为null");
-        String apiCode = transferInfo.getApiCode();
-        if (CollectionUtils.isEmpty(transferList)) {
-            String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
-            alarmClient.sendAlarm(smg, title, appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+        try {
+            String title = "\n接口转化(通用标准)数据同步到智能客服警告";
+            Assert.notNull(transferInfo, "转化信息不可为null");
+            String apiCode = transferInfo.getApiCode();
+            if (CollectionUtils.isEmpty(transferList)) {
+                String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
+                alarmClient.sendAlarm(smg, title, appName, secretKey,
+                        Constants.sendCodeMap.get("sysError"));
+                return null;
+            }
+            Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+            Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
+                    MarketingSyncUser::getCustNum, syncUser -> syncUser
+                    , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+            Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
+            List<ConversionData> conversionDataArray = new ArrayList<>();
+            transferList.forEach(transfer -> {
+                ConversionData conversionData = new ConversionData();
+                conversionData.setDataId(transfer.getId().toString());
+                conversionData.setCid(transfer.getCid());
+                conversionData.setCaseNum(transfer.getCustNum());
+                conversionData.setGroupType(transfer.getUserType());
+                conversionData.setInversionStatus(transfer.getIfTransform());
+                conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                conversionData.setPhone(map.containsKey(transfer.getCustNum())
+                        ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
+                TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+                BeanUtils.copyProperties(transfer, vo);
+                conversionData.setInversionInfo(JSON.toJSONString(vo));
+                conversionDataArray.add(conversionData);
+            });
+            TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+            robotOutboundDTO.setApiCode(apiCode);
+            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
+            return robotOutboundDTO;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return null;
         }
-        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-        Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
-                MarketingSyncUser::getCustNum, syncUser -> syncUser
-                , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
-        Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
-        List<ConversionData> conversionDataArray = new ArrayList<>();
-        transferList.forEach(transfer -> {
-            ConversionData conversionData = new ConversionData();
-            conversionData.setDataId(transfer.getId().toString());
-            conversionData.setCid(transfer.getCid());
-            conversionData.setCaseNum(transfer.getCustNum());
-            conversionData.setGroupType(transfer.getUserType());
-            conversionData.setInversionStatus(transfer.getIfTransform());
-            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            conversionData.setPhone(map.containsKey(transfer.getCustNum())
-                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
-            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-            BeanUtils.copyProperties(transfer, vo);
-            conversionData.setInversionInfo(JSON.toJSONString(vo));
-            conversionDataArray.add(conversionData);
-        });
-        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
-        robotOutboundDTO.setApiCode(apiCode);
-        robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
-        return robotOutboundDTO;
     }
 }
