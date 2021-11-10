@@ -175,9 +175,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     ruleOpenTime = customerScoreRuleVO.getCreateTime();
                 }
                 String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
-                String eTimeDay = new SimpleDateFormat("yyyy-MM-dd").format(eTime);
+                String nowDay = LocalDate.now().format(ymd);
                 // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-                if(ruleOpenDay.equals(eTimeDay)&&eTime.compareTo(ruleOpenTime)<=0){
+                if(ruleOpenDay.equals(nowDay)&&eTime.compareTo(ruleOpenTime)<=0){
                     continue;
                 }
                 //endregion
