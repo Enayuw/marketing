@@ -33,7 +33,15 @@
 
 
 	<select id="querySyncLog" parameterType="map" resultType="com.br.marketing.entity.SyncLog">
-		select * from b_sync_log where api_code=#{apiCode} and create_file_time=#{createFileTime} and  file_name=#{fileName}
+		select * from b_sync_log
+		where api_code=#{apiCode}
+		<if test="createFileTime !=null and createFileTime !=''">
+		  and create_file_time=#{createFileTime}
+		</if>
+		<if test="srcPath !=null and srcPath !=''">
+		  and src_path=#{srcPath}
+		</if>
+		  and file_name=#{fileName}
 	</select>
 
 </mapper>

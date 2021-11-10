@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.RetryMainLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.RetryMainLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="incr_id" property="incrId" jdbcType="BIGINT" />
+    <result column="retry_type" property="retryType" jdbcType="INTEGER" />
+    <result column="retry_param" property="retryParam" jdbcType="VARCHAR" />
+    <result column="retry_param_type" property="retryParamType" jdbcType="VARCHAR" />
+    <result column="retry_service" property="retryService" jdbcType="VARCHAR" />
+    <result column="retry_method" property="retryMethod" jdbcType="VARCHAR" />
+    <result column="retry_num" property="retryNum" jdbcType="INTEGER" />
+    <result column="retry_max_num" property="retryMaxNum" jdbcType="INTEGER" />
+    <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, incr_id, retry_type, retry_param, retry_param_type, retry_service, retry_method, 
+    retry_num, retry_max_num, retry_status, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.RetryMainLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_retry_main_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_retry_main_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_retry_main_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.RetryMainLogExample" >
+    delete from b_retry_main_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.RetryMainLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_retry_main_log (incr_id, retry_type, retry_param, 
+      retry_param_type, retry_service, retry_method, 
+      retry_num, retry_max_num, retry_status, 
+      create_time, update_time)
+    values (#{incrId,jdbcType=BIGINT}, #{retryType,jdbcType=INTEGER}, #{retryParam,jdbcType=VARCHAR}, 
+      #{retryParamType,jdbcType=VARCHAR}, #{retryService,jdbcType=VARCHAR}, #{retryMethod,jdbcType=VARCHAR}, 
+      #{retryNum,jdbcType=INTEGER}, #{retryMaxNum,jdbcType=INTEGER}, #{retryStatus,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.RetryMainLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_retry_main_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="incrId != null" >
+        incr_id,
+      </if>
+      <if test="retryType != null" >
+        retry_type,
+      </if>
+      <if test="retryParam != null" >
+        retry_param,
+      </if>
+      <if test="retryParamType != null" >
+        retry_param_type,
+      </if>
+      <if test="retryService != null" >
+        retry_service,
+      </if>
+      <if test="retryMethod != null" >
+        retry_method,
+      </if>
+      <if test="retryNum != null" >
+        retry_num,
+      </if>
+      <if test="retryMaxNum != null" >
+        retry_max_num,
+      </if>
+      <if test="retryStatus != null" >
+        retry_status,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="incrId != null" >
+        #{incrId,jdbcType=BIGINT},
+      </if>
+      <if test="retryType != null" >
+        #{retryType,jdbcType=INTEGER},
+      </if>
+      <if test="retryParam != null" >
+        #{retryParam,jdbcType=VARCHAR},
+      </if>
+      <if test="retryParamType != null" >
+        #{retryParamType,jdbcType=VARCHAR},
+      </if>
+      <if test="retryService != null" >
+        #{retryService,jdbcType=VARCHAR},
+      </if>
+      <if test="retryMethod != null" >
+        #{retryMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="retryNum != null" >
+        #{retryNum,jdbcType=INTEGER},
+      </if>
+      <if test="retryMaxNum != null" >
+        #{retryMaxNum,jdbcType=INTEGER},
+      </if>
+      <if test="retryStatus != null" >
+        #{retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.RetryMainLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_retry_main_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_retry_main_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.incrId != null" >
+        incr_id = #{record.incrId,jdbcType=BIGINT},
+      </if>
+      <if test="record.retryType != null" >
+        retry_type = #{record.retryType,jdbcType=INTEGER},
+      </if>
+      <if test="record.retryParam != null" >
+        retry_param = #{record.retryParam,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryParamType != null" >
+        retry_param_type = #{record.retryParamType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryService != null" >
+        retry_service = #{record.retryService,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryMethod != null" >
+        retry_method = #{record.retryMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryNum != null" >
+        retry_num = #{record.retryNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.retryMaxNum != null" >
+        retry_max_num = #{record.retryMaxNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.retryStatus != null" >
+        retry_status = #{record.retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_retry_main_log
+    set id = #{record.id,jdbcType=BIGINT},
+      incr_id = #{record.incrId,jdbcType=BIGINT},
+      retry_type = #{record.retryType,jdbcType=INTEGER},
+      retry_param = #{record.retryParam,jdbcType=VARCHAR},
+      retry_param_type = #{record.retryParamType,jdbcType=VARCHAR},
+      retry_service = #{record.retryService,jdbcType=VARCHAR},
+      retry_method = #{record.retryMethod,jdbcType=VARCHAR},
+      retry_num = #{record.retryNum,jdbcType=INTEGER},
+      retry_max_num = #{record.retryMaxNum,jdbcType=INTEGER},
+      retry_status = #{record.retryStatus,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.RetryMainLog" >
+    update b_retry_main_log
+    <set >
+      <if test="incrId != null" >
+        incr_id = #{incrId,jdbcType=BIGINT},
+      </if>
+      <if test="retryType != null" >
+        retry_type = #{retryType,jdbcType=INTEGER},
+      </if>
+      <if test="retryParam != null" >
+        retry_param = #{retryParam,jdbcType=VARCHAR},
+      </if>
+      <if test="retryParamType != null" >
+        retry_param_type = #{retryParamType,jdbcType=VARCHAR},
+      </if>
+      <if test="retryService != null" >
+        retry_service = #{retryService,jdbcType=VARCHAR},
+      </if>
+      <if test="retryMethod != null" >
+        retry_method = #{retryMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="retryNum != null" >
+        retry_num = #{retryNum,jdbcType=INTEGER},
+      </if>
+      <if test="retryMaxNum != null" >
+        retry_max_num = #{retryMaxNum,jdbcType=INTEGER},
+      </if>
+      <if test="retryStatus != null" >
+        retry_status = #{retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.RetryMainLog" >
+    update b_retry_main_log
+    set incr_id = #{incrId,jdbcType=BIGINT},
+      retry_type = #{retryType,jdbcType=INTEGER},
+      retry_param = #{retryParam,jdbcType=VARCHAR},
+      retry_param_type = #{retryParamType,jdbcType=VARCHAR},
+      retry_service = #{retryService,jdbcType=VARCHAR},
+      retry_method = #{retryMethod,jdbcType=VARCHAR},
+      retry_num = #{retryNum,jdbcType=INTEGER},
+      retry_max_num = #{retryMaxNum,jdbcType=INTEGER},
+      retry_status = #{retryStatus,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
