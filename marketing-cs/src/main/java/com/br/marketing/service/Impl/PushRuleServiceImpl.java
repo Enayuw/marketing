@@ -1428,7 +1428,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PageHelper.startPage(page, pageSize);
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
-                PageInfo<?> pageList = new PageInfo<>(transferList);
+                PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
                 // 总页数
                 int pages = pageList.getPages();
                 boolean b = true;
@@ -1750,7 +1750,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
     @Override
-    public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(MarketingTransferInfo transferInfo) {
+    public List<TransferRobotOutboundVO<UnsuccessfulData>> pushTransferData(MarketingTransferInfo transferInfo) {
         Assert.notNull(transferInfo, "转化信息不可为null");
         String apiCode = transferInfo.getApiCode();
         Assert.notNull(apiCode, "'apiCode'不可为null");
@@ -1763,15 +1763,24 @@ public class PushRuleServiceImpl implements PushRuleService {
         example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
         example.settCid(tcId);
         int page = 1;
-        final int pageSize = 2000;
-        PageHelper.startPage(page, pageSize);
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
-        TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
-        if (!outboundVO.getAccessNumber().equals("-1")) {
-            pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+        final int pageSize = 500;
+        List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
+        for (; ; ) {
+            PageHelper.startPage(page, pageSize);
+            List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+            TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+            if (!outboundVO.getAccessNumber().equals("-1")) {
+                pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+            }
+            list.add(outboundVO);
+            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
+            if (page == pageInfo.getPages() || transferList.size() == 0) {
+                break;
+            }
+            page++;
         }
-        return outboundVO;
+        return list;
     }
 
     @Override
