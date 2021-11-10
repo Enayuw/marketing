@@ -1801,6 +1801,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else if (outboundVO.getCode().equals("9999")) {
                 outboundVO.setCode("");
                 outboundVO.setAccessNumber("");
+                outboundVO.setData(new UnsuccessfulData());
+            } else {
+                if (outboundVO.getAccessNumber() == null) {
+                    outboundVO.setAccessNumber("");
+                }
+                if (outboundVO.getData() == null) {
+                    outboundVO.setData(new UnsuccessfulData());
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
