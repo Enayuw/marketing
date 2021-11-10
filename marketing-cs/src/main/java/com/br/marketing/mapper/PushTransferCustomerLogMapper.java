@@ -107,7 +107,7 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             + " and push_status = 1" +
             " and transfer_status = #{transferStatus}" +
             " and DATE_FORMAT(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d')" +
-            " adn api_code=#{apiCode} </script>")
+            " and api_code=#{apiCode} </script>")
     List<PushTransferCustomerLog> findListByStatusIs1AndDate(@Param("shardingTotalCount") int shardingTotalCount
             , @Param("shardingItems") List<Integer> shardingItems
             , @Param("apiCode") String apiCode
