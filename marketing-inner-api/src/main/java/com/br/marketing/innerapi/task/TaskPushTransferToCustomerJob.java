@@ -96,20 +96,27 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
             pushTransferCustomer(logList, title, compensateTimes, postParameters, tempHeaders);
         } else {
             for (PushTransferCustomerLog cLog : rows) {
-                logList = pushTransferCustomerLogService.findListByStatusIs1AndDate(1, 200, shardingTotalCount
-                        , shardingItems, 0, cLog.getTransferInfoTime(), cLog.getApiCode());
-                if (logList.size() > 0) {
-                    int i = pushTransferCustomer(logList, title, compensateTimes, postParameters, tempHeaders);
-                    if (logList.size() == i) {
-                        logList.clear();
-                        logList.add(cLog);
+                try {
+                    logList = pushTransferCustomerLogService.findListByStatusIs1AndDate(1, 200, shardingTotalCount
+                            , shardingItems, 0, cLog.getTransferInfoTime(), cLog.getApiCode());
+                    if (logList.size() > 0) {
+                        int i = pushTransferCustomer(logList, title, compensateTimes, postParameters, tempHeaders);
+                        if (logList.size() == i) {
+                            logList.clear();
+                            logList.add(cLog);
+                        } else {
+                            continue;
+                        }
                     } else {
-                        continue;
+                        logList.add(cLog);
                     }
-                } else {
-                    logList.add(cLog);
+                    pushTransferCustomer(logList, title, compensateTimes, postParameters, tempHeaders);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务自身出现错误！记录主键[%d]" +
+                            "\n异常信息[%s];", cLog.getApiCode(), cLog.getRequestId(), cLog.getId(), e.getMessage());
+                    sendAlarm(smg);
                 }
-                pushTransferCustomer(logList, title, compensateTimes, postParameters, tempHeaders);
             }
         }
         Long end = System.currentTimeMillis();
@@ -122,75 +129,84 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         String apiCode;
         int count = 0;
         for (PushTransferCustomerLog customerLog : logList) {
-            PushTransferCustomerLog updateLog = new PushTransferCustomerLog();
-            updateLog.setId(customerLog.getId());
-            updateLog.setCompensateTimes(customerLog.getCompensateTimes() + 1);
-            // 检查补偿次数
-            if (updateLog.getCompensateTimes() >= compensateTimes) {
-                updateLog.setPushStatus(3);
-            }
-            postParameters.add("apiCode", customerLog.getApiCode());
-            postParameters.add("jsonData", customerLog.getRequestBody());
-            HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
-            apiCode = customerLog.getApiCode();
-            if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
-                continue;
-            }
             try {
-                ResponseEntity<String> responseEntity = restTemplate.postForEntity(robotOutboundUrl, stringHttpEntity, String.class);
-                HttpStatus statusCode = responseEntity.getStatusCode();
-                if (ObjectUtils.isEmpty(responseEntity)) {
-                    String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
-                            , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
-                    sendAlarm(smg);
+                PushTransferCustomerLog updateLog = new PushTransferCustomerLog();
+                updateLog.setId(customerLog.getId());
+                updateLog.setCompensateTimes(customerLog.getCompensateTimes() + 1);
+                // 检查补偿次数
+                if (updateLog.getCompensateTimes() >= compensateTimes) {
+                    updateLog.setPushStatus(3);
+                }
+                postParameters.add("apiCode", customerLog.getApiCode());
+                postParameters.add("jsonData", customerLog.getRequestBody());
+                HttpEntity<MultiValueMap<String, Object>> stringHttpEntity = new HttpEntity<>(postParameters, tempHeaders);
+                apiCode = customerLog.getApiCode();
+                if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
                     continue;
                 }
-                String body = responseEntity.getBody();
-                updateLog.setResponseBody(body);
-                int value = statusCode.value();
-                JSONObject result = JSONObject.parseObject(body);
-                String reasonPhrase = statusCode.getReasonPhrase();
-                log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
-                String code = String.valueOf(result.get("code"));
-                if (value == 200) {
-                    String smg;
-                    if ("900028".equals(code)) {
-                        updateLog.setPushStatus(4);
-                        smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
-                                "\n返回http状态码[%d],http短语[%s];" +
-                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
-                    } else if ("00".equals(code)) {
-                        count++;
-                        updateLog.setPushStatus(2);
-                        smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
-                                "\n返回http状态码[%d],http短语[%s];" +
-                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
-                    } else {
-                        smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
-                                "\n返回http状态码[%d],http短语[%s];" +
-                                "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                try {
+                    ResponseEntity<String> responseEntity = restTemplate.postForEntity(robotOutboundUrl, stringHttpEntity, String.class);
+                    HttpStatus statusCode = responseEntity.getStatusCode();
+                    if (ObjectUtils.isEmpty(responseEntity)) {
+                        String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
+                                , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
+                        sendAlarm(smg);
+                        continue;
                     }
+                    String body = responseEntity.getBody();
+                    updateLog.setResponseBody(body);
+                    int value = statusCode.value();
+                    JSONObject result = JSONObject.parseObject(body);
+                    String reasonPhrase = statusCode.getReasonPhrase();
+                    log.info("智能客服接口HttpStatus[code:{};reasonPhrase:{}]", value, reasonPhrase);
+                    String code = String.valueOf(result.get("code"));
+                    if (value == 200) {
+                        String smg;
+                        if ("900028".equals(code)) {
+                            updateLog.setPushStatus(4);
+                            smg = String.format("##apiCode:[%s];requestId:[%s]补偿失败,已补偿[%d],放弃补偿任务!原因：未配置资源方！" +
+                                    "\n返回http状态码[%d],http短语[%s];" +
+                                    "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                        } else if ("00".equals(code)) {
+                            count++;
+                            updateLog.setPushStatus(2);
+                            smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]" +
+                                    "\n返回http状态码[%d],http短语[%s];" +
+                                    "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                        } else {
+                            smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]" +
+                                    "\n返回http状态码[%d],http短语[%s];" +
+                                    "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), value, reasonPhrase, body);
+                        }
+                        sendAlarm(smg);
+                    }
+                    updateLog.setHttpStatus(value);
+                    updateLog.setHttpReasonPhrase(reasonPhrase);
+                    updateLog.setServiceCode(code);
+                    updateLog.setMessage(result.get("message") == null ? "" : result.get("message").toString());
+                    updateLog.setSwiftNumber(result.get("accessNumber") == null ? result.get("swiftNumber") == null
+                            ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString());
+                } catch (RestClientException e) {
+                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d],可能原因接口不可访问;" +
+                            "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), e.getMessage());
                     sendAlarm(smg);
                 }
-                updateLog.setHttpStatus(value);
-                updateLog.setHttpReasonPhrase(reasonPhrase);
-                updateLog.setServiceCode(code);
-                updateLog.setMessage(result.get("message") == null ? "" : result.get("message").toString());
-                updateLog.setSwiftNumber(result.get("accessNumber") == null ? result.get("swiftNumber") == null
-                        ? "" : result.get("swiftNumber").toString() : result.get("accessNumber").toString());
-            } catch (RestClientException e) {
-                String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d],可能原因接口不可访问;" +
-                        "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), e.getMessage());
+                pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
+                postParameters.clear();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务异常！记录主键[%d]" +
+                        "\n异常信息[%s];", customerLog.getApiCode(), customerLog.getRequestId(), customerLog.getId(), e.getMessage());
                 sendAlarm(smg);
+            } finally {
+                postParameters.clear();
             }
-            pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
-            postParameters.clear();
         }
         return count;
     }
 
     private void sendAlarm(String smg) {
-        String title = "\n接口转化(通用标准)数据同步到智能客服补偿任务警告";
+        String title = "\n接口转化(私人订制)数据同步到智能客服补偿任务警告";
         log.warn(smg);
         alarmClient.sendAlarm(smg, title, appName, secretKey,
                 Constants.sendCodeMap.get("pushToCustomer"));
