@@ -6,18 +6,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -120,7 +124,18 @@ public class HttpProxyClient {
 			post.setHeader("content-type","application/json");
 			RequestConfig requestConfig= getRequestConfig(isPorxy);
 			post.setConfig(requestConfig);
-			HttpResponse response = httpClient.execute(post);
+			HttpResponse response = null;
+			if(isPorxy){
+				AuthCache authCache = new BasicAuthCache();
+				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
+				HttpContext httpContext = new BasicHttpContext();
+				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
+				response = httpClient.execute(post,httpContext);
+			}else{
+				response = httpClient.execute(post);
+			}
+
 			int statusCode = response.getStatusLine().getStatusCode();
 			res.put("httpcode",String.valueOf(statusCode));
 			String result = EntityUtils.toString(response.getEntity());
