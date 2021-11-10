@@ -4,6 +4,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -70,13 +71,14 @@ public class DefaultBeanConfigure {
     RestTemplate restTemplateByProxy(){
         // 设置代理HttpHost
         HttpHost proxy = new HttpHost(proxyHost, proxyPort );
+        RequestConfig requestConfig = RequestConfig.custom().setProxy(proxy).build();
         // 设置认证
         CredentialsProvider provider = new BasicCredentialsProvider();
 
         provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
                 HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000)
-                        .setProxy(proxy).setDefaultCredentialsProvider(provider).build());
+                        .setProxy(proxy).setDefaultCredentialsProvider(provider).setDefaultRequestConfig(requestConfig).build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
         httpRequestFactory.setReadTimeout(10000);
