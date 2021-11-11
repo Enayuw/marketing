@@ -6,6 +6,7 @@ import java.util.Date;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
@@ -17,6 +18,7 @@ import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.MarketingThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.BeanUtils;
@@ -224,6 +226,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      */
     private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor
             ,Integer num,Customer customer,Integer index,Integer indexCount){
+        String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
+        List<String> noflagproductlist = new ArrayList<>();
+        if(StringUtils.isNotBlank(noflagproduct)){
+            noflagproductlist = Splitter.on(",").splitToList(noflagproduct);
+        }else{
+            noflagproductlist.add("mappingcust");
+            noflagproductlist.add("mappingcust1");
+        }
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
         marketingTask.setIndex(index);
         marketingTask.setIndexCount(indexCount);
@@ -280,7 +290,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -353,6 +363,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
                       String fileId,Customer customer){
         try {
+            String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
+            List<String> noflagproductlist = new ArrayList<>();
+            if(StringUtils.isNotBlank(noflagproduct)){
+                noflagproductlist = Splitter.on(",").splitToList(noflagproduct);
+            }else{
+                noflagproductlist.add("mappingcust");
+                noflagproductlist.add("mappingcust1");
+            }
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             String baseHeadInfo = getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
@@ -426,9 +444,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             param.put("appSecretKey", appSecretKey);
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
+                            param.put("noflagproduct",noflagproduct);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt));
+                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist));
                             Thread.sleep(100);
                         }else{
                             sizeMark = Boolean.FALSE;

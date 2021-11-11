@@ -10,4 +10,9 @@ public class RedisKeyConstant {
      * 重推发号器id
      */
     public static final String retryid = prefix.concat("retryId");
+
+    /**
+     * 没有命中标识的产品
+     */
+    public static final String noFlagProduct = prefix.concat("noFlagProduct");
 }
