@@ -52,8 +52,9 @@ public class MarketingThread implements Callable<String> {
     private Customer customer;
     private String baseHeadInfo;
     private MarketingTask marketingTask;
+    private List<String> noflagproductlist;
     public MarketingThread(List<MarketingUser> list, Map<String,String> param
-            , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask){
+            , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask,List<String> noflagproductlist){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -74,6 +75,8 @@ public class MarketingThread implements Callable<String> {
         this.customer=customer;
         this.baseHeadInfo = param.get("baseHeadInfo");
         this.marketingTask = marketingTask;
+        this.noflagproductlist = noflagproductlist;
+
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
 
@@ -415,7 +418,7 @@ public class MarketingThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
+            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,noflagproductlist)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);

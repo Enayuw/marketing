@@ -30,7 +30,8 @@ public class VaildHxResultUtil {
      * @return 校验是否通过
      */
     public static boolean isPass(String hxResult, JSONObject meal, String apiCode,
-                                 RedisChgService redisChgService, MarketingUser lu, List<MarketingUser> errorList){
+                                 RedisChgService redisChgService, MarketingUser lu
+            , List<MarketingUser> errorList,List<String> noflagproductlist){
         boolean result=true;
         /**
          * 为空的情况一般是网络异常，重试之后也是异常，所以这种情况也需要加入到重新处理的文件中
@@ -54,7 +55,7 @@ public class VaildHxResultUtil {
         }
         Set<String> strings = meal.keySet();
         for(String key:strings){
-            if(key.equalsIgnoreCase("mappingcust")||key.equalsIgnoreCase("mappingcust1")){
+            if(noflagproductlist.contains(key.toLowerCase())){
                 continue;
             }
             String flag = "";

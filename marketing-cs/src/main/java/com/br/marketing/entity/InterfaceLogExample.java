@@ -705,6 +705,76 @@ public class InterfaceLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andExtendInfoIsNull() {
+            addCriterion("extend_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoIsNotNull() {
+            addCriterion("extend_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoEqualTo(String value) {
+            addCriterion("extend_info =", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotEqualTo(String value) {
+            addCriterion("extend_info <>", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoGreaterThan(String value) {
+            addCriterion("extend_info >", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_info >=", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLessThan(String value) {
+            addCriterion("extend_info <", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLessThanOrEqualTo(String value) {
+            addCriterion("extend_info <=", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLike(String value) {
+            addCriterion("extend_info like", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotLike(String value) {
+            addCriterion("extend_info not like", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoIn(List<String> values) {
+            addCriterion("extend_info in", values, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotIn(List<String> values) {
+            addCriterion("extend_info not in", values, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoBetween(String value1, String value2) {
+            addCriterion("extend_info between", value1, value2, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotBetween(String value1, String value2) {
+            addCriterion("extend_info not between", value1, value2, "extendInfo");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;

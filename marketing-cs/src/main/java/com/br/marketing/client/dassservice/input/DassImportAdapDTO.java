@@ -6,5 +6,6 @@ import java.util.List;
 
 @Data
 public class DassImportAdapDTO {
+    Long localId;
     List<DassImportDataDTO> list;
 }

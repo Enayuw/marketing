@@ -49,6 +49,11 @@ public class InterfaceLog {
     private String expire;
 
     /**
+     * 扩展信息
+     */
+    private String extendInfo;
+
+    /**
      * 入库时间
      */
     private Date createTime;
@@ -123,6 +128,14 @@ public class InterfaceLog {
 
     public void setExpire(String expire) {
         this.expire = expire == null ? null : expire.trim();
+    }
+
+    public String getExtendInfo() {
+        return extendInfo;
+    }
+
+    public void setExtendInfo(String extendInfo) {
+        this.extendInfo = extendInfo == null ? null : extendInfo.trim();
     }
 
     public Date getCreateTime() {
