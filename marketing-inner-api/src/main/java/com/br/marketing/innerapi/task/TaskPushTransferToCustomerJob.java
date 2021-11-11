@@ -73,7 +73,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        String title = "\n接口转化(私人订制)数据同步到智能客服补偿任务警告";
+        String title = "接口转化(私人订制)数据同步到智能客服补偿任务警告";
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
         // 总分片数
@@ -115,7 +115,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                     log.error(e.getMessage(), e);
                     String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务自身出现错误！记录主键[%d]" +
                             "\n异常信息[%s];", cLog.getApiCode(), cLog.getRequestId(), cLog.getId(), e.getMessage());
-                    sendAlarm(smg);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 }
             }
         }
@@ -150,7 +151,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                     if (ObjectUtils.isEmpty(responseEntity)) {
                         String smg = String.format("%s : apiCode[%s];requestId:[%s]补偿失败！接口不能正常访问"
                                 , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), customerLog.getApiCode(), customerLog.getRequestId());
-                        sendAlarm(smg);
+                        log.warn(smg);
+                        alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                         continue;
                     }
                     String body = responseEntity.getBody();
@@ -178,7 +180,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                                     "\n返回http状态码[%d],http短语[%s];" +
                                     "\n业务应答消息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes, value, reasonPhrase, body);
                         }
-                        sendAlarm(smg);
+                        log.warn(smg);
+                        alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                     }
                     updateLog.setHttpStatus(value);
                     updateLog.setHttpReasonPhrase(reasonPhrase);
@@ -189,7 +192,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 } catch (RestClientException e) {
                     String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败！已补偿[%d]/共[%d],可能原因接口不可访问;" +
                             "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes, e.getMessage());
-                    sendAlarm(smg);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 }
                 pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
                 postParameters.clear();
@@ -197,7 +201,9 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                 log.error(e.getMessage(), e);
                 String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务异常！记录主键[%d]" +
                         "\n异常信息[%s];", customerLog.getApiCode(), customerLog.getRequestId(), customerLog.getId(), e.getMessage());
-                sendAlarm(smg);
+                log.warn(smg);
+                alarmClient.sendAlarm(smg, title, appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
             } finally {
                 postParameters.clear();
             }
@@ -208,7 +214,6 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
     private void sendAlarm(String smg) {
         String title = "接口转化(私人订制)数据同步到智能客服补偿任务警告";
         log.warn(smg);
-        alarmClient.sendAlarm(smg, title, appName, secretKey,
-                Constants.sendCodeMap.get("pushToCustomer"));
+        alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
     }
 }

@@ -1510,7 +1510,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.error("未知的标记:{}", transferStatus);
                 }
                 if (!b) {
-                    sendAlarm(String.format("apiCode[%s]在[%s]中推送中线程任务失败", apiCode, yyyyMMdd));
+                    String smg = String.format("apiCode[%s]在[%s]中推送中线程任务失败", apiCode, yyyyMMdd);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
                     return result;
                 }
                 // 总记录数
@@ -1547,7 +1550,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
-            sendAlarm(e.getMessage());
+            alarmClient.sendAlarm(e.getMessage(), "\n接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                    Constants.sendCodeMap.get("pushToCustomer"));
             return result;
         }
     }
