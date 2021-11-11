@@ -78,6 +78,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
         shardingItems.add(0);
@@ -117,24 +118,25 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                         TransferRobotOutboundDTO outboundDTO = getTransferRobotOutbound(robotaiLog, info, array);
                         outboundVO = ruleService.pushTransferData(outboundDTO, info);
                         if (robotaiLog.getRowSize() > array.size()) {
+                            String smg;
                             if (!outboundVO.getAccessNumber().equals("-1")) {
                                 info.setId(robotaiLog.getTransferInfoId());
                                 pushTransferRobotaiLogService.saveLog(info, outboundDTO, outboundVO);
-                                String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d]/共[%d];" +
+                                smg = String.format("$$apiCode:[%s];requestId:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d]/共[%d];" +
                                                 "\n更新原记录为已补偿,并生成新记录！" +
                                                 "\n业务返回状态码[%s];" +
                                                 "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
-                                sendAlarm(smg);
                             } else {
-                                String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]/共[%d]" +
+                                smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]/共[%d]" +
                                                 "\n业务返回状态码[%s];" +
                                                 "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
-                                sendAlarm(smg);
                             }
                             updateLog.setPushStatus(1);
                             pushTransferRobotaiLogMapper.updateByPrimaryKeySelective(updateLog);
+                            log.warn(smg);
+                            alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                             continue;
                         } else {
                             updateLog.setRequestBody(JSON.toJSONString(outboundDTO));
@@ -172,7 +174,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                                     "\n业务返回状态码[%s];" +
                                     "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage());
-                    sendAlarm(smg);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 } else {
                     String responseBody = updateLog.getResponseBody();
                     String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]/共[%d]" +
@@ -181,7 +184,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                                     "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage(),
                             (responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody));
-                    sendAlarm(smg);
+                    log.warn(smg);
+                    alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 }
                 updateLog.setMessage(outboundVO.getMessage());
                 updateLog.setServiceCode(outboundVO.getCode());
@@ -190,7 +194,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 log.error(e.getMessage(), e);
                 String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务异常！记录主键[%d]" +
                         "\n异常信息[%s];", robotaiLog.getApiCode(), robotaiLog.getRequestId(), robotaiLog.getId(), e.getMessage());
-                sendAlarm(smg);
+                log.warn(smg);
+                alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
             }
         }
         Long end = System.currentTimeMillis();
@@ -198,22 +203,25 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     }
 
     private TransferRobotOutboundDTO getTransferRobotOutbound(PushTransferRobotaiLog robotaiLog, MarketingTransferInfo info, JSONArray array) {
-        List<Long> dataIds = array.stream().map(obj -> {
-            JSONObject js = (JSONObject) obj;
-            return Long.parseLong(js.get("dataId").toString());
-        }).collect(Collectors.toList());
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andIdIn(dataIds);
-        example.settCid(robotaiLog.gettCid());
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return ruleService.getTransferRobotOutbound(info, transferList);
+        try {
+            List<Long> dataIds = array.stream().map(obj -> {
+                JSONObject js = (JSONObject) obj;
+                return Long.parseLong(js.get("dataId").toString());
+            }).collect(Collectors.toList());
+            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+            example.createCriteria().andIdIn(dataIds);
+            example.settCid(robotaiLog.gettCid());
+            List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            return ruleService.getTransferRobotOutbound(info, transferList);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     private void sendAlarm(String smg) {
         String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
         log.warn(smg);
-        alarmClient.sendAlarm(smg, title, appName, secretKey,
-                Constants.sendCodeMap.get("pushToCustomer"));
+        alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
     }
 
 
