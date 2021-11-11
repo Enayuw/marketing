@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PushTransferRobotaiLogMapper">
+    <select id="findListByStatusIs0" resultType="com.br.marketing.entity.PushTransferRobotaiLog">
+        SELECT id,
+        api_code,
+        t_cid,
+        transfer_info_id,
+        service_code,
+        request_id,
+        row_size,
+        compensate_times,
+        response_body,
+        request_body
+        FROM b_marketing_push_transfer_robotai_log
+        WHERE mod(id, #{shardingTotalCount}) in
+        <foreach collection='shardingItems' item='sharding' open='(' close=')' separator=','>
+            #{sharding}
+        </foreach>
+        and push_status = 0
+    </select>
+</mapper>

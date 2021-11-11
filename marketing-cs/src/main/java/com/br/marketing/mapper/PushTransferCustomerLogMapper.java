@@ -30,14 +30,19 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             "api_code," +
             "request_id," +
             "compensate_times," +
+            "transfer_info_time," +
             "request_body " +
             "FROM b_marketing_push_transfer_customer_log " +
             "WHERE mod(id, #{shardingTotalCount}) in " +
             "<foreach collection = 'shardingItems' item='sharding' open='(' close=')' separator=','> "
             + "#{sharding}"
             + "</foreach> "
-            + " and push_status = 1 </script>")
-    List<PushTransferCustomerLog> findListByStatusIs1(@Param("shardingTotalCount") int shardingTotalCount, @Param("shardingItems") List<Integer> shardingItems);
+            + " and push_status = 1" +
+            " and transfer_status = #{transferStatus}" +
+            " </script>")
+    List<PushTransferCustomerLog> findListByStatusIs1(@Param("shardingTotalCount") int shardingTotalCount
+            , @Param("shardingItems") List<Integer> shardingItems
+            , @Param("transferStatus") int transferStatus);
 
     /**
      * 根据ApiCode createTime 统计当天数据量
@@ -49,7 +54,7 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
      * @dateTime 2021/10/13 14:05
      */
     @Select("SELECT COUNT(*) from (SELECT transfer_info_id FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') group by transfer_info_id) as tab_count")
-    Integer countByApiCodeAndTransferInfoTime(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime);
+    int countByApiCodeAndTransferInfoTime(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime);
 
 
     /**
@@ -57,24 +62,24 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
      *
      * @param apiCode          客户编码
      * @param transferInfoTime 客户调用信息创建时间
-     * @return int
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 14:05
      */
-    @Select("SELECT COUNT(*) from (SELECT transfer_info_id FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') and transfer_status=#{transferStatus} group by transfer_info_id) as tab_count")
-    Integer countByApiCodeAndTransferInfoTimeAndStatus(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime, @Param("transferStatus") int transferStatus);
+    @Select("SELECT transfer_info_id FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') and transfer_status=#{transferStatus} group by transfer_info_id")
+    List<Long> findInfoIdListByCodeAndInfoTimeAndTransferStatus(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime, @Param("transferStatus") int transferStatus);
 
     /**
-     * 根据ApiCode createTime 未上传成功的数据量
+     * 根据ApiCode createTime push_status 数据量
      *
      * @param apiCode          客户编码
      * @param transferInfoTime 客户调用信息创建时间
+     * @param pushStatus       状态机,条件为in
      * @return int
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 14:05
      */
-    @Select("SELECT COUNT(*) FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') AND push_status in(1,3,4)")
-    Integer countByApiCodeAndTransferInfoTimeAndPushStatus(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime);
+    @Select("SELECT COUNT(*) FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') AND push_status in(#{pushStatus})  and transfer_status=0")
+    int countByApiCodeAndTransferInfoTimeAndPushStatus(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime, @Param("pushStatus") String pushStatus);
 
 
     /**
@@ -88,4 +93,24 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
      */
     @Select("SELECT id FROM b_marketing_push_transfer_customer_log where api_code=#{apiCode} and date_format(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d') AND transfer_status=2")
     List<PushTransferCustomerLog> findListByCodeAndInfoTimeAndTransferStatus(@Param("apiCode") String apiCode, @Param("transferInfoTime") Date transferInfoTime);
+
+    @Select("<script> SELECT id," +
+            "api_code," +
+            "request_id," +
+            "compensate_times," +
+            "request_body " +
+            "FROM b_marketing_push_transfer_customer_log " +
+            "WHERE mod(id, #{shardingTotalCount}) in " +
+            "<foreach collection = 'shardingItems' item='sharding' open='(' close=')' separator=','> "
+            + "#{sharding}"
+            + "</foreach> "
+            + " and push_status = 1" +
+            " and transfer_status = #{transferStatus}" +
+            " and DATE_FORMAT(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d')" +
+            " and api_code=#{apiCode} </script>")
+    List<PushTransferCustomerLog> findListByStatusIs1AndDate(@Param("shardingTotalCount") int shardingTotalCount
+            , @Param("shardingItems") List<Integer> shardingItems
+            , @Param("apiCode") String apiCode
+            , @Param("transferStatus") int transferStatus
+            , @Param("transferInfoTime") Date transferInfoTime);
 }
