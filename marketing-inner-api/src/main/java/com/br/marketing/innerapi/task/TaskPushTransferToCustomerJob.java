@@ -96,8 +96,8 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         } else {
             for (PushTransferCustomerLog cLog : rows) {
                 try {
-                    logList = pushTransferCustomerLogService.findListByStatusIs1AndDate(1, 200, shardingTotalCount
-                            , shardingItems, 0, cLog.getTransferInfoTime(), cLog.getApiCode());
+                    logList = pushTransferCustomerLogService.findListByStatusAndCodeAndDate(1, 200, shardingTotalCount
+                            , shardingItems, 0, cLog.getTransferInfoTime(), cLog.getApiCode(), 1);
                     if (logList.size() > 0) {
                         int i = pushTransferCustomer(logList, compensateTimes, postParameters, tempHeaders);
                         if (logList.size() == i) {
@@ -107,6 +107,14 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                             continue;
                         }
                     } else {
+                        logList = pushTransferCustomerLogService.findListByStatusAndCodeAndDate(1, 200, shardingTotalCount
+                                , shardingItems, 0, cLog.getTransferInfoTime(), cLog.getApiCode(), 3);
+                        if (logList.size() > 0) {
+                            String smg = String.format("**apiCode:[%s];requestId:[%s]存在超出补偿次数的数据，结束标记请求等待中！记录主键[%d]" +
+                                    "\n超出补偿请求数[%d];", cLog.getApiCode(), cLog.getRequestId(), cLog.getId(), logList.size());
+                            sendAlarm(smg);
+                            continue;
+                        }
                         logList.add(cLog);
                     }
                     pushTransferCustomer(logList, compensateTimes, postParameters, tempHeaders);
