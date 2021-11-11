@@ -1672,7 +1672,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
                     , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count - 1);
             alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    Constants.sendCodeMap.get("pushToCustomer"));
             return new PushTransferCustomerLog(
                     requestDTO.getApiCode()
                     , requestDTO.getJsonData()
@@ -1689,7 +1689,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     "\n接口返回http状态码[%d],http短语[%s];" +
                     "\n应答消息[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
             alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    Constants.sendCodeMap.get("pushToCustomer"));
         }
         return new PushTransferCustomerLog(
                 requestDTO.getApiCode()
@@ -1731,7 +1731,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.info("++++++++++++++++=====分段数据：【{}】-【{}】", start, end);
                 List<MarketingTransferSyncUser> transferSyncUserList = list.subList(start, end);
                 int transferStatus = 0;
-                int retrySum = 3;
+                int retrySum = 2;
                 PushTransferCustomerLog log = sendTransferDataToCustomer(
                         new PushCustomerRequestDTO(transferSyncUserList.get(0).getApiCode(), transferStatus, transferSyncUserList)
                         , retrySum, transferSyncUserList.size());
@@ -1829,7 +1829,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (CollectionUtils.isEmpty(transferList)) {
             String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
             alarmClient.sendAlarm(smg, title, appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    Constants.sendCodeMap.get("pushToCustomer"));
             return null;
         }
         Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
