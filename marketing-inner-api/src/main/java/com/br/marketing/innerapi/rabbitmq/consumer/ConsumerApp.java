@@ -40,7 +40,7 @@ public class ConsumerApp {
      * @param message 消息体
      */
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true", autoDelete = "false")), queues = {}, containerFactory = "primaryContainerFactory")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true", autoDelete = "false")), queues = {}, containerFactory = "primaryContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
