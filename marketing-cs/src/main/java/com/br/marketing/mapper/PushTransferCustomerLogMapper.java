@@ -104,13 +104,15 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             "<foreach collection = 'shardingItems' item='sharding' open='(' close=')' separator=','> "
             + "#{sharding}"
             + "</foreach> "
-            + " and push_status = 1" +
+            + " and push_status = #{pushStatus}" +
             " and transfer_status = #{transferStatus}" +
             " and DATE_FORMAT(transfer_info_time,'%Y-%m-%d') = str_to_date(#{transferInfoTime},'%Y-%m-%d')" +
             " and api_code=#{apiCode} </script>")
-    List<PushTransferCustomerLog> findListByStatusIs1AndDate(@Param("shardingTotalCount") int shardingTotalCount
+    List<PushTransferCustomerLog> findListByStatusAndCodeAndDate(@Param("shardingTotalCount") int shardingTotalCount
             , @Param("shardingItems") List<Integer> shardingItems
             , @Param("apiCode") String apiCode
             , @Param("transferStatus") int transferStatus
-            , @Param("transferInfoTime") Date transferInfoTime);
+            , @Param("transferInfoTime") Date transferInfoTime
+            , @Param("pushStatus") int pushStatus
+    );
 }
