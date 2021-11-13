@@ -1379,7 +1379,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
                 result.setDate(false);
-                String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
+                String smg = String.format("主键为[%s]的客户转化基础信息不存在,该信息直接消费,不再重放队列", infoId);
                 log.error(smg);
                 result.setMessage(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
@@ -1757,6 +1757,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Assert.notNull(apiCode, "'apiCode'不可为null");
         String requestId = transferInfo.getRequestId();
         Assert.notNull(transferInfo, "'requestId'不可为null");
+        String title = "接口转化(通用标准)数据同步到智能客服警告";
         // 1 获取分表后缀
         String tcId = tableCreateService.getTcId(apiCode);
         // 2 获取转化数据
@@ -1769,6 +1770,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         for (; ; ) {
             PageHelper.startPage(page, pageSize);
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            if (CollectionUtils.isEmpty(transferList) && transferInfo.getActualNum() == 0) {
+                String smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],id:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s", apiCode
+                        , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
+                alarmClient.sendAlarm(smg, title, appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
+                break;
+            }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
             TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
             if (!outboundVO.getAccessNumber().equals("-1")) {
@@ -1786,7 +1794,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
-        Assert.notNull(dto, "转化信息不可为null");
+        Assert.notNull(dto, String.format("转化数据不存在!\n转化信息[id=%d;apiCode=%s;requestId=%s]"
+                , transferInfo.getId(), transferInfo.getApiCode(), transferInfo.getRequestId()));
         TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
         try {
             outboundVO = robotaiApiServiceClient.pushRobotai(dto, transferInfo.getRequestId());
@@ -1822,12 +1831,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
             , List<MarketingTransferSyncUser> transferList) {
-        String title = "\n接口转化(通用标准)数据同步到智能客服警告";
-        Assert.notNull(transferInfo, "转化信息不可为null");
+        String title = "接口转化(通用标准)数据同步到智能客服警告";
+        Assert.notNull(transferInfo, "转化信息不存在!");
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         String apiCode = transferInfo.getApiCode();
         if (CollectionUtils.isEmpty(transferList)) {
-            String smg = String.format("apiCode:[%s]信息不存在！日期:%s", apiCode, DateUtils.getNowyyyy_MM_dd());
+            String smg = String.format("apiCode:[%s],RequestId:[%s],id:[%s]信息不存在！日期:%s", apiCode
+                    , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
             alarmClient.sendAlarm(smg, title, appName, secretKey,
                     Constants.sendCodeMap.get("pushToCustomer"));
             return null;
