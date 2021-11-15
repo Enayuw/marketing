@@ -93,7 +93,6 @@
 		${tableName}
 		WHERE
 		id &gt; #{begin}
-		<![CDATA[ AND id <= #{end} ]]>
 		AND api_code = #{apiCode}
 		AND batch_number = #{batchNumber}
 		order by id asc limit 5000;

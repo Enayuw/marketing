@@ -101,9 +101,9 @@
     <select id="countByPreUserWithRule" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_sync_${apiCode}
-        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        where <![CDATA[ applet_time >= #{sTimeStr}and applet_time < #{eTimeStr} ]]>
         and is_repeat in (1,2)
-        and (${whereStr})
+          and (${whereStr})
     </select>
 
     <select id="getSyncUserByRuleScore" resultType="com.br.marketing.entity.MarketingSyncUser">

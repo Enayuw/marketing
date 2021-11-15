@@ -387,50 +387,20 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             statusDistribute.setApiCode(blt.getApiCode());
             statusDistribute.setBatchNumber(blt.getBatchNumber());
             statusDistribute.setDistributeIndex(blt.getIndex());
-            statusDistribute.setCreateTime(new Date());
-            statusDistribute.setUpdateTime(new Date());
-
-            if(blt.getIndexCount()>1&&blt.getActualNumber()>10){
-                /* 数据分片策略 0片从最小id开始,最后一篇是maxid*/
-                Integer sepValue = Integer.valueOf(String.valueOf((maxId - minId) / blt.getIndexCount()));
-                statusDistribute.setStartId(minId+
-                        (Integer.valueOf(0).equals(blt.getIndex())
-                                ?blt.getIndex()*sepValue
-                                :blt.getIndex()*sepValue+1));
-                statusDistribute.setEndId(minId+
-                        (blt.getIndex().equals(blt.getIndexCount()-1)
-                                ?maxId
-                                :((blt.getIndex()+1)*sepValue)));
-                statusDistribute.setPreNum(statusDistribute.getEndId()-statusDistribute.getStartId());
-                minId = statusDistribute.getStartId();
-                maxId = statusDistribute.getEndId();
-            }else{
-                if(blt.getIndex().equals(0)){
-                    statusDistribute.setStartId(minId);
-                    statusDistribute.setEndId(maxId);
-                    statusDistribute.setPreNum(blt.getActualNumber().longValue());
-                    statusDistribute.setActualNum(blt.getActualNumber().longValue());
-                    StraHisFile file = new StraHisFile();
-                    file.setIndexNum(1);
-                    file.setId(Long.valueOf(fileId));
-                    straHisFileMapper.updateByPrimaryKeySelective(file);
-                }else{
-                    return;
-                }
-            }
+            Date date = new Date();
+            statusDistribute.setCreateTime(date);
+            statusDistribute.setUpdateTime(date);
             taskStatusDistributeMapper.insertSelective(statusDistribute);
                 if(minId !=null && minId>0L) {
                     Long begin = minId - 1;
                     int currentPage = 1;
                     long start = System.currentTimeMillis();
                     Integer actNum = 0;
-                    Boolean sizeMark = Boolean.TRUE;
-                    while (begin < maxId && sizeMark ) {
+                    while (begin < maxId) {
                         blt.setBegin(begin);
-                        blt.setEnd(maxId);
                         List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
-                        actNum+=list.size();
-                        if (list.size() > 0) {
+                        if (list.size() > 0 && blt.getIndex().equals(currentPage%blt.getIndexCount())) {
+                            actNum+=list.size();
                             begin = list.get(list.size() - 1).getId();
                             Map<String, String> param = new HashMap<>();
                             param.put("apiCode", blt.getApiCode());
@@ -449,8 +419,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
                             warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist));
                             Thread.sleep(100);
-                        }else{
-                            sizeMark = Boolean.FALSE;
                         }
                         currentPage++;
                     }
