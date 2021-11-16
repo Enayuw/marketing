@@ -1541,6 +1541,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         } else {
                             b = asyncPush(transferList, logListAll);
                         }
+                        break;
                     default:
                         log.error("未知的标记:{}", transferStatus);
                 }
