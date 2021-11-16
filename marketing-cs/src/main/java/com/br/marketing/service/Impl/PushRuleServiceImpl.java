@@ -1465,7 +1465,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 int len = (size - 200);
                                 b = asyncPush(transferList.subList(0, len), logListAll);
                                 listEnd = transferList.subList(len, size);
-                            } else if (size > 0) {
+                            } else {
                                 // 检查是否有开始标记
                                 int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
                                 if (countStatus > 0) {
@@ -1493,33 +1493,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                                         }
                                     }
                                 }
-                            } else {
-                                listEnd = null;
-                                if (info.getActualNum() < 1) {
-                                    int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
-                                    if (countStatus > 0) {
-                                        countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
-                                        if (countStatus < 1) {
-                                            PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
-                                                    new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
-                                            pushTransferCustomerLog.setTransferStatus(transferStatus);
-                                            logListAll.add(pushTransferCustomerLog);
-                                            break label;
-                                        }
-                                    }
-                                    PushCustomerRequestDTO pushCustomerRequestDTO = new PushCustomerRequestDTO(apiCode, transferStatus, null);
-                                    logListAll.add(new PushTransferCustomerLog(apiCode
-                                            , pushCustomerRequestDTO.getJsonData()
-                                            , size
-                                            , 1
-                                            , transferStatus
-                                    ));
-                                } else {
-                                    String smg = String.format("last[1]infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]转化未完成，未获取到转化数据"
-                                            , infoId, apiCode, requestId, tcId, yyyyMMdd);
-                                    sendAlarm(smg);
-                                    return result;
-                                }
                             }
                             if (listEnd != null) {
                                 // 检查是否全部推送完成
@@ -1538,6 +1511,32 @@ public class PushRuleServiceImpl implements PushRuleService {
                                             , transferStatus
                                     ));
                                 }
+                            }
+                        } else if (pages < 1) {
+                            if (info.getActualNum() < 1) {
+                                int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
+                                if (countStatus > 0) {
+                                    countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
+                                    if (countStatus < 1) {
+                                        PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                                new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                        pushTransferCustomerLog.setTransferStatus(transferStatus);
+                                        logListAll.add(pushTransferCustomerLog);
+                                        break label;
+                                    }
+                                }
+                                PushCustomerRequestDTO pushCustomerRequestDTO = new PushCustomerRequestDTO(apiCode, transferStatus, null);
+                                logListAll.add(new PushTransferCustomerLog(apiCode
+                                        , pushCustomerRequestDTO.getJsonData()
+                                        , size
+                                        , 1
+                                        , transferStatus
+                                ));
+                            } else {
+                                String smg = String.format("last[1]infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]转化未完成，未获取到转化数据"
+                                        , infoId, apiCode, requestId, tcId, yyyyMMdd);
+                                sendAlarm(smg);
+                                return result;
                             }
                         } else {
                             b = asyncPush(transferList, logListAll);
@@ -1590,6 +1589,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return result;
         }
     }
+
 
     private boolean asyncPush(List<MarketingTransferSyncUser> transferSyncUserList, List<PushTransferCustomerLog> logList) throws Throwable {
         // 4 推送转化数据,每次200条，失败后重试3次，标记为同步中
@@ -1813,6 +1813,19 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
                 alarmClient.sendAlarm(smg, title, appName, secretKey,
                         Constants.sendCodeMap.get("pushToCustomer"));
+                PushTransferRobotaiLog robotaiLog = new PushTransferRobotaiLog(
+                        transferInfo.getId()
+                        , apiCode
+                        , transferInfo.getRequestId()
+                        , ""
+                        , ""
+                        , smg
+                        , transferList.size()
+                        , ""
+                        , tcId
+                );
+                robotaiLog.setPushStatus(3);
+                pushTransferRobotaiLogService.save(robotaiLog);
                 break;
             }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
