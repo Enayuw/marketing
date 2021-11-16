@@ -247,7 +247,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         continue;
                     }
                     out:for (int i = 0; i < syncUserByRuleScore.size(); i++) {
-                        if(TaskExecCommonField.isBuildTaskJob.equals(1)){
+                        if(!TaskExecCommonField.isBuildTaskJob.equals(1)){
                             break out;
                         }
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
