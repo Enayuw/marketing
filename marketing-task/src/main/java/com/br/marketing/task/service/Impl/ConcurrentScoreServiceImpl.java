@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -50,6 +51,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     @Value("${otherConfig.huaXiangInterface.getReport:00}")
     private String url;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -423,6 +431,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             Thread.sleep(100);
                         }
                         currentPage++;
+                    }
+                    if(TaskExecCommonField.isExecTaskJob.equals(2)){
+                        TaskExecCommonField.isExecTaskJob = 3;
+                        StringBuilder content = new StringBuilder();
+                        content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
+                        alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
+                                Constants.sendCodeMap.get("uploadSuccess"));
                     }
                     long endtime = System.currentTimeMillis();
 

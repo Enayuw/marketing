@@ -133,7 +133,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
             outrule:for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
-                if(TaskExecCommonField.isBuildTaskJob.equals(1)){
+                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
+                    TaskExecCommonField.isBuildTaskJob =3;
                     break outrule;
                 }
                 //region 遍历规则
@@ -382,6 +383,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 }
                 //endregion
 
+                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
+                    TaskExecCommonField.isBuildTaskJob =3;
+                    StringBuilder content = new StringBuilder();
+                    content.append("停止继续生成的任务批次号：".concat(number).concat("\r\n"));
+                    alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
+                            Constants.sendCodeMap.get("uploadSuccess"));
+                }
+
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = marketingUserMapper.countBySureUser(apiCode, number);
@@ -454,6 +463,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //endregion
             }
+
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
