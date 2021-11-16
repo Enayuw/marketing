@@ -17,7 +17,7 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 14:05
      */
-    @Select("select api_code, request_id, last, total, status, create_time ,actual_num from b_marketing_transfer_info where id=#{id}")
+    @Select("select api_code, request_id, last, total, status, create_time, actual_num from b_marketing_transfer_info where id=#{id}")
     List<MarketingTransferInfo> findApiCodeRequestIdByIdList(@Param("id") Long id);
 
     /**
