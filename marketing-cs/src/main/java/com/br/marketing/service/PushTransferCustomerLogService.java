@@ -38,8 +38,8 @@ public interface PushTransferCustomerLogService {
      * @author Guo Zeqiang
      * @dateTime 2021/10/14 17:53
      */
-    List<PushTransferCustomerLog> findListByStatusIs1AndDate(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems
-            , int transferStatus, Date transferInfoTime, String apiCode);
+    List<PushTransferCustomerLog> findListByStatusAndCodeAndDate(int page, int pageSize, int shardingTotalCount, List<Integer> shardingItems
+            , int transferStatus, Date transferInfoTime, String apiCode, int pushStatus);
 
     /**
      * 更新数据

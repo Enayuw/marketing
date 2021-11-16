@@ -30,11 +30,11 @@ public class PushTransferCustomerLogServiceImpl implements PushTransferCustomerL
     }
 
     @Override
-    public List<PushTransferCustomerLog> findListByStatusIs1AndDate(int page, int pageSize, int shardingTotalCount
-            , List<Integer> shardingItems, int transferStatus, Date transferInfoTime, String apiCode) {
+    public List<PushTransferCustomerLog> findListByStatusAndCodeAndDate(int page, int pageSize, int shardingTotalCount
+            , List<Integer> shardingItems, int transferStatus, Date transferInfoTime, String apiCode, int pushStatus) {
         PageHelper.startPage(page, pageSize);
-        return pushTransferCustomerLogMapper.findListByStatusIs1AndDate(
-                shardingTotalCount, shardingItems, apiCode, transferStatus, transferInfoTime);
+        return pushTransferCustomerLogMapper.findListByStatusAndCodeAndDate(
+                shardingTotalCount, shardingItems, apiCode, transferStatus, transferInfoTime, pushStatus);
     }
 
     @Override
