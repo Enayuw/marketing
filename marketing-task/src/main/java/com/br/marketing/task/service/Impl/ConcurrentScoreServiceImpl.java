@@ -360,6 +360,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             //Boolean firstTime=blt.getFirstTime()==null?Boolean.FALSE:blt.getFirstTime();
             core(blt,descPath,true,strategyStr,warrningExecutor,blf.getId().toString(),customer);
 
+            if(TaskExecCommonField.isExecTaskJob.equals(2)){
+                TaskExecCommonField.isExecTaskJob = 3;
+                StringBuilder content = new StringBuilder();
+                content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
+                alarmClient.sendAlarm(content.toString(),"跑分暂停",appName,secretKey,
+                        Constants.sendCodeMap.get("uploadSuccess"));
+            }
         }
 
     }
@@ -431,13 +438,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             Thread.sleep(100);
                         }
                         currentPage++;
-                    }
-                    if(TaskExecCommonField.isExecTaskJob.equals(2)){
-                        TaskExecCommonField.isExecTaskJob = 3;
-                        StringBuilder content = new StringBuilder();
-                        content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
-                        alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
-                                Constants.sendCodeMap.get("uploadSuccess"));
                     }
                     long endtime = System.currentTimeMillis();
 
