@@ -1446,6 +1446,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             if (info.getActualNum() < 1) {
                                 PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
                                         new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                pushTransferCustomerLog.setTransferStatus(transferStatus);
                                 logListAll.add(pushTransferCustomerLog);
                                 break label;
                             } else {
@@ -1501,6 +1502,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                         if (countStatus < 1) {
                                             PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
                                                     new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                            pushTransferCustomerLog.setTransferStatus(transferStatus);
                                             logListAll.add(pushTransferCustomerLog);
                                             break label;
                                         }
