@@ -15,6 +15,7 @@ import com.br.marketing.service.PushTransferRobotaiLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -76,4 +77,9 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
         return insert;
     }
 
+    @Override
+    public int save(PushTransferRobotaiLog pushTransferRobotaiLog) {
+        Assert.notNull(pushTransferRobotaiLog, "保存内容不可为空");
+        return pushTransferRobotaiLogMapper.insert(pushTransferRobotaiLog);
+    }
 }
