@@ -6,6 +6,7 @@ import java.util.Date;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
@@ -80,6 +81,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     private final static String RedisEsOpen="es:open";
 
     final static Integer allMonitorType = 4;
+
 
     /**
      * 1、initBatchNumList 方法统计出所有需要跑分的任务，并且每个任务属性上新增了分片信息和分片个数
@@ -396,7 +398,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     int currentPage = 1;
                     long start = System.currentTimeMillis();
                     Integer actNum = 0;
-                    while (begin < maxId) {
+                    while (begin < maxId && TaskExecCommonField.isExecTaskJob.equals(1)) {
                         blt.setBegin(begin);
                         List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
                         begin = list.get(list.size() - 1).getId();
