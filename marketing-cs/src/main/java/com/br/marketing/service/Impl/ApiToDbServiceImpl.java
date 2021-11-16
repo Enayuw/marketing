@@ -13,6 +13,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -131,7 +132,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 continue;
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
-            for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
+            outrule:for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
+                if(TaskExecCommonField.isBuildTaskJob.equals(1)){
+                    break outrule;
+                }
                 //region 遍历规则
 
                 //region 时间处理
@@ -228,7 +232,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
-                while (execMark) {
+                while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
                     Long nowMaxId = minId+5000;
 
@@ -241,7 +245,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
-                    for (int i = 0; i < syncUserByRuleScore.size(); i++) {
+                    out:for (int i = 0; i < syncUserByRuleScore.size(); i++) {
+                        if(TaskExecCommonField.isBuildTaskJob.equals(1)){
+                            break out;
+                        }
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
                         threadPool.submit(()->{
                             try {
