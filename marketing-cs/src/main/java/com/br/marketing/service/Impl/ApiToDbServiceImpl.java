@@ -386,9 +386,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 if(TaskExecCommonField.isBuildTaskJob.equals(2)){
                     TaskExecCommonField.isBuildTaskJob =3;
                     StringBuilder content = new StringBuilder();
-                    content.append("停止继续生成的任务批次号：".concat(number).concat("\r\n"));
+                    content.append("停止生成的任务批次号：".concat(number).concat("\r\n"));
                     alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
                             Constants.sendCodeMap.get("uploadSuccess"));
+                    break outrule;
                 }
 
                 //region 处理task
