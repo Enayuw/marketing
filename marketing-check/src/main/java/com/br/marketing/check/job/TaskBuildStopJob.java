@@ -17,10 +17,10 @@ public class TaskBuildStopJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         String jobParameter = context.getJobParameter();
         if(StringUtils.isNotBlank(jobParameter)){
-            if(jobParameter.equals("0")){
-                TaskExecCommonField.isBuildTaskJob=0;
-            }else{
+            if(jobParameter.equals("1")){
                 TaskExecCommonField.isBuildTaskJob=1;
+            }else{
+                TaskExecCommonField.isBuildTaskJob=Integer.valueOf(jobParameter);
             }
         }
     }
