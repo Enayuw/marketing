@@ -35,13 +35,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 @Order(-1)
 public class LogAspect {
-    @Value("${otherConfig.uploadMom.producerKey}")
+    @Value("${otherConfig.uploadMom.producerKey:00}")
     private String producerKey;
-    @Value("${otherConfig.uploadMom.appSecretKey}")
+    @Value("${otherConfig.uploadMom.appSecretKey:00}")
     private String appSecretKey;
-    @Value("${otherConfig.uploadMom.destinationName}")
+    @Value("${otherConfig.uploadMom.destinationName:00}")
     private String destinationName;
-    @Value("${otherConfig.uploadMom.logIceTimeout}")
+    @Value("${otherConfig.uploadMom.logIceTimeout:00}")
     private int logIceTimeout;
 
     /**
