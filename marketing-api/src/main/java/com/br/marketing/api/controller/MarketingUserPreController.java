@@ -39,7 +39,7 @@ public class MarketingUserPreController {
 
 
     /**
-     * 批量接入营销人员数据
+     * 智能营销数据落库接口
      *
      * @param apiCode
      * @param jsonData
@@ -52,24 +52,35 @@ public class MarketingUserPreController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         long l = System.currentTimeMillis();
-        RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY,Constants.JSON_DATA_KEYARR));
+        RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY, Constants.JSON_DATA_KEYARR));
         if (log.isInfoEnabled()) {
-            log.info("apiCode:{},接收转化数据加密耗时：{}", apiCode, (System.currentTimeMillis() - l));
+            log.info("apiCode:{},批量接入营销人员数据加密耗时：{}", apiCode, (System.currentTimeMillis() - l));
         }
         Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
         return new ApiNoDataResult().fromResult(result);
     }
 
+    /**
+     * 智能营销转化数据接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @ApiOperation(value = "转化人员")
     @PostMapping("/transferUser")
     @SaveLog
-    public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData){
-            Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
-            return new ApiNoDataResult().fromResult(result);
+    @LogAnnotation
+    public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
+        return new ApiNoDataResult().fromResult(result);
     }
 
     /**
-     * 获取营销人员数据状态
+     * 智能营销数据落库查询接口
      *
      * @param apiCode
      * @param jsonData

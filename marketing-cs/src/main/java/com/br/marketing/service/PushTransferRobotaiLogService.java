@@ -4,6 +4,7 @@ import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.entity.MarketingTransferInfo;
+import com.br.marketing.entity.PushTransferRobotaiLog;
 
 /**
  * @author zeqiang.guo@brgroup.com
@@ -12,4 +13,6 @@ import com.br.marketing.entity.MarketingTransferInfo;
 public interface PushTransferRobotaiLogService {
 
     int saveLog(MarketingTransferInfo transferInfo, TransferRobotOutboundDTO robotOutboundDTO, TransferRobotOutboundVO<UnsuccessfulData> outboundVO);
+
+    int save(PushTransferRobotaiLog pushTransferRobotaiLog);
 }
