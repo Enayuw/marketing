@@ -35,23 +35,26 @@ public class MarketingTransferDataController {
     PushRuleService pushRuleService;
 
 
+    /**
+     * 智能营销标准转化数据上传接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @ApiOperation(value = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
     @LogAnnotation
     public ApiNoDataResult receiveTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
-        long l = System.currentTimeMillis();
-        RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY,Constants.JSON_DATA_KEYARR));
-        if (log.isInfoEnabled()) {
-            log.info("apiCode:{},接收转化数据加密耗时：{}", apiCode, (System.currentTimeMillis() - l));
-        }
+        RuntimeDataContext.getData().setJsonData(jsonData);
         Result result = pushRuleService.insertTransferData(apiCode, jsonData);
         return new ApiNoDataResult().fromResult(result);
     }
 
     /**
-     * 获取转化数据上传详情
+     * 智能营销标准转化数据查询接口
      *
      * @param apiCode
      * @param jsonData

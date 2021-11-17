@@ -1051,6 +1051,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
         String requestId = jsonObject.getString("requestId");
+        RuntimeDataContext.getData().setRequestBatch(requestId);
         if (StringUtils.isBlank(requestId)) {
             throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
@@ -1082,6 +1083,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
+        RuntimeDataContext.getData().setActualNum(transfers.size());
         if (transfers.size() > 100) {
             throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
