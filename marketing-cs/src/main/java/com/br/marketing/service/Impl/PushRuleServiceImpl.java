@@ -1,10 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.convert.Convert;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.*;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -18,6 +15,7 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
+import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -39,6 +37,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.PushTransferRobotaiLogService;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -56,10 +55,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -119,14 +115,20 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     DecodeClient decodeClient;
 
-    @Resource(name = "loadBalanced")
+    @Resource
     private RestTemplate restTemplate;
 
-    @Value("${api.robotAiApiService.pushTransferUrl:http://robotai-api-service/api/robotOutbound}")
-    private String pushTransferUrl;
+    @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:{'7410787':true}}}")
+    private Map<String, Boolean> tailorApiCodeMap;
+
+    @Value("${api.pushTransfer.robotAi.robotOutboundUrl:'http://robotai-api-service/api/robotOutbound'}")
+    private String robotOutboundUrl;
 
     @Resource
     private PushTransferCustomerLogMapper pushTransferCustomerLogMapper;
+
+    @Resource
+    private PushTransferRobotaiLogService pushTransferRobotaiLogService;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -1364,13 +1366,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 队列模式，false 后人先出，true 先进先出
             false);
 
+
     @Override
     @Transactional
-    public synchronized Result<Boolean> pushTransferDataToCustomer(Long infoId) {
+    public synchronized Result<Boolean> pushPersonalTransferData(Long infoId) {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
-        result.setDate(true);
-        String key = null;
         try {
             // 传输标记
             final int transferStatus;
@@ -1378,7 +1379,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(infoId);
             if (CollectionUtils.isEmpty(list)) {
                 result.setDate(false);
-                String smg = String.format("主键为[%s]的客户转化基础信息不存在", infoId);
+                String smg = String.format("主键为[%s]的客户转化基础信息不存在,该信息直接消费,不再重放队列", infoId);
                 log.error(smg);
                 result.setMessage(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
@@ -1387,108 +1388,34 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MarketingTransferInfo info = list.get(0);
             String apiCode = info.getApiCode();
-            Date createTime = info.getCreateTime();
+            Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
+            result.setDate(true);
+            if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
+                try {
+                    info.setId(infoId);
+                    pushTransferData(info);
+                    result.setDate(false);
+                } catch (Exception e) {
+                    String smg = String.format("主键[%d];apiCode[%s];requestId[%s]推送错误！\n%s", infoId, apiCode, info.getRequestId(), e.getMessage());
+                    log.error(smg, e);
+                    alarmClient.sendAlarm(smg, "接口转化(通用标准)数据同步到智能客服警告", appName, secretKey,
+                            Constants.sendCodeMap.get("pushToCustomer"));
+                }
+                return result;
+            }
             //        String yyyyMMdd = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             // 格式化入库时间
             String yyyyMMdd = createTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
                     .format(DateTimeFormatter.BASIC_ISO_DATE);
-            key = "marketing:inner:push:".concat(yyyyMMdd).concat(":").concat(apiCode);
-//            redisChgService.del(key);
-            Long apiCodeCount = getApiCodeCount(key);
-            // 检查缓存
-            if (apiCodeCount < 0) {
-                result.setDate(false);
-//                log.error("缓存记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
-                String smg = String.format("#缓存记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
-                log.error(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
-                redisChgService.incrBy(key, -1);
-                redisChgService.expire(key, getKeyExpiration());
-                return result;
-            }
-            // 检查db，再次确认
-            List<PushTransferCustomerLog> statusList = pushTransferCustomerLogMapper.findListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime);
-            if (statusList != null && statusList.size() > 0) {
-                result.setDate(false);
-//                log.error("db记录：该客户[{}]在此日期[{}]已经有数据同步结束标志，可能存在数据问题，因此此[{}]消息退回队列", apiCode, yyyyMMdd, infoId);
-                String smg = String.format("#db记录：该客户[%s]在此日期[%s]已经有数据同步结束标志，因此本条[%d]消息不做同步工作", apiCode, yyyyMMdd, infoId);
-                log.error(smg);
-                alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
-                redisChgService.incrBy(key, -1);
-                redisChgService.expire(key, getKeyExpiration());
-                return result;
-            }
             // 如果是最后一次传
             if ("1".equals(info.getLast())) {
-                Integer dbCount = marketingTransferInfoMapper.countByApiCodAnd(apiCode, createTime);
-                if (Objects.equals(apiCodeCount, Long.valueOf(dbCount))) {
-                    transferStatus = 2;
-                } else {
-                    Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
-                    if (Objects.equals(i, dbCount - 1)) {
-                        Integer countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime);
-                        if (countStatus == null || countStatus == 0) {
-                            transferStatus = 2;
-                        } else {
-                            String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据[%d]尚未成功同步至智能客服"
-                                    , apiCode, yyyyMMdd, countStatus);
-                            log.error(smg);
-                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("pushToCustomer"));
-                            redisChgService.incrBy(key, -1);
-                            redisChgService.expire(key, getKeyExpiration());
-                            return result;
-                        }
-                    } else {
-                        String smg = String.format("该客户[%s]当前日期[%s]有补偿数据数据尚未成功同步至智能客服"
-                                , apiCode, yyyyMMdd);
-                        log.error(smg);
-                        alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                Constants.sendCodeMap.get("pushToCustomer"));
-                        redisChgService.incrBy(key, -1);
-                        redisChgService.expire(key, getKeyExpiration());
-                        return result;
-                    }
-                }
+                transferStatus = 2;
             } else {
-                if (apiCodeCount == 1) {
-                    Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
-                    if (i == null || i == 0) {
-                        transferStatus = 0;
-                    } else {
-                        Integer integer = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndStatus(apiCode, createTime, 0);
-                        if (integer == null || integer == 0) {
-                            String smg = String.format("该客户[%s]当前日期[%s]缓存数据与db记录数有异常，消息[%d]退回到队列"
-                                    , apiCode, yyyyMMdd, infoId);
-                            log.error(smg);
-                            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                                    Constants.sendCodeMap.get("pushToCustomer"));
-                            redisChgService.incrBy(key, -1);
-                            redisChgService.expire(key, getKeyExpiration());
-                            return result;
-                        } else {
-                            transferStatus = 1;
-                        }
-                    }
-                } else if (apiCodeCount > 1) {
-                    transferStatus = 1;
-                } else {
-                    String smg = String.format("该客户[%s]当前日期[%s]缓存数据有异常，消息[%d]退回到队列"
-                            , apiCode, yyyyMMdd, infoId);
-                    log.error(smg);
-                    alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                            Constants.sendCodeMap.get("pushToCustomer"));
-                    redisChgService.incrBy(key, -1);
-                    redisChgService.expire(key, getKeyExpiration());
-                    return result;
-                }
+                transferStatus = 0;
             }
             String requestId = info.getRequestId();
             // 2 获取分表后缀
             String tcId = tableCreateService.getTcId(apiCode);
-
             // 3 获取转化数据,
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
             example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
@@ -1497,96 +1424,126 @@ public class PushRuleServiceImpl implements PushRuleService {
             final int pageSize = 2000;
             final int retrySum = 2;
             List<PushTransferCustomerLog> logListAll = new ArrayList<>();
-            boolean flag = true;
-            List<MarketingTransferSyncUser> transferSyncUserList;
-            List<MarketingTransferSyncUser> transferSyncUserListTask;
+            label:
             for (; ; ) {
                 PageHelper.startPage(page, pageSize);
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
-                if (size < 1) {
-                    PushTransferCustomerLog pushTransferCustomerLog = new PushTransferCustomerLog();
-                    pushTransferCustomerLog.setTransferInfoId(infoId);
-                    pushTransferCustomerLog.setApiCode(apiCode);
-                    pushTransferCustomerLog.setRequestId(requestId);
-                    pushTransferCustomerLog.setPushStatus(4);
-                    pushTransferCustomerLog.setRowSize(0);
-                    logListAll.add(pushTransferCustomerLog);
-                }
-                PageInfo<?> pageList = new PageInfo<>(transferList);
+                PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
                 // 总页数
                 int pages = pageList.getPages();
+                boolean b = true;
                 // 处理开始标记
-                if (transferStatus == 0 && flag) {
-                    flag = false;
-                    if (size > 200) {
-                        transferSyncUserList = transferList.subList(0, 200);
-                        transferSyncUserListTask = transferList.subList(200, size);
-                    } else {
-                        transferSyncUserList = transferList;
-                        transferSyncUserListTask = null;
-                    }
-                    // 4.1 推送转化数据,每次200条，失败后重试2次,标记为同步开始
-                    PushTransferCustomerLog log = sendTransferDataToCustomer(
-                            new PushCustomerRequestDTO(apiCode, transferStatus, transferSyncUserList), retrySum, transferSyncUserList.size());
-                    log.setTransferStatus(transferStatus);
-                    logListAll.add(log);
-                } else if (transferStatus == 2 && pages == 1) { // 处理结束标记
-                    if (size > 200) {
-                        int len = (size - 200);
-                        transferSyncUserList = transferList.subList(len, size);
-                        transferSyncUserListTask = transferList.subList(0, len);
-                    } else {
-                        Integer i = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTime(apiCode, createTime);
-                        if (i == null || i < 1) {
-                            int s = size / 2;
-                            transferSyncUserList = transferList.subList(s, size);
-                            PushTransferCustomerLog log = sendTransferDataToCustomer(
-                                    new PushCustomerRequestDTO(apiCode, 0, transferList.subList(0, s)), retrySum, 0);
-                            log.setTransferStatus(transferStatus);
-                            logListAll.add(log);
-                        } else {
-                            transferSyncUserList = transferList;
-                        }
-                        transferSyncUserListTask = null;
-                    }
-                } else {
-                    transferSyncUserList = null;
-                    transferSyncUserListTask = transferList;
-                }
-                if (transferSyncUserListTask != null && transferSyncUserListTask.size() > 0) {
-                    // 4.2 推送转化数据,每次200条，失败后重试3次，标记为同步中
-                    PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserListTask, 0, transferSyncUserListTask.size());
-                    List<PushTransferCustomerLog> logList = FORK_JOIN_POOL.invoke(task);
-                    logListAll.addAll(logList);
-                    boolean b = FORK_JOIN_POOL.awaitQuiescence(5, TimeUnit.SECONDS);
-                    if (b) {
-                        if (task.isCompletedAbnormally()) {
-                            Throwable exception = task.getException();
-                            if (exception != null) {
-                                result.setMessage(exception.getMessage());
-                                log.error(exception.getMessage(), exception);
+                switch (transferStatus) {
+                    case 0:
+                        if (size < 1) {
+                            if (info.getActualNum() < 1) {
+                                PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                        new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                pushTransferCustomerLog.setTransferStatus(transferStatus);
+                                logListAll.add(pushTransferCustomerLog);
+                                break label;
+                            } else {
+                                String smg = String.format("last[0];infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]转化未完成，未获取到转化数据"
+                                        , infoId, apiCode, requestId, tcId, yyyyMMdd);
+                                sendAlarm(smg);
                                 return result;
                             }
                         }
-                    } else {
-                        if (!task.isDone()) {
-                            task.isCancelled();
-                            result.setMessage("任务未完成");
-                            return result;
+                        b = asyncPush(transferList, logListAll);
+                        break;
+                    case 2:
+                        if (page == pages) {
+                            List<MarketingTransferSyncUser> listEnd;
+                            if (size > 200) {
+                                int len = (size - 200);
+                                b = asyncPush(transferList.subList(0, len), logListAll);
+                                listEnd = transferList.subList(len, size);
+                            } else {
+                                // 检查是否有开始标记
+                                int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
+                                if (countStatus > 0) {
+                                    listEnd = transferList;
+                                } else {
+                                    // 检查转化信息表是否出现过last为0数据
+                                    List<Long> ids = marketingTransferInfoMapper.countByApiCodAndLast(apiCode, createTime, "0");
+                                    if (ids.size() == 0) {
+                                        int len = size / 2;
+                                        PushTransferCustomerLog pushLog = sendTransferDataToCustomer(
+                                                new PushCustomerRequestDTO(apiCode, 0, transferList.subList(0, len)), retrySum, len);
+                                        pushLog.setTransferStatus(0);
+                                        logListAll.add(pushLog);
+                                        listEnd = transferList.subList(len, size);
+                                    } else {
+                                        List<Long> infoIds = pushTransferCustomerLogMapper.findInfoIdListByCodeAndInfoTimeAndTransferStatus(apiCode, createTime, 0);
+                                        if (infoIds.size() < ids.size()) {
+                                            ids.removeAll(infoIds);
+                                            listEnd = null;
+                                            for (Long idf : ids) {
+                                                pushPersonalTransferData(idf);
+                                            }
+                                        } else {
+                                            listEnd = transferList;
+                                        }
+                                    }
+                                }
+                            }
+                            if (listEnd != null) {
+                                // 检查是否全部推送完成
+                                int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
+                                if (countStatus < 1) {
+                                    PushTransferCustomerLog pushLog = sendTransferDataToCustomer(
+                                            new PushCustomerRequestDTO(apiCode, transferStatus, listEnd), retrySum, listEnd.size());
+                                    pushLog.setTransferStatus(transferStatus);
+                                    logListAll.add(pushLog);
+                                } else {
+                                    PushCustomerRequestDTO pushCustomerRequestDTO = new PushCustomerRequestDTO(apiCode, transferStatus, listEnd);
+                                    logListAll.add(new PushTransferCustomerLog(apiCode
+                                            , pushCustomerRequestDTO.getJsonData()
+                                            , listEnd.size()
+                                            , 1
+                                            , transferStatus
+                                    ));
+                                }
+                            }
+                        } else if (pages < 1) {
+                            if (info.getActualNum() < 1) {
+                                int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
+                                if (countStatus > 0) {
+                                    countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
+                                    if (countStatus < 1) {
+                                        PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                                new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                        pushTransferCustomerLog.setTransferStatus(transferStatus);
+                                        logListAll.add(pushTransferCustomerLog);
+                                        break label;
+                                    }
+                                }
+                                PushCustomerRequestDTO pushCustomerRequestDTO = new PushCustomerRequestDTO(apiCode, transferStatus, null);
+                                logListAll.add(new PushTransferCustomerLog(apiCode
+                                        , pushCustomerRequestDTO.getJsonData()
+                                        , size
+                                        , 1
+                                        , transferStatus
+                                ));
+                            } else {
+                                String smg = String.format("last[1]infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]转化未完成，未获取到转化数据"
+                                        , infoId, apiCode, requestId, tcId, yyyyMMdd);
+                                sendAlarm(smg);
+                                return result;
+                            }
+                        } else {
+                            b = asyncPush(transferList, logListAll);
                         }
-                        log.info("等待任务超时，任务已经处理完成");
-                    }
+                        break;
+                    default:
+                        log.error("未知的标记:{}", transferStatus);
                 }
-                if (transferStatus == 2 && transferSyncUserList != null) {
-                    // 4.3 推送转化数据,每次200条，失败后重试2次，标记为同步终止
-                    PushTransferCustomerLog log = sendTransferDataToCustomer(
-                            new PushCustomerRequestDTO(apiCode, transferStatus, transferSyncUserList)
-                            , retrySum, transferSyncUserList.size());
-                    log.setTransferStatus(transferStatus);
-                    logListAll.add(log);
-                    redisChgService.incrBy(key, -(apiCodeCount * 2));
-                    redisChgService.expire(key, getKeyExpiration());
+                if (!b) {
+                    String smg = String.format("infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]中推送中线程任务失败"
+                            , infoId, apiCode, requestId, tcId, yyyyMMdd);
+                    sendAlarm(smg);
+                    return result;
                 }
                 // 总记录数
                 long total = pageList.getTotal();
@@ -1608,26 +1565,64 @@ public class PushRuleServiceImpl implements PushRuleService {
                     log.info("推送客服数据已保存记录，本次保存[{}]", collect.size());
                 } else {
                     result.setMessage("保存记录失败！");
-                    log.error("保存推送记录失败：apiCode:{};requestId:{};tcId:{};infoId:{};失败数据量:{}"
+                    String smg = String.format("保存推送记录失败：apiCode:{%s};requestId:{%s};tcId:{%s};infoId:{%d};失败数据量:{%d}"
                             , apiCode, requestId, tcId, infoId, collect.size());
-                    redisChgService.incrBy(key, -1);
-                    redisChgService.expire(key, getKeyExpiration());
+                    sendAlarm(smg);
                     return result;
                 }
+            } else {
+                return result;
             }
             result.setMessage("成功");
             result.setDate(false);
             return result;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
-            if (key != null) {
-                redisChgService.incrBy(key, -1);
-                redisChgService.expire(key, getKeyExpiration());
-            }
+            sendAlarm(e.getMessage());
             return result;
         }
+    }
+
+
+    private boolean asyncPush(List<MarketingTransferSyncUser> transferSyncUserList, List<PushTransferCustomerLog> logList) throws Throwable {
+        // 4 推送转化数据,每次200条，失败后重试3次，标记为同步中
+        PushTransferDataToCustomerTask task = new PushTransferDataToCustomerTask(transferSyncUserList, 0, transferSyncUserList.size());
+        List<PushTransferCustomerLog> logs = FORK_JOIN_POOL.invoke(task);
+        logList.addAll(logs);
+        boolean b = FORK_JOIN_POOL.awaitQuiescence(5, TimeUnit.SECONDS);
+        if (b) {
+            if (task.isCompletedAbnormally()) {
+                Throwable exception = task.getException();
+                if (exception != null) {
+                    log.error(exception.getMessage(), exception);
+                    throw exception;
+                }
+                return false;
+            }
+            return true;
+        }
+        if (!task.isDone()) {
+            task.isCancelled();
+        }
+        log.warn("等待任务超时，任务已经处理完成");
+        return false;
+    }
+
+
+    private void sendAlarm(String smg) {
+        log.warn(smg);
+        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                Constants.sendCodeMap.get("pushToCustomer"));
+    }
+
+    private void sendAlarm(String smg, String key) {
+        log.warn(smg);
+        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", appName, secretKey,
+                Constants.sendCodeMap.get("pushToCustomer"));
+        redisChgService.incrBy(key, -1);
+        redisChgService.expire(key, getKeyExpiration());
     }
 
     private synchronized Long getApiCodeCount(String key) {
@@ -1687,7 +1682,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         do {
             log.info("########################第【{}/{}】次调用接口", count, retrySum);
             try {
-                responseEntity = restTemplate.postForEntity(pushTransferUrl, stringHttpEntity, String.class);
+                responseEntity = restTemplate.postForEntity(robotOutboundUrl
+                        , stringHttpEntity, String.class);
                 statusCode = responseEntity.getStatusCode();
                 value = statusCode.value();
                 body = responseEntity.getBody();
@@ -1707,9 +1703,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         int pushStatus = 0;
         if (ObjectUtils.isEmpty(responseEntity) || ObjectUtils.isEmpty(statusCode)) {
             String smg = String.format("%s : apiCode[%s]发送重试[%d]次后依然失败！接口不能正常访问"
-                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count);
-            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), requestDTO.getApiCode(), count - 1);
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("pushToCustomer"));
             return new PushTransferCustomerLog(
                     requestDTO.getApiCode()
                     , requestDTO.getJsonData()
@@ -1724,9 +1720,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushStatus = 1;
             String smg = String.format("apiCode:[%s]发送重试[%d]次后依然失败！" +
                     "\n接口返回http状态码[%d],http短语[%s];" +
-                    "\n返回体[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
-            alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服失败", appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    "\n应答消息[%s]", requestDTO.getApiCode(), count, value, reasonPhrase, body);
+            alarmClient.sendAlarm(smg, "\n接口转化(私人订制)数据同步到智能客服失败", appName, secretKey,
+                    Constants.sendCodeMap.get("pushToCustomer"));
         }
         return new PushTransferCustomerLog(
                 requestDTO.getApiCode()
@@ -1767,8 +1763,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             if ((end - start) <= threshold) {
                 log.info("++++++++++++++++=====分段数据：【{}】-【{}】", start, end);
                 List<MarketingTransferSyncUser> transferSyncUserList = list.subList(start, end);
-                int transferStatus = 1;
-                int retrySum = 3;
+                int transferStatus = 0;
+                int retrySum = 2;
                 PushTransferCustomerLog log = sendTransferDataToCustomer(
                         new PushCustomerRequestDTO(transferSyncUserList.get(0).getApiCode(), transferStatus, transferSyncUserList)
                         , retrySum, transferSyncUserList.size());
@@ -1784,5 +1780,139 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             return logList;
         }
+    }
+
+
+    @Override
+    public List<TransferRobotOutboundVO<UnsuccessfulData>> pushTransferData(MarketingTransferInfo transferInfo) {
+        Assert.notNull(transferInfo, "转化信息不可为null");
+        String apiCode = transferInfo.getApiCode();
+        Assert.notNull(apiCode, "'apiCode'不可为null");
+        String requestId = transferInfo.getRequestId();
+        Assert.notNull(transferInfo, "'requestId'不可为null");
+        String title = "接口转化(通用标准)数据同步到智能客服警告";
+        // 1 获取分表后缀
+        String tcId = tableCreateService.getTcId(apiCode);
+        // 2 获取转化数据
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
+        example.settCid(tcId);
+        int page = 1;
+        final int pageSize = 500;
+        List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
+        for (; ; ) {
+            PageHelper.startPage(page, pageSize);
+            List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            if (CollectionUtils.isEmpty(transferList) && transferInfo.getActualNum() < 1) {
+                String smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s", apiCode
+                        , transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
+                alarmClient.sendAlarm(smg, title, appName, secretKey,
+                        Constants.sendCodeMap.get("pushToCustomer"));
+                PushTransferRobotaiLog robotaiLog = new PushTransferRobotaiLog(
+                        transferInfo.getId()
+                        , apiCode
+                        , transferInfo.getRequestId()
+                        , ""
+                        , ""
+                        , smg
+                        , transferList.size()
+                        , ""
+                        , tcId
+                );
+                robotaiLog.setPushStatus(3);
+                pushTransferRobotaiLogService.save(robotaiLog);
+                break;
+            }
+            TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+            TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+            if (!outboundVO.getAccessNumber().equals("-1")) {
+                pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+            }
+            list.add(outboundVO);
+            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
+            if (page == pageInfo.getPages() || transferList.size() == 0) {
+                break;
+            }
+            page++;
+        }
+        return list;
+    }
+
+    @Override
+    public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
+        Assert.notNull(dto, String.format("转化数据不存在!\n转化信息[id=%d;apiCode=%s;requestId=%s]"
+                , transferInfo.getId(), transferInfo.getApiCode(), transferInfo.getRequestId()));
+        TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
+        try {
+            outboundVO = robotaiApiServiceClient.pushRobotai(dto, transferInfo.getRequestId());
+            if (outboundVO.getCode().equals("00")) {
+                Object o = (outboundVO.getData());
+                JSONObject object = JSON.parseObject(o.toString());
+                Object unsuccessfulData = object.get("unsuccessfulData");
+                JSONArray array = JSON.parseArray(unsuccessfulData.toString());
+                if (array.size() < 1) {
+                    outboundVO.setAccessNumber("-1");
+                    return outboundVO;
+                }
+            } else if (outboundVO.getCode().equals("9999")) {
+                outboundVO.setCode("");
+                outboundVO.setAccessNumber("");
+                outboundVO.setData(new UnsuccessfulData());
+            } else {
+                if (outboundVO.getAccessNumber() == null) {
+                    outboundVO.setAccessNumber("");
+                }
+                if (outboundVO.getData() == null) {
+                    outboundVO.setData(new UnsuccessfulData());
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            outboundVO = new TransferRobotOutboundVO<>();
+            outboundVO.setMessage(e.getMessage());
+        }
+        return outboundVO;
+    }
+
+    @Override
+    public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
+            , List<MarketingTransferSyncUser> transferList) {
+        String title = "接口转化(通用标准)数据同步到智能客服警告";
+        Assert.notNull(transferInfo, "转化信息不存在!");
+        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+        String apiCode = transferInfo.getApiCode();
+        if (CollectionUtils.isEmpty(transferList)) {
+            String smg = String.format("apiCode:[%s],RequestId:[%s],id:[%s]信息不存在！日期:%s", apiCode
+                    , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
+            alarmClient.sendAlarm(smg, title, appName, secretKey,
+                    Constants.sendCodeMap.get("pushToCustomer"));
+            return null;
+        }
+        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+        Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
+                MarketingSyncUser::getCustNum, syncUser -> syncUser
+                , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
+                        && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+        Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
+        List<ConversionData> conversionDataArray = new ArrayList<>();
+        transferList.forEach(transfer -> {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(transfer.getId().toString());
+            conversionData.setCid(transfer.getCid());
+            conversionData.setCaseNum(transfer.getCustNum());
+            conversionData.setGroupType(transfer.getUserType());
+            conversionData.setInversionStatus(transfer.getIfTransform());
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            conversionData.setPhone(map.containsKey(transfer.getCustNum())
+                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
+            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+            BeanUtils.copyProperties(transfer, vo);
+            conversionData.setInversionInfo(JSON.toJSONString(vo));
+            conversionDataArray.add(conversionData);
+        });
+        robotOutboundDTO.setApiCode(apiCode);
+        robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
+        return robotOutboundDTO;
     }
 }

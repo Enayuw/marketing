@@ -17,18 +17,19 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 14:05
      */
-    @Select("select api_code, request_id, last, total, status, create_time from b_marketing_transfer_info where id=#{id}")
+    @Select("select api_code, request_id, last, total, status, create_time, actual_num from b_marketing_transfer_info where id=#{id}")
     List<MarketingTransferInfo> findApiCodeRequestIdByIdList(@Param("id") Long id);
 
     /**
-     * 根据ApiCode createTime 统计当天数据量
+     * 根据ApiCode createTime last统计当天数据量
      *
      * @param apiCode    客户编码
      * @param createTime 创建时间
+     * @param last       传输标记
      * @return int
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 14:05
      */
-    @Select("SELECT count(*) FROM b_marketing_transfer_info WHERE `status` in(2,4) AND api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = str_to_date(#{createTime},'%Y-%m-%d')")
-    Integer countByApiCodAnd(@Param("apiCode") String apiCode, @Param("createTime") Date createTime);
+    @Select("SELECT id FROM b_marketing_transfer_info WHERE `status` in(2,4) AND api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = str_to_date(#{createTime},'%Y-%m-%d') and last=#{last}")
+    List<Long> countByApiCodAndLast(@Param("apiCode") String apiCode, @Param("createTime") Date createTime, @Param("last") String last);
 }

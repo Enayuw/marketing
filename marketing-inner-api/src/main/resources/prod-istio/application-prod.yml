@@ -59,15 +59,35 @@ spring:
 cluster:
   flag: ${CONF_CLUSTER}
 otherConfig:
+  huaXiangInterface:
+    getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+    sanxiang_url: http://zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
   alarm:
     secretKey: b58783d4b67f942166f2ffad298080e4
     appName: marketing
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: a938d0e974746651a11ddcdbcea31404
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
   userCenter:
     appName: loan-strategy
     appSecretKey: 7357430aa11febfe81d45945c02706b3
+  warning:
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: brsftp.brapp.com
+    sftpPort: 9999
+    sftpUser: BRmarketing
+    sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  proxy:
+    proxy_host_zw: 192.168.22.169
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
@@ -81,4 +101,20 @@ api:
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   customerService:
     apiCode: 4000296
-
+  pushTransfer:
+    robotAi:
+      baseUrl: http://robotai-api-service/api
+      robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
+      tailor:
+        # eg: "{'apiCode':'true',apiCode:'false'}"
+        apiCodeMap: "{'3710012':'true','7410846':'true','7410787':'true','7410784':'true'}"
+#elastic-job配置
+SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+NAMESPACE: marketing-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+corn:
+  taskJob: 0 0/30 * * * ?

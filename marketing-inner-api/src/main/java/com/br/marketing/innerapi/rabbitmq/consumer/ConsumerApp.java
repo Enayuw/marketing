@@ -9,6 +9,9 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,12 +39,14 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, containerFactory = "primaryContainerFactory")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_PUSH_CUSTOMER, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER)}, containerFactory = "primaryContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushRuleService::pushTransferDataToCustomer, o, null);
+        consumerService.consumerRun(channel, message, pushRuleService::pushPersonalTransferData, o, null);
     }
 
 }

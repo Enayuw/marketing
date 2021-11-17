@@ -3,12 +3,17 @@ package com.br.marketing.common.utils.net;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 
 @Slf4j
 public class ApiCaller {
@@ -23,10 +28,11 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil) {
+    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil,ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
         this.momCommonUtil = momCommonUtil;
+        this.logDbPool = threadPoolExecutor;
     }
 
     private InterfaceLog interfaceLog = new InterfaceLog();
@@ -52,7 +58,11 @@ public class ApiCaller {
 
     protected String encodeName = "utf-8";
 
+    private ThreadPoolExecutor logDbPool;
 
+    public void setLogPool(ThreadPoolExecutor logPool) {
+        this.logDbPool = logPool;
+    }
 
     public String getUrl() {
         return url;
@@ -112,7 +122,9 @@ public class ApiCaller {
                 interfaceLog.setCostTime(System.currentTimeMillis() - start);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
-                momCommonUtil.sendMQ(interfaceLog);
+                logDbPool.submit(()->{
+                    momCommonUtil.sendMQ(interfaceLog);
+                });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }

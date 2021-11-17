@@ -41,9 +41,13 @@ public class ApiResult<T> {
         return this;
     }
 
-    public ApiResult<T> fromResult(Result<T> result) {
+    public ApiResult<T> fromResult(Result<T> result,Integer inner) {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            this.code = "00";
+            if(inner == null){
+                this.code= "00";
+            }else{
+                this.code = "000000";
+            }
         } else {
             this.code = "100001";
         }

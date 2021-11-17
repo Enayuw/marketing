@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.EntityOptLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.EntityOptLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="source_id" property="sourceId" jdbcType="VARCHAR" />
+    <result column="source_obj" property="sourceObj" jdbcType="VARCHAR" />
+    <result column="source_entity" property="sourceEntity" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="desc" property="desc" jdbcType="VARCHAR" />
+    <result column="opt_user_id" property="optUserId" jdbcType="VARCHAR" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, source_id, source_obj, source_entity, content, desc, opt_user_id, opt_user_name, 
+    create_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.EntityOptLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_entity_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_entity_opt_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_entity_opt_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.EntityOptLogExample" >
+    delete from b_entity_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.EntityOptLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_entity_opt_log (source_id, source_obj, source_entity, 
+      content, desc, opt_user_id, 
+      opt_user_name, create_time)
+    values (#{sourceId,jdbcType=VARCHAR}, #{sourceObj,jdbcType=VARCHAR}, #{sourceEntity,jdbcType=VARCHAR}, 
+      #{content,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, #{optUserId,jdbcType=VARCHAR}, 
+      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.EntityOptLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_entity_opt_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="sourceId != null" >
+        source_id,
+      </if>
+      <if test="sourceObj != null" >
+        source_obj,
+      </if>
+      <if test="sourceEntity != null" >
+        source_entity,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+      <if test="desc != null" >
+        desc,
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id,
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="sourceId != null" >
+        #{sourceId,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceObj != null" >
+        #{sourceObj,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceEntity != null" >
+        #{sourceEntity,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="desc != null" >
+        #{desc,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserId != null" >
+        #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.EntityOptLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_entity_opt_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_entity_opt_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.sourceId != null" >
+        source_id = #{record.sourceId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sourceObj != null" >
+        source_obj = #{record.sourceObj,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sourceEntity != null" >
+        source_entity = #{record.sourceEntity,jdbcType=VARCHAR},
+      </if>
+      <if test="record.content != null" >
+        content = #{record.content,jdbcType=VARCHAR},
+      </if>
+      <if test="record.desc != null" >
+        desc = #{record.desc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optUserId != null" >
+        opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optUserName != null" >
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_entity_opt_log
+    set id = #{record.id,jdbcType=BIGINT},
+      source_id = #{record.sourceId,jdbcType=VARCHAR},
+      source_obj = #{record.sourceObj,jdbcType=VARCHAR},
+      source_entity = #{record.sourceEntity,jdbcType=VARCHAR},
+      content = #{record.content,jdbcType=VARCHAR},
+      desc = #{record.desc,jdbcType=VARCHAR},
+      opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.EntityOptLog" >
+    update b_entity_opt_log
+    <set >
+      <if test="sourceId != null" >
+        source_id = #{sourceId,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceObj != null" >
+        source_obj = #{sourceObj,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceEntity != null" >
+        source_entity = #{sourceEntity,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="desc != null" >
+        desc = #{desc,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.EntityOptLog" >
+    update b_entity_opt_log
+    set source_id = #{sourceId,jdbcType=VARCHAR},
+      source_obj = #{sourceObj,jdbcType=VARCHAR},
+      source_entity = #{sourceEntity,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      desc = #{desc,jdbcType=VARCHAR},
+      opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

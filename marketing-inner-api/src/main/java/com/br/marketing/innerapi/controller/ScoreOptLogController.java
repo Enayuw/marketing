@@ -39,17 +39,17 @@ public class ScoreOptLogController {
      */
     @GetMapping("/page")
     @ApiOperation(value = "列表数据", notes = "跑分配置变更记录列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "page", value = "页号", paramType = "query", dataType = "integer"
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer"
             , defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer"
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer"
             , defaultValue = "10")
             , @ApiImplicitParam(name = "rid", value = "配置主键", paramType = "query", dataType = "long")
             , @ApiImplicitParam(name = "cid", value = "客户id", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreOptLog.class)})
-    public ApiResult<PageResultReturn> findListPage(@RequestParam(defaultValue = "1") int page
-            , @RequestParam(defaultValue = "10") int pageSize
+    public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
+            , @RequestParam(name = "size", defaultValue = "10") int pageSize
             , @RequestParam Long rid
             , @RequestParam String cid
             , @RequestParam String apiCode

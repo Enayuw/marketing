@@ -78,7 +78,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleRuleConfig.setCusNum(count);
             return soleRuleConfig;
             }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(soleRuleConfigs, page);
+        return PageResultReturn.setPageResult(soleRuleConfigs, page,pageSize);
     }
 
     private Date addDay(String date, Integer addDays, String format) {
@@ -173,7 +173,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public PageResultReturn getUpdateRecord(String id,int page,int pageSize) {
         PageHelper.startPage(page, pageSize);
         List<SoleOptLogVO> soleOptLogs = soleOptLogMapper.selectListById(Long.parseLong(id));
-        return PageResultReturn.setPageResult(soleOptLogs, page);
+        return PageResultReturn.setPageResult(soleOptLogs, page,pageSize);
     }
 
     /**

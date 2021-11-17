@@ -409,7 +409,7 @@ public class LoanWarningThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList)){
+            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,new ArrayList<>())){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);

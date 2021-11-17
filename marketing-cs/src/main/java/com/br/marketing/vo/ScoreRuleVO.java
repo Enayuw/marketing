@@ -80,6 +80,22 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "规则简拼", dataType = "string", position = 7)
     private String ruleNameShort;
 
+    @ApiModelProperty(value = "策略产品配置信息", dataType = "string", position = 8)
+    private String strategyProductJson;
+
+    @ApiModelProperty(value = "返回用户基本字段表头", dataType = "string", position = 9)
+    private String baseInfo;
+
+    @ApiModelProperty(value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-apicode级别统一周期", dataType = "integer", position = 10)
+    private Integer execType;
+
+    @ApiModelProperty(value = "周期天数", dataType = "integer", position = 11)
+    private Integer cycleDay;
+
+    @ApiModelProperty(value = "周期结束天数", dataType = "string", position = 12)
+    private String cycleEndDay;
+
+
     public ScoreRuleVO() {
     }
 

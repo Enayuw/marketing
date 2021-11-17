@@ -13,6 +13,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -127,12 +128,15 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
             if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
                 continue;
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
-            for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
+            outrule:for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
+                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
+                    TaskExecCommonField.isBuildTaskJob =3;
+                    break outrule;
+                }
                 //region 遍历规则
 
                 //region 时间处理
@@ -176,9 +180,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     ruleOpenTime = customerScoreRuleVO.getCreateTime();
                 }
                 String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
-                String eTimeDay = new SimpleDateFormat("yyyy-MM-dd").format(eTime);
+                String nowDay = LocalDate.now().format(ymd);
                 // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-                if(ruleOpenDay.equals(eTimeDay)&&eTime.compareTo(ruleOpenTime)<=0){
+                if(ruleOpenDay.equals(nowDay)&&eTime.compareTo(ruleOpenTime)<=0){
                     continue;
                 }
                 //endregion
@@ -225,21 +229,28 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理marketingUser
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
+                Long maxId = syncInfoMapper
+                        .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
-                while (execMark) {
+                while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
-                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId, conditionRes.getData());
-                    if(syncUserByRuleScore.size()<=0){
+                    Long nowMaxId = minId+5000;
+
+                    if(nowMaxId>=maxId){
                         execMark = false;
+                    }
+                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
+                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId,nowMaxId,conditionRes.getData());
+                    minId = nowMaxId+1;
+                    if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
-                    for (int i = 0; i < syncUserByRuleScore.size(); i++) {
-                        MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
-                        if (i == syncUserByRuleScore.size() - 1) {
-                            minId = marketingSyncUser.getId() + 1;
+                    out:for (int i = 0; i < syncUserByRuleScore.size(); i++) {
+                        if(!TaskExecCommonField.isBuildTaskJob.equals(1)){
+                            break out;
                         }
+                        MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
                         threadPool.submit(()->{
                             try {
                                 //region 用户上传表头配置处理
@@ -372,6 +383,15 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 }
                 //endregion
 
+                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
+                    TaskExecCommonField.isBuildTaskJob =3;
+                    StringBuilder content = new StringBuilder();
+                    content.append("停止生成的任务批次号：".concat(number).concat("\r\n"));
+                    alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
+                            Constants.sendCodeMap.get("uploadSuccess"));
+                    break outrule;
+                }
+
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = marketingUserMapper.countBySureUser(apiCode, number);
@@ -444,6 +464,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //endregion
             }
+
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -479,7 +500,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
             if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
                 continue;
             }
@@ -520,21 +540,25 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理marketingUser
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, startTimeJob, endTimeJob, conditionRes.getData());
+                Long maxId = syncInfoMapper
+                        .getMaxIdByRuleScore(apiCode, startTimeJob, endTimeJob, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
                 while (execMark) {
                     String batchNumber = number;
-                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId, conditionRes.getData());
-                    if(syncUserByRuleScore.size()<=0){
+                    Long nowMaxId = minId+5000;
+
+                    if(nowMaxId>=maxId){
                         execMark = false;
+                    }
+                    List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
+                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId,nowMaxId, conditionRes.getData());
+                    minId = nowMaxId+1;
+                    if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
-                        if (i == syncUserByRuleScore.size() - 1) {
-                            minId = marketingSyncUser.getId() + 1;
-                        }
                         threadPool.submit(()->{
                             try {
                                 //region 用户上传表头配置处理
