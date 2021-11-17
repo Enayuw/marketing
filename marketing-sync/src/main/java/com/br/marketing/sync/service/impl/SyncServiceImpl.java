@@ -322,7 +322,7 @@ public class SyncServiceImpl implements SyncService {
                     log.info("历史文件，不处理{},{}",fileName,createFileTime);
                     continue;
                 }
-                validateIsSync(createFileTime,fileName,apiCode,resultMap);
+                validateIsSync(createFileTime,fileName,apiCode,resultMap,loanSyncConfig);
             }
         } catch (Exception e) {
             log.error("遍历ftp文件出错",e);
@@ -343,7 +343,7 @@ public class SyncServiceImpl implements SyncService {
                         log.warn("历史文件，不处理{},{}",fileName,createFileTime);
                         continue;
                     }
-                    validateIsSync(createFileTime,fileName,apiCode,resultMap);
+                    validateIsSync(createFileTime,fileName,apiCode,resultMap,loanSyncConfig);
                 }
             } catch (Exception e) {
                 log.error("遍历sftp文件出错",e);
@@ -357,7 +357,8 @@ public class SyncServiceImpl implements SyncService {
      * @param apiCode apiCode
      * @param resultMap  文件数据集合
      */
-    private void validateIsSync(String createFileTime,String fileName,String apiCode,Map<String, List<String>> resultMap){
+    private void validateIsSync(String createFileTime,String fileName,String apiCode,Map<String, List<String>> resultMap
+            ,SyncConfig syncConfig){
         long minutes = DateHelper.getDistanceMinutes(createFileTime);
         if(minutes<1){
             log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
@@ -366,7 +367,8 @@ public class SyncServiceImpl implements SyncService {
         Map<String,String> params=new HashMap<>();
         params.put("apiCode",apiCode);
         params.put("fileName",fileName);
-        params.put("createFileTime",createFileTime);
+//        params.put("createFileTime",createFileTime);
+        params.put("srcPath",syncConfig.getSrcSftpHost().concat(":").concat(syncConfig.getSrcPath()));
         List<SyncLog> syncLogs=  loanSyncLogMapper.querySyncLog(params);
         if(syncLogs==null||syncLogs.size()<=0){
             String[] split = fileName.split("\\.");

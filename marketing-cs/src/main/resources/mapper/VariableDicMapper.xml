@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.VariableDicMapper" >
+
+    <select id="getVariableDicList" resultType="com.br.marketing.vo.VariableDicListVO">
+        select id, cid
+        , api_code as apiCode
+        , field_name as fieldName
+        , field_value as fieldValue
+        , field_desc as fieldDesc
+        , is_del as isDel
+        , DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime
+        , DATE_FORMAT(update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        from b_variable_dic vd
+        <where>
+            <if test="cid != null and cid.trim() neq ''">
+                and vd.cid like CONCAT('%',#{cid},'%')
+            </if>
+            <if test="apiCode != null and apiCode.trim() neq ''">
+                and vd.api_code like CONCAT('%',#{apiCode},'%')
+            </if>
+        </where>
+        order by vd.update_time desc, vd.create_time desc
+    </select>
+
 </mapper>

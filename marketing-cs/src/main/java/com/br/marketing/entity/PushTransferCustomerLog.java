@@ -146,6 +146,22 @@ public class PushTransferCustomerLog {
         this.pushStatus = pushStatus;
     }
 
+    public PushTransferCustomerLog(String apiCode, String requestBody, Integer rowSize, Integer pushStatus, Integer transferStatus) {
+        this.apiCode = apiCode;
+        this.requestBody = requestBody;
+        this.rowSize = rowSize;
+        this.pushStatus = pushStatus;
+        this.transferStatus = transferStatus;
+    }
+
+    public PushTransferCustomerLog(Long transferInfoId, Date createTime, Date transferInfoTime, Integer pushStatus, Integer transferStatus) {
+        this.transferInfoId = transferInfoId;
+        this.createTime = createTime;
+        this.transferInfoTime = transferInfoTime;
+        this.pushStatus = pushStatus;
+        this.transferStatus = transferStatus;
+    }
+
     public Long getId() {
         return id;
     }

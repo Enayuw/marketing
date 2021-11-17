@@ -101,16 +101,34 @@
     <select id="countByPreUserWithRule" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_sync_${apiCode}
-        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} ]]>
+        where <![CDATA[ applet_time >= #{sTimeStr}and applet_time < #{eTimeStr} ]]>
         and is_repeat in (1,2)
-        and (${whereStr})
+          and (${whereStr})
     </select>
 
     <select id="getSyncUserByRuleScore" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
-        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId}]]>
+        where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId} and id <= #{maxId}]]>
         and is_repeat in (1,2)
-        and (${whereStr}) order by id asc limit 5000
+        and (${whereStr}) order by id asc
+        where <![CDATA[ applet_time >= #{sTimeStr}
+          and applet_time < #{eTimeStr}
+          and id >= #{minId}]]>
+          and is_repeat in (1, 2)
+          and (${whereStr})
+        order by id asc limit 5000
+    </select>
+
+
+    <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cust_num, id_card, name, cell, user_type
+        from b_marketing_sync_${apiCode}
+        <where>
+            cust_num in
+            <foreach collection="custs" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
     </select>
 </mapper>

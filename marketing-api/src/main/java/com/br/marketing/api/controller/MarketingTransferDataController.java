@@ -63,7 +63,7 @@ public class MarketingTransferDataController {
         try {
             JSONObject jsonObject = JSON.parseObject(jsonData);
             String requestId = jsonObject.getString("requestId");
-            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode,requestId));
+            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode,requestId),null);
         }  catch (JSONException ex) {
             return new ApiResult()
                     .setCode(MarketingErrorInfo.JSON_DATA_ERROR.getErrorCode())

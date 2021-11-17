@@ -57,7 +57,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: ${CONF_CLUSTER}
+  flag: k8s-prod-a
 otherConfig:
   alarm:
     secretKey: a9c57e4138807a9e18b439cd9dab275b

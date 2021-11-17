@@ -57,4 +57,6 @@ public class ReserveField1DTO implements Serializable {
     private String settleTime;
     @ApiModelProperty(value = "紧急扩展字段", example = "客户传输的任意值")
     private String extStr;
+    @ApiModelProperty(value = "拍拍贷扩展字段", example = "90d,180d,360d,720d")
+    private String desleep;
 }
