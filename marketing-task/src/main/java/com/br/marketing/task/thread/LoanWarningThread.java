@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.*;
+import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -409,17 +410,17 @@ public class LoanWarningThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,new ArrayList<>())){
+            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,new ArrayList<>(),new ArrayList<>())){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,new ArrayList<StrategyProductDetailVO>());
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,new ArrayList<StrategyProductDetailVO>());
                  }else{
                      log.error("画像返回错误--{}",blu.getCusNum());
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,blu.getCusNum());

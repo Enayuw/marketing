@@ -3,22 +3,30 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.service.MarketingSepService;
 import com.br.marketing.service.MarketingTaskExtendService;
 import com.br.marketing.service.ScoreRuleConfigService;
+import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.MarketingThread;
+import com.br.marketing.vo.StrategyProductDetailVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +94,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Autowired
     StraHisFileMapper straHisFileMapper;
 
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
+
     private final static String RedisEsOpen="es:open";
 
     final static Integer allMonitorType = 4;
@@ -147,7 +158,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             if(split.length>2){
                                 for (Integer shardingItem : context.getShardingItems()) {
                                     if(Integer.valueOf(split[split.length-2]).equals(shardingItem)) {
-                                        this.retry(apiCode, batchNumber, errorFile, warrningExecutor, i, customer, shardingItem, context.getShardingTotalCount());
+                                        this.retry(task,apiCode, batchNumber, errorFile, warrningExecutor, i, customer, shardingItem, context.getShardingTotalCount());
                                     }else{
                                         continue;
                                     }
@@ -234,7 +245,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      * @param warrningExecutor 线程池
      * @param num 文件编号
      */
-    private void retry(String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor
+    private void retry(MarketingTask task,String apiCode,String batchNumber,String errorFile,ExecutorService warrningExecutor
             ,Integer num,Customer customer,Integer index,Integer indexCount){
         String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
         List<String> noflagproductlist = new ArrayList<>();
@@ -243,6 +254,19 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         }else{
             noflagproductlist.add("mappingcust");
             noflagproductlist.add("mappingcust1");
+        }
+        List<String> flagproductlist = new ArrayList<>();
+        Result<List<String>> flagProduct = iProductResultSimpleService.getFlagProduct();
+        if(flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())){
+            flagproductlist = flagProduct.getData();
+        }
+        String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(task.getApiCode()
+                ,task.getBatchNumber(),task.getStrategyId());
+        List<StrategyProductDetailVO> strategyProductDetailVOs = new ArrayList<>();
+        if(!StringUtils.isEmpty(strategyProductConfigStr)){
+            strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
+                    , new TypeReference<List<StrategyProductDetailVO>>() {
+                    }.getType());
         }
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
         marketingTask.setIndex(index);
@@ -300,7 +324,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVOs));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -388,6 +412,19 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 noflagproductlist.add("mappingcust");
                 noflagproductlist.add("mappingcust1");
             }
+            List<String> flagproductlist = new ArrayList<>();
+            Result<List<String>> flagProduct = iProductResultSimpleService.getFlagProduct();
+            if(flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())){
+                flagproductlist = flagProduct.getData();
+            }
+            String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(blt.getApiCode()
+                    ,blt.getBatchNumber(),blt.getStrategyId());
+            List<StrategyProductDetailVO> strategyProductDetailVOs = new ArrayList<>();
+            if(!StringUtils.isEmpty(strategyProductConfigStr)){
+                strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
+                        , new TypeReference<List<StrategyProductDetailVO>>() {
+                        }.getType());
+            }
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             String baseHeadInfo = getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
@@ -434,7 +471,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             param.put("noflagproduct",noflagproduct);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist));
+                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist,flagproductlist,strategyProductDetailVOs));
                             Thread.sleep(100);
                         }
                         currentPage++;
