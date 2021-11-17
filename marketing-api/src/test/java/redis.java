@@ -631,4 +631,22 @@ public class redis {
 
         }
     }
+
+    @Autowired
+    ProductFlagScoreMapper productFlagScoreMapper;
+
+    @Test
+    public void testExample(){
+        for (int i = 0; i < 50; i++) {
+            new Thread(()->{
+                ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
+                flagScoreExample.createCriteria().andIsDelEqualTo(1);
+                try {
+                    List<ProductFlagScore> productFlagScores = productFlagScoreMapper.selectByExample(flagScoreExample);
+                }catch (Exception ex){
+                    System.out.println(ex.getMessage());
+                }
+            }).start();
+        }
+    }
 }

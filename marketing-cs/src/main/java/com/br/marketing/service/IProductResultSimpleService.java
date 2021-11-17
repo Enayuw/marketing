@@ -19,6 +19,8 @@ public interface IProductResultSimpleService {
 
     Result<List<String>> getFieldsInfo(String apiCode,String batchNumber,String strategyId);
 
+    String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId);
+
     BaseHeadConfigVO getOrderBaseHeadInfo(BaseHeadConfigVO vo);
 
     Result<String> getBaseHeadInfo(String apiCode, String groupType);
