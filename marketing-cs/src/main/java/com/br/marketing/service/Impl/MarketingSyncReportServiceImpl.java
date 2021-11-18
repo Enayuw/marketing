@@ -1,6 +1,26 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.entity.Customer;
+import com.br.marketing.entity.MarketingSyncReport;
+import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.entity.VariableDic;
+import com.br.marketing.entity.VariableDicExample;
+import com.br.marketing.mapper.CustomerMapper;
+import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.MarketingSyncReportService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 客户上传数据统计报表
@@ -12,5 +32,155 @@ import com.br.marketing.service.MarketingSyncReportService;
  * @UpdateRemark 修改内容
  * @Version 1.0
  */
+@Service
+@Slf4j
 public class MarketingSyncReportServiceImpl implements MarketingSyncReportService {
+
+    @Resource
+    private CustomerMapper customerMapper;
+    @Resource
+    private VariableDicMapper variableDicMapper;
+    @Resource
+    private MarketingSyncReportMapper syncReportMapper;
+
+    /**
+     * 上传数据统计报表流程
+     *
+     * @param uploadDate
+     * @return
+     */
+    @Override
+    public void syncReportProcess(String uploadDate) {
+        //1.获取所有客户
+        List<Customer> customers = customerMapper.getAllCustomer();
+        //2.循环正常客户
+        customers.forEach(customer -> {
+            try {
+                if (AuthShowProductor.NORMAL.getCode().equals(customer.getStatus())) {
+                    String apiCode = customer.getApiCode();
+                    log.warn("开始执行上传数据统计报表任务,apiCode={},uploadDate={}", apiCode, uploadDate);
+                    //3.组装数据
+                    List<String> userTypeList = getUserTypeList(apiCode);
+                    //获取场景
+                    if (!userTypeList.isEmpty()) {
+                        for (String userType : userTypeList) {
+                            //上传开始时间
+                            String appletBeginTime = getAppletTime(apiCode, userType, uploadDate, Boolean.TRUE);
+                            if (StringUtils.isNotBlank(appletBeginTime)) {
+                                //判断是否更新
+                                MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, uploadDate);
+                                MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                if (report == null) {
+                                    //新增
+                                    modifyReport.setAppletBeginTime(DateHelper.parseDate(appletBeginTime));
+                                    //场景
+                                    modifyReport.setUserType(userType);
+                                    //上传日期
+                                    modifyReport.setAppletDate(uploadDate);
+                                    //客户编号
+                                    modifyReport.setCid(customer.getCid());
+                                    //apiCode
+                                    modifyReport.setApiCode(apiCode);
+                                    //客户名称
+                                    modifyReport.setShortName(customer.getShortName());
+                                    //上传结束时间
+                                    modifyReport.setAppletEndTime(DateHelper.parseDate(getAppletTime(apiCode, userType, uploadDate, Boolean.FALSE)));
+                                    report.setCreateTime(new Date());
+                                }
+                                //数据正常入库条数
+                                modifyReport.setNormalNum(getUploadNum(apiCode, userType, uploadDate, Boolean.TRUE));
+                                //去重后数据量
+                                modifyReport.setDuplicateRemovalNum(getUploadNum(apiCode, userType, uploadDate, Boolean.FALSE));
+                                //入库
+                                if (report == null) {
+                                    log.warn("新增上传数据统计：{}", JSON.toJSONString(modifyReport));
+                                    syncReportMapper.insert(modifyReport);
+                                } else {
+                                    Date appletEndTime = report.getAppletEndTime();
+                                    Date date = DateHelper.parseDate(getAppletTime(apiCode, userType, uploadDate, Boolean.FALSE));
+                                    //更新
+                                    if (date.compareTo(appletEndTime) == 1) {
+                                        modifyReport.setId(report.getId());
+                                        modifyReport.setAppletEndTime(date);
+                                        log.warn("编辑上传数据统计：{}", JSON.toJSONString(modifyReport));
+                                        syncReportMapper.updateByPrimaryKey(modifyReport);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("程序执行上传数据统计报表任务异常，apiCode={}", customer.getApiCode());
+            }
+        });
+    }
+
+    /**
+     * 根据参数获取上传统计数据
+     *
+     * @param apiCode
+     * @param userType
+     * @param uploadDate
+     * @return
+     */
+    private MarketingSyncReport selectMarketingSyncReport(String apiCode, String userType, String uploadDate) {
+        MarketingSyncReportExample report = new MarketingSyncReportExample();
+        report.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andUserTypeEqualTo(userType)
+                .andAppletDateEqualTo(uploadDate);
+        List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(report);
+        if (reportList != null && !reportList.isEmpty()) {
+            return reportList.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * 获取数据上传时间
+     *
+     * @param apiCode
+     * @param userType
+     * @return
+     */
+    private String getAppletTime(String apiCode, String userType, String uploadDate, Boolean flag) {
+        if (flag) {
+            return syncReportMapper.uploadSyncMinAppletTime(apiCode, userType, uploadDate);
+        } else {
+            return syncReportMapper.uploadSyncMaxAppletTime(apiCode, userType, uploadDate);
+        }
+    }
+
+    /**
+     * 获取数据条数
+     *
+     * @param apiCode
+     * @param userType
+     * @return
+     */
+    private Integer getUploadNum(String apiCode, String userType, String uploadDate, Boolean flag) {
+        if (flag) {
+            return syncReportMapper.uploadSyncCount(apiCode, userType, uploadDate, AuthShowProductor.NO_NORMAL.getCode());
+        } else {
+            return syncReportMapper.uploadSyncCount(apiCode, userType, uploadDate, AuthShowProductor.NORMAL.getCode());
+        }
+    }
+
+    /**
+     * 获取场景
+     *
+     * @param apiCode
+     * @return
+     */
+    private List<String> getUserTypeList(String apiCode) {
+        VariableDicExample dic = new VariableDicExample();
+        dic.createCriteria().andApiCodeEqualTo(apiCode);
+        List<VariableDic> dicList = variableDicMapper.selectByExample(dic);
+        List<String> userTypeList = new ArrayList<>();
+        if (dicList != null && !dicList.isEmpty()) {
+            userTypeList = dicList.stream().map(v -> v.getFieldValue()).collect(Collectors.toList());
+        }
+        return userTypeList;
+    }
 }
