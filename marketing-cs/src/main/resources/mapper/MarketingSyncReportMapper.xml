@@ -93,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_sync_report
     where id = #{id,jdbcType=BIGINT}
@@ -112,15 +112,15 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sync_report (cid, api_code, short_name, 
-      applet_date, user_type, normal_num, 
-      duplicate_removal_num, applet_begin_time, 
-      applet_end_time, remark, create_time, 
+    insert into b_marketing_sync_report (cid, api_code, short_name,
+      applet_date, user_type, normal_num,
+      duplicate_removal_num, applet_begin_time,
+      applet_end_time, remark, create_time,
       update_time)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR}, 
-      #{appletDate,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{normalNum,jdbcType=INTEGER}, 
-      #{duplicateRemovalNum,jdbcType=INTEGER}, #{appletBeginTime,jdbcType=TIMESTAMP}, 
-      #{appletEndTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
+      #{appletDate,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{normalNum,jdbcType=INTEGER},
+      #{duplicateRemovalNum,jdbcType=INTEGER}, #{appletBeginTime,jdbcType=TIMESTAMP},
+      #{appletEndTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSyncReport" >
@@ -335,4 +335,29 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
+
+  <select id="uploadSyncCount" resultType="java.lang.Integer">
+    select count(1) from b_marketing_sync_${apiCode}
+    where
+    applet_date = #{uploadDate,jdbcType=VARCHAR} and
+    (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
+    <if test="status != null  and status = 1">
+      status = #{status,jdbcType=INTEGER}
+      and is_repeat in(1,2)
+    </if>
+  </select>
+
+  <select id="uploadSyncMinAppletTime" resultType="java.lang.String">
+    select min(create_time) from b_marketing_sync_${apiCode}
+    where
+    applet_date = #{uploadDate,jdbcType=VARCHAR} and
+    (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
+  </select>
+
+  <select id="uploadSyncMaxAppletTime" resultType="java.lang.String">
+    select max(create_time) from b_marketing_sync_${apiCode}
+    where
+    applet_date = #{uploadDate,jdbcType=VARCHAR} and
+    (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
+  </select>
 </mapper>

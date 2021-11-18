@@ -11,4 +11,12 @@ package com.br.marketing.service;
  * @Version 1.0
  */
 public interface MarketingSyncReportService {
+
+    /**
+     * 根据日期对上传数据进行报表统计
+     *
+     * @param uploadDate
+     * @return
+     */
+    void syncReportProcess(String uploadDate);
 }

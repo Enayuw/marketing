@@ -7,6 +7,15 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface MarketingSyncReportMapper {
+    int uploadSyncCount(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                        @Param("uploadDate") String uploadDate, @Param("status") Integer status);
+
+    String uploadSyncMinAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                   @Param("uploadDate") String uploadDate);
+
+    String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                   @Param("uploadDate") String uploadDate);
+
     int countByExample(MarketingSyncReportExample example);
 
     int deleteByExample(MarketingSyncReportExample example);
