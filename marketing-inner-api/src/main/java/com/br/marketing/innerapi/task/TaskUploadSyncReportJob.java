@@ -84,7 +84,7 @@ public class TaskUploadSyncReportJob extends AbstractSimpleElasticJob {
                         Date eDate = DateHelper.parseDate(endDate);
                         if (bDate.compareTo(eDate) == 0) {
                             indexList.add(dateFormat.format(bDate));
-                        } else if (bDate.compareTo(eDate) == 1) {
+                        } else if (eDate.compareTo(bDate) == 1) {
                             indexList.add(dateFormat.format(bDate));
                             indexList.add(dateFormat.format(eDate));
                             while (true) {
