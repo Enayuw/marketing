@@ -188,10 +188,9 @@ public class SftpToDbByCommonService {
             }
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
-            updateFile.setActualNumber(line>0?line-1:line);
+            updateFile.setActualNumber(line>1?line-2:line);
             localFile.setActualNumber(updateFile.getActualNumber());
         if(errorMark.get()>0){
-            localFile.setComplete("3");
             updateFile.setComplete("3");
         }
             localFileMapper.updateByPrimaryKeySelective(updateFile);
@@ -206,8 +205,9 @@ public class SftpToDbByCommonService {
         try{
             StringBuilder content = new StringBuilder();
             content.append("导入文件名称：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("文件id：".concat(localFile.getId().toString()).concat("\r\n"))
                     .append("文件类型：".concat(localFile.getFileType()).concat("\r\n"))
-                    .append("导入文件状态：".concat("1".equals(localFile.getComplete())?"正常":"不正常").concat("\r\n"))
+                    .append("导入文件状态：".concat(errorMark.get()==0?"正常":"不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
                     .append("其中有问题行数：".concat(errorMark.toString()).concat("\r\n"));
             alarmClient.sendAlarm(content.toString(),"sftp数据上传",appName,secretKey,
