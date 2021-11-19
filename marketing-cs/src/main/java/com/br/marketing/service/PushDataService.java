@@ -4,4 +4,6 @@ import com.br.marketing.common.commondto.Result;
 
 public interface PushDataService {
     Result pushDassData(Long id);
+
+    Result pushSevenTransferData(Long id);
 }

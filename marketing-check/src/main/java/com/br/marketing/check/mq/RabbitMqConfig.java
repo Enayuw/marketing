@@ -73,6 +73,16 @@ public class RabbitMqConfig {
     public Binding bindingPushDassQueue() {
         return BindingBuilder.bind(pushDassQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE);
     }
+
+    @Bean(name = MQConstants.MARKETING_PUSH_TWOSEVEN_FILETRANSFER)
+    public Queue pushSevenQueue() {
+        return new Queue(MQConstants.MARKETING_PUSH_TWOSEVEN_FILETRANSFER, true, false, false);
+    }
+
+    @Bean(name = MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER)
+    public Binding bindingSevenQueue() {
+        return BindingBuilder.bind(pushSevenQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER);
+    }
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);

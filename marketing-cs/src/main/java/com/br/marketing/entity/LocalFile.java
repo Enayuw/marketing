@@ -19,6 +19,11 @@ public class LocalFile {
     private String apiCode;
 
     /**
+     * 文件类型
+     */
+    private String fileType;
+
+    /**
      * 源地址
      */
     private String srcPath;
@@ -80,6 +85,14 @@ public class LocalFile {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType == null ? null : fileType.trim();
     }
 
     public String getSrcPath() {
