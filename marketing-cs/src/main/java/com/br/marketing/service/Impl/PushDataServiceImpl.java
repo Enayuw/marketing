@@ -191,6 +191,7 @@ public class PushDataServiceImpl implements PushDataService{
             if(data.size()<=0){
                 actionMark= false;
             }
+            minId = data.get(data.size()-1).getId();
             //region 调用撞库接口
             for (TwosevenFile datum : data) {
                 threadPool.submit(()->{
