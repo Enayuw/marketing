@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -186,7 +187,7 @@ public class PushDataServiceImpl implements PushDataService{
         if(localFile == null){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
-        List<TwosevenFile> errorData = new ArrayList<>();
+        AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         while(actionMark) {
@@ -196,6 +197,7 @@ public class PushDataServiceImpl implements PushDataService{
             List<TwosevenFile> data = twosevenFileMapper.getPushData(id, minId);
             if(data.size()<=0){
                 actionMark= false;
+                continue;
             }
             minId = data.get(data.size()-1).getId();
             //region 调用撞库接口
@@ -232,9 +234,7 @@ public class PushDataServiceImpl implements PushDataService{
                             twosevenFileMapper.updateByPrimaryKeySelective(updateData);
                         }
                     }else{
-                        if(errorData.size()<=0) {
-                            errorData.add(datum);
-                        }
+                        errorMark.getAndIncrement();
                     }
                 });
             }
@@ -285,7 +285,7 @@ public class PushDataServiceImpl implements PushDataService{
             number++;
         }
         /** 调用撞库接口有网络失败的 需要重试 */
-        if(errorData.size()>0){
+        if(errorMark.get()>0){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());

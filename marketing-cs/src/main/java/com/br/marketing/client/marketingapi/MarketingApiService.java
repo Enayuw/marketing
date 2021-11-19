@@ -63,8 +63,14 @@ public class MarketingApiService {
         interfaceLog.setResult(JSON.toJSONString(transfer));
         interfaceLog.setHttpCode(transfer.getHttpCode());
         interfaceLog.setExpire(String.valueOf(end - start));
-
         if (Integer.valueOf(200).equals(transfer.getHttpCode())) {
+            interfaceLogDbpool.submit(() -> {
+                try {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                } catch (Exception ex) {
+                    log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
+                }
+            });
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             String code = jsonObject.getString("code");
             if ("999999".equals(code)) {
@@ -89,10 +95,11 @@ public class MarketingApiService {
         interfaceLogDbpool.submit(() -> {
             try {
                 interfaceLogMapper.insertSelective(interfaceLog);
-            } catch (Exception ex) {
-                log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
+            } catch (Exception ee) {
+                log.error(String.format("调用转化接口插入接口日志报错:%s", ee.getMessage()), ee);
             }
         });
+
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.TRUE);
     }
 }

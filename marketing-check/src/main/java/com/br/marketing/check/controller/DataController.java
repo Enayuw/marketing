@@ -62,6 +62,12 @@ public class DataController {
         return "success";
     }
 
+    @GetMapping("pushSevenTest")
+    public String pushSevenTest(@RequestParam("localId") Long localId){
+        Result result = pushDataService.pushSevenTransferData(localId);
+        return "success";
+    }
+
     @GetMapping("retryMethod")
     public String retryMethod(@RequestParam("serviceName")String serviceName,@RequestParam("methodName")String methodName
             ,@RequestParam("params")String params,@RequestParam("paramTypeStr")String paramTypeStr){
