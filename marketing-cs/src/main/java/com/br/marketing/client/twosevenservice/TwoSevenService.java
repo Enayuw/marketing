@@ -35,7 +35,7 @@ public class TwoSevenService {
             dto.setPwd("2021&ert");
             HashMap<String, String> response = httpProxyClient.sendByCode(dto
                     , url
-                    , isProxy.equals(1) ? true : false
+                    , isProxy.equals("1") ? true : false
                     , MediaType.APPLICATION_FORM_URLENCODED_VALUE
                     , null);
             String code = response.get("httpcode");
