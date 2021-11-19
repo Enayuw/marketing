@@ -78,7 +78,7 @@ api:
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku
     isProxy: 1
   marketing:
-    transferUrl: marketing-api
+    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
