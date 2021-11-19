@@ -70,6 +70,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 //判断是否更新
                                 MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, uploadDate);
                                 MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                Date appletEndTime = DateHelper.parseDate(getAppletTime(apiCode, userType, uploadDate, Boolean.FALSE));
                                 if (report == null) {
                                     //新增
                                     modifyReport.setAppletBeginTime(DateHelper.parseDate(appletBeginTime));
@@ -84,8 +85,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                     //客户名称
                                     modifyReport.setShortName(customer.getShortName());
                                     //上传结束时间
-                                    modifyReport.setAppletEndTime(DateHelper.parseDate(getAppletTime(apiCode, userType, uploadDate, Boolean.FALSE)));
-                                    report.setCreateTime(new Date());
+                                    modifyReport.setAppletEndTime(appletEndTime);
+                                    modifyReport.setCreateTime(new Date());
                                 }
                                 //数据正常入库条数
                                 modifyReport.setNormalNum(getUploadNum(apiCode, userType, uploadDate, Boolean.TRUE));
@@ -96,14 +97,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                     log.warn("新增上传数据统计：{}", JSON.toJSONString(modifyReport));
                                     syncReportMapper.insert(modifyReport);
                                 } else {
-                                    Date appletEndTime = report.getAppletEndTime();
-                                    Date date = DateHelper.parseDate(getAppletTime(apiCode, userType, uploadDate, Boolean.FALSE));
+                                    Date appletEndTimeReport = report.getAppletEndTime();
                                     //更新
-                                    if (date.compareTo(appletEndTime) == 1) {
+                                    if (appletEndTime.compareTo(appletEndTimeReport) == 1) {
                                         modifyReport.setId(report.getId());
-                                        modifyReport.setAppletEndTime(date);
+                                        modifyReport.setAppletEndTime(appletEndTime);
                                         log.warn("编辑上传数据统计：{}", JSON.toJSONString(modifyReport));
-                                        syncReportMapper.updateByPrimaryKey(modifyReport);
+                                        syncReportMapper.modifyReportById(modifyReport);
                                     }
                                 }
                             }
@@ -111,7 +111,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     }
                 }
             } catch (Exception e) {
-                log.error("程序执行上传数据统计报表任务异常，apiCode={}", customer.getApiCode());
+                log.error("程序执行上传数据统计报表任务异常，apiCode={}", customer.getApiCode(), e);
             }
         });
     }

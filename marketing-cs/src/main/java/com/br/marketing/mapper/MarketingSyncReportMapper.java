@@ -16,6 +16,8 @@ public interface MarketingSyncReportMapper {
     String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("uploadDate") String uploadDate);
 
+    int modifyReportById(MarketingSyncReport record);
+
     int countByExample(MarketingSyncReportExample example);
 
     int deleteByExample(MarketingSyncReportExample example);
