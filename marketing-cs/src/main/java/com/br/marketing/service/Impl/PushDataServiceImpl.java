@@ -31,6 +31,7 @@ import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.PushDataService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
+@Slf4j
 @Service
 public class PushDataServiceImpl implements PushDataService{
 
@@ -148,20 +150,24 @@ public class PushDataServiceImpl implements PushDataService{
     @Override
     public Result pushSevenTransferData(Long id) {
         Boolean isContiue = false;
-        Result result = this.pushAction(id);
-        if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
-            RetryMainLog retryMainLog = new RetryMainLog();
-            retryMainLog.setRetryType(1);
-            retryMainLog.setRetryParam(JSON.toJSONString(id));
-            retryMainLog.setRetryParamType(id.getClass().getName());
-            retryMainLog.setRetryService("pushDataServiceImpl");
-            retryMainLog.setRetryMethod("pushAction");
-            retryMainLog.setRetryNum(0);
-            retryMainLog.setRetryMaxNum(3);
-            retryMainLog.setRetryStatus(1);
-            retryMainLog.setCreateTime(new Date());
-            retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-            retryMainLogMapper.insertSelective(retryMainLog);
+        try {
+            Result result = this.pushAction(id);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                RetryMainLog retryMainLog = new RetryMainLog();
+                retryMainLog.setRetryType(1);
+                retryMainLog.setRetryParam(JSON.toJSONString(id));
+                retryMainLog.setRetryParamType(id.getClass().getName());
+                retryMainLog.setRetryService("pushDataServiceImpl");
+                retryMainLog.setRetryMethod("pushAction");
+                retryMainLog.setRetryNum(0);
+                retryMainLog.setRetryMaxNum(3);
+                retryMainLog.setRetryStatus(1);
+                retryMainLog.setCreateTime(new Date());
+                retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                retryMainLogMapper.insertSelective(retryMainLog);
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
         }
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
