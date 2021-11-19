@@ -49,7 +49,7 @@ public class MarketingApiService {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setExtendInfo(null);
         interfaceLog.setRequestId(UUID.randomUUID().toString());
-        interfaceLog.setUrl("marketing-api-service");
+        interfaceLog.setUrl(transferUrl);
         interfaceLog.setCreateTime(new Date());
         interfaceLog.setRequestParam(JSON.toJSONString(pushTransferDataDTO.getDto()));
         Long start = System.currentTimeMillis();
