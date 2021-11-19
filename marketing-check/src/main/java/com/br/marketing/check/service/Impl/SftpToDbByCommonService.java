@@ -5,6 +5,7 @@ import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.utils.SftpToDbUtils;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
@@ -49,6 +50,13 @@ import java.util.regex.Pattern;
 @Slf4j
 public class SftpToDbByCommonService {
 
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
     /**
      * The Load result mapper.
      */
@@ -83,6 +91,8 @@ public class SftpToDbByCommonService {
     private static String phoneReg = "^([\\+]*[0-9]+)$";
 
     private final static Integer SPLITSIZE=5000;
+
+
 
     public Boolean dowloadFile(FileContext context) {
         String localFilePath=context.getLocalTxtFilePath();
@@ -179,7 +189,9 @@ public class SftpToDbByCommonService {
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setActualNumber(line>0?line-1:line);
+            localFile.setActualNumber(updateFile.getActualNumber());
         if(errorMark.get()>0){
+            localFile.setComplete("3");
             updateFile.setComplete("3");
         }
             localFileMapper.updateByPrimaryKeySelective(updateFile);
@@ -190,6 +202,18 @@ public class SftpToDbByCommonService {
         long end = System.currentTimeMillis();
         if(log.isWarnEnabled()){
             log.warn(String.format("数据入库时长:%d",end-start));
+        }
+        try{
+            StringBuilder content = new StringBuilder();
+            content.append("导入文件名称：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("文件类型：".concat(localFile.getFileType()).concat("\r\n"))
+                    .append("导入文件状态：".concat("1".equals(localFile.getComplete())?"正常":"不正常").concat("\r\n"))
+                    .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
+                    .append("其中有问题行数：".concat(errorMark.toString()).concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(),"sftp数据上传",appName,secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
         }
         return true;
     }
