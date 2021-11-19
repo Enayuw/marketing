@@ -36,7 +36,7 @@ public class TaskUploadSyncReportJob extends AbstractSimpleElasticJob {
     private MarketingSyncReportService syncReportService;
 
     /**
-     * 上传数据统计报表流程
+     * 上传数据统计报表流程(job可以配置参数：时间字段格式yyyy-MM-dd 例：2021-11-19  2021-11-10,2021-11-19)
      *
      * @param context
      * @return
@@ -84,7 +84,7 @@ public class TaskUploadSyncReportJob extends AbstractSimpleElasticJob {
                         Date eDate = DateHelper.parseDate(endDate);
                         if (bDate.compareTo(eDate) == 0) {
                             indexList.add(dateFormat.format(bDate));
-                        } else {
+                        } else if (bDate.compareTo(eDate) == 1) {
                             indexList.add(dateFormat.format(bDate));
                             indexList.add(dateFormat.format(eDate));
                             while (true) {

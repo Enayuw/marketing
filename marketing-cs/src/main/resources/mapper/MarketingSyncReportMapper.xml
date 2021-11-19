@@ -342,22 +342,30 @@
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
     (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
     <if test="status != null  and status = 1">
-      status = #{status,jdbcType=INTEGER}
+      and status = #{status,jdbcType=INTEGER}
       and is_repeat in(1,2)
     </if>
   </select>
 
   <select id="uploadSyncMinAppletTime" resultType="java.lang.String">
-    select min(create_time) from b_marketing_sync_${apiCode}
+    select DATE_FORMAT(min(create_time),"%Y-%m-%d %H:%i:%s") from b_marketing_sync_${apiCode}
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
     (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
   </select>
 
   <select id="uploadSyncMaxAppletTime" resultType="java.lang.String">
-    select max(create_time) from b_marketing_sync_${apiCode}
+    select DATE_FORMAT(max(create_time),"%Y-%m-%d %H:%i:%s") from b_marketing_sync_${apiCode}
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
     (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
   </select>
+
+  <update id="modifyReportById" parameterType="com.br.marketing.entity.MarketingSyncReport" >
+    update b_marketing_sync_report
+    set normal_num = #{normalNum,jdbcType=INTEGER},
+      duplicate_removal_num = #{duplicateRemovalNum,jdbcType=INTEGER},
+      applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
 </mapper>
