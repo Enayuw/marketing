@@ -265,6 +265,11 @@ public class PushDataServiceImpl implements PushDataService{
             pushTransferDataDTO.setTwoFileIds(twoFileIds);
             PushTransferDataDetailDTO detailDTO = new PushTransferDataDetailDTO();
             pushTransferDataDTO.setDto(detailDTO);
+            Long miId = twoFileIds.get(0);
+            Long maId = twoFileIds.get(twoFileIds.size()-1);
+            pushTransferDataDTO.setExtendInfo(localFile.getId().toString()
+                    .concat("-").concat(miId.toString())
+                    .concat("-").concat(maId.toString()));
             detailDTO.setApiCode(localFile.getApiCode());
             detailDTO.setJsonData(JSON.toJSONString(transferDataDTO));
             Result<Boolean> booleanResult = marketingApiService.pushTransfer(pushTransferDataDTO);
