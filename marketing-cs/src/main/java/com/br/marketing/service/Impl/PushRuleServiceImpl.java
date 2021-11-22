@@ -1882,6 +1882,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         return outboundVO;
     }
 
+    final static String hasTransfer = "1";
+
+    final static String noHasTransfer = "0";
+
     @Override
     public TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo
             , List<MarketingTransferSyncUser> transferList) {
@@ -1910,7 +1914,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             conversionData.setCid(transfer.getCid());
             conversionData.setCaseNum(transfer.getCustNum());
             conversionData.setGroupType(transfer.getUserType());
-            conversionData.setInversionStatus(transfer.getIfTransform());
+            conversionData.setInversionStatus(hasTransfer.equals(transfer.getIfTransform())
+                    ?"0"
+                    :(noHasTransfer.equals(transfer.getIfTransform())?"1":transfer.getIfTransform()));
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
             conversionData.setPhone(map.containsKey(transfer.getCustNum())
                     ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
