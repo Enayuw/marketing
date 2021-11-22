@@ -112,12 +112,6 @@
         where <![CDATA[ applet_time >= #{sTimeStr} and applet_time < #{eTimeStr} and id >= #{minId} and id <= #{maxId}]]>
         and is_repeat in (1,2)
         and (${whereStr}) order by id asc
-        where <![CDATA[ applet_time >= #{sTimeStr}
-          and applet_time < #{eTimeStr}
-          and id >= #{minId}]]>
-          and is_repeat in (1, 2)
-          and (${whereStr})
-        order by id asc limit 5000
     </select>
 
 
