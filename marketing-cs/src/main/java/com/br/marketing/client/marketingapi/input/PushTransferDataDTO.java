@@ -9,5 +9,7 @@ public class PushTransferDataDTO {
 
     private List<Long> twoFileIds;
 
+    private String extendInfo;
+
     private PushTransferDataDetailDTO dto;
 }

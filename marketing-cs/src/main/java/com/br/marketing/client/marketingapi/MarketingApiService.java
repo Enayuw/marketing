@@ -52,6 +52,7 @@ public class MarketingApiService {
         interfaceLog.setUrl(transferUrl);
         interfaceLog.setCreateTime(new Date());
         interfaceLog.setRequestParam(JSON.toJSONString(pushTransferDataDTO.getDto()));
+        interfaceLog.setExtendInfo(pushTransferDataDTO.getExtendInfo());
         Long start = System.currentTimeMillis();
         try{
         ThirdApiResultTransfer transfer = new ApiCaller(restTemplate)
