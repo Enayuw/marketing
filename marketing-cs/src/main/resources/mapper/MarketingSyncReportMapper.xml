@@ -368,4 +368,50 @@
       applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
+
+  <select id="selectList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
+    select id, cid
+    , api_code as apiCode
+    , short_name as shortName
+    , applet_date as appletDate
+    , user_type as userType
+    , normal_num as normalNum
+    , duplicate_removal_num as duplicateRemovalNum
+    , DATE_FORMAT(bmsr.applet_begin_time,'%Y-%m-%d %H:%i:%s') as appletBeginTime
+    , DATE_FORMAT(bmsr.applet_end_time,'%Y-%m-%d %H:%i:%s') as appletEndTime
+    , remark
+    , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
+    , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+    from b_marketing_sync_report bmsr
+    <where>
+      <if test="cidOrName != null and cidOrName.trim() neq ''">
+        and bmsr.cid like concat("%", #{cidOrName},"%")
+        or bmsr.short_name like concat("%", #{cidOrName},"%")
+      </if>
+      <if test="appletTimeStart !=null and appletTimeStart!=''">
+        <![CDATA[  and bmsr.applet_begin_time >=#{appletTimeStart} ]]>
+      </if>
+      <if test="appletTimeEnd !=null and appletTimeEnd!=''">
+        <![CDATA[  and bmsr.applet_begin_time <#{appletTimeEnd} ]]>
+      </if>
+      <if test="apiCodeList != null and apiCodeList.size()>0">
+        and bmsr.api_code in
+        <foreach collection="apiCodeList" item="item" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+      <if test="userTypeList != null and userTypeList.size()>0">
+        and bmsr.user_type in
+        <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+    order by bmsr.applet_begin_time desc
+  </select>
+
+  <select id="getApiCodeList" resultType="com.br.marketing.entity.MarketingSyncReport">
+    select distinct * from b_marketing_sync_report
+  </select>
+
 </mapper>

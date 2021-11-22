@@ -1,8 +1,10 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.DateUtils;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
@@ -12,14 +14,15 @@ import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.MarketingSyncReportService;
+import com.br.marketing.vo.MarketingSyncReportVO;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.text.ParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -186,5 +189,63 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             userTypeList = dicList.stream().map(v -> v.getFieldValue()).collect(Collectors.toList());
         }
         return userTypeList;
+    }
+
+    @Override
+    public PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes) {
+
+        if (StringUtils.isNotEmpty(appletTimeEnd)){
+            appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
+
+        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")){
+            cidOrName = cidOrName.replace("_", "\\_");
+        }
+
+        List<String> apiCodeList = new ArrayList<>();
+        List<String> userTypeList = new ArrayList<>();
+        if(apiCodes != null && !"".equals(apiCodes)){
+            String[] split = apiCodes.split(",");
+            for(String item : split){
+                apiCodeList.add(item);
+            }
+        }
+        if(userTypes != null && !"".equals(userTypes)){
+            String[] split = userTypes.split(",");
+            for(String item : split){
+                userTypeList.add(item);
+            }
+        }
+        Map params = new HashMap();
+        params.put("cidOrName",cidOrName);
+        params.put("appletTimeStart",appletTimeStart);
+        params.put("appletTimeEnd",appletTimeEnd);
+        params.put("apiCodeList",apiCodeList);
+        params.put("userTypeList",userTypeList);
+
+        PageHelper.startPage(current, size);
+        List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+
+        return PageResultReturn.setPageResult(list, current,size);
+    }
+
+    @Override
+    public List<MarketingSyncReport> getApiCodeList(String apiCode) {
+        List<MarketingSyncReport> list = syncReportMapper.getApiCodeList(apiCode);
+        return list;
+    }
+
+    private Date addDay(String date, Integer addDays, String format) {
+        Calendar c = Calendar.getInstance();
+        Date time = null;
+        try {
+            Date endTime = DateUtils.parse(date, format);
+            c.setTime(endTime);
+            c.add(Calendar.DAY_OF_MONTH, addDays);
+            time = c.getTime();
+        } catch (ParseException e) {
+            log.error("date:{} is error", date, e);
+        }
+        return time;
     }
 }
