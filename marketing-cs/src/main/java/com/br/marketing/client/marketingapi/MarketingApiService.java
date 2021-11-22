@@ -42,7 +42,7 @@ public class MarketingApiService {
     @Autowired
     TwosevenFileMapper twosevenFileMapper;
 
-    @Value("${api.marketing.transferUrl}")
+    @Value("${api.marketing.transferUrl:00}")
     String transferUrl;
 
     public Result<Boolean> pushTransfer(PushTransferDataDTO pushTransferDataDTO) {
