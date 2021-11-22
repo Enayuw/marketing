@@ -38,10 +38,4 @@ public interface MarketingSyncReportService {
      */
     PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
-    /**
-     * ApiCode列表
-     * @param apiCode
-     * @return
-     */
-    List<MarketingSyncReport> getApiCodeList(String apiCode);
 }

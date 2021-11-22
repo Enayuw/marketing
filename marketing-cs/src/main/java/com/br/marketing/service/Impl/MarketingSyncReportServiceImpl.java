@@ -229,12 +229,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         return PageResultReturn.setPageResult(list, current,size);
     }
 
-    @Override
-    public List<MarketingSyncReport> getApiCodeList(String apiCode) {
-        List<MarketingSyncReport> list = syncReportMapper.getApiCodeList(apiCode);
-        return list;
-    }
-
     private Date addDay(String date, Integer addDays, String format) {
         Calendar c = Calendar.getInstance();
         Date time = null;
