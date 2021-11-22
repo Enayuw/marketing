@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
@@ -192,7 +193,7 @@ public class PushDataServiceImpl implements PushDataService{
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         while(actionMark) {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
-            List<TransferDataItemDTO> dataItems = new ArrayList<>();
+            List<TransferDataItemDTO> dataItems = Collections.synchronizedList(new ArrayList<>());
             List<Long> twoFileIds = new ArrayList<>();
             List<TwosevenFile> data = twosevenFileMapper.getPushData(id, minId);
             if(data.size()<=0){
