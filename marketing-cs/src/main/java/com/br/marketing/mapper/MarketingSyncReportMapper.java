@@ -2,9 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.vo.MarketingSyncReportVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MarketingSyncReportMapper {
     int uploadSyncCount(@Param("apiCode") String apiCode, @Param("userType") String userType,
@@ -15,6 +17,10 @@ public interface MarketingSyncReportMapper {
 
     String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("uploadDate") String uploadDate);
+
+    List<MarketingSyncReportVO> selectList(Map<String, Object> params);
+
+    List<MarketingSyncReport> getApiCodeList(@Param("apiCode")String apiCode);
 
     int modifyReportById(MarketingSyncReport record);
 
