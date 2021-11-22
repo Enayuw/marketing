@@ -207,9 +207,10 @@ public class PushDataServiceImpl implements PushDataService{
                     updateData.setId(datum.getId());
                     RequestSevenDTO dto = new RequestSevenDTO();
                     dto.setMobile(datum.getMobile());
-                    Result<ResponseSevenZDTO> responseSevenZDTOResult = twoSevenService.requestTransferStatus(dto);
+                    String extendInfo = datum.getLocalId().toString().concat("-").concat(datum.getId().toString());
+                    Result<ResponseSevenZDTO> responseSevenZDTOResult = twoSevenService.requestTransferStatus(dto,extendInfo);
                     if(!ResultCode.SUCCESS.getValue().equals(responseSevenZDTOResult.getCode())){
-                        responseSevenZDTOResult = twoSevenService.requestTransferStatus(dto);
+                        responseSevenZDTOResult = twoSevenService.requestTransferStatus(dto,extendInfo);
                     }
                     if(ResultCode.SUCCESS.getValue().equals(responseSevenZDTOResult.getCode())) {
                         ResponseSevenZDTO responSeven = responseSevenZDTOResult.getData();
@@ -228,9 +229,9 @@ public class PushDataServiceImpl implements PushDataService{
                                 updateData.setTransferOk("0");
                             }
                             twosevenFileMapper.updateByPrimaryKeySelective(updateData);
-                        }else if("1002".equals(responSeven.getRet())){
-                            updateData.setTransferOk("1002");
-                            updateData.setDataMessage("无号码数据");
+                        }else{
+                            updateData.setTransferOk(responSeven.getRet());
+                            updateData.setDataMessage(responSeven.getMsg());
                             twosevenFileMapper.updateByPrimaryKeySelective(updateData);
                         }
                     }else{

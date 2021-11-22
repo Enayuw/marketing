@@ -29,7 +29,7 @@ public class TwoSevenService {
     @Autowired
     HttpProxyClient httpProxyClient;
 
-    public Result<ResponseSevenZDTO> requestTransferStatus(RequestSevenDTO dto){
+    public Result<ResponseSevenZDTO> requestTransferStatus(RequestSevenDTO dto,String extendInfo){
         try {
             dto.setUserName("1078");
             dto.setPwd("2021&ert");
@@ -37,7 +37,7 @@ public class TwoSevenService {
                     , url
                     , isProxy.equals("1") ? true : false
                     , MediaType.APPLICATION_FORM_URLENCODED_VALUE
-                    , null);
+                    , extendInfo);
             String code = response.get("httpcode");
             if("200".equals(code)){
                 ResponseSevenZDTO content = JSON.parseObject(response.get("content"), new TypeReference<ResponseSevenZDTO>() {
