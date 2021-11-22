@@ -99,7 +99,7 @@
     />
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
-                cron="0 0/30 * * * ? "
+                cron="0 1/15 * * * ? "
                 description="77转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

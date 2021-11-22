@@ -194,7 +194,7 @@ public class PushDataServiceImpl implements PushDataService{
         while(actionMark) {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
             List<TransferDataItemDTO> dataItems = Collections.synchronizedList(new ArrayList<>());
-            List<Long> twoFileIds = new ArrayList<>();
+            List<Long> twoFileIds = Collections.synchronizedList(new ArrayList<>());
             List<TwosevenFile> data = twosevenFileMapper.getPushData(id, minId);
             if(data.size()<=0){
                 actionMark= false;
