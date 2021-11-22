@@ -60,20 +60,4 @@ public class SyncReportController {
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
-    @GetMapping("/getApiCodeList")
-    @ApiOperation(value = "ApiCode列表,支持联想输入",notes = "ApiCode列表,支持联想输入")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "apiCode",value = "",required = false,dataType = "String")
-    })
-    public ApiResult<List<MarketingSyncReport>> getApiCodeList(String apiCode){
-        try {
-            //查询
-            List<MarketingSyncReport> list = marketingSyncReportService.getApiCodeList(apiCode);
-            return new ApiResult<List<MarketingSyncReport>>().success(list);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<List<MarketingSyncReport>>().fail(ServiceResultEnum.FAILED);
-        }
-    }
-
 }

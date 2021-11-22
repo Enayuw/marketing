@@ -20,7 +20,6 @@ public interface MarketingSyncReportMapper {
 
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 
-    List<MarketingSyncReport> getApiCodeList(@Param("apiCode")String apiCode);
 
     int modifyReportById(MarketingSyncReport record);
 

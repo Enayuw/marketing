@@ -2,9 +2,11 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -100,4 +102,36 @@ public class CustomerController {
         }
     }
 
+    @GetMapping("/getApiCodeList")
+    @ApiOperation(value = "ApiCode列表,支持联想输入",notes = "ApiCode列表,支持联想输入")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode",value = "",required = false,dataType = "String")
+    })
+    public ApiResult<List<MarketingCustomer>> getApiCodeList(String apiCode){
+        try {
+            //查询
+            List<MarketingCustomer> list = marketingCustomerService.getApiCodeList(apiCode);
+            return new ApiResult<List<MarketingCustomer>>().success(list);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @GetMapping("/getCidOrName")
+    @ApiOperation(value = "客户名称/客户编号,支持联想输入",notes = "客户名称/客户编号,支持联想输入")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
+    })
+    public ApiResult<List<MarketingCustomer>> getCidOrName(String search){
+        try {
+            //查询
+            List<MarketingCustomer> list = marketingCustomerService.getCidOrName(search);
+            return new ApiResult<List<MarketingCustomer>>().success(list);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
 }

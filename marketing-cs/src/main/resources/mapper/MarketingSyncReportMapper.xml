@@ -410,8 +410,5 @@
     order by bmsr.applet_begin_time desc
   </select>
 
-  <select id="getApiCodeList" resultType="com.br.marketing.entity.MarketingSyncReport">
-    select distinct * from b_marketing_sync_report
-  </select>
 
 </mapper>

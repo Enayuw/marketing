@@ -71,4 +71,17 @@
         </where>
         order by mc.update_time desc, mc.create_time desc
     </select>
+
+    <select id="getCidOrName" resultType="com.br.marketing.entity.MarketingCustomer">
+        select id,cid,api_code,name,short_name
+        from b_marketing_customer bmc
+        <where>
+            bmc.status = 1
+            <if test="search !=null and search!=''">
+                and bmc.short_name like concat("%", #{search},"%")
+                or bmc.cid like concat("%", #{search},"%")
+            </if>
+        </where>
+        order by bmc.id desc
+    </select>
 </mapper>
