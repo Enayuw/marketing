@@ -64,11 +64,12 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                     Constants.sendCodeMap.get("pushToCustomer"));
         }
         String responseBody = pushTransferRobotaiLog.getResponseBody();
-        String smg = String.format("apiCode为[%s]的客户转化数据推送失败或部分失败!" +
+        String smg = String.format("apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]的客户转化数据推送失败或部分失败!" +
                         "\n日期[%s];" +
                         "\n应答内容:[%s:%s]" +
                         "\n未成功数据情况:[%s]"
-                , apiCode, DateUtils.format(new Date()), outboundVO.getCode(), outboundVO.getMessage()
+                , apiCode, transferInfo.getRequestId(), transferInfo.getId(), pushTransferRobotaiLog.gettCid()
+                , DateUtils.format(new Date()), outboundVO.getCode(), outboundVO.getMessage()
                 , responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
         Object data = outboundVO.getData();
         log.warn(smg.concat("\n#失败记录：").concat(data == null ? "" : data.toString()));

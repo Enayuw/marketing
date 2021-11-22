@@ -80,6 +80,8 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
+        shardingItems.add(0);
+        shardingItems.add(1);
         // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
         // 设置最大重试次数
@@ -119,15 +121,17 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                             if (!outboundVO.getAccessNumber().equals("-1")) {
                                 info.setId(robotaiLog.getTransferInfoId());
                                 pushTransferRobotaiLogService.saveLog(info, outboundDTO, outboundVO);
-                                smg = String.format("$$apiCode:[%s];requestId:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d]/共[%d];" +
+                                smg = String.format("$$apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]补偿部分失败的数据依然失败或部分失败!已补偿[%d]/共[%d];" +
                                                 "\n更新原记录为已补偿,并生成新记录！" +
                                                 "\n业务返回状态码[%s];" +
-                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
+                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId()
+                                        , robotaiLog.getTransferInfoId(), robotaiLog.gettCid(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
                             } else {
-                                smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]/共[%d]" +
+                                smg = String.format("@@apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]补偿成功,更新原记录为已补偿！已补偿[%d]/共[%d]" +
                                                 "\n业务返回状态码[%s];" +
-                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
+                                                "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId()
+                                        , robotaiLog.getTransferInfoId(), robotaiLog.gettCid(), updateLog.getCompensateTimes(), compensateTimes
                                         , outboundVO.getCode(), outboundVO.getMessage());
                             }
                             updateLog.setPushStatus(1);
@@ -163,17 +167,19 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 updateLog.setResponseBody(JSON.toJSONString(outboundVO.getData()));
                 if (outboundVO.getAccessNumber().equals("-1")) {
                     updateLog.setPushStatus(1);
-                    String smg = String.format("@@apiCode:[%s];requestId:[%s]补偿成功！已补偿[%d]/共[%d]" +
+                    String smg = String.format("@@apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]补偿成功！已补偿[%d]/共[%d]" +
                                     "\n业务返回状态码[%s];" +
-                                    "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
+                                    "\n业务应答消息[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId()
+                            , robotaiLog.getTransferInfoId(), robotaiLog.gettCid(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage());
                     sendAlarm(smg);
                 } else {
                     String responseBody = updateLog.getResponseBody();
-                    String smg = String.format("$$apiCode:[%s];requestId:[%s]补偿依然失败或部分失败！已补偿[%d]/共[%d]" +
+                    String smg = String.format("$$apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]补偿依然失败或部分失败！已补偿[%d]/共[%d]" +
                                     "\n业务返回状态码[%s];" +
                                     "\n业务应答消息[%s]" +
-                                    "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes
+                                    "\n未成功数据情况:[%s]", robotaiLog.getApiCode(), robotaiLog.getRequestId()
+                            , robotaiLog.getTransferInfoId(), robotaiLog.gettCid(), updateLog.getCompensateTimes(), compensateTimes
                             , outboundVO.getCode(), outboundVO.getMessage(),
                             (responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody));
                     sendAlarm(smg);
