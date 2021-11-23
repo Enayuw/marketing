@@ -10,6 +10,9 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,10 +40,21 @@ public class ConsumerApp {
      * @param message 消息体
      */
     @RabbitListener(queues = MQConstants.MARKETING_PUSH_DASS_SCORE, containerFactory = "containerFactory")
-    public void consumerUserStatus(Channel channel, Message message) {
+    public void consumerPushDass(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o,
-                "Marketing.Push.CustomerService.Search.Delay");
+        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o,"");
+    }
+
+    /**
+     * 消费七七转化数据
+     * @param channel
+     * @param message
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_PUSH_TWOSEVEN_FILETRANSFER, containerFactory = "containerFactory")
+    public void consumerPushTwoSeven(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushDataService::pushSevenTransferData, o,"");
     }
 }

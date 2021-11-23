@@ -106,11 +106,6 @@ public class DassServiceClient {
         long start = System.currentTimeMillis();
         try {
             HashMap<String,String> hashMap = httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postHermesUserDataUrl, isProxy.equals("0") ? false : true);
-//            ThirdApiResultTransfer transfer = new ApiCaller(isProxy.equals("0") ? restTemplate : restTemplateByProxy)
-//                    .setRequestParam(requestParam)
-//                    .setUrl(postHermesUserDataUrl)
-//                    .setContentType(MediaType.APPLICATION_JSON_UTF8)
-//                    .postTransferStr();
             long end = System.currentTimeMillis();
             Integer code = null;
             if(StringUtils.isNotBlank(hashMap.get("httpcode"))){

@@ -1,0 +1,106 @@
+package com.br.marketing.client.marketingapi;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
+import com.br.marketing.entity.InterfaceLog;
+import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.entity.TwosevenFile;
+import com.br.marketing.entity.TwosevenFileExample;
+import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.TwosevenFileMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
+
+@Service
+@Slf4j
+public class MarketingApiService {
+    
+    @Autowired
+    RestTemplate restTemplate;
+
+    @Qualifier("interfaceLogDbpool")
+    @Autowired
+    ThreadPoolExecutor interfaceLogDbpool;
+
+    @Autowired
+    InterfaceLogMapper interfaceLogMapper;
+
+    @Autowired
+    TwosevenFileMapper twosevenFileMapper;
+
+    @Value("${api.marketing.transferUrl:00}")
+    String transferUrl;
+
+    public Result<Boolean> pushTransfer(PushTransferDataDTO pushTransferDataDTO) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setExtendInfo(null);
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(transferUrl);
+        interfaceLog.setCreateTime(new Date());
+        interfaceLog.setRequestParam(JSON.toJSONString(pushTransferDataDTO.getDto()));
+        interfaceLog.setExtendInfo(pushTransferDataDTO.getExtendInfo());
+        Long start = System.currentTimeMillis();
+        try{
+        ThirdApiResultTransfer transfer = new ApiCaller(restTemplate)
+                .setUrl(transferUrl)
+                .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .setRequestParam(pushTransferDataDTO.getDto())
+                .postTransferStr();
+        Long end = System.currentTimeMillis();
+        interfaceLog.setResult(JSON.toJSONString(transfer));
+        interfaceLog.setHttpCode(transfer.getHttpCode());
+        interfaceLog.setExpire(String.valueOf(end - start));
+        if (Integer.valueOf(200).equals(transfer.getHttpCode())) {
+            interfaceLogDbpool.submit(() -> {
+                try {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                } catch (Exception ex) {
+                    log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
+                }
+            });
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            String code = jsonObject.getString("code");
+            if ("999999".equals(code)) {
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            if (!"00".equals(code)) {
+                log.error(String.format("推送转化接口错误：%s", transfer.getResult()));
+                return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+            }
+            TwosevenFileExample fileExample = new TwosevenFileExample();
+            fileExample.createCriteria().andIdIn(pushTransferDataDTO.getTwoFileIds());
+            TwosevenFile updateFile = new TwosevenFile();
+            updateFile.setPushStatus(2);
+            twosevenFileMapper.updateByExampleSelective(updateFile, fileExample);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        }catch (Exception ex){
+            interfaceLog.setResult(ex.getMessage().length()>450? ex.getMessage().substring(0,450) : ex.getMessage());
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+        }
+        interfaceLogDbpool.submit(() -> {
+            try {
+                interfaceLogMapper.insertSelective(interfaceLog);
+            } catch (Exception ee) {
+                log.error(String.format("调用转化接口插入接口日志报错:%s", ee.getMessage()), ee);
+            }
+        });
+
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.TRUE);
+    }
+}

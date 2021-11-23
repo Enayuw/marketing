@@ -32,4 +32,12 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("logDb-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
+
+
+    @Bean("interfaceLogDbpool")
+    public ThreadPoolExecutor getInterfaceLogDbpool(){
+        return new ThreadPoolExecutor(10,20,10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("interfaceLogDb-pool-%d").build()
+                ,new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 }

@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TwosevenFileMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TwosevenFile" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="transfer_ok" property="transferOk" jdbcType="VARCHAR" />
+    <result column="org_name" property="orgName" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, cid, api_code, local_id, status, push_status, data_message, cust_num, mobile, 
+    user_type, transfer_ok, org_name, extend, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TwosevenFileExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_twoseven_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_twoseven_file
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_twoseven_file
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TwosevenFileExample" >
+    delete from b_twoseven_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.TwosevenFile" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_twoseven_file (cid, api_code, local_id, 
+      status, push_status, data_message, 
+      cust_num, mobile, user_type, 
+      transfer_ok, org_name, extend, 
+      create_time, update_time)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, 
+      #{status,jdbcType=INTEGER}, #{pushStatus,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
+      #{custNum,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
+      #{transferOk,jdbcType=VARCHAR}, #{orgName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.TwosevenFile" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_twoseven_file
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="custNum != null" >
+        cust_num,
+      </if>
+      <if test="mobile != null" >
+        mobile,
+      </if>
+      <if test="userType != null" >
+        user_type,
+      </if>
+      <if test="transferOk != null" >
+        transfer_ok,
+      </if>
+      <if test="orgName != null" >
+        org_name,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="transferOk != null" >
+        #{transferOk,jdbcType=VARCHAR},
+      </if>
+      <if test="orgName != null" >
+        #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.TwosevenFileExample" resultType="java.lang.Integer" >
+    select count(*) from b_twoseven_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_twoseven_file
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mobile != null" >
+        mobile = #{record.mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.transferOk != null" >
+        transfer_ok = #{record.transferOk,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgName != null" >
+        org_name = #{record.orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_twoseven_file
+    set id = #{record.id,jdbcType=BIGINT},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=BIGINT},
+      status = #{record.status,jdbcType=INTEGER},
+      push_status = #{record.pushStatus,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      mobile = #{record.mobile,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      transfer_ok = #{record.transferOk,jdbcType=VARCHAR},
+      org_name = #{record.orgName,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TwosevenFile" >
+    update b_twoseven_file
+    <set >
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        mobile = #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="transferOk != null" >
+        transfer_ok = #{transferOk,jdbcType=VARCHAR},
+      </if>
+      <if test="orgName != null" >
+        org_name = #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TwosevenFile" >
+    update b_twoseven_file
+    set cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=BIGINT},
+      status = #{status,jdbcType=INTEGER},
+      push_status = #{pushStatus,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      mobile = #{mobile,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
+      transfer_ok = #{transferOk,jdbcType=VARCHAR},
+      org_name = #{orgName,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

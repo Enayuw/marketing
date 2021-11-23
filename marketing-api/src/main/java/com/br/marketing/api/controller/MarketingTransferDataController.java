@@ -3,10 +3,13 @@ package com.br.marketing.api.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.context.RuntimeDataContext;
+import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,15 +33,26 @@ public class MarketingTransferDataController {
     PushRuleService pushRuleService;
 
 
+    /**
+     * 智能营销标准转化数据上传接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @ApiOperation(value = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
-    public ApiNoDataResult receiveTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData){
+    @LogAnnotation
+    public ApiNoDataResult receiveTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
         Result result = pushRuleService.insertTransferData(apiCode, jsonData);
         return new ApiNoDataResult().fromResult(result);
     }
 
     /**
-     * 获取转化数据上传详情
+     * 智能营销标准转化数据查询接口
      *
      * @param apiCode
      * @param jsonData
