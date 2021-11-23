@@ -13,6 +13,7 @@ import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.MomUtil;
 import com.br.marketing.task.utils.ResultUtil;
 import com.br.marketing.task.utils.VaildHxResultUtil;
+import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +52,13 @@ public class MarketingThread implements Callable<String> {
     private String fileId;
     private Customer customer;
     private String baseHeadInfo;
+    private List<StrategyProductDetailVO> fieldInfos;
     private MarketingTask marketingTask;
     private List<String> noflagproductlist;
+    private List<String> flagProductList;
     public MarketingThread(List<MarketingUser> list, Map<String,String> param
-            , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask,List<String> noflagproductlist){
+            , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask
+            ,List<String> noflagproductlist,List<String> flagProductList,List<StrategyProductDetailVO> fieldInfos){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
@@ -74,8 +78,10 @@ public class MarketingThread implements Callable<String> {
         this.fileId=param.get("fileId");
         this.customer=customer;
         this.baseHeadInfo = param.get("baseHeadInfo");
+        this.fieldInfos = fieldInfos;
         this.marketingTask = marketingTask;
         this.noflagproductlist = noflagproductlist;
+        this.flagProductList = flagProductList;
 
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
     }
@@ -172,13 +178,12 @@ public class MarketingThread implements Callable<String> {
                 if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
                     resultStr= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
-                    requestLog.setResponseTime(new Date());
-                    try {
-                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
-                    }catch (Throwable throwable){
-                        log.error(throwable.getMessage());
-                    }
-
+//                    requestLog.setResponseTime(new Date());
+//                    try {
+//                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+//                    }catch (Throwable throwable){
+//                        log.error(throwable.getMessage());
+//                    }
                 }else{
                     resultStr = loanWarningClient.queryApi(param, apiCode);
                 }
@@ -418,17 +423,17 @@ public class MarketingThread implements Callable<String> {
      */
     private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,noflagproductlist)){
+            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,noflagproductlist,flagProductList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,fieldInfos);
                 }
             }
             if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
                  JSONObject resultJson=JSONObject.parseObject(s);
                  if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
                          ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo);
+                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,fieldInfos);
                  }else{
                      log.error("画像返回错误--{}",blu.getCusNum());
                      ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,blu.getCusNum());

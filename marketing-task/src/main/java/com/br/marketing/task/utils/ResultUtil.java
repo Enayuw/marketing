@@ -1,7 +1,9 @@
 package com.br.marketing.task.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
@@ -15,6 +17,7 @@ import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.vo.StrategyProductDetailVO;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +41,7 @@ public class ResultUtil {
 
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
                                     MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
-                                    String baseHeadInfo) throws IOException {
+                                    String baseHeadInfo,List<StrategyProductDetailVO> fieldInfos) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
         JSONObject esResult=new JSONObject();
         StringBuilder sb=new StringBuilder();
@@ -133,10 +136,7 @@ public class ResultUtil {
             products.add(pro.toLowerCase());
         }
         log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
-
-        ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = Scheduler.ac.
-                getBean(ProductResultByConfigSimpleServiceImpl.class);
-        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user,strategyId,esResult);
+        Result result = buildResult(hxJson, sb, sep,esResult,fieldInfos);
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             ProductResultUtil.dealProResult(hxJson, products, sb,sep);
         }
@@ -158,6 +158,26 @@ public class ResultUtil {
                 writeEs(mh,meal,hxJson);
             }
         }
+    }
+
+      static Result buildResult(JSONObject hxJson, StringBuilder sb,String sep,JSONObject esResult,List<StrategyProductDetailVO> strategyProductDetailVOs) {
+        StringBuilder result=new StringBuilder();
+        StrategyProductDetailVO strategyProductDetailVO = null;
+        if(strategyProductDetailVOs.size()>0){
+            strategyProductDetailVO=strategyProductDetailVOs.get(0);
+        }
+
+        if(strategyProductDetailVO == null){
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+        for (int i = 0; i < strategyProductDetailVO.getFields().size(); i++) {
+            String field = strategyProductDetailVO.getFields().get(i);
+            String fieldRes = hxJson.getString(field);
+            result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"").append(sep);
+            esResult.put(field,StringUtils.isNotBlank(fieldRes)?fieldRes:"");
+        }
+        sb.append(result);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     private static void writeEs(MarketingHistory mh,JSONObject meal,JSONObject hxJson){

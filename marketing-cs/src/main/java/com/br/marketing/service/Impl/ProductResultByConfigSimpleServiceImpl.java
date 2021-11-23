@@ -239,7 +239,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
-    String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId){
+    @Override
+    public String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId){
         String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(strategyId).concat(":").concat(batchNumber);
         String s = redisChgService.get(key);
         if(StringUtils.isNotBlank(s)){
