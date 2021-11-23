@@ -2,11 +2,9 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.service.MarketingSyncReportService;
-import com.br.marketing.vo.MarketingCustomerVO;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * 客户上传数据统计报表
@@ -43,7 +40,7 @@ public class SyncReportController {
             , @ApiImplicitParam(name = "appletTimeStart", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "appletTimeEnd", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", value = "支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "userType", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "userType", value = "支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     public ApiResult<PageResultReturn> getReportList(@RequestParam(defaultValue = "1") int current
