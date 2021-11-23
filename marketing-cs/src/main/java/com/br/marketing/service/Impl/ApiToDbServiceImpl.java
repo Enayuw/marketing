@@ -205,8 +205,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     continue;
                 }
                 String number = "";
-                int taskNum = syncInfoMapper.countByPreUserWithRule(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
-                if(taskNum>0){
+                Long minId = syncInfoMapper
+                        .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
+                if(minId!=null&&minId>0){
                     String time = LocalDateTime.parse(eTimeStr,ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                     Result<String> batchNumberRes = buildBatchNumber(apiCode
                             ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleNameShort()
@@ -218,21 +219,22 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 }else{
                     continue;
                 }
+
                 MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
                 if(hasTask!=null){
                     continue;
                 }
+
                 BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(customerScoreRuleVO.getBaseInfo()
                         , new TypeReference<BaseHeadConfigVO>() {}.getType());
                 //endregion
 
                 //region 处理marketingUser
-                Long minId = syncInfoMapper
-                        .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 Long maxId = syncInfoMapper
                         .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
                 ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
+                Integer taskNum = 0;
                 while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
                     Long nowMaxId = minId+5000;
@@ -243,6 +245,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
                             .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId,nowMaxId,conditionRes.getData());
                     minId = nowMaxId+1;
+                    taskNum+=syncUserByRuleScore.size();
                     if(syncUserByRuleScore.size()<=0){
                         continue;
                     }
