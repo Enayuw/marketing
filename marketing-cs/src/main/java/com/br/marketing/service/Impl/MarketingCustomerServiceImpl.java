@@ -147,9 +147,10 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Override
     public List<MarketingCustomer> getApiCodeList(String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
-        example.createCriteria().andStatusEqualTo((byte) 1);
         if(apiCode != null && !"".equals(apiCode)){
-            example.createCriteria().andApiCodeLike(apiCode);
+            example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeLike("%"+apiCode+"%");
+        }else{
+            example.createCriteria().andStatusEqualTo((byte) 1);
         }
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
         if (StringUtils.isEmpty(list)) {

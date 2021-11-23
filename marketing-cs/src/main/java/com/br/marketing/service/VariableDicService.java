@@ -3,10 +3,12 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 客户配置变量值字典
@@ -43,6 +45,13 @@ public interface VariableDicService {
      * @return
      */
     ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, UserDetail user);
+
+    /**
+     * 场景列表，支持apicode多选
+     * @param vos
+     * @return
+     */
+    List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos);
 
     /**
      * 删除客户配置变量值

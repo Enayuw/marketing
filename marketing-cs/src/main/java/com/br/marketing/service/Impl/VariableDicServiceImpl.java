@@ -7,6 +7,7 @@ import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.VariableDicService;
+import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
@@ -16,8 +17,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +79,25 @@ public class VariableDicServiceImpl implements VariableDicService {
         }
 
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos) {
+        List<Map> list = new ArrayList<>();
+        if(vos!=null && vos.size()>0){
+            for (CustomerSelectVO vo :vos) {
+                String cid = vo.getCid();
+                String apiCode = vo.getApiCode();
+                List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
+                Map map = new HashMap();
+                map.put("cid",cid);
+                map.put("apiCode",apiCode);
+                map.put("userTypeList",userTypeList);
+                list.add(map);
+            }
+        }
+
+        return list;
     }
 
     /*@Override
