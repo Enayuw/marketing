@@ -72,6 +72,12 @@ otherConfig:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
     destinationName: marketing_query_log
+  #mom上传日志
+  uploadMom:
+    producerKey: marketing_api_upload_producer
+    appSecretKey: 3a78162475b96285ea70a9edb6438ba4
+    destinationName: marketing_api_upload_log
+    logIceTimeout: 2000
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api

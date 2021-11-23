@@ -14,6 +14,8 @@ public enum MonitorTypeEnum {
     MARKETING(4, "marketing"),
     STATUS_1(1, "正常"),
     STATUS_2(2, "剔除"),
+    UPLOAD_TYPE_1(1, "sync"),
+    UPLOAD_TYPE_2(2, "transfer"),
     FAIL_TYPE_1(1, "MD5"),
     FAIL_TYPE_2(2, "Sha256"),
     FAIL_TYPE_3(3, "IsCheck");

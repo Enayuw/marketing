@@ -1,6 +1,7 @@
 package com.br.marketing.api.controller;
 
 import com.alibaba.fastjson.*;
+import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
@@ -9,7 +10,11 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.common.utils.BrCipherJsonUtils;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
+import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,7 +39,7 @@ public class MarketingUserPreController {
 
 
     /**
-     * 批量接入营销人员数据
+     * 智能营销数据落库接口
      *
      * @param apiCode
      * @param jsonData
@@ -42,21 +47,40 @@ public class MarketingUserPreController {
      */
     @ApiOperation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
+    @LogAnnotation
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
-            Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
-            return new ApiNoDataResult().fromResult(result);
-    }
-
-    @ApiOperation(value = "转化人员")
-    @PostMapping("/transferUser")
-    @SaveLog
-    public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData){
-            Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
-            return new ApiNoDataResult().fromResult(result);
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        long l = System.currentTimeMillis();
+        RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY, Constants.JSON_DATA_KEYARR));
+        if (log.isInfoEnabled()) {
+            log.info("apiCode:{},批量接入营销人员数据加密耗时：{}", apiCode, (System.currentTimeMillis() - l));
+        }
+        Result result = pushRuleService.insertMarketingPreUserText(apiCode, jsonData);
+        return new ApiNoDataResult().fromResult(result);
     }
 
     /**
-     * 获取营销人员数据状态
+     * 智能营销转化数据接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
+    @ApiOperation(value = "转化人员")
+    @PostMapping("/transferUser")
+    @SaveLog
+    @LogAnnotation
+    public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        Result result = pushRuleService.insertBatchTransferUser(apiCode, jsonData);
+        return new ApiNoDataResult().fromResult(result);
+    }
+
+    /**
+     * 智能营销数据落库查询接口
      *
      * @param apiCode
      * @param jsonData

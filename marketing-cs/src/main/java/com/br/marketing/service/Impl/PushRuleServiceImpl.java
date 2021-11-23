@@ -26,6 +26,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.StatusConstants;
+import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
@@ -548,9 +549,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getJsonData() == null) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
+        RuntimeDataContext.getData().setCusBatch(dto.getJsonData().getTaskId());
         if (!StringUtils.isNotBlank(dto.getJsonData().getTaskId())) {
             throw new CommonException(MarketingErrorInfo.TASK_ID_ERROR);
         }
+        RuntimeDataContext.getData().setRequestBatch(dto.getJsonData().getRequestId());
         if (!StringUtils.isNotBlank(dto.getJsonData().getRequestId())) {
             throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
@@ -579,6 +582,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         int size = dto.getJsonData().getDataItems().size();
+        RuntimeDataContext.getData().setActualNum(size);
         if (size > 2000) {
             throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
@@ -834,10 +838,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (transferDataDTO == null) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
+        RuntimeDataContext.getData().setRequestBatch(transferDataDTO.getRequestId());
         if (!StringUtils.isNotBlank(transferDataDTO.getRequestId()) || transferDataDTO.getRequestId().length() > 100) {
             throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
         int size = transferDataDTO.getDataItems().size();
+        RuntimeDataContext.getData().setActualNum(size);
         if (size > 2000) {
             throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
@@ -1045,6 +1051,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
         String requestId = jsonObject.getString("requestId");
+        RuntimeDataContext.getData().setRequestBatch(requestId);
         if (StringUtils.isBlank(requestId)) {
             throw new CommonException(MarketingErrorInfo.REQUEST_ID_ERROR);
         }
@@ -1076,6 +1083,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
+        RuntimeDataContext.getData().setActualNum(transfers.size());
         if (transfers.size() > 100) {
             throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
