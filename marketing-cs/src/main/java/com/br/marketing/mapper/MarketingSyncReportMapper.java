@@ -20,6 +20,7 @@ public interface MarketingSyncReportMapper {
 
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 
+    Map getReportListTotal(Map<String, Object> params);
 
     int modifyReportById(MarketingSyncReport record);
 
