@@ -31,11 +31,9 @@ import lombok.Data;
 @Data
 public class Customer {
     private Long id;
-    private String  apiCode;
+    private String cid;
+    private String apiCode;
     private String message;
-    /**
-     *
-     */
     private String type;
     private Integer threadNum;
     private Integer taskTime;
@@ -50,4 +48,5 @@ public class Customer {
     private Integer pushThreadNum;
     private Integer pushType;
     private String pushUrl;
+    private String shortName;
 }

@@ -143,4 +143,25 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         }
 
     }
+
+    @Override
+    public List<MarketingCustomer> getApiCodeList(String apiCode) {
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        if(apiCode != null && !"".equals(apiCode)){
+            example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeLike("%"+apiCode+"%");
+        }else{
+            example.createCriteria().andStatusEqualTo((byte) 1);
+        }
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
+        if (StringUtils.isEmpty(list)) {
+            return list.stream().distinct().collect(Collectors.toList());
+        }
+        return list;
+    }
+
+    @Override
+    public List<MarketingCustomer> getCidOrName(String search) {
+        List<MarketingCustomer> list = marketingCustomerMapper.getCidOrName(search);
+        return list;
+    }
 }
