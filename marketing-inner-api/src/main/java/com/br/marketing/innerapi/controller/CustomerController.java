@@ -6,11 +6,11 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
+import com.br.marketing.vo.MarketingCustomerVO;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,14 +107,14 @@ public class CustomerController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "apiCode",value = "",required = false,dataType = "String")
     })
-    public ApiResult<List<MarketingCustomer>> getApiCodeList(String apiCode){
+    public ApiResult<List<MarketingCustomerVO>> getApiCodeList(String apiCode){
         try {
             //查询
-            List<MarketingCustomer> list = marketingCustomerService.getApiCodeList(apiCode);
-            return new ApiResult<List<MarketingCustomer>>().success(list);
+            List<MarketingCustomerVO> list = marketingCustomerService.getApiCodeList(apiCode);
+            return new ApiResult<List<MarketingCustomerVO>>().success(list);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage(),ex);
-            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
@@ -124,14 +124,14 @@ public class CustomerController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
-    public ApiResult<List<MarketingCustomer>> getCidOrName(String search){
+    public ApiResult<List<MarketingCustomerVO>> getCidOrName(String search){
         try {
             //查询
-            List<MarketingCustomer> list = marketingCustomerService.getCidOrName(search);
-            return new ApiResult<List<MarketingCustomer>>().success(list);
+            List<MarketingCustomerVO> list = marketingCustomerService.getCidOrName(search);
+            return new ApiResult<List<MarketingCustomerVO>>().success(list);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage(),ex);
-            return new ApiResult<List<MarketingCustomer>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 }

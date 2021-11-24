@@ -3,9 +3,9 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
-import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
+import com.br.marketing.vo.MarketingCustomerVO;
 
 import java.util.List;
 
@@ -59,12 +59,12 @@ public interface MarketingCustomerService {
      * @param apiCode
      * @return
      */
-    List<MarketingCustomer> getApiCodeList(String apiCode);
+    List<MarketingCustomerVO> getApiCodeList(String apiCode);
 
     /**
      * 客户名称/客户编号,支持联想输入
      * @param search
      * @return
      */
-    List<MarketingCustomer> getCidOrName(String search);
+    List<MarketingCustomerVO> getCidOrName(String search);
 }
