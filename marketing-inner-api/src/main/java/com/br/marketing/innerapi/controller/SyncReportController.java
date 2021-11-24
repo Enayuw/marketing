@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * 客户上传数据统计报表
@@ -55,6 +56,27 @@ public class SyncReportController {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    }
+
+    @GetMapping("/getReportListTotal")
+    @ApiOperation(value = "客户上传数据统计报表总计", notes = "客户上传数据统计报表列表总计", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeEnd",value = "上传日期截至", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCode", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "userType", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    public ApiResult<Map> getReportListTotal(@RequestParam(required = false) String cidOrName
+            , @RequestParam(required = false) String appletTimeStart
+            , @RequestParam(required = false) String appletTimeEnd
+            , @RequestParam(required = false) String apiCodes
+            , @RequestParam(required = false) String userTypes) {
+        Map map = marketingSyncReportService.getReportListTotal(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes);
+        if (map != null) {
+            return new ApiResult<Map>().success(map);
+        }
+        return new ApiResult<Map>().fail(ServiceResultEnum.FAILED);
     }
 
 }

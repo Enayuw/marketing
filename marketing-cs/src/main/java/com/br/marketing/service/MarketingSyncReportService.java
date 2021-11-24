@@ -4,6 +4,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 客户上传数据统计报表
@@ -37,5 +38,16 @@ public interface MarketingSyncReportService {
      * @return
      */
     PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
+
+    /**
+     * 客户上传数据统计报表总计
+     * @param cidOrName
+     * @param appletTimeStart
+     * @param appletTimeEnd
+     * @param apiCodes
+     * @param userTypes
+     * @return
+     */
+    Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
 }
