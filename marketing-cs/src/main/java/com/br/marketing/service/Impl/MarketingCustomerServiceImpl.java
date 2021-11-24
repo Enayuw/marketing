@@ -12,8 +12,10 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
+import com.br.marketing.vo.MarketingCustomerVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -145,7 +147,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public List<MarketingCustomer> getApiCodeList(String apiCode) {
+    public List<MarketingCustomerVO> getApiCodeList(String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
         if(apiCode != null && !"".equals(apiCode)){
             example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeLike("%"+apiCode+"%");
@@ -153,15 +155,31 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             example.createCriteria().andStatusEqualTo((byte) 1);
         }
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
-        if (StringUtils.isEmpty(list)) {
-            return list.stream().distinct().collect(Collectors.toList());
+
+        List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
+            MarketingCustomerVO vo = new MarketingCustomerVO();
+            BeanUtils.copyProperties(marketingCustomer, vo);
+            vo.setId(marketingCustomer.getId().toString());
+            return vo;
+        }).collect(Collectors.toList());
+
+        if (StringUtils.isEmpty(vos)) {
+            return vos.stream().distinct().collect(Collectors.toList());
         }
-        return list;
+        return vos;
     }
 
     @Override
-    public List<MarketingCustomer> getCidOrName(String search) {
+    public List<MarketingCustomerVO> getCidOrName(String search) {
         List<MarketingCustomer> list = marketingCustomerMapper.getCidOrName(search);
-        return list;
+
+        List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
+            MarketingCustomerVO vo = new MarketingCustomerVO();
+            BeanUtils.copyProperties(marketingCustomer, vo);
+            vo.setId(marketingCustomer.getId().toString());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return vos;
     }
 }
