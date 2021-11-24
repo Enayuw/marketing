@@ -229,6 +229,49 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         return PageResultReturn.setPageResult(list, current,size);
     }
 
+    @Override
+    public Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes) {
+        if (StringUtils.isNotEmpty(appletTimeEnd)){
+            appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
+
+        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")){
+            cidOrName = cidOrName.replace("_", "\\_");
+        }
+
+        List<String> apiCodeList = new ArrayList<>();
+        List<String> userTypeList = new ArrayList<>();
+        if(apiCodes != null && !"".equals(apiCodes)){
+            String[] split = apiCodes.split(",");
+            for(String item : split){
+                apiCodeList.add(item);
+            }
+        }
+        if(userTypes != null && !"".equals(userTypes)){
+            String[] split = userTypes.split(",");
+            for(String item : split){
+                userTypeList.add(item);
+            }
+        }
+        Map params = new HashMap();
+        params.put("cidOrName",cidOrName);
+        params.put("appletTimeStart",appletTimeStart);
+        params.put("appletTimeEnd",appletTimeEnd);
+        params.put("apiCodeList",apiCodeList);
+        params.put("userTypeList",userTypeList);
+
+        Map map = new HashMap();
+        Map total = syncReportMapper.getReportListTotal(params);
+        //数据正常入库条数
+        Integer normalNumTotal = Integer.parseInt(total.get("normalNumTotal").toString());
+        //去重后数据量
+        Integer duplicateRemovalNumTotal = Integer.parseInt(total.get("duplicateRemovalNumTotal").toString());
+
+        map.put("normalNumTotal",normalNumTotal);
+        map.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
+        return map;
+    }
+
     private Date addDay(String date, Integer addDays, String format) {
         Calendar c = Calendar.getInstance();
         Date time = null;
