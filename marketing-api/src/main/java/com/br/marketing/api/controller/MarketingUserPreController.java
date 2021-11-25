@@ -67,7 +67,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "转化人员")
+    @ApiOperation(value = "萨摩耶转化人员接口")
     @PostMapping("/transferUser")
     @SaveLog
     @LogAnnotation
