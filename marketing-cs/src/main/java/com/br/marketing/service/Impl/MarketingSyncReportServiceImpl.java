@@ -261,11 +261,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         params.put("userTypeList",userTypeList);
 
         Map map = new HashMap();
+        Integer normalNumTotal = 0;
+        Integer duplicateRemovalNumTotal = 0;
         Map total = syncReportMapper.getReportListTotal(params);
-        //数据正常入库条数
-        Integer normalNumTotal = Integer.parseInt(total.get("normalNumTotal").toString());
-        //去重后数据量
-        Integer duplicateRemovalNumTotal = Integer.parseInt(total.get("duplicateRemovalNumTotal").toString());
+        if(total != null){
+            //数据正常入库条数
+            normalNumTotal = total.get("normalNumTotal") == null?0:Integer.parseInt(total.get("normalNumTotal").toString());
+            //去重后数据量
+            duplicateRemovalNumTotal = total.get("duplicateRemovalNumTotal") == null?0:Integer.parseInt(total.get("duplicateRemovalNumTotal").toString());
+        }
 
         map.put("normalNumTotal",normalNumTotal);
         map.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
