@@ -115,7 +115,7 @@ public class SftpToDbByTwoSevenJob extends AbstractSimpleElasticJob {
                     sftpClient.connect();
                     SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient,t);
                     if (!map.isEmpty()) {
-                        log.info("----------获取七七推送数据-------------");
+                        log.warn("----------获取七七推送数据开始-------------");
                         long start = System.currentTimeMillis();
                         dealDataFile(map, sftpClient,t);
                         long end = System.currentTimeMillis();
@@ -157,6 +157,7 @@ public class SftpToDbByTwoSevenJob extends AbstractSimpleElasticJob {
 
             for (String fileName : fileNames) {
                 if(fileName.endsWith(".txt")){
+                    log.warn("获取到七七文件:"+fileName);
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);

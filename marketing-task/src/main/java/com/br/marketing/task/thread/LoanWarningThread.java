@@ -164,12 +164,12 @@ public class LoanWarningThread implements Callable<String> {
                 if (strategyId.startsWith("DTM")){
                     //log.info("DTB策略调用画像");
                     resultStr= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
-                    requestLog.setResponseTime(new Date());
-                    try {
-                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
-                    }catch (Throwable throwable){
-                        log.error(throwable.getMessage());
-                    }
+//                    requestLog.setResponseTime(new Date());
+//                    try {
+//                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
+//                    }catch (Throwable throwable){
+//                        log.error(throwable.getMessage());
+//                    }
 
                 }else{
                     resultStr = loanWarningClient.queryApi(param, apiCode);

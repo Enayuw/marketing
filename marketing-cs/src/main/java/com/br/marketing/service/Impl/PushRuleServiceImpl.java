@@ -217,6 +217,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKeySoleNum = "sole:thread:num";
 
+    final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -871,6 +872,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result consumerTransferData(Long id) {
+        Set<String> pushCustomerApiCodes = redisChgService.hkeys(redisKeyPushCustomer);
+        if(pushCustomerApiCodes==null||pushCustomerApiCodes.size()<=0){
+            pushCustomerApiCodes = new HashSet<String>();
+            /*宜信，榕树，七七*/
+            pushCustomerApiCodes.add("3710012");
+            pushCustomerApiCodes.add("4004643");
+            pushCustomerApiCodes.add("3710030");
+        }
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -981,8 +990,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        if (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
-                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)) {
+        if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
+        &&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
