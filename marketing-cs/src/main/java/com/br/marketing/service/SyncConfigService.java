@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.vo.SyncConfigEditVO;
 
 /**
  * sftp账号配置业务接口
@@ -31,12 +32,9 @@ public interface SyncConfigService {
 
     /**
      * 编辑sftp配置信息
-     * @param id
-     * @param apiCode
-     * @param srcPath
-     * @param targePath
+     * @param vo
      * @return
      */
-    ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath);
+    ApiResult<Boolean> editSftp(SyncConfigEditVO vo);
 
 }
