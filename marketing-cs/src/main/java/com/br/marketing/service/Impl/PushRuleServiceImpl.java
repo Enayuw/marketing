@@ -46,6 +46,7 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -872,10 +873,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result consumerTransferData(Long id) {
-        Set<String> pushCustomerApiCodes = redisChgService.hkeys(redisKeyPushCustomer);
-        if(pushCustomerApiCodes==null||pushCustomerApiCodes.size()<=0){
-            pushCustomerApiCodes = new HashSet<String>();
-            /*宜信，榕树，七七*/
+        List<String> pushCustomerApiCodes = new ArrayList<>();
+        String keyStr = redisChgService.get(redisKeyPushCustomer);
+        if(StringUtils.isNotBlank(keyStr)){
+            pushCustomerApiCodes = Splitter.on(",").splitToList(keyStr);
+        }else{
             pushCustomerApiCodes.add("3710012");
             pushCustomerApiCodes.add("4004643");
             pushCustomerApiCodes.add("3710030");
