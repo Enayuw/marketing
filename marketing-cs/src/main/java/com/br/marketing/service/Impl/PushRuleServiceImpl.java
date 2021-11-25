@@ -1053,6 +1053,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
     }
 
+    final static Set groupTypeSaMoye;
+
+    static {
+        groupTypeSaMoye = new HashSet();
+        groupTypeSaMoye.add("S01");
+        groupTypeSaMoye.add("S02");
+        groupTypeSaMoye.add("S04");
+        groupTypeSaMoye.add("S06");
+        groupTypeSaMoye.add("S08");
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result insertBatchTransferUser(String apiCode, String jsonData) {
@@ -1189,6 +1200,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         List<ConversionData> conversionDataList = new ArrayList<>();
         for (TransferUserVO transfer : transfers) {
+            if(!(groupTypeSaMoye.contains(transfer.getGroupType())&&"1".equals(transfer.getReserveField1()))){
+                continue;
+            }
             ConversionData data = new ConversionData();
             data.setCaseNum(transfer.getCustNum());
             data.setInversionDate(transfer.getTransformTime());
