@@ -59,6 +59,7 @@
 		, src_path as srcPath
 		, target_path as targePath
 		, type as type
+		, data_type as dataType
 		from b_sync_config sc
 		<where>
 			status = 1

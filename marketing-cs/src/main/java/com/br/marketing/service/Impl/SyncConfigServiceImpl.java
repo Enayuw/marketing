@@ -8,6 +8,7 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.vo.SyncConfigEditVO;
 import com.br.marketing.vo.SyncConfigVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 
@@ -86,19 +88,28 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath) {
-        SyncConfig select = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
+    public ApiResult<Boolean> editSftp(SyncConfigEditVO vo) {
+        SyncConfig select = syncConfigMapper.selectByPrimaryKey(vo.getId());
         //判重
-        boolean only = sftpOnly(id, apiCode, select.getDataType(), select.getType());
+        boolean only = sftpOnly(vo.getId().toString(), vo.getApiCode(), select.getDataType(), select.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
         }
 
         SyncConfig syncConfig = new SyncConfig();
-        syncConfig.setId(Long.parseLong(id));
-        syncConfig.setApiCode(apiCode);
-        syncConfig.setSrcPath(srcPath);
-        syncConfig.setTargetPath(targePath);
+
+        try {
+            BeanUtils.copyProperties(syncConfig,vo);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //copyProperties方法Integer如果为null，赋值0，需要单独处理
+        syncConfig.setSrcSftpPort(vo.getSrcSftpPort());
+        syncConfig.setTargetSftpPort(vo.getTargetSftpPort());
+        syncConfig.setDataType(vo.getDataType());
+        syncConfig.setType(vo.getType());
         syncConfig.setUpdateTime(new Date());
         int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
         if (StringUtils.isEmpty(update) || update<=0){
