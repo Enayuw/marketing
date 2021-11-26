@@ -389,10 +389,10 @@
         or bmsr.short_name like concat("%", #{cidOrName},"%")
       </if>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
-        <![CDATA[  and bmsr.applet_begin_time >=#{appletTimeStart} ]]>
+        <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
       </if>
       <if test="appletTimeEnd !=null and appletTimeEnd!=''">
-        <![CDATA[  and bmsr.applet_begin_time <#{appletTimeEnd} ]]>
+        <![CDATA[  and bmsr.applet_date <#{appletTimeEnd} ]]>
       </if>
       <if test="apiCodeList != null and apiCodeList.size()>0">
         and bmsr.api_code in
@@ -407,7 +407,7 @@
         </foreach>
       </if>
     </where>
-    order by bmsr.applet_begin_time desc
+    order by bmsr.applet_date desc,bmsr.applet_begin_time desc
   </select>
 
   <select id="getReportListTotal" resultType="map">
@@ -419,10 +419,10 @@
         or bmsr.short_name like concat("%", #{cidOrName},"%")
       </if>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
-        <![CDATA[  and bmsr.applet_begin_time >=#{appletTimeStart} ]]>
+        <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
       </if>
       <if test="appletTimeEnd !=null and appletTimeEnd!=''">
-        <![CDATA[  and bmsr.applet_begin_time <#{appletTimeEnd} ]]>
+        <![CDATA[  and bmsr.applet_date <#{appletTimeEnd} ]]>
       </if>
       <if test="apiCodeList != null and apiCodeList.size()>0">
         and bmsr.api_code in
