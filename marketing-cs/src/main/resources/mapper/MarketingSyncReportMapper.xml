@@ -407,7 +407,7 @@
         </foreach>
       </if>
     </where>
-    order by bmsr.applet_date desc,bmsr.applet_begin_time desc
+    order by bmsr.applet_date desc
   </select>
 
   <select id="getReportListTotal" resultType="map">
