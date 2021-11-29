@@ -71,4 +71,57 @@
         </where>
         order by mc.update_time desc, mc.create_time desc
     </select>
+
+    <select id="selectByExampleAndShard" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.MarketingCustomerExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_customer
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Shard"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+    </select>
+
+    <sql id="Example_Where_Clause_Shard">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+            <if test="shardingTotalCount != null and shardingTotalCount>0 and shardingItems != null">
+                and mod(id, #{shardingTotalCount}) in
+                <foreach collection='shardingItems' item='sharding' open='(' close=')' separator=','>
+                    #{sharding}
+                </foreach>
+            </if>
+        </where>
+    </sql>
 </mapper>
