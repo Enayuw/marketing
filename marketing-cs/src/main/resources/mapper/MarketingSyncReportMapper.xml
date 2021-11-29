@@ -384,10 +384,6 @@
     , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
     from b_marketing_sync_report bmsr
     <where>
-      <if test="cidOrName != null and cidOrName.trim() neq ''">
-        and bmsr.cid like concat("%", #{cidOrName},"%")
-        or bmsr.short_name like concat("%", #{cidOrName},"%")
-      </if>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
         <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
       </if>
@@ -405,6 +401,10 @@
         <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
           #{item}
         </foreach>
+      </if>
+      <if test="cidOrName != null and cidOrName.trim() neq ''">
+        and (bmsr.cid like concat("%", #{cidOrName},"%")
+        or bmsr.short_name like concat("%", #{cidOrName},"%"))
       </if>
     </where>
     order by bmsr.applet_date desc,bmsr.create_time desc
@@ -414,10 +414,6 @@
     select SUM(normal_num) as normalNumTotal,SUM(duplicate_removal_num) as duplicateRemovalNumTotal
     from b_marketing_sync_report bmsr
     <where>
-      <if test="cidOrName != null and cidOrName.trim() neq ''">
-        and bmsr.cid like concat("%", #{cidOrName},"%")
-        or bmsr.short_name like concat("%", #{cidOrName},"%")
-      </if>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
         <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
       </if>
@@ -435,6 +431,10 @@
         <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
           #{item}
         </foreach>
+      </if>
+      <if test="cidOrName != null and cidOrName.trim() neq ''">
+        and (bmsr.cid like concat("%", #{cidOrName},"%")
+        or bmsr.short_name like concat("%", #{cidOrName},"%"))
       </if>
     </where>
   </select>
