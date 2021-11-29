@@ -19,6 +19,10 @@ public interface MarketingCustomerMapperBase {
 
     List<MarketingCustomer> selectByExample(MarketingCustomerExample example);
 
+    List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
+            , @Param("shardingTotalCount") int shardingTotalCount
+            , @Param("shardingItems") List<Integer> shardingItems);
+
     MarketingCustomer selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingCustomer record, @Param("example") MarketingCustomerExample example);
