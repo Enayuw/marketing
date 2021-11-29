@@ -341,7 +341,7 @@
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
     (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
-    <if test="status != null  and status = 1">
+    <if test='status == "1"'>
       and status = #{status,jdbcType=INTEGER}
       and is_repeat in(1,2)
     </if>
