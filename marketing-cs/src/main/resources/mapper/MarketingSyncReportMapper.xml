@@ -407,7 +407,7 @@
         or bmsr.short_name like concat("%", #{cidOrName},"%"))
       </if>
     </where>
-    order by bmsr.applet_date desc,bmsr.create_time desc
+    order by bmsr.applet_date desc
   </select>
 
   <select id="getReportListTotal" resultType="map">
