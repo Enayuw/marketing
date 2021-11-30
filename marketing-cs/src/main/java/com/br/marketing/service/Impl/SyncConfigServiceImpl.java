@@ -9,7 +9,6 @@ import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.SyncConfigEditVO;
-import com.br.marketing.vo.SyncConfigVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
@@ -42,7 +41,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public PageResultReturn getSftpList(int page, int pageSize, String apiCode) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<SyncConfigVO> list = syncConfigMapper.getSftpList(apiCode);
+            List<SyncConfigEditVO> list = syncConfigMapper.getSftpList(apiCode);
             return PageResultReturn.setPageResult(list, page,pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
