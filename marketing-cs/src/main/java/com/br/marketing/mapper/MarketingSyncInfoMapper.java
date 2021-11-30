@@ -5,6 +5,7 @@ import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
+import com.br.marketing.vo.TransferUserVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -56,4 +57,11 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    Integer countTransferFile(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime
+            ,@Param("endTime") String endTime,@Param("groupType") String groupType,@Param("fileTypes") List<String> fileTypes);
+
+    List<TransferUserVO> getTransferFileUser(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime
+            ,@Param("endTime") String endTime,@Param("minId") Long minId,@Param("groupType") String groupType,@Param("fileTypes") List<String> fileTypes);
+
+    List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("taskIds") List<String> taskIds,@Param("custNums") List<String> custNums);
 }
