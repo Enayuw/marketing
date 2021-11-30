@@ -95,6 +95,9 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "周期结束天数", dataType = "string", position = 12)
     private String cycleEndDay;
 
+    @ApiModelProperty(value = "跑分类型 如果不跑分 该值传1", dataType = "integer", position = 13)
+    private Integer taskType;
+
 
     public ScoreRuleVO() {
     }
