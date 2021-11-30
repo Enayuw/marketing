@@ -42,7 +42,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
     
-    final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyyMMdd");
 
     final static String samoyeDDprefix = "samoye_duandian_";
 
