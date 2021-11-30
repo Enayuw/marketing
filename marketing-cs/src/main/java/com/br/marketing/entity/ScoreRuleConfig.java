@@ -19,7 +19,7 @@ public class ScoreRuleConfig {
     private String ruleNameShort;
 
     /**
-     * 跑分时间 格式HH:mm
+     * 跑分时间 格式HH:mm 
      */
     private String startTime;
 
@@ -39,9 +39,19 @@ public class ScoreRuleConfig {
     private String strategyId;
 
     /**
+     * 产品信息
+     */
+    private String productInfo;
+
+    /**
      * 返回用户基本字段表头 字段用逗号分隔
      */
     private String baseInfo;
+
+    /**
+     * 规则类型 1-配置策略规则；2-配置产品规则；3-不需调用画像规则
+     */
+    private Integer ruleType;
 
     /**
      * 是否有效1-有效；9-无效；
@@ -64,7 +74,7 @@ public class ScoreRuleConfig {
     private Integer cycleDay;
 
     /**
-     *
+     * 
      */
     private String cycleEndDay;
 
@@ -72,6 +82,11 @@ public class ScoreRuleConfig {
      * 推送客户类型 0 文件，1 api 默认支持文件推送
      */
     private Integer pushType;
+
+    /**
+     * 跑分类型  0 正常跑分 1 不跑分
+     */
+    private Integer taskType;
 
     /**
      * 开启状态 1-开启；2-禁用；3-开启中
@@ -144,12 +159,28 @@ public class ScoreRuleConfig {
         this.strategyId = strategyId == null ? null : strategyId.trim();
     }
 
+    public String getProductInfo() {
+        return productInfo;
+    }
+
+    public void setProductInfo(String productInfo) {
+        this.productInfo = productInfo == null ? null : productInfo.trim();
+    }
+
     public String getBaseInfo() {
         return baseInfo;
     }
 
     public void setBaseInfo(String baseInfo) {
         this.baseInfo = baseInfo == null ? null : baseInfo.trim();
+    }
+
+    public Integer getRuleType() {
+        return ruleType;
+    }
+
+    public void setRuleType(Integer ruleType) {
+        this.ruleType = ruleType;
     }
 
     public Integer getIsDel() {
@@ -200,6 +231,14 @@ public class ScoreRuleConfig {
         this.pushType = pushType;
     }
 
+    public Integer getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(Integer taskType) {
+        this.taskType = taskType;
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -221,6 +260,6 @@ public class ScoreRuleConfig {
     }
 
     public void setStrategyProductShow(String strategyProductShow) {
-        this.strategyProductShow = strategyProductShow;
+        this.strategyProductShow = strategyProductShow == null ? null : strategyProductShow.trim();
     }
 }
