@@ -53,13 +53,24 @@
 			)
 	</insert>
 
-	<select id="getSftpList" resultType="com.br.marketing.vo.SyncConfigVO">
+	<select id="getSftpList" resultType="com.br.marketing.vo.SyncConfigEditVO">
 		select id
 		, api_code as apiCode
 		, src_path as srcPath
-		, target_path as targePath
+		, target_path as targetPath
 		, type as type
 		, data_type as dataType
+		,suffix as suffix
+		,src_sftp_host as srcSftpHost
+		,src_sftp_port as srcSftpPort
+		,src_sftp_user as srcSftpUser
+		,src_sftp_pwd as srcSftpPwd
+		,target_sftp_host as targetSftpHost
+		,target_sftp_port as targetSftpPort
+		,target_sftp_user as targetSftpUser
+		,target_sftp_pwd as targetSftpPwd
+		,src_type as srcType
+		,target_type as targetType
 		from b_sync_config sc
 		<where>
 			status = 1
