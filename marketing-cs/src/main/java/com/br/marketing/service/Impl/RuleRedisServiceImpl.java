@@ -17,6 +17,8 @@ public class RuleRedisServiceImpl {
 
     final static String soleConfigByApiCodeKey = "sole:config:";
 
+    final static String transferContextIdKey = "transferfile:contextid";
+
     @Autowired
     RedisChgService redisChgService;
 
@@ -47,5 +49,10 @@ public class RuleRedisServiceImpl {
         if(redisChgService.exists(key)){
             redisChgService.del(key);
         }
+    }
+
+    public Long getTransferFileContextId(){
+        Long incr = redisChgService.incr(transferContextIdKey);
+        return incr;
     }
 }
