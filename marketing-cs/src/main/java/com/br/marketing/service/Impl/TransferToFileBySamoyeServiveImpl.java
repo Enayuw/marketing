@@ -5,10 +5,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import IceInternal.Ex;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -19,6 +22,7 @@ import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -184,7 +188,9 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 users.forEach(t->{
                     String key = t.getCusBatch().concat("_").concat(t.getCustNum());
                     if(!hsCell.containsKey(key)){
-                        hsCell.put(key,t.getCell().concat("|").concat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.getAppletTime())));
+                        String decode = BrCipherMaker.getInstance().decode(t.getCell());
+                        String s = StringUtils.isBlank(decode) ? t.getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        hsCell.put(key,s.concat("|").concat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.getAppletTime())));
                     }
                 });
 
