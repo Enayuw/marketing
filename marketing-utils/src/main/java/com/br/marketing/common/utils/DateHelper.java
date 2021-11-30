@@ -86,6 +86,13 @@ public class DateHelper {
         return sf.format(c.getTime());
     }
 
+    public static String getDateByHour(int minute) {
+        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.HOUR, minute);
+        return sf.format(c.getTime());
+    }
+
     public static int daysBetween(String dateStr) throws ParseException {
         Date today = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

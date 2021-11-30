@@ -5,6 +5,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
+import com.br.marketing.vo.MarketingCustomerVO;
 
 import java.util.List;
 
@@ -52,4 +53,18 @@ public interface MarketingCustomerService {
      * @return
      */
     ApiResult<Boolean> apiCodeOnly(String id,String apiCode);
+
+    /**
+     * ApiCode列表,支持联想输入
+     * @param apiCode
+     * @return
+     */
+    List<MarketingCustomerVO> getApiCodeList(String apiCode);
+
+    /**
+     * 客户名称/客户编号,支持联想输入
+     * @param search
+     * @return
+     */
+    List<MarketingCustomerVO> getCidOrName(String search);
 }

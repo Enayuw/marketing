@@ -30,4 +30,6 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      * @return
      */
     List<MarketingCustomerListVO> getCustomerList(@Param("cid")String cid, @Param("apiCode")String apiCode);
+
+    List<MarketingCustomer> getCidOrName(@Param("search") String search);
 }

@@ -50,9 +50,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode")String apiCode
             ,@Param("sTimeStr")String sTimeStr
             ,@Param("eTimeStr")String eTimeStr,@Param("minId")Long minId,@Param("maxId")Long maxId,@Param("whereStr")String whereStr);
-    List<MarketingSyncUser> getSyncUserByRuleScore(@Param("apiCode") String apiCode
-            , @Param("sTimeStr") String sTimeStr
-            , @Param("eTimeStr") String eTimeStr, @Param("minId") Long minId, @Param("whereStr") String whereStr);
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 

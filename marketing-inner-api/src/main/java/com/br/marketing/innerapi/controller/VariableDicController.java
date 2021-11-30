@@ -6,6 +6,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.VariableDicService;
+import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import io.swagger.annotations.*;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 客户配置变量值字典
@@ -88,6 +90,12 @@ public class VariableDicController {
         }
     }
 
+    @ApiOperation(value = "场景列表", notes = "支持apicode多选")
+    @PostMapping({"/findListByCidsAndApiCodes"})
+    public ApiResult<List<Map>> findListByCidsAndApiCodes(@RequestBody List<CustomerSelectVO> vos) {
+        List<Map> list = variableDicService.findListByCidsAndApiCodes(vos);
+        return new ApiResult<List<Map>>().success(list);
+    }
     /*@ApiOperation(value = "删除客户配置变量值字典",notes = "删除客户配置变量值字典")
     @GetMapping("/delete")
     public ApiResult<Boolean> delete(Integer id){
