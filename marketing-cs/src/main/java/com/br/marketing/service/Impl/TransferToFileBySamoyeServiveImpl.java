@@ -42,11 +42,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
     
-    final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyyMMdd");
 
     final static String samoyeDDprefix = "samoye_duandian_";
 
-    final static String samoyeHYprefix = "samoye_ alive_";
+
+    final static String samoyeHYprefix = "samoye_alive_";
 
     @Value("${otherConfig.warning.path:00}")
     private String path;
@@ -122,7 +123,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         String apiCode = transferFileTask.getApiCode();
         String endDate = transferFileTask.getStartDate();
         String startDate = LocalDate.parse(endDate, yyyyMMddDF).minusDays(1L).format(yyyyMMddDF);
-        String descPath = path.concat("/transferToFile/").concat(apiCode).concat("/").concat(endDate).concat("/");
+        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(endDate).concat("/");
         File writeDic = new File(descPath);
         if(!writeDic.exists()){
             writeDic.mkdirs();
