@@ -124,4 +124,43 @@
             </foreach>
         </where>
     </select>
+
+    <select id="countTransferFile" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_${apiCode}
+        where group_type = #{groupType} and reserve_field1 in
+          <foreach collection="fileTypes" item="fileType" open="(" separator="," close=")" >
+                #{fileType}
+          </foreach>
+         <![CDATA[ and create_time >= #{beginTime} and create_time < #{endTime} ]]>
+    </select>
+
+    <select id="getTransferFileUser" resultType="com.br.marketing.vo.TransferUserVO">
+        select * from
+        b_marketing_transfer_${apiCode}
+        where  group_type = #{groupType}
+          <if test="minId != null and minId >0">
+              and id >=#{minId}
+          </if>
+          and reserve_field1 in
+        <foreach collection="fileTypes" item="fileType" open="(" separator="," close=")" >
+            #{fileType}
+        </foreach>
+        <![CDATA[ and create_time >= #{beginTime} and create_time < #{endTime} ]]>
+        order by id asc limit 5000;
+    </select>
+
+    <select id="getSyncUserByTaskAndCust" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+            b_marketing_sync_${apiCode}
+        where cus_batch in
+        <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+            and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+    </select>
+
 </mapper>
