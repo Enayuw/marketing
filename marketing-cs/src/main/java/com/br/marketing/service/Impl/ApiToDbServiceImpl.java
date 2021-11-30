@@ -419,6 +419,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
+
+    @Override
+    public Result pushToDb(String apiCode, int shardingTotalCount, List<Integer> shardingItems) {
+        return null;
+    }
+
     private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore,String apiCode,String batchNumber,BaseHeadConfigVO baseHeadConfigVO,ExecutorService threadPool){
             threadPool.submit(()->{
                 try {
