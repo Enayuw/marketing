@@ -611,6 +611,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             String ss = extendJson.getString(s);
                             if(StringUtils.isNotBlank(ss)){
                                 sb.append(ss).append(sep);
+                            }else {
+                                sb.append(sep);
                             }
                         }
                         fw.append(sb).append("\r\n");
@@ -621,10 +623,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             }
         });
     }
+
     private LoanFile saveStraHisFile(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime,String filePath){
+
         LoanFile blf=new LoanFile();
         blf.setApiCode(task.getApiCode());
-        blf.setFilePath(filePath);
+        blf.setFilePath(filePath.substring(0,filePath.lastIndexOf("/")));
         blf.setStatus(1);
         if(1 == task.getMonitorType()){
             blf.setType(2);
