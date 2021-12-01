@@ -301,6 +301,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     task.setApiCode(apiCode);
                     task.setBatchNumber(number);
                     task.setMonitorStatus(isToFile?2:1);
+                    task.setTaskType(customerScoreRuleVO.getTaskType());
                     task.setStatus(1);
                     task.setStrategyId(customerScoreRuleVO.getStrategyId());
                     task.setFileName(String.format("%s_%s", customerScoreRuleVO.getId().toString(), customerScoreRuleVO.getRuleNameShort()));

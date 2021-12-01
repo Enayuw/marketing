@@ -278,7 +278,8 @@
 		actual_number,
 		task_number,
 		is_repair,
-		context_id
+		context_id,
+		task_type
 		FROM
 		b_marketing_task
 		WHERE
