@@ -26,16 +26,15 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
 
     /**
      * 获取客户信息列表数据
-     *
      * @param cid
      * @param apiCode
      * @return
      */
-    List<MarketingCustomerListVO> getCustomerList(@Param("cid") String cid, @Param("apiCode") String apiCode);
+    List<MarketingCustomerListVO> getCustomerList(@Param("cid")String cid, @Param("apiCode")String apiCode);
+
+    List<MarketingCustomer> getCidOrName(@Param("search") String search);
 
     List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
             , @Param("shardingTotalCount") int shardingTotalCount
             , @Param("shardingItems") List<Integer> shardingItems);
-
-    List<MarketingCustomer> getCidOrName(@Param("search") String search);
 }

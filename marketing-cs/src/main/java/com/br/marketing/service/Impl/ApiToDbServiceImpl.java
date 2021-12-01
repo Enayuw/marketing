@@ -1,11 +1,6 @@
 package com.br.marketing.service.Impl;
-import java.io.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.BrCipherMaker;
@@ -19,29 +14,33 @@ import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.StrategyOfGroupDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
-import com.br.marketing.vo.*;
+import com.br.marketing.vo.BaseHead;
+import com.br.marketing.vo.BaseHeadConfigVO;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {
@@ -113,7 +112,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     }
 
     @Override
-    public Result pushToDb(String code){
+    public Result pushToDb(String apiCode) {
+        return pushToDb(apiCode, 0, null);
+    }
+
+    private final static ExecutorService THREAD_POOL = BrExecutors.getThreadPool(20, 50);
+
+    @Override
+    public Result pushToDb(String code, int shardingTotalCount, List<Integer> shardingItems) {
         /**
          * ->遍历客户表->遍历客户规则->根据用户规则的时间范围判断是否有用户上传数据
          *  ->1如果上传则跳出该规则
@@ -125,18 +131,25 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
          */
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         MarketingCustomerExample.Criteria criteria = customerExample.createCriteria();
-        if(StringUtils.isNotBlank(code)){
-            criteria.andApiCodeEqualTo(code).andStatusEqualTo(Byte.valueOf("1"));
-        }else{
-            criteria.andStatusEqualTo(Byte.valueOf("1"));
+        if (StringUtils.isNotBlank(code)) {
+            criteria.andApiCodeEqualTo(code);
         }
-        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        criteria.andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers;
+        if (shardingTotalCount < 2 && (shardingItems == null || shardingItems.size() < 2)) {
+            marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        } else {
+            marketingCustomers = marketingCustomerMapper.selectByExampleAndShard(customerExample
+                    , shardingTotalCount, shardingItems);
+        }
+        List<Future<Integer>> futureList = new ArrayList<>();
+        AtomicInteger sum = new AtomicInteger();
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())) {
                 continue;
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
@@ -153,52 +166,52 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 LocalDateTime nowTime = LocalDateTime.now();
                 LocalDate nowData = LocalDate.now();
                 String validTimeStr = nowData.format(ymd).concat(" " + startTime + ":00");
-                LocalDateTime validTime = LocalDateTime.parse(validTimeStr,ymdhms);
+                LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
                 //筛选数据范围时间
-                String sTimeStr = "",eTimeStr = "";
-                Date sTime =null,eTime = null;
+                String sTimeStr = "", eTimeStr = "";
+                Date sTime = null, eTime = null;
                 //任务的开始时间和结束时间
-                String taskStart="",taskEnd="";
-                if(nowTime.compareTo(validTime)>0){
-                    if("00:00".equals(startTime)){
+                String taskStart = "", taskEnd = "";
+                if (nowTime.compareTo(validTime) > 0) {
+                    if ("00:00".equals(startTime)) {
                         sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                         eTimeStr = validTime.format(ymdhms);
                         taskStart = LocalDate.now().format(ymd);
                         taskEnd = LocalDate.now().plusDays(1L).format(ymd);
-                    }else {
+                    } else {
                         sTimeStr = nowData.format(ymd).concat(" 00:00:00");
                         eTimeStr = validTime.format(ymdhms);
                         taskStart = LocalDate.now().format(ymd);
                         taskEnd = LocalDate.now().plusDays(1L).format(ymd);
                     }
-                }else{
+                } else {
                     sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.minusDays(1L).format(ymdhms);
                     taskStart = LocalDate.now().minusDays(1L).format(ymd);
                     taskEnd = LocalDate.now().format(ymd);
                 }
                 try {
-                    sTime =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
-                    eTime =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
+                    sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
+                    eTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
                 Date ruleOpenTime = customerScoreRuleVO.getUpdateTime();
-                if(ruleOpenTime == null){
+                if (ruleOpenTime == null) {
                     ruleOpenTime = customerScoreRuleVO.getCreateTime();
                 }
                 String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
                 String nowDay = LocalDate.now().format(ymd);
                 // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-                if(ruleOpenDay.equals(nowDay)&&eTime.compareTo(ruleOpenTime)<=0){
+                if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
                     continue;
                 }
                 //endregion
 
                 //region 条件解析
                 Result<String> conditionRes = soleStrategyService.analysisCondition(customerScoreRuleVO.getConditionInfo());
-                if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){
+                if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
                     continue;
                 }
 
@@ -210,38 +223,38 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         .andStatusEqualTo(1)
                         .andIsUploadEqualTo(1);
                 int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
-                if(isUploadCount>0){
+                if (isUploadCount > 0) {
                     continue;
                 }
-                String number = "";
+                String number;
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
-                if(minId!=null&&minId>0){
-                    String time = LocalDateTime.parse(eTimeStr,ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                if (minId != null && minId > 0) {
+                    String time = LocalDateTime.parse(eTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                     Result<String> batchNumberRes = buildBatchNumber(apiCode
-                            ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleNameShort()
-                            ,time,null);
-                    if(!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())){
+                            , customerScoreRuleVO.getId().toString(), customerScoreRuleVO.getRuleNameShort()
+                            , time, null);
+                    if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
                         continue;
                     }
-                    number=batchNumberRes.getData();
-                }else{
+                    number = batchNumberRes.getData();
+                } else {
                     continue;
                 }
 
                 MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
-                if(hasTask!=null){
+                if (hasTask != null) {
                     continue;
                 }
 
                 BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(customerScoreRuleVO.getBaseInfo()
-                        , new TypeReference<BaseHeadConfigVO>() {}.getType());
+                        , new TypeReference<BaseHeadConfigVO>() {
+                        }.getType());
                 //endregion
 
                 //region 处理marketingUser
                 Long maxId = syncInfoMapper
                         .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
-                ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
                 int currentPage = 1;
                 Integer taskNum = 0;
@@ -263,25 +276,42 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     }
                     if(isToFile){
                         String separator=marketingSepService.querySepByApiCode(apiCode);
-                        dataToFile(syncUserByRuleScore,baseHeadConfigVO,threadPool,filePath,currentPage,separator);
+                        dataToFile(syncUserByRuleScore,baseHeadConfigVO,THREAD_POOL,filePath,currentPage,separator);
                     }else {
-                        dataToDB(syncUserByRuleScore,apiCode,batchNumber,baseHeadConfigVO,threadPool);
+                        dataToDB(syncUserByRuleScore,apiCode,batchNumber,baseHeadConfigVO,THREAD_POOL);
                     }
                     currentPage++;
                 }
-                threadPool.shutdown();
-                boolean isContiue = true;
-                while (isContiue){
-                    if(threadPool.isTerminated()){
-                        isContiue= false;
-                    }else{
-                        try {
-                            Thread.sleep(3000L);
-                        } catch (Exception e) {
-                            log.error("Thread.sleep error", e);
+                futureList.forEach(f -> {
+                    try {
+                        Integer integer = f.get(3, TimeUnit.SECONDS);
+                        while (integer == null && !f.isDone()) {
+                            TimeUnit.SECONDS.sleep(5);
                         }
+                        sum.addAndGet(integer);
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        if (!f.isDone()) {
+                            f.cancel(true);
+                            log.error("多线程任务取消失败，继续让运行中的线程执行完任务");
+                        }
+                        log.error(e.getMessage(), e);
                     }
-                }
+                });
+                futureList.clear();
+                sum.set(0);
+//                threadPool.shutdown();
+//                boolean isContiue = true;
+//                while (isContiue){
+//                    if(threadPool.isTerminated()){
+//                        isContiue= false;
+//                    }else{
+//                        try {
+//                            Thread.sleep(3000L);
+//                        } catch (Exception e) {
+//                            log.error("Thread.sleep error", e);
+//                        }
+//                    }
+//                }
                 //endregion
 
                 if(TaskExecCommonField.isBuildTaskJob.equals(2)){
@@ -372,11 +402,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    @Override
-    public Result pushToDb(String apiCode, int shardingTotalCount, List<Integer> shardingItems) {
-        return null;
     }
 
     private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore,String apiCode,String batchNumber,BaseHeadConfigVO baseHeadConfigVO,ExecutorService threadPool){
