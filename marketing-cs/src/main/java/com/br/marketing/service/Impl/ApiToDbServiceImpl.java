@@ -1,11 +1,6 @@
 package com.br.marketing.service.Impl;
-import java.io.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.BrCipherMaker;
@@ -22,11 +17,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
-import com.br.marketing.vo.*;
-import com.br.marketing.service.IApiToDbService;
-import com.br.marketing.service.IProductResultSimpleService;
-import com.br.marketing.service.IRuleConfigService;
-import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -39,14 +29,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -309,12 +297,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         log.error(e.getMessage(), e);
                     }
                 });
-                if (sum.get() != syncUserByRuleScore.size()) {
-                    log.warn("客户{}同步线程任务未全部成功！成功数据量{}，总数据量{}", apiCode, sum.get(), syncUserByRuleScore.size());
-                }
                 futureList.clear();
                 sum.set(0);
-            }
 //                threadPool.shutdown();
 //                boolean isContiue = true;
 //                while (isContiue){
@@ -418,11 +402,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    @Override
-    public Result pushToDb(String apiCode, int shardingTotalCount, List<Integer> shardingItems) {
-        return null;
     }
 
     private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore,String apiCode,String batchNumber,BaseHeadConfigVO baseHeadConfigVO,ExecutorService threadPool){

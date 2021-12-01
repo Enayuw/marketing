@@ -37,6 +37,4 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
     List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
             , @Param("shardingTotalCount") int shardingTotalCount
             , @Param("shardingItems") List<Integer> shardingItems);
-
-    List<MarketingCustomer> getCidOrName(@Param("search") String search);
 }
