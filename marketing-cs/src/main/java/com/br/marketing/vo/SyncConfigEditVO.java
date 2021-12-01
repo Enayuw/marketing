@@ -11,7 +11,6 @@ public class SyncConfigEditVO {
      * 
      */
     @ApiModelProperty(value = "主键id")
-    @NotEmpty(message = "ID不可为空")
     private Long id;
 
     /**
