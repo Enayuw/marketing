@@ -1823,6 +1823,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                 pushTransferRobotaiLogService.save(robotaiLog);
                 break;
             }
+            /*
+             * D20211128海尔消金-转化需求-3710018
+             * 海尔消金通过转化接口usertype判断转化状态。
+             * usertype	3、4	推送	已转化
+             * usertype	非3、4	不推送	未转化
+             */
+            if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
+                transferList = transferList.stream().filter(syncUser -> {
+                    String userType = syncUser.getUserType();
+                    return userType.equals("3") || userType.equals("4");
+                }).collect(Collectors.toList());
+            }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
             TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
             if (!outboundVO.getAccessNumber().equals("-1")) {
