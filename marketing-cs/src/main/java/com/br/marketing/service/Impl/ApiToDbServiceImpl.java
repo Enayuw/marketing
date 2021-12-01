@@ -263,7 +263,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 int currentPage = 1;
                 Integer taskNum = 0;
                 String filePath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
-                        .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("0");
+                        .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
                 while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
                     Long nowMaxId = minId+5000;
