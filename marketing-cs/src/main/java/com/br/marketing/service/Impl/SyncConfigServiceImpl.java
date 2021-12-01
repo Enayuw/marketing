@@ -70,7 +70,10 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath) {
+    public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath
+            , Integer type, Integer dataType,
+                                       String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
+                                       String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
         syncConfig.setId(null);
         syncConfig.setCreateTime(null);
@@ -78,7 +81,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         SyncConfig syncConfigNew = new SyncConfig();
 
         //判重
-        boolean only = sftpOnly(null, apiCode, syncConfig.getDataType(), syncConfig.getType());
+        boolean only = sftpOnly(null, apiCode, dataType!=null?dataType:syncConfig.getDataType(),
+                type!=null?type:syncConfig.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
         }
@@ -89,6 +93,17 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setApiCode(apiCode);
             syncConfigNew.setSrcPath(srcPath);
             syncConfigNew.setTargetPath(targePath);
+            syncConfigNew.setType(type);
+            syncConfigNew.setDataType(dataType);
+            syncConfigNew.setSuffix(suffix);
+            syncConfigNew.setSrcSftpHost(srcSftpHost);
+            syncConfigNew.setSrcSftpPort(srcSftpPort);
+            syncConfigNew.setSrcSftpUser(srcSftpUser);
+            syncConfigNew.setSrcSftpPwd(srcSftpPwd);
+            syncConfigNew.setTargetSftpHost(targetSftpHost);
+            syncConfigNew.setTargetSftpPort(targetSftpPort);
+            syncConfigNew.setTargetSftpUser(targetSftpUser);
+            syncConfigNew.setTargetSftpPwd(targetSftpPwd);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
         }catch (Exception e){

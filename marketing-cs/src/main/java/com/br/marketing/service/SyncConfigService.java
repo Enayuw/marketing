@@ -19,10 +19,12 @@ public interface SyncConfigService {
      * 客户sftp账号列表
      * @param apiCode
      * @param srcPath
-     * @param targePath
+     * @param targetPath
      * @return
      */
-    ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath);
+    ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targetPath, Integer type, Integer dataType,
+                                String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
+                                String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd);
 
     /**
      * 复制sftp配置信息
