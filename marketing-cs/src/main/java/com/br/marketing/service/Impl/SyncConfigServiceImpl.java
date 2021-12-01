@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -19,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -42,11 +43,29 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         PageHelper.startPage(page, pageSize);
         try {
             List<SyncConfigEditVO> list = syncConfigMapper.getSftpList(apiCode);
+            list.stream().map(syncConfigEditVO ->{
+                String s = DataTypeEnum.fromDescByValue(syncConfigEditVO.getDataType());
+                syncConfigEditVO.setDataTypeValue(s);
+                return syncConfigEditVO;
+            }).collect(Collectors.toList());
+
             return PageResultReturn.setPageResult(list, page,pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    @Override
+    public List<Map> getDataTypeList(){
+        List<Map> list = new ArrayList<>();
+        for(DataTypeEnum typeEnum : DataTypeEnum.values()){
+            Map map = new HashMap();
+            map.put("value",typeEnum.getValue());
+            map.put("desc",typeEnum.getDesc());
+            list.add(map);
+        }
+        return list;
     }
 
     @Override

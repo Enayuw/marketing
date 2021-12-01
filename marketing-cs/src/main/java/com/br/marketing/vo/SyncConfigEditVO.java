@@ -2,7 +2,6 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.NotEmpty;
 
 
 @Data
@@ -24,6 +23,9 @@ public class SyncConfigEditVO {
      */
     @ApiModelProperty(value = "文件类型。1:跑分上传文件,2:错误文件,3:电销文件,4:七七撞库文件")
     private Integer dataType;
+
+    @ApiModelProperty(value = "文件类型。1:跑分上传文件,2:错误文件,3:电销文件,4:七七撞库文件")
+    private String dataTypeValue;
 
     /**
      * 需要同步客户文件的源目录。

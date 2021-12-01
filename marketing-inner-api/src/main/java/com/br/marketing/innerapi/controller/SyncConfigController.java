@@ -13,6 +13,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Map;
 
 /**
  * sftp账号配置
@@ -77,6 +79,21 @@ public class SyncConfigController {
             log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
+    }
+
+    @ApiOperation(value = "获取文件类型列表",notes = "获取文件类型列表")
+    @GetMapping("/getDataTypeList")
+    public ApiResult<List<Map>> getDataTypeList(){
+        try {
+            List<Map> dataTypeList = syncConfigService.getDataTypeList();
+            if (dataTypeList != null) {
+                return new ApiResult<List<Map>>().success(dataTypeList);
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<List<Map>>().fail(ServiceResultEnum.FAILED);
+        }
+        return new ApiResult<List<Map>>().fail(ServiceResultEnum.FAILED);
     }
 
 }
