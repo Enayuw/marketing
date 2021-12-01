@@ -84,6 +84,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     @Autowired
     TaskStatusMapper taskStatusMapper;
+
+    @Autowired
+    TaskStatusDistributeMapper taskStatusDistributeMapper;
+
     private final static String redisElasticJobKey = "elasticjob:contextid";
 
     private final static String redisBatchNumberKey = "batchnumber:pre";
@@ -259,7 +263,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 int currentPage = 1;
                 Integer taskNum = 0;
                 String filePath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
-                        .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+                        .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("0");
                 while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
                     Long nowMaxId = minId+5000;
@@ -380,7 +384,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                     if(isToFile){
                         LoanFile loanFile=saveStraHisFile(task,customerScoreRuleVO,eTimeStr,filePath);
-                        saveTaskStatus(task,loanFile);
+                        saveTaskStatusDistribute(task,loanFile);
                     }
                     try{
                         StringBuilder content = new StringBuilder();
@@ -655,11 +659,23 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         }else if(4==task.getMonitorType()){
             blf.setType(1);
         }
+        blf.setIndexNum(1);
         blf.setBatchNumber(task.getBatchNumber());
         blf.setExpectedNum(task.getActualNumber());
         blf.setShowTitle(createShowTitle(task,customerScoreRuleVO,uploadTime));
         loanFileMapper.insertFile(blf);
         return blf;
+    }
+    private void saveTaskStatusDistribute(MarketingTask task,LoanFile loanFile){
+        TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
+        statusDistribute.setFileId(Long.valueOf(loanFile.getId()));
+        statusDistribute.setApiCode(task.getApiCode());
+        statusDistribute.setBatchNumber(task.getBatchNumber());
+        statusDistribute.setDistributeIndex(task.getIndex());
+        Date date = new Date();
+        statusDistribute.setCreateTime(date);
+        statusDistribute.setUpdateTime(date);
+        taskStatusDistributeMapper.insertSelective(statusDistribute);
     }
 
     private void saveTaskStatus(MarketingTask task,LoanFile loanFile){
