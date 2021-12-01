@@ -48,6 +48,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     
     final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyyMMdd");
 
+    final DateTimeFormatter ymdDfBy_ =  DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     final static String samoyeDDprefix = "samoye_duandian_";
 
 
@@ -61,7 +63,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
         List<TransferFileTask> resultList = new ArrayList<>();
         String yyyyMMdd = LocalDate.now().format(yyyyMMddDF);
-        String preyyyyMMdd = LocalDate.now().minusDays(1L).format(yyyyMMddDF);
+        String bT = LocalDate.now().minusDays(1L).format(ymdDfBy_);
+        String eT = LocalDate.now().format(ymdDfBy_);
 
         TransferFileTaskExample taskExample = new TransferFileTaskExample();
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd);
@@ -70,9 +73,9 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 .filter(t -> apiCode.equals(t.getApiCode()))
                 .collect(Collectors.groupingBy(TransferFileTask::getFileType));
         if(collect.get(1)==null||collect.get(1).size()<=0){
-            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, preyyyyMMdd, yyyyMMdd, "S01", Arrays.asList("2", "3"));
-            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, preyyyyMMdd, yyyyMMdd, "S02", Arrays.asList("2", "3"));
-            Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, preyyyyMMdd, yyyyMMdd, "S08", Arrays.asList("2"));
+            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("2", "3"));
+            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("2", "3"));
+            Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("2"));
             int num = s01 + s02 + s08;
             if(num>0){
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
@@ -93,8 +96,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         }
 
         if(collect.get(2)==null||collect.get(2).size()<=0){
-            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, preyyyyMMdd, yyyyMMdd, "S01", Arrays.asList("4"));
-            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, preyyyyMMdd, yyyyMMdd, "S02", Arrays.asList("4"));
+            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("4"));
+            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("4"));
             int num = s01 + s02;
             if(num>0){
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
@@ -125,9 +128,10 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask) {
         String apiCode = transferFileTask.getApiCode();
-        String endDate = transferFileTask.getStartDate();
-        String startDate = LocalDate.parse(endDate, yyyyMMddDF).minusDays(1L).format(yyyyMMddDF);
-        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(endDate).concat("/");
+        String recordDate = transferFileTask.getStartDate();
+        String startDate = LocalDate.parse(recordDate, yyyyMMddDF).minusDays(1L).format(ymdDfBy_);
+        String endDate = LocalDate.parse(recordDate, yyyyMMddDF).format(ymdDfBy_);
+        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if(!writeDic.exists()){
             writeDic.mkdirs();
@@ -141,7 +145,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             fileName.append(samoyeHYprefix);
             groupTyps = Arrays.asList("S01", "S02");
         }
-        fileName.append(endDate).append(".txt");
+        fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
