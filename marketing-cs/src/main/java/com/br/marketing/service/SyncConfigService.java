@@ -4,6 +4,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.SyncConfigEditVO;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * sftp账号配置业务接口
  *
@@ -37,4 +40,5 @@ public interface SyncConfigService {
      */
     ApiResult<Boolean> editSftp(SyncConfigEditVO vo);
 
+    List<Map> getDataTypeList();
 }
