@@ -372,6 +372,9 @@
 			`monitor_type`,
 			`is_repair`,
 			`context_id`
+		<if test="taskType != null" >
+			,`task_type`
+		</if>
 		<if test="cycleDay != null" >
 			,`cycle_day`
 		</if>
@@ -395,6 +398,9 @@
 			#{monitorType},
 			#{isRepair},
 			#{contextId}
+		<if test="taskType != null" >
+			,#{taskType}
+		</if>
 		<if test="cycleDay != null" >
 			,#{cycleDay}
 		</if>

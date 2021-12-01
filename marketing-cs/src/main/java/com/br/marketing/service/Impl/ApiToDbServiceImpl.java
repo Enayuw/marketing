@@ -643,7 +643,8 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         statusDistribute.setFileId(Long.valueOf(loanFile.getId()));
         statusDistribute.setApiCode(task.getApiCode());
         statusDistribute.setBatchNumber(task.getBatchNumber());
-        statusDistribute.setDistributeIndex(task.getIndex());
+        statusDistribute.setDistributeIndex(0);
+        statusDistribute.setActualNum(task.getActualNumber().longValue());
         Date date = new Date();
         statusDistribute.setCreateTime(date);
         statusDistribute.setUpdateTime(date);
