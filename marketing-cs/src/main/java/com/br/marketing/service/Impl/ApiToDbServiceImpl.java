@@ -603,7 +603,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         }
                         for (String s : baseHeadConfigVO.getShowBaseHead()) {
                             String ss = extendJson.getString(s);
-                            fw.append(ss !=null?ss:"").append(sep);
+                            if(StringUtils.isNotBlank(ss)){
+                                fw.append(ss).append(sep).append("\r\n");
+                            }
                         }
                     }
                 }
