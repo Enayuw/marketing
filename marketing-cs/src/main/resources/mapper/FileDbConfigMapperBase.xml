@@ -9,6 +9,7 @@
     <result column="db_name" property="dbName" jdbcType="VARCHAR" />
     <result column="db_fields" property="dbFields" jdbcType="VARCHAR" />
     <result column="route_key" property="routeKey" jdbcType="VARCHAR" />
+    <result column="file_type" property="fileType" jdbcType="VARCHAR" />
     <result column="del" property="del" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -72,8 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, sftp_config_id, api_code, inner_path, db_name, db_fields, route_key, del, create_time, 
-    update_time
+    id, sftp_config_id, api_code, inner_path, db_name, db_fields, route_key, file_type, 
+    del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FileDbConfigExample" >
     select
@@ -111,12 +112,12 @@
     </selectKey>
     insert into b_file_db_config (sftp_config_id, api_code, inner_path, 
       db_name, db_fields, route_key, 
-      del, create_time, update_time
-      )
+      file_type, del, create_time, 
+      update_time)
     values (#{sftpConfigId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{innerPath,jdbcType=VARCHAR}, 
       #{dbName,jdbcType=VARCHAR}, #{dbFields,jdbcType=VARCHAR}, #{routeKey,jdbcType=VARCHAR}, 
-      #{del,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{fileType,jdbcType=VARCHAR}, #{del,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.FileDbConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -141,6 +142,9 @@
       </if>
       <if test="routeKey != null" >
         route_key,
+      </if>
+      <if test="fileType != null" >
+        file_type,
       </if>
       <if test="del != null" >
         del,
@@ -170,6 +174,9 @@
       </if>
       <if test="routeKey != null" >
         #{routeKey,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        #{fileType,jdbcType=VARCHAR},
       </if>
       <if test="del != null" >
         #{del,jdbcType=INTEGER},
@@ -212,6 +219,9 @@
       <if test="record.routeKey != null" >
         route_key = #{record.routeKey,jdbcType=VARCHAR},
       </if>
+      <if test="record.fileType != null" >
+        file_type = #{record.fileType,jdbcType=VARCHAR},
+      </if>
       <if test="record.del != null" >
         del = #{record.del,jdbcType=INTEGER},
       </if>
@@ -235,6 +245,7 @@
       db_name = #{record.dbName,jdbcType=VARCHAR},
       db_fields = #{record.dbFields,jdbcType=VARCHAR},
       route_key = #{record.routeKey,jdbcType=VARCHAR},
+      file_type = #{record.fileType,jdbcType=VARCHAR},
       del = #{record.del,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -263,6 +274,9 @@
       <if test="routeKey != null" >
         route_key = #{routeKey,jdbcType=VARCHAR},
       </if>
+      <if test="fileType != null" >
+        file_type = #{fileType,jdbcType=VARCHAR},
+      </if>
       <if test="del != null" >
         del = #{del,jdbcType=INTEGER},
       </if>
@@ -283,6 +297,7 @@
       db_name = #{dbName,jdbcType=VARCHAR},
       db_fields = #{dbFields,jdbcType=VARCHAR},
       route_key = #{routeKey,jdbcType=VARCHAR},
+      file_type = #{fileType,jdbcType=VARCHAR},
       del = #{del,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

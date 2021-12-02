@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.TwosevenFile;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.ITxtToDbService;
 
@@ -15,8 +16,11 @@ import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -25,6 +29,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
     @Autowired
     TwosevenFileMapper twosevenFileMapper;
+
+    @Autowired
+    LocalFileMapper localFileMapper;
 
     @Override
     public Result TwoSevenToDb(TxtToDbDTO dto) {
@@ -102,58 +109,69 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         HashMap<Integer, String> address = dto.getAddress();
         HashMap<Integer, String> extSetField = dto.getExtSetField();
         Integer line = dto.getLine();
+        String error = dto.getErrorMsg();
+        String dbName = dto.getDbName().replace("apicode", dto.getApiCode());
+        HashSet<String> fieldAll = dto.getFieldAll();
+        HashSet<String> fieldMust = dto.getFieldMust();
         List<String> datas = Splitter.on(",").splitToList(row);
+        String sqlTemp = "insert into %s (%s) values ( %s )";
         JSONObject jo = null;
-        String headDesc = dto.getHeadDesc();
-        if(StringUtils.isBlank(headDesc)){
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
-        }
-        String error = "mobile不能为空;";
+        Integer status = 1;
         try {
             if (datas.size() != address.size()) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
+            StringBuilder insertFields = new StringBuilder();
+            StringBuilder valueFields = new StringBuilder();
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
-                switch (sureaddress) {
-                    case "mobile":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("mobile不能为空;", "");
-                        }
-                        break;
-                    case "extend":
-                        String s = extSetField.get(i);
-                        if (StringUtils.isNotBlank(s)) {
-                            if (jo == null) {
-                                jo = new JSONObject();
-                            }
-                            jo.put(s, datas.get(i));
-                        }
-                        break;
+                if(fieldAll.contains(sureaddress)){
+                    if(StringUtils.isNotNull(datas.get(i))) {
+                        insertFields.append(sureaddress).append(",");
+                        valueFields.append(String.format("'%s'", datas.get(i))).append(",");
+                    }
                 }
-                if (jo != null) {
-                    twosevenFile.setExtend(jo.toJSONString());
+                if(fieldMust.contains(sureaddress)){
+                    error = error.replace(String.format("%s不能为空;",sureaddress), "");
                 }
+                if(sureaddress.equals("extend")){
+                    String s = extSetField.get(i);
+                    if (StringUtils.isNotBlank(s)) {
+                        if (jo == null) {
+                            jo = new JSONObject();
+                        }
+                        jo.put(s, datas.get(i));
+                    }
+                }
+            }
+            if (jo != null) {
+                insertFields.append("extend").append(",");
+                valueFields.append(jo.toJSONString()).append(",");
             }
             if (!StringUtils.isEmpty(error)) {
-                twosevenFile.setStatus(2);
-                twosevenFile.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+                status=2;
+                insertFields.append("status").append(",");
+                insertFields.append("data_message").append(",");
+                valueFields.append("2").append(",");
+                valueFields.append(String.format("行号：%d;报错信息：%s", line, error)).append(",");
             }
-            Date date = new Date();
-            twosevenFile.setCreateTime(date);
-            twosevenFile.setUpdateTime(date);
-            twosevenFileMapper.insertSelective(twosevenFile);
+            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            insertFields.append("create_time");
+            valueFields.append(time);
+            String sql = String.format(sqlTemp, dbName, insertFields, valueFields);
+            localFileMapper.insertFileData(sql);
         }catch (Exception ex){
+            status=2;
             log.error(ex.getMessage(),ex);
-            twosevenFile.setStatus(2);
-            twosevenFile.setDataMessage(String.format("行号：%d;报错信息：%s"
+            String value = String.format("2,'%s'",String.format("行号：%d;报错信息：%s"
                     , line
                     ,ex.getMessage().length()>=450
                             ?ex.getMessage().substring(0,449)
                             :ex.getMessage()));
-            twosevenFileMapper.insertSelective(twosevenFile);
+            String sql = String.format(sqlTemp, dbName, "status,data_message",value);
+            localFileMapper.insertFileData(sql);
         }
-        return new Result().setCode(new Integer("1").equals(twosevenFile.getStatus())
+        return new Result().setCode(new Integer("1").equals(status=2)
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }

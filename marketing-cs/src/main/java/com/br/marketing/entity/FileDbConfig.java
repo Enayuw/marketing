@@ -39,6 +39,11 @@ public class FileDbConfig {
     private String routeKey;
 
     /**
+     * 文件类型
+     */
+    private String fileType;
+
+    /**
      * 删除标志 1-有效；9-无效
      */
     private Integer del;
@@ -107,6 +112,14 @@ public class FileDbConfig {
 
     public void setRouteKey(String routeKey) {
         this.routeKey = routeKey == null ? null : routeKey.trim();
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType == null ? null : fileType.trim();
     }
 
     public Integer getDel() {

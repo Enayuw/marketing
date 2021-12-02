@@ -121,9 +121,6 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
-
-
-
         });
     }
 
@@ -176,7 +173,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                                     , localFile
                                     , baseHeads
                                     , MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER
-                                    ,iTxtToDbService::TwoSevenToDb);
+                                    ,iTxtToDbService::toDbByCommon);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
