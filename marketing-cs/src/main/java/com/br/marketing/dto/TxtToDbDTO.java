@@ -17,6 +17,8 @@ public class TxtToDbDTO {
 
     private Integer line;
 
+    private String headDesc;
+
     private HashMap<Integer, String> address;
 
     private HashMap<Integer, String> extSetField;

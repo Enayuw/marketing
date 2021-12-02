@@ -4,13 +4,13 @@ import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ITxtToDbService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -59,6 +59,9 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
     LocalFileMapper localFileMapper;
 
     @Autowired
+    FileDbConfigMapper fileDbConfigMapper;
+
+    @Autowired
     ITxtToDbService iTxtToDbService;
     /**
      *  1、先从customer读取客户
@@ -77,26 +80,37 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(4).andTypeEqualTo(1);
+        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.FILETODB.getValue()).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         syncConfigs.forEach(t->{
             if(StringUtils.isNotBlank(t.getTargetPath())){
+                FileDbConfigExample fileDbConfigExample = new FileDbConfigExample();
+                fileDbConfigExample.createCriteria().andSftpConfigIdEqualTo(t.getId()).andDelEqualTo(1);
+                List<FileDbConfig> fileDbConfigs = fileDbConfigMapper.selectByExample(fileDbConfigExample);
+                if(fileDbConfigs.size()<=0){
+                    return;
+                }
+                FileDbConfig fileDbConfig = fileDbConfigs.get(0);
+                Result<String> fileConfigRes = sftpToDbByCommonService.checkFileDbconfig(fileDbConfig);
+                if(!ResultCode.SUCCESS.getValue().equals(fileConfigRes.getCode())){
+                    log.error(String.format("apicode:%s的 %s",t.getApiCode(),fileConfigRes.getMessage()));
+                }
                 Map<String, Set<String>> map = new HashMap<>();
                 SftpClient sftpClient = new SftpClient(sftpHost, sftpPort,sftpUsername,sftpPwd);
                 try {
                     sftpClient.connect();
                     SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient,t);
                     if (!map.isEmpty()) {
-                        log.warn("----------获取七七推送数据开始-------------");
+                        log.warn(String.format("----------获取apiCode:%s数据开始-------------",t.getApiCode()));
                         long start = System.currentTimeMillis();
-                        dealDataFile(map, sftpClient,t);
+                        dealDataFile(map, sftpClient,t,fileDbConfig);
                         long end = System.currentTimeMillis();
                         if (log.isWarnEnabled()) {
                             log.warn(String.format("数据入库时间:%d", end - start));
                         }
                     }
                 } catch (JSchException e) {
-                    log.error("SftpToDbByResultDataJob,sftp连接失败", e);
+                    log.error("SftpToDbByCommonJob,sftp连接失败", e);
                 } catch (Exception e) {
                     log.error("获取sftp上的数据文件列表出错", e);
                 } finally {
@@ -120,7 +134,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
      *                   value 对应目录下新上传的文件
      * @param sftpClient
      */
-    private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient, SyncConfig syncConfig) {
+    private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient, SyncConfig syncConfig,FileDbConfig fileDbConfig) {
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();
@@ -129,7 +143,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
 
             for (String fileName : fileNames) {
                 if(fileName.endsWith(".txt")){
-                    log.warn("获取到七七文件:"+fileName);
+                    log.warn(String.format("获取到%s的文件:%s",apiCode,fileName));
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);
@@ -137,7 +151,8 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                     context.setTxtFileName(fileName);
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
-                        context.setLocalTxtFilePath(path.concat("sftp_seven_data/").concat(apiCode).concat("/"));
+                        context.setLocalTxtFilePath(path.concat(fileDbConfig.getInnerPath()).concat("/")
+                                .concat(apiCode).concat("/"));
                         if(!sftpToDbByCommonService.dowloadFile(context)){
                             continue;
                         }

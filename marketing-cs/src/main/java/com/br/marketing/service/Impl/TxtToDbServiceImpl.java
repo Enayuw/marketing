@@ -95,4 +95,66 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }
+
+    @Override
+    public Result toDbByCommon(TxtToDbDTO dto) {
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetField = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String headDesc = dto.getHeadDesc();
+        if(StringUtils.isBlank(headDesc)){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        String error = "mobile不能为空;";
+        try {
+            if (datas.size() != address.size()) {
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "mobile":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("mobile不能为空;", "");
+                        }
+                        break;
+                    case "extend":
+                        String s = extSetField.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, datas.get(i));
+                        }
+                        break;
+                }
+                if (jo != null) {
+                    twosevenFile.setExtend(jo.toJSONString());
+                }
+            }
+            if (!StringUtils.isEmpty(error)) {
+                twosevenFile.setStatus(2);
+                twosevenFile.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            }
+            Date date = new Date();
+            twosevenFile.setCreateTime(date);
+            twosevenFile.setUpdateTime(date);
+            twosevenFileMapper.insertSelective(twosevenFile);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            twosevenFile.setStatus(2);
+            twosevenFile.setDataMessage(String.format("行号：%d;报错信息：%s"
+                    , line
+                    ,ex.getMessage().length()>=450
+                            ?ex.getMessage().substring(0,449)
+                            :ex.getMessage()));
+            twosevenFileMapper.insertSelective(twosevenFile);
+        }
+        return new Result().setCode(new Integer("1").equals(twosevenFile.getStatus())
+                ?ResultCode.SUCCESS.getValue()
+                :ResultCode.FAIL.getValue());
+    }
 }
