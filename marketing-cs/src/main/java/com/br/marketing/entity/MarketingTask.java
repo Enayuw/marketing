@@ -94,6 +94,8 @@ public class MarketingTask {
     private String cycleDay;
 
     private Integer dataVolume;
+    @JSONField(name = "task_type")
+    private Integer taskType;
 
     /**
      * 是否首次跑数，首次记录日志，否则不记录
