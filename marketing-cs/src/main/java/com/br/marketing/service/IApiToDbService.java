@@ -8,7 +8,7 @@ import java.util.List;
 public interface IApiToDbService {
     Result pushToDb(String apiCode);
 
-    Result pushToDb(String apiCode, int shardingTotalCount, List<Integer> shardingItems);
+//    Result pushToDb(String apiCode, int shardingTotalCount, List<Integer> shardingItems);
 
     Result pushToDb(String apiCode, HashMap<String, String> params);
 

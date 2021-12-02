@@ -5,6 +5,7 @@ import com.br.marketing.service.IApiToDbService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class ApiToDbJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         try {
-            iApiToDbService.pushToDb(context.getJobParameter(), context.getShardingTotalCount(), context.getShardingItems());
+            iApiToDbService.pushToDb(null);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
