@@ -1834,6 +1834,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     String userType = syncUser.getUserType();
                     return userType.equals("3") || userType.equals("4");
                 }).collect(Collectors.toList());
+                if (transferList.size() < 1) {
+                    log.warn("海尔消金({})没有已转化数据，UserType不为[3|4]", apiCode);
+                    return list;
+                }
             }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
             TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
@@ -1852,7 +1856,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
-        Assert.notNull(dto, String.format("转化数据不存在!\n转化信息[transferInfoId=%d;apiCode=%s;requestId=%s]"
+        Assert.notNull(dto, String.format("转化数据不存在或已经规则过滤掉!\n转化信息[transferInfoId=%d;apiCode=%s;requestId=%s]"
                 , transferInfo.getId(), transferInfo.getApiCode(), transferInfo.getRequestId()));
         TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
         try {
