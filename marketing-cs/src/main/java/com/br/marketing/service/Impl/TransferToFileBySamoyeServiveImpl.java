@@ -194,23 +194,19 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                     if(!hsCell.containsKey(key)){
                         String decode = BrCipherMaker.getInstance().decode(t.getCell());
                         String s = StringUtils.isBlank(decode) ? t.getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
-                        hsCell.put(key,s.concat("|").concat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(t.getAppletTime())));
+                        hsCell.put(key,s);
                     }
                 });
 
                 for (TransferUserVO transferUserVO : transferFileUser) {
                     String nowKey = transferUserVO.getTaskId().concat("_").concat(transferUserVO.getCustNum());
-                    String dataStr = hsCell.get(nowKey);
-
-                    List<String> data = Splitter.on("|").splitToList(dataStr);
-                    String cell = data.get(0);
-                    String time = data.get(1);
+                    String cell = StringUtils.isNotBlank(hsCell.get(nowKey))?hsCell.get(nowKey):"";
                     StringBuilder sb = new StringBuilder();
                     sb.append(transferUserVO.getCustNum().concat(","));
                     sb.append(transferUserVO.getGroupType().concat(","));
                     sb.append(transferUserVO.getReserveField1().concat(","));
                     sb.append(cell.concat(","));
-                    sb.append(time);
+                    sb.append(transferUserVO.getCreateTime());
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }
