@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
-import com.sun.istack.internal.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -60,8 +59,8 @@ public class HaierServiceClient {
      * @author Guo Zeqiang
      * @dateTime 2021/12/3 16:43
      */
-    public <T> Response2Entity pushToTeleSales(@NotNull List<T> list, Function<List<T>, Set<PushDTO.DataItems>> function
-            , @NotNull String requestId, @NotNull String type) throws Exception {
+    public <T> Response2Entity pushToTeleSales(List<T> list, Function<List<T>, Set<PushDTO.DataItems>> function
+            , String requestId, String type) throws Exception {
         Assert.notNull(list, "\"List\" is not null");
         Assert.notNull(requestId, "\"requestId\" is not null");
         Assert.notNull(type, "\"requestId\" is not null");
