@@ -68,7 +68,7 @@ public class HaierServiceClient {
         final Set<PushDTO.DataItems> dataItemsSet = function.apply(list);
         PushDTO pushDTO = new PushDTO(apiCode, dataItemsSet, itemsSet -> new PushDTO.FormData(requestId, type, itemsSet), apiKey);
         log.warn("&&发送内容：[{}]", pushDTO);
-        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_VALUE, "");
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
