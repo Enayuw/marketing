@@ -15,12 +15,14 @@ public enum DataTypeEnum {
     private Integer value;
     private String desc;
 
-    /**根据value值获取描述*/
-    public String fromDescByValue(Integer value){
+    /**
+     * 根据value值获取描述
+     */
+    public static String fromDescByValue(Integer value) {
         Optional<DataTypeEnum> first = Arrays.stream(DataTypeEnum.values()).filter(t -> value.equals(t.getValue())).findFirst();
-        if(first.isPresent()){
+        if (first.isPresent()) {
             return first.get().getDesc();
-        }else{
+        } else {
             return null;
         }
     }
