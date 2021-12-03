@@ -112,22 +112,28 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String error = dto.getErrorMsg();
         String dbName = dto.getDbName().replace("apicode", dto.getApiCode());
         HashSet<String> fieldAll = dto.getFieldAll();
+        HashMap<String, String> fieldAllHm = dto.getFieldAllHm();
         HashSet<String> fieldMust = dto.getFieldMust();
         List<String> datas = Splitter.on(",").splitToList(row);
         String sqlTemp = "insert into %s (%s) values ( %s )";
+
         JSONObject jo = null;
         Integer status = 1;
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         try {
             if (datas.size() != address.size()) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
             StringBuilder insertFields = new StringBuilder();
             StringBuilder valueFields = new StringBuilder();
+
+            insertFields.append("local_id,api_code,");
+            valueFields.append(String.format("'%s','%s',",dto.getLocalId().toString(),dto.getApiCode()));
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
                 if(fieldAll.contains(sureaddress)){
                     if(StringUtils.isNotNull(datas.get(i))) {
-                        insertFields.append(sureaddress).append(",");
+                        insertFields.append(fieldAllHm.get(sureaddress)).append(",");
                         valueFields.append(String.format("'%s'", datas.get(i))).append(",");
                     }
                 }
@@ -152,26 +158,26 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 status=2;
                 insertFields.append("status").append(",");
                 insertFields.append("data_message").append(",");
-                valueFields.append("2").append(",");
-                valueFields.append(String.format("行号：%d;报错信息：%s", line, error)).append(",");
+                valueFields.append("'2'").append(",");
+                valueFields.append(String.format("'行号：%d;报错信息：%s'", line, error)).append(",");
             }
-            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
             insertFields.append("create_time");
-            valueFields.append(time);
+            valueFields.append(String.format("'%s'",time));
             String sql = String.format(sqlTemp, dbName, insertFields, valueFields);
             localFileMapper.insertFileData(sql);
         }catch (Exception ex){
             status=2;
             log.error(ex.getMessage(),ex);
-            String value = String.format("2,'%s'",String.format("行号：%d;报错信息：%s"
+            String value = String.format("'2','%s','%s'",String.format("行号：%d;报错信息：%s"
                     , line
                     ,ex.getMessage().length()>=450
                             ?ex.getMessage().substring(0,449)
-                            :ex.getMessage()));
+                            :ex.getMessage()),time);
             String sql = String.format(sqlTemp, dbName, "status,data_message",value);
             localFileMapper.insertFileData(sql);
         }
-        return new Result().setCode(new Integer("1").equals(status=2)
+        return new Result().setCode(new Integer("1").equals(status)
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }
