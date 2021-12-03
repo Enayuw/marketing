@@ -1843,6 +1843,22 @@ public class PushRuleServiceImpl implements PushRuleService {
                 pushTransferRobotaiLogService.save(robotaiLog);
                 break;
             }
+            /*
+             * D20211128海尔消金-转化需求-3710018
+             * 海尔消金通过转化接口usertype判断转化状态。
+             * usertype	3、4	推送	已转化
+             * usertype	非3、4	不推送	未转化
+             */
+            if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
+                transferList = transferList.stream().filter(syncUser -> {
+                    String userType = syncUser.getUserType();
+                    return userType.equals("3") || userType.equals("4");
+                }).collect(Collectors.toList());
+                if (transferList.size() < 1) {
+                    log.warn("海尔消金({})没有已转化数据，UserType不为[3|4]", apiCode);
+                    return list;
+                }
+            }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
             TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
             if (!outboundVO.getAccessNumber().equals("-1")) {
@@ -1860,7 +1876,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
-        Assert.notNull(dto, String.format("转化数据不存在!\n转化信息[id=%d;apiCode=%s;requestId=%s]"
+        Assert.notNull(dto, String.format("转化数据不存在或已经规则过滤掉!\n转化信息[transferInfoId=%d;apiCode=%s;requestId=%s]"
                 , transferInfo.getId(), transferInfo.getApiCode(), transferInfo.getRequestId()));
         TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
         try {
@@ -1906,7 +1922,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         String apiCode = transferInfo.getApiCode();
         if (CollectionUtils.isEmpty(transferList)) {
-            String smg = String.format("apiCode:[%s],RequestId:[%s],id:[%s]信息不存在！日期:%s", apiCode
+            String smg = String.format("apiCode:[%s],RequestId:[%s],transferInfoId:[%s]转化结果不存在！日期:%s", apiCode
                     , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
             alarmClient.sendAlarm(smg, title, appName, secretKey,
                     Constants.sendCodeMap.get("pushToCustomer"));

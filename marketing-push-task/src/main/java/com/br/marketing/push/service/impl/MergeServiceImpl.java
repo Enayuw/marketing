@@ -147,15 +147,18 @@ public class MergeServiceImpl implements MergeService {
                 baseHeadInfo = baseHeadInfoByTaskId.getData();
             }
             String dataInfo = "";
-            Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber(),blt.getStrategyId());
-            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
-                dataInfo = fieldsInfo.getData();
+            Integer taskType=blt.getTaskType();
+            if(taskType.compareTo(new Integer(0))==0){
+                Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber(),blt.getStrategyId());
+                if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                    dataInfo = fieldsInfo.getData();
+                }
+                String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
+                if(StringUtils.isEmpty(strategyStr)){
+                    return zipFile;
+                }
+                proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
             }
-            String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
-            if(StringUtils.isEmpty(strategyStr)){
-                return zipFile;
-            }
-            proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
             String startTime = blf.getCreateTime();
             startTime=startTime.split(" ")[0].replace("-","");
 
@@ -165,7 +168,7 @@ public class MergeServiceImpl implements MergeService {
             String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
-            initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo);
+            initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo,taskType);
             TaskStatusDistributeExample taskStatusDistributeExample = new TaskStatusDistributeExample();
             taskStatusDistributeExample.createCriteria().andFileIdEqualTo(blf.getId());
             List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(taskStatusDistributeExample);
@@ -359,8 +362,14 @@ public class MergeServiceImpl implements MergeService {
      * .append("姓名").append(",").append("身份证号").append(",").append("证书号").append(",").append("手机号")
     .append(",")
      */
-    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep,String baseHeadInfo,String dataInfo){
+    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep,String baseHeadInfo,String dataInfo,Integer taskType){
         List<String> list;
+        if(taskType.compareTo(new Integer(0))==1){
+            if(StringUtils.isNotBlank(baseHeadInfo.trim())){
+                head.append(baseHeadInfo).append(sep);
+            }
+            return;
+        }
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(StringUtils.isNotBlank(baseHeadInfo.trim())){
