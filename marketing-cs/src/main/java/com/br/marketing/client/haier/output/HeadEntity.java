@@ -46,11 +46,11 @@ public class HeadEntity {
      * MSG70000014	custNum非法	            custNum为空或不存在
      * MSG70000015	未知异常	                请联系对接人员处理
      */
-    private String regFlag;
+    private String retFlag;
     /**
      * 响应描述
      */
-    private String regMsg;
+    private String retMsg;
     /**
      * 提示信息
      */
@@ -59,26 +59,27 @@ public class HeadEntity {
     public HeadEntity() {
     }
 
-    public HeadEntity(String regFlag, String regMsg, String showMsg) {
-        this.regFlag = regFlag;
-        this.regMsg = regMsg;
+    public HeadEntity(String retFlag, String retMsg, String showMsg) {
+        this.retFlag = retFlag;
+        this.retMsg = retMsg;
         this.showMsg = showMsg;
     }
 
-    public String getRegFlag() {
-        return regFlag;
+
+    public String getRetFlag() {
+        return retFlag;
     }
 
-    public void setRegFlag(String regFlag) {
-        this.regFlag = regFlag;
+    public void setRetFlag(String retFlag) {
+        this.retFlag = retFlag;
     }
 
-    public String getRegMsg() {
-        return regMsg;
+    public String getRetMsg() {
+        return retMsg;
     }
 
-    public void setRegMsg(String regMsg) {
-        this.regMsg = regMsg;
+    public void setRetMsg(String retMsg) {
+        this.retMsg = retMsg;
     }
 
     public String getShowMsg() {
@@ -87,14 +88,5 @@ public class HeadEntity {
 
     public void setShowMsg(String showMsg) {
         this.showMsg = showMsg;
-    }
-
-    @Override
-    public String toString() {
-        return "HeadEntity{" +
-                "regFlag='" + regFlag + '\'' +
-                ", regMsg='" + regMsg + '\'' +
-                ", showMsg='" + showMsg + '\'' +
-                '}';
     }
 }
