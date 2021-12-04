@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -56,8 +58,9 @@ public class RedisController {
         try {
             final Response2Entity response2Entity = haierServiceClient.pushToTeleSales(list, maps -> {
                         Set<PushDTO.DataItems> dataItemsSet = new HashSet<>();
-                        dataItemsSet.add(new PushDTO.DataItems("别害怕", "我是测试-" + count));
-                        dataItemsSet.add(new PushDTO.DataItems("don'tBeAfraid", "I'mTesting-" + count));
+                        final String format = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+                        dataItemsSet.add(new PushDTO.DataItems("别害怕", format.concat("-我是测试-" + count)));
+                        dataItemsSet.add(new PushDTO.DataItems("don'tBeAfraid", format.concat("-I'mTesting-" + count)));
                         return dataItemsSet;
                     }, UUID.randomUUID().toString().concat("-").concat(String.valueOf(count))
                     , String.valueOf(random.nextInt(3) + 1));
