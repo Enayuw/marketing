@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -31,6 +32,16 @@ public class PushDTO {
     private String checkData;
 
     public PushDTO() {
+    }
+
+    public PushDTO(String apiCode, FormData formData, String apiKey) throws Exception {
+        this.apiCode = apiCode;
+        Assert.notNull(formData, "formData is not null");
+        final String formDataStr = new ObjectMapper().writeValueAsString(formData);
+        Assert.notNull(formDataStr, "formDataStr is not null");
+        this.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
+                formDataStr.getBytes(StandardCharsets.UTF_8), apiKey));
+        this.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
     }
 
     public PushDTO(String apiCode, Set<DataItems> t, Function<Set<DataItems>, FormData> function, String apiKey) throws Exception {
@@ -107,17 +118,41 @@ public class PushDTO {
         public FormData() {
         }
 
+        public FormData(String requestId, String type, String batchNo, Set<DataItems> dataItems) {
+            this.requestId = requestId;
+            this.type = type;
+            this.batchNo = batchNo;
+            this.dataItems = dataItems;
+        }
+
+        public FormData(String requestId, String type, Set<DataItems> dataItems) {
+            this.requestId = requestId;
+            this.type = type;
+            this.batchNo = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE).concat(type);
+            this.dataItems = dataItems;
+        }
+
+
         public FormData(String requestId, String type) {
             this.requestId = requestId;
             this.type = type;
             this.batchNo = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE).concat(type);
         }
 
-        public FormData(String requestId, String type, Set<DataItems> dataItemsSet) {
+        public <T> FormData(String requestId, String type, String batchNo, List<T> list, Function<List<T>, Set<DataItems>> function) {
+            this.requestId = requestId;
+            this.type = type;
+            this.batchNo = batchNo;
+            Assert.notNull(list, "list is not null");
+            this.dataItems = function.apply(list);
+        }
+
+        public <T> FormData(String requestId, String type, List<T> list, Function<List<T>, Set<DataItems>> function) {
             this.requestId = requestId;
             this.type = type;
             this.batchNo = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE).concat(type);
-            this.dataItems = dataItemsSet;
+            Assert.notNull(list, "list is not null");
+            this.dataItems = function.apply(list);
         }
 
         public void setRequestId(String requestId) {
@@ -129,8 +164,12 @@ public class PushDTO {
             this.batchNo = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE).concat(type);
         }
 
-        public void setDataItemsSet(Set<DataItems> dataItemsSet) {
-            this.dataItems = dataItemsSet;
+        public void setBatchNo(String batchNo) {
+            this.batchNo = batchNo;
+        }
+
+        public void setDataItems(Set<DataItems> dataItems) {
+            this.dataItems = dataItems;
         }
 
         public String getRequestId() {
@@ -145,7 +184,7 @@ public class PushDTO {
             return type;
         }
 
-        public Set<DataItems> getDataItemsSet() {
+        public Set<DataItems> getDataItems() {
             return dataItems;
         }
     }

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -13,9 +15,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * 海尔消金客户端
@@ -50,23 +49,18 @@ public class HaierServiceClient {
     /**
      * 推送数据客户端
      *
-     * @param list      推送的数据
-     * @param function  实现封装的函数
-     * @param requestId 批次
-     * @param type      待转化状态 码值：促注册 1 促申额 2 促首贷 3
+     * @param formData 发送的数据
      * @return Response2Entity 响应信息
      * @throws Exception 大概率序列化异常，具体请自行打印异常信息
      * @author Guo Zeqiang
      * @dateTime 2021/12/3 16:43
      */
-    public <T> Response2Entity pushToTeleSales(List<T> list, Function<List<T>, Set<PushDTO.DataItems>> function
-            , String requestId, String type) throws Exception {
-        Assert.notNull(list, "\"List\" is not null");
-        Assert.notNull(requestId, "\"requestId\" is not null");
-        Assert.notNull(type, "\"requestId\" is not null");
+//    public <T> Response2Entity pushToTeleSales(List<T> list, Function<List<T>, Set<PushDTO.DataItems>> function
+    public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData, int retr) throws Exception {
+        Result<Response2Entity> result = new Result<>();
+        Assert.notNull(formData, "\"List\" is not null");
         log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
-        final Set<PushDTO.DataItems> dataItemsSet = function.apply(list);
-        PushDTO pushDTO = new PushDTO(apiCode, dataItemsSet, itemsSet -> new PushDTO.FormData(requestId, type, itemsSet), apiKey);
+        PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
         log.warn("&&发送内容：[{}]", pushDTO);
         final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
@@ -74,11 +68,18 @@ public class HaierServiceClient {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
             log.warn("%%应答内容：[{}]", respStr);
             if (StringUtils.isEmpty(respStr)) {
-                return null;
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
             }
-            return JSONObject.parseObject(respStr, Response2Entity.class);
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+        } else {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(stringStringHashMap.getOrDefault("content", ""));
         }
-        return null;
+        return result;
+    }
+
+    public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData) throws Exception {
+        return pushToTeleSales(formData, 0);
     }
 
 }
