@@ -25,7 +25,7 @@
                    nested-data-dir="${NESTED_DATA_DIR}"
                    connection-timeout-milliseconds="60000"/>
 
-    <job:simple id="QaTaskConcurrentJob"
+    <job:simple id="taskCurrentJob-QA"
                 class="com.br.marketing.task.job.QaTaskConcurrentJob"
                 cron="0 0 11 1/1 1/1 ? 2055-2056"
                 description="QaTaskConcurrentJob-测试专用"
