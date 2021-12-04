@@ -1,4 +1,4 @@
-package com.br.marketing.utils;
+package com.br.marketing.client.haier.utils;
 
 import org.apache.commons.codec.binary.Base64;
 
