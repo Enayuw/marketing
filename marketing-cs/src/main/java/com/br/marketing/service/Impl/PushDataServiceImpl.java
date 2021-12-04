@@ -1,9 +1,4 @@
 package com.br.marketing.service.Impl;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.AlarmApiClient;
@@ -11,6 +6,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -26,7 +22,9 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.entity.TwosevenFile;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
@@ -34,11 +32,15 @@ import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.PushDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -292,9 +294,14 @@ public class PushDataServiceImpl implements PushDataService{
             number++;
         }
         /** 调用撞库接口有网络失败的 需要重试 */
-        if(errorMark.get()>0){
+        if (errorMark.get() > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Response2Entity> pushHaierTransferData(Long id) {
+        return null;
     }
 }

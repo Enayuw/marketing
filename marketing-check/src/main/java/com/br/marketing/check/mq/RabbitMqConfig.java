@@ -7,6 +7,7 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,13 +84,32 @@ public class RabbitMqConfig {
     public Binding bindingSevenQueue() {
         return BindingBuilder.bind(pushSevenQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER);
     }
+
+    /**
+     * 海尔消金转电销-转化数据队列
+     */
+    @Bean(name = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
+    public Queue pushTransferHaierQueue() {
+        return new Queue(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, true, false, false);
+    }
+
+    /**
+     * 海尔消金转电销-交换机绑定队列
+     */
+    @Bean(name = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
+    public Binding bindingTransferHaierQueue(@Qualifier(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER) Queue queue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) Exchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER).noargs();
+    }
+
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
     }
+
     @Bean("containerFactory")
     public SimpleRabbitListenerContainerFactory containerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
-                                                                         ConnectionFactory connectionFactory) {
+                                                                 ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         //设置线程数
         factory.setConcurrentConsumers(MQ_LISTENER);

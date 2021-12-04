@@ -28,6 +28,8 @@ public class MQConstants {
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing_Push_CustomerService";
     public static final String MARKETING_PUSH_DASS_SCORE = "Marketing_Push_Dass_Score";
     public static final String MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
+    public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
+
 
     /**
      * routingkey
@@ -44,5 +46,6 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing.Push.CustomerService";
     public static final String ROUTING_KEY_MARKETING_PUSH_DASS_SCORE = "Marketing.Push.Dass.Score";
     public static final String ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing.Push.Seven.FileTransfer";
+    public static final String ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing.queue.push.transfer.haier";
 
 }
