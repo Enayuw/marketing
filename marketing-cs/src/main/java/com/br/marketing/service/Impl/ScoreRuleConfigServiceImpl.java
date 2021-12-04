@@ -104,6 +104,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
         rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
         rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():Integer.valueOf(0));
+        rule.setProductInfo(scoreRuleVO.getProductInfo());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
@@ -205,6 +206,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setCycleDay(rule.getCycleDay());
         scoreRuleVO.setCycleEndDay(rule.getCycleEndDay());
         scoreRuleVO.setTaskType(rule.getTaskType());
+        scoreRuleVO.setProductInfo(rule.getProductInfo());
         scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
         return scoreRuleVO;
     }
@@ -246,6 +248,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
         rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
         rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():0);
+        rule.setProductInfo(scoreRuleVO.getProductInfo());
         // 默认开启
         rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
