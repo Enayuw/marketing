@@ -160,7 +160,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                         localFile.setLocalPath(context.getLocalTxtFilePath());
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
-                        localFile.setFileType(SftpFileTypeEnum.SEVEN.getValue());
+                        localFile.setFileType(fileDbConfig.getFileType());
                         localFileMapper.insertSelective(localFile);
 
                         try {
@@ -168,11 +168,9 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
-                            baseHeads.add("mobile");
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
-                                    , baseHeads
-                                    , MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER
+                                    , fileDbConfig
                                     ,iTxtToDbService::toDbByCommon);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);

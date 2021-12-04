@@ -245,10 +245,12 @@ public class SftpToDbByCommonService {
         ArrayList<String> fieldMust = new ArrayList<>();
         setHead(fieldAll,fieldMust,fileDbConfig.getDbFields());
         HashSet<String> fieldAllSet = new HashSet<>();
+        HashMap<String,String> fieldAllHm = new HashMap<>();
         HashSet<String> fieldMustSet = new HashSet<>();
         StringBuilder errorMsg = new StringBuilder();
         fieldAll.forEach(t->{
             fieldAllSet.add(t);
+            fieldAllHm.put(t,StringUtils.humpToLine2(t));
         });
         fieldMust.forEach(t->{
             errorMsg.append(String.format("%s不能为空;",t));
@@ -288,9 +290,11 @@ public class SftpToDbByCommonService {
                 txtToDbDTO.setContent(trim);
                 txtToDbDTO.setAddress(address);
                 txtToDbDTO.setFieldAll(fieldAllSet);
+                txtToDbDTO.setFieldAllHm(fieldAllHm);
                 txtToDbDTO.setFieldMust(fieldMustSet);
                 txtToDbDTO.setErrorMsg(errorMsg.toString());
                 txtToDbDTO.setExtSetField(extSetField);
+                txtToDbDTO.setDbName(fileDbConfig.getDbName());
                 if(StringUtils.isNotEmpty(row)&&StringUtils.isNotEmpty(trim)){
                     if(line>1){
                         threadPool.submit(()->{
@@ -325,7 +329,9 @@ public class SftpToDbByCommonService {
                 updateFile.setComplete("3");
             }
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            producter.send(fileDbConfig.getRouteKey(),localFile.getId().toString());
+            if(StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
+                producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
+            }
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }

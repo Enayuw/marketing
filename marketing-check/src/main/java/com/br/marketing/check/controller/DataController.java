@@ -9,6 +9,7 @@ import com.br.marketing.entity.DataTest;
 import com.br.marketing.mapper.DataTestMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.RetryTestService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.mbeans.ServiceMBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +101,15 @@ public class DataController {
 
         return "success";
     }
+
+    @Autowired
+    RetryTestService retryTestService;
+
+    @GetMapping("retryAop")
+    public String retryAop(){
+        retryTestService.ret(1,null);
+        return "success";
+    }
+
 
 }

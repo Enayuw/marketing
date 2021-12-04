@@ -1,10 +1,10 @@
 package com.br.marketing.client.haier.output;
 
-import com.br.marketing.utils.RsaUtil;
+import com.br.marketing.client.haier.utils.Md5Utils;
+import com.br.marketing.client.haier.utils.RsaUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.util.Assert;
-import org.springframework.util.DigestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,14 +34,15 @@ public class PushDTO {
     }
 
     public PushDTO(String apiCode, Set<DataItems> t, Function<Set<DataItems>, FormData> function, String apiKey) throws Exception {
+        this.apiCode = apiCode;
         Assert.notNull(t, "list is not null");
         FormData formDataObj = function.apply(t);
-        ObjectMapper objectMapper = new ObjectMapper();
-        this.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(objectMapper.writeValueAsString(formDataObj)
-                .getBytes(StandardCharsets.UTF_8), apiKey));
-        this.apiCode = apiCode;
-        this.checkData = DigestUtils.md5DigestAsHex(this.formData.concat(this.apiCode).concat(apiKey)
-                .getBytes(StandardCharsets.UTF_8));
+        Assert.notNull(formDataObj, "formDataObj is not null");
+        final String formDataStr = new ObjectMapper().writeValueAsString(formDataObj);
+        Assert.notNull(formDataStr, "formDataStr is not null");
+        this.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
+                formDataStr.getBytes(StandardCharsets.UTF_8), apiKey));
+        this.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
     }
 
 
