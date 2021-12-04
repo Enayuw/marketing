@@ -4,6 +4,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 字符串工具类
@@ -161,5 +163,17 @@ public class StringUtils {
         }
         String[] strArray = new String[list.size()];
         return (String[]) list.toArray(strArray);
+    }
+
+    private static Pattern humpPattern = Pattern.compile("[A-Z]");
+
+    public static String humpToLine2(String str) {
+        Matcher matcher = humpPattern.matcher(str);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, "_" + matcher.group(0).toLowerCase());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 }

@@ -5,4 +5,5 @@ import com.br.marketing.dto.TxtToDbDTO;
 
 public interface ITxtToDbService {
     Result TwoSevenToDb(TxtToDbDTO content);
+    Result toDbByCommon(TxtToDbDTO content);
 }

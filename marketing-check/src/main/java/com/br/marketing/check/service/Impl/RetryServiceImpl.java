@@ -22,6 +22,7 @@ import java.util.List;
 @Slf4j
 public class RetryServiceImpl {
 
+    final static Integer aopRetry = 1;
     @Autowired
     RetryMainLogMapper retryMainLogMapper;
 
@@ -41,7 +42,7 @@ public class RetryServiceImpl {
                 exec = Boolean.FALSE;
                 continue;
             }
-            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId();
+            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId()+1;
             for (RetryMainLog retryMainLog : retryMainLogs) {
                 RetryMainLog updateMainLog = new RetryMainLog();
                 updateMainLog.setId(retryMainLog.getId());
@@ -72,12 +73,25 @@ public class RetryServiceImpl {
         try {
             Class<?>  paramType = Class.forName(retryMainLog.getRetryParamType());
             Object o = JSON.parseObject(retryParam, paramType);
-            if(!CkeckApplication.ac.containsBean(retryService)){
+            Object bean = null;
+            if(CkeckApplication.ac.containsBean(retryService)){
+                bean = CkeckApplication.ac.getBean(retryService);
+            }
+            if(bean == null){
+                bean = CkeckApplication.ac.getBean(Class.forName(retryService));
+            }
+            if(bean==null){
                 throw new RuntimeException("找不到对应的bean");
             }
-            Object bean = CkeckApplication.ac.getBean(retryService);
-            Method method =  bean.getClass().getMethod(retryMethod, paramType);
-            Result result = (Result) method.invoke(bean, o);
+            Method method = null;
+            Result result = null;
+            if(aopRetry.equals(retryMainLog.getServiceType())){
+                method =  bean.getClass().getMethod(retryMethod, paramType,Integer.class);
+                result = (Result) method.invoke(bean, o,aopRetry);
+            }else{
+                method =  bean.getClass().getMethod(retryMethod, paramType);
+                result = (Result) method.invoke(bean, o);
+            }
             if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
                 objectResult.setCode(ResultCode.SUCCESS.getValue());
                 detailLog.setRetryStatus(1);
