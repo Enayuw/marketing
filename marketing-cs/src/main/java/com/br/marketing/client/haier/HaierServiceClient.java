@@ -116,7 +116,9 @@ public class HaierServiceClient {
                 return result;
             }
             Response2Entity response2Entity = JSONObject.parseObject(respStr, Response2Entity.class);
-            if("00000".equals(response2Entity.getHead())){
+            if(response2Entity!=null
+                    && response2Entity.getHead()!= null
+                    && "00000".equals(response2Entity.getHead().getRetFlag())){
                 HaierData record = new HaierData();
                 record.setPushStatus(2);
                 HaierDataExample updateExample = new HaierDataExample();
