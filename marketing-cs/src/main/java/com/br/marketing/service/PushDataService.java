@@ -6,4 +6,6 @@ public interface PushDataService {
     Result pushDassData(Long id);
 
     Result pushSevenTransferData(Long id);
+
+    Result pushHaierData(Long id);
 }

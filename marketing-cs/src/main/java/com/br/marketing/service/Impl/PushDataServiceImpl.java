@@ -1,9 +1,7 @@
 package com.br.marketing.service.Impl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.AlarmApiClient;
@@ -11,6 +9,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.haier.HaierServiceClient;
+import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -27,11 +27,9 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
-import com.br.marketing.mapper.TwosevenFileMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.PushDataService;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,9 +37,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -77,6 +75,12 @@ public class PushDataServiceImpl implements PushDataService{
 
     @Autowired
     MarketingApiService marketingApiService;
+
+    @Autowired
+    HaierDataMapper haierDataMapper;
+
+    @Autowired
+    HaierServiceClient haierServiceClient;
 
     @Override
     public Result pushDassData(Long id) {
@@ -296,5 +300,58 @@ public class PushDataServiceImpl implements PushDataService{
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+
+    @Override
+    public Result pushHaierData(Long id) {
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if(localFile == null){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+        Boolean mark = Boolean.TRUE;
+        Long minId = null;
+        while(mark){
+            List<HaierData> haierData = haierDataMapper.selectDataLimitId(id, minId);
+            if(haierData.size()<=0){
+                mark=Boolean.FALSE;
+            }
+            minId = haierData.get(haierData.size() - 1).getId() + 1;
+            HashMap<String,Set<PushDTO.DataItems>> types = new HashMap<>();
+            for (HaierData haierDatum : haierData) {
+                String key = haierDatum.getType().concat("|").concat(haierDatum.getBatchNo());
+                if(types.get(key) ==null){
+                    Set<PushDTO.DataItems> dataItems = new HashSet<>();
+                    types.put(key,dataItems);
+                    dataItems.add(new PushDTO.DataItems(haierDatum.getTaskId(), haierDatum.getCustNum()));
+                }else {
+                    types.get(key)
+                            .add(new PushDTO.DataItems(haierDatum.getTaskId(), haierDatum.getCustNum()));
+                }
+            }
+            for (String s : types.keySet()) {
+                String[] split = s.split("\\|");
+                Set<PushDTO.DataItems> dataItems = types.get(s);
+                List<PushDTO.DataItems> collect = dataItems.stream().collect(Collectors.toList());
+                List<List<PushDTO.DataItems>> partition = Lists.partition(collect, 500);
+                for (List<PushDTO.DataItems> items : partition) {
+                    PushDTO.FormData formData = new PushDTO.FormData();
+                    formData.setDataItems(items.stream().collect(Collectors.toSet()));
+                    formData.setBatchNo(split[1]);
+                    formData.setType(split[0]);
+                    formData.setRequestId(null);
+                    try {
+                        haierServiceClient.pushToTeleSales(formData,0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
+
+
+        }
+        return null;
     }
 }
