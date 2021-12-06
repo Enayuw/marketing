@@ -1,12 +1,22 @@
 package com.br.marketing.client.haier;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.HaierData;
+import com.br.marketing.entity.HaierDataExample;
+import com.br.marketing.entity.HaierReq;
+import com.br.marketing.mapper.HaierDataMapper;
+import com.br.marketing.mapper.HaierReqMapper;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -15,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * 海尔消金客户端
@@ -45,6 +56,12 @@ public class HaierServiceClient {
 
     @Resource
     private HttpProxyClient httpProxyClient;
+
+    @Autowired
+    HaierDataMapper haierDataMapper;
+
+    @Autowired
+    HaierReqMapper haierReqMapper;
 
     /**
      * 推送数据客户端
@@ -77,6 +94,48 @@ public class HaierServiceClient {
         }
         return result;
     }
+
+    @RetryMethod
+    public Result<Response2Entity> pushToTeleSalesWithIds(HaierReqDTO haierReqDTO, int retr) throws Exception {
+        PushDTO.FormData formData = haierReqDTO.getFormData();
+        List<Long> ids = haierReqDTO.getIds();
+        Result<Response2Entity> result = new Result<>();
+        Assert.notNull(formData, "\"List\" is not null");
+        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
+        PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
+        log.warn("&&发送内容：[{}]", pushDTO);
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
+        if (httpCode.equals("200")) {
+            final String respStr = stringStringHashMap.getOrDefault("content", "");
+            log.warn("%%应答内容：[{}]", respStr);
+            if (StringUtils.isEmpty(respStr)) {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
+            }
+            Response2Entity response2Entity = JSONObject.parseObject(respStr, Response2Entity.class);
+            if("000000".equals(response2Entity.getHead())){
+                HaierData record = new HaierData();
+                record.setPushStatus(2);
+                HaierDataExample updateExample = new HaierDataExample();
+                updateExample.createCriteria().andIdIn(ids);
+                haierDataMapper.updateByExampleSelective(record,updateExample);
+
+                HaierReq req = new HaierReq();
+                req.setReqId(formData.getRequestId());
+                req.setDataId(Joiner.on(",").join(ids));
+                req.setCreateTime(new Date());
+                haierReqMapper.insertSelective(req);
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(response2Entity);
+            }else{
+                result.setCode(ResultCode.FAIL.getValue()).setDate(response2Entity);
+            }
+        } else {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(stringStringHashMap.getOrDefault("content", ""));
+        }
+        return result;
+    }
+
 
     public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData) throws Exception {
         return pushToTeleSales(formData, 0);

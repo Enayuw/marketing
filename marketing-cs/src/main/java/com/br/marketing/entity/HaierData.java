@@ -59,6 +59,11 @@ public class HaierData {
     private String dataMessage;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 日期
      */
     private Integer createDate;
@@ -72,11 +77,6 @@ public class HaierData {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * 扩展字段
-     */
-    private String extend;
 
     public Long getId() {
         return id;
@@ -166,6 +166,14 @@ public class HaierData {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
     public Integer getCreateDate() {
         return createDate;
     }
@@ -188,13 +196,5 @@ public class HaierData {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
     }
 }

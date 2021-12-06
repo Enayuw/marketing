@@ -17,21 +17,15 @@ public interface HaierDataMapperBase {
 
     int insertSelective(HaierData record);
 
-    List<HaierData> selectByExampleWithBLOBs(HaierDataExample example);
-
     List<HaierData> selectByExample(HaierDataExample example);
 
     HaierData selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") HaierData record, @Param("example") HaierDataExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") HaierData record, @Param("example") HaierDataExample example);
-
     int updateByExample(@Param("record") HaierData record, @Param("example") HaierDataExample example);
 
     int updateByPrimaryKeySelective(HaierData record);
-
-    int updateByPrimaryKeyWithBLOBs(HaierData record);
 
     int updateByPrimaryKey(HaierData record);
 }

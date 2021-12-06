@@ -8,7 +8,9 @@ public interface PushDataService {
 
     Result pushSevenTransferData(Long id);
 
-    Result pushHaierData(Long id);
+    Result pushHaierData();
+
+    Result queryHaierData();
 
 
     Result<Response2Entity> pushHaierTransferData(Long id);

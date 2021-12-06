@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -10,6 +11,7 @@ import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
+import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.marketingapi.MarketingApiService;
@@ -24,6 +26,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.RandomUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -94,7 +97,12 @@ public class PushDataServiceImpl implements PushDataService{
     HaierDataMapper haierDataMapper;
 
     @Autowired
+    HaierReqMapper haierReqMapper;
+
+    @Autowired
     HaierServiceClient haierServiceClient;
+
+    final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     public Result pushDassData(Long id) {
@@ -318,44 +326,53 @@ public class PushDataServiceImpl implements PushDataService{
 
 
     @Override
-    public Result pushHaierData(Long id) {
-        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-        if(localFile == null){
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
-        }
+    public Result pushHaierData() {
+        Integer day = Integer.valueOf(LocalDate.now().format(yyyyMMddDF));
         Boolean mark = Boolean.TRUE;
         Long minId = null;
         while(mark){
-            List<HaierData> haierData = haierDataMapper.selectDataLimitId(id, minId);
+            List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
             if(haierData.size()<=0){
                 mark=Boolean.FALSE;
             }
             minId = haierData.get(haierData.size() - 1).getId() + 1;
-            HashMap<String,Set<PushDTO.DataItems>> types = new HashMap<>();
+            HashMap<String,List<HaierData>> types = new HashMap<>();
             for (HaierData haierDatum : haierData) {
-                String key = haierDatum.getType().concat("|").concat(haierDatum.getBatchNo());
+                String key = haierDatum.getType();
                 if(types.get(key) ==null){
-                    Set<PushDTO.DataItems> dataItems = new HashSet<>();
-                    types.put(key,dataItems);
-                    dataItems.add(new PushDTO.DataItems(haierDatum.getTaskId(), haierDatum.getCustNum()));
+                    ArrayList<HaierData> haierData1 = new ArrayList<>();
+                    types.put(key,haierData1);
                 }else {
                     types.get(key)
-                            .add(new PushDTO.DataItems(haierDatum.getTaskId(), haierDatum.getCustNum()));
+                            .add(haierDatum);
                 }
             }
             for (String s : types.keySet()) {
-                String[] split = s.split("\\|");
-                Set<PushDTO.DataItems> dataItems = types.get(s);
-                List<PushDTO.DataItems> collect = dataItems.stream().collect(Collectors.toList());
-                List<List<PushDTO.DataItems>> partition = Lists.partition(collect, 500);
-                for (List<PushDTO.DataItems> items : partition) {
+                String type = s;
+                List<HaierData> haierList = types.get(s);
+                List<List<HaierData>> partition = Lists.partition(haierList, 500);
+                for (List<HaierData> items : partition) {
+                    Set<PushDTO.DataItems> datas = new HashSet<>();
+                    ArrayList<HaierData> nolist = new ArrayList<>();
+                    getDistinctData(items,nolist, type, day.toString());
+                    updateHaierFalse(nolist);
+                    List<Long> ids = new ArrayList<>();
+                    for (HaierData item : items) {
+                        datas.add(new PushDTO.DataItems(item.getTaskId(), item.getCustNum()));
+                        ids.add(item.getId());
+                    }
                     PushDTO.FormData formData = new PushDTO.FormData();
-                    formData.setDataItems(items.stream().collect(Collectors.toSet()));
-                    formData.setBatchNo(split[1]);
-                    formData.setType(split[0]);
-                    formData.setRequestId(null);
+                    formData.setDataItems(datas);
+                    formData.setBatchNo(day.toString().concat("_").concat(type));
+                    formData.setType(type);
+                    formData.setRequestId(getHaierRequestId(type));
+
+                    HaierReqDTO haierReqDTO = new HaierReqDTO();
+                    haierReqDTO.setIds(ids);
+                    haierReqDTO.setFormData(formData);
+
                     try {
-                        haierServiceClient.pushToTeleSales(formData,0);
+                        Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -367,6 +384,66 @@ public class PushDataServiceImpl implements PushDataService{
 
         }
         return null;
+    }
+
+    @Override
+    public Result queryHaierData() {
+        Long minId = null;
+        Boolean isAction = Boolean.TRUE;
+        while (isAction){
+            List<HaierReq> dataWithStatus = haierReqMapper.getDataWithStatus(minId);
+            if(dataWithStatus.size()<=0){
+                isAction = Boolean.FALSE;
+                continue;
+            }
+            minId = dataWithStatus.get(dataWithStatus.size()-1).getId()+1;
+
+            for (HaierReq reqData : dataWithStatus) {
+                
+            }
+        }
+        return null;
+    }
+
+    void getDistinctData(List<HaierData> list, List<HaierData> nolist, String type, String day){
+        Integer start = Integer.valueOf(LocalDate.parse(day, yyyyMMddDF).minusDays(29L).format(yyyyMMddDF));
+        Integer end = Integer.valueOf(day);
+        List<String> custNums = list.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
+        HaierDataExample example = new HaierDataExample();
+        example.createCriteria()
+                .andCustNumIn(custNums)
+                .andTypeEqualTo(type)
+                .andPushStatusEqualTo(2)
+                .andCreateDateGreaterThan(start)
+                .andCreateDateLessThan(end);
+        List<HaierData> repeatData = haierDataMapper.selectByExample(example);
+        Set<String> custs = repeatData.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+        for (HaierData haierData : list) {
+            if(custs.contains(haierData.getCustNum())){
+                nolist.add(haierData);
+                list.remove(haierData);
+            }
+        }
+
+    }
+
+    void updateHaierFalse(List<HaierData> list){
+        if(list.size()>0) {
+            List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
+            HaierDataExample updateExample = new HaierDataExample();
+            updateExample.createCriteria().andIdIn(ids);
+            HaierData record = new HaierData();
+            record.setPushStatus(3);
+            haierDataMapper.updateByExampleSelective(record, updateExample);
+        }
+    }
+
+
+
+    String getHaierRequestId(String type){
+        String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String s = RandomUtils.randomStr(4);
+        return yyyyMMddHHmmss.concat("_").concat(type).concat(s);
     }
 
     @Override

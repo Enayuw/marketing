@@ -5,8 +5,9 @@
         select * from b_haier_data
         where local_id = #{localId}
         and status = 1
+        and push_status = 1
         <if test="minId !=null and minId>0">
-            and minId>=#{minId}
+            and create_date=#{minId}
         </if>
         order by id asc
         limit 5000;
