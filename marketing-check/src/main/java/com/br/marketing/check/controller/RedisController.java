@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
+import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.common.commondto.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,7 +68,11 @@ public class RedisController {
                 return dataItemsSet;
             };
             final PushDTO.FormData formData = new PushDTO.FormData(UUID.randomUUID().toString().concat("-").concat(String.valueOf(count)), String.valueOf(random.nextInt(3) + 1), list, function);
-            return haierServiceClient.pushToTeleSales(formData);
+            final Result<Response2Entity> result = haierServiceClient.pushToTeleSales(formData);
+            final Result<ResponseInfoEntity> result1 = haierServiceClient.resultQueryPushToTeleSales(formData.getRequestId());
+            log.warn("请求++++：" + result.toString());
+            log.warn("查询++++：" + result1.toString());
+            return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new Result<>().setMessage(e.getMessage());

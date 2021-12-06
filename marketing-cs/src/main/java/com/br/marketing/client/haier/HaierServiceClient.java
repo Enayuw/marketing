@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
+import com.br.marketing.client.haier.output.ResponseInfoEntity;
+import com.br.marketing.client.haier.output.ResultQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,40 @@ public class HaierServiceClient {
 
     public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData) throws Exception {
         return pushToTeleSales(formData, 0);
+    }
+
+    /**
+     * 推送数据结果查询客户端
+     *
+     * @param requestId 推送数据的批次号（自己葛的）
+     * @return ResponseInfoEntity 查询响应信息
+     * @throws Exception 请自行打印异常信息
+     * @author Guo Zeqiang
+     * @dateTime 2021/12/6 12:14
+     */
+    public Result<ResponseInfoEntity> resultQueryPushToTeleSales(String requestId, int retr) throws Exception {
+        Result<ResponseInfoEntity> result = new Result<>();
+        log.warn("##查询接口地址：{}；apicode：{}；apikey：{}", urlInfo, apiCode, apiKey);
+        ResultQueryDTO resultQueryDTO = new ResultQueryDTO(apiCode, requestId, apiKey);
+        log.warn("&&查询接口发送内容：[{}]", resultQueryDTO);
+        final HashMap<String, String> returnMap = httpProxyClient.sendByCode(resultQueryDTO, urlInfo, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final String httpCode = returnMap.getOrDefault("httpcode", "5000");
+        if (httpCode.equals("200")) {
+            final String respStr = returnMap.getOrDefault("content", "");
+            log.warn("%%查询接口应答内容：[{}]", respStr);
+            if (StringUtils.isEmpty(respStr)) {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
+            }
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, ResponseInfoEntity.class));
+        } else {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(returnMap.getOrDefault("content", ""));
+        }
+        return result;
+    }
+
+    public Result<ResponseInfoEntity> resultQueryPushToTeleSales(String requestId) throws Exception {
+        return resultQueryPushToTeleSales(requestId, 0);
     }
 
 }
