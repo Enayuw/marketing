@@ -229,21 +229,11 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
     @Override
     public String getStrategyProductConfigStr(String apiCode,String batchNumber){
-        String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(batchNumber);
-        String s = redisChgService.get(key);
-        if(StringUtils.isNotBlank(s)){
-            return s;
-        }
        MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
         if(task !=null){
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
             if(marketingTaskExtend !=null&&StringUtils.isNotBlank(marketingTaskExtend.getStrategyProductJson())) {
-                redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
-                redisChgService.expire(key,60*60);
                 return marketingTaskExtend.getStrategyProductJson();
-            }else{
-                redisChgService.set(key,"");
-                redisChgService.expire(key,60*5);
             }
         }
        return "";
