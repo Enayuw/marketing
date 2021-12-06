@@ -70,6 +70,6 @@ public class ConsumerApp {
     public void consumerPushTransferHaier(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushSevenTransferData, o, "");
+        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
     }
 }

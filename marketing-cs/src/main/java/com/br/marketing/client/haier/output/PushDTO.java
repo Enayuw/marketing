@@ -23,39 +23,42 @@ import java.util.function.Function;
  * @author zeqiang.guo@brgroup.com
  * @dateTime 2021/12/2 16:52
  */
-public class PushDTO {
-    //对接方标识
-    private String apiCode;
-    // 推送数据
-    private String formData;
-    //校验值
-    private String checkData;
+public class PushDTO extends BaseDTO {
 
     public PushDTO() {
+        super();
     }
 
     public PushDTO(String apiCode, FormData formData, String apiKey) throws Exception {
-        this.apiCode = apiCode;
+        super(apiCode);
         Assert.notNull(formData, "formData is not null");
         final String formDataStr = new ObjectMapper().writeValueAsString(formData);
         Assert.notNull(formDataStr, "formDataStr is not null");
-        this.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
+        super.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
                 formDataStr.getBytes(StandardCharsets.UTF_8), apiKey));
-        this.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
+        super.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
     }
 
     public PushDTO(String apiCode, Set<DataItems> t, Function<Set<DataItems>, FormData> function, String apiKey) throws Exception {
-        this.apiCode = apiCode;
+        super(apiCode);
         Assert.notNull(t, "list is not null");
         FormData formDataObj = function.apply(t);
         Assert.notNull(formDataObj, "formDataObj is not null");
         final String formDataStr = new ObjectMapper().writeValueAsString(formDataObj);
         Assert.notNull(formDataStr, "formDataStr is not null");
-        this.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
+        super.formData = Base64.encodeBase64String(RsaUtil.encryptByPublicKey(
                 formDataStr.getBytes(StandardCharsets.UTF_8), apiKey));
-        this.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
+        super.checkData = Md5Utils.genMd5(formDataStr.concat(apiCode).concat(apiKey));
     }
 
+    @Override
+    public String toString() {
+        return "PushDTO{" +
+                "apiCode='" + apiCode + '\'' +
+                ", formData='" + formData + '\'' +
+                ", checkData='" + checkData + '\'' +
+                '}';
+    }
 
     private byte[] toByteArray(Object obj) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -66,39 +69,6 @@ public class PushDTO {
         } catch (IOException e) {
             throw e;
         }
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
-    }
-
-    public String getFormData() {
-        return formData;
-    }
-
-    public void setFormData(String formData) {
-        this.formData = formData;
-    }
-
-    public String getCheckData() {
-        return checkData;
-    }
-
-    public void setCheckData(String checkData) {
-        this.checkData = checkData;
-    }
-
-    @Override
-    public String toString() {
-        return "PushDTO{" +
-                "apiCode='" + apiCode + '\'' +
-                ", formData='" + formData + '\'' +
-                ", checkData='" + checkData + '\'' +
-                '}';
     }
 
 
@@ -187,6 +157,16 @@ public class PushDTO {
         public Set<DataItems> getDataItems() {
             return dataItems;
         }
+
+        @Override
+        public String toString() {
+            return "FormData{" +
+                    "requestId='" + requestId + '\'' +
+                    ", type='" + type + '\'' +
+                    ", batchNo='" + batchNo + '\'' +
+                    ", dataItems=" + dataItems +
+                    '}';
+        }
     }
 
     public static class DataItems implements Serializable {
@@ -218,6 +198,14 @@ public class PushDTO {
 
         public void setCustNum(String custNum) {
             this.custNum = custNum;
+        }
+
+        @Override
+        public String toString() {
+            return "DataItems{" +
+                    "taskId='" + taskId + '\'' +
+                    ", custNum='" + custNum + '\'' +
+                    '}';
         }
     }
 }

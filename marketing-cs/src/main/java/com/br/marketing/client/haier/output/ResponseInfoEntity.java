@@ -25,4 +25,12 @@ public class ResponseInfoEntity extends BaseEntity {
     public void setBody(BodyEntity body) {
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "ResponseInfoEntity{" +
+                "head=" + head +
+                ", body=" + body +
+                '}';
+    }
 }

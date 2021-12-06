@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -14,6 +15,7 @@ import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
+import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -40,20 +42,23 @@ import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.PushDataService;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -79,6 +84,18 @@ public class PushDataServiceImpl implements PushDataService{
 
     @Autowired
     LocalFileMapper localFileMapper;
+
+    @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
+
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -388,6 +405,7 @@ public class PushDataServiceImpl implements PushDataService{
 
     @Override
     public Result queryHaierData() {
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
         Long minId = null;
         Boolean isAction = Boolean.TRUE;
         while (isAction){
@@ -399,10 +417,37 @@ public class PushDataServiceImpl implements PushDataService{
             minId = dataWithStatus.get(dataWithStatus.size()-1).getId()+1;
 
             for (HaierReq reqData : dataWithStatus) {
-                
+                threadPool.submit(()->{
+                    try {
+                        Result<ResponseInfoEntity> responseInfoEntityResult = haierServiceClient.resultQueryPushToTeleSales(reqData.getReqId());
+                        if(ResultCode.SUCCESS.getValue().equals(responseInfoEntityResult.getCode())){
+                            ResponseInfoEntity data = responseInfoEntityResult.getData();
+                            if(data!=null&&data.getHead()!=null&&"00000".equals(data.getHead().getRetFlag())
+                                    &&data.getBody()!=null&&StringUtils.isNotBlank(data.getBody().getSts())){
+                                HaierReq record = new HaierReq();
+                                record.setId(reqData.getId());
+                                record.setStatus(data.getBody().getSts());
+                                haierReqMapper.updateByPrimaryKeySelective(record);
+                            }
+                        }
+                    }catch (Exception ex){
+                        log.error(ex.getMessage(),ex);
+                    }
+                });
             }
         }
-        return null;
+
+        threadPool.shutdown();
+        while (true){
+            if(threadPool.isTerminated()){
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            }catch (Exception e){
+            }
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     void getDistinctData(List<HaierData> list, List<HaierData> nolist, String type, String day){
@@ -447,7 +492,138 @@ public class PushDataServiceImpl implements PushDataService{
     }
 
     @Override
-    public Result<Response2Entity> pushHaierTransferData(Long id) {
-        return null;
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> pushHaierTransferData(Long id) {
+        // 1 先查转化信息表b_marketing_transfer_apiCode 获取apiCode、request_id
+        // 2 通过apiCode再查tableCreateService.getTcId(apiCode) 获取Tcid
+        // 3 通过Tcid、 apiCode、request_id、user_type=3 查询b_marketing_transfer_sync_cid 获取 cust_num
+        // 4 通过 cust_num 查询 b_marketing_sync_apiCode 获取 cus_batch、reserve_field1字段中的type
+        // 5 组装完数据入表haierData
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
+        List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(id);
+        if (CollectionUtils.isEmpty(list)) {
+            result.setDate(false);
+            String smg = String.format("海尔消金客户转化数据主键为[%s]的基础信息不存在,该信息直接消费,不再重放队列", id);
+            log.error(smg);
+            result.setMessage(smg);
+            alarmClient.sendAlarm(smg, "海尔消金转电销(转化数据)警告", appName, secretKey,
+                    Constants.sendCodeMap.get("pushToCustomer"));
+            return result;
+        }
+        result.setDate(true);
+        MarketingTransferInfo info = list.get(0);
+        String apiCode = info.getApiCode();
+//        Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
+        String requestId = info.getRequestId();
+        // 2 获取分表后缀
+        String key = "marketing:check:push:haier:".concat(apiCode);
+        String tcId = redisChgService.get(key);
+        if (StringUtils.isEmpty(tcId)) {
+            tcId = tableCreateService.getTcId(apiCode);
+            // 缓存一天
+            redisChgService.setex(key, tcId, 24 * 3600);
+        }
+        // 3 获取转化数据,user_type=3
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId).andUserTypeEqualTo("3");
+        example.settCid(tcId);
+        int page = 1;
+        final int pageSize = 1000;
+        List<HaierData> haierDataSet = new ArrayList<>();
+        try {
+            for (; ; ) {
+                PageHelper.startPage(page, pageSize);
+                List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+                if (CollectionUtils.isEmpty(transferList)) {
+                    break;
+                }
+                Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                if (CollectionUtils.isEmpty(set)) {
+                    String msg = String.format("海尔消金转化数据CustNum不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}"
+                            , id, apiCode, requestId, tcId);
+                    log.warn(msg);
+                    page++;
+                    continue;
+                }
+                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+                if (CollectionUtils.isEmpty(preUserByTask)) {
+                    String msg = String.format("海尔消金案件数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s};CustNum:{%s}"
+                            , id, apiCode, requestId, tcId, Arrays.toString(set.toArray()));
+                    log.warn(msg);
+                    page++;
+                    continue;
+                }
+                Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
+                        MarketingSyncUser::getCustNum, syncUser -> syncUser
+                        , (v1, v2) -> StringUtils.isNotBlank(v2.getCusBatch())
+                                && StringUtils.isNotBlank(v2.getReserveField1())
+                                && !ObjectUtils.isEmpty(v2.getCreateTime())
+                                && v2.getCreateTime().before(v1.getCreateTime())
+                                ? v2 : v1));
+                transferList.forEach(l -> {
+                    HaierData haierData = new HaierData();
+                    haierData.setLocalId(l.getId());
+                    haierData.setApiCode(apiCode);
+                    final String custNum = l.getCustNum();
+                    haierData.setCustNum(custNum);
+                    final MarketingSyncUser orDefault = map.getOrDefault(custNum, new MarketingSyncUser());
+                    haierData.setTaskId(orDefault.getCusBatch());
+                    haierData.setExtend(orDefault.getReserveField1());
+                    final JSONObject object = JSONObject.parseObject(orDefault.getReserveField1());
+                    if (object.containsKey("type")) {
+                        haierData.setType(object.get("type").toString());
+                    } else {
+                        log.warn("海尔消金案件信息中custNum:{} 扩展字段没有type信息！", custNum);
+                    }
+                    haierData.setType("1");
+                    haierData.setSourceType(2);
+                    haierData.setPushStatus(1);
+                    haierData.setStatus(1);
+                    haierData.setCreateDate(Integer.valueOf(LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+                    haierData.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+                    haierData.setBatchNo(haierData.getCreateDate() + haierData.getType());
+                    haierDataSet.add(haierData);
+                });
+                haierDataMapper.insert1000Batch(haierDataSet);
+                haierDataSet.clear();
+                //            final ConcurrentMap<String, List<MarketingSyncUser>> typeMap = stream.collect(
+                //                    Collectors.groupingByConcurrent(MarketingSyncUser::getReserveField1));
+                //            final Map<String, MarketingTransferSyncUser> transferSyncUserMap = transferList.stream().collect(
+                //                    Collectors.toMap(MarketingTransferSyncUser::getCustNum, syncUser -> syncUser
+                //                    , (v1, v2) -> !ObjectUtils.isEmpty(v2.getCreateTime()) && v2.getCreateTime().before(v1.getCreateTime())
+                //                            ? v2 : v1));
+                //            for (Map.Entry<String, List<MarketingSyncUser>> entry : typeMap.entrySet()) {
+                //                final List<MarketingSyncUser> list1 = entry.getValue();
+                //                final String requestid =  System.currentTimeMillis() + String.format("%04d", random.nextInt(bound));
+                //                PushDTO.FormData formData = new PushDTO.FormData(requestid, entry.getKey(), list1, li -> {
+                //                    Set<PushDTO.DataItems> dataItemsSet = new HashSet<>();
+                //                    li.forEach(l -> {
+                //                        dataItemsSet.add(new PushDTO.DataItems(l.getCusBatch(), l.getCustNum()));
+                //                        final String custNum = l.getCustNum();
+                //                        dataItemsSet.add(new PushDTO.DataItems(map.getOrDefault(custNum
+                //                                , new MarketingSyncUser()).getCusBatch(), custNum));
+                //                    });
+                //                    return dataItemsSet;
+                //                });
+                //                try {
+                //                    final Result<Response2Entity> result1 = haierServiceClient.pushToTeleSales(formData);
+                //                } catch (Exception e) {
+                //                    log.error(e.getMessage(), e);
+                //                }
+                //            }
+                PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
+                if (page == pageInfo.getPages() || transferList.size() == 0) {
+                    break;
+                }
+                page++;
+            }
+            result.setDate(false);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            result.setMessage(e.getMessage());
+        }
+        return result;
     }
 }
