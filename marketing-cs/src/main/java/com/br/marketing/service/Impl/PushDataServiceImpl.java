@@ -11,6 +11,7 @@ import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.output.PushDTO;
+import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -28,6 +29,13 @@ import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.entity.TwosevenFile;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.mapper.RetryMainLogMapper;
+import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.PushDataService;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +45,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -352,6 +366,11 @@ public class PushDataServiceImpl implements PushDataService{
 
 
         }
+        return null;
+    }
+
+    @Override
+    public Result<Response2Entity> pushHaierTransferData(Long id) {
         return null;
     }
 }
