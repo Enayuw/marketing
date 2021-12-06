@@ -228,7 +228,8 @@
 			actual_number,
 			is_repair,
 			context_id,
-		    cycle_day
+		    cycle_day,
+		    task_type
 		FROM
 			b_marketing_task
 		WHERE
