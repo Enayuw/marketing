@@ -26,4 +26,11 @@ public abstract class BaseEntity implements Serializable {
     public void setHead(HeadEntity head) {
         this.head = head;
     }
+
+    @Override
+    public String toString() {
+        return "BaseEntity{" +
+                "head=" + head +
+                '}';
+    }
 }

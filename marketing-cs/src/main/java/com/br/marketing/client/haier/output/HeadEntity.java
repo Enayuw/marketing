@@ -89,4 +89,13 @@ public class HeadEntity {
     public void setShowMsg(String showMsg) {
         this.showMsg = showMsg;
     }
+
+    @Override
+    public String toString() {
+        return "HeadEntity{" +
+                "retFlag='" + retFlag + '\'' +
+                ", retMsg='" + retMsg + '\'' +
+                ", showMsg='" + showMsg + '\'' +
+                '}';
+    }
 }
