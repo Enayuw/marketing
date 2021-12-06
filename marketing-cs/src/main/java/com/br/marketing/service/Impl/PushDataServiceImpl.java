@@ -351,6 +351,7 @@ public class PushDataServiceImpl implements PushDataService{
             List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
             if(haierData.size()<=0){
                 mark=Boolean.FALSE;
+                continue;
             }
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             HashMap<String,List<HaierData>> types = new HashMap<>();
@@ -358,6 +359,7 @@ public class PushDataServiceImpl implements PushDataService{
                 String key = haierDatum.getType();
                 if(types.get(key) ==null){
                     ArrayList<HaierData> haierData1 = new ArrayList<>();
+                    haierData1.add(haierDatum);
                     types.put(key,haierData1);
                 }else {
                     types.get(key)
@@ -428,6 +430,11 @@ public class PushDataServiceImpl implements PushDataService{
                                 record.setId(reqData.getId());
                                 record.setStatus(data.getBody().getSts());
                                 haierReqMapper.updateByPrimaryKeySelective(record);
+                                if("fail".equals(data.getBody().getSts())){
+                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败",reqData.getReqId())
+                                            ,"海尔推送结果查询"
+                                    ,appName,secretKey,Constants.sendCodeMap.get("pushToCustomer"));
+                                }
                             }
                         }
                     }catch (Exception ex){

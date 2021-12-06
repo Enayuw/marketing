@@ -97,7 +97,7 @@ public class HaierServiceClient {
         return result;
     }
 
-    @RetryMethod
+//    @RetryMethod
     public Result<Response2Entity> pushToTeleSalesWithIds(HaierReqDTO haierReqDTO, int retr) throws Exception {
         PushDTO.FormData formData = haierReqDTO.getFormData();
         List<Long> ids = haierReqDTO.getIds();

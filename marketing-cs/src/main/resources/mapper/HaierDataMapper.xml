@@ -3,11 +3,11 @@
 <mapper namespace="com.br.marketing.mapper.HaierDataMapper" >
     <select id="selectDataLimitId" resultType="com.br.marketing.entity.HaierData">
         select * from b_haier_data
-        where local_id = #{localId}
+        where create_date = #{day}
         and status = 1
         and push_status = 1
         <if test="minId !=null and minId>0">
-            and create_date=#{minId}
+            and id>=#{minId}
         </if>
         order by id asc
         limit 5000;
