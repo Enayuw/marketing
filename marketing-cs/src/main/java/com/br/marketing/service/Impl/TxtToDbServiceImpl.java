@@ -16,6 +16,7 @@ import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -120,6 +121,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         JSONObject jo = null;
         Integer status = 1;
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         try {
             if (datas.size() != address.size()) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -162,19 +164,19 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 valueFields.append(String.format("'行号：%d;报错信息：%s'", line, error)).append(",");
             }
 
-            insertFields.append("create_time");
-            valueFields.append(String.format("'%s'",time));
+            insertFields.append("create_time,create_date");
+            valueFields.append(String.format("'%s','%s'",time,day));
             String sql = String.format(sqlTemp, dbName, insertFields, valueFields);
             localFileMapper.insertFileData(sql);
         }catch (Exception ex){
             status=2;
             log.error(ex.getMessage(),ex);
-            String value = String.format("'2','%s','%s'",String.format("行号：%d;报错信息：%s"
+            String value = String.format("'2','%s','%s','%s'",String.format("行号：%d;报错信息：%s"
                     , line
                     ,ex.getMessage().length()>=450
                             ?ex.getMessage().substring(0,449)
-                            :ex.getMessage()),time);
-            String sql = String.format(sqlTemp, dbName, "status,data_message",value);
+                            :ex.getMessage()),time,day);
+            String sql = String.format(sqlTemp, dbName, "status,data_message,create_time,create_date",value);
             localFileMapper.insertFileData(sql);
         }
         return new Result().setCode(new Integer("1").equals(status)
