@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface HaierDataMapper extends HaierDataMapperBase {
 
-    List<HaierData> selectDataLimitId(@Param("localId") Long localId, @Param("minId") Long minId);
+    List<HaierData> selectDataLimitId(@Param("day") Integer day, @Param("minId") Long minId);
 
     Long selectMinId(@Param("localId") Long localId);
 
