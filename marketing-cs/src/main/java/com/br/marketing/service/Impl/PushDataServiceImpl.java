@@ -537,45 +537,62 @@ public class PushDataServiceImpl implements PushDataService{
                 }
                 Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                 if (CollectionUtils.isEmpty(set)) {
-                    String msg = String.format("海尔消金转化数据CustNum不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}"
+                    String msg = String.format("海尔消金转化数据CustNum不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
+                                    "\n该数据将被放弃！"
                             , id, apiCode, requestId, tcId);
-                    log.warn(msg);
+                    sendAlarm(msg);
                     page++;
                     continue;
                 }
                 List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
                 if (CollectionUtils.isEmpty(preUserByTask)) {
-                    String msg = String.format("海尔消金案件数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s};CustNum:{%s}"
-                            , id, apiCode, requestId, tcId, Arrays.toString(set.toArray()));
-                    log.warn(msg);
+                    String msg = String.format("海尔消金案件数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
+                                    "\n该数据将被放弃！"
+                            , id, apiCode, requestId, tcId);
+                    sendAlarm(msg);
                     page++;
                     continue;
                 }
                 Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
                         MarketingSyncUser::getCustNum, syncUser -> syncUser
-                        , (v1, v2) -> StringUtils.isNotBlank(v2.getCusBatch())
-                                && StringUtils.isNotBlank(v2.getReserveField1())
-                                && !ObjectUtils.isEmpty(v2.getCreateTime())
-                                && v2.getCreateTime().after(v1.getCreateTime())
-                                ? v2 : v1));
-
+                        , (v1, v2) -> StringUtils.isNotBlank(v2.getCusBatch()) && StringUtils.isNotBlank(
+                                v2.getReserveField1()) && !ObjectUtils.isEmpty(v2.getCreateTime())
+                                && v2.getCreateTime().after(v1.getCreateTime()) ? v2 : v1));
                 for (MarketingTransferSyncUser l : transferList) {
                     HaierData haierData = new HaierData();
                     final String custNum = l.getCustNum();
-                    final MarketingSyncUser orDefault = map.getOrDefault(custNum, new MarketingSyncUser());
-                    final JSONObject object = JSONObject.parseObject(orDefault.getReserveField1());
-                    if (object.containsKey("type")) {
-                        haierData.setType(object.get("type").toString());
+                    if (map.containsKey(custNum)) {
+                        final MarketingSyncUser orDefault = map.get(custNum);
+                        final String reserveField1 = orDefault.getReserveField1();
+                        if (StringUtils.isEmpty(reserveField1) || !reserveField1.contains("type")) {
+                            String msg = String.format("海尔消金客户[%s]转化数据custNum为[%s];主键[%s];tcId为[%s]匹配到基础信息," +
+                                            "扩展字段不符合要求,reserveField1:[%s];\n该数据将被放弃！"
+                                    , apiCode, custNum, l.getId(), tcId, reserveField1);
+                            sendAlarm(msg);
+                            continue;
+                        }
+                        final JSONObject object = JSONObject.parseObject(reserveField1);
+                        if (object.containsKey("type")) {
+                            haierData.setType(object.get("type").toString());
+                        } else {
+                            String msg = String.format("海尔消金客户[%s]转化数据custNum为[%s];主键[%s];tcId为[%s]匹配到基础信息," +
+                                            "扩展字段中不存在“type”,reserveField1:[%s];\n该数据将被放弃！"
+                                    , apiCode, custNum, l.getId(), tcId, reserveField1);
+                            sendAlarm(msg);
+                            continue;
+                        }
+                        haierData.setTaskId(orDefault.getCusBatch());
+                        haierData.setExtend(orDefault.getReserveField1());
                     } else {
-                        log.warn("海尔消金[{}]案件信息中custNum:{} 扩展字段没有type信息！ReserveField1:{}", apiCode, custNum
-                                , orDefault.getReserveField1());
+                        String msg = String.format("海尔消金客户[%s]转化数据custNum为[%s];主键[%s];tcId为[%s]未匹配到基础信息;" +
+                                        "\n该数据将被放弃！"
+                                , apiCode, custNum, l.getId(), tcId);
+                        sendAlarm(msg);
                         continue;
                     }
                     haierData.setLocalId(l.getId());
                     haierData.setApiCode(apiCode);
                     haierData.setCustNum(custNum);
-                    haierData.setTaskId(orDefault.getCusBatch());
-                    haierData.setExtend(orDefault.getReserveField1());
                     haierData.setType("1");
                     haierData.setSourceType(2);
                     haierData.setPushStatus(1);
@@ -587,31 +604,6 @@ public class PushDataServiceImpl implements PushDataService{
                 }
                 haierDataMapper.insert1000Batch(haierDataSet);
                 haierDataSet.clear();
-                //            final ConcurrentMap<String, List<MarketingSyncUser>> typeMap = stream.collect(
-                //                    Collectors.groupingByConcurrent(MarketingSyncUser::getReserveField1));
-                //            final Map<String, MarketingTransferSyncUser> transferSyncUserMap = transferList.stream().collect(
-                //                    Collectors.toMap(MarketingTransferSyncUser::getCustNum, syncUser -> syncUser
-                //                    , (v1, v2) -> !ObjectUtils.isEmpty(v2.getCreateTime()) && v2.getCreateTime().before(v1.getCreateTime())
-                //                            ? v2 : v1));
-                //            for (Map.Entry<String, List<MarketingSyncUser>> entry : typeMap.entrySet()) {
-                //                final List<MarketingSyncUser> list1 = entry.getValue();
-                //                final String requestid =  System.currentTimeMillis() + String.format("%04d", random.nextInt(bound));
-                //                PushDTO.FormData formData = new PushDTO.FormData(requestid, entry.getKey(), list1, li -> {
-                //                    Set<PushDTO.DataItems> dataItemsSet = new HashSet<>();
-                //                    li.forEach(l -> {
-                //                        dataItemsSet.add(new PushDTO.DataItems(l.getCusBatch(), l.getCustNum()));
-                //                        final String custNum = l.getCustNum();
-                //                        dataItemsSet.add(new PushDTO.DataItems(map.getOrDefault(custNum
-                //                                , new MarketingSyncUser()).getCusBatch(), custNum));
-                //                    });
-                //                    return dataItemsSet;
-                //                });
-                //                try {
-                //                    final Result<Response2Entity> result1 = haierServiceClient.pushToTeleSales(formData);
-                //                } catch (Exception e) {
-                //                    log.error(e.getMessage(), e);
-                //                }
-                //            }
                 PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
                 if (page == pageInfo.getPages() || transferList.size() == 0) {
                     break;
@@ -624,5 +616,11 @@ public class PushDataServiceImpl implements PushDataService{
             result.setMessage(e.getMessage());
         }
         return result;
+    }
+
+    private void sendAlarm(String msg) {
+        log.warn(msg);
+        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", appName, secretKey,
+                Constants.sendCodeMap.get("pushToCustomer"));
     }
 }
