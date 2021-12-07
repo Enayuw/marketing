@@ -1,8 +1,4 @@
 package com.br.marketing.service.Impl;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -34,20 +30,12 @@ import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.TwosevenFile;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
-import com.br.marketing.mapper.TwosevenFileMapper;
 import com.br.marketing.service.PushDataService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +43,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -567,23 +556,26 @@ public class PushDataServiceImpl implements PushDataService{
                         , (v1, v2) -> StringUtils.isNotBlank(v2.getCusBatch())
                                 && StringUtils.isNotBlank(v2.getReserveField1())
                                 && !ObjectUtils.isEmpty(v2.getCreateTime())
-                                && v2.getCreateTime().before(v1.getCreateTime())
+                                && v2.getCreateTime().after(v1.getCreateTime())
                                 ? v2 : v1));
-                transferList.forEach(l -> {
+
+                for (MarketingTransferSyncUser l : transferList) {
                     HaierData haierData = new HaierData();
-                    haierData.setLocalId(l.getId());
-                    haierData.setApiCode(apiCode);
                     final String custNum = l.getCustNum();
-                    haierData.setCustNum(custNum);
                     final MarketingSyncUser orDefault = map.getOrDefault(custNum, new MarketingSyncUser());
-                    haierData.setTaskId(orDefault.getCusBatch());
-                    haierData.setExtend(orDefault.getReserveField1());
                     final JSONObject object = JSONObject.parseObject(orDefault.getReserveField1());
                     if (object.containsKey("type")) {
                         haierData.setType(object.get("type").toString());
                     } else {
-                        log.warn("海尔消金案件信息中custNum:{} 扩展字段没有type信息！", custNum);
+                        log.warn("海尔消金[{}]案件信息中custNum:{} 扩展字段没有type信息！ReserveField1:{}", apiCode, custNum
+                                , orDefault.getReserveField1());
+                        continue;
                     }
+                    haierData.setLocalId(l.getId());
+                    haierData.setApiCode(apiCode);
+                    haierData.setCustNum(custNum);
+                    haierData.setTaskId(orDefault.getCusBatch());
+                    haierData.setExtend(orDefault.getReserveField1());
                     haierData.setType("1");
                     haierData.setSourceType(2);
                     haierData.setPushStatus(1);
@@ -592,7 +584,7 @@ public class PushDataServiceImpl implements PushDataService{
                     haierData.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
                     haierData.setBatchNo(haierData.getCreateDate() + haierData.getType());
                     haierDataSet.add(haierData);
-                });
+                }
                 haierDataMapper.insert1000Batch(haierDataSet);
                 haierDataSet.clear();
                 //            final ConcurrentMap<String, List<MarketingSyncUser>> typeMap = stream.collect(
