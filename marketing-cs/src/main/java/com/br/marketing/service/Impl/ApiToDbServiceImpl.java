@@ -535,9 +535,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     sqlStr.append(dataSql).append(",");
                     count.addAndGet(1);
                     if (count.get() == sum || count2.get() < 1) {
-                        sqlStr.deleteCharAt(sqlStr.length() - 1);
+                        final int length = sqlStr.length();
+                        sqlStr.deleteCharAt(length - 1);
                         count2.decrementAndGet();
                         marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+                        sqlStr.delete(0, length);
                     }
                 }
 //                sqlStr.deleteCharAt(sqlStr.length() - 1);
