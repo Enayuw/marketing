@@ -303,7 +303,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         log.error(e.getMessage(), e);
                     }
                 });
-                log.warn("客户{}同步线程任务未全部成功！成功数据量{}，总数据量{}", apiCode, sum.get(), taskNum);
+                log.warn("客户{}同步线程任务(共{})全部执行！成功数据量{}，总数据量{}", apiCode, futureList.size(), sum.get(), taskNum);
                 futureList.clear();
                 sum.set(0);
 //                threadPool.shutdown();
@@ -419,6 +419,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     return 1;
                 }
+                StringBuilder sqlStr = new StringBuilder();
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
                     //region 用户上传表头配置处理
                     JSONObject extendJson = new JSONObject();
@@ -527,8 +528,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 , JSON.toJSONString(extendJson)
                                 , syncUser.getCusBatch()
                                 , syncUser.getUserType());
-                    marketingUserMapper.insertByRequestId(apiCode, dataSql);
+                    sqlStr.append(dataSql).append(",");
                 }
+                sqlStr.deleteCharAt(sqlStr.length() - 1);
+                log.warn("{}:[{}]", Thread.currentThread().getName(), sqlStr);
+                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
                 return 1;
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
