@@ -285,6 +285,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         dataToFile(syncUserByRuleScore, baseHeadConfigVO, futureList, filePath, currentPage, separator);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, futureList);
+                        try {
+                            TimeUnit.SECONDS.sleep(3);
+                        } catch (InterruptedException e) {
+                            log.error(e.getMessage(), e);
+                        }
                     }
                     currentPage++;
                 }
@@ -421,7 +426,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 }
                 StringBuilder sqlStr = new StringBuilder();
                 final int size = syncUserByRuleScore.size();
-                final int sum = 1000;
+                final int sum = 500;
                 AtomicInteger count2 = new AtomicInteger(size / sum);
                 AtomicInteger count = new AtomicInteger(0);
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
@@ -538,7 +543,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         final int length = sqlStr.length();
                         sqlStr.deleteCharAt(length - 1);
                         count2.decrementAndGet();
-                        marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+                        try {
+                            marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+                            TimeUnit.SECONDS.sleep(1);
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                        }
                         sqlStr.delete(0, length);
                     }
                 }
