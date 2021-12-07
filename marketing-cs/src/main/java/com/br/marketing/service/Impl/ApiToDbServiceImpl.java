@@ -285,11 +285,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         dataToFile(syncUserByRuleScore, baseHeadConfigVO, futureList, filePath, currentPage, separator);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, futureList);
-                        try {
-                            TimeUnit.SECONDS.sleep(3);
-                        } catch (InterruptedException e) {
-                            log.error(e.getMessage(), e);
-                        }
+//                        try {
+//                            TimeUnit.SECONDS.sleep(3);
+//                        } catch (InterruptedException e) {
+//                            log.error(e.getMessage(), e);
+//                        }
                     }
                     currentPage++;
                 }
@@ -422,10 +422,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         final Future<Integer> future = THREAD_POOL.submit(() -> {
             try {
                 if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
-                    return 1;
+                    return 0;
                 }
                 StringBuilder sqlStr = new StringBuilder();
-                final int size = syncUserByRuleScore.size();
+                final int size = syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
                 final int sum = 500;
                 AtomicInteger count2 = new AtomicInteger(size / sum);
                 AtomicInteger count = new AtomicInteger(0);
@@ -545,7 +545,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         count2.decrementAndGet();
                         try {
                             marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
-                            TimeUnit.SECONDS.sleep(1);
+//                            TimeUnit.SECONDS.sleep(1);
                         } catch (Exception e) {
                             log.error(e.getMessage(), e);
                         }
@@ -554,7 +554,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 }
 //                sqlStr.deleteCharAt(sqlStr.length() - 1);
 //                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
-                return 1;
+                return count.get();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 return 0;
@@ -680,7 +680,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         fw.append(sb).append("\r\n");
                     }
                 }
-                return 1;
+                return syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 return 0;
