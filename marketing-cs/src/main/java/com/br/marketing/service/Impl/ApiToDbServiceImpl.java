@@ -421,16 +421,20 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     return 1;
                 }
                 StringBuilder sqlStr = new StringBuilder();
+                final int size = syncUserByRuleScore.size();
+                final int sum = 1000;
+                AtomicInteger count2 = new AtomicInteger(size / sum);
+                AtomicInteger count = new AtomicInteger(0);
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
                     //region 用户上传表头配置处理
                     JSONObject extendJson = new JSONObject();
                     Integer ia = 0, ib = 1, ic = 2;
                     if (baseHeadConfigVO != null) {
                         JSONObject icData = null;
-                            if (StringUtils.isNotBlank(syncUser.getReserveField1())) {
-                                try {
-                                    icData = JSON.parseObject(syncUser.getReserveField1());
-                                } catch (Exception ex) {
+                        if (StringUtils.isNotBlank(syncUser.getReserveField1())) {
+                            try {
+                                icData = JSON.parseObject(syncUser.getReserveField1());
+                            } catch (Exception ex) {
                                     log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
                                             , syncUser.getApiCode(), syncUser.getId());
                                 }
@@ -530,9 +534,17 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 , syncUser.getCusBatch()
                                 , syncUser.getUserType());
                     sqlStr.append(dataSql).append(",");
+                    count.addAndGet(1);
+                    if (count.get() == sum || count2.get() < 1) {
+                        final int length = sqlStr.length();
+                        sqlStr.deleteCharAt(length - 1);
+                        count2.decrementAndGet();
+                        marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+                        sqlStr.delete(0, length);
+                    }
                 }
-                sqlStr.deleteCharAt(sqlStr.length() - 1);
-                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+//                sqlStr.deleteCharAt(sqlStr.length() - 1);
+//                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
                 return 1;
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
