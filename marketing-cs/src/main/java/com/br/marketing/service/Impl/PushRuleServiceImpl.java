@@ -1947,7 +1947,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
                 MarketingSyncUser::getCustNum, syncUser -> syncUser
                 , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
-                        && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+                        && v2.getCreateTime().after(v1.getCreateTime()) ? v2 : v1));
         Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
         List<ConversionData> conversionDataArray = new ArrayList<>();
         transferList.forEach(transfer -> {

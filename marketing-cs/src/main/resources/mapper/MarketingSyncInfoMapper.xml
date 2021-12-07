@@ -115,7 +115,8 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cust_num, id_card, name, cell, user_type
+        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        update_time
         from b_marketing_sync_${apiCode}
         <where>
             cust_num in
