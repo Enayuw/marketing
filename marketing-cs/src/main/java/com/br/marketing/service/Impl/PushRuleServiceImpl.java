@@ -219,6 +219,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     final String redisKeySoleNum = "sole:thread:num";
 
     final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
+
+    final String redisKeyPushHaier = "marketing:transfer:pushHaier:apicode";
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -882,6 +884,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushCustomerApiCodes.add("4004643");
             pushCustomerApiCodes.add("3710030");
         }
+        List<String> pushHaier = new ArrayList<>();
+        String haierCode = redisChgService.get(redisKeyPushHaier);
+        if(StringUtils.isNotBlank(haierCode)){
+            pushHaier = Splitter.on(",").splitToList(haierCode);
+        }else{
+            pushHaier.add("3710018");
+        }
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -996,6 +1005,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         &&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        }
+        if(pushHaier.contains(transferInfo.getApiCode())&&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER,id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
