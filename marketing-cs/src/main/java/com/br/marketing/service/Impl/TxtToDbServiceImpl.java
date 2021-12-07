@@ -55,7 +55,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 twosevenFile.setStatus(2);
                 twosevenFile.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
                 twosevenFileMapper.insertSelective(twosevenFile);
-                return new Result().setCode(ResultCode.SUCCESS.getValue());
+                return new Result().setCode(ResultCode.FAIL.getValue());
             }
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
@@ -124,7 +124,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         try {
             if (datas.size() != address.size()) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue());
+                String value = String.format("'2','%s','%s','%s'"
+                        ,String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致")
+                ,time,day);
+                String sql = String.format(sqlTemp, dbName, "status,data_message,create_time,create_date",value);
+                localFileMapper.insertFileData(sql);
+                return new Result().setCode(ResultCode.FAIL.getValue());
             }
             StringBuilder insertFields = new StringBuilder();
             StringBuilder valueFields = new StringBuilder();

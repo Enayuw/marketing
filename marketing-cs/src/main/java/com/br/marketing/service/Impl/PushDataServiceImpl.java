@@ -344,7 +344,13 @@ public class PushDataServiceImpl implements PushDataService{
             }
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             HashMap<String,List<HaierData>> types = new HashMap<>();
+            HashSet custNums = new HashSet();
             for (HaierData haierDatum : haierData) {
+                if(custNums.contains(haierDatum.getCustNum())){
+                    continue;
+                }else{
+                    custNums.add(haierDatum);
+                }
                 String key = haierDatum.getType();
                 if(types.get(key) ==null){
                     ArrayList<HaierData> haierData1 = new ArrayList<>();
