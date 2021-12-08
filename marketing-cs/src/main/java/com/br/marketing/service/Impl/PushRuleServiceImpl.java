@@ -1860,9 +1860,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return false;
                 }).collect(Collectors.toList());
                 if (transferList.size() < 1) {
-                    log.warn("海尔消金({})没有已转化数据，UserType不为[3|4]", apiCode);
-                    page++;
-                    continue;
+                    log.warn("当前页{},海尔消金({})没有已转化数据，UserType不为[3|4]", page, apiCode);
+                    if (page >= pageInfo.getPages()) {
+                        break;
+                    } else {
+                        page++;
+                        continue;
+                    }
                 }
             }
             TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
