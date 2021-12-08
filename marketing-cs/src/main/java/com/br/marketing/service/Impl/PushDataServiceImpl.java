@@ -344,13 +344,7 @@ public class PushDataServiceImpl implements PushDataService{
             }
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             HashMap<String,List<HaierData>> types = new HashMap<>();
-            HashSet custNums = new HashSet();
             for (HaierData haierDatum : haierData) {
-                if(custNums.contains(haierDatum.getCustNum())){
-                    continue;
-                }else{
-                    custNums.add(haierDatum);
-                }
                 String key = haierDatum.getType();
                 if(types.get(key) ==null){
                     ArrayList<HaierData> haierData1 = new ArrayList<>();
@@ -368,10 +362,11 @@ public class PushDataServiceImpl implements PushDataService{
                 for (List<HaierData> items : partition) {
                     Set<PushDTO.DataItems> datas = new HashSet<>();
                     ArrayList<HaierData> nolist = new ArrayList<>();
-                    getDistinctData(items,nolist, type, day.toString());
+                    ArrayList<HaierData> yeslist = new ArrayList<>();
+                    getDistinctData(items,yeslist,nolist, type, day.toString());
                     updateHaierFalse(nolist);
                     List<Long> ids = new ArrayList<>();
-                    for (HaierData item : items) {
+                    for (HaierData item : yeslist) {
                         datas.add(new PushDTO.DataItems(item.getTaskId(), item.getCustNum()));
                         ids.add(item.getId());
                     }
@@ -452,7 +447,7 @@ public class PushDataServiceImpl implements PushDataService{
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    void getDistinctData(List<HaierData> list, List<HaierData> nolist, String type, String day){
+    void getDistinctData(List<HaierData> list, List<HaierData> yeslist, List<HaierData> nolist, String type, String day){
         Integer start = Integer.valueOf(LocalDate.parse(day, yyyyMMddDF).minusDays(29L).format(yyyyMMddDF));
         Integer end = Integer.valueOf(day);
         List<String> custNums = list.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
@@ -461,15 +456,22 @@ public class PushDataServiceImpl implements PushDataService{
                 .andCustNumIn(custNums)
                 .andTypeEqualTo(type)
                 .andPushStatusEqualTo(2)
-                .andCreateDateGreaterThan(start)
-                .andCreateDateLessThan(end);
+                .andCreateDateGreaterThanOrEqualTo(start)
+                .andCreateDateLessThanOrEqualTo(end);
         List<HaierData> repeatData = haierDataMapper.selectByExample(example);
         Set<String> custs = repeatData.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+        Set<String> custNumNow = new HashSet<>();
         for (HaierData haierData : list) {
             if(custs.contains(haierData.getCustNum())){
                 nolist.add(haierData);
-                list.remove(haierData);
+                continue;
             }
+            if(custNumNow.contains(haierData.getCustNum())){
+                nolist.add(haierData);
+                continue;
+            }
+            custNumNow.add(haierData.getCustNum());
+            yeslist.add(haierData);
         }
 
     }
@@ -596,7 +598,7 @@ public class PushDataServiceImpl implements PushDataService{
                         sendAlarm(msg);
                         continue;
                     }
-                    haierData.setLocalId(l.getId());
+                    haierData.setSourceId(l.getId());
                     haierData.setApiCode(apiCode);
                     haierData.setCustNum(custNum);
                     haierData.setType("1");
