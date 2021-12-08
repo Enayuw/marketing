@@ -877,9 +877,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result consumerTransferData(Long id) {
         List<String> pushCustomerApiCodes = new ArrayList<>();
         String keyStr = redisChgService.get(redisKeyPushCustomer);
-        if(StringUtils.isNotBlank(keyStr)){
+        if (StringUtils.isNotBlank(keyStr)) {
             pushCustomerApiCodes = Splitter.on(",").splitToList(keyStr);
-        }else{
+        } else {
             pushCustomerApiCodes.add("3710012");
             pushCustomerApiCodes.add("4004643");
             pushCustomerApiCodes.add("3710030");
@@ -1002,7 +1002,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
-        &&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
         }
@@ -1851,11 +1851,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             PageHelper.startPage(page, pageSize);
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
             PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
-            if (CollectionUtils.isEmpty(transferList) && transferInfo.getActualNum() < 1) {
-                String smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s", apiCode
-                        , transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
-                alarmClient.sendAlarm(smg, title, appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
+            if (CollectionUtils.isEmpty(transferList)) {
+                String smg;
+                if (transferInfo.getActualNum() < 1) {
+                    smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s"
+                            , apiCode, transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
+                } else {
+                    smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】转化接口接收(%d)条转化数据，" +
+                                    "但未在转化详情中找到，该消息直接消费！日期:%s", apiCode
+                            , transferInfo.getRequestId(), transferInfo.getId(), tcId, transferInfo.getActualNum()
+                            , DateUtils.getNowyyyy_MM_dd());
+                }
+                alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 PushTransferRobotaiLog robotaiLog = new PushTransferRobotaiLog(
                         transferInfo.getId()
                         , apiCode
@@ -1886,19 +1893,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                     return false;
                 }).collect(Collectors.toList());
-                if (transferList.size() < 1) {
-                    log.warn("海尔消金({})没有已转化数据，UserType不为[3|4]", apiCode);
-                    page++;
-                    continue;
+            }
+            if (transferList.size() > 0) {
+                TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+                TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+                if (!outboundVO.getAccessNumber().equals("-1")) {
+                    pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
                 }
+                list.add(outboundVO);
             }
-            TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
-            TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
-            if (!outboundVO.getAccessNumber().equals("-1")) {
-                pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
-            }
-            list.add(outboundVO);
-            if (page == pageInfo.getPages() || transferList.size() == 0) {
+            if (page >= pageInfo.getPages()) {
                 break;
             }
             page++;
@@ -1975,8 +1979,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             conversionData.setCaseNum(transfer.getCustNum());
             conversionData.setGroupType(transfer.getUserType());
             conversionData.setInversionStatus(hasTransfer.equals(transfer.getIfTransform())
-                    ?"0"
-                    :(noHasTransfer.equals(transfer.getIfTransform())?"1":transfer.getIfTransform()));
+                    ? "0"
+                    : (noHasTransfer.equals(transfer.getIfTransform()) ? "1" : transfer.getIfTransform()));
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
             conversionData.setPhone(map.containsKey(transfer.getCustNum())
                     ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
