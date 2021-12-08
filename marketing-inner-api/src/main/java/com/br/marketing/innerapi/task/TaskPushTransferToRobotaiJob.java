@@ -80,8 +80,6 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         // 分片项目
         List<Integer> shardingItems = context.getShardingItems();
-        shardingItems.add(0);
-        shardingItems.add(1);
         // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
         // 设置最大重试次数
