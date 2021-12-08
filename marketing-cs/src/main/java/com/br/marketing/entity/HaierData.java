@@ -24,6 +24,11 @@ public class HaierData {
     private Integer sourceType;
 
     /**
+     * 数据源id
+     */
+    private Long sourceId;
+
+    /**
      * 一个type值每天对应一个batch_no
      */
     private String batchNo;
@@ -108,6 +113,14 @@ public class HaierData {
 
     public void setSourceType(Integer sourceType) {
         this.sourceType = sourceType;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
     }
 
     public String getBatchNo() {
