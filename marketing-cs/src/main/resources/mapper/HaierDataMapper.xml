@@ -24,7 +24,7 @@
         <if test=" datas != null and datas.size>0 and 1001>datas.size">
             insert into b_haier_data
             (api_code
-            , local_id
+            , source_id
             , source_type
             , type
             , task_id
@@ -38,7 +38,7 @@
             values
             <foreach collection="datas" item="data" separator=",">
                 (#{data.apiCode,jdbcType=VARCHAR}
-                , #{data.localId,jdbcType=BIGINT}
+                , #{data.sourceId,jdbcType=BIGINT}
                 , #{data.sourceType,jdbcType=INTEGER}
                 , #{data.type,jdbcType=VARCHAR}
                 , #{data.taskId,jdbcType=VARCHAR}
