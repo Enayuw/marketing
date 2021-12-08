@@ -1850,6 +1850,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         for (; ; ) {
             PageHelper.startPage(page, pageSize);
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
+            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
             if (CollectionUtils.isEmpty(transferList) && transferInfo.getActualNum() < 1) {
                 String smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s", apiCode
                         , transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
@@ -1897,7 +1898,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
             }
             list.add(outboundVO);
-            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
             if (page == pageInfo.getPages() || transferList.size() == 0) {
                 break;
             }
