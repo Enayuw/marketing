@@ -1879,7 +1879,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
                 transferList = transferList.stream().filter(syncUser -> {
                     String userType = syncUser.getUserType();
-                    return userType.equals("3") || userType.equals("4");
+                    if (userType.equals("3") || userType.equals("4")) {
+                        syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
+                        return true;
+                    }
+                    return false;
                 }).collect(Collectors.toList());
                 if (transferList.size() < 1) {
                     log.warn("海尔消金({})没有已转化数据，UserType不为[3|4]", apiCode);
