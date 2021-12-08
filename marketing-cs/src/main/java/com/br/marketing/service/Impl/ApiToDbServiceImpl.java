@@ -285,6 +285,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         dataToFile(syncUserByRuleScore, baseHeadConfigVO, futureList, filePath, currentPage, separator);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, futureList);
+//                        try {
+//                            TimeUnit.SECONDS.sleep(3);
+//                        } catch (InterruptedException e) {
+//                            log.error(e.getMessage(), e);
+//                        }
                     }
                     currentPage++;
                 }
@@ -303,7 +308,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         log.error(e.getMessage(), e);
                     }
                 });
-                log.warn("客户{}同步线程任务未全部成功！成功数据量{}，总数据量{}", apiCode, sum.get(), taskNum);
+                log.warn("客户{}同步线程任务(共{})全部执行！成功数据量{}，总数据量{}", apiCode, futureList.size(), sum.get(), taskNum);
                 futureList.clear();
                 sum.set(0);
 //                threadPool.shutdown();
@@ -418,18 +423,23 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         final Future<Integer> future = THREAD_POOL.submit(() -> {
             try {
                 if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
-                    return 1;
+                    return 0;
                 }
+                StringBuilder sqlStr = new StringBuilder();
+                final int size = syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
+                final int sum = 500;
+                AtomicInteger count2 = new AtomicInteger(size / sum);
+                AtomicInteger count = new AtomicInteger(0);
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
                     //region 用户上传表头配置处理
                     JSONObject extendJson = new JSONObject();
                     Integer ia = 0, ib = 1, ic = 2;
                     if (baseHeadConfigVO != null) {
                         JSONObject icData = null;
-                            if (StringUtils.isNotBlank(syncUser.getReserveField1())) {
-                                try {
-                                    icData = JSON.parseObject(syncUser.getReserveField1());
-                                } catch (Exception ex) {
+                        if (StringUtils.isNotBlank(syncUser.getReserveField1())) {
+                            try {
+                                icData = JSON.parseObject(syncUser.getReserveField1());
+                            } catch (Exception ex) {
                                     log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
                                             , syncUser.getApiCode(), syncUser.getId());
                                 }
@@ -528,9 +538,24 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 , JSON.toJSONString(extendJson)
                                 , syncUser.getCusBatch()
                                 , syncUser.getUserType());
-                    marketingUserMapper.insertByRequestId(apiCode, dataSql);
+                    sqlStr.append(dataSql).append(",");
+                    count.addAndGet(1);
+                    if (count.get() == sum || count2.get() < 1) {
+                        final int length = sqlStr.length();
+                        sqlStr.deleteCharAt(length - 1);
+                        count2.decrementAndGet();
+                        try {
+                            marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+//                            TimeUnit.SECONDS.sleep(1);
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                        }
+                        sqlStr.delete(0, length);
+                    }
                 }
-                return 1;
+//                sqlStr.deleteCharAt(sqlStr.length() - 1);
+//                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
+                return count.get();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 return 0;
@@ -656,7 +681,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         fw.append(sb).append("\r\n");
                     }
                 }
-                return 1;
+                return syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 return 0;
