@@ -1821,7 +1821,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         final int pageSize = 500;
         List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
         for (; ; ) {
-            PageHelper.startPage(page, pageSize);
+            PageHelper.startPage(page, pageSize, true).setOrderBy("id ASC");
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
             PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
             if (CollectionUtils.isEmpty(transferList)) {
@@ -1872,6 +1872,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
                 if (!outboundVO.getAccessNumber().equals("-1")) {
                     pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+                } else if (apiCode.equals("3710018")) {
+                    // 海尔验证数量bug临时记录日志到数据库
+                    pushTransferRobotaiLogService.save2Log(transferInfo, robotOutboundDTO, outboundVO);
                 }
                 list.add(outboundVO);
             }
@@ -1942,7 +1945,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
                 MarketingSyncUser::getCustNum, syncUser -> syncUser
                 , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
-                        && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+                        && v2.getCreateTime().after(v1.getCreateTime()) ? v2 : v1));
         Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
         List<ConversionData> conversionDataArray = new ArrayList<>();
         transferList.forEach(transfer -> {
