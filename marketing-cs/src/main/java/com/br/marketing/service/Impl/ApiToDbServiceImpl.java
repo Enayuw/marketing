@@ -421,7 +421,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     return 0;
                 }
                 final int size = syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
-                final int sum = 100;
+                final int sum = 50;
                 int batch = size / sum;
                 final int over = size % sum;
                 int count = 0;
