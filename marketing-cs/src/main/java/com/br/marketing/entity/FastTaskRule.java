@@ -11,12 +11,12 @@ public class FastTaskRule {
     /**
      * 规则名称
      */
-    private Long ruleName;
+    private String ruleName;
 
     /**
      * 规则编号
      */
-    private Long ruleNumber;
+    private String ruleNumber;
 
     /**
      * 商户编号
@@ -37,6 +37,11 @@ public class FastTaskRule {
      * 所选数据的id 逗号分隔
      */
     private String dataIdDesc;
+
+    /**
+     * 规则id
+     */
+    private Long ruleId;
 
     /**
      * 跑分类型 0 正常跑分 1 不跑分 2 产品配置
@@ -106,20 +111,20 @@ public class FastTaskRule {
         this.id = id;
     }
 
-    public Long getRuleName() {
+    public String getRuleName() {
         return ruleName;
     }
 
-    public void setRuleName(Long ruleName) {
-        this.ruleName = ruleName;
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName == null ? null : ruleName.trim();
     }
 
-    public Long getRuleNumber() {
+    public String getRuleNumber() {
         return ruleNumber;
     }
 
-    public void setRuleNumber(Long ruleNumber) {
-        this.ruleNumber = ruleNumber;
+    public void setRuleNumber(String ruleNumber) {
+        this.ruleNumber = ruleNumber == null ? null : ruleNumber.trim();
     }
 
     public String getApiCode() {
@@ -152,6 +157,14 @@ public class FastTaskRule {
 
     public void setDataIdDesc(String dataIdDesc) {
         this.dataIdDesc = dataIdDesc == null ? null : dataIdDesc.trim();
+    }
+
+    public Long getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(Long ruleId) {
+        this.ruleId = ruleId;
     }
 
     public Integer getTaskType() {

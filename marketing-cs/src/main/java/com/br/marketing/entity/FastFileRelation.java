@@ -14,6 +14,11 @@ public class FastFileRelation {
     private Long fastTaskId;
 
     /**
+     * 任务id
+     */
+    private Long taskId;
+
+    /**
      * 规则编号
      */
     private Long fileId;
@@ -47,6 +52,14 @@ public class FastFileRelation {
 
     public void setFastTaskId(Long fastTaskId) {
         this.fastTaskId = fastTaskId;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     public Long getFileId() {

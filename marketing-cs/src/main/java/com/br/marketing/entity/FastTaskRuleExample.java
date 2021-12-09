@@ -175,52 +175,62 @@ public class FastTaskRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameEqualTo(Long value) {
+        public Criteria andRuleNameEqualTo(String value) {
             addCriterion("rule_name =", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameNotEqualTo(Long value) {
+        public Criteria andRuleNameNotEqualTo(String value) {
             addCriterion("rule_name <>", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameGreaterThan(Long value) {
+        public Criteria andRuleNameGreaterThan(String value) {
             addCriterion("rule_name >", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameGreaterThanOrEqualTo(Long value) {
+        public Criteria andRuleNameGreaterThanOrEqualTo(String value) {
             addCriterion("rule_name >=", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameLessThan(Long value) {
+        public Criteria andRuleNameLessThan(String value) {
             addCriterion("rule_name <", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameLessThanOrEqualTo(Long value) {
+        public Criteria andRuleNameLessThanOrEqualTo(String value) {
             addCriterion("rule_name <=", value, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameIn(List<Long> values) {
+        public Criteria andRuleNameLike(String value) {
+            addCriterion("rule_name like", value, "ruleName");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleNameNotLike(String value) {
+            addCriterion("rule_name not like", value, "ruleName");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleNameIn(List<String> values) {
             addCriterion("rule_name in", values, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameNotIn(List<Long> values) {
+        public Criteria andRuleNameNotIn(List<String> values) {
             addCriterion("rule_name not in", values, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameBetween(Long value1, Long value2) {
+        public Criteria andRuleNameBetween(String value1, String value2) {
             addCriterion("rule_name between", value1, value2, "ruleName");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNameNotBetween(Long value1, Long value2) {
+        public Criteria andRuleNameNotBetween(String value1, String value2) {
             addCriterion("rule_name not between", value1, value2, "ruleName");
             return (Criteria) this;
         }
@@ -235,52 +245,62 @@ public class FastTaskRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberEqualTo(Long value) {
+        public Criteria andRuleNumberEqualTo(String value) {
             addCriterion("rule_number =", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberNotEqualTo(Long value) {
+        public Criteria andRuleNumberNotEqualTo(String value) {
             addCriterion("rule_number <>", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberGreaterThan(Long value) {
+        public Criteria andRuleNumberGreaterThan(String value) {
             addCriterion("rule_number >", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberGreaterThanOrEqualTo(Long value) {
+        public Criteria andRuleNumberGreaterThanOrEqualTo(String value) {
             addCriterion("rule_number >=", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberLessThan(Long value) {
+        public Criteria andRuleNumberLessThan(String value) {
             addCriterion("rule_number <", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberLessThanOrEqualTo(Long value) {
+        public Criteria andRuleNumberLessThanOrEqualTo(String value) {
             addCriterion("rule_number <=", value, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberIn(List<Long> values) {
+        public Criteria andRuleNumberLike(String value) {
+            addCriterion("rule_number like", value, "ruleNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleNumberNotLike(String value) {
+            addCriterion("rule_number not like", value, "ruleNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleNumberIn(List<String> values) {
             addCriterion("rule_number in", values, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberNotIn(List<Long> values) {
+        public Criteria andRuleNumberNotIn(List<String> values) {
             addCriterion("rule_number not in", values, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberBetween(Long value1, Long value2) {
+        public Criteria andRuleNumberBetween(String value1, String value2) {
             addCriterion("rule_number between", value1, value2, "ruleNumber");
             return (Criteria) this;
         }
 
-        public Criteria andRuleNumberNotBetween(Long value1, Long value2) {
+        public Criteria andRuleNumberNotBetween(String value1, String value2) {
             addCriterion("rule_number not between", value1, value2, "ruleNumber");
             return (Criteria) this;
         }
@@ -552,6 +572,66 @@ public class FastTaskRuleExample {
 
         public Criteria andDataIdDescNotBetween(String value1, String value2) {
             addCriterion("data_id_desc not between", value1, value2, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIsNull() {
+            addCriterion("rule_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIsNotNull() {
+            addCriterion("rule_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdEqualTo(Long value) {
+            addCriterion("rule_id =", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotEqualTo(Long value) {
+            addCriterion("rule_id <>", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdGreaterThan(Long value) {
+            addCriterion("rule_id >", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("rule_id >=", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdLessThan(Long value) {
+            addCriterion("rule_id <", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdLessThanOrEqualTo(Long value) {
+            addCriterion("rule_id <=", value, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdIn(List<Long> values) {
+            addCriterion("rule_id in", values, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotIn(List<Long> values) {
+            addCriterion("rule_id not in", values, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdBetween(Long value1, Long value2) {
+            addCriterion("rule_id between", value1, value2, "ruleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleIdNotBetween(Long value1, Long value2) {
+            addCriterion("rule_id not between", value1, value2, "ruleId");
             return (Criteria) this;
         }
 

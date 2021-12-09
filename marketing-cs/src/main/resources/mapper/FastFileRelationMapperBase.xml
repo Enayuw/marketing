@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.FastFileRelation" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="fast_task_id" property="fastTaskId" jdbcType="BIGINT" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
     <result column="file_id" property="fileId" jdbcType="BIGINT" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, fast_task_id, file_id, is_del, create_time, update_time
+    id, fast_task_id, task_id, file_id, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FastFileRelationExample" >
     select
@@ -104,10 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_fast_file_relation (fast_task_id, file_id, is_del, 
-      create_time, update_time)
-    values (#{fastTaskId,jdbcType=BIGINT}, #{fileId,jdbcType=BIGINT}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_fast_file_relation (fast_task_id, task_id, file_id, 
+      is_del, create_time, update_time
+      )
+    values (#{fastTaskId,jdbcType=BIGINT}, #{taskId,jdbcType=BIGINT}, #{fileId,jdbcType=BIGINT}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.FastFileRelation" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -117,6 +120,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="fastTaskId != null" >
         fast_task_id,
+      </if>
+      <if test="taskId != null" >
+        task_id,
       </if>
       <if test="fileId != null" >
         file_id,
@@ -134,6 +140,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="fastTaskId != null" >
         #{fastTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=BIGINT},
       </if>
       <if test="fileId != null" >
         #{fileId,jdbcType=BIGINT},
@@ -164,6 +173,9 @@
       <if test="record.fastTaskId != null" >
         fast_task_id = #{record.fastTaskId,jdbcType=BIGINT},
       </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=BIGINT},
+      </if>
       <if test="record.fileId != null" >
         file_id = #{record.fileId,jdbcType=BIGINT},
       </if>
@@ -185,6 +197,7 @@
     update b_fast_file_relation
     set id = #{record.id,jdbcType=BIGINT},
       fast_task_id = #{record.fastTaskId,jdbcType=BIGINT},
+      task_id = #{record.taskId,jdbcType=BIGINT},
       file_id = #{record.fileId,jdbcType=BIGINT},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -198,6 +211,9 @@
     <set >
       <if test="fastTaskId != null" >
         fast_task_id = #{fastTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=BIGINT},
       </if>
       <if test="fileId != null" >
         file_id = #{fileId,jdbcType=BIGINT},
@@ -217,6 +233,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.FastFileRelation" >
     update b_fast_file_relation
     set fast_task_id = #{fastTaskId,jdbcType=BIGINT},
+      task_id = #{taskId,jdbcType=BIGINT},
       file_id = #{fileId,jdbcType=BIGINT},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},

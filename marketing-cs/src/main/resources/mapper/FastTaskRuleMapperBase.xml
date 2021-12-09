@@ -3,12 +3,13 @@
 <mapper namespace="com.br.marketing.mapper.FastTaskRuleMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.FastTaskRule" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="rule_name" property="ruleName" jdbcType="BIGINT" />
-    <result column="rule_number" property="ruleNumber" jdbcType="BIGINT" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
+    <result column="rule_number" property="ruleNumber" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
     <result column="data_id_desc" property="dataIdDesc" jdbcType="VARCHAR" />
+    <result column="rule_id" property="ruleId" jdbcType="BIGINT" />
     <result column="task_type" property="taskType" jdbcType="INTEGER" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
     <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
@@ -81,9 +82,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, rule_name, rule_number, api_code, data_condition, data_type, data_id_desc, task_type, 
-    strategy_id, product_info, product_field, callback_info, task_time, status, opt_id, 
-    opt_name, is_del, create_time, update_time
+    id, rule_name, rule_number, api_code, data_condition, data_type, data_id_desc, rule_id, 
+    task_type, strategy_id, product_info, product_field, callback_info, task_time, status, 
+    opt_id, opt_name, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FastTaskRuleExample" >
     select
@@ -121,18 +122,18 @@
     </selectKey>
     insert into b_fast_task_rule (rule_name, rule_number, api_code, 
       data_condition, data_type, data_id_desc, 
-      task_type, strategy_id, product_info, 
-      product_field, callback_info, task_time, 
-      status, opt_id, opt_name, 
-      is_del, create_time, update_time
-      )
-    values (#{ruleName,jdbcType=BIGINT}, #{ruleNumber,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, 
+      rule_id, task_type, strategy_id, 
+      product_info, product_field, callback_info, 
+      task_time, status, opt_id, 
+      opt_name, is_del, create_time, 
+      update_time)
+    values (#{ruleName,jdbcType=VARCHAR}, #{ruleNumber,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
       #{dataCondition,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{dataIdDesc,jdbcType=VARCHAR}, 
-      #{taskType,jdbcType=INTEGER}, #{strategyId,jdbcType=VARCHAR}, #{productInfo,jdbcType=VARCHAR}, 
-      #{productField,jdbcType=VARCHAR}, #{callbackInfo,jdbcType=VARCHAR}, #{taskTime,jdbcType=VARCHAR}, 
-      #{status,jdbcType=INTEGER}, #{optId,jdbcType=VARCHAR}, #{optName,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{ruleId,jdbcType=BIGINT}, #{taskType,jdbcType=INTEGER}, #{strategyId,jdbcType=VARCHAR}, 
+      #{productInfo,jdbcType=VARCHAR}, #{productField,jdbcType=VARCHAR}, #{callbackInfo,jdbcType=VARCHAR}, 
+      #{taskTime,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optId,jdbcType=VARCHAR}, 
+      #{optName,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.FastTaskRule" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -157,6 +158,9 @@
       </if>
       <if test="dataIdDesc != null" >
         data_id_desc,
+      </if>
+      <if test="ruleId != null" >
+        rule_id,
       </if>
       <if test="taskType != null" >
         task_type,
@@ -197,10 +201,10 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
-        #{ruleName,jdbcType=BIGINT},
+        #{ruleName,jdbcType=VARCHAR},
       </if>
       <if test="ruleNumber != null" >
-        #{ruleNumber,jdbcType=BIGINT},
+        #{ruleNumber,jdbcType=VARCHAR},
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
@@ -213,6 +217,9 @@
       </if>
       <if test="dataIdDesc != null" >
         #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null" >
+        #{ruleId,jdbcType=BIGINT},
       </if>
       <if test="taskType != null" >
         #{taskType,jdbcType=INTEGER},
@@ -265,10 +272,10 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.ruleName != null" >
-        rule_name = #{record.ruleName,jdbcType=BIGINT},
+        rule_name = #{record.ruleName,jdbcType=VARCHAR},
       </if>
       <if test="record.ruleNumber != null" >
-        rule_number = #{record.ruleNumber,jdbcType=BIGINT},
+        rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -281,6 +288,9 @@
       </if>
       <if test="record.dataIdDesc != null" >
         data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleId != null" >
+        rule_id = #{record.ruleId,jdbcType=BIGINT},
       </if>
       <if test="record.taskType != null" >
         task_type = #{record.taskType,jdbcType=INTEGER},
@@ -326,12 +336,13 @@
   <update id="updateByExample" parameterType="map" >
     update b_fast_task_rule
     set id = #{record.id,jdbcType=BIGINT},
-      rule_name = #{record.ruleName,jdbcType=BIGINT},
-      rule_number = #{record.ruleNumber,jdbcType=BIGINT},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       data_condition = #{record.dataCondition,jdbcType=VARCHAR},
       data_type = #{record.dataType,jdbcType=INTEGER},
       data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      rule_id = #{record.ruleId,jdbcType=BIGINT},
       task_type = #{record.taskType,jdbcType=INTEGER},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       product_info = #{record.productInfo,jdbcType=VARCHAR},
@@ -352,10 +363,10 @@
     update b_fast_task_rule
     <set >
       <if test="ruleName != null" >
-        rule_name = #{ruleName,jdbcType=BIGINT},
+        rule_name = #{ruleName,jdbcType=VARCHAR},
       </if>
       <if test="ruleNumber != null" >
-        rule_number = #{ruleNumber,jdbcType=BIGINT},
+        rule_number = #{ruleNumber,jdbcType=VARCHAR},
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -368,6 +379,9 @@
       </if>
       <if test="dataIdDesc != null" >
         data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null" >
+        rule_id = #{ruleId,jdbcType=BIGINT},
       </if>
       <if test="taskType != null" >
         task_type = #{taskType,jdbcType=INTEGER},
@@ -410,12 +424,13 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.FastTaskRule" >
     update b_fast_task_rule
-    set rule_name = #{ruleName,jdbcType=BIGINT},
-      rule_number = #{ruleNumber,jdbcType=BIGINT},
+    set rule_name = #{ruleName,jdbcType=VARCHAR},
+      rule_number = #{ruleNumber,jdbcType=VARCHAR},
       api_code = #{apiCode,jdbcType=VARCHAR},
       data_condition = #{dataCondition,jdbcType=VARCHAR},
       data_type = #{dataType,jdbcType=INTEGER},
       data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      rule_id = #{ruleId,jdbcType=BIGINT},
       task_type = #{taskType,jdbcType=INTEGER},
       strategy_id = #{strategyId,jdbcType=VARCHAR},
       product_info = #{productInfo,jdbcType=VARCHAR},
