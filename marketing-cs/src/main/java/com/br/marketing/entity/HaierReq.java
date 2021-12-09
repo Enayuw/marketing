@@ -19,6 +19,11 @@ public class HaierReq {
     private String dataId;
 
     /**
+     * 数量
+     */
+    private Integer num;
+
+    /**
      * 状态pending-未查询；init-初始；handle-处理中；succ-成功；fail-失败；
      */
     private String status;
@@ -55,6 +60,14 @@ public class HaierReq {
 
     public void setDataId(String dataId) {
         this.dataId = dataId == null ? null : dataId.trim();
+    }
+
+    public Integer getNum() {
+        return num;
+    }
+
+    public void setNum(Integer num) {
+        this.num = num;
     }
 
     public String getStatus() {
