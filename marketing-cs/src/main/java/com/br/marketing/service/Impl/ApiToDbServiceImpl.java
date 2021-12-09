@@ -285,11 +285,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         dataToFile(syncUserByRuleScore, baseHeadConfigVO, futureList, filePath, currentPage, separator);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, futureList);
-//                        try {
-//                            TimeUnit.SECONDS.sleep(3);
-//                        } catch (InterruptedException e) {
-//                            log.error(e.getMessage(), e);
-//                        }
                     }
                     currentPage++;
                 }
@@ -308,7 +303,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         log.error(e.getMessage(), e);
                     }
                 });
-                log.warn("客户{}同步线程任务(共{})全部执行！成功数据量{}，总数据量{}", apiCode, futureList.size(), sum.get(), taskNum);
+                log.debug("客户{}同步线程任务(共{})全部执行！成功数据量{}，总数据量{}", apiCode, futureList.size(), sum.get(), taskNum);
                 futureList.clear();
                 sum.set(0);
 //                threadPool.shutdown();
@@ -424,11 +419,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     return 0;
                 }
-                StringBuilder sqlStr = new StringBuilder();
                 final int size = syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
-                final int sum = 500;
-                AtomicInteger count2 = new AtomicInteger(size / sum);
-                AtomicInteger count = new AtomicInteger(0);
+                final int sum = 100;
+                int batch = size / sum;
+                final int over = size % sum;
+                int count = 0;
+                StringBuilder sqlStr = new StringBuilder();
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
                     //region 用户上传表头配置处理
                     JSONObject extendJson = new JSONObject();
@@ -538,23 +534,22 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 , syncUser.getCusBatch()
                                 , syncUser.getUserType());
                     sqlStr.append(dataSql).append(",");
-                    count.addAndGet(1);
-                    if (count.get() == sum || count2.get() < 1) {
+                    ++count;
+                    if (count == sum || (batch == 0 && over == count)) {
                         final int length = sqlStr.length();
                         sqlStr.deleteCharAt(length - 1);
-                        count2.decrementAndGet();
+                        --batch;
+                        count = 0;
                         try {
                             marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
-//                            TimeUnit.SECONDS.sleep(1);
                         } catch (Exception e) {
                             log.error(e.getMessage(), e);
+                        } finally {
+                            sqlStr.delete(0, sqlStr.length());
                         }
-                        sqlStr.delete(0, length);
                     }
                 }
-//                sqlStr.deleteCharAt(sqlStr.length() - 1);
-//                marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
-                return count.get();
+                return size;
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
                 return 0;
