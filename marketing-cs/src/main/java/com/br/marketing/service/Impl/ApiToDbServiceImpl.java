@@ -1093,4 +1093,22 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
+
+    Result faskRuleToDb(List<MarketingCustomer> customers){
+        for (MarketingCustomer customer : customers) {
+            String apiCode = customer.getApiCode();
+            Result<List<FastTaskRule>> fastTaskRule = iRuleConfigService.getFastTaskRule(apiCode);
+            if(!ResultCode.SUCCESS.getValue().equals(fastTaskRule.getCode())||fastTaskRule.getData().size()<=0){
+                continue;
+            }
+            List<FastTaskRule> ruls = fastTaskRule.getData();
+            for (FastTaskRule rule : ruls) {
+                Result checkRes = iRuleConfigService.checkFastTaskRule(rule);
+                if(!ResultCode.SUCCESS.getValue().equals(checkRes.getCode())){
+                    continue;
+                }
+            }
+        }
+        return null;
+    }
 }
