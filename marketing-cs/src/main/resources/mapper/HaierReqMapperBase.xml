@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="req_id" property="reqId" jdbcType="VARCHAR" />
     <result column="data_id" property="dataId" jdbcType="VARCHAR" />
+    <result column="num" property="num" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, req_id, data_id, status, create_time, update_time
+    id, req_id, data_id, num, status, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.HaierReqExample" >
     select
@@ -104,10 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_haier_req (req_id, data_id, status, 
-      create_time, update_time)
-    values (#{reqId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_haier_req (req_id, data_id, num, 
+      status, create_time, update_time
+      )
+    values (#{reqId,jdbcType=VARCHAR}, #{dataId,jdbcType=VARCHAR}, #{num,jdbcType=INTEGER}, 
+      #{status,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.HaierReq" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -120,6 +123,9 @@
       </if>
       <if test="dataId != null" >
         data_id,
+      </if>
+      <if test="num != null" >
+        num,
       </if>
       <if test="status != null" >
         status,
@@ -137,6 +143,9 @@
       </if>
       <if test="dataId != null" >
         #{dataId,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null" >
+        #{num,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         #{status,jdbcType=VARCHAR},
@@ -167,6 +176,9 @@
       <if test="record.dataId != null" >
         data_id = #{record.dataId,jdbcType=VARCHAR},
       </if>
+      <if test="record.num != null" >
+        num = #{record.num,jdbcType=INTEGER},
+      </if>
       <if test="record.status != null" >
         status = #{record.status,jdbcType=VARCHAR},
       </if>
@@ -186,6 +198,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       req_id = #{record.reqId,jdbcType=VARCHAR},
       data_id = #{record.dataId,jdbcType=VARCHAR},
+      num = #{record.num,jdbcType=INTEGER},
       status = #{record.status,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -201,6 +214,9 @@
       </if>
       <if test="dataId != null" >
         data_id = #{dataId,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null" >
+        num = #{num,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         status = #{status,jdbcType=VARCHAR},
@@ -218,6 +234,7 @@
     update b_haier_req
     set req_id = #{reqId,jdbcType=VARCHAR},
       data_id = #{dataId,jdbcType=VARCHAR},
+      num = #{num,jdbcType=INTEGER},
       status = #{status,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

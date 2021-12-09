@@ -129,6 +129,7 @@ public class HaierServiceClient {
                 req.setReqId(formData.getRequestId());
                 req.setDataId(Joiner.on(",").join(ids));
                 req.setCreateTime(new Date());
+                req.setNum(ids.size());
                 haierReqMapper.insertSelective(req);
                 result.setCode(ResultCode.SUCCESS.getValue()).setDate(response2Entity);
             }else{
