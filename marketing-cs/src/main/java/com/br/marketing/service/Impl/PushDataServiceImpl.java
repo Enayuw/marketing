@@ -31,8 +31,8 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.PushDataService;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -421,9 +421,9 @@ public class PushDataServiceImpl implements PushDataService{
                                 record.setStatus(data.getBody().getSts());
                                 haierReqMapper.updateByPrimaryKeySelective(record);
                                 if("fail".equals(data.getBody().getSts())){
-                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败",reqData.getReqId())
-                                            ,"海尔推送结果查询"
-                                    ,appName,secretKey,Constants.sendCodeMap.get("pushToCustomer"));
+                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败", reqData.getReqId())
+                                            , "海尔推送结果查询"
+                                            , appName, secretKey, Constants.sendCodeMap.get("pushToHaier"));
                                 }
                             }
                         }
@@ -509,11 +509,10 @@ public class PushDataServiceImpl implements PushDataService{
         List<MarketingTransferInfo> list = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(id);
         if (CollectionUtils.isEmpty(list)) {
             result.setDate(false);
-            String smg = String.format("海尔消金客户转化数据主键为[%s]的基础信息不存在,该信息直接消费,不再重放队列", id);
-            log.error(smg);
-            result.setMessage(smg);
-            alarmClient.sendAlarm(smg, "海尔消金转电销(转化数据)警告", appName, secretKey,
-                    Constants.sendCodeMap.get("pushToCustomer"));
+            String msg = String.format("海尔消金客户转化数据主键为[%s]的基础信息不存在,该信息直接消费,不再重放队列", id);
+            log.error(msg);
+            result.setMessage(msg);
+            sendAlarm(msg);
             return result;
         }
         result.setDate(true);
@@ -538,9 +537,13 @@ public class PushDataServiceImpl implements PushDataService{
         List<HaierData> haierDataSet = new ArrayList<>();
         try {
             for (; ; ) {
-                PageHelper.startPage(page, pageSize);
+                Page<MarketingTransferSyncUser> pageInfo = PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 if (CollectionUtils.isEmpty(transferList)) {
+                    String msg = String.format("海尔消金转化详情数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
+                                    "\n该数据将被放弃！"
+                            , id, apiCode, requestId, tcId);
+                    sendAlarm(msg);
                     break;
                 }
                 Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
@@ -554,7 +557,7 @@ public class PushDataServiceImpl implements PushDataService{
                 }
                 List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
                 if (CollectionUtils.isEmpty(preUserByTask)) {
-                    String msg = String.format("海尔消金案件数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
+                    String msg = String.format("海尔消金基础信息数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
                                     "\n该数据将被放弃！"
                             , id, apiCode, requestId, tcId);
                     sendAlarm(msg);
@@ -612,8 +615,7 @@ public class PushDataServiceImpl implements PushDataService{
                 }
                 haierDataMapper.insert1000Batch(haierDataSet);
                 haierDataSet.clear();
-                PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
-                if (page == pageInfo.getPages() || transferList.size() == 0) {
+                if (page >= pageInfo.getPages()) {
                     break;
                 }
                 page++;
@@ -629,6 +631,6 @@ public class PushDataServiceImpl implements PushDataService{
     private void sendAlarm(String msg) {
         log.warn(msg);
         alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", appName, secretKey,
-                Constants.sendCodeMap.get("pushToCustomer"));
+                Constants.sendCodeMap.get("pushToHaier"));
     }
 }
