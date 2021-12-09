@@ -425,6 +425,196 @@ public class FastTaskRuleExample {
             return (Criteria) this;
         }
 
+        public Criteria andDataTypeIsNull() {
+            addCriterion("data_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIsNotNull() {
+            addCriterion("data_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeEqualTo(Integer value) {
+            addCriterion("data_type =", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotEqualTo(Integer value) {
+            addCriterion("data_type <>", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThan(Integer value) {
+            addCriterion("data_type >", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("data_type >=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThan(Integer value) {
+            addCriterion("data_type <", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("data_type <=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIn(List<Integer> values) {
+            addCriterion("data_type in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotIn(List<Integer> values) {
+            addCriterion("data_type not in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeBetween(Integer value1, Integer value2) {
+            addCriterion("data_type between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("data_type not between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescIsNull() {
+            addCriterion("data_id_desc is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescIsNotNull() {
+            addCriterion("data_id_desc is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescEqualTo(String value) {
+            addCriterion("data_id_desc =", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescNotEqualTo(String value) {
+            addCriterion("data_id_desc <>", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescGreaterThan(String value) {
+            addCriterion("data_id_desc >", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescGreaterThanOrEqualTo(String value) {
+            addCriterion("data_id_desc >=", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescLessThan(String value) {
+            addCriterion("data_id_desc <", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescLessThanOrEqualTo(String value) {
+            addCriterion("data_id_desc <=", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescLike(String value) {
+            addCriterion("data_id_desc like", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescNotLike(String value) {
+            addCriterion("data_id_desc not like", value, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescIn(List<String> values) {
+            addCriterion("data_id_desc in", values, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescNotIn(List<String> values) {
+            addCriterion("data_id_desc not in", values, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescBetween(String value1, String value2) {
+            addCriterion("data_id_desc between", value1, value2, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdDescNotBetween(String value1, String value2) {
+            addCriterion("data_id_desc not between", value1, value2, "dataIdDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIsNull() {
+            addCriterion("task_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIsNotNull() {
+            addCriterion("task_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeEqualTo(Integer value) {
+            addCriterion("task_type =", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotEqualTo(Integer value) {
+            addCriterion("task_type <>", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeGreaterThan(Integer value) {
+            addCriterion("task_type >", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("task_type >=", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeLessThan(Integer value) {
+            addCriterion("task_type <", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("task_type <=", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIn(List<Integer> values) {
+            addCriterion("task_type in", values, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotIn(List<Integer> values) {
+            addCriterion("task_type not in", values, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeBetween(Integer value1, Integer value2) {
+            addCriterion("task_type between", value1, value2, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("task_type not between", value1, value2, "taskType");
+            return (Criteria) this;
+        }
+
         public Criteria andStrategyIdIsNull() {
             addCriterion("strategy_id is null");
             return (Criteria) this;

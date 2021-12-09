@@ -7,6 +7,9 @@
     <result column="rule_number" property="ruleNumber" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
+    <result column="data_type" property="dataType" jdbcType="INTEGER" />
+    <result column="data_id_desc" property="dataIdDesc" jdbcType="VARCHAR" />
+    <result column="task_type" property="taskType" jdbcType="INTEGER" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
     <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
     <result column="product_field" property="productField" jdbcType="VARCHAR" />
@@ -78,9 +81,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, rule_name, rule_number, api_code, data_condition, strategy_id, product_info, 
-    product_field, callback_info, task_time, status, opt_id, opt_name, is_del, create_time, 
-    update_time
+    id, rule_name, rule_number, api_code, data_condition, data_type, data_id_desc, task_type, 
+    strategy_id, product_info, product_field, callback_info, task_time, status, opt_id, 
+    opt_name, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FastTaskRuleExample" >
     select
@@ -117,13 +120,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_fast_task_rule (rule_name, rule_number, api_code, 
-      data_condition, strategy_id, product_info, 
+      data_condition, data_type, data_id_desc, 
+      task_type, strategy_id, product_info, 
       product_field, callback_info, task_time, 
       status, opt_id, opt_name, 
       is_del, create_time, update_time
       )
     values (#{ruleName,jdbcType=BIGINT}, #{ruleNumber,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, 
-      #{dataCondition,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, #{productInfo,jdbcType=VARCHAR}, 
+      #{dataCondition,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{dataIdDesc,jdbcType=VARCHAR}, 
+      #{taskType,jdbcType=INTEGER}, #{strategyId,jdbcType=VARCHAR}, #{productInfo,jdbcType=VARCHAR}, 
       #{productField,jdbcType=VARCHAR}, #{callbackInfo,jdbcType=VARCHAR}, #{taskTime,jdbcType=VARCHAR}, 
       #{status,jdbcType=INTEGER}, #{optId,jdbcType=VARCHAR}, #{optName,jdbcType=VARCHAR}, 
       #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
@@ -146,6 +151,15 @@
       </if>
       <if test="dataCondition != null" >
         data_condition,
+      </if>
+      <if test="dataType != null" >
+        data_type,
+      </if>
+      <if test="dataIdDesc != null" >
+        data_id_desc,
+      </if>
+      <if test="taskType != null" >
+        task_type,
       </if>
       <if test="strategyId != null" >
         strategy_id,
@@ -193,6 +207,15 @@
       </if>
       <if test="dataCondition != null" >
         #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="dataIdDesc != null" >
+        #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="taskType != null" >
+        #{taskType,jdbcType=INTEGER},
       </if>
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
@@ -253,6 +276,15 @@
       <if test="record.dataCondition != null" >
         data_condition = #{record.dataCondition,jdbcType=VARCHAR},
       </if>
+      <if test="record.dataType != null" >
+        data_type = #{record.dataType,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataIdDesc != null" >
+        data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskType != null" >
+        task_type = #{record.taskType,jdbcType=INTEGER},
+      </if>
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
@@ -298,6 +330,9 @@
       rule_number = #{record.ruleNumber,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      data_type = #{record.dataType,jdbcType=INTEGER},
+      data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      task_type = #{record.taskType,jdbcType=INTEGER},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       product_info = #{record.productInfo,jdbcType=VARCHAR},
       product_field = #{record.productField,jdbcType=VARCHAR},
@@ -327,6 +362,15 @@
       </if>
       <if test="dataCondition != null" >
         data_condition = #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        data_type = #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="dataIdDesc != null" >
+        data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="taskType != null" >
+        task_type = #{taskType,jdbcType=INTEGER},
       </if>
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
@@ -370,6 +414,9 @@
       rule_number = #{ruleNumber,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
       data_condition = #{dataCondition,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=INTEGER},
+      data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      task_type = #{taskType,jdbcType=INTEGER},
       strategy_id = #{strategyId,jdbcType=VARCHAR},
       product_info = #{productInfo,jdbcType=VARCHAR},
       product_field = #{productField,jdbcType=VARCHAR},

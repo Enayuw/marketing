@@ -29,6 +29,21 @@ public class FastTaskRule {
     private String dataCondition;
 
     /**
+     * 1-全量；2-未跑分
+     */
+    private Integer dataType;
+
+    /**
+     * 所选数据的id 逗号分隔
+     */
+    private String dataIdDesc;
+
+    /**
+     * 跑分类型 0 正常跑分 1 不跑分 2 产品配置
+     */
+    private Integer taskType;
+
+    /**
      * 策略编号
      */
     private String strategyId;
@@ -121,6 +136,30 @@ public class FastTaskRule {
 
     public void setDataCondition(String dataCondition) {
         this.dataCondition = dataCondition == null ? null : dataCondition.trim();
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getDataIdDesc() {
+        return dataIdDesc;
+    }
+
+    public void setDataIdDesc(String dataIdDesc) {
+        this.dataIdDesc = dataIdDesc == null ? null : dataIdDesc.trim();
+    }
+
+    public Integer getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(Integer taskType) {
+        this.taskType = taskType;
     }
 
     public String getStrategyId() {
