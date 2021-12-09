@@ -93,6 +93,11 @@ public class PushDataServiceImpl implements PushDataService{
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
 
+    @Value("${otherConfig.alarm.secretKey:00}")
+    private String secret2Key;
+    @Value("${otherConfig.alarm.appName:00}")
+    private String app2Name;
+
     @Autowired
     TwoSevenService twoSevenService;
 
@@ -423,7 +428,7 @@ public class PushDataServiceImpl implements PushDataService{
                                 if("fail".equals(data.getBody().getSts())){
                                     alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败", reqData.getReqId())
                                             , "海尔推送结果查询"
-                                            , appName, secretKey, Constants.sendCodeMap.get("pushToHaier"));
+                                            , app2Name, secret2Key, Constants.sendCodeMap.get("pushToHaier"));
                                 }
                             }
                         }
@@ -630,7 +635,7 @@ public class PushDataServiceImpl implements PushDataService{
 
     private void sendAlarm(String msg) {
         log.warn(msg);
-        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", appName, secretKey,
+        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", app2Name, secret2Key,
                 Constants.sendCodeMap.get("pushToHaier"));
     }
 }
