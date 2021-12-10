@@ -378,6 +378,9 @@
 		<if test="taskType != null" >
 			,`task_type`
 		</if>
+		<if test="productInfo != null" >
+			,`product_info`
+		</if>
 		<if test="cycleDay != null" >
 			,`cycle_day`
 		</if>
@@ -403,6 +406,9 @@
 			#{contextId}
 		<if test="taskType != null" >
 			,#{taskType}
+		</if>
+		<if test="productInfo != null" >
+			,`productInfo`
 		</if>
 		<if test="cycleDay != null" >
 			,#{cycleDay}
