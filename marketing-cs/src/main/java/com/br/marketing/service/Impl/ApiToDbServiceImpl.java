@@ -35,12 +35,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {
@@ -148,8 +146,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             marketingCustomers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                     , shardingTotalCount, shardingItems);
         }
-        List<Future<Integer>> futureList = new ArrayList<>();
-        AtomicInteger sum = new AtomicInteger();
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String apiCode = marketingCustomer.getApiCode();
             tableCreateService.createMarketingSyncUserTable(apiCode);
@@ -261,6 +257,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理marketingUser
                 Long maxId = syncInfoMapper
                         .getMaxIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
+                ExecutorService threadPool = BrExecutors.getThreadPool(20, 50);
                 boolean execMark = true;
                 int currentPage = 1;
                 Integer taskNum = 0;
@@ -270,55 +267,37 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     String batchNumber = number;
                     Long nowMaxId = minId+5000;
 
-                    if(nowMaxId>=maxId){
+                    if (nowMaxId >= maxId) {
                         execMark = false;
                     }
                     List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId,nowMaxId,conditionRes.getData());
-                    minId = nowMaxId+1;
-                    taskNum+=syncUserByRuleScore.size();
-                    if(syncUserByRuleScore.size()<=0){
+                            .getSyncUserByRuleScore(apiCode, sTimeStr, eTimeStr, minId, nowMaxId, conditionRes.getData());
+                    minId = nowMaxId + 1;
+                    taskNum += syncUserByRuleScore.size();
+                    if (syncUserByRuleScore.size() <= 0) {
                         continue;
                     }
                     if (isToFile) {
                         String separator = marketingSepService.querySepByApiCode(apiCode);
-                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, futureList, filePath, currentPage, separator);
+                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, separator);
                     } else {
-                        dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, futureList);
+                        dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, threadPool);
                     }
                     currentPage++;
                 }
-                futureList.forEach(f -> {
-                    try {
-                        Integer integer = f.get(3, TimeUnit.SECONDS);
-                        while (integer == null && !f.isDone()) {
-                            TimeUnit.SECONDS.sleep(5);
+                threadPool.shutdown();
+                boolean isContiue = true;
+                while (isContiue) {
+                    if (threadPool.isTerminated()) {
+                        isContiue = false;
+                    } else {
+                        try {
+                            Thread.sleep(3000L);
+                        } catch (Exception e) {
+                            log.error("Thread.sleep error", e);
                         }
-                        sum.addAndGet(integer == null ? 0 : integer);
-                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                        if (!f.isDone()) {
-                            f.cancel(true);
-                            log.error("多线程任务取消失败，继续让运行中的线程执行完任务");
-                        }
-                        log.error(e.getMessage(), e);
                     }
-                });
-                log.debug("客户{}同步线程任务(共{})全部执行！成功数据量{}，总数据量{}", apiCode, futureList.size(), sum.get(), taskNum);
-                futureList.clear();
-                sum.set(0);
-//                threadPool.shutdown();
-//                boolean isContiue = true;
-//                while (isContiue){
-//                    if(threadPool.isTerminated()){
-//                        isContiue= false;
-//                    }else{
-//                        try {
-//                            Thread.sleep(3000L);
-//                        } catch (Exception e) {
-//                            log.error("Thread.sleep error", e);
-//                        }
-//                    }
-//                }
+                }
                 //endregion
 
                 if (TaskExecCommonField.isBuildTaskJob.equals(2)) {
@@ -332,7 +311,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
-                int actNum = isToFile?taskNum:marketingUserMapper.countBySureUser(apiCode, number);
+                int actNum = isToFile ? taskNum : marketingUserMapper.countBySureUser(apiCode, number);
                 if(actNum>0) {
                     MarketingTask task = new MarketingTask();
                     task.setApiCode(apiCode);
@@ -389,14 +368,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         LoanFile loanFile=saveStraHisFile(task,customerScoreRuleVO,eTimeStr,filePath);
                         saveTaskStatusDistribute(task,loanFile);
                     }
-                    try{
+                    try {
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
                                 .append("ruleId：".concat(customerScoreRuleVO.getId().toString()).concat("\r\n"))
                                 .append("ruleName：".concat(customerScoreRuleVO.getRuleName()).concat("\r\n"))
                                 .append("time：".concat(eTimeStr).concat("\r\n"))
                                 .append("batchNumber：".concat(number).concat("\r\n"))
-                                .append(String.format("预计数量: %d,入库数量：%d",taskNum,actNum));
+                                .append(String.format("预计数量: %d,入库数量：%d", taskNum, actNum));
                         alarmClient.sendAlarm(content.toString(), "api人员数据生成任务", appName, secretKey,
                                 Constants.sendCodeMap.get("uploadSuccess"));
                     } catch (Exception ex) {
@@ -407,24 +386,17 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
                 //endregion
             }
-            futureList.clear();
-            sum.set(0);
+
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore, String apiCode, String batchNumber, BaseHeadConfigVO baseHeadConfigVO, List<Future<Integer>> futureList) {
-        final Future<Integer> future = THREAD_POOL.submit(() -> {
+    private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore, String apiCode, String batchNumber, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool) {
+        threadPool.submit(() -> {
             try {
                 if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
-                    return 0;
+                    return;
                 }
-                final int size = syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
-                final int sum = 50;
-                int batch = size / sum;
-                final int over = size % sum;
-                int count = 0;
-                StringBuilder sqlStr = new StringBuilder();
                 for (MarketingSyncUser syncUser : syncUserByRuleScore) {
                     //region 用户上传表头配置处理
                     JSONObject extendJson = new JSONObject();
@@ -435,16 +407,16 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             try {
                                 icData = JSON.parseObject(syncUser.getReserveField1());
                             } catch (Exception ex) {
-                                    log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
-                                            , syncUser.getApiCode(), syncUser.getId());
-                                }
+                                log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
+                                        , syncUser.getApiCode(), syncUser.getId());
                             }
-                            for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
-                                String str = "";
-                                if (ia.equals(head.getType())) {
-                                    str = "";
-                                } else if (ib.equals(head.getType())) {
-                                    switch (head.getName().toLowerCase()) {
+                        }
+                        for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
+                            String str = "";
+                            if (ia.equals(head.getType())) {
+                                str = "";
+                            } else if (ib.equals(head.getType())) {
+                                switch (head.getName().toLowerCase()) {
                                         case "apicode":
                                             str = syncUser.getApiCode();
                                             break;
@@ -533,38 +505,21 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 , JSON.toJSONString(extendJson)
                                 , syncUser.getCusBatch()
                                 , syncUser.getUserType());
-                    sqlStr.append(dataSql).append(",");
-                    ++count;
-                    if (count == sum || (batch == 0 && over == count)) {
-                        final int length = sqlStr.length();
-                        sqlStr.deleteCharAt(length - 1);
-                        --batch;
-                        count = 0;
-                        try {
-                            marketingUserMapper.insertByRequestId(apiCode, sqlStr.toString());
-                        } catch (Exception e) {
-                            log.error(e.getMessage(), e);
-                        } finally {
-                            sqlStr.delete(0, sqlStr.length());
-                        }
-                    }
+                    marketingUserMapper.insertByRequestId(apiCode, dataSql);
                 }
-                return size;
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
-                return 0;
             }
         });
-        futureList.add(future);
     }
 
-    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, List<Future<Integer>> futureList, String filePath, int currentPage, String sep) {
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep) {
 
         File writeName = new File(filePath);
         if (!writeName.exists()) {
             writeName.mkdirs();
         }
-        final Future<Integer> future = THREAD_POOL.submit(() -> {
+        threadPool.submit(() -> {
             File file1 = new File(filePath + "/" + currentPage + ".txt");
             try (Writer fw = new BufferedWriter(
                     new OutputStreamWriter(
@@ -675,13 +630,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         fw.append(sb).append("\r\n");
                     }
                 }
-                return syncUserByRuleScore == null ? 0 : syncUserByRuleScore.size();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
-                return 0;
             }
         });
-        futureList.add(future);
     }
 
     private LoanFile saveStraHisFile(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime,String filePath){
