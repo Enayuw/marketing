@@ -53,5 +53,5 @@ public interface FastTaskRuleService {
      * @param user
      * @return
      */
-    ApiResult<Boolean> update(String ruleName, String taskTime, UserDetail user);
+    ApiResult<Boolean> update(String id,String ruleName, String taskTime, UserDetail user);
 }

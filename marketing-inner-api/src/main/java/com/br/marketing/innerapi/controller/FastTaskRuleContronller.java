@@ -82,15 +82,18 @@ public class FastTaskRuleContronller {
 
 
     @ApiOperation(value = "修改批量跑分",notes = "修改批量跑分")
-    @ApiImplicitParams({@ApiImplicitParam(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "任务id", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
     })
     @GetMapping("/update")
-    public ApiResult<Boolean> update(@RequestParam(required = false) String ruleName, @RequestParam(required = false) String taskTime){
+    public ApiResult<Boolean> update(@RequestParam(required = false) String id,
+                                     @RequestParam(required = false) String ruleName,
+                                     @RequestParam(required = false) String taskTime){
         //获取用户上下文
         try {
             UserDetail user = ThreadContextInfo.getUser();
-            return fastTaskRuleService.update(ruleName,taskTime,user);
+            return fastTaskRuleService.update(id,ruleName,taskTime,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);

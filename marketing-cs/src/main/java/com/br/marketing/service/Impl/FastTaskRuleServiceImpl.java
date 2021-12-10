@@ -97,7 +97,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
                 fastTaskRule.setRuleName(vo.getRuleName());
             }
             fastTaskRule.setRuleNumber(createNo());//任务编号
-            //fastTaskRule.setRuleNumber("F20211210451");//任务编号
+            //fastTaskRule.setRuleNumber("F20211210455");//任务编号
             fastTaskRule.setTaskType(vo.getTaskType());//跑分类型
             fastTaskRule.setDataIdDesc(vo.getDataIdDesc());//跑分数据,逗号分隔
             fastTaskRule.setDataType(vo.getDataType());//跑分范围
@@ -114,8 +114,6 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             fastTaskRule.setStatus(1);
             fastTaskRule.setOptId(userDetail.getUserId());
             fastTaskRule.setOptName(userDetail.getUsername());
-            /*fastTaskRule.setOptId("sjj");
-            fastTaskRule.setOptName("sjj");*/
             fastTaskRule.setIsDel(1);
             fastTaskRule.setCreateTime(new Date());
             fastTaskRule.setUpdateTime(new Date());
@@ -191,21 +189,40 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public boolean updateStatusById(String id, Integer status,UserDetail userDetail) {
-
-        int update = 1;
-        if (update == 1){
-
+        try {
+            FastTaskRule fastTaskRule = new FastTaskRule();
+            fastTaskRule.setId(Long.parseLong(id));
+            fastTaskRule.setStatus(status);
+            fastTaskRule.setUpdateTime(new Date());
+            fastTaskRule.setOptId(userDetail.getUserId());
+            fastTaskRule.setOptName(userDetail.getUsername());
+            fastTaskRuleMapper.updateByPrimaryKeySelective(fastTaskRule);
             return true;
-        }else {
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error(e.getMessage(),e);
             return false;
         }
-
     }
 
     @Override
-    public ApiResult<Boolean> update(String ruleName, String taskTime, UserDetail user) {
-        return new ApiResult<Boolean>().success(true);
-    }
+    public ApiResult<Boolean> update(String id,String ruleName, String taskTime, UserDetail user) {
+        try {
+            FastTaskRule fastTaskRule = new FastTaskRule();
+            fastTaskRule.setId(Long.parseLong(id));
+            fastTaskRule.setRuleName(ruleName);
+            fastTaskRule.setTaskTime(taskTime);
+            fastTaskRule.setUpdateTime(new Date());
+            fastTaskRule.setOptId(user.getUserId());
+            fastTaskRule.setOptName(user.getUsername());
+            fastTaskRuleMapper.updateByPrimaryKeySelective(fastTaskRule);
+            return new ApiResult<Boolean>().success(true);
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error(e.getMessage(),e);
+            return new ApiResult<Boolean>().success(false);
+        }
 
+    }
 
 }
