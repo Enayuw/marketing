@@ -408,7 +408,7 @@
 			,#{taskType}
 		</if>
 		<if test="productInfo != null" >
-			,`productInfo`
+			,#{productInfo}
 		</if>
 		<if test="cycleDay != null" >
 			,#{cycleDay}
