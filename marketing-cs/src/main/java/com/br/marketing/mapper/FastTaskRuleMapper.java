@@ -1,7 +1,25 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.vo.FastTaskRuleListVO;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 
 public interface FastTaskRuleMapper extends FastTaskRuleMapperBase {
 
+    /**
+     * 跑分记录列表
+     * @param search
+     * @param status
+     * @param createTimeStart
+     * @param createTimeEnd
+     * @param updateTimeStart
+     * @param updateTimeEnd
+     * @param taskStatus
+     * @return
+     */
+    List<FastTaskRuleListVO> selectList(@Param("search")String search, @Param("status")Integer status,
+                                        @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
+                                        @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,
+                                        @Param("taskStatus")String taskStatus);
 }
