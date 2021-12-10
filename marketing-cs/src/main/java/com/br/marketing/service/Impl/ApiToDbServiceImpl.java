@@ -119,7 +119,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         return pushToDb(apiCode, 0, null);
     }
 
-    private final static ExecutorService THREAD_POOL = BrExecutors.getThreadPool(20, 50);
 
     @Override
     public Result pushToDb(String code, int shardingTotalCount, List<Integer> shardingItems) {
