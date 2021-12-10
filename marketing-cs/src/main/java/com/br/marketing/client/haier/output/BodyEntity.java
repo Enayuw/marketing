@@ -13,25 +13,9 @@ public class BodyEntity {
      */
     private String requestId;
     /**
-     * 状态码
+     * 状态码 初始 init; 处理中 handle;成功  succ;失败 fail
      */
     private String sts;
-    /**
-     * 初始
-     */
-    private String init;
-    /**
-     * 处理中
-     */
-    private String handle;
-    /**
-     * 成功
-     */
-    private String succ;
-    /**
-     * 失败
-     */
-    private String fail;
     /**
      * 码值
      */
@@ -44,13 +28,9 @@ public class BodyEntity {
     public BodyEntity() {
     }
 
-    public BodyEntity(String requestId, String sts, String init, String handle, String succ, String fail, String code, String msg) {
+    public BodyEntity(String requestId, String sts, String code, String msg) {
         this.requestId = requestId;
         this.sts = sts;
-        this.init = init;
-        this.handle = handle;
-        this.succ = succ;
-        this.fail = fail;
         this.code = code;
         this.msg = msg;
     }
@@ -69,38 +49,6 @@ public class BodyEntity {
 
     public void setSts(String sts) {
         this.sts = sts;
-    }
-
-    public String getInit() {
-        return init;
-    }
-
-    public void setInit(String init) {
-        this.init = init;
-    }
-
-    public String getHandle() {
-        return handle;
-    }
-
-    public void setHandle(String handle) {
-        this.handle = handle;
-    }
-
-    public String getSucc() {
-        return succ;
-    }
-
-    public void setSucc(String succ) {
-        this.succ = succ;
-    }
-
-    public String getFail() {
-        return fail;
-    }
-
-    public void setFail(String fail) {
-        this.fail = fail;
     }
 
     public String getCode() {
@@ -124,10 +72,6 @@ public class BodyEntity {
         return "BodyEntity{" +
                 "requestId='" + requestId + '\'' +
                 ", sts='" + sts + '\'' +
-                ", init='" + init + '\'' +
-                ", handle='" + handle + '\'' +
-                ", succ='" + succ + '\'' +
-                ", fail='" + fail + '\'' +
                 ", code='" + code + '\'' +
                 ", msg='" + msg + '\'' +
                 '}';

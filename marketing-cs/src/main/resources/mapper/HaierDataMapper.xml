@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.HaierDataMapper" >
+    <select id="selectDataLimitId" resultType="com.br.marketing.entity.HaierData">
+        select * from b_haier_data
+        where create_date = #{day}
+        and status = 1
+        and push_status = 1
+        <if test="minId !=null and minId>0">
+            and id>=#{minId}
+        </if>
+        order by id asc
+        limit 5000;
+    </select>
+
+    <select id="selectMinId" resultType="java.lang.Long">
+        select min(id)
+        from b_haier_data
+        where local_id = #{localId}
+          and status = 1;
+    </select>
+
+    <insert id="insert1000Batch" parameterType="list">
+        <if test=" datas != null and datas.size>0 and 1001>datas.size">
+            insert into b_haier_data
+            (api_code
+            , source_id
+            , source_type
+            , type
+            , task_id
+            , cust_num
+            , batch_no
+            , push_status
+            , status
+            , create_date
+            , create_time
+            )
+            values
+            <foreach collection="datas" item="data" separator=",">
+                (#{data.apiCode,jdbcType=VARCHAR}
+                , #{data.sourceId,jdbcType=BIGINT}
+                , #{data.sourceType,jdbcType=INTEGER}
+                , #{data.type,jdbcType=VARCHAR}
+                , #{data.taskId,jdbcType=VARCHAR}
+                , #{data.custNum,jdbcType=VARCHAR}
+                , #{data.batchNo,jdbcType=VARCHAR}
+                , #{data.pushStatus,jdbcType=INTEGER}
+                , #{data.status,jdbcType=INTEGER}
+                , #{data.createDate,jdbcType=INTEGER}
+                , #{data.createTime,jdbcType=TIMESTAMP}
+                )
+            </foreach>
+        </if>
+    </insert>
+</mapper>
