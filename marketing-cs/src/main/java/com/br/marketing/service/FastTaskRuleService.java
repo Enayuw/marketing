@@ -3,7 +3,10 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
+
+import java.util.List;
 
 public interface FastTaskRuleService {
     /**
@@ -54,4 +57,11 @@ public interface FastTaskRuleService {
      * @return
      */
     ApiResult<Boolean> update(String id,String ruleName, String taskTime, UserDetail user);
+
+    /**
+     * 跑分规则下拉列表
+     * @param apiCode
+     * @return
+     */
+    List<ScoreRuleConfig> getScoreRules(String apiCode);
 }

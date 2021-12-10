@@ -5,6 +5,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.FastTaskRuleService;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 去重规则控制层
@@ -134,6 +137,20 @@ public class FastTaskRuleContronller {
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @ApiOperation(value = "跑分规则下拉列表",notes = "跑分规则下拉列表")
+    @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @GetMapping("/getScoreRules")
+    public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode){
+        try {
+            List<ScoreRuleConfig> list= fastTaskRuleService.getScoreRules(apiCode);
+            return new ApiResult<List<ScoreRuleConfig>>().success(list);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<List<ScoreRuleConfig>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 

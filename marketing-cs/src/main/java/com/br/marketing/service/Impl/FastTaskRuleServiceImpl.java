@@ -42,9 +42,6 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
     private ScoreRuleConfigMapper scoreRuleConfigMapper;
 
     @Autowired
-    private MarketingCustomerMapper marketingCustomerMapper;
-
-    @Autowired
     private RedisChgService redisChgService;
 
     @Override
@@ -183,7 +180,14 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
         dataCondition.append("]");
 
         vo.setDataCondition(dataCondition.toString());
-        vo.setScoreRules(null);//还没确定展示什么格式
+        Long ruleId = fastTaskRule.getRuleId();
+        ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
+        Map map = new HashMap();
+        map.put("id",scoreRuleConfig.getId());
+        map.put("ruleName",scoreRuleConfig.getRuleName());
+        map.put("ruleNameShort",scoreRuleConfig.getRuleNameShort());
+        map.put("strategyId",scoreRuleConfig.getStrategyId());
+        vo.setScoreRule(map);//还没确定展示什么格式
         return vo;
     }
 
@@ -223,6 +227,12 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             return new ApiResult<Boolean>().success(false);
         }
 
+    }
+
+    @Override
+    public List<ScoreRuleConfig> getScoreRules(String apiCode) {
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCode);
+        return list;
     }
 
 }

@@ -64,7 +64,7 @@ public class FastTaskRuleDetailVO {
 
 
     @ApiModelProperty(value = "整体跑分规则(查看页面返回字段)")
-    private List<Map> scoreRules;
+    private Map scoreRule;
 
     /**
      * 跑分日期

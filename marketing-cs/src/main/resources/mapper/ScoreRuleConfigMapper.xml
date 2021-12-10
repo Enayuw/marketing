@@ -59,4 +59,23 @@
         </where>
         order by src.update_time desc, src.create_time desc
     </select>
+
+    <select id="getScoreRules" resultType="com.br.marketing.entity.ScoreRuleConfig">
+        select src.id
+        , src.rule_name as ruleName
+        , src.rule_name_short as ruleNameShort
+        , src.strategy_id as strategyId
+        , bmc.cid
+        , bmc.api_code as apiCode
+        , bcr.id as crId
+        from b_score_rule_config src
+        left join b_customer_rule bcr on src.id = bcr.rule_id
+        left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        <where>
+            src.is_del=1 and src.status=1
+            <if test="apiCode != null and apiCode.trim() neq ''">
+                and  bmc.api_code=#{apiCode}
+            </if>
+        </where>
+    </select>
 </mapper>
