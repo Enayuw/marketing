@@ -142,4 +142,36 @@
         from b_marketing_sync_${apiCode}
         where id = #{id}
     </select>
+    <select id="minId" resultType="java.lang.Long">
+        select min(id) from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          <if test="dataType!=null">
+              and is_task = #{dataType}
+          </if>
+        and user_type  in
+        <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+            #{userType}
+        </foreach>
+    </select>
+    <select id="maxId" resultType="java.lang.Long">
+        select max(id) from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+        <if test="dataType!=null">
+            and is_task = #{dataType}
+        </if>
+        and user_type  in
+        <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+            #{userType}
+        </foreach>
+    </select>
+    <select id="getUserById" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select min(id) from b_marketing_sync_${apiCode}
+        where <![CDATA[  id >= #{minId} and id <= #{maxId} ]]>
+          <if test="dataType != null">
+              and is_task = #{dataType}
+          </if>
+    </select>
+    <update id="updateSyncUserStatus">
+        update b_marketing_sync_${apiCode} set is_task = #{isTask} where id = #{id}
+    </update>
 </mapper>
