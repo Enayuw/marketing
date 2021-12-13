@@ -88,7 +88,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
 
-    @Autowired
+    @Resource
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     @Autowired
@@ -297,7 +297,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             BufferedReader br = new BufferedReader(read);){
             List<MarketingUser> list=new ArrayList<>();
             while ((row = br.readLine()) != null) {
-                String[] split = row.split(",");
+                String[] split = row.split("|");
                 log.info("split length{}",split.length);
                 MarketingUser lu=new MarketingUser();
                 lu.setApiCode(apiCode);
@@ -308,6 +308,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 lu.setName(split[4]);
                 lu.setStatus(1);
                 lu.setHitData(split[5]);
+                lu.setExtendJson(split[6]);
                 list.add(lu);
             }
             String[] split = errorFile.split("/");
