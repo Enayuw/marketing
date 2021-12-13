@@ -1473,7 +1473,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<PushTransferCustomerLog> logListAll = new ArrayList<>();
             label:
             for (; ; ) {
-                PageHelper.startPage(page, pageSize);
+                PageHelper.startPage(page, pageSize).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
                 PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
@@ -1848,7 +1848,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         final int pageSize = 500;
         List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
         for (; ; ) {
-            PageHelper.startPage(page, pageSize);
+            PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
             PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
             if (CollectionUtils.isEmpty(transferList)) {
@@ -1899,6 +1899,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
                 if (!outboundVO.getAccessNumber().equals("-1")) {
                     pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+                } else if (apiCode.equals("3710018")) {
+                    // 海尔验证数量bug临时记录日志到数据库 2021-12-8 22:50:32
+                    pushTransferRobotaiLogService.save2Log(transferInfo, robotOutboundDTO, outboundVO);
                 }
                 list.add(outboundVO);
             }
