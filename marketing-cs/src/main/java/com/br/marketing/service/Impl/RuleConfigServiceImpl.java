@@ -157,7 +157,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
                 .andFastTaskIdEqualTo(rule.getId())
                 .andIsDelEqualTo(1);
         List<FastFileRelation> fastFileRelations = fastFileRelationMapper.selectByExample(relationExample);
-        if(fastFileRelations.size()<=0){
+        if(fastFileRelations.size()>0){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }else{
             return new Result().setCode(ResultCode.SUCCESS.getValue());

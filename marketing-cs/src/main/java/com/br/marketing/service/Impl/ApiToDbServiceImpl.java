@@ -122,6 +122,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         return redisChgService.incr(redisElasticJobKey);
     }
 
+    @Autowired
     MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Autowired
@@ -1127,7 +1128,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     if(minId<=0){
                         continue;
                     }
-                    if(StringUtils.isNotBlank(batchNumber)) {
+                    if(StringUtils.isBlank(batchNumber)) {
                         Result<String> resBatchNumber = buildBatchNumber(apiCode, rule.getId().toString()
                                 , rule.getRuleNumber(), rule.getTaskTime().replaceAll("-","")
                                 , null);
@@ -1135,6 +1136,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             continue outFor;
                         }
                         batchNumber = resBatchNumber.getData();
+                    }
+                    if(StringUtils.isBlank(batchNumber)){
+                        continue ;
                     }
                     Long maxId = marketingSyncUserMapper.maxId(apiCode, s, dataType, userTypes);
                     BaseHeadConfigVO headvo = baseHeadConfigVO;
@@ -1216,7 +1220,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                     .append("ruleName：".concat(rule.getRuleName()).concat("\r\n"))
                                     .append("time：".concat(rule.getTaskTime()).concat("\r\n"))
                                     .append("batchNumber：".concat(batchNumber).concat("\r\n"))
-                                    .append(String.format("预计数量: %d,入库数量：%d",preNum,actNum));
+                                    .append(String.format("预计数量: %d,入库数量：%d",preNum.get(),actNum));
                             alarmClient.sendAlarm(content.toString(),"批量数据生成任务",appName,secretKey,
                                     Constants.sendCodeMap.get("uploadSuccess"));
                         }catch (Exception ex){

@@ -11,7 +11,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public enum TaskTypeEnum {
 
-    DIRECTDATA(0,"透传不跑分"),STRATYGYDATA(1,"策略跑分"),PRODUCTDATA(2,"产品跑分");
+    DIRECTDATA(1,"透传不跑分"),STRATYGYDATA(0,"策略跑分"),PRODUCTDATA(2,"产品跑分");
     private Integer value;
     private String desc;
 

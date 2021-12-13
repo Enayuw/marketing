@@ -165,7 +165,7 @@
         </foreach>
     </select>
     <select id="getUserById" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select min(id) from b_marketing_sync_${apiCode}
+        select * from b_marketing_sync_${apiCode}
         where <![CDATA[  id >= #{minId} and id <= #{maxId} ]]>
           <if test="dataType != null">
               and is_task = #{dataType}
