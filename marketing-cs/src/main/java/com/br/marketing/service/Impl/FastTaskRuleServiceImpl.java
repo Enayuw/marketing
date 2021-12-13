@@ -170,16 +170,17 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
         BeanUtils.copyProperties(fastTaskRule, vo);
         //跑分数据:
         String[] split = fastTaskRule.getDataIdDesc().split(",");
-        StringBuilder dataCondition = new StringBuilder("[");
+        List<Map> dataCondition = new ArrayList<>();
         for(String s : split){
+            Map map = new HashMap();
             MarketingSyncReport marketingSyncReport = syncReportMapper.selectByPrimaryKey(Long.parseLong(s));
-            dataCondition.append("{"+marketingSyncReport.getAppletDate()+","+marketingSyncReport.getApiCode()
-                    +","+marketingSyncReport.getUserType()+","+marketingSyncReport.getDuplicateRemovalNum()
-                    +"}");
+            map.put("appletDate",marketingSyncReport.getAppletDate());
+            map.put("apiCode",marketingSyncReport.getApiCode());
+            map.put("userType",marketingSyncReport.getUserType());
+            map.put("duplicateRemovalNum",marketingSyncReport.getDuplicateRemovalNum());
+            dataCondition.add(map);
         }
-        dataCondition.append("]");
-
-        vo.setDataCondition(dataCondition.toString());
+        vo.setDataCondition(dataCondition);
         Long ruleId = fastTaskRule.getRuleId();
         ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
         Map map = new HashMap();
@@ -187,7 +188,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
         map.put("ruleName",scoreRuleConfig.getRuleName());
         map.put("ruleNameShort",scoreRuleConfig.getRuleNameShort());
         map.put("strategyId",scoreRuleConfig.getStrategyId());
-        vo.setScoreRule(map);//还没确定展示什么格式
+        vo.setScoreRule(map);
         return vo;
     }
 
