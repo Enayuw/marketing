@@ -38,6 +38,12 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
 
+    @Autowired
+    FastTaskRuleMapper fastTaskRuleMapper;
+
+    @Autowired
+    FastFileRelationMapper fastFileRelationMapper;
+
     @Override
     public Result<List<CustomerSoleRuleVO>> getSoleConfig(String apiCode) {
 
@@ -126,5 +132,35 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
             }
         });
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
+    }
+
+    @Override
+    public Result<List<FastTaskRule>> getFastTaskRule(String apiCode) {
+        FastTaskRuleExample ruleExample = new FastTaskRuleExample();
+        ruleExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andStatusEqualTo(1)
+                .andIsDelEqualTo(1);
+        List<FastTaskRule> fastTaskRules = fastTaskRuleMapper.selectByExample(ruleExample);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(fastTaskRules);
+    }
+
+    /**
+     * 判断是否 执行该规则 success-执行 其他-不执行
+     * @param rule
+     * @return
+     */
+    @Override
+    public Result checkFastTaskRule(FastTaskRule rule) {
+        FastFileRelationExample relationExample = new FastFileRelationExample();
+        relationExample.createCriteria()
+                .andFastTaskIdEqualTo(rule.getId())
+                .andIsDelEqualTo(1);
+        List<FastFileRelation> fastFileRelations = fastFileRelationMapper.selectByExample(relationExample);
+        if(fastFileRelations.size()>0){
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }else{
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
     }
 }

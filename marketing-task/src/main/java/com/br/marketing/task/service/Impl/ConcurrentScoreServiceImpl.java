@@ -97,6 +97,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
+    @Autowired
+    FastFileRelationMapper fastFileRelationMapper;
+
     private final static String RedisEsOpen="es:open";
 
     final static Integer allMonitorType = 4;
@@ -668,6 +671,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(redisChgService.setnx(key,v,2).equals(1L)){
                 loanFileMapper.insertFile(blf);
                 task.setFileId(blf.getId());
+
+                FastFileRelation record = new FastFileRelation();
+                record.setFileId(blf.getId());
+                FastFileRelationExample updateExample = new FastFileRelationExample();
+                updateExample.createCriteria().andTaskIdEqualTo(task.getId()).andIsDelEqualTo(1);
+                fastFileRelationMapper.updateByExampleSelective(record,updateExample);
+
                 if(pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);
