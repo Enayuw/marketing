@@ -23,7 +23,7 @@ public class ApiToDbJob extends AbstractSimpleElasticJob {
             String apiCode =StringUtils.isNotBlank(jobExecutionMultipleShardingContext.getJobParameter())
                     ?jobExecutionMultipleShardingContext.getJobParameter()
             :null;
-            iApiToDbService.pushToDb(apiCode);
+            iApiToDbService.pushToDb(apiCode,jobExecutionMultipleShardingContext.getShardingTotalCount(), jobExecutionMultipleShardingContext.getShardingItems());
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
         }
