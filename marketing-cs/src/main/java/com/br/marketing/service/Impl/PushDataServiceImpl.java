@@ -609,7 +609,6 @@ public class PushDataServiceImpl implements PushDataService{
                     haierData.setSourceId(l.getId());
                     haierData.setApiCode(apiCode);
                     haierData.setCustNum(custNum);
-                    haierData.setType("1");
                     haierData.setSourceType(2);
                     haierData.setPushStatus(1);
                     haierData.setStatus(1);
