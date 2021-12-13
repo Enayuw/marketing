@@ -217,7 +217,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             BufferedReader br = new BufferedReader(read);){
             List<MarketingUser> list=new ArrayList<>();
             while ((row = br.readLine()) != null) {
-                String[] split = row.split("|");
+                String[] split = row.split("#");
                 log.info("split length{}",split.length);
                 MarketingUser lu=new MarketingUser();
                 lu.setApiCode(apiCode);
