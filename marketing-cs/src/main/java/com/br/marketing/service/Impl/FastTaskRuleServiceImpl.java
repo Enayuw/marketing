@@ -94,7 +94,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
                 fastTaskRule.setRuleName(vo.getRuleName());
             }
             fastTaskRule.setRuleNumber(createNo());//任务编号
-            //fastTaskRule.setRuleNumber("F20211210455");//任务编号
+            //fastTaskRule.setRuleNumber("F20211210489");//任务编号
             fastTaskRule.setTaskType(vo.getTaskType());//跑分类型
             fastTaskRule.setDataIdDesc(vo.getDataIdDesc());//跑分数据,逗号分隔
             fastTaskRule.setDataType(vo.getDataType());//跑分范围
@@ -122,10 +122,23 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     private String getDataCondition(String dataIdDesc) {
         String[] split = dataIdDesc.split(",");
+        final char ch = ',';
         StringBuilder dataCondition = new StringBuilder("[");
         for(String s : split){
+            //[{"appletDate":"2021-12-02","userType":"S01"},{"appletDate":"2021-12-02","userType":"S02"}]
             MarketingSyncReport marketingSyncReport = syncReportMapper.selectByPrimaryKey(Long.parseLong(s));
-            dataCondition.append("{"+marketingSyncReport.getAppletDate()+","+marketingSyncReport.getUserType()+"}");
+            dataCondition.append("{\"appletDate\":\"").append(marketingSyncReport.getAppletDate()).append("\"")
+                        .append(",\"userType\":\"").append(marketingSyncReport.getUserType()).append("\"")
+                        .append("}").append(ch);;
+
+        }
+        // 得到最后一个字符的索引地址
+        int index = dataCondition.length() - 1;
+        // 取到最后一个字符
+        char c = dataCondition.charAt(index);
+        if (ch == c) {
+            // 删除最后一个字符
+            dataCondition.deleteCharAt(index);
         }
         return dataCondition.append("]").toString();
     }
