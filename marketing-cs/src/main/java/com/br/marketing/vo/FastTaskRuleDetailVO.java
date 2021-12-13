@@ -53,7 +53,7 @@ public class FastTaskRuleDetailVO {
 
 
     @ApiModelProperty(value = "跑分数据(查看页面返回字段)")
-    private String dataCondition;
+    private List<Map> dataCondition;
 
     /**
      * 跑分范围 1-全量；2-未跑分
