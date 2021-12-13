@@ -171,8 +171,8 @@ public class MarketingThread implements Callable<String> {
             }
             if(errorList.size()>0){
                 for(MarketingUser lu:errorList){
-                    errorFw.append(lu.getBatchNumber()+"|"+lu.getCusNum()+"|"+lu.getIdCard()+"|"+lu.getCell()
-                            +"|"+lu.getName()+"|"+lu.getHitData()+"|"+lu.getExtendJson()+"|end\n");
+                    errorFw.append(lu.getBatchNumber()+"#"+lu.getCusNum()+"#"+lu.getIdCard()+"#"+lu.getCell()
+                            +"#"+lu.getName()+"#"+lu.getHitData()+"#"+lu.getExtendJson()+"#end\n");
                 }
                 String key= Constants.HXRESULTERROR_RETRY_KEY+":"+apiCode;
                 redisChgService.hset(key,errorFile.getPath(),batchNumber);
