@@ -383,7 +383,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 log.error("创建跑分记录有问题，校验redis或者tidb网络是否有问题:apiCode:{} batchNumber：{}",blt.getApiCode(), blt.getBatchNumber());
                 continue;
             }
-
+            StringBuilder addTaskContent = new StringBuilder();
+            addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列",blt.getBatchNumber(),blt.getIndex()).concat("\r\n"));
+            sendContent(addTaskContent.toString(),"任务开始",Constants.sendCodeMap.get("uploadSuccess"));
             //Boolean firstTime=blt.getFirstTime()==null?Boolean.FALSE:blt.getFirstTime();
             core(blt,descPath,true,strategyStr,warrningExecutor,blf.getId().toString(),customer);
 
@@ -391,11 +393,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 TaskExecCommonField.isExecTaskJob = 3;
                 StringBuilder content = new StringBuilder();
                 content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
-                alarmClient.sendAlarm(content.toString(),"跑分暂停",appName,secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
+                sendContent(content.toString(),"跑分暂停",Constants.sendCodeMap.get("uploadSuccess"));
             }
         }
 
+    }
+
+    private void sendContent(String msg,String title,String code){
+        alarmClient.sendAlarm(msg,title,appName,secretKey,code);
     }
 
     /**
