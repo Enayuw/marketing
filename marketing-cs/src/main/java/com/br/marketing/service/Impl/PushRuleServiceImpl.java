@@ -669,6 +669,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             //3 未来客户：只有userType
             String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
             ReserveField1DTO reserveField1 = null;
+            JSONObject reserveFileld1Json = null;
             if (StringUtils.isBlank(reserveField1Str)) {
                 reserveField1 = new ReserveField1DTO();
                 reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
@@ -679,6 +680,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if (StringUtils.isBlank(reserveField1.getUserType())) {
                         reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
                     }
+                    reserveFileld1Json = JSON.parseObject(reserveField1Str);
                 } catch (JSONException ex) {
                     reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
@@ -687,6 +689,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             Integer finalIsCheck = isCheck;
             ReserveField1DTO finalReserveField = reserveField1;
+            JSONObject finalReserveFileld1Json = reserveFileld1Json;
             list.add(() -> {
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -721,7 +724,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
-                marketingSyncUser.setReserveField1(JSON.toJSONString(finalReserveField));
+                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);
@@ -826,6 +829,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    //ReserveField1DTO中的属性是固定的，无法满足，客户动态增加字段的需求,
+    //所以检查下客户上传的原始JSON，如果有些字段没有在ReserveField1DTO中，则动态拼装到数据中。
+    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json) {
+        JSONObject finalReserveFieldObject = (JSONObject) JSONObject.toJSON(finalReserveField);
+        if (null != finalReserveFileld1Json) {
+            finalReserveFileld1Json.keySet().stream().forEach(k->{
+                if (!finalReserveFieldObject.containsKey(k)) {
+                    finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
+                }
+            });
+        }
+        return JSONObject.toJSONString(finalReserveFieldObject);
     }
 
     @Override
