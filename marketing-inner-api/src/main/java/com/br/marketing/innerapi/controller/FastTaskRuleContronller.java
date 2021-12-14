@@ -57,7 +57,7 @@ public class FastTaskRuleContronller {
                                             , @RequestParam(required = false) String createTimeEnd
                                             , @RequestParam(required = false) String updateTimeStart
                                             , @RequestParam(required = false) String updateTimeEnd
-                                            , @RequestParam(required = false) int taskStatus
+                                            , @RequestParam(required = false) Integer taskStatus
                                             ){
         try {
             PageResultReturn list = fastTaskRuleService.list(current, size,search,status,
