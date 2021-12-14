@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,12 @@ public class FastTaskRuleDetailVO {
      */
     @ApiModelProperty(value = "跑分日期")
     private String taskTime;
+
+    @ApiModelProperty(value = "创建时间")
+    private String createTime;
+
+    @ApiModelProperty(value = "更新时间")
+    private String updateTime;
 
 
 }

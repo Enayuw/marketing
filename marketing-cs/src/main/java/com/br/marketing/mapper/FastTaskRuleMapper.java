@@ -21,5 +21,5 @@ public interface FastTaskRuleMapper extends FastTaskRuleMapperBase {
     List<FastTaskRuleListVO> selectList(@Param("search")String search, @Param("status")Integer status,
                                         @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
                                         @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,
-                                        @Param("taskStatus")String taskStatus);
+                                        @Param("taskStatus")Integer taskStatus);
 }

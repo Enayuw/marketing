@@ -7,7 +7,14 @@
         bftr.rule_number as ruleNumber,
         bftr.api_code as apiCode,
         bftr.task_time as taskTime,
-        bmc.cid ,bmc.short_name as cName,shf.status as taskStatus,
+        bmc.cid ,bmc.short_name as cName,
+        case
+        when shf.status is null then 0
+        when shf.status=2 then 2
+        when shf.status=0 then 1
+        when shf.status=1 then 1
+        when shf.status=3 then 1
+        else '-' end as taskStatus,
         DATE_FORMAT(bftr.create_time,'%Y-%m-%d %H:%i:%s') as createTime,
         DATE_FORMAT(bftr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
         from b_fast_task_rule bftr
@@ -36,8 +43,14 @@
         <if test="updateTimeEnd !=null and updateTimeEnd!=''">
             <![CDATA[  and bftr.update_time <#{updateTimeEnd} ]]>
         </if>
-        <if test="taskStatus !=null">
-            and shf.status = #{taskStatus}
+        <if test="taskStatus==0 ">
+            and shf.status is null
+        </if>
+        <if test="taskStatus==2 ">
+            and shf.status = 2
+        </if>
+        <if test="taskStatus==1 ">
+            and shf.status in(0,1,3)
         </if>
         order by bftr.create_time,bftr.id desc
     </select>
