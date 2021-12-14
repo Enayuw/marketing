@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -46,7 +47,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
-                                 String updateTimeStart, String updateTimeEnd, String taskStatus) {
+                                 String updateTimeStart, String updateTimeEnd, Integer taskStatus) {
 
         if (StringUtils.isNotEmpty(createTimeEnd)){
             createTimeEnd = DateUtils.format(addDay(createTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
@@ -178,6 +179,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public FastTaskRuleDetailVO getFastTask(String id) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         FastTaskRule fastTaskRule = fastTaskRuleMapper.selectByPrimaryKey(Long.parseLong(id));
         FastTaskRuleDetailVO vo = new FastTaskRuleDetailVO();
         BeanUtils.copyProperties(fastTaskRule, vo);
@@ -202,6 +204,8 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
         map.put("ruleNameShort",scoreRuleConfig.getRuleNameShort());
         map.put("strategyId",scoreRuleConfig.getStrategyId());
         vo.setScoreRule(map);
+        vo.setCreateTime(formatter.format(fastTaskRule.getCreateTime()));
+        vo.setUpdateTime(formatter.format(fastTaskRule.getUpdateTime()));
         return vo;
     }
 

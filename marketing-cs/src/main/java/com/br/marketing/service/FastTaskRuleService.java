@@ -22,7 +22,7 @@ public interface FastTaskRuleService {
      * @param taskStatus
      * @return
      */
-    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd, String taskStatus);
+    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd, Integer taskStatus);
 
 
     /**
