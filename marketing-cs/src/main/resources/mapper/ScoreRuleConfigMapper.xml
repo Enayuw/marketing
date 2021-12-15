@@ -12,6 +12,7 @@
         , src.cycle_day as cycleDay
         , src.cycle_end_day as cycleEndDay
         , src.task_type as taskType
+        , src.product_info as productInfo
         , bmc.cid
         , bmc.api_code as apiCode
         , case src.status

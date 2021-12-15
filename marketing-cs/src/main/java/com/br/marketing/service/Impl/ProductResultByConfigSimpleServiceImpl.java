@@ -32,7 +32,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     @Autowired
     RedisChgService redisChgService;
 
-    final static String redisKeyStrategyProduct = "strategyProductConfig:apiCode:strategyId";
+    final static String redisKeyStrategyProduct = "strategyProductConfig:apiCode:batchNumber";
 
     final static String redisKeyConfigByApiCode = "customer:apicode:config";
 
@@ -57,12 +57,10 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     public static List<String> flagScoreByinnerList;
 
 
-
     @Override
-    public Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb, Map<String, String> proFieldMap
-            , String sep, MarketingUser user,String strategyId,JSONObject esResult) {
+    public Result buildResult(JSONObject hxJson, StringBuilder sb,String sep, MarketingUser user,JSONObject esResult) {
         StringBuilder result=new StringBuilder();
-        String strategyProductConfigStr = getStrategyProductConfigStr(user.getApiCode(),user.getBatchNumber(),strategyId);
+        String strategyProductConfigStr = getStrategyProductConfigStr(user.getApiCode(),user.getBatchNumber());
         if(StringUtils.isEmpty(strategyProductConfigStr)){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
@@ -201,8 +199,8 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<String> getFieldsStrInfo(String apiCode,String batchNumber, String strategyId) {
-        Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode,batchNumber,strategyId);
+    public Result<String> getFieldsStrInfo(String apiCode,String batchNumber) {
+        Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode,batchNumber);
         if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
             return new Result<String>().setCode(fieldsInfo.getCode())
                     .setDate(Joiner.on(",").join(fieldsInfo.getData()));
@@ -213,49 +211,29 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<List<String>> getFieldsInfo(String apiCode,String batchNumber, String strategyId) {
-        String strategyProductConfigStr = this.getStrategyProductConfigStr(apiCode,batchNumber,strategyId);
+    public Result<List<String>> getFieldsInfo(String apiCode,String batchNumber) {
+        String strategyProductConfigStr = this.getStrategyProductConfigStr(apiCode,batchNumber);
         if(StringUtils.isNotBlank(strategyProductConfigStr)){
-            List<StrategyProductDetailVO> strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
-                    , new TypeReference<List<StrategyProductDetailVO>>() {
+            StrategyProductDetailVO strategyProductDetailVO = JSON.parseObject(strategyProductConfigStr
+                    , new TypeReference<StrategyProductDetailVO>() {
                     }.getType());
-            if(strategyProductDetailVOs.size()==1){
-                StrategyProductDetailVO strategyProductDetailVO = strategyProductDetailVOs.get(0);
-                return new Result<>()
-                        .setCode(ResultCode.SUCCESS.getValue())
-                        .setDate(strategyProductDetailVO.getFields());
+            if(strategyProductDetailVO!=null){
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strategyProductDetailVO.getFields());
             }else{
-                Optional<StrategyProductDetailVO> first =
-                        strategyProductDetailVOs.stream()
-                                .filter(t -> strategyId.equals(t.getStrategyId())).findFirst();
-                if(first.isPresent()){
-                    return new Result<>().setCode(ResultCode.SUCCESS.getValue())
-                            .setDate(first.get().getFields());
-                }else{
-                    return new Result<>().setCode(ResultCode.FAIL.getValue());
-                }
+               return new Result<>().setCode(ResultCode.FAIL.getValue());
+
             }
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
     @Override
-    public String getStrategyProductConfigStr(String apiCode,String batchNumber,String strategyId){
-        String key = redisKeyStrategyProduct.concat(":").concat(apiCode).concat(":").concat(strategyId).concat(":").concat(batchNumber);
-        String s = redisChgService.get(key);
-        if(StringUtils.isNotBlank(s)){
-            return s;
-        }
+    public String getStrategyProductConfigStr(String apiCode,String batchNumber){
        MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
         if(task !=null){
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
             if(marketingTaskExtend !=null&&StringUtils.isNotBlank(marketingTaskExtend.getStrategyProductJson())) {
-                redisChgService.set(key,marketingTaskExtend.getStrategyProductJson());
-                redisChgService.expire(key,60*60);
                 return marketingTaskExtend.getStrategyProductJson();
-            }else{
-                redisChgService.set(key,"");
-                redisChgService.expire(key,60*5);
             }
         }
        return "";

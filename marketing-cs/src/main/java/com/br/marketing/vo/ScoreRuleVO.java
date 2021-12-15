@@ -98,6 +98,9 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "跑分类型 如果不跑分 该值传1", dataType = "integer", position = 13)
     private Integer taskType;
 
+    @ApiModelProperty(value = "产品信息", dataType = "string", position = 14)
+    private String productInfo;
+
 
     public ScoreRuleVO() {
     }
