@@ -148,16 +148,11 @@ public class MergeServiceImpl implements MergeService {
             }
             String dataInfo = "";
             Integer taskType=blt.getTaskType();
-            if(taskType.compareTo(new Integer(0))==0){
-                Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber(),blt.getStrategyId());
+            if(taskType.compareTo(new Integer(0))==0 ||taskType.compareTo(new Integer(2))==0 ){
+                Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber());
                 if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
                     dataInfo = fieldsInfo.getData();
                 }
-                String strategyStr = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
-                if(StringUtils.isEmpty(strategyStr)){
-                    return zipFile;
-                }
-                proFieldsClient.setLoanPro(blt.getStrategyId(),blt.getApiCode(),strategyStr,new JSONObject(),proFieldMap,"");
             }
             String startTime = blf.getCreateTime();
             startTime=startTime.split(" ")[0].replace("-","");
@@ -168,7 +163,7 @@ public class MergeServiceImpl implements MergeService {
             String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
-            initHead(head,blt.getApiCode(),strategyId,separator,baseHeadInfo,dataInfo,taskType);
+            initHead(head,separator,baseHeadInfo,dataInfo,taskType);
             TaskStatusDistributeExample taskStatusDistributeExample = new TaskStatusDistributeExample();
             taskStatusDistributeExample.createCriteria().andFileIdEqualTo(blf.getId());
             List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(taskStatusDistributeExample);
@@ -356,15 +351,12 @@ public class MergeServiceImpl implements MergeService {
     /**
      * 初始化表头
      * @param head
-     * @param apiCode
-     * @param strategyId
      *
      * .append("姓名").append(",").append("身份证号").append(",").append("证书号").append(",").append("手机号")
     .append(",")
      */
-    private void  initHead(StringBuilder head,String apiCode,String strategyId,String sep,String baseHeadInfo,String dataInfo,Integer taskType){
-        List<String> list;
-        if(taskType.compareTo(new Integer(0))==1){
+    private void  initHead(StringBuilder head,String sep,String baseHeadInfo,String dataInfo,Integer taskType){
+        if(taskType.compareTo(new Integer(1))==0){
             if(StringUtils.isNotBlank(baseHeadInfo.trim())){
                 head.append(baseHeadInfo).append(sep);
             }
@@ -375,111 +367,8 @@ public class MergeServiceImpl implements MergeService {
         if(StringUtils.isNotBlank(baseHeadInfo.trim())){
             head.append(baseHeadInfo).append(sep);
         }
-        if(strategyId.startsWith("STRB")){
-            head.append("strategyDecision").append(sep);
-            String strategy = StrategyClient.getStrategy(apiCode, strategyId);
-            JSONObject strategyJson = JSONObject.parseObject(strategy);
-            if(StringUtils.isNotEmpty(strategy)&&"1".equals(strategyJson.getString("status"))&&"0".equals(strategyJson.getString("canUse"))){
-                JSONObject ruleType = JSONObject.parseObject(strategy).getJSONObject("ruleType");
-                if(ruleType!=null&&!ruleType.isEmpty()&&"1".equals(ruleType.getString("status"))){
-                    list = this.sortRuleList(ruleType);
-                    for(String key:list){
-                        head.append("flag_").append(key).append(sep);
-                        head.append("rulerisk").append(sep);
-                        head.append("weight").append(sep);
-                        List<String> ruleFields = getRuleField(key);
-                        if(ruleFields!=null&&ruleFields.size()>0){
-                            for(String rule:ruleFields){
-                                head.append(rule).append(sep);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Set<String> products=new HashSet<>();
-        for(String pro:proFieldMap.keySet()){
-            log.info("pro:{}",pro);
-            products.add(pro.toLowerCase());
-        }
         if(StringUtils.isNotBlank(dataInfo)){
             head.append(dataInfo).append(sep);
-        }else {
-            appendProInfo(head, sep, products);
         }
     }
-
-
-    private List<String>  getRuleField(String ruleType){
-        RuleField rf=new RuleField();
-        if("Rule_W_SpecialList_c_mix_c".equals(ruleType)){
-            return rf.getRuleSpecialListField();
-        }else if("Rule_W_InfoRelation_mix_c".equals(ruleType)){
-            return rf.getRuleInfoRelationField();
-        }else if("Rule_W_ApplyLoanStr_mix_c".equals(ruleType)){
-            return rf.getRuleApplyloanstrField();
-        }else if("Rule_W_ApplyLoanUsury_mix".equals(ruleType)){
-            return rf.getRuleApplyloanusuryField();
-        }else if("Rule_W_ExecutionLimited_mix".equals(ruleType)){
-            return rf.getRuleExecutionlimitedField();
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * 对策略中的规则集进行排序
-     * @param ruleType
-     * @return
-     */
-    private List<String> sortRuleList(JSONObject ruleType){
-        List<String> result=new ArrayList<>();
-        ReadContext context = JsonPath.parse(ruleType);
-        String[] split = rules.split(",");
-        for(int i=0;i<split.length;i++){
-            Object read = context.read("$..ruleTypeList[?(@.ruleType=='"+split[i]+"')]");
-            if(read!=null){
-                JSONArray array = JSONArray.parseArray(read.toString());
-                if(array!=null&&array.size()>0){
-                    result.add(split[i]);
-                }
-            }
-        }
-        return result;
-    }
-
-    private void appendProInfo(StringBuilder head,String sep, Set<String> products) {
-        log.info("需要返回的数据产品--{}",products);
-        if(products.contains("scorencashonszyxxy")){
-            String fields = PropertiesUtil.getProperty("scorencashonszyxxy");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scoremcashonxhqbdzcd")){
-            String fields = PropertiesUtil.getProperty("scoremcashonxhqbdzcd");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scoremcashon360xktwo")){
-            String fields = PropertiesUtil.getProperty("scoremcashon360xktwo");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-        if(products.contains("scorebrevoloanmszd3")){
-            String fields = PropertiesUtil.getProperty("scorebrevoloanmszd3");
-            String[] split = fields.split(",");
-            for (int i=0;i<split.length;i++){
-                head.append(split[i]).append(sep);
-            }
-        }
-
-    }
-
-
-
 }
