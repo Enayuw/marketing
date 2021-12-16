@@ -64,4 +64,12 @@ public interface FastTaskRuleService {
      * @return
      */
     List<ScoreRuleConfig> getScoreRules(String apiCode);
+
+    /**
+     * 获取未跑分数据量
+     * @param ids
+     * @param apiCode
+     * @return
+     */
+    Integer getNum(String ids, String apiCode);
 }

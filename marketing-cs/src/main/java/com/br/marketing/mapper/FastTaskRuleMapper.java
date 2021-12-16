@@ -22,4 +22,13 @@ public interface FastTaskRuleMapper extends FastTaskRuleMapperBase {
                                         @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
                                         @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,
                                         @Param("taskStatus")Integer taskStatus);
+
+    /**
+     * 获取未跑分数据量
+     * @param appletDate
+     * @param userType
+     * @param apiCode
+     * @return
+     */
+    Integer getUnScoreNum(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate, @Param("userType")String userType);
 }
