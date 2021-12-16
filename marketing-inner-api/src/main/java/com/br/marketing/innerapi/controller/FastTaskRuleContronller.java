@@ -154,4 +154,20 @@ public class FastTaskRuleContronller {
         }
     }
 
+    @ApiOperation(value = "获取未跑分数据量",notes = "获取未跑分数据量")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids",value = "跑分数据所选的数据id，逗号分隔",required = true,dataType = "String"),
+            @ApiImplicitParam(name = "apiCode",value = "apiCode",required = true,dataType = "String")
+    })
+    @GetMapping("/getNum")
+    public ApiResult<Integer> getNum(String ids,String apiCode){
+        try {
+            Integer num = fastTaskRuleService.getNum(ids,apiCode);
+            return new ApiResult<Integer>().success(num);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
 }

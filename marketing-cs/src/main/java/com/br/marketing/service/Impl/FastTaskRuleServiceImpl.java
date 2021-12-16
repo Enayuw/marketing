@@ -253,4 +253,16 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
         return list;
     }
 
+    @Override
+    public Integer getNum(String ids, String apiCode) {
+        Integer num = 0;
+        String[] split = ids.split(",");
+        for(String s : split){
+            MarketingSyncReport syncReport = syncReportMapper.selectByPrimaryKey(Long.parseLong(s));
+            num = fastTaskRuleMapper.getUnScoreNum(apiCode,syncReport.getAppletDate(),syncReport.getUserType());
+            num+=num;
+        }
+        return num;
+    }
+
 }

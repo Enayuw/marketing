@@ -54,4 +54,9 @@
         </if>
         order by bftr.create_time desc,bftr.id desc
     </select>
+
+    <select id="getUnScoreNum" resultType="int">
+        select count(*) from b_marketing_sync_${apiCode}
+        where applet_date =#{appletDate} and user_type=#{userType} and is_task=1 and status=1
+    </select>
 </mapper>
