@@ -52,6 +52,6 @@
         <if test="taskStatus==1 ">
             and shf.status in(0,1,3)
         </if>
-        order by bftr.create_time,bftr.id desc
+        order by bftr.create_time desc,bftr.id desc
     </select>
 </mapper>
