@@ -43,6 +43,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -659,5 +660,15 @@ public class redis {
         objects.add("4004643");
         objects.add("3710012");
         redisChgService.sadd(key,objects);
+    }
+
+    @Test
+    public void decodeTestByA(){
+        String str = "UVZΒ5T";
+        List<String> strings = Splitter.on(",").splitToList(str);
+        System.out.println("解密开始");
+        strings.forEach(t->{
+            System.out.println(t.concat(",").concat(com.br.common.util.BrCipherMaker.getInstance().decode(t)));
+        });
     }
 }
