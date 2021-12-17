@@ -89,7 +89,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             FastTaskRule fastTaskRule = new FastTaskRule();
             //如果一个配置 建多个任务，任务名称后加数字区分
             if(split.length>1){
-                fastTaskRule.setRuleName(vo.getRuleName()+i.toString());
+                fastTaskRule.setRuleName(vo.getRuleName()+"_"+i.toString());
                 i++;
             }else {
                 fastTaskRule.setRuleName(vo.getRuleName());
@@ -255,14 +255,14 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public Integer getNum(String ids, String apiCode) {
-        Integer num = 0;
+        Integer total = 0;
         String[] split = ids.split(",");
         for(String s : split){
             MarketingSyncReport syncReport = syncReportMapper.selectByPrimaryKey(Long.parseLong(s));
-            num = fastTaskRuleMapper.getUnScoreNum(apiCode,syncReport.getAppletDate(),syncReport.getUserType());
-            num+=num;
+            Integer num = fastTaskRuleMapper.getUnScoreNum(apiCode,syncReport.getAppletDate(),syncReport.getUserType());
+            total=total+num;
         }
-        return num;
+        return total;
     }
 
 }
