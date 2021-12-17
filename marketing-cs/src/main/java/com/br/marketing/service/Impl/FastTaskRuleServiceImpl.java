@@ -255,14 +255,14 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public Integer getNum(String ids, String apiCode) {
-        Integer num = 0;
+        Integer total = 0;
         String[] split = ids.split(",");
         for(String s : split){
             MarketingSyncReport syncReport = syncReportMapper.selectByPrimaryKey(Long.parseLong(s));
-            num = fastTaskRuleMapper.getUnScoreNum(apiCode,syncReport.getAppletDate(),syncReport.getUserType());
-            num+=num;
+            Integer num = fastTaskRuleMapper.getUnScoreNum(apiCode,syncReport.getAppletDate(),syncReport.getUserType());
+            total=total+num;
         }
-        return num;
+        return total;
     }
 
 }
