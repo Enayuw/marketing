@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl;
 import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Md5Utils;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
@@ -327,7 +328,16 @@ public class SftpToDbByDXService {
                     case "name":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("name不能为空;", "");
-                            phoneSale.setName(datas.get(i));
+                            String s = datas.get(i);
+                            phoneSale.setName(s);
+                            if(DecodeClient.isMd5(s)){
+                                String content = decodeClient.query(s, "name", "md5", "");
+                                if(StringUtils.isBlank(content)){
+                                    error = error.concat("姓名解密失败;");
+                                }else{
+                                    phoneSale.setName(content);
+                                }
+                            }
                         }
                         break;
                     case "gender":
@@ -431,6 +441,36 @@ public class SftpToDbByDXService {
                         break;
                     case "region":
                         phoneSale.setRegion(datas.get(i));
+                        break;
+                    case "yx_flag_3d":
+                        phoneSale.setYxFlag3d(datas.get(i));
+                        break;
+                    case "yx_flag_7d":
+                        phoneSale.setYxFlag7d(datas.get(i));
+                        break;
+                    case "yx_flag_15d":
+                        phoneSale.setYxFlag15d(datas.get(i));
+                        break;
+                    case "yx_flag_1m":
+                        phoneSale.setYxFlag1m(datas.get(i));
+                        break;
+                    case "person_flag_house":
+                        phoneSale.setPersonFlagHouse(datas.get(i));
+                        break;
+                    case "person_flag_car":
+                        phoneSale.setPersonFlagCar(datas.get(i));
+                        break;
+                    case "person_flag_insur":
+                        phoneSale.setPersonFlagInsur(datas.get(i));
+                        break;
+                    case "white_list_gw":
+                        phoneSale.setWhiteListGw(datas.get(i));
+                        break;
+                    case "white_list_fp":
+                        phoneSale.setWhiteListFp(datas.get(i));
+                        break;
+                    case "white_list_yc":
+                        phoneSale.setWhiteListYc(datas.get(i));
                         break;
                     case "extend":
                         String s = extSetFields.get(i);

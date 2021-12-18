@@ -222,6 +222,65 @@ public class DassImportDataDTO {
     private String region;
 
     /**
+     * 近3天是否申请：1是0否
+     */
+    @JSONField(name = "yx_flag_3d")
+    private String yxFlag3d;
+
+    /**
+     * 近7天是否申请：1是0否
+     */
+    @JSONField(name = "yx_flag_7d")
+    private String yxFlag7d;
+
+    /**
+     * 近15天是否申请：1是0否
+     */
+    @JSONField(name = "yx_flag_15d")
+    private String yxFlag15d;
+
+    /**
+     * 近30天是否申请：1是0否
+     */
+    @JSONField(name = "yx_flag_1m")
+    private String yxFlag1m;
+
+    /**
+     * 是否有房：1是0否
+     */
+    @JSONField(name = "person_flag_house")
+    private String personFlagHouse;
+
+    /**
+     * 是否有车：1是0否
+     */
+    @JSONField(name = "person_flag_car")
+    private String personFlagCar;
+
+    /**
+     * 是否有寿险：1是0否
+     */
+    @JSONField(name = "person_flag_insur")
+    private String personFlagInsur;
+
+    /**
+     * 是否命中国网白名单：1是0否
+     */
+    @JSONField(name = "white_list_gw")
+    private String whiteListGw;
+
+    /**
+     * 是否命中发票白名单：1是0否
+     */
+    @JSONField(name = "white_list_fp")
+    private String whiteListFp;
+
+    /**
+     * 是否命中烟草白名单：1是0否
+     */
+    @JSONField(name = "white_list_yc")
+    private String whiteListYc;
+    /**
      * 扩展字段
      */
     private String extend;
