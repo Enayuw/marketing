@@ -126,6 +126,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
         phoneSale.setApiCode(dto.getApiCode());
         phoneSale.setLocalId(dto.getLocalId().toString());
+        phoneSale.setStatus(1);
         try {
             Boolean phoneMark = Boolean.TRUE;
             if (datas.size() != address.size()) {
@@ -351,6 +352,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         phoneSale.setApiCode(dto.getApiCode());
         phoneSale.setLocalId(dto.getLocalId().toString());
         phoneSale.setOrgname("xiaowei");
+        phoneSale.setStatus(1);
         try {
             Boolean phoneMark = Boolean.TRUE;
             if (datas.size() != address.size()) {
@@ -371,7 +373,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     case "phone":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("phone不能为空;", "");
-                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            Result<String> stringResult = decryptMd5Phone(datas.get(i));
                             phoneSale.setPhoneAes(datas.get(i));
                             if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                                 phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
@@ -610,4 +612,27 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         }
         return objectResult;
     }
+    Result<String> decryptMd5Phone(String phone){
+        Result<String> objectResult = new Result<>();
+        boolean isNum = Pattern.matches(phoneReg, phone);
+        if(isNum){
+            objectResult.setDate(phone);
+            objectResult.setCode(ResultCode.SUCCESS.getValue());
+            return objectResult;
+        }
+        String res = decodeClient.query(phone, "cell", "md5", "");
+
+        if(StringUtils.isBlank(res)){
+            objectResult.setCode(ResultCode.FAIL.getValue());
+        }else{
+            if(CellUtils.isValidateCell(res)){
+                objectResult.setCode(ResultCode.SUCCESS.getValue());
+                objectResult.setDate(res);
+            }else{
+                objectResult.setCode(ResultCode.FAIL.getValue());
+            }
+        }
+        return objectResult;
+    }
+
 }

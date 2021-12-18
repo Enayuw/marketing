@@ -207,6 +207,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                         localFile.setLocalPath(context.getLocalTxtFilePath());
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
+                        localFile.setFileType("dianxiao");
                         localFileMapper.insertSelective(localFile);
 
                         try {
