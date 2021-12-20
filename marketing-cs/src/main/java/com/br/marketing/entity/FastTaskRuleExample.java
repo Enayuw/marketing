@@ -1424,6 +1424,66 @@ public class FastTaskRuleExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andUntaskNumIsNull() {
+            addCriterion("untask_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumIsNotNull() {
+            addCriterion("untask_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumEqualTo(Integer value) {
+            addCriterion("untask_num =", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumNotEqualTo(Integer value) {
+            addCriterion("untask_num <>", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumGreaterThan(Integer value) {
+            addCriterion("untask_num >", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("untask_num >=", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumLessThan(Integer value) {
+            addCriterion("untask_num <", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumLessThanOrEqualTo(Integer value) {
+            addCriterion("untask_num <=", value, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumIn(List<Integer> values) {
+            addCriterion("untask_num in", values, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumNotIn(List<Integer> values) {
+            addCriterion("untask_num not in", values, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumBetween(Integer value1, Integer value2) {
+            addCriterion("untask_num between", value1, value2, "untaskNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andUntaskNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("untask_num not between", value1, value2, "untaskNum");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
