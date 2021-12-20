@@ -719,7 +719,17 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     case "客群类型":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("user_type不能为空;", "");
-                            phoneSale.setUserType(datas.get(i));
+                            String userType = datas.get(i);
+                            switch (userType) {
+                                case "注册未认证":
+                                    userType = "A";
+                                    break;
+                                case "存量复购":
+                                    userType = "C";
+                                    break;
+                                default:
+                            }
+                            phoneSale.setUserType(userType);
                         }
                         break;
                     case "product_name":
