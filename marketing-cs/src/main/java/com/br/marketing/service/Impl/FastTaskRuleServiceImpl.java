@@ -95,7 +95,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
                 fastTaskRule.setRuleName(vo.getRuleName());
             }
             fastTaskRule.setRuleNumber(createNo());//任务编号
-            //fastTaskRule.setRuleNumber("F20211210489");//任务编号
+            //fastTaskRule.setRuleNumber("F20211210008");//任务编号
             fastTaskRule.setTaskType(vo.getTaskType());//跑分类型
             fastTaskRule.setDataIdDesc(vo.getDataIdDesc());//跑分数据,逗号分隔
             fastTaskRule.setDataType(vo.getDataType());//跑分范围
@@ -237,6 +237,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             fastTaskRule.setId(Long.parseLong(id));
             fastTaskRule.setRuleName(ruleName);
             fastTaskRule.setTaskTime(taskTime);
+            fastTaskRule.setStatus(1);
             fastTaskRule.setUpdateTime(new Date());
             fastTaskRule.setOptId(user.getUserId());
             fastTaskRule.setOptName(user.getUsername());
