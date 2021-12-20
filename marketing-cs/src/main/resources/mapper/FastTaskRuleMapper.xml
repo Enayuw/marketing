@@ -52,7 +52,7 @@
         <if test="taskStatus==1 ">
             and shf.status in(0,1,3) and bftr.status=1
         </if>
-        order by bftr.create_time desc,bftr.update_time desc,bftr.id desc
+        order by bftr.update_time desc,bftr.create_time desc,bftr.id desc
     </select>
 
     <select id="getUnScoreNum" resultType="int">
