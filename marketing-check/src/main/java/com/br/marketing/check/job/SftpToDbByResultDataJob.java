@@ -113,7 +113,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         xwList.add("4004666");
         juZiList = new HashSet<>();
         juZiList.add("3710037");
-        juZiList.add("7410787");
     }
     /**
      *  1、先从customer读取客户
