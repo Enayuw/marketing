@@ -44,14 +44,19 @@
             <![CDATA[  and bftr.update_time <#{updateTimeEnd} ]]>
         </if>
         <if test="taskStatus==0 ">
-            and shf.status is null
+            and shf.status is null and bftr.status=1
         </if>
         <if test="taskStatus==2 ">
-            and shf.status = 2
+            and shf.status = 2 and bftr.status=1
         </if>
         <if test="taskStatus==1 ">
-            and shf.status in(0,1,3)
+            and shf.status in(0,1,3) and bftr.status=1
         </if>
-        order by bftr.create_time,bftr.id desc
+        order by bftr.create_time desc,bftr.id desc
+    </select>
+
+    <select id="getUnScoreNum" resultType="int">
+        select count(*) from b_marketing_sync_${apiCode}
+        where applet_date =#{appletDate} and user_type=#{userType} and is_task=1 and status=1
     </select>
 </mapper>
