@@ -778,7 +778,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         phoneSale.setIfLent(datas.get(i));
                         break;
 //                    case "lent_time":
-                    case "提现时间":
+                    case "下单时间":
                         phoneSale.setLentTime(datas.get(i));
                         break;
                     case "lent_amount":
