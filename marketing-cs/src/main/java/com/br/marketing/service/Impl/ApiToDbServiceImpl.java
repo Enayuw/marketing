@@ -1230,10 +1230,6 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
                         updateBatchnumber.setStatus(2);
                         taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
-                        FastTaskRule updateRule = new FastTaskRule();
-                        updateRule.setId(rule.getId());
-                        updateRule.setStatus(0);
-                        fastTaskRuleMapper.updateByPrimaryKeySelective(updateRule);
                         try {
                             StringBuilder content = new StringBuilder();
                             content.append("apiCode：".concat(apiCode).concat("\r\n"))
