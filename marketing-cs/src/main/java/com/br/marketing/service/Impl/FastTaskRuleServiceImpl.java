@@ -101,14 +101,17 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             fastTaskRule.setDataType(vo.getDataType());//跑分范围
             fastTaskRule.setRuleId(Long.parseLong(s));//跑分规则
             fastTaskRule.setTaskTime(vo.getTaskTime());//跑分日期
-
             fastTaskRule.setApiCode(vo.getApiCode());
             fastTaskRule.setDataCondition(dataCondition);
+
+            //从跑分规则表 复制
             ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
             fastTaskRule.setStrategyId(scoreRuleConfig.getStrategyId());
             //fastTaskRule.setProductInfo("");
             fastTaskRule.setProductField(scoreRuleConfig.getStrategyProductJson());
             fastTaskRule.setCallbackInfo(scoreRuleConfig.getBaseInfo());
+            fastTaskRule.setTaskType(scoreRuleConfig.getTaskType());
+
             fastTaskRule.setStatus(1);
             fastTaskRule.setOptId(userDetail.getUserId());
             fastTaskRule.setOptName(userDetail.getUsername());
