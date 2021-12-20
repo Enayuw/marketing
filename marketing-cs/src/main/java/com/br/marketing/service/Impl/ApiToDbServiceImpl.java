@@ -26,7 +26,9 @@ import com.br.marketing.dto.TaskUserDataConditionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
-import com.br.marketing.vo.*;
+import com.br.marketing.vo.BaseHead;
+import com.br.marketing.vo.BaseHeadConfigVO;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +40,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -119,7 +124,6 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 
     @Autowired
     MarketingSepService marketingSepService;
-
     @Override
     public Long getTaskContextId() {
         return redisChgService.incr(redisElasticJobKey);
@@ -170,14 +174,15 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())) {
                 continue;
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
-            outrule:for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
-                Boolean isToFile=customerScoreRuleVO.getTaskType().compareTo(Integer.valueOf(1))==0?Boolean.TRUE:Boolean.FALSE;
-                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
-                    TaskExecCommonField.isBuildTaskJob =3;
+            outrule:
+            for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
+                Boolean isToFile = customerScoreRuleVO.getTaskType().compareTo(Integer.valueOf(1)) == 0 ? Boolean.TRUE : Boolean.FALSE;
+                if (TaskExecCommonField.isBuildTaskJob.equals(2)) {
+                    TaskExecCommonField.isBuildTaskJob = 3;
                     break outrule;
                 }
                 //region 遍历规则
@@ -620,7 +625,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         return extendJson;
     }
 
-    private LoanFile saveStraHisFile(MarketingTask task, CustomerScoreRuleVO customerScoreRuleVO, String uploadTime, String filePath) {
+    private LoanFile saveStraHisFile(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime,String filePath){
 
         LoanFile blf = new LoanFile();
         blf.setApiCode(task.getApiCode());
@@ -638,8 +643,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         loanFileMapper.insertFile(blf);
         return blf;
     }
-
-    private void saveTaskStatusDistribute(MarketingTask task, LoanFile loanFile) {
+    private void saveTaskStatusDistribute(MarketingTask task,LoanFile loanFile){
         TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
         statusDistribute.setFileId(Long.valueOf(loanFile.getId()));
         statusDistribute.setApiCode(task.getApiCode());
@@ -652,9 +656,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         taskStatusDistributeMapper.insertSelective(statusDistribute);
     }
 
-    private void saveTaskStatus(MarketingTask task, LoanFile loanFile) {
-        TaskStatus bts = new TaskStatus();
-        if (1 == task.getMonitorType()) {
+    private void saveTaskStatus(MarketingTask task,LoanFile loanFile){
+        TaskStatus bts=new TaskStatus();
+        if(1 == task.getMonitorType()){
             bts.setOnceStatus(1);
         } else if (4 == task.getMonitorType()) {
             bts.setAllStatus(1);
@@ -664,15 +668,13 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         bts.setFileId(loanFile.getId());
         taskStatusMapper.insertTaskStatus(bts);
     }
-
-    private String createShowTitle(MarketingTask task, CustomerScoreRuleVO customerScoreRuleVO, String uploadTime) {
+    private String createShowTitle(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime){
         return task.getApiCode().concat("_")
                 .concat(customerScoreRuleVO.getId().toString().concat("_"))
                 .concat(customerScoreRuleVO.getRuleNameShort().concat("_"))
                 .concat(uploadTime.concat("_"))
                 .concat(new SimpleDateFormat("yyyyMMdd").format(new Date()));
     }
-
     @Override
     public Result pushToDb(String code, HashMap<String, String> params) {
         /**
