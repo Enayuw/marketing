@@ -103,6 +103,11 @@ public class FastTaskRule {
      */
     private Date updateTime;
 
+    /**
+     * 未跑分数据量
+     */
+    private Integer untaskNum;
+
     public Long getId() {
         return id;
     }
@@ -261,5 +266,13 @@ public class FastTaskRule {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getUntaskNum() {
+        return untaskNum;
+    }
+
+    public void setUntaskNum(Integer untaskNum) {
+        this.untaskNum = untaskNum;
     }
 }
