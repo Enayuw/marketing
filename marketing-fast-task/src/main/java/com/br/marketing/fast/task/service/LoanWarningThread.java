@@ -76,7 +76,7 @@ public class LoanWarningThread implements Callable<String> {
         this.customer=customer;
         this.baseHeadInfo = param.get("baseHeadInfo");
         this.hxClient = FastTaskApplication.ac.getBean(HxClient.class);
-        FastTaskApplication.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
+        FastTaskApplication.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr,meal);
     }
 
 

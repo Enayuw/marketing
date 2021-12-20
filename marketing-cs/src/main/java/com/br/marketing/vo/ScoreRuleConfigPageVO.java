@@ -89,4 +89,7 @@ public class ScoreRuleConfigPageVO {
 
     @ApiModelProperty(value = "跑分类型", dataType = "integer", position = 14)
     private String taskType;
+
+    @ApiModelProperty(value = "跑分类型", dataType = "string", position = 15)
+    private String productInfo;
 }

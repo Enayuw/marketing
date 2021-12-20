@@ -1,17 +1,14 @@
 package com.br.marketing.task.job;
 
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
-import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
+import com.br.marketing.task.service.Impl.ConcurrentScoreServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -42,10 +39,9 @@ import javax.annotation.Resource;
  * @Date 2021/5/7 13:05
  * @Description:
  **/
-@Deprecated
 @Component
 @Slf4j
-public class QaTaskJob extends AbstractSimpleElasticJob {
+public class QaTaskConcurrentJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
     @Override
@@ -54,6 +50,7 @@ public class QaTaskJob extends AbstractSimpleElasticJob {
         log.warn("【跑批任务】调度开始");
         String parameter = context.getJobParameter();
         if(StringUtils.isEmpty(parameter)){
+            log.error("QaTaskConcurrentJob传入参数为空，apiCode={}",context.getJobParameter());
             return;
         }
         log.warn("手动触发跑批任务,apiCode={}",parameter);
@@ -63,15 +60,12 @@ public class QaTaskJob extends AbstractSimpleElasticJob {
             return;
         }
         try {
-            LoanWarningService loanWarningService= Scheduler.ac.getBean(LoanWarningServiceImpl.class);
+            LoanWarningService loanWarningService=Scheduler.ac.getBean(ConcurrentScoreServiceImpl.class);
             loanWarningService.process(customer,context);
-            //推送消息到pushQueue，进行下一流程处理
-            //RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.exchangerName, MQConstants.pushRoutingKey,customer.getApiCode());
-
         } catch (Exception e) {
-            log.error("跑批异常，apiCode={}",customer.getApiCode());
+            log.error("程序跑批异常，apiCode={}",customer.getApiCode());
         }
         Long end =System.currentTimeMillis();
-        log.warn("【跑批任务】调度结束，耗时：{}",end-start);
+        log.warn("【跑批任务】调度结束，耗时：{},分片：{}",end-start,context.getShardingItemParameters());
     }
 }

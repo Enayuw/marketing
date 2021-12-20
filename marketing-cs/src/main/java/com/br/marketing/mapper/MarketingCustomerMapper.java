@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
 import org.apache.ibatis.annotations.Param;
@@ -32,4 +33,8 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
     List<MarketingCustomerListVO> getCustomerList(@Param("cid")String cid, @Param("apiCode")String apiCode);
 
     List<MarketingCustomer> getCidOrName(@Param("search") String search);
+
+    List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
+            , @Param("shardingTotalCount") int shardingTotalCount
+            , @Param("shardingItems") List<Integer> shardingItems);
 }
