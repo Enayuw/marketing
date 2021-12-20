@@ -107,7 +107,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             //从跑分规则表 复制
             ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
             fastTaskRule.setStrategyId(scoreRuleConfig.getStrategyId());
-            //fastTaskRule.setProductInfo("");
+            fastTaskRule.setProductInfo(scoreRuleConfig.getProductInfo());
             fastTaskRule.setProductField(scoreRuleConfig.getStrategyProductJson());
             fastTaskRule.setCallbackInfo(scoreRuleConfig.getBaseInfo());
             fastTaskRule.setTaskType(scoreRuleConfig.getTaskType());
