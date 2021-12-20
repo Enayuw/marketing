@@ -215,7 +215,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             if(xwList.contains(apiCode)){
-                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid","phone","name","user_type"));
+                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid","phone","name"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads

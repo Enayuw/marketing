@@ -348,10 +348,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         Integer line = dto.getLine();
         List<String> datas = Splitter.on(",").splitToList(row);
         JSONObject jo = null;
-        String error = "uid不能为空;phone不能为空;user_type不能为空;name不能为空;";
+        String error = "uid不能为空;phone不能为空;name不能为空;";
         phoneSale.setApiCode(dto.getApiCode());
         phoneSale.setLocalId(dto.getLocalId().toString());
         phoneSale.setOrgname("xiaowei");
+        phoneSale.setUserType("A");
+        phoneSale.setSource("17");
         phoneSale.setStatus(1);
         try {
             Boolean phoneMark = Boolean.TRUE;
