@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 @Service
-public class ApiToDbServiceImpl  implements IApiToDbService {
+public class ApiToDbServiceImpl implements IApiToDbService {
 
     private static final Logger log = LoggerFactory.getLogger(ApiToDbServiceImpl.class);
 
@@ -99,7 +99,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     @Autowired
     SoleStrategyService soleStrategyService;
-    
+
     final static DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -157,9 +157,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
             outrule:
             for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
-                Boolean isToFile=customerScoreRuleVO.getTaskType().compareTo(Integer.valueOf(1))==0?Boolean.TRUE:Boolean.FALSE;
-                if(TaskExecCommonField.isBuildTaskJob.equals(2)){
-                    TaskExecCommonField.isBuildTaskJob =3;
+                Boolean isToFile = customerScoreRuleVO.getTaskType().compareTo(Integer.valueOf(1)) == 0 ? Boolean.TRUE : Boolean.FALSE;
+                if (TaskExecCommonField.isBuildTaskJob.equals(2)) {
+                    TaskExecCommonField.isBuildTaskJob = 3;
                     break outrule;
                 }
                 //region 遍历规则
@@ -169,52 +169,52 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 LocalDateTime nowTime = LocalDateTime.now();
                 LocalDate nowData = LocalDate.now();
                 String validTimeStr = nowData.format(ymd).concat(" " + startTime + ":00");
-                LocalDateTime validTime = LocalDateTime.parse(validTimeStr,ymdhms);
+                LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
                 //筛选数据范围时间
-                String sTimeStr = "",eTimeStr = "";
-                Date sTime =null,eTime = null;
+                String sTimeStr = "", eTimeStr = "";
+                Date sTime = null, eTime = null;
                 //任务的开始时间和结束时间
-                String taskStart="",taskEnd="";
-                if(nowTime.compareTo(validTime)>0){
-                    if("00:00".equals(startTime)){
+                String taskStart = "", taskEnd = "";
+                if (nowTime.compareTo(validTime) > 0) {
+                    if ("00:00".equals(startTime)) {
                         sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                         eTimeStr = validTime.format(ymdhms);
                         taskStart = LocalDate.now().format(ymd);
                         taskEnd = LocalDate.now().plusDays(1L).format(ymd);
-                    }else {
+                    } else {
                         sTimeStr = nowData.format(ymd).concat(" 00:00:00");
                         eTimeStr = validTime.format(ymdhms);
                         taskStart = LocalDate.now().format(ymd);
                         taskEnd = LocalDate.now().plusDays(1L).format(ymd);
                     }
-                }else{
+                } else {
                     sTimeStr = nowData.minusDays(1L).format(ymd).concat(" 00:00:00");
                     eTimeStr = validTime.minusDays(1L).format(ymdhms);
                     taskStart = LocalDate.now().minusDays(1L).format(ymd);
                     taskEnd = LocalDate.now().format(ymd);
                 }
                 try {
-                    sTime =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
-                    eTime =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
+                    sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
+                    eTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
                 Date ruleOpenTime = customerScoreRuleVO.getUpdateTime();
-                if(ruleOpenTime == null){
+                if (ruleOpenTime == null) {
                     ruleOpenTime = customerScoreRuleVO.getCreateTime();
                 }
                 String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
                 String nowDay = LocalDate.now().format(ymd);
                 // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-                if(ruleOpenDay.equals(nowDay)&&eTime.compareTo(ruleOpenTime)<=0){
+                if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
                     continue;
                 }
                 //endregion
 
                 //region 条件解析
                 Result<String> conditionRes = soleStrategyService.analysisCondition(customerScoreRuleVO.getConditionInfo());
-                if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){
+                if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
                     continue;
                 }
 
@@ -226,32 +226,33 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         .andStatusEqualTo(1)
                         .andIsUploadEqualTo(1);
                 int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
-                if(isUploadCount>0){
+                if (isUploadCount > 0) {
                     continue;
                 }
                 String number = "";
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScore(apiCode, sTimeStr, eTimeStr, conditionRes.getData());
-                if(minId!=null&&minId>0){
-                    String time = LocalDateTime.parse(eTimeStr,ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                if (minId != null && minId > 0) {
+                    String time = LocalDateTime.parse(eTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                     Result<String> batchNumberRes = buildBatchNumber(apiCode
-                            ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleNameShort()
-                            ,time,null);
-                    if(!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())){
+                            , customerScoreRuleVO.getId().toString(), customerScoreRuleVO.getRuleNameShort()
+                            , time, null);
+                    if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
                         continue;
                     }
-                    number=batchNumberRes.getData();
-                }else{
+                    number = batchNumberRes.getData();
+                } else {
                     continue;
                 }
 
                 MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
-                if(hasTask!=null){
+                if (hasTask != null) {
                     continue;
                 }
 
                 BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(customerScoreRuleVO.getBaseInfo()
-                        , new TypeReference<BaseHeadConfigVO>() {}.getType());
+                        , new TypeReference<BaseHeadConfigVO>() {
+                        }.getType());
                 //endregion
 
                 //region 处理marketingUser
@@ -261,11 +262,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 boolean execMark = true;
                 int currentPage = 1;
                 Integer taskNum = 0;
-                String filePath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
+                String filePath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
                         .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
-                while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
+                while (execMark && TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
-                    Long nowMaxId = minId+5000;
+                    Long nowMaxId = minId + 5000;
 
                     if (nowMaxId >= maxId) {
                         execMark = false;
@@ -312,11 +313,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = isToFile ? taskNum : marketingUserMapper.countBySureUser(apiCode, number);
-                if(actNum>0) {
+                if (actNum > 0) {
                     MarketingTask task = new MarketingTask();
                     task.setApiCode(apiCode);
                     task.setBatchNumber(number);
-                    task.setMonitorStatus(isToFile?2:1);
+                    task.setMonitorStatus(isToFile ? 2 : 1);
                     task.setTaskType(customerScoreRuleVO.getTaskType());
                     task.setProductInfo(customerScoreRuleVO.getProductInfo());
                     task.setStatus(1);
@@ -327,7 +328,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     task.setTaskNumber(taskNum);
                     String s = DateUtils.format(new Date(), "yyyy-MM-dd");
                     task.setMonitorType(customerScoreRuleVO.getExecType());
-                    if(Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
+                    if (Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
                         MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
                         if (task1 != null) {
                             task.setStartDate(task1.getStartDate());
@@ -337,12 +338,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
                         }
                         task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    }else if(Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())){
+                    } else if (Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())) {
                         task.setMonitorType(4);
                         task.setStartDate(taskStart);
                         task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
                         task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    }else{
+                    } else {
                         task.setStartDate(taskStart);
                         task.setCloseDate(taskEnd);
                     }
@@ -356,18 +357,18 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(eTimeStr);
-                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()):"");
+                    taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()) : "");
                     taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
                     marketingTaskExtendMapper.insertSelective(taskExtend);
                     TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
                     updateBatchExample.createCriteria().andBatchNumberEqualTo(number);
                     TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
                     updateBatchnumber.setStatus(2);
-                    taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber,updateBatchExample);
+                    taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
 
-                    if(isToFile){
-                        LoanFile loanFile=saveStraHisFile(task,customerScoreRuleVO,eTimeStr,filePath);
-                        saveTaskStatusDistribute(task,loanFile);
+                    if (isToFile) {
+                        LoanFile loanFile = saveStraHisFile(task, customerScoreRuleVO, eTimeStr, filePath);
+                        saveTaskStatusDistribute(task, loanFile);
                     }
                     try {
                         StringBuilder content = new StringBuilder();
@@ -418,94 +419,94 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                 str = "";
                             } else if (ib.equals(head.getType())) {
                                 switch (head.getName().toLowerCase()) {
-                                        case "apicode":
-                                            str = syncUser.getApiCode();
-                                            break;
-                                        case "cusbatch":
-                                            str = syncUser.getCusBatch();
-                                            break;
-                                        case "taskid":
-                                            str = syncUser.getCusBatch();
-                                            break;
-                                        case "requestbatch":
-                                            str = syncUser.getRequestBatch();
-                                            break;
-                                        case "requestid":
-                                            str = syncUser.getRequestBatch();
-                                            break;
-                                        case "custnum":
-                                            str = syncUser.getCustNum();
-                                            break;
-                                        case "idcard":
-                                            str = StringUtils.isBlank(syncUser.getFailType())
-                                                    && StringUtils.isNotBlank(syncUser.getIdCard())
-                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                    .decode(syncUser.getIdCard()).getBytes())
-                                                    : syncUser.getIdCard();
-                                            break;
-                                        case "id":
-                                            str = StringUtils.isBlank(syncUser.getFailType())
-                                                    && StringUtils.isNotBlank(syncUser.getIdCard())
-                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                    .decode(syncUser.getIdCard()).getBytes())
-                                                    : syncUser.getIdCard();
-                                            break;
-                                        case "cell":
-                                            str = StringUtils.isBlank(syncUser.getFailType())
-                                                    && StringUtils.isNotBlank(syncUser.getCell())
-                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                    .decode(syncUser.getCell()).getBytes())
-                                                    : syncUser.getCell();
-                                            break;
-                                        case "name":
-                                            str = StringUtils.isBlank(syncUser.getFailType())
-                                                    && StringUtils.isNotBlank(syncUser.getName())
-                                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                                    .decode(syncUser.getName()).getBytes())
-                                                    : syncUser.getName();
-                                            break;
-                                        case "grouptype":
-                                            str = syncUser.getGroupType();
-                                            break;
-                                        case "usertype":
-                                            str = syncUser.getUserType();
-                                            break;
-                                        case "registerdate":
-                                            str = syncUser.getRegisterDate();
-                                            break;
-                                        /* 2021-8-18 14:41:12
-                                         * 回传文件结果表头新增字段：
-                                         * createTime 基础字段
-                                         */
-                                        case "createtime": // 客户数据上传日期（精确到日）
-                                            str = syncUser.getAppletDate();
-                                            break;
-                                        default:
-                                            str = "";
-                                    }
-                                } else if (ic.equals(head.getType())) {
-                                    if (icData != null) {
-                                        str = icData.getString(head.getName());
-                                    }
-                                } else {
-                                    str = "";
+                                    case "apicode":
+                                        str = syncUser.getApiCode();
+                                        break;
+                                    case "cusbatch":
+                                        str = syncUser.getCusBatch();
+                                        break;
+                                    case "taskid":
+                                        str = syncUser.getCusBatch();
+                                        break;
+                                    case "requestbatch":
+                                        str = syncUser.getRequestBatch();
+                                        break;
+                                    case "requestid":
+                                        str = syncUser.getRequestBatch();
+                                        break;
+                                    case "custnum":
+                                        str = syncUser.getCustNum();
+                                        break;
+                                    case "idcard":
+                                        str = StringUtils.isBlank(syncUser.getFailType())
+                                                && StringUtils.isNotBlank(syncUser.getIdCard())
+                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                .decode(syncUser.getIdCard()).getBytes())
+                                                : syncUser.getIdCard();
+                                        break;
+                                    case "id":
+                                        str = StringUtils.isBlank(syncUser.getFailType())
+                                                && StringUtils.isNotBlank(syncUser.getIdCard())
+                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                .decode(syncUser.getIdCard()).getBytes())
+                                                : syncUser.getIdCard();
+                                        break;
+                                    case "cell":
+                                        str = StringUtils.isBlank(syncUser.getFailType())
+                                                && StringUtils.isNotBlank(syncUser.getCell())
+                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                .decode(syncUser.getCell()).getBytes())
+                                                : syncUser.getCell();
+                                        break;
+                                    case "name":
+                                        str = StringUtils.isBlank(syncUser.getFailType())
+                                                && StringUtils.isNotBlank(syncUser.getName())
+                                                ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
+                                                .decode(syncUser.getName()).getBytes())
+                                                : syncUser.getName();
+                                        break;
+                                    case "grouptype":
+                                        str = syncUser.getGroupType();
+                                        break;
+                                    case "usertype":
+                                        str = syncUser.getUserType();
+                                        break;
+                                    case "registerdate":
+                                        str = syncUser.getRegisterDate();
+                                        break;
+                                    /* 2021-8-18 14:41:12
+                                     * 回传文件结果表头新增字段：
+                                     * createTime 基础字段
+                                     */
+                                    case "createtime": // 客户数据上传日期（精确到日）
+                                        str = syncUser.getAppletDate();
+                                        break;
+                                    default:
+                                        str = "";
                                 }
-                                extendJson.put(head.getName(), str);
+                            } else if (ic.equals(head.getType())) {
+                                if (icData != null) {
+                                    str = icData.getString(head.getName());
+                                }
+                            } else {
+                                str = "";
                             }
+                            extendJson.put(head.getName(), str);
                         }
-                        //endregion
-                        String s = LocalDateTime.now().format(ymdhms);
-                        // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
-                        String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s','%s','%s')"
-                                , apiCode, batchNumber, syncUser.getCustNum()
-                                , syncUser.getCell()
-                                , StringUtils.isBlank(syncUser.getIdCard()) ? "" : syncUser.getIdCard()
-                                , StringUtils.isBlank(syncUser.getName()) ? "" : syncUser.getName(), s, s
-                                , syncUser.getFailType() == null ? "" : syncUser.getFailType()
-                                , syncUser.getStatus()
-                                , JSON.toJSONString(extendJson)
-                                , syncUser.getCusBatch()
-                                , syncUser.getUserType());
+                    }
+                    //endregion
+                    String s = LocalDateTime.now().format(ymdhms);
+                    // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
+                    String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s','%s','%s')"
+                            , apiCode, batchNumber, syncUser.getCustNum()
+                            , syncUser.getCell()
+                            , StringUtils.isBlank(syncUser.getIdCard()) ? "" : syncUser.getIdCard()
+                            , StringUtils.isBlank(syncUser.getName()) ? "" : syncUser.getName(), s, s
+                            , syncUser.getFailType() == null ? "" : syncUser.getFailType()
+                            , syncUser.getStatus()
+                            , JSON.toJSONString(extendJson)
+                            , syncUser.getCusBatch()
+                            , syncUser.getUserType());
                     marketingUserMapper.insertByRequestId(apiCode, dataSql);
                 }
             } catch (Exception ex) {
@@ -637,25 +638,26 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         });
     }
 
-    private LoanFile saveStraHisFile(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime,String filePath){
+    private LoanFile saveStraHisFile(MarketingTask task, CustomerScoreRuleVO customerScoreRuleVO, String uploadTime, String filePath) {
 
-        LoanFile blf=new LoanFile();
+        LoanFile blf = new LoanFile();
         blf.setApiCode(task.getApiCode());
-        blf.setFilePath(filePath.substring(0,filePath.lastIndexOf("/")));
+        blf.setFilePath(filePath.substring(0, filePath.lastIndexOf("/")));
         blf.setStatus(1);
-        if(1 == task.getMonitorType()){
+        if (1 == task.getMonitorType()) {
             blf.setType(2);
-        }else if(4==task.getMonitorType()){
+        } else if (4 == task.getMonitorType()) {
             blf.setType(1);
         }
         blf.setIndexNum(1);
         blf.setBatchNumber(task.getBatchNumber());
         blf.setExpectedNum(task.getActualNumber());
-        blf.setShowTitle(createShowTitle(task,customerScoreRuleVO,uploadTime));
+        blf.setShowTitle(createShowTitle(task, customerScoreRuleVO, uploadTime));
         loanFileMapper.insertFile(blf);
         return blf;
     }
-    private void saveTaskStatusDistribute(MarketingTask task,LoanFile loanFile){
+
+    private void saveTaskStatusDistribute(MarketingTask task, LoanFile loanFile) {
         TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
         statusDistribute.setFileId(Long.valueOf(loanFile.getId()));
         statusDistribute.setApiCode(task.getApiCode());
@@ -668,11 +670,11 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         taskStatusDistributeMapper.insertSelective(statusDistribute);
     }
 
-    private void saveTaskStatus(MarketingTask task,LoanFile loanFile){
-        TaskStatus bts=new TaskStatus();
-        if(1 == task.getMonitorType()){
+    private void saveTaskStatus(MarketingTask task, LoanFile loanFile) {
+        TaskStatus bts = new TaskStatus();
+        if (1 == task.getMonitorType()) {
             bts.setOnceStatus(1);
-        }else if(4==task.getMonitorType()){
+        } else if (4 == task.getMonitorType()) {
             bts.setAllStatus(1);
         }
         bts.setApiCode(task.getApiCode());
@@ -680,15 +682,17 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         bts.setFileId(loanFile.getId());
         taskStatusMapper.insertTaskStatus(bts);
     }
-    private String createShowTitle(MarketingTask task,CustomerScoreRuleVO customerScoreRuleVO,String uploadTime){
+
+    private String createShowTitle(MarketingTask task, CustomerScoreRuleVO customerScoreRuleVO, String uploadTime) {
         return task.getApiCode().concat("_")
                 .concat(customerScoreRuleVO.getId().toString().concat("_"))
                 .concat(customerScoreRuleVO.getRuleNameShort().concat("_"))
                 .concat(uploadTime.concat("_"))
                 .concat(new SimpleDateFormat("yyyyMMdd").format(new Date()));
     }
+
     @Override
-    public Result pushToDb(String code,HashMap<String,String> params){
+    public Result pushToDb(String code, HashMap<String, String> params) {
         /**
          * ->遍历客户表->遍历客户规则->根据用户规则的时间范围判断是否有用户上传数据
          *  ->1如果上传则跳出该规则
@@ -707,9 +711,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         String scoreEndData = eScoreDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         MarketingCustomerExample.Criteria criteria = customerExample.createCriteria();
-        if(StringUtils.isNotBlank(code)){
+        if (StringUtils.isNotBlank(code)) {
             criteria.andApiCodeEqualTo(code).andStatusEqualTo(Byte.valueOf("1"));
-        }else{
+        } else {
             criteria.andStatusEqualTo(Byte.valueOf("1"));
         }
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
@@ -718,41 +722,42 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             tableCreateService.createMarketingSyncUserTable(apiCode);
             tableCreateService.createMarketingUserTable(apiCode);
             Result<List<CustomerScoreRuleVO>> scoreConfig = iRuleConfigService.getScoreConfig(apiCode);
-            if(!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(scoreConfig.getCode())) {
                 continue;
             }
             List<CustomerScoreRuleVO> scoreConfigList = scoreConfig.getData();
-            if(StringUtils.isNotEmpty(userTypeJob)){
-                scoreConfigList = soleStrategyService.matchScoreRule(scoreConfigList,userTypeJob);
+            if (StringUtils.isNotEmpty(userTypeJob)) {
+                scoreConfigList = soleStrategyService.matchScoreRule(scoreConfigList, userTypeJob);
             }
             for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigList) {
                 //region 遍历规则
 
                 //region 条件解析
                 Result<String> conditionRes = soleStrategyService.analysisCondition(customerScoreRuleVO.getConditionInfo());
-                if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){
+                if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
                     continue;
                 }
                 String number = "";
                 int taskNum = syncInfoMapper.countByPreUserWithRule(apiCode, startTimeJob, endTimeJob, conditionRes.getData());
-                if(taskNum>0){
-                    String time = LocalDateTime.parse(endTimeJob,ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                if (taskNum > 0) {
+                    String time = LocalDateTime.parse(endTimeJob, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                     Result<String> batchNumberRes = buildBatchNumber(apiCode
-                            ,customerScoreRuleVO.getId().toString(),customerScoreRuleVO.getRuleNameShort()
-                            ,time,1);
-                    if(!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())){
+                            , customerScoreRuleVO.getId().toString(), customerScoreRuleVO.getRuleNameShort()
+                            , time, 1);
+                    if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
                         continue;
                     }
-                    number=batchNumberRes.getData();
-                }else{
+                    number = batchNumberRes.getData();
+                } else {
                     continue;
                 }
                 MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(number);
-                if(hasTask!=null){
+                if (hasTask != null) {
                     continue;
                 }
                 BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(customerScoreRuleVO.getBaseInfo()
-                        , new TypeReference<BaseHeadConfigVO>() {}.getType());
+                        , new TypeReference<BaseHeadConfigVO>() {
+                        }.getType());
                 //endregion
 
                 //region 处理marketingUser
@@ -764,20 +769,20 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 boolean execMark = true;
                 while (execMark) {
                     String batchNumber = number;
-                    Long nowMaxId = minId+5000;
+                    Long nowMaxId = minId + 5000;
 
-                    if(nowMaxId>=maxId){
+                    if (nowMaxId >= maxId) {
                         execMark = false;
                     }
                     List<MarketingSyncUser> syncUserByRuleScore = syncInfoMapper
-                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId,nowMaxId, conditionRes.getData());
-                    minId = nowMaxId+1;
-                    if(syncUserByRuleScore.size()<=0){
+                            .getSyncUserByRuleScore(apiCode, startTimeJob, endTimeJob, minId, nowMaxId, conditionRes.getData());
+                    minId = nowMaxId + 1;
+                    if (syncUserByRuleScore.size() <= 0) {
                         continue;
                     }
                     for (int i = 0; i < syncUserByRuleScore.size(); i++) {
                         MarketingSyncUser marketingSyncUser = syncUserByRuleScore.get(i);
-                        threadPool.submit(()->{
+                        threadPool.submit(() -> {
                             try {
                                 //region 用户上传表头配置处理
                                 JSONObject extendJson = new JSONObject();
@@ -888,18 +893,18 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                                         , marketingSyncUser.getCusBatch()
                                         , marketingSyncUser.getUserType());
                                 marketingUserMapper.insertByRequestId(apiCode, dataSql);
-                            }catch (Exception ex){
-                                log.error(ex.getMessage(),ex);
+                            } catch (Exception ex) {
+                                log.error(ex.getMessage(), ex);
                             }
                         });
                     }
                 }
                 threadPool.shutdown();
                 boolean isContiue = true;
-                while (isContiue){
-                    if(threadPool.isTerminated()){
-                        isContiue= false;
-                    }else{
+                while (isContiue) {
+                    if (threadPool.isTerminated()) {
+                        isContiue = false;
+                    } else {
                         try {
                             Thread.sleep(3000L);
                         } catch (Exception e) {
@@ -912,7 +917,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 //region 处理task
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = marketingUserMapper.countBySureUser(apiCode, number);
-                if(actNum>0) {
+                if (actNum > 0) {
                     MarketingTask task = new MarketingTask();
                     task.setApiCode(apiCode);
                     task.setBatchNumber(number);
@@ -925,7 +930,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     task.setTaskNumber(taskNum);
                     String s = DateUtils.format(new Date(), "yyyy-MM-dd");
                     task.setMonitorType(customerScoreRuleVO.getExecType());
-                    if(Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
+                    if (Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
                         MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
                         if (task1 != null) {
                             task.setStartDate(task1.getStartDate());
@@ -935,12 +940,12 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                             task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
                         }
                         task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    }else if(Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())){
+                    } else if (Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())) {
                         task.setMonitorType(4);
                         task.setStartDate(scoreBeginData);
                         task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
                         task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    }else{
+                    } else {
                         task.setStartDate(scoreBeginData);
                         task.setCloseDate(scoreEndData);
                     }
@@ -954,27 +959,27 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(endTimeJob);
-                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()):"");
+                    taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()) : "");
                     taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
                     marketingTaskExtendMapper.insertSelective(taskExtend);
                     TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
                     updateBatchExample.createCriteria().andBatchNumberEqualTo(number);
                     TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
                     updateBatchnumber.setStatus(2);
-                    taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber,updateBatchExample);
+                    taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
 
-                    try{
+                    try {
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
                                 .append("ruleId：".concat(customerScoreRuleVO.getId().toString()).concat("\r\n"))
                                 .append("ruleName：".concat(customerScoreRuleVO.getRuleName()).concat("\r\n"))
                                 .append("time：".concat(endTimeJob).concat("\r\n"))
                                 .append("batchNumber：".concat(number).concat("\r\n"))
-                                .append(String.format("预计数量: %d,入库数量：%d",taskNum,actNum));
-                        alarmClient.sendAlarm(content.toString(),"api人员数据生成任务",appName,secretKey,
+                                .append(String.format("预计数量: %d,入库数量：%d", taskNum, actNum));
+                        alarmClient.sendAlarm(content.toString(), "api人员数据生成任务", appName, secretKey,
                                 Constants.sendCodeMap.get("uploadSuccess"));
-                    }catch (Exception ex){
-                        log.error(ex.getMessage(),ex);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
                     }
                 }
                 //endregion
@@ -986,14 +991,14 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     }
 
     @Override
-    public Result<String> buildBatchNumber(String apiCode, String cusBatch, String groupType, String time,Integer isOnly) {
+    public Result<String> buildBatchNumber(String apiCode, String cusBatch, String groupType, String time, Integer isOnly) {
         boolean res = false;
         int i = 0;
-        while (!res){
-            Result<String> stringResult = this.buildBatchNumberCore(apiCode, cusBatch, groupType, time,isOnly);
+        while (!res) {
+            Result<String> stringResult = this.buildBatchNumberCore(apiCode, cusBatch, groupType, time, isOnly);
             res = ResultCode.SUCCESS.getValue()
                     .equals(stringResult.getCode());
-            if(res){
+            if (res) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(stringResult.getData());
             }
             i++;
@@ -1002,18 +1007,18 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             } catch (Exception e) {
                 log.error("Thread.sleep error", e);
             }
-            if(i==4){
+            if (i == 4) {
                 res = true;
             }
         }
         return new Result<String>().setCode(ResultCode.FAIL.getValue());
     }
 
-    private Result<String> buildBatchNumberCore(String apiCode, String cusBatch, String groupType, String time,Integer isOnly) {
+    private Result<String> buildBatchNumberCore(String apiCode, String cusBatch, String groupType, String time, Integer isOnly) {
 
-        if(isOnly != null&& isOnly.equals(1)){
-            int i = (int) ((Math.random()*9+1)*1000);
-            String batchNumber = String.format("%s_%s_%d", apiCode, time,i);
+        if (isOnly != null && isOnly.equals(1)) {
+            int i = (int) ((Math.random() * 9 + 1) * 1000);
+            String batchNumber = String.format("%s_%s_%d", apiCode, time, i);
             TaskBatchnumberPre batchnumberPre = new TaskBatchnumberPre();
             batchnumberPre.setApiCode(apiCode);
             batchnumberPre.setCusBatch(cusBatch);
@@ -1036,21 +1041,21 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(s);
         }
 
-        TaskBatchnumberPreExample preExample= new TaskBatchnumberPreExample();
+        TaskBatchnumberPreExample preExample = new TaskBatchnumberPreExample();
         preExample.createCriteria().andApiCodeEqualTo(apiCode)
                 .andCusBatchEqualTo(cusBatch)
                 .andGroupTypeEqualTo(groupType)
                 .andRecordDateEqualTo(time);
         List<TaskBatchnumberPre> taskBatchnumberPres = taskBatchnumberPreMapper.selectByExample(preExample);
-        if(taskBatchnumberPres.size()>0){
+        if (taskBatchnumberPres.size() > 0) {
             TaskBatchnumberPre taskBatchnumberPre = taskBatchnumberPres.get(0);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(taskBatchnumberPre.getBatchNumber());
-        }else{
+        } else {
             String keyCourrent = key.concat(":courrent");
 //            String yyyyMMddHHmmss = DateUtils.format(new Date(), "yyyyMMddHHmmss");
-            int i = (int) ((Math.random()*9+1)*1000);
-            String batchNumber = String.format("%s_%s_%d", apiCode, time,i);
-            if(redisChgService.setnx(keyCourrent,batchNumber,2).equals(1L)){
+            int i = (int) ((Math.random() * 9 + 1) * 1000);
+            String batchNumber = String.format("%s_%s_%d", apiCode, time, i);
+            if (redisChgService.setnx(keyCourrent, batchNumber, 2).equals(1L)) {
                 TaskBatchnumberPre batchnumberPre = new TaskBatchnumberPre();
                 batchnumberPre.setApiCode(apiCode);
                 batchnumberPre.setCusBatch(cusBatch);
@@ -1062,9 +1067,9 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 taskBatchnumberPreMapper.insertSelective(batchnumberPre);
                 String endSecond = DateHelper.date2TimeStamp(DateHelper.getDateAdd(1).concat(" 00:00:00"), "yyyy-MM-dd HH:mm:ss");
                 Long l = Long.parseLong(endSecond) - System.currentTimeMillis() / 1000;
-                redisChgService.set(key,batchNumber);
-                redisChgService.expire(key,l.intValue());
-                if(batchNumber.equals(redisChgService.get(keyCourrent))){
+                redisChgService.set(key, batchNumber);
+                redisChgService.expire(key, l.intValue());
+                if (batchNumber.equals(redisChgService.get(keyCourrent))) {
                     redisChgService.del(keyCourrent);
                 }
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(batchNumber);
@@ -1082,22 +1087,22 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         StringBuilder valuesStr = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             MarketingSyncUser marketingSyncUser = list.get(i);
-            Result<String> stringResult = this.buildBatchNumber(apiCode, cusBatch, marketingSyncUser.getGroupType(), "",null);
-            if(!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+            Result<String> stringResult = this.buildBatchNumber(apiCode, cusBatch, marketingSyncUser.getGroupType(), "", null);
+            if (!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                 continue;
             }
             String s = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
             String batchNumber = stringResult.getData();
             // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType
             valuesStr.append(String.format("('%s','%s','%s','%s','%s','%s','%s')"
-                    ,apiCode,batchNumber,marketingSyncUser.getCustNum()
-                    ,marketingSyncUser.getCell(),s,s,marketingSyncUser.getFailType()));
-            if(i<list.size()-1){
+                    , apiCode, batchNumber, marketingSyncUser.getCustNum()
+                    , marketingSyncUser.getCell(), s, s, marketingSyncUser.getFailType()));
+            if (i < list.size() - 1) {
                 valuesStr.append(",");
             }
         }
         String s1 = valuesStr.toString();
-        if(StringUtils.isNotBlank(s1)){
+        if (StringUtils.isNotBlank(s1)) {
             marketingUserMapper.insertByRequestId(apiCode, s1);
             MarketingSyncInfo updateSync = new MarketingSyncInfo();
             updateSync.setId(syncInfo.getId());

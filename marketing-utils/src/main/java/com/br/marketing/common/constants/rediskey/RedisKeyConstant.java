@@ -15,4 +15,9 @@ public class RedisKeyConstant {
      * 没有命中标识的产品
      */
     public static final String noFlagProduct = prefix.concat("noFlagProduct");
+
+    /**
+     * 没有命中标识的产品
+     */
+    public static final String fileToDbByXw = prefix.concat("ftpToDb:XW");
 }
