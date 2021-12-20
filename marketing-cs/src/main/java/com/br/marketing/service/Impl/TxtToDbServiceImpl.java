@@ -733,7 +733,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         PhoneSale phoneSale = new PhoneSale();
         String row = dto.getContent();
         HashMap<Integer, String> address = dto.getAddress();
-        log.debug(address.values().toString());
         HashMap<Integer, String> extSetFields = dto.getExtSetField();
         Integer line = dto.getLine();
         List<String> datas = Splitter.on(",").splitToList(row);
