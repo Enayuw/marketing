@@ -64,6 +64,9 @@ public class FastTaskRuleDetailVO {
     private Integer dataType;
 
 
+    @ApiModelProperty(value = "未跑分数据量")
+    private Integer untaskNum;
+
     @ApiModelProperty(value = "整体跑分规则(查看页面返回字段)")
     private Map scoreRule;
 

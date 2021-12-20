@@ -22,6 +22,7 @@
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="untask_num" property="untaskNum" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -84,7 +85,7 @@
   <sql id="Base_Column_List" >
     id, rule_name, rule_number, api_code, data_condition, data_type, data_id_desc, rule_id, 
     task_type, strategy_id, product_info, product_field, callback_info, task_time, status, 
-    opt_id, opt_name, is_del, create_time, update_time
+    opt_id, opt_name, is_del, create_time, update_time, untask_num
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FastTaskRuleExample" >
     select
@@ -126,14 +127,14 @@
       product_info, product_field, callback_info, 
       task_time, status, opt_id, 
       opt_name, is_del, create_time, 
-      update_time)
+      update_time, untask_num)
     values (#{ruleName,jdbcType=VARCHAR}, #{ruleNumber,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
       #{dataCondition,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{dataIdDesc,jdbcType=VARCHAR}, 
       #{ruleId,jdbcType=BIGINT}, #{taskType,jdbcType=INTEGER}, #{strategyId,jdbcType=VARCHAR}, 
       #{productInfo,jdbcType=VARCHAR}, #{productField,jdbcType=VARCHAR}, #{callbackInfo,jdbcType=VARCHAR}, 
       #{taskTime,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optId,jdbcType=VARCHAR}, 
       #{optName,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{updateTime,jdbcType=TIMESTAMP}, #{untaskNum,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.FastTaskRule" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -198,6 +199,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="untaskNum != null" >
+        untask_num,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
@@ -256,6 +260,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="untaskNum != null" >
+        #{untaskNum,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -328,6 +335,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.untaskNum != null" >
+        untask_num = #{record.untaskNum,jdbcType=INTEGER},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -354,7 +364,8 @@
       opt_name = #{record.optName,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      untask_num = #{record.untaskNum,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -419,6 +430,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="untaskNum != null" >
+        untask_num = #{untaskNum,jdbcType=INTEGER},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -442,7 +456,8 @@
       opt_name = #{optName,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      untask_num = #{untaskNum,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
