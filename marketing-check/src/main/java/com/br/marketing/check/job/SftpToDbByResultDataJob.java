@@ -1,4 +1,7 @@
 package com.br.marketing.check.job;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.*;
@@ -24,8 +27,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,7 +110,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     Set<String> juZiList;
 
     @PostConstruct
-    void init() {
+    void init(){
         xwList = new ArrayList<>();
         xwList.add("4004666");
         juZiList = new HashSet<>();
@@ -181,7 +183,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
             String s = redisChgService.get(RedisKeyConstant.fileToDbByXw);
-            if (StringUtils.isNotBlank(s)) {
+            if(StringUtils.isNotBlank(s)){
                 List xws = Splitter.on(",").splitToList(s);
                 xwList.addAll(xws);
             }
@@ -190,7 +192,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                 juZiList.addAll(Splitter.on(",").splitToList(juZiCodes));
             }
             for (String fileName : fileNames) {
-                if (fileName.endsWith(".txt")) {
+                if(fileName.endsWith(".txt")){
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);
@@ -216,8 +218,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                             String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                             sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
-                            if (xwList.contains(apiCode)) {
-                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "user_type"));
+                            if(xwList.contains(apiCode)){
+                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid","phone","name"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
