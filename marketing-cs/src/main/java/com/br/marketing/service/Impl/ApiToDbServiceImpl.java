@@ -131,6 +131,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     @Autowired
     FastFileRelationMapper fastFileRelationMapper;
 
+    @Autowired
+    FastTaskRuleMapper fastTaskRuleMapper;
+
     @Override
     public Result pushToDb(String code) {
         /**
@@ -1139,7 +1142,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 for (String s : conditions.keySet()) {
                     List<String> userTypes = conditions.get(s);
                     Long minId = marketingSyncUserMapper.minId(apiCode, s, dataType, userTypes);
-                    if (minId <= 0) {
+                    if (minId ==null || minId <= 0) {
                         continue;
                     }
                     if (StringUtils.isBlank(batchNumber)) {
@@ -1227,6 +1230,10 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
                         updateBatchnumber.setStatus(2);
                         taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
+                        FastTaskRule updateRule = new FastTaskRule();
+                        updateRule.setId(rule.getId());
+                        updateRule.setStatus(0);
+                        fastTaskRuleMapper.updateByPrimaryKeySelective(updateRule);
                         try {
                             StringBuilder content = new StringBuilder();
                             content.append("apiCode：".concat(apiCode).concat("\r\n"))
