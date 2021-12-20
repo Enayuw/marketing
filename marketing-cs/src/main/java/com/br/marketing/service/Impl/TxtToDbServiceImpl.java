@@ -788,7 +788,11 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         break;
 //                    case "lent_time":
                     case "下单时间":
-                        phoneSale.setLentTime(datas.get(i));
+                        final String yyyy = datas.get(i);
+                        if (StringUtils.isNotEmpty(yyyy)) {
+                            final String substring = yyyy.substring(0, 4);
+                            phoneSale.setLentTime(substring.concat("-01-01 00:00:00"));
+                        }
                         break;
                     case "lent_amount":
                         phoneSale.setLentAmount(datas.get(i));
