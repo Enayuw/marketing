@@ -1,12 +1,9 @@
 package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Md5Utils;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.strategy.sftp.SftpEnvironment;
-import com.br.marketing.check.strategy.sftp.juzi.JuZiStockOrRegister;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -81,9 +78,6 @@ public class SftpToDbByDXService {
     @Autowired
     DecodeClient decodeClient;
 
-    @Resource
-    private SftpEnvironment sftpEnvironment;
-
     private static String phoneReg = "^([\\+]*[0-9]+)$";
 
     private final static Integer SPLITSIZE = 5000;
@@ -93,24 +87,24 @@ public class SftpToDbByDXService {
         String zipFileName = context.getTxtFileName();
         SftpClient client = (SftpClient) context.getBaseFtpClient();
         File dir = new File(localFilePath);
-        if(!dir.exists()||!dir.isDirectory()){
+        if (!dir.exists() || !dir.isDirectory()) {
             boolean mkdirs = dir.mkdirs();
-            if(!mkdirs){
-                log.error("创建文件夹失败-{}",context.getLocalZipFilePath());
+            if (!mkdirs) {
+                log.error("创建文件夹失败-{}", context.getLocalZipFilePath());
                 return false;
             }
         }
-        StringBuilder sb=new StringBuilder().append(localFilePath).append(zipFileName);
-        boolean download = client.downloadFile(context.getSftpZipFilePath() , zipFileName, sb.toString());
-        if(!download){
-            log.error("文件下载出错-SftpZipFilePath={},zipFileName={}",context.getSftpZipFilePath(),zipFileName);
+        StringBuilder sb = new StringBuilder().append(localFilePath).append(zipFileName);
+        boolean download = client.downloadFile(context.getSftpZipFilePath(), zipFileName, sb.toString());
+        if (!download) {
+            log.error("文件下载出错-SftpZipFilePath={},zipFileName={}", context.getSftpZipFilePath(), zipFileName);
             return false;
         }
         return true;
     }
 
     public Boolean actionTxtFile(FileContext context,LocalFile localFile) {
-        String txtFilePathAndName=context.getLocalTxtFilePath().concat(context.getTxtFileName());
+        String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
         if (totalLines == 0) {
@@ -121,21 +115,11 @@ public class SftpToDbByDXService {
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
+        head = MyFileUtil.gethead(txtFilePathAndName);
+
         HashMap<Integer, String> address = new HashMap<>();
         HashMap<Integer, String> extSetField = new HashMap<>();
-        Result hashMapResult;
-        switch (context.getApiCode()) {
-            case "7410787": // 桔子测试
-            case "3710037": // 桔子
-                // 设置策略为桔子
-                sftpEnvironment.setSftpStrategy(new JuZiStockOrRegister());
-                // 统计head
-                hashMapResult = sftpEnvironment.statisticsHead(context, address, extSetField);
-                break;
-            default:
-                head = MyFileUtil.gethead(txtFilePathAndName);
-                hashMapResult = SftpToDbUtils.statisticsHead(head.toString(), address, extSetField);
-        }
+        Result hashMapResult = SftpToDbUtils.statisticsHead(head.toString(), address, extSetField);
         if (!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())) {
             log.error(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
             LocalFile updateFile = new LocalFile();
@@ -144,6 +128,7 @@ public class SftpToDbByDXService {
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
+
         long start = System.currentTimeMillis();
 
         String filepath = context.getLocalTxtFilePath().concat(context.getTxtFileName());
@@ -151,30 +136,23 @@ public class SftpToDbByDXService {
         try(
                 FileReader read = new FileReader(filepath);
                 BufferedReader br = new BufferedReader(read);) {
+            String row;
             Integer line = 1;
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
-            switch (context.getApiCode()) {
-                case "7410787": // 桔子 测试账户
-                case "3710037": // 桔子
-                    sftpEnvironment.setDataByPhone(br, threadPool, localFile, address, extSetField, errorMark, line);
-                    break;
-                default:
-                    String row;
-                    while ((row = br.readLine()) != null) {
-                        String trim = row.trim();
-                        if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
-                            if (line > 1) {
-                                Integer lineNum = line;
-                                threadPool.submit(() -> {
-                                    PhoneSale phoneSale = new PhoneSale();
-                                    phoneSale.setApiCode(localFile.getApiCode());
-                                    phoneSale.setLocalId(localFile.getId().toString());
-                                    setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
-                                });
-                            }
-                        }
-                        line++;
+            while ((row = br.readLine()) != null) {
+                String trim = row.trim();
+                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                    if (line > 1) {
+                        Integer lineNum = line;
+                        threadPool.submit(() -> {
+                            PhoneSale phoneSale = new PhoneSale();
+                            phoneSale.setApiCode(localFile.getApiCode());
+                            phoneSale.setLocalId(localFile.getId().toString());
+                            setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
+                        });
                     }
+                }
+                line++;
             }
             /**
              * 等待所有任务都执行完成
@@ -187,17 +165,17 @@ public class SftpToDbByDXService {
                 }
                 try {
                     Thread.sleep(3000);
-                }catch (Exception e){
+                } catch (Exception e) {
                 }
             }
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setActualNumber(line);
-        if(errorMark.get()>0){
-            updateFile.setComplete("3");
-        }
+            if (errorMark.get() > 0) {
+                updateFile.setComplete("3");
+            }
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
@@ -210,105 +188,105 @@ public class SftpToDbByDXService {
 
 
     public void checkConfigFile(FileContext context) {
-        MarketingTask task =context.getTask();
-        String configFilePathAndName=context.getLocalTxtFilePath().concat(context.getConfigFileName());
-            File configFile= new File(configFilePathAndName);
-            if(configFile.exists()&&configFile.isFile()){
+        MarketingTask task = context.getTask();
+        String configFilePathAndName = context.getLocalTxtFilePath().concat(context.getConfigFileName());
+        File configFile = new File(configFilePathAndName);
+        if (configFile.exists() && configFile.isFile()) {
 
-                Map<String,String> configMap = new HashedMap();
-                try(FileReader read = new FileReader(configFilePathAndName);
-                    BufferedReader br = new BufferedReader(read)){
-                    String row;
-                    while ((row = br.readLine()) != null) {
-                        String trim = row.trim();
-                        if(StringUtils.isNotEmpty(trim)){
-                            String[] split = trim.split("=");
-                            if(split.length>=2){
-                                configMap.put(split[0],split[1]);
-                            }
+            Map<String, String> configMap = new HashedMap();
+            try (FileReader read = new FileReader(configFilePathAndName);
+                 BufferedReader br = new BufferedReader(read)) {
+                String row;
+                while ((row = br.readLine()) != null) {
+                    String trim = row.trim();
+                    if (StringUtils.isNotEmpty(trim)) {
+                        String[] split = trim.split("=");
+                        if (split.length >= 2) {
+                            configMap.put(split[0], split[1]);
                         }
                     }
-                    String dataVolume=configMap.get("dataVolume");
-                    if(StringUtils.isNotEmpty(dataVolume)){
-                        try{
-                            int count = Integer.parseInt(dataVolume);
-                            task.setDataVolume(count);
-                        }catch (Exception e){
-                            log.error("dataVolume error",e);
-                        }
+                }
+                String dataVolume = configMap.get("dataVolume");
+                if (StringUtils.isNotEmpty(dataVolume)) {
+                    try {
+                        int count = Integer.parseInt(dataVolume);
+                        task.setDataVolume(count);
+                    } catch (Exception e) {
+                        log.error("dataVolume error", e);
                     }
-                    log.warn("{}，内容为{}",context.getConfigFileName(),configMap);
-                    if(task.getMonitorType()==1){
-                        if(StringUtils.isNotEmpty(configMap.get("strategyId"))&&fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")){
-                            task.setStrategyId(configMap.get("strategyId"));
-                            task.setFrequency(0+"");
-                            task.setCloseDate(DateHelper.getDateAdd(2));
-                            task.setStartDate(DateHelper.getDateAdd(0));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,策略编号异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                    }else if(task.getMonitorType()==2||task.getMonitorType()==3||task.getMonitorType()==4){
-                        if(StringUtils.isNotEmpty(configMap.get("strategyId"))&&fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")){
-                            task.setStrategyId(configMap.get("strategyId"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,策略编号异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorFrequency"))&&fileCheckService.checkConfig("monitorFrequency", configMap.get("monitorFrequency"), task.getApiCode(), "")){
-                            task.setFrequency(configMap.get("monitorFrequency"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控周期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorStartTime"))&&fileCheckService.checkConfig("monitorStartTime", configMap.get("monitorStartTime"), task.getApiCode(), "")){
-                            task.setStartDate(configMap.get("monitorStartTime"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控开始日期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorStartTime"))&&fileCheckService.checkConfig("monitorendTime", configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))){
-                            task.setCloseDate(configMap.get("monitorStartTime"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控截止日期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                    }else{
+                }
+                log.warn("{}，内容为{}", context.getConfigFileName(), configMap);
+                if (task.getMonitorType() == 1) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                        task.setStrategyId(configMap.get("strategyId"));
+                        task.setFrequency(0 + "");
+                        task.setCloseDate(DateHelper.getDateAdd(2));
+                        task.setStartDate(DateHelper.getDateAdd(0));
+                    } else {
                         task.setMonitorStatus(3);
                         task.setStatus(1);
-                        task.setErrorMessage("监控模式异常");
-                        fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
+                        task.setErrorMessage("配置文件异常,策略编号异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
                         return;
                     }
-
-                } catch (FileNotFoundException e) {
-                    log.error("FileNotFoundException",e);
-                } catch (IOException e) {
-                    log.error("IOException",e);
+                } else if (task.getMonitorType() == 2 || task.getMonitorType() == 3 || task.getMonitorType() == 4) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                        task.setStrategyId(configMap.get("strategyId"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,策略编号异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorFrequency")) && fileCheckService.checkConfig("monitorFrequency", configMap.get("monitorFrequency"), task.getApiCode(), "")) {
+                        task.setFrequency(configMap.get("monitorFrequency"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控周期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorStartTime", configMap.get("monitorStartTime"), task.getApiCode(), "")) {
+                        task.setStartDate(configMap.get("monitorStartTime"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控开始日期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorendTime", configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))) {
+                        task.setCloseDate(configMap.get("monitorStartTime"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控截止日期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                } else {
+                    task.setMonitorStatus(3);
+                    task.setStatus(1);
+                    task.setErrorMessage("监控模式异常");
+                    fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                    return;
                 }
-                LoadResult lr=new LoadResult();
-                lr.setApiCode(task.getApiCode());
-                lr.setFileName(context.getConfigFileName());
-                lr.setBatchNumber(task.getBatchNumber());
-                lr.setStatus("1");
-                loadResultMapper.insertLoadResult(lr);
-                task.setMonitorStatus(1);
+
+            } catch (FileNotFoundException e) {
+                log.error("FileNotFoundException", e);
+            } catch (IOException e) {
+                log.error("IOException", e);
             }
+            LoadResult lr = new LoadResult();
+            lr.setApiCode(task.getApiCode());
+            lr.setFileName(context.getConfigFileName());
+            lr.setBatchNumber(task.getBatchNumber());
+            lr.setStatus("1");
+            loadResultMapper.insertLoadResult(lr);
+            task.setMonitorStatus(1);
+        }
         task.setStatus(1);
     }
 
@@ -350,16 +328,7 @@ public class SftpToDbByDXService {
                     case "name":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("name不能为空;", "");
-                            String s = datas.get(i);
-                            phoneSale.setName(s);
-                            if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
-                                if(StringUtils.isBlank(content)){
-                                    error = error.concat("姓名解密失败;");
-                                }else{
-                                    phoneSale.setName(content);
-                                }
-                            }
+                            phoneSale.setName(datas.get(i));
                         }
                         break;
                     case "gender":
@@ -463,249 +432,6 @@ public class SftpToDbByDXService {
                         break;
                     case "region":
                         phoneSale.setRegion(datas.get(i));
-                        break;
-                    case "yx_flag_3d":
-                        phoneSale.setYxFlag3d(datas.get(i));
-                        break;
-                    case "yx_flag_7d":
-                        phoneSale.setYxFlag7d(datas.get(i));
-                        break;
-                    case "yx_flag_15d":
-                        phoneSale.setYxFlag15d(datas.get(i));
-                        break;
-                    case "yx_flag_1m":
-                        phoneSale.setYxFlag1m(datas.get(i));
-                        break;
-                    case "person_flag_house":
-                        phoneSale.setPersonFlagHouse(datas.get(i));
-                        break;
-                    case "person_flag_car":
-                        phoneSale.setPersonFlagCar(datas.get(i));
-                        break;
-                    case "person_flag_insur":
-                        phoneSale.setPersonFlagInsur(datas.get(i));
-                        break;
-                    case "white_list_gw":
-                        phoneSale.setWhiteListGw(datas.get(i));
-                        break;
-                    case "white_list_fp":
-                        phoneSale.setWhiteListFp(datas.get(i));
-                        break;
-                    case "white_list_yc":
-                        phoneSale.setWhiteListYc(datas.get(i));
-                        break;
-                    case "extend":
-                        String s = extSetFields.get(i);
-                        if (StringUtils.isNotBlank(s)) {
-                            if (jo == null) {
-                                jo = new JSONObject();
-                            }
-                            jo.put(s, datas.get(i));
-                        }
-                        break;
-                }
-                if (jo != null) {
-                    phoneSale.setExtend(jo.toJSONString());
-                }
-            }
-            if (!StringUtils.isEmpty(error)) {
-                phoneSale.setStatus(2);
-                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
-                errorMark.getAndIncrement();
-            } else if (!phoneMark) {
-                phoneSale.setStatus(2);
-                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
-                errorMark.getAndIncrement();
-            }
-            Date date = new Date();
-            phoneSale.setCreateTime(date);
-            phoneSale.setUpdateTime(date);
-            phoneSaleMapper.insertSelective(phoneSale);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
-            phoneSale.setStatus(2);
-            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
-            errorMark.getAndIncrement();
-            phoneSaleMapper.insertSelective(phoneSale);
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    private Result setDataByPhoneByXW(String row,PhoneSale phoneSale,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark,Integer line){
-        try {
-            phoneSale.setOrgname("xiaowei");
-            List<String> datas = Splitter.on(",").splitToList(row);
-            JSONObject jo = null;
-            String error = "uid不能为空;phone不能为空;user_type不能为空;name不能为空;";
-            Boolean phoneMark = Boolean.TRUE;
-            if (datas.size() != address.size()) {
-                phoneSale.setStatus(2);
-                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
-                errorMark.getAndIncrement();
-                phoneSaleMapper.insertSelective(phoneSale);
-                return new Result().setCode(ResultCode.SUCCESS.getValue());
-            }
-            for (int i = 0; i < datas.size(); i++) {
-                String sureaddress = address.get(i);
-                switch (sureaddress) {
-                    case "uid":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("uid不能为空;", "");
-                        }
-                        phoneSale.setUid(datas.get(i));
-                        break;
-                    case "phone":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("phone不能为空;", "");
-                            Result<String> stringResult = decryptPhone(datas.get(i));
-                            phoneSale.setPhoneAes(datas.get(i));
-                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
-                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
-                            } else {
-                                phoneMark = Boolean.FALSE;
-                            }
-                        }
-                        break;
-                    case "name":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("name不能为空;", "");
-                            String s = datas.get(i);
-                            phoneSale.setName(s);
-                            if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
-                                if(StringUtils.isBlank(content)){
-                                    error = error.concat("姓名解密失败;");
-                                }else{
-                                    phoneSale.setName(content);
-                                }
-                            }
-                        }
-                        break;
-                    case "gender":
-                        phoneSale.setGender(datas.get(i));
-                        break;
-                    case "marketscore":
-                        phoneSale.setMarketscore(datas.get(i));
-                        break;
-                    case "riskscore":
-                        phoneSale.setRiskscore(datas.get(i));
-                        break;
-                    case "source":
-                        phoneSale.setSource(datas.get(i));
-                        break;
-                    case "user_type":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("user_type不能为空;", "");
-                            phoneSale.setUserType(datas.get(i));
-                        }
-                        break;
-                    case "product_name":
-                        phoneSale.setProductName(datas.get(i));
-                        break;
-                    case "flag_type":
-                        phoneSale.setFlagType(datas.get(i));
-                        break;
-                    case "type":
-                        phoneSale.setType(datas.get(i));
-                        break;
-                    case "level":
-                        phoneSale.setLevel(datas.get(i));
-                        break;
-                    case "if_register":
-                        phoneSale.setIfRegister(datas.get(i));
-                        break;
-                    case "register_time":
-                        phoneSale.setRegisterTime(datas.get(i));
-                        break;
-                    case "if_login":
-                        phoneSale.setIfLogin(datas.get(i));
-                        break;
-                    case "login_time":
-                        phoneSale.setLoginTime(datas.get(i));
-                        break;
-                    case "if_apply":
-                        phoneSale.setIfApply(datas.get(i));
-                        break;
-                    case "apply_dt":
-                        phoneSale.setApplyDt(datas.get(i));
-                        break;
-                    case "apply_time":
-                        phoneSale.setApplyTime(datas.get(i));
-                        break;
-                    case "apply_result":
-                        phoneSale.setApplyResult(datas.get(i));
-                        break;
-                    case "pagenode":
-                        phoneSale.setPagenode(datas.get(i));
-                        break;
-                    case "optype":
-                        phoneSale.setOptype(datas.get(i));
-                        break;
-                    case "refuse_time":
-                        phoneSale.setRefuseTime(datas.get(i));
-                        break;
-                    case "audit_time":
-                        phoneSale.setAuditTime(datas.get(i));
-                        break;
-                    case "audit_amount":
-                        phoneSale.setAuditAmount(datas.get(i));
-                        break;
-                    case "if_lent":
-                        phoneSale.setIfLent(datas.get(i));
-                        break;
-                    case "lent_time":
-                        phoneSale.setLentTime(datas.get(i));
-                        break;
-                    case "lent_amount":
-                        phoneSale.setLentAmount(datas.get(i));
-                        break;
-                    case "unlent_amount":
-                        phoneSale.setUnlentAmount(datas.get(i));
-                        break;
-                    case "if_settle":
-                        phoneSale.setIfSettle(datas.get(i));
-                        break;
-                    case "settle_time":
-                        phoneSale.setSettleTime(datas.get(i));
-                        break;
-                    case "activity":
-                        phoneSale.setActivity(datas.get(i));
-                        break;
-                    case "production":
-                        phoneSale.setProduction(datas.get(i));
-                        break;
-                    case "region":
-                        phoneSale.setRegion(datas.get(i));
-                        break;
-                    case "yx_flag_3d":
-                        phoneSale.setYxFlag3d(datas.get(i));
-                        break;
-                    case "yx_flag_7d":
-                        phoneSale.setYxFlag7d(datas.get(i));
-                        break;
-                    case "yx_flag_15d":
-                        phoneSale.setYxFlag15d(datas.get(i));
-                        break;
-                    case "yx_flag_1m":
-                        phoneSale.setYxFlag1m(datas.get(i));
-                        break;
-                    case "person_flag_house":
-                        phoneSale.setPersonFlagHouse(datas.get(i));
-                        break;
-                    case "person_flag_car":
-                        phoneSale.setPersonFlagCar(datas.get(i));
-                        break;
-                    case "person_flag_insur":
-                        phoneSale.setPersonFlagInsur(datas.get(i));
-                        break;
-                    case "white_list_gw":
-                        phoneSale.setWhiteListGw(datas.get(i));
-                        break;
-                    case "white_list_fp":
-                        phoneSale.setWhiteListFp(datas.get(i));
-                        break;
-                    case "white_list_yc":
-                        phoneSale.setWhiteListYc(datas.get(i));
                         break;
                     case "extend":
                         String s = extSetFields.get(i);
