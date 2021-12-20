@@ -1,13 +1,12 @@
 package com.br.marketing.check.service.Impl;
-import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.service.AbstractDataToDbService;
-import com.br.marketing.check.thread.ValidatorSmallFileThread;
+import com.br.marketing.check.strategy.sftp.SftpEnvironment;
+import com.br.marketing.check.strategy.sftp.juzi.JuZiStockOrRegister;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -16,7 +15,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.LoadResult;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.PhoneSale;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -27,12 +29,13 @@ import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import javax.xml.ws.soap.Addressing;
 import java.io.*;
-import java.util.concurrent.Future;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -78,15 +81,18 @@ public class SftpToDbByDXService {
     @Autowired
     DecodeClient decodeClient;
 
+    @Resource
+    private SftpEnvironment sftpEnvironment;
+
     private static String phoneReg = "^([\\+]*[0-9]+)$";
 
-    private final static Integer SPLITSIZE=5000;
+    private final static Integer SPLITSIZE = 5000;
 
     public Boolean dowloadFile(FileContext context) {
-        String localFilePath=context.getLocalTxtFilePath();
-        String zipFileName=context.getTxtFileName();
-        SftpClient client =(SftpClient)context.getBaseFtpClient();
-        File dir=new File(localFilePath);
+        String localFilePath = context.getLocalTxtFilePath();
+        String zipFileName = context.getTxtFileName();
+        SftpClient client = (SftpClient) context.getBaseFtpClient();
+        File dir = new File(localFilePath);
         if(!dir.exists()||!dir.isDirectory()){
             boolean mkdirs = dir.mkdirs();
             if(!mkdirs){
@@ -107,28 +113,37 @@ public class SftpToDbByDXService {
         String txtFilePathAndName=context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
-        if(totalLines==0){
-            log.error(String.format("%s 文件内容为空",context.getTxtFileName()));
+        if (totalLines == 0) {
+            log.error(String.format("%s 文件内容为空", context.getTxtFileName()));
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("4");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
-        head=MyFileUtil.gethead(txtFilePathAndName);
-
         HashMap<Integer, String> address = new HashMap<>();
         HashMap<Integer, String> extSetField = new HashMap<>();
-        Result hashMapResult = SftpToDbUtils.statisticsHead(head.toString(),address,extSetField);
-        if(!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())){
-            log.error(String.format("%s 文件：%s",context.getTxtFileName(),hashMapResult.getMessage()));
+        Result hashMapResult;
+        switch (context.getApiCode()) {
+            case "7410787": // 桔子测试
+            case "3710037": // 桔子
+                // 设置策略为桔子
+                sftpEnvironment.setSftpStrategy(new JuZiStockOrRegister());
+                // 统计head
+                hashMapResult = sftpEnvironment.statisticsHead(context, address, extSetField);
+                break;
+            default:
+                head = MyFileUtil.gethead(txtFilePathAndName);
+                hashMapResult = SftpToDbUtils.statisticsHead(head.toString(), address, extSetField);
+        }
+        if (!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())) {
+            log.error(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
-
         long start = System.currentTimeMillis();
 
         String filepath = context.getLocalTxtFilePath().concat(context.getTxtFileName());
@@ -136,30 +151,37 @@ public class SftpToDbByDXService {
         try(
                 FileReader read = new FileReader(filepath);
                 BufferedReader br = new BufferedReader(read);) {
-            String row;
             Integer line = 1;
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
-            while ((row = br.readLine()) != null) {
-                String trim = row.trim();
-                if(StringUtils.isNotEmpty(row)&&StringUtils.isNotEmpty(trim)){
-                    if(line>1){
-                        Integer lineNum = line;
-                        threadPool.submit(()->{
-                            PhoneSale phoneSale = new PhoneSale();
-                            phoneSale.setApiCode(localFile.getApiCode());
-                            phoneSale.setLocalId(localFile.getId().toString());
-                            setDataByPhone(trim,phoneSale,address,extSetField,errorMark,lineNum);
-                        });
+            switch (context.getApiCode()) {
+                case "7410787": // 桔子 测试账户
+                case "3710037": // 桔子
+                    sftpEnvironment.setDataByPhone(br, threadPool, localFile, address, extSetField, errorMark, line);
+                    break;
+                default:
+                    String row;
+                    while ((row = br.readLine()) != null) {
+                        String trim = row.trim();
+                        if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                            if (line > 1) {
+                                Integer lineNum = line;
+                                threadPool.submit(() -> {
+                                    PhoneSale phoneSale = new PhoneSale();
+                                    phoneSale.setApiCode(localFile.getApiCode());
+                                    phoneSale.setLocalId(localFile.getId().toString());
+                                    setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
+                                });
+                            }
+                        }
+                        line++;
                     }
-                }
-                line++;
             }
             /**
              * 等待所有任务都执行完成
              **/
             threadPool.shutdown();
-            while (true){
-                if(threadPool.isTerminated()){
+            while (true) {
+                if (threadPool.isTerminated()) {
                     log.info("所有线程都执行结束");
                     break;
                 }
