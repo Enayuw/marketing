@@ -335,7 +335,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVOs));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVO));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
