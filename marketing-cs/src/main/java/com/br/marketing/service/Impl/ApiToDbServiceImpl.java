@@ -109,7 +109,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     @Autowired
     SoleStrategyService soleStrategyService;
-    
+
     final static DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -119,6 +119,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     @Autowired
     MarketingSepService marketingSepService;
+
     @Override
     public Long getTaskContextId(){
         return redisChgService.incr(redisElasticJobKey);
@@ -410,6 +411,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
 
     /**
      * 写入数据库
+     *
      * @param syncUserByRuleScore
      * @param apiCode
      * @param batchNumber

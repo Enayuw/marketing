@@ -88,7 +88,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
 
-    @Resource
+    @Autowired
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     @Autowired
@@ -300,7 +300,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             BufferedReader br = new BufferedReader(read);){
             List<MarketingUser> list=new ArrayList<>();
             while ((row = br.readLine()) != null) {
-                String[] split = row.split("#");
+                String[] split = row.split(",");
                 log.info("split length{}",split.length);
                 MarketingUser lu=new MarketingUser();
                 lu.setApiCode(apiCode);
@@ -335,7 +335,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVO));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVOs));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
