@@ -98,6 +98,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             //fastTaskRule.setRuleNumber("F20211210008");//任务编号
             fastTaskRule.setTaskType(vo.getTaskType());//跑分类型
             fastTaskRule.setDataIdDesc(vo.getDataIdDesc());//跑分数据,逗号分隔
+            fastTaskRule.setUntaskNum(vo.getUntaskNum());//未跑分数据量
             fastTaskRule.setDataType(vo.getDataType());//跑分范围
             fastTaskRule.setRuleId(Long.parseLong(s));//跑分规则
             fastTaskRule.setTaskTime(vo.getTaskTime());//跑分日期
