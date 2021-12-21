@@ -12,6 +12,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +45,8 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
 
     @Autowired
     FastFileRelationMapper fastFileRelationMapper;
+
+    private final DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
     public Result<List<CustomerSoleRuleVO>> getSoleConfig(String apiCode) {
@@ -136,11 +140,13 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
 
     @Override
     public Result<List<FastTaskRule>> getFastTaskRule(String apiCode) {
+        String nowDay = LocalDate.now().format(yyyyMMdd);
         FastTaskRuleExample ruleExample = new FastTaskRuleExample();
         ruleExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andStatusEqualTo(1)
-                .andIsDelEqualTo(1);
+                .andIsDelEqualTo(1)
+        .andTaskTimeGreaterThanOrEqualTo(nowDay);
         List<FastTaskRule> fastTaskRules = fastTaskRuleMapper.selectByExample(ruleExample);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(fastTaskRules);
     }
