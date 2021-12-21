@@ -1,16 +1,11 @@
 package com.br.marketing.check.job;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.service.Impl.*;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -20,7 +15,6 @@ import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
-import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -30,7 +24,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -110,11 +105,14 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     ITxtToDbService iTxtToDbService;
 
     List<String> xwList;
+    Set<String> juZiList;
 
     @PostConstruct
     void init(){
         xwList = new ArrayList<>();
         xwList.add("4004666");
+        juZiList = new HashSet<>();
+        juZiList.add("3710037");
     }
     /**
      *  1、先从customer读取客户
@@ -183,9 +181,13 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
             String s = redisChgService.get(RedisKeyConstant.fileToDbByXw);
-            if(StringUtils.isNotBlank(s)){
+            if (StringUtils.isNotBlank(s)) {
                 List xws = Splitter.on(",").splitToList(s);
                 xwList.addAll(xws);
+            }
+            String juZiCodes = redisChgService.get(RedisKeyConstant.fileToDbByJuZi);
+            if (StringUtils.isNotBlank(juZiCodes)) {
+                juZiList.addAll(Splitter.on(",").splitToList(juZiCodes));
             }
             for (String fileName : fileNames) {
                 if(fileName.endsWith(".txt")){
@@ -220,8 +222,15 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                         , localFile
                                         , baseHeads
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
-                                        ,iTxtToDbService::phoneTodbByXW);
-                            }else {
+                                        , iTxtToDbService::phoneTodbByXW);
+                            } else if (juZiList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("测试编号", "md5手机号", "客群类型"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
+                                        , iTxtToDbService::phoneTodbByJuZi);
+                            } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
