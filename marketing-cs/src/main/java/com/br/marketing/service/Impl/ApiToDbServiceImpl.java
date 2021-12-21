@@ -1158,6 +1158,10 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     List<String> userTypes = conditions.get(s);
                     Long minId = marketingSyncUserMapper.minId(apiCode, s, dataType, userTypes);
                     if (minId ==null || minId <= 0) {
+                        FastTaskRule updateRule = new FastTaskRule();
+                        updateRule.setStatus(0);
+                        updateRule.setId(rule.getId());
+                        fastTaskRuleMapper.updateByPrimaryKeySelective(updateRule);
                         continue;
                     }
                     if (StringUtils.isBlank(batchNumber)) {
