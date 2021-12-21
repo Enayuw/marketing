@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.FastTaskRule;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.CustomerSoleRuleVO;
 
@@ -25,4 +26,8 @@ public interface IRuleConfigService {
      */
     Result<List<CustomerScoreRuleVO>> getScoreConfig(String apiCode);
 
+
+    Result<List<FastTaskRule>> getFastTaskRule(String apiCode);
+
+    Result checkFastTaskRule(FastTaskRule rule);
 }

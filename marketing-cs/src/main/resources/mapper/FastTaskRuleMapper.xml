@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.FastTaskRuleMapper" >
+    <select id="selectList" resultType="com.br.marketing.vo.FastTaskRuleListVO">
+        select bftr.id, bftr.status,
+        bftr.rule_name as ruleName,
+        bftr.rule_number as ruleNumber,
+        bftr.api_code as apiCode,
+        bftr.task_time as taskTime,
+        bmc.cid ,bmc.short_name as cName,
+        case
+        when shf.status is null then 0
+        when shf.status=2 then 2
+        when shf.status=0 then 1
+        when shf.status=1 then 1
+        when shf.status=3 then 1
+        else '-' end as taskStatus,
+        DATE_FORMAT(bftr.create_time,'%Y-%m-%d %H:%i:%s') as createTime,
+        DATE_FORMAT(bftr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        from b_fast_task_rule bftr
+        left join b_marketing_customer bmc on bftr.api_code=bmc.api_code
+        left join b_fast_file_relation bfr on bftr.id=bfr.fast_task_id
+        left join stra_his_file shf on bfr.file_id=shf.id
+        where bftr.is_del = 1
+        <if test="status !=null">
+            and bftr.status = #{status}
+        </if>
+        <if test="search !=null and search!=''">
+            and (bftr.rule_name like concat("%", #{search},"%")
+            or bftr.rule_number like concat("%", #{search},"%")
+            or bftr.api_code like concat("%", #{search},"%")
+            or bmc.cid like concat("%", #{search},"%"))
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bftr.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bftr.create_time <#{createTimeEnd} ]]>
+        </if>
+        <if test="updateTimeStart !=null and updateTimeStart!=''">
+            <![CDATA[  and bftr.update_time >=#{updateTimeStart} ]]>
+        </if>
+        <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+            <![CDATA[  and bftr.update_time <#{updateTimeEnd} ]]>
+        </if>
+        <if test="taskStatus==0 ">
+            and shf.status is null and bftr.status=1
+        </if>
+        <if test="taskStatus==2 ">
+            and shf.status = 2 and bftr.status=1
+        </if>
+        <if test="taskStatus==1 ">
+            and shf.status in(0,1,3) and bftr.status=1
+        </if>
+        order by bftr.update_time desc,bftr.create_time desc,bftr.id desc
+    </select>
+
+    <select id="getUnScoreNum" resultType="int">
+        select count(*) from b_marketing_sync_${apiCode}
+        where applet_date =#{appletDate} and user_type=#{userType} and is_task=1 and status=1
+    </select>
+</mapper>

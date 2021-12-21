@@ -88,7 +88,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
 
-    @Resource
+    @Autowired
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     @Autowired
@@ -97,7 +97,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
-    private final static String RedisEsOpen="es:open";
+    @Autowired
+    FastFileRelationMapper fastFileRelationMapper;
+
+    private final static String RedisEsOpen = "es:open";
 
     final static Integer allMonitorType = 4;
 
@@ -108,6 +111,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      * 3、失败数据重试
      * 4、删掉失败数据的redis
      * 5、修改跑分分片状态表记录 并且查询该分片所在的任务是不是都已经跑完，如果跑完更新跑分记录表。
+     *
      * @param customer
      * @param context
      */
@@ -394,22 +398,28 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(!fileMark){
                 log.error("创建跑分记录有问题，校验redis或者tidb网络是否有问题:apiCode:{} batchNumber：{}",blt.getApiCode(), blt.getBatchNumber());
                 continue;
-            }
+            } StringBuilder addTaskContent = new StringBuilder();
+            addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
+            sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
             core(blt,descPath,true,productJson,warrningExecutor,blf.getId().toString(),customer);
 
             if(TaskExecCommonField.isExecTaskJob.equals(2)){
                 TaskExecCommonField.isExecTaskJob = 3;
                 StringBuilder content = new StringBuilder();
                 content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
-                alarmClient.sendAlarm(content.toString(),"跑分暂停",appName,secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
+                sendContent(content.toString(), "跑分暂停", Constants.sendCodeMap.get("uploadSuccess"));
             }
         }
 
     }
 
+    private void sendContent(String msg, String title, String code) {
+        alarmClient.sendAlarm(msg, title, appName, secretKey, code);
+    }
+
     /**
      * 提交任务
+     *
      * @param blt
      * @param descPath
      */
@@ -668,7 +678,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(redisChgService.setnx(key,v,2).equals(1L)){
                 loanFileMapper.insertFile(blf);
                 task.setFileId(blf.getId());
-                if(pList != null) {
+
+                FastFileRelation record = new FastFileRelation();
+                record.setFileId(blf.getId());
+                FastFileRelationExample updateExample = new FastFileRelationExample();
+                updateExample.createCriteria().andTaskIdEqualTo(task.getId()).andIsDelEqualTo(1);
+                fastFileRelationMapper.updateByExampleSelective(record, updateExample);
+
+                if (pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);
                         MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
@@ -731,17 +748,18 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             return showTitle;
 
         }
-        if(allMonitorType.equals(task.getMonitorType())){
+        if (allMonitorType.equals(task.getMonitorType())) {
             return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
         }
         return task.getCusBatch();
     }
-    private ScoreRuleConfig getScoreRuleConfig(MarketingTask task){
 
-        ScoreRuleConfig scoreRuleConfig=null;
+    private ScoreRuleConfig getScoreRuleConfig(MarketingTask task) {
+
+        ScoreRuleConfig scoreRuleConfig = null;
         MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
-        if(marketingTaskExtend !=null) {
-            scoreRuleConfig= scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
+        if (marketingTaskExtend != null) {
+            scoreRuleConfig = scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
         }
         return scoreRuleConfig;
     }
