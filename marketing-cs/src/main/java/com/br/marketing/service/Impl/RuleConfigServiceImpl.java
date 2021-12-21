@@ -146,7 +146,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
                 .andApiCodeEqualTo(apiCode)
                 .andStatusEqualTo(1)
                 .andIsDelEqualTo(1)
-        .andTaskTimeGreaterThanOrEqualTo(nowDay);
+        .andTaskTimeLessThanOrEqualTo(nowDay);
         List<FastTaskRule> fastTaskRules = fastTaskRuleMapper.selectByExample(ruleExample);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(fastTaskRules);
     }
