@@ -224,6 +224,56 @@ public class PhoneSale {
     private String region;
 
     /**
+     * 近3天是否申请：1是0否
+     */
+    private String yxFlag3d;
+
+    /**
+     * 近7天是否申请：1是0否
+     */
+    private String yxFlag7d;
+
+    /**
+     * 近15天是否申请：1是0否
+     */
+    private String yxFlag15d;
+
+    /**
+     * 近30天是否申请：1是0否
+     */
+    private String yxFlag1m;
+
+    /**
+     * 是否有房：1是0否
+     */
+    private String personFlagHouse;
+
+    /**
+     * 是否有车：1是0否
+     */
+    private String personFlagCar;
+
+    /**
+     * 是否有寿险：1是0否
+     */
+    private String personFlagInsur;
+
+    /**
+     * 是否命中国网白名单：1是0否
+     */
+    private String whiteListGw;
+
+    /**
+     * 是否命中发票白名单：1是0否
+     */
+    private String whiteListFp;
+
+    /**
+     * 是否命中烟草白名单：1是0否
+     */
+    private String whiteListYc;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -588,6 +638,86 @@ public class PhoneSale {
 
     public void setRegion(String region) {
         this.region = region == null ? null : region.trim();
+    }
+
+    public String getYxFlag3d() {
+        return yxFlag3d;
+    }
+
+    public void setYxFlag3d(String yxFlag3d) {
+        this.yxFlag3d = yxFlag3d == null ? null : yxFlag3d.trim();
+    }
+
+    public String getYxFlag7d() {
+        return yxFlag7d;
+    }
+
+    public void setYxFlag7d(String yxFlag7d) {
+        this.yxFlag7d = yxFlag7d == null ? null : yxFlag7d.trim();
+    }
+
+    public String getYxFlag15d() {
+        return yxFlag15d;
+    }
+
+    public void setYxFlag15d(String yxFlag15d) {
+        this.yxFlag15d = yxFlag15d == null ? null : yxFlag15d.trim();
+    }
+
+    public String getYxFlag1m() {
+        return yxFlag1m;
+    }
+
+    public void setYxFlag1m(String yxFlag1m) {
+        this.yxFlag1m = yxFlag1m == null ? null : yxFlag1m.trim();
+    }
+
+    public String getPersonFlagHouse() {
+        return personFlagHouse;
+    }
+
+    public void setPersonFlagHouse(String personFlagHouse) {
+        this.personFlagHouse = personFlagHouse == null ? null : personFlagHouse.trim();
+    }
+
+    public String getPersonFlagCar() {
+        return personFlagCar;
+    }
+
+    public void setPersonFlagCar(String personFlagCar) {
+        this.personFlagCar = personFlagCar == null ? null : personFlagCar.trim();
+    }
+
+    public String getPersonFlagInsur() {
+        return personFlagInsur;
+    }
+
+    public void setPersonFlagInsur(String personFlagInsur) {
+        this.personFlagInsur = personFlagInsur == null ? null : personFlagInsur.trim();
+    }
+
+    public String getWhiteListGw() {
+        return whiteListGw;
+    }
+
+    public void setWhiteListGw(String whiteListGw) {
+        this.whiteListGw = whiteListGw == null ? null : whiteListGw.trim();
+    }
+
+    public String getWhiteListFp() {
+        return whiteListFp;
+    }
+
+    public void setWhiteListFp(String whiteListFp) {
+        this.whiteListFp = whiteListFp == null ? null : whiteListFp.trim();
+    }
+
+    public String getWhiteListYc() {
+        return whiteListYc;
+    }
+
+    public void setWhiteListYc(String whiteListYc) {
+        this.whiteListYc = whiteListYc == null ? null : whiteListYc.trim();
     }
 
     public String getExtend() {

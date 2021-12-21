@@ -1,34 +1,31 @@
 package com.br.marketing.check.job;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.service.Impl.DeleteService;
-import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
-import com.br.marketing.check.service.Impl.SftpToDbByDXService;
-import com.br.marketing.check.service.Impl.SftpToDbService;
+import com.br.marketing.check.service.Impl.*;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
-import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,7 +96,24 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     SftpToDbByDXService sftpToDbByDXService;
 
     @Autowired
+    SftpToDbByCommonService sftpToDbByCommonService;
+
+    @Autowired
     LocalFileMapper localFileMapper;
+
+    @Autowired
+    ITxtToDbService iTxtToDbService;
+
+    List<String> xwList;
+    Set<String> juZiList;
+
+    @PostConstruct
+    void init() {
+        xwList = new ArrayList<>();
+        xwList.add("4004666");
+        juZiList = new HashSet<>();
+        juZiList.add("3710037");
+    }
     /**
      *  1、先从customer读取客户
      *  2、再从sftp配置表读取路径
@@ -166,9 +180,17 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
             Set<String> fileNames = entry.getValue();
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
-
+            String s = redisChgService.get(RedisKeyConstant.fileToDbByXw);
+            if (StringUtils.isNotBlank(s)) {
+                List xws = Splitter.on(",").splitToList(s);
+                xwList.addAll(xws);
+            }
+            String juZiCodes = redisChgService.get(RedisKeyConstant.fileToDbByJuZi);
+            if (StringUtils.isNotBlank(juZiCodes)) {
+                juZiList.addAll(Splitter.on(",").splitToList(juZiCodes));
+            }
             for (String fileName : fileNames) {
-                if(fileName.endsWith(".txt")){
+                if (fileName.endsWith(".txt")) {
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);
@@ -187,13 +209,36 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                         localFile.setLocalPath(context.getLocalTxtFilePath());
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
+                        localFile.setFileType("dianxiao");
                         localFileMapper.insertSelective(localFile);
 
                         try {
                             String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                             sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
-                            sftpToDbByDXService.actionTxtFile(context,localFile);
+                            if (xwList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "user_type"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
+                                        , iTxtToDbService::phoneTodbByXW);
+                            } else if (juZiList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("测试编号", "md5手机号", "客群类型"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
+                                        , iTxtToDbService::phoneTodbByJuZi);
+                            } else {
+                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
+                                        , iTxtToDbService::phoneTodb);
+                            }
+//                            sftpToDbByDXService.actionTxtFile(context,localFile);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
