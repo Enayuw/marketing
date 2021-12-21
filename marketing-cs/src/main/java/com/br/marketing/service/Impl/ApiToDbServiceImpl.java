@@ -913,6 +913,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     task.setCusBatch(customerScoreRuleVO.getId().toString());
                     task.setActualNumber(actNum);
                     task.setTaskNumber(taskNum);
+                    task.setTaskType(customerScoreRuleVO.getTaskType());
+                    task.setProductInfo(customerScoreRuleVO.getProductInfo());
                     String s = DateUtils.format(new Date(), "yyyy-MM-dd");
                     task.setMonitorType(customerScoreRuleVO.getExecType());
                     if (Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
@@ -1213,6 +1215,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         task.setTaskType(rule.getTaskType());
                         task.setStatus(1);
                         task.setStrategyId(rule.getStrategyId());
+                        task.setProductInfo(rule.getProductInfo());
                         task.setFileName(String.format("%s_%s", rule.getId().toString(), rule.getRuleNumber()));
                         task.setCusBatch(rule.getId().toString());
                         task.setActualNumber(actNum);
