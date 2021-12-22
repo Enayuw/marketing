@@ -63,6 +63,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -1479,7 +1480,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             String requestId = info.getRequestId();
             // 2 获取分表后缀
-            String tcId = tableCreateService.getTcId(apiCode);
+            String key = "marketing:innerapi:transfer:cid:".concat(apiCode);
+            String cId = redisChgService.get(key);
+            if (StringUtils.isEmpty(cId)) {
+                cId = tableCreateService.getTcId(apiCode);
+                // 缓存七天
+                redisChgService.setex(key, cId, 7 * 86400);
+            }
+            final String tcId = cId;
             // 3 获取转化数据,
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
             example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
@@ -1490,7 +1498,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<PushTransferCustomerLog> logListAll = new ArrayList<>();
             label:
             for (; ; ) {
-                PageHelper.startPage(page, pageSize).setOrderBy(" id ASC");
+                PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
                 int size = transferList.size();
                 PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
@@ -1856,7 +1864,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         Assert.notNull(transferInfo, "'requestId'不可为null");
         String title = "接口转化(通用标准)数据同步到智能客服警告";
         // 1 获取分表后缀
-        String tcId = tableCreateService.getTcId(apiCode);
+        String key = "marketing:innerApi:transfer:cid:".concat(apiCode);
+        String tcId = redisChgService.get(key);
+        if (StringUtils.isEmpty(tcId)) {
+            tcId = tableCreateService.getTcId(apiCode);
+            SecureRandom random = new SecureRandom();
+            // 缓存3~7天
+            redisChgService.setex(key, tcId, (random.nextInt(7) % 5 + 3) * 86400);
+        }
         // 2 获取转化数据
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
@@ -1916,9 +1931,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
                 if (!outboundVO.getAccessNumber().equals("-1")) {
                     pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
-                } else if (apiCode.equals("3710018")) {
-                    // 海尔验证数量bug临时记录日志到数据库 2021-12-8 22:50:32
-                    pushTransferRobotaiLogService.save2Log(transferInfo, robotOutboundDTO, outboundVO);
                 }
                 list.add(outboundVO);
             }
