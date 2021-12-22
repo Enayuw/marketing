@@ -1431,6 +1431,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 队列模式，false 后人先出，true 先进先出
             false);
 
+    private final String cidKey = "marketing:innerapi:transfer:cid:";
 
     @Override
     @Transactional
@@ -1480,12 +1481,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             String requestId = info.getRequestId();
             // 2 获取分表后缀
-            String key = "marketing:innerapi:transfer:cid:".concat(apiCode);
-            String cId = redisChgService.get(key);
-            if (StringUtils.isEmpty(cId)) {
+            String key = cidKey.concat(apiCode);
+            String cId;
+            try {
+                cId = redisChgService.get(key);
+                if (StringUtils.isEmpty(cId)) {
+                    cId = tableCreateService.getTcId(apiCode);
+                    // 缓存七天
+                    redisChgService.setex(key, cId, 7 * 86400);
+                }
+            } catch (Exception e) {
                 cId = tableCreateService.getTcId(apiCode);
-                // 缓存七天
-                redisChgService.setex(key, cId, 7 * 86400);
+                log.error(e.getMessage(), e);
             }
             final String tcId = cId;
             // 3 获取转化数据,
@@ -1864,13 +1871,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         Assert.notNull(transferInfo, "'requestId'不可为null");
         String title = "接口转化(通用标准)数据同步到智能客服警告";
         // 1 获取分表后缀
-        String key = "marketing:innerApi:transfer:cid:".concat(apiCode);
-        String tcId = redisChgService.get(key);
-        if (StringUtils.isEmpty(tcId)) {
+        String key = cidKey.concat(apiCode);
+        String tcId;
+        try {
+            tcId = redisChgService.get(key);
+            if (StringUtils.isEmpty(tcId)) {
+                tcId = tableCreateService.getTcId(apiCode);
+                SecureRandom random = new SecureRandom();
+                // 缓存3~7天
+                redisChgService.setex(key, tcId, (random.nextInt(7) % 5 + 3) * 86400);
+            }
+        } catch (Exception e) {
             tcId = tableCreateService.getTcId(apiCode);
-            SecureRandom random = new SecureRandom();
-            // 缓存3~7天
-            redisChgService.setex(key, tcId, (random.nextInt(7) % 5 + 3) * 86400);
+            log.error(e.getMessage(), e);
         }
         // 2 获取转化数据
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
