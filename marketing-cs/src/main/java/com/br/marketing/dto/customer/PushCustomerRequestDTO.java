@@ -35,6 +35,7 @@ public class PushCustomerRequestDTO implements Serializable {
         this.jsonData = JSONObject.toJSONString(new JsonData(transferStatus, "addYiXinTransferData"
                 , PushTransferToCustomerDTO.ListOf(requestData)
                 , LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+//                , LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)), SerializerFeature.WriteMapNullValue);
 
     }
 
@@ -230,7 +231,7 @@ public class PushCustomerRequestDTO implements Serializable {
             if (CollectionUtils.isEmpty(list)) {
                 return null;
             }
-            return list.stream().map(transfer -> {
+            return list.stream().filter(syncUser -> !StringUtils.isEmpty(syncUser.getInsertTime())).map(transfer -> {
                 String reserveField1 = transfer.getReserveField1();
                 ReserveField1 reserveField2;
                 try {
