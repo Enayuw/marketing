@@ -1453,10 +1453,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             String requestId = info.getRequestId();
             // 2 获取分表后缀
-            String key = "marketing:innerApi:transfer:".concat(apiCode);
+            String key = "marketing:innerapi:transfer:cid:".concat(apiCode);
             String cId = redisChgService.get(key);
-            if (cId == null) {
+            if (StringUtils.isEmpty(cId)) {
                 cId = tableCreateService.getTcId(apiCode);
+                // 缓存七天
                 redisChgService.setex(key, cId, 7 * 86400);
             }
             final String tcId = cId;
@@ -1836,12 +1837,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         Assert.notNull(transferInfo, "'requestId'不可为null");
         String title = "接口转化(通用标准)数据同步到智能客服警告";
         // 1 获取分表后缀
-        String key = "marketing:innerApi:transfer:".concat(apiCode);
+        String key = "marketing:innerApi:transfer:cid:".concat(apiCode);
         String tcId = redisChgService.get(key);
-        if (tcId == null) {
+        if (StringUtils.isEmpty(tcId)) {
             tcId = tableCreateService.getTcId(apiCode);
             SecureRandom random = new SecureRandom();
-            redisChgService.setex(key, tcId, (random.nextInt(7) % 7 + 1) * 86400);
+            // 缓存3~7天
+            redisChgService.setex(key, tcId, (random.nextInt(7) % 5 + 3) * 86400);
         }
         // 2 获取转化数据
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
