@@ -1429,6 +1429,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCode = info.getApiCode();
             Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
             result.setDate(true);
+            String hKey = "marketing:innerapi:tailor:apiCodeMap";
+            try {
+                if (redisChgService.exists(hKey)) {
+                    String bool = redisChgService.hget(hKey, apiCode);
+                    if (StringUtils.isNotBlank(bool)) {
+                        tailorApiCodeMap.put(apiCode, Boolean.valueOf(bool));
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
             if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
                 try {
                     info.setId(infoId);
