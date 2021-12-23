@@ -1491,15 +1491,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (; ; ) {
                 PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-                int size = transferList.size();
                 PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
+                transferList = transferList.stream().filter(syncUser -> StringUtils.isNotBlank(syncUser.getInsertTime()))
+                        .collect(Collectors.toList());
+                int size = transferList.size();
                 // 总页数
                 int pages = pageList.getPages();
                 boolean b = true;
                 // 处理开始标记
                 switch (transferStatus) {
                     case 0:
-                        if (size < 1) {
+                        if (pageList.getTotal() < 1) {
                             if (info.getActualNum() < 1) {
                                 PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
                                         new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
