@@ -231,7 +231,7 @@ public class PushCustomerRequestDTO implements Serializable {
             if (CollectionUtils.isEmpty(list)) {
                 return null;
             }
-            return list.stream().filter(syncUser -> !StringUtils.isEmpty(syncUser.getInsertTime())).map(transfer -> {
+            return list.stream().map(transfer -> {
                 String reserveField1 = transfer.getReserveField1();
                 ReserveField1 reserveField2;
                 try {
