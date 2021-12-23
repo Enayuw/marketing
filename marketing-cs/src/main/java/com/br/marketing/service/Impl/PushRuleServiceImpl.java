@@ -1405,6 +1405,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             false);
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
+    private final String hKey = "marketing:innerapi:tailor:apicodemap:";
 
     @Override
     @Transactional
@@ -1429,13 +1430,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCode = info.getApiCode();
             Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
             result.setDate(true);
-            String hKey = "marketing:innerapi:tailor:apiCodeMap";
             try {
-                if (redisChgService.exists(hKey)) {
-                    String bool = redisChgService.hget(hKey, apiCode);
-                    if (StringUtils.isNotBlank(bool)) {
-                        tailorApiCodeMap.put(apiCode, Boolean.valueOf(bool));
-                    }
+                String bool = redisChgService.get(hKey.concat(apiCode));
+                if (StringUtils.isNotBlank(bool)) {
+                    tailorApiCodeMap.put(apiCode, Boolean.valueOf(bool));
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
