@@ -1502,7 +1502,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (pageList.getTotal() < 1) {
                             if (info.getActualNum() < 1) {
                                 PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
-                                        new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                        new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
                                 pushTransferCustomerLog.setTransferStatus(transferStatus);
                                 logListAll.add(pushTransferCustomerLog);
                                 break label;
@@ -1512,6 +1512,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 sendAlarm(smg);
                                 return result;
                             }
+                        } else if (size < 1) {
+                            PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                    new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
+                            pushTransferCustomerLog.setTransferStatus(transferStatus);
+                            logListAll.add(pushTransferCustomerLog);
+                            break;
                         }
                         b = asyncPush(transferList, logListAll);
                         break;
@@ -1525,7 +1531,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             } else {
                                 // 检查是否有开始标记
                                 int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
-                                if (countStatus > 0) {
+                                if (countStatus > 0 || size < 1) {
                                     listEnd = transferList;
                                 } else {
                                     // 检查转化信息表是否出现过last为0数据
@@ -1576,7 +1582,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                     countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
                                     if (countStatus < 1) {
                                         PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
-                                                new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                                new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
                                         pushTransferCustomerLog.setTransferStatus(transferStatus);
                                         logListAll.add(pushTransferCustomerLog);
                                         break label;
@@ -1596,6 +1602,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 return result;
                             }
                         } else {
+                            if (size < 1) {
+                                PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                        new PushCustomerRequestDTO(apiCode, 0, transferList), 3, size);
+                                pushTransferCustomerLog.setTransferStatus(0);
+                                logListAll.add(pushTransferCustomerLog);
+                                break;
+                            }
                             b = asyncPush(transferList, logListAll);
                         }
                         break;
