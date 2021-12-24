@@ -98,7 +98,7 @@ api:
     apiCode: 4000296
   pushTransfer:
     robotAi:
-      baseUrl: http://robotai-api-service/api
+      baseUrl: http://robotai-api-service-pred
       robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
