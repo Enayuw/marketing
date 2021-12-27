@@ -107,7 +107,7 @@ api:
       robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
-        apiCodeMap: "{'3710012':'true','7410846':'true','7410787':'true','7410784':'true'}"
+        apiCodeMap: "{'3710012':'true','7410787':'true'}"
 #elastic-job配置
 SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
 NAMESPACE: marketing-job
