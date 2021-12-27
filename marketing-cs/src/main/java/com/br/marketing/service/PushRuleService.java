@@ -42,6 +42,8 @@ public interface PushRuleService {
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
+    Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+
     Result<Boolean> consumerPushCustomer(Long id);
 
     /**

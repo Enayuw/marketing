@@ -87,6 +87,12 @@ public class PushRuleFilterController {
         }
     }
 
+    @ApiOperation(value = "推送预览")
+    @PostMapping("/pushPreview")
+    public Result pushPreview(@RequestBody PushCustomerDTO dto){
+        return pushRuleService.pushPreview(dto);
+    }
+
     @ApiOperation(value = "测试消费")
     @GetMapping("/testConsumerCustomer")
     public Result testConsumerCustomer(Long id) {

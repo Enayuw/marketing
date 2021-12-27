@@ -131,7 +131,9 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         if(marketingTaskExtends.size()>0){
             MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
             if(StringUtils.isNotBlank(taskExtend.getExtendShowTitle())){
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(taskExtend.getExtendShowTitle());
+                BaseHeadConfigVO o = JSON.parseObject(taskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
+                }.getType());
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Joiner.on(",").join(o.getShowBaseHead()));
             }
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
