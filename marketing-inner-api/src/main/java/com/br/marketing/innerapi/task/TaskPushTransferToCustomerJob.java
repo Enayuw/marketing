@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -87,8 +88,10 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
         tempHeaders.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
         tempHeaders.setAccept(Collections.singletonList(MediaType.ALL));
         MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
+//        List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200
+//                , shardingTotalCount, shardingItems, 2);
         List<PushTransferCustomerLog> rows = pushTransferCustomerLogService.findListByStatusIs1(1, 200
-                , shardingTotalCount, shardingItems, 2);
+                , LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE), 2);
         if (rows.size() < 1) {
             logList = pushTransferCustomerLogService.findListByStatusIs1(1, 200
                     , shardingTotalCount, shardingItems, 0);
@@ -198,6 +201,7 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
                             "\n异常信息[%s]", customerLog.getApiCode(), customerLog.getRequestId(), updateLog.getCompensateTimes(), compensateTimes, e.getMessage());
                     sendAlarm(smg);
                 }
+                updateLog.setUpdateTime(new Date());
                 pushTransferCustomerLogService.updateByPrimaryKeySelective(updateLog);
                 postParameters.clear();
             } catch (Exception e) {

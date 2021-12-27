@@ -44,6 +44,20 @@ public interface PushTransferCustomerLogMapper extends PushTransferCustomerLogMa
             , @Param("shardingItems") List<Integer> shardingItems
             , @Param("transferStatus") int transferStatus);
 
+    @Select("<script> SELECT id," +
+            "api_code," +
+            "request_id," +
+            "compensate_times," +
+            "transfer_info_time," +
+            "request_body " +
+            "FROM b_marketing_push_transfer_customer_log " +
+            "WHERE create_time>=#{dateYYYYDDMMStr}" +
+            " and push_status = 1" +
+            " and transfer_status = #{transferStatus}" +
+            " </script>")
+    List<PushTransferCustomerLog> findListByStatusIs1AndDate(@Param("dateYYYYDDMMStr") String dateYYYYDDMMStr
+            , @Param("transferStatus") int transferStatus);
+
     /**
      * 根据ApiCode createTime 统计当天数据量
      *
