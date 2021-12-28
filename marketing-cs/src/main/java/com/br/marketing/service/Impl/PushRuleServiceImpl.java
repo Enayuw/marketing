@@ -30,6 +30,7 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -416,25 +417,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
                         .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
-                Optional<Product> first = marketingHistory.getCondition().stream().filter(t -> bcustomerInfoPushMain.getmModel().equals(t.getCode())
-                        && customerInfoPushMain.getmModelVersion().equals(t.getVersion())).findFirst();
-
-                //人员的变量信息
-                PushMarketingUserDetailVariablesDTO pushMarketingUserDetailVariablesDTO = new PushMarketingUserDetailVariablesDTO();
-                pushMarketingUserDetailVariablesDTO.setScoreDate(marketingHistory.getRequestTime() == null ? "" : (DateUtils.format(
-                        marketingHistory.getRequestTime(), "yyyy-MM-dd")));
-                pushMarketingUserDetailVariablesDTO.setScoreName(customerInfoPushMain.getmModel());
-                if (first.isPresent()) {
-                    pushMarketingUserDetailVariablesDTO.setScore(String.valueOf(first.get().getScore()));
-                }
-                TaskExtendInfoVO taskExtendInfoVO = hsTaskExtend.get(Long.valueOf(marketingHistory.getFileId()));
-                if (taskExtendInfoVO != null) {
-                    pushMarketingUserDetailVariablesDTO.setUpdate(taskExtendInfoVO.getUploadTime());
-                }
-                pushMarketingUserDetailVariablesDTO.setTaskId(marketingHistory.getTaskId());
-                pushMarketingUserDetailVariablesDTO.setGroupType(marketingHistory.getUserType());
-
-                dto1.setVariables(pushMarketingUserDetailVariablesDTO);
+                JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
+                varObject.put("taskId",marketingHistory.getTaskId());
+                varObject.put("userType",marketingHistory.getUserType());
+                dto1.setVariables(varObject);
                 userDetailDTOS.add(dto1);
             }
 
@@ -444,17 +430,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
 //                pushMarketingUserTaskInfoDTO.setStrategyCode("");
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + sn);
-            PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
-            extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
-            if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
-                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",")
-                        .concat(customerInfoPushMain.getmScoreMax().toString()));
-            }
-            if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
-                extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
-            }
-            extendDataDTO.setSampleTotal(sn);
-            pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
+//            PushMarketingExtendDataDTO extendDataDTO = new PushMarketingExtendDataDTO();
+//            extendDataDTO.setScoreName(customerInfoPushMain.getmModel());
+//            if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
+//                extendDataDTO.setScoreRange(customerInfoPushMain.getmScoreMin().toString().concat(",")
+//                        .concat(customerInfoPushMain.getmScoreMax().toString()));
+//            }
+//            if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
+//                extendDataDTO.setAmountTop(Convert.toStr(customerInfoPushMain.getmNumMin() - customerInfoPushMain.getmNumMax()));
+//            }
+//            extendDataDTO.setSampleTotal(sn);
+//            pushMarketingUserTaskInfoDTO.setExtendData(extendDataDTO);
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
             //传输参数信息

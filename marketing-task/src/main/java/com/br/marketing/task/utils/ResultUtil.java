@@ -98,7 +98,6 @@ public class ResultUtil {
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setBatchNumber(user.getBatchNumber());
             mh.setFileId(fileId);
-            mh.setReserveField(esResult.toJSONString());
             mh.setTaskId(user.getTaskId());
             mh.setUserType(user.getUserType());
             //region 写入condition
@@ -126,6 +125,7 @@ public class ResultUtil {
                 }
             }
             mh.setCondition(conditionList);
+            mh.setReserveField(esResult.toJSONString());
             //endregion
             String id = UuidUtils.getUuid();
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
