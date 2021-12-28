@@ -530,8 +530,8 @@ public class PushDataServiceImpl implements PushDataService{
         String tcId = redisChgService.get(key);
         if (StringUtils.isEmpty(tcId)) {
             tcId = tableCreateService.getTcId(apiCode);
-            // 缓存一天
-            redisChgService.setex(key, tcId, 24 * 3600);
+            // 缓存一周
+            redisChgService.setex(key, tcId, 7 * 24 * 3600);
         }
         // 3 获取转化数据,user_type=3
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
@@ -544,11 +544,29 @@ public class PushDataServiceImpl implements PushDataService{
             for (; ; ) {
                 Page<MarketingTransferSyncUser> pageInfo = PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-                if (CollectionUtils.isEmpty(transferList)) {
+                if (CollectionUtils.isEmpty(transferList) && page <= pageInfo.getPages()) {
                     String msg = String.format("海尔消金转化详情数据不存在！infoID:{%s};apiCode:{%s};requestId:{%s};tcid:{%s}" +
                                     "\n该数据将被放弃！"
                             , id, apiCode, requestId, tcId);
                     sendAlarm(msg);
+                    break;
+                }
+                /*
+                 *2021/12/28 10:46  推送电销逻辑
+                 * usertype   3
+                 * auditTime  非空非null（该字段有日期值）
+                 * lenttime   null或者该字段为空或无该字段
+                 * ifLent     0
+                 */
+                transferList = transferList.stream().filter(syncUser -> StringUtils.isNotEmpty(syncUser.getAuditTime())
+                        && !"null".equalsIgnoreCase(syncUser.getLentTime())
+                        && StringUtils.isEmpty(syncUser.getLentTime())
+                        && syncUser.getIfLent().equals("0")).collect(Collectors.toList());
+                if (transferList.size() < 1) {
+                    if (page < pageInfo.getPages()) {
+                        page++;
+                        continue;
+                    }
                     break;
                 }
                 Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
@@ -557,8 +575,11 @@ public class PushDataServiceImpl implements PushDataService{
                                     "\n该数据将被放弃！"
                             , id, apiCode, requestId, tcId);
                     sendAlarm(msg);
-                    page++;
-                    continue;
+                    if (page < pageInfo.getPages()) {
+                        page++;
+                        continue;
+                    }
+                    break;
                 }
                 List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
                 if (CollectionUtils.isEmpty(preUserByTask)) {
@@ -566,8 +587,11 @@ public class PushDataServiceImpl implements PushDataService{
                                     "\n该数据将被放弃！"
                             , id, apiCode, requestId, tcId);
                     sendAlarm(msg);
-                    page++;
-                    continue;
+                    if (page < pageInfo.getPages()) {
+                        page++;
+                        continue;
+                    }
+                    break;
                 }
                 Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
                         MarketingSyncUser::getCustNum, syncUser -> syncUser
