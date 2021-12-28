@@ -1,5 +1,6 @@
 package com.br.marketing.entity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -64,10 +65,10 @@ public class CustomerInfoPushMainExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -1104,9 +1105,209 @@ public class CustomerInfoPushMainExample {
             addCriterion("finish_time not between", value1, value2, "finishTime");
             return (Criteria) this;
         }
+
+        public Criteria andMRuleConditionIsNull() {
+            addCriterion("m_rule_condition is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionIsNotNull() {
+            addCriterion("m_rule_condition is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionEqualTo(String value) {
+            addCriterion("m_rule_condition =", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionNotEqualTo(String value) {
+            addCriterion("m_rule_condition <>", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionGreaterThan(String value) {
+            addCriterion("m_rule_condition >", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionGreaterThanOrEqualTo(String value) {
+            addCriterion("m_rule_condition >=", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionLessThan(String value) {
+            addCriterion("m_rule_condition <", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionLessThanOrEqualTo(String value) {
+            addCriterion("m_rule_condition <=", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionLike(String value) {
+            addCriterion("m_rule_condition like", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionNotLike(String value) {
+            addCriterion("m_rule_condition not like", value, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionIn(List<String> values) {
+            addCriterion("m_rule_condition in", values, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionNotIn(List<String> values) {
+            addCriterion("m_rule_condition not in", values, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionBetween(String value1, String value2) {
+            addCriterion("m_rule_condition between", value1, value2, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionNotBetween(String value1, String value2) {
+            addCriterion("m_rule_condition not between", value1, value2, "mRuleCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowIsNull() {
+            addCriterion("m_rule_condition_show is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowIsNotNull() {
+            addCriterion("m_rule_condition_show is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowEqualTo(String value) {
+            addCriterion("m_rule_condition_show =", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowNotEqualTo(String value) {
+            addCriterion("m_rule_condition_show <>", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowGreaterThan(String value) {
+            addCriterion("m_rule_condition_show >", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowGreaterThanOrEqualTo(String value) {
+            addCriterion("m_rule_condition_show >=", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowLessThan(String value) {
+            addCriterion("m_rule_condition_show <", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowLessThanOrEqualTo(String value) {
+            addCriterion("m_rule_condition_show <=", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowLike(String value) {
+            addCriterion("m_rule_condition_show like", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowNotLike(String value) {
+            addCriterion("m_rule_condition_show not like", value, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowIn(List<String> values) {
+            addCriterion("m_rule_condition_show in", values, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowNotIn(List<String> values) {
+            addCriterion("m_rule_condition_show not in", values, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowBetween(String value1, String value2) {
+            addCriterion("m_rule_condition_show between", value1, value2, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMRuleConditionShowNotBetween(String value1, String value2) {
+            addCriterion("m_rule_condition_show not between", value1, value2, "mRuleConditionShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageIsNull() {
+            addCriterion("m_percentage is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageIsNotNull() {
+            addCriterion("m_percentage is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageEqualTo(BigDecimal value) {
+            addCriterion("m_percentage =", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageNotEqualTo(BigDecimal value) {
+            addCriterion("m_percentage <>", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageGreaterThan(BigDecimal value) {
+            addCriterion("m_percentage >", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("m_percentage >=", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageLessThan(BigDecimal value) {
+            addCriterion("m_percentage <", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("m_percentage <=", value, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageIn(List<BigDecimal> values) {
+            addCriterion("m_percentage in", values, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageNotIn(List<BigDecimal> values) {
+            addCriterion("m_percentage not in", values, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("m_percentage between", value1, value2, "mPercentage");
+            return (Criteria) this;
+        }
+
+        public Criteria andMPercentageNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("m_percentage not between", value1, value2, "mPercentage");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();
