@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
@@ -44,13 +45,8 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
-    public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
-        try {
-            return pushRuleService.getBatchInfos(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
+    public ApiResult<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
+        return new ApiResult<List<ScoreDetailVo>>().fromResult(pushRuleService.getBatchInfos(dto),1);
     }
 
     /**
@@ -61,13 +57,8 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
-    public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
-        try {
-            return pushRuleService.getPushInfos(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
+    public ApiResult<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
+        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto),1);
     }
 
     /**
@@ -78,19 +69,14 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "推送客服")
     @PostMapping("/pushCustomer")
-    public Result pushCustomer(@RequestBody PushCustomerDTO dto) {
-        try {
-            return pushRuleService.pushCustomer(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
+    public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.pushCustomer(dto),1);
     }
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
-    public Result pushPreview(@RequestBody PushCustomerDTO dto){
-        return pushRuleService.pushPreview(dto);
+    public ApiResult pushPreview(@RequestBody PushCustomerDTO dto){
+        return new ApiResult().fromResult(pushRuleService.pushPreview(dto),1);
     }
 
     @ApiOperation(value = "测试消费")
