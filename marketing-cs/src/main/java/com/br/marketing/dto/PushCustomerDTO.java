@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Data
+
 public class PushCustomerDTO {
 
     @ApiModelProperty(value = "商户编号")
@@ -57,5 +57,91 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "百分比")
     private BigDecimal mPercentage;
 
+    public String getApiCode() {
+        return apiCode;
+    }
 
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode;
+    }
+
+    public String getUploadBeginTime() {
+        return uploadBeginTime;
+    }
+
+    public void setUploadBeginTime(String uploadBeginTime) {
+        this.uploadBeginTime = uploadBeginTime;
+    }
+
+    public String getUploadEndTime() {
+        return uploadEndTime;
+    }
+
+    public void setUploadEndTime(String uploadEndTime) {
+        this.uploadEndTime = uploadEndTime;
+    }
+
+    public String getScoreBeginTime() {
+        return scoreBeginTime;
+    }
+
+    public void setScoreBeginTime(String scoreBeginTime) {
+        this.scoreBeginTime = scoreBeginTime;
+    }
+
+    public String getScoreEndTime() {
+        return scoreEndTime;
+    }
+
+    public void setScoreEndTime(String scoreEndTime) {
+        this.scoreEndTime = scoreEndTime;
+    }
+
+    public List<String> getBatchNumberList() {
+        return batchNumberList;
+    }
+
+    public void setBatchNumberList(List<String> batchNumberList) {
+        this.batchNumberList = batchNumberList;
+    }
+
+    public List<Long> getFileIdList() {
+        return fileIdList;
+    }
+
+    public void setFileIdList(List<Long> fileIdList) {
+        this.fileIdList = fileIdList;
+    }
+
+    public String getmRuleCondition() {
+        return mRuleCondition;
+    }
+
+    public void setmRuleCondition(String mRuleCondition) {
+        this.mRuleCondition = mRuleCondition;
+    }
+
+    public String getmRuleConditionShow() {
+        return mRuleConditionShow;
+    }
+
+    public void setmRuleConditionShow(String mRuleConditionShow) {
+        this.mRuleConditionShow = mRuleConditionShow;
+    }
+
+    public Integer getmPlanNum() {
+        return mPlanNum;
+    }
+
+    public void setmPlanNum(Integer mPlanNum) {
+        this.mPlanNum = mPlanNum;
+    }
+
+    public BigDecimal getmPercentage() {
+        return mPercentage;
+    }
+
+    public void setmPercentage(BigDecimal mPercentage) {
+        this.mPercentage = mPercentage;
+    }
 }

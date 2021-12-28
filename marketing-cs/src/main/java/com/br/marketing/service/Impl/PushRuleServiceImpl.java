@@ -265,7 +265,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
-        Integer pushNum = total<dto.getMPlanNum()?total:dto.getMPlanNum();
+        Integer pushNum = total<dto.getmPlanNum()?total:dto.getmPlanNum();
         //endregion
 
         //region insert db
@@ -276,10 +276,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> showTitles = straHisFiles.stream().map(t -> t.getShowTitle()).collect(Collectors.toList());
         CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmRuleCondition(dto.getMRuleCondition());
-        customerInfoPushMain.setmRuleConditionShow(dto.getMRuleConditionShow());
-        customerInfoPushMain.setmPercentage(dto.getMPercentage());
-        customerInfoPushMain.setmPlanNum(dto.getMPlanNum());
+        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
+        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
+        customerInfoPushMain.setmPercentage(dto.getmPercentage());
+        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
         customerInfoPushMain.setmRealyNum(pushNum);
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
@@ -326,8 +326,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
-        if(dto.getMPercentage()!=null){
-            Integer res = dto.getMPercentage().multiply(new BigDecimal(total)).intValue();
+        if(dto.getmPercentage()!=null){
+            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).intValue();
             return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
         return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
