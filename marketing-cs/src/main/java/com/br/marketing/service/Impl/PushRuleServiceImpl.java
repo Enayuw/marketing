@@ -1928,10 +1928,29 @@ public class PushRuleServiceImpl implements PushRuleService {
              */
             if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
                 transferList = transferList.stream().filter(syncUser -> {
-                    String userType = syncUser.getUserType();
-                    if (userType.equals("3") || userType.equals("4")) {
-                        syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
-                        return true;
+//                    String userType = syncUser.getUserType();
+//                    if (userType.equals("3") || userType.equals("4")) {
+//                        syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
+//                        return true;
+//                    }
+//                    return false;
+                    switch (syncUser.getUserType()) {
+                        case "3":
+                          /* 2021-12-28 11:56:01 推送逻辑
+                             auditTime 	非空非null（该字段有日期值）
+                             ifLent      0
+                           */
+                            if (StringUtils.isNotEmpty(syncUser.getAuditTime())
+                                    && !"null".equalsIgnoreCase(syncUser.getAuditTime())
+                                    && "0".equals(syncUser.getIfLent())) {
+                                syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
+                                return true;
+                            }
+                            return false;
+                        case "4":
+                            syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
+                            return true;
+                        default:
                     }
                     return false;
                 }).collect(Collectors.toList());
