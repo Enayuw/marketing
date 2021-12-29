@@ -26,4 +26,35 @@
             and bcipm .is_del =1
             order by bcipm.id desc
     </select>
+
+    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO">
+        select id,
+        m_api_code as mApiCode,
+        m_cus_batch_number_list as mCusBatchNumberList,
+        m_rule_condition_show as mRuleConditionShow,
+        m_rule_condition as mRuleCondition,
+        m_realy_num as mRealyNum,
+        DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
+        m_status as mStatus
+        from b_customer_info_push_main
+        where is_del=1
+        <if test="mApiCode !=null and mApiCode !=''">
+            and m_api_code = #{mApiCode}
+        </if>
+        <if test="pushBeginTime !=null and pushBeginTime!=''">
+            <![CDATA[  and create_time >=#{pushBeginTime} ]]>
+        </if>
+        <if test="pushEndTime !=null and pushEndTime!=''">
+            <![CDATA[  and create_time <#{pushEndTime} ]]>
+        </if>
+        <if test="pushInfoId !=null and pushInfoId!=''">
+            and id = #{pushInfoId}
+        </if>
+        <if test="mStatus !=null and mStatus!=''">
+            and m_status = #{mStatus}
+        </if>
+        order by create_time desc,update_time desc,id desc
+    </select>
+
+
 </mapper>

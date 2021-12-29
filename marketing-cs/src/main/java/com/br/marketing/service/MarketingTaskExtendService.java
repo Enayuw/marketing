@@ -3,6 +3,8 @@ package com.br.marketing.service;
 
 import com.br.marketing.entity.MarketingTaskExtend;
 
+import java.util.List;
+
 public interface MarketingTaskExtendService {
 
 
@@ -12,4 +14,11 @@ public interface MarketingTaskExtendService {
      * @return
      */
    MarketingTaskExtend getMarketingTaskExtend(Long taskId);
+
+    /**
+     * 产品集合列表
+     * @param ids
+     * @return
+     */
+    List<String> getProducts(String ids);
 }
