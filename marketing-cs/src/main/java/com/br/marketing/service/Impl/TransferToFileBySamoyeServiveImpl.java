@@ -76,7 +76,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("2", "3"));
             Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("2", "3"));
             Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("2"));
-            int num = s01 + s02 + s08;
+            Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("2", "3"));
+            int num = s01 + s02 + s08+s0202;
             if(num>0){
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
@@ -98,7 +99,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         if(collect.get(2)==null||collect.get(2).size()<=0){
             Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("4"));
             Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("4"));
-            int num = s01 + s02;
+            Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("4"));
+            int num = s01 + s02+s0202;
             if(num>0){
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
@@ -140,10 +142,10 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         List<String> groupTyps = new ArrayList<>();
         if(transferFileTask.getFileType().equals(1)){
             fileName.append(samoyeDDprefix);
-            groupTyps = Arrays.asList("S01", "S02", "S08");
+            groupTyps = Arrays.asList("S01", "S02", "S08","S0202");
         }else{
             fileName.append(samoyeHYprefix);
-            groupTyps = Arrays.asList("S01", "S02");
+            groupTyps = Arrays.asList("S01", "S02","S0202");
         }
         fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
@@ -173,6 +175,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 fileTypes = transferFileTask.getFileType().equals(2)?Arrays.asList("4"):Arrays.asList("2", "3");
             }else if(groupType.equals("S08")){
                 fileTypes = Arrays.asList("2");
+            }else if(groupType.equals("S0202")){
+                fileTypes = transferFileTask.getFileType().equals(2)?Arrays.asList("4"):Arrays.asList("2", "3");
             }
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
