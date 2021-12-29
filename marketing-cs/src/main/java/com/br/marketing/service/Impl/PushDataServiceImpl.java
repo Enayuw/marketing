@@ -561,7 +561,7 @@ public class PushDataServiceImpl implements PushDataService{
                 transferList = transferList.stream().filter(syncUser -> StringUtils.isNotEmpty(syncUser.getAuditTime())
                         && !"null".equalsIgnoreCase(syncUser.getAuditTime())
                         && (StringUtils.isEmpty(syncUser.getLentTime()) || "null".equalsIgnoreCase(syncUser.getLentTime()))
-                        && StringUtils.isNotEmpty(syncUser.getIfLent()) && syncUser.getIfLent().equals("0")).collect(Collectors.toList());
+                        && "0".equals(syncUser.getIfLent())).collect(Collectors.toList());
                 if (transferList.size() < 1) {
                     if (page < pageInfo.getPages()) {
                         page++;
