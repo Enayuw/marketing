@@ -7,6 +7,8 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -70,6 +72,7 @@ public class PushRuleFilterController {
     @ApiOperation(value = "推送客服")
     @PostMapping("/pushCustomer")
     public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
+        dto.setUserDetail(ThreadContextInfo.getUser());
         return new ApiResult().fromResult(pushRuleService.pushCustomer(dto),1);
     }
 

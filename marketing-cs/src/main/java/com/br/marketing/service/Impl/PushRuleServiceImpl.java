@@ -286,6 +286,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setUpdateTime(date);
         customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
         customerInfoPushMain.setmStatus(1);
+        customerInfoPushMain.setOptUserId(dto.getUserDetail().getUserId());
+        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
         files.forEach(t -> {
@@ -357,11 +359,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
         queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
         queryBaseBean.setModelCode(customerInfoPushMain.getmModel());
-        queryBaseBean.setModelVersion(customerInfoPushMain.getmModelVersion());
-        if (customerInfoPushMain.getmScoreMin() != null && customerInfoPushMain.getmScoreMax() != null) {
-            queryBaseBean.setScoreRange(customerInfoPushMain.getmScoreMin().toString()
-                    .concat(",").concat(customerInfoPushMain.getmScoreMax().toString()));
-        }
         if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
             queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
                     .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
