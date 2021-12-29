@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.vo.BaseHead;
