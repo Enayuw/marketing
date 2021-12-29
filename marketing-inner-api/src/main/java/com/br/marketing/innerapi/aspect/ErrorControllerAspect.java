@@ -3,8 +3,11 @@ package com.br.marketing.innerapi.aspect;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
@@ -59,12 +62,14 @@ public class ErrorControllerAspect {
      * @return
      * @throws Throwable
      */
-    @Around("execution(public com.br.marketing.common.commondto.Result com.br.marketing.innerapi.controller..*.*(..))")
+    @Around("execution(public com.br.marketing.common.commondto.ApiResult com.br.marketing.innerapi.controller..*.*(..))")
     public Object handResultException(ProceedingJoinPoint jp) throws Throwable {
         try {
             Object rvt = jp.proceed();
             return rvt;
-        } catch (Throwable e) {
+        }catch (ParamValidErrorException ex){
+            return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(),ex.getMessage());
+        }catch (Throwable e) {
             try {
                 Result obj = new Result();
                 obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
