@@ -99,6 +99,16 @@ public class CustomerInfoPushMain {
      */
     private BigDecimal mPercentage;
 
+    /**
+     * 操作人id
+     */
+    private String optUserId;
+
+    /**
+     * 操作人姓名
+     */
+    private String optUserName;
+
     public Long getId() {
         return id;
     }
@@ -249,5 +259,21 @@ public class CustomerInfoPushMain {
 
     public void setmPercentage(BigDecimal mPercentage) {
         this.mPercentage = mPercentage;
+    }
+
+    public String getOptUserId() {
+        return optUserId;
+    }
+
+    public void setOptUserId(String optUserId) {
+        this.optUserId = optUserId == null ? null : optUserId.trim();
+    }
+
+    public String getOptUserName() {
+        return optUserName;
+    }
+
+    public void setOptUserName(String optUserName) {
+        this.optUserName = optUserName == null ? null : optUserName.trim();
     }
 }

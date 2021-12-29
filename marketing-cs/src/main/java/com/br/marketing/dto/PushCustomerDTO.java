@@ -1,5 +1,6 @@
 package com.br.marketing.dto;
 
+import com.br.marketing.dto.userinfo.UserDetail;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -56,6 +57,9 @@ public class PushCustomerDTO {
 
     @ApiModelProperty(value = "百分比")
     private BigDecimal mPercentage;
+
+    @ApiModelProperty(value = "用户信息",hidden = false)
+    private UserDetail userDetail;
 
     public String getApiCode() {
         return apiCode;
@@ -143,5 +147,13 @@ public class PushCustomerDTO {
 
     public void setmPercentage(BigDecimal mPercentage) {
         this.mPercentage = mPercentage;
+    }
+
+    public UserDetail getUserDetail() {
+        return userDetail;
+    }
+
+    public void setUserDetail(UserDetail userDetail) {
+        this.userDetail = userDetail;
     }
 }

@@ -1305,6 +1305,146 @@ public class CustomerInfoPushMainExample {
             addCriterion("m_percentage not between", value1, value2, "mPercentage");
             return (Criteria) this;
         }
+
+        public Criteria andOptUserIdIsNull() {
+            addCriterion("opt_user_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdIsNotNull() {
+            addCriterion("opt_user_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdEqualTo(String value) {
+            addCriterion("opt_user_id =", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdNotEqualTo(String value) {
+            addCriterion("opt_user_id <>", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdGreaterThan(String value) {
+            addCriterion("opt_user_id >", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdGreaterThanOrEqualTo(String value) {
+            addCriterion("opt_user_id >=", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdLessThan(String value) {
+            addCriterion("opt_user_id <", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdLessThanOrEqualTo(String value) {
+            addCriterion("opt_user_id <=", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdLike(String value) {
+            addCriterion("opt_user_id like", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdNotLike(String value) {
+            addCriterion("opt_user_id not like", value, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdIn(List<String> values) {
+            addCriterion("opt_user_id in", values, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdNotIn(List<String> values) {
+            addCriterion("opt_user_id not in", values, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdBetween(String value1, String value2) {
+            addCriterion("opt_user_id between", value1, value2, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserIdNotBetween(String value1, String value2) {
+            addCriterion("opt_user_id not between", value1, value2, "optUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameIsNull() {
+            addCriterion("opt_user_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameIsNotNull() {
+            addCriterion("opt_user_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameEqualTo(String value) {
+            addCriterion("opt_user_name =", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameNotEqualTo(String value) {
+            addCriterion("opt_user_name <>", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameGreaterThan(String value) {
+            addCriterion("opt_user_name >", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameGreaterThanOrEqualTo(String value) {
+            addCriterion("opt_user_name >=", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameLessThan(String value) {
+            addCriterion("opt_user_name <", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameLessThanOrEqualTo(String value) {
+            addCriterion("opt_user_name <=", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameLike(String value) {
+            addCriterion("opt_user_name like", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameNotLike(String value) {
+            addCriterion("opt_user_name not like", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameIn(List<String> values) {
+            addCriterion("opt_user_name in", values, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameNotIn(List<String> values) {
+            addCriterion("opt_user_name not in", values, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameBetween(String value1, String value2) {
+            addCriterion("opt_user_name between", value1, value2, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameNotBetween(String value1, String value2) {
+            addCriterion("opt_user_name not between", value1, value2, "optUserName");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
