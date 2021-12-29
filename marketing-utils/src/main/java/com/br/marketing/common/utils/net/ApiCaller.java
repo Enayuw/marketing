@@ -3,9 +3,6 @@ package com.br.marketing.common.utils.net;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -13,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Function;
 
 @Slf4j
 public class ApiCaller {

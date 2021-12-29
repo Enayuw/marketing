@@ -94,6 +94,11 @@ public class MarketingTask {
     private String cycleDay;
 
     private Integer dataVolume;
+    @JSONField(name = "task_type")
+    private Integer taskType;
+
+    @JSONField(name = "product_info")
+    private String productInfo;
 
     /**
      * 是否首次跑数，首次记录日志，否则不记录
@@ -155,6 +160,8 @@ public class MarketingTask {
                 ", index=" + index +
                 ", indexCount=" + indexCount +
                 ", fileId=" + fileId +
+                ", taskType=" + taskType +
+                ", product_info=" + productInfo +
                 '}';
     }
 }

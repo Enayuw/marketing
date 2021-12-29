@@ -63,7 +63,7 @@ public class PushTransferCustomerLog {
     /**
      * 入库时间
      */
-    private Date createTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+    private Date createTime;
 
     /**
      * 修改时间
@@ -137,6 +137,7 @@ public class PushTransferCustomerLog {
         this.httpStatus = httpStatus;
         this.httpReasonPhrase = httpReasonPhrase;
         this.pushStatus = pushStatus;
+        this.createTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public PushTransferCustomerLog(String apiCode, String requestBody, Integer rowSize, Integer pushStatus) {
@@ -144,6 +145,7 @@ public class PushTransferCustomerLog {
         this.requestBody = requestBody;
         this.rowSize = rowSize;
         this.pushStatus = pushStatus;
+        this.createTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public PushTransferCustomerLog(String apiCode, String requestBody, Integer rowSize, Integer pushStatus, Integer transferStatus) {
@@ -152,6 +154,7 @@ public class PushTransferCustomerLog {
         this.rowSize = rowSize;
         this.pushStatus = pushStatus;
         this.transferStatus = transferStatus;
+        this.createTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public PushTransferCustomerLog(Long transferInfoId, Date createTime, Date transferInfoTime, Integer pushStatus, Integer transferStatus) {

@@ -649,4 +649,15 @@ public class redis {
             }).start();
         }
     }
+
+    @Test
+    public void addvalueRedis(){
+        String key = "marketing:transfer:pushcustomer:apicode";
+        ArrayList<String> objects = new ArrayList<>();
+        objects.add("7410787");
+        objects.add("3710004");
+        objects.add("4004643");
+        objects.add("3710012");
+        redisChgService.sadd(key,objects);
+    }
 }

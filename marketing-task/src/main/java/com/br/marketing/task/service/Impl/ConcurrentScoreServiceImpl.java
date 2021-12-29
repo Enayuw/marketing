@@ -97,7 +97,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
-    private final static String RedisEsOpen="es:open";
+    @Autowired
+    FastFileRelationMapper fastFileRelationMapper;
+
+    private final static String RedisEsOpen = "es:open";
 
     final static Integer allMonitorType = 4;
 
@@ -108,6 +111,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      * 3、失败数据重试
      * 4、删掉失败数据的redis
      * 5、修改跑分分片状态表记录 并且查询该分片所在的任务是不是都已经跑完，如果跑完更新跑分记录表。
+     *
      * @param customer
      * @param context
      */
@@ -260,12 +264,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         if(flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())){
             flagproductlist = flagProduct.getData();
         }
-        String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(task.getApiCode()
-                ,task.getBatchNumber(),task.getStrategyId());
-        List<StrategyProductDetailVO> strategyProductDetailVOs = new ArrayList<>();
+        String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(task.getApiCode(),task.getBatchNumber());
+        StrategyProductDetailVO strategyProductDetailVO = new StrategyProductDetailVO();
         if(!StringUtils.isEmpty(strategyProductConfigStr)){
-            strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
-                    , new TypeReference<List<StrategyProductDetailVO>>() {
+            strategyProductDetailVO = JSON.parseObject(strategyProductConfigStr
+                    , new TypeReference<StrategyProductDetailVO>() {
                     }.getType());
         }
         MarketingTask marketingTask = marketingTaskMapper.queryBlt(batchNumber);
@@ -277,8 +280,16 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         paramMap.put("apiCode",apiCode);
         paramMap.put("batchNumber",batchNumber);
         LoanFile  file =loanFileMapper.selectFileComplete(paramMap);
-        String  strategyStr=strategyCS.strategyIdCheck(apiCode, marketingTask.getStrategyId());
-        if(StringUtils.isEmpty(strategyStr)){
+
+        String  productJson="";
+        if(marketingTask.getTaskType().compareTo(new Integer(0))==0){
+            productJson=strategyCS.strategyIdCheck(marketingTask.getApiCode(),marketingTask.getStrategyId());
+        }else if(marketingTask.getTaskType().compareTo(new Integer(1))==0){
+            return;
+        }else if(marketingTask.getTaskType().compareTo(new Integer(2))==0){
+            productJson=marketingTask.getProductInfo();
+        }
+        if(StringUtils.isEmpty(productJson)){
             log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",apiCode, marketingTask.getStrategyId());
             return;
         }
@@ -290,7 +301,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             BufferedReader br = new BufferedReader(read);){
             List<MarketingUser> list=new ArrayList<>();
             while ((row = br.readLine()) != null) {
-                String[] split = row.split(",");
+                String[] split = row.split("#");
                 log.info("split length{}",split.length);
                 MarketingUser lu=new MarketingUser();
                 lu.setApiCode(apiCode);
@@ -301,6 +312,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 lu.setName(split[4]);
                 lu.setStatus(1);
                 lu.setHitData(split[5]);
+                lu.setExtendJson(split[6]);
                 list.add(lu);
             }
             String[] split = errorFile.split("/");
@@ -314,7 +326,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("apiCode", marketingTask.getApiCode());
             param.put("strategyId", marketingTask.getStrategyId());
             param.put("path",descPath);
-            param.put("strategyStr",strategyStr);
+            param.put("strategyStr",productJson);
             param.put("sep",separator);
             param.put("batchNumber", marketingTask.getBatchNumber());
             param.put("cusBatchNumber",marketingTask.getFileName());
@@ -324,7 +336,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("fileId",file.getId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVOs));
+            warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVO));
         }catch (Exception e){
             log.error("重新处理画像异常数据出错:{},{}",errorFile,row,e);
         }
@@ -344,8 +356,15 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 log.error("该批次监控人数为空，跳过执行:apiCode:{} batch_number：{}",blt.getApiCode(), blt.getBatchNumber());
                 continue;
             }
-           String  strategyStr=strategyCS.strategyIdCheck(blt.getApiCode(),blt.getStrategyId());
-            if(StringUtils.isEmpty(strategyStr)){
+            String  productJson="";
+            if(blt.getTaskType().compareTo(new Integer(0))==0){
+                productJson=strategyCS.strategyIdCheck(blt.getApiCode(),blt.getStrategyId());
+            }else if(blt.getTaskType().compareTo(new Integer(1))==0){
+                continue;
+            }else if(blt.getTaskType().compareTo(new Integer(2))==0){
+                productJson=blt.getProductInfo();
+            }
+            if(StringUtils.isEmpty(productJson)){
                 log.error("贷中策略不可用:apiCode:{} Strategy_id：{}",blt.getApiCode(), blt.getStrategyId());
                 continue;
             }
@@ -375,28 +394,32 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             blf.setShowTitle(createShowTitle(blt));
             blf.setPushType(pushType);
             blf.setIndexNum(blt.getIndexCount());
-            boolean fileMark = inserTaskInfo(blf,customer.getPushCustomer()==1?JSONArray.parseArray(strategyStr):null,blt);
+            boolean fileMark = inserTaskInfo(blf,customer.getPushCustomer()==1?JSONArray.parseArray(productJson):null,blt);
             if(!fileMark){
                 log.error("创建跑分记录有问题，校验redis或者tidb网络是否有问题:apiCode:{} batchNumber：{}",blt.getApiCode(), blt.getBatchNumber());
                 continue;
-            }
-
-            //Boolean firstTime=blt.getFirstTime()==null?Boolean.FALSE:blt.getFirstTime();
-            core(blt,descPath,true,strategyStr,warrningExecutor,blf.getId().toString(),customer);
+            } StringBuilder addTaskContent = new StringBuilder();
+            addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
+            sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
+            core(blt,descPath,true,productJson,warrningExecutor,blf.getId().toString(),customer);
 
             if(TaskExecCommonField.isExecTaskJob.equals(2)){
                 TaskExecCommonField.isExecTaskJob = 3;
                 StringBuilder content = new StringBuilder();
                 content.append("当前正在停止跑分的任务批次号：".concat(blt.getBatchNumber()).concat("\r\n"));
-                alarmClient.sendAlarm(content.toString(),"跑分暂停",appName,secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
+                sendContent(content.toString(), "跑分暂停", Constants.sendCodeMap.get("uploadSuccess"));
             }
         }
 
     }
 
+    private void sendContent(String msg, String title, String code) {
+        alarmClient.sendAlarm(msg, title, appName, secretKey, code);
+    }
+
     /**
      * 提交任务
+     *
      * @param blt
      * @param descPath
      */
@@ -417,12 +440,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())){
                 flagproductlist = flagProduct.getData();
             }
-            String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(blt.getApiCode()
-                    ,blt.getBatchNumber(),blt.getStrategyId());
-            List<StrategyProductDetailVO> strategyProductDetailVOs = new ArrayList<>();
+            String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(blt.getApiCode(),blt.getBatchNumber());
+            StrategyProductDetailVO strategyProductDetailVO = new StrategyProductDetailVO();
             if(!StringUtils.isEmpty(strategyProductConfigStr)){
-                strategyProductDetailVOs = JSON.parseObject(strategyProductConfigStr
-                        , new TypeReference<List<StrategyProductDetailVO>>() {
+                strategyProductDetailVO = JSON.parseObject(strategyProductConfigStr
+                        , new TypeReference<StrategyProductDetailVO>() {
                         }.getType());
             }
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
@@ -471,7 +493,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             param.put("noflagproduct",noflagproduct);
                             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
-                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist,flagproductlist,strategyProductDetailVOs));
+                            warrningExecutor.submit(new MarketingThread(list, param,currentPage,firstTime,customer,blt,noflagproductlist,flagproductlist,strategyProductDetailVO));
                             Thread.sleep(100);
                         }
                         currentPage++;
@@ -512,8 +534,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      */
     private void initBatchNumList(List<MarketingTask> taskList, String apiCode,
                                   JobExecutionMultipleShardingContext context){
-        int count=context==null?1:context.getShardingTotalCount();
-        List<Integer> itemList =context==null?Arrays.asList(0):context.getShardingItems();
         try{
             List<MarketingTask> list= marketingTaskMapper.queryBatchNumByapiCode(apiCode);
             log.warn("当日批次数量--{}",list.size());
@@ -658,7 +678,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(redisChgService.setnx(key,v,2).equals(1L)){
                 loanFileMapper.insertFile(blf);
                 task.setFileId(blf.getId());
-                if(pList != null) {
+
+                FastFileRelation record = new FastFileRelation();
+                record.setFileId(blf.getId());
+                FastFileRelationExample updateExample = new FastFileRelationExample();
+                updateExample.createCriteria().andTaskIdEqualTo(task.getId()).andIsDelEqualTo(1);
+                fastFileRelationMapper.updateByExampleSelective(record, updateExample);
+
+                if (pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);
                         MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
@@ -721,17 +748,18 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             return showTitle;
 
         }
-        if(allMonitorType.equals(task.getMonitorType())){
+        if (allMonitorType.equals(task.getMonitorType())) {
             return task.getCusBatch().concat("_").concat(yyyyMMdd.format(new Date()));
         }
         return task.getCusBatch();
     }
-    private ScoreRuleConfig getScoreRuleConfig(MarketingTask task){
 
-        ScoreRuleConfig scoreRuleConfig=null;
+    private ScoreRuleConfig getScoreRuleConfig(MarketingTask task) {
+
+        ScoreRuleConfig scoreRuleConfig = null;
         MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(task.getId());
-        if(marketingTaskExtend !=null) {
-            scoreRuleConfig= scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
+        if (marketingTaskExtend != null) {
+            scoreRuleConfig = scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
         }
         return scoreRuleConfig;
     }

@@ -1,20 +1,18 @@
 package com.br.marketing.client.robotaiapi;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.MomCommonUtil;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
+@Slf4j
 public class RobotaiApiServiceClient {
 
     @Value("${api.robotAiApiService.robotOutboundUrl:00}")
@@ -57,6 +56,7 @@ public class RobotaiApiServiceClient {
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
             return result;
         }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());

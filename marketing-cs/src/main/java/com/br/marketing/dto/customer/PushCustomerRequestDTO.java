@@ -35,6 +35,7 @@ public class PushCustomerRequestDTO implements Serializable {
         this.jsonData = JSONObject.toJSONString(new JsonData(transferStatus, "addYiXinTransferData"
                 , PushTransferToCustomerDTO.ListOf(requestData)
                 , LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+//                , LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)), SerializerFeature.WriteMapNullValue);
 
     }
 

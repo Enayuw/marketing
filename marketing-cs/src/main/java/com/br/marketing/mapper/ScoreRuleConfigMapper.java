@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -25,4 +26,11 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
             , @Param("cte") String cte
             , @Param("uts") String uts
             , @Param("ute") String ute);
+
+    /**
+     * 跑分规则下拉列表
+     * @param apiCode
+     * @return
+     */
+    List<ScoreRuleConfig> getScoreRules(@Param("apiCode")String apiCode);
 }

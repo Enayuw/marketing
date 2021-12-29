@@ -1,6 +1,7 @@
 package com.br.marketing.check.job;
 
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IApiToDbService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -19,7 +20,10 @@ public class ApiToDbJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         try {
-            iApiToDbService.pushToDb(null);
+            String apiCode =StringUtils.isNotBlank(jobExecutionMultipleShardingContext.getJobParameter())
+                    ?jobExecutionMultipleShardingContext.getJobParameter()
+            :null;
+            iApiToDbService.pushToDb(apiCode);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
         }

@@ -114,7 +114,6 @@
         and (${whereStr}) order by id asc
     </select>
 
-
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
         select cust_num, id_card, name, cell, user_type
         from b_marketing_sync_${apiCode}

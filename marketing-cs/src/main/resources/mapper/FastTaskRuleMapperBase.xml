@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.FastTaskRuleMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.FastTaskRule" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
+    <result column="rule_number" property="ruleNumber" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
+    <result column="data_type" property="dataType" jdbcType="INTEGER" />
+    <result column="data_id_desc" property="dataIdDesc" jdbcType="VARCHAR" />
+    <result column="rule_id" property="ruleId" jdbcType="BIGINT" />
+    <result column="task_type" property="taskType" jdbcType="INTEGER" />
+    <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
+    <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
+    <result column="product_field" property="productField" jdbcType="VARCHAR" />
+    <result column="callback_info" property="callbackInfo" jdbcType="VARCHAR" />
+    <result column="task_time" property="taskTime" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="opt_id" property="optId" jdbcType="VARCHAR" />
+    <result column="opt_name" property="optName" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="untask_num" property="untaskNum" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, rule_name, rule_number, api_code, data_condition, data_type, data_id_desc, rule_id, 
+    task_type, strategy_id, product_info, product_field, callback_info, task_time, status, 
+    opt_id, opt_name, is_del, create_time, update_time, untask_num
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FastTaskRuleExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_fast_task_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_fast_task_rule
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_fast_task_rule
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.FastTaskRuleExample" >
+    delete from b_fast_task_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.FastTaskRule" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_fast_task_rule (rule_name, rule_number, api_code, 
+      data_condition, data_type, data_id_desc, 
+      rule_id, task_type, strategy_id, 
+      product_info, product_field, callback_info, 
+      task_time, status, opt_id, 
+      opt_name, is_del, create_time, 
+      update_time, untask_num)
+    values (#{ruleName,jdbcType=VARCHAR}, #{ruleNumber,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
+      #{dataCondition,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{dataIdDesc,jdbcType=VARCHAR}, 
+      #{ruleId,jdbcType=BIGINT}, #{taskType,jdbcType=INTEGER}, #{strategyId,jdbcType=VARCHAR}, 
+      #{productInfo,jdbcType=VARCHAR}, #{productField,jdbcType=VARCHAR}, #{callbackInfo,jdbcType=VARCHAR}, 
+      #{taskTime,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optId,jdbcType=VARCHAR}, 
+      #{optName,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{untaskNum,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.FastTaskRule" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_fast_task_rule
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="ruleName != null" >
+        rule_name,
+      </if>
+      <if test="ruleNumber != null" >
+        rule_number,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="dataCondition != null" >
+        data_condition,
+      </if>
+      <if test="dataType != null" >
+        data_type,
+      </if>
+      <if test="dataIdDesc != null" >
+        data_id_desc,
+      </if>
+      <if test="ruleId != null" >
+        rule_id,
+      </if>
+      <if test="taskType != null" >
+        task_type,
+      </if>
+      <if test="strategyId != null" >
+        strategy_id,
+      </if>
+      <if test="productInfo != null" >
+        product_info,
+      </if>
+      <if test="productField != null" >
+        product_field,
+      </if>
+      <if test="callbackInfo != null" >
+        callback_info,
+      </if>
+      <if test="taskTime != null" >
+        task_time,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="optId != null" >
+        opt_id,
+      </if>
+      <if test="optName != null" >
+        opt_name,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="untaskNum != null" >
+        untask_num,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="ruleName != null" >
+        #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleNumber != null" >
+        #{ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCondition != null" >
+        #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="dataIdDesc != null" >
+        #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null" >
+        #{ruleId,jdbcType=BIGINT},
+      </if>
+      <if test="taskType != null" >
+        #{taskType,jdbcType=INTEGER},
+      </if>
+      <if test="strategyId != null" >
+        #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="productInfo != null" >
+        #{productInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="productField != null" >
+        #{productField,jdbcType=VARCHAR},
+      </if>
+      <if test="callbackInfo != null" >
+        #{callbackInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="taskTime != null" >
+        #{taskTime,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="optId != null" >
+        #{optId,jdbcType=VARCHAR},
+      </if>
+      <if test="optName != null" >
+        #{optName,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="untaskNum != null" >
+        #{untaskNum,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.FastTaskRuleExample" resultType="java.lang.Integer" >
+    select count(*) from b_fast_task_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_fast_task_rule
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.ruleName != null" >
+        rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleNumber != null" >
+        rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataCondition != null" >
+        data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataType != null" >
+        data_type = #{record.dataType,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataIdDesc != null" >
+        data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleId != null" >
+        rule_id = #{record.ruleId,jdbcType=BIGINT},
+      </if>
+      <if test="record.taskType != null" >
+        task_type = #{record.taskType,jdbcType=INTEGER},
+      </if>
+      <if test="record.strategyId != null" >
+        strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productInfo != null" >
+        product_info = #{record.productInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productField != null" >
+        product_field = #{record.productField,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callbackInfo != null" >
+        callback_info = #{record.callbackInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskTime != null" >
+        task_time = #{record.taskTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.optId != null" >
+        opt_id = #{record.optId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optName != null" >
+        opt_name = #{record.optName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.untaskNum != null" >
+        untask_num = #{record.untaskNum,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_fast_task_rule
+    set id = #{record.id,jdbcType=BIGINT},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      data_type = #{record.dataType,jdbcType=INTEGER},
+      data_id_desc = #{record.dataIdDesc,jdbcType=VARCHAR},
+      rule_id = #{record.ruleId,jdbcType=BIGINT},
+      task_type = #{record.taskType,jdbcType=INTEGER},
+      strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      product_info = #{record.productInfo,jdbcType=VARCHAR},
+      product_field = #{record.productField,jdbcType=VARCHAR},
+      callback_info = #{record.callbackInfo,jdbcType=VARCHAR},
+      task_time = #{record.taskTime,jdbcType=VARCHAR},
+      status = #{record.status,jdbcType=INTEGER},
+      opt_id = #{record.optId,jdbcType=VARCHAR},
+      opt_name = #{record.optName,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      untask_num = #{record.untaskNum,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.FastTaskRule" >
+    update b_fast_task_rule
+    <set >
+      <if test="ruleName != null" >
+        rule_name = #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleNumber != null" >
+        rule_number = #{ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCondition != null" >
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="dataType != null" >
+        data_type = #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="dataIdDesc != null" >
+        data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null" >
+        rule_id = #{ruleId,jdbcType=BIGINT},
+      </if>
+      <if test="taskType != null" >
+        task_type = #{taskType,jdbcType=INTEGER},
+      </if>
+      <if test="strategyId != null" >
+        strategy_id = #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="productInfo != null" >
+        product_info = #{productInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="productField != null" >
+        product_field = #{productField,jdbcType=VARCHAR},
+      </if>
+      <if test="callbackInfo != null" >
+        callback_info = #{callbackInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="taskTime != null" >
+        task_time = #{taskTime,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="optId != null" >
+        opt_id = #{optId,jdbcType=VARCHAR},
+      </if>
+      <if test="optName != null" >
+        opt_name = #{optName,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="untaskNum != null" >
+        untask_num = #{untaskNum,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.FastTaskRule" >
+    update b_fast_task_rule
+    set rule_name = #{ruleName,jdbcType=VARCHAR},
+      rule_number = #{ruleNumber,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      data_condition = #{dataCondition,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=INTEGER},
+      data_id_desc = #{dataIdDesc,jdbcType=VARCHAR},
+      rule_id = #{ruleId,jdbcType=BIGINT},
+      task_type = #{taskType,jdbcType=INTEGER},
+      strategy_id = #{strategyId,jdbcType=VARCHAR},
+      product_info = #{productInfo,jdbcType=VARCHAR},
+      product_field = #{productField,jdbcType=VARCHAR},
+      callback_info = #{callbackInfo,jdbcType=VARCHAR},
+      task_time = #{taskTime,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      opt_id = #{optId,jdbcType=VARCHAR},
+      opt_name = #{optName,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      untask_num = #{untaskNum,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

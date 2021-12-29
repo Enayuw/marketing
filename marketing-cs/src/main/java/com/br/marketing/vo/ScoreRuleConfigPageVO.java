@@ -86,4 +86,10 @@ public class ScoreRuleConfigPageVO {
 
     @ApiModelProperty(value = "周期结束天数", dataType = "string", position = 13)
     private String cycleEndDay;
+
+    @ApiModelProperty(value = "跑分类型", dataType = "integer", position = 14)
+    private String taskType;
+
+    @ApiModelProperty(value = "跑分类型", dataType = "string", position = 15)
+    private String productInfo;
 }

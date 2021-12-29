@@ -16,7 +16,7 @@ public enum DataTypeEnum {
     private String desc;
 
     /**根据value值获取描述*/
-    public String fromDescByValue(Integer value){
+    public static String fromDescByValue(Integer value){
         Optional<DataTypeEnum> first = Arrays.stream(DataTypeEnum.values()).filter(t -> value.equals(t.getValue())).findFirst();
         if(first.isPresent()){
             return first.get().getDesc();

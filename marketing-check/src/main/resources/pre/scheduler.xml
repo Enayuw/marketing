@@ -129,7 +129,7 @@
                 cron="0 0/10 * * * ? "
                 description="接口导入数据迁移跑批用户"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
+                sharding-total-count="10"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"

@@ -46,6 +46,16 @@
     <result column="activity" property="activity" jdbcType="VARCHAR" />
     <result column="production" property="production" jdbcType="VARCHAR" />
     <result column="region" property="region" jdbcType="VARCHAR" />
+    <result column="yx_flag_3d" property="yxFlag3d" jdbcType="VARCHAR" />
+    <result column="yx_flag_7d" property="yxFlag7d" jdbcType="VARCHAR" />
+    <result column="yx_flag_15d" property="yxFlag15d" jdbcType="VARCHAR" />
+    <result column="yx_flag_1m" property="yxFlag1m" jdbcType="VARCHAR" />
+    <result column="person_flag_house" property="personFlagHouse" jdbcType="VARCHAR" />
+    <result column="person_flag_car" property="personFlagCar" jdbcType="VARCHAR" />
+    <result column="person_flag_insur" property="personFlagInsur" jdbcType="VARCHAR" />
+    <result column="white_list_gw" property="whiteListGw" jdbcType="VARCHAR" />
+    <result column="white_list_fp" property="whiteListFp" jdbcType="VARCHAR" />
+    <result column="white_list_yc" property="whiteListYc" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -114,7 +124,9 @@
     flag_type, type, level, if_register, register_time, if_login, login_time, if_apply, 
     apply_dt, apply_time, apply_result, pagenode, optype, refuse_time, audit_time, audit_amount, 
     if_lent, lent_time, lent_amount, unlent_amount, if_settle, settle_time, activity, 
-    production, region, extend, create_time, update_time
+    production, region, yx_flag_3d, yx_flag_7d, yx_flag_15d, yx_flag_1m, person_flag_house, 
+    person_flag_car, person_flag_insur, white_list_gw, white_list_fp, white_list_yc, 
+    extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExample" >
     select
@@ -164,8 +176,11 @@
       audit_amount, if_lent, lent_time, 
       lent_amount, unlent_amount, if_settle, 
       settle_time, activity, production, 
-      region, extend, create_time, 
-      update_time)
+      region, yx_flag_3d, yx_flag_7d, 
+      yx_flag_15d, yx_flag_1m, person_flag_house, 
+      person_flag_car, person_flag_insur, white_list_gw, 
+      white_list_fp, white_list_yc, extend, 
+      create_time, update_time)
     values (#{apiCid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{syncLogId,jdbcType=VARCHAR}, 
       #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
       #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{phoneAes,jdbcType=VARCHAR}, 
@@ -180,8 +195,11 @@
       #{auditAmount,jdbcType=VARCHAR}, #{ifLent,jdbcType=VARCHAR}, #{lentTime,jdbcType=VARCHAR}, 
       #{lentAmount,jdbcType=VARCHAR}, #{unlentAmount,jdbcType=VARCHAR}, #{ifSettle,jdbcType=VARCHAR}, 
       #{settleTime,jdbcType=VARCHAR}, #{activity,jdbcType=VARCHAR}, #{production,jdbcType=VARCHAR}, 
-      #{region,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{region,jdbcType=VARCHAR}, #{yxFlag3d,jdbcType=VARCHAR}, #{yxFlag7d,jdbcType=VARCHAR}, 
+      #{yxFlag15d,jdbcType=VARCHAR}, #{yxFlag1m,jdbcType=VARCHAR}, #{personFlagHouse,jdbcType=VARCHAR}, 
+      #{personFlagCar,jdbcType=VARCHAR}, #{personFlagInsur,jdbcType=VARCHAR}, #{whiteListGw,jdbcType=VARCHAR}, 
+      #{whiteListFp,jdbcType=VARCHAR}, #{whiteListYc,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSale" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -317,6 +335,36 @@
       </if>
       <if test="region != null" >
         region,
+      </if>
+      <if test="yxFlag3d != null" >
+        yx_flag_3d,
+      </if>
+      <if test="yxFlag7d != null" >
+        yx_flag_7d,
+      </if>
+      <if test="yxFlag15d != null" >
+        yx_flag_15d,
+      </if>
+      <if test="yxFlag1m != null" >
+        yx_flag_1m,
+      </if>
+      <if test="personFlagHouse != null" >
+        person_flag_house,
+      </if>
+      <if test="personFlagCar != null" >
+        person_flag_car,
+      </if>
+      <if test="personFlagInsur != null" >
+        person_flag_insur,
+      </if>
+      <if test="whiteListGw != null" >
+        white_list_gw,
+      </if>
+      <if test="whiteListFp != null" >
+        white_list_fp,
+      </if>
+      <if test="whiteListYc != null" >
+        white_list_yc,
       </if>
       <if test="extend != null" >
         extend,
@@ -457,6 +505,36 @@
       </if>
       <if test="region != null" >
         #{region,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag3d != null" >
+        #{yxFlag3d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag7d != null" >
+        #{yxFlag7d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag15d != null" >
+        #{yxFlag15d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag1m != null" >
+        #{yxFlag1m,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagHouse != null" >
+        #{personFlagHouse,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagCar != null" >
+        #{personFlagCar,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagInsur != null" >
+        #{personFlagInsur,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListGw != null" >
+        #{whiteListGw,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListFp != null" >
+        #{whiteListFp,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListYc != null" >
+        #{whiteListYc,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -610,6 +688,36 @@
       <if test="record.region != null" >
         region = #{record.region,jdbcType=VARCHAR},
       </if>
+      <if test="record.yxFlag3d != null" >
+        yx_flag_3d = #{record.yxFlag3d,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yxFlag7d != null" >
+        yx_flag_7d = #{record.yxFlag7d,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yxFlag15d != null" >
+        yx_flag_15d = #{record.yxFlag15d,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yxFlag1m != null" >
+        yx_flag_1m = #{record.yxFlag1m,jdbcType=VARCHAR},
+      </if>
+      <if test="record.personFlagHouse != null" >
+        person_flag_house = #{record.personFlagHouse,jdbcType=VARCHAR},
+      </if>
+      <if test="record.personFlagCar != null" >
+        person_flag_car = #{record.personFlagCar,jdbcType=VARCHAR},
+      </if>
+      <if test="record.personFlagInsur != null" >
+        person_flag_insur = #{record.personFlagInsur,jdbcType=VARCHAR},
+      </if>
+      <if test="record.whiteListGw != null" >
+        white_list_gw = #{record.whiteListGw,jdbcType=VARCHAR},
+      </if>
+      <if test="record.whiteListFp != null" >
+        white_list_fp = #{record.whiteListFp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.whiteListYc != null" >
+        white_list_yc = #{record.whiteListYc,jdbcType=VARCHAR},
+      </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
@@ -670,6 +778,16 @@
       activity = #{record.activity,jdbcType=VARCHAR},
       production = #{record.production,jdbcType=VARCHAR},
       region = #{record.region,jdbcType=VARCHAR},
+      yx_flag_3d = #{record.yxFlag3d,jdbcType=VARCHAR},
+      yx_flag_7d = #{record.yxFlag7d,jdbcType=VARCHAR},
+      yx_flag_15d = #{record.yxFlag15d,jdbcType=VARCHAR},
+      yx_flag_1m = #{record.yxFlag1m,jdbcType=VARCHAR},
+      person_flag_house = #{record.personFlagHouse,jdbcType=VARCHAR},
+      person_flag_car = #{record.personFlagCar,jdbcType=VARCHAR},
+      person_flag_insur = #{record.personFlagInsur,jdbcType=VARCHAR},
+      white_list_gw = #{record.whiteListGw,jdbcType=VARCHAR},
+      white_list_fp = #{record.whiteListFp,jdbcType=VARCHAR},
+      white_list_yc = #{record.whiteListYc,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -809,6 +927,36 @@
       <if test="region != null" >
         region = #{region,jdbcType=VARCHAR},
       </if>
+      <if test="yxFlag3d != null" >
+        yx_flag_3d = #{yxFlag3d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag7d != null" >
+        yx_flag_7d = #{yxFlag7d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag15d != null" >
+        yx_flag_15d = #{yxFlag15d,jdbcType=VARCHAR},
+      </if>
+      <if test="yxFlag1m != null" >
+        yx_flag_1m = #{yxFlag1m,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagHouse != null" >
+        person_flag_house = #{personFlagHouse,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagCar != null" >
+        person_flag_car = #{personFlagCar,jdbcType=VARCHAR},
+      </if>
+      <if test="personFlagInsur != null" >
+        person_flag_insur = #{personFlagInsur,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListGw != null" >
+        white_list_gw = #{whiteListGw,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListFp != null" >
+        white_list_fp = #{whiteListFp,jdbcType=VARCHAR},
+      </if>
+      <if test="whiteListYc != null" >
+        white_list_yc = #{whiteListYc,jdbcType=VARCHAR},
+      </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
@@ -866,6 +1014,16 @@
       activity = #{activity,jdbcType=VARCHAR},
       production = #{production,jdbcType=VARCHAR},
       region = #{region,jdbcType=VARCHAR},
+      yx_flag_3d = #{yxFlag3d,jdbcType=VARCHAR},
+      yx_flag_7d = #{yxFlag7d,jdbcType=VARCHAR},
+      yx_flag_15d = #{yxFlag15d,jdbcType=VARCHAR},
+      yx_flag_1m = #{yxFlag1m,jdbcType=VARCHAR},
+      person_flag_house = #{personFlagHouse,jdbcType=VARCHAR},
+      person_flag_car = #{personFlagCar,jdbcType=VARCHAR},
+      person_flag_insur = #{personFlagInsur,jdbcType=VARCHAR},
+      white_list_gw = #{whiteListGw,jdbcType=VARCHAR},
+      white_list_fp = #{whiteListFp,jdbcType=VARCHAR},
+      white_list_yc = #{whiteListYc,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

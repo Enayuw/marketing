@@ -31,7 +31,6 @@ public class MarketingThread implements Callable<String> {
     private static final Logger log = LoggerFactory.getLogger(MarketingThread.class);
     private List<MarketingUser> list;
     private String apiCode;
-    private LoanWarningClient loanWarningClient;
     private String strategyId;
     private int currentPage;
     private String path;
@@ -40,7 +39,6 @@ public class MarketingThread implements Callable<String> {
     private String   message;
     private boolean firstTime;
     private JSONObject meal=new JSONObject();
-    private String appSecretKey;
     private String url;
     private Map<String,String> proFieldMap=new HashMap<>();
     private String sep;
@@ -52,23 +50,21 @@ public class MarketingThread implements Callable<String> {
     private String fileId;
     private Customer customer;
     private String baseHeadInfo;
-    private List<StrategyProductDetailVO> fieldInfos;
+    private StrategyProductDetailVO fieldInfo;
     private MarketingTask marketingTask;
     private List<String> noflagproductlist;
     private List<String> flagProductList;
     public MarketingThread(List<MarketingUser> list, Map<String,String> param
             , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask
-            ,List<String> noflagproductlist,List<String> flagProductList,List<StrategyProductDetailVO> fieldInfos){
+            ,List<String> noflagproductlist,List<String> flagProductList,StrategyProductDetailVO fieldInfo){
         this.list=list;
         this.apiCode=param.get("apiCode");
         this.strategyId=param.get("strategyId");
-        this.loanWarningClient= Scheduler.ac.getBean(LoanWarningClient.class);
         this.currentPage=currentPage;
         this.path=param.get("path");
         this.strategyStr=param.get("strategyStr");
         this.redisService=Scheduler.ac.getBean(RedisService.class);
         this.firstTime=firstTime;
-        this.appSecretKey=param.get("appSecretKey");
         this.url=param.get("url");
         this.sep=param.get("sep");
         this.redisChgService=Scheduler.ac.getBean(RedisChgService.class);
@@ -78,17 +74,13 @@ public class MarketingThread implements Callable<String> {
         this.fileId=param.get("fileId");
         this.customer=customer;
         this.baseHeadInfo = param.get("baseHeadInfo");
-        this.fieldInfos = fieldInfos;
+        this.fieldInfo = fieldInfo;
         this.marketingTask = marketingTask;
         this.noflagproductlist = noflagproductlist;
         this.flagProductList = flagProductList;
 
-        Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyId,apiCode,strategyStr,meal,proFieldMap,"");
+        Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr,meal);
     }
-
-
-
-
 
     @Override
     public String call() throws Exception {
@@ -174,26 +166,13 @@ public class MarketingThread implements Callable<String> {
                 }
                 jsonData.put("batch_number", blu.getBatchNumber());
                 param.put("jsonData", jsonData.toString());
-                String resultStr="";
-                if (strategyId.startsWith("DTM")){
-                    //log.info("DTB策略调用画像");
-                    resultStr= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
-//                    requestLog.setResponseTime(new Date());
-//                    try {
-//                        MomUtil.sendMom(resultStr, jsonData, requestLog, apiCode, strategyId, appSecretKey);
-//                    }catch (Throwable throwable){
-//                        log.error(throwable.getMessage());
-//                    }
-                }else{
-                    resultStr = loanWarningClient.queryApi(param, apiCode);
-                }
-                dealResult(resultStr, fw,errorFw,apiCode, blu);
+                String resultStr= HxUtil.getReport(customer,jsonData,meal,firstTime,url);
+                dealResult(resultStr, fw,apiCode, blu);
             }
-
             if(errorList.size()>0){
                 for(MarketingUser lu:errorList){
-                    errorFw.append(lu.getBatchNumber()+","+lu.getCusNum()+","+lu.getIdCard()+","+lu.getCell()
-                            +","+lu.getName()+","+lu.getHitData()+",end\n");
+                    errorFw.append(lu.getBatchNumber()+"#"+lu.getCusNum()+"#"+lu.getIdCard()+"#"+lu.getCell()
+                            +"#"+lu.getName()+"#"+lu.getHitData()+"#"+lu.getExtendJson()+"#end\n");
                 }
                 String key= Constants.HXRESULTERROR_RETRY_KEY+":"+apiCode;
                 redisChgService.hset(key,errorFile.getPath(),batchNumber);
@@ -219,11 +198,7 @@ public class MarketingThread implements Callable<String> {
             String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
             Map<String,String> dayNumMap =new HashMap<>();
             List<String> typeNoList=new ArrayList<>();
-            if(strategyId.startsWith("STRB")){
-                addSTRBPro(typeNoList);
-            }else if(strategyId.startsWith("DTM")){
-                addDTBPro(typeNoList);
-            }
+            addDTBPro(typeNoList);
             MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
             if(merchantParam==null){
                 log.error("用户中心结果为空");
@@ -418,26 +393,16 @@ public class MarketingThread implements Callable<String> {
          }
     }
     /**
-     * 用流失预警api的返回生成结果文件
+     * 生成结果文件
      * @param s
      */
-    private void dealResult(String s, Writer fw, Writer errorFw,  String apiCode, MarketingUser blu) throws IOException {
+    private void dealResult(String s, Writer fw, String apiCode, MarketingUser blu) throws IOException {
         try {
-            if(strategyId.startsWith("DTM")&&VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,noflagproductlist,flagProductList)){
+            if(VaildHxResultUtil.isPass(s,meal,apiCode, redisChgService,blu,errorList,noflagproductlist,flagProductList)){
                 JSONObject resultJson=JSONObject.parseObject(s);
                 if(fw!=null){
-                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,fieldInfos);
+                    ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,fieldInfo);
                 }
-            }
-            if(strategyId.startsWith("STRB")&&!StringUtils.isEmpty(s)){
-                 JSONObject resultJson=JSONObject.parseObject(s);
-                 if(StringUtils.isNotEmpty(resultJson.getString("code"))||"00".equals(resultJson.getString("code"))
-                         ||"100002".equals(resultJson.getString("code"))){
-                     ResultUtil.generateFile(resultJson,strategyId,fw,sep,proFieldMap,blu,meal,cusBatchNumber,fileId,customer.getPushCustomer().toString(),baseHeadInfo,fieldInfos);
-                 }else{
-                     log.error("画像返回错误--{}",blu.getCusNum());
-                     ResultUtil.generateErrorFile(resultJson,errorFw,batchNumber,sep,blu.getCusNum());
-                 }
             }
         }catch (Exception e){
             log.error("dealResult出错了",e);

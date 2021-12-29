@@ -42,13 +42,12 @@ import javax.annotation.Resource;
  * @Date 2021/5/7 13:05
  * @Description:
  **/
+@Deprecated
 @Component
 @Slf4j
 public class QaTaskJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
