@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -45,10 +46,10 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
-    
-    final DateTimeFormatter yyyyMMddDF =  DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    final DateTimeFormatter ymdDfBy_ =  DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    final DateTimeFormatter ymdDfBy_ = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     final static String samoyeDDprefix = "samoye_duandian_";
 
@@ -72,13 +73,13 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         Map<Integer, List<TransferFileTask>> collect = transferFileTasks.stream()
                 .filter(t -> apiCode.equals(t.getApiCode()))
                 .collect(Collectors.groupingBy(TransferFileTask::getFileType));
-        if(collect.get(1)==null||collect.get(1).size()<=0){
+        if (collect.get(1) == null || collect.get(1).size() <= 0) {
             Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("2", "3"));
             Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("2", "3"));
             Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("2"));
             Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("2", "3"));
-            int num = s01 + s02 + s08+s0202;
-            if(num>0){
+            int num = s01 + s02 + s08 + s0202;
+            if (num > 0) {
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
@@ -96,12 +97,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             }
         }
 
-        if(collect.get(2)==null||collect.get(2).size()<=0){
+        if (collect.get(2) == null || collect.get(2).size() <= 0) {
             Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("4"));
             Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("4"));
             Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("4"));
-            int num = s01 + s02+s0202;
-            if(num>0){
+            int num = s01 + s02 + s0202;
+            if (num > 0) {
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
@@ -121,7 +122,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
-    String createBatchNumber(String apiCode,Long contextId){
+    String createBatchNumber(String apiCode, Long contextId) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
@@ -135,76 +136,76 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         String endDate = LocalDate.parse(recordDate, yyyyMMddDF).format(ymdDfBy_);
         String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
-        if(!writeDic.exists()){
+        if (!writeDic.exists()) {
             writeDic.mkdirs();
         }
         StringBuilder fileName = new StringBuilder();
         List<String> groupTyps = new ArrayList<>();
-        if(transferFileTask.getFileType().equals(1)){
+        if (transferFileTask.getFileType().equals(1)) {
             fileName.append(samoyeDDprefix);
-            groupTyps = Arrays.asList("S01", "S02", "S08","S0202");
-        }else{
+            groupTyps = Arrays.asList("S01", "S02", "S08", "S0202");
+        } else {
             fileName.append(samoyeHYprefix);
-            groupTyps = Arrays.asList("S01", "S02","S0202");
+            groupTyps = Arrays.asList("S01", "S02", "S0202");
         }
         fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
-        try(Writer fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file), "UTF-8"));){
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
             fw.append("案件编号,场景,场景标识,手机号,上传时间");
             fw.append("\r\n");
-            writeDD(fw,apiCode,startDate,endDate,groupTyps,transferFileTask);
-        }catch (Exception ex){
+            writeDD(fw, apiCode, startDate, endDate, groupTyps, transferFileTask);
+        } catch (Exception ex) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    void writeDD(Writer fw,String apiCode,String startDate
-            ,String endDate,List<String> groupTyps
-            ,TransferFileTask transferFileTask) throws IOException {
+    void writeDD(Writer fw, String apiCode, String startDate
+            , String endDate, List<String> groupTyps
+            , TransferFileTask transferFileTask) throws IOException {
         for (String groupType : groupTyps) {
             List<String> fileTypes = new ArrayList<>();
-            if(groupType.equals("S01")){
-                fileTypes = transferFileTask.getFileType().equals(2)?Arrays.asList("4"):Arrays.asList("2", "3");
-            }else if(groupType.equals("S02")){
-                fileTypes = transferFileTask.getFileType().equals(2)?Arrays.asList("4"):Arrays.asList("2", "3");
-            }else if(groupType.equals("S08")){
+            if (groupType.equals("S01")) {
+                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+            } else if (groupType.equals("S02")) {
+                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+            } else if (groupType.equals("S08")) {
                 fileTypes = Arrays.asList("2");
-            }else if(groupType.equals("S0202")){
-                fileTypes = transferFileTask.getFileType().equals(2)?Arrays.asList("4"):Arrays.asList("2", "3");
+            } else if (groupType.equals("S0202")) {
+                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
             }
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
-            while (isContiue){
+            while (isContiue) {
                 List<TransferUserVO> transferFileUser = marketingSyncInfoMapper
                         .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, fileTypes);
-                if(transferFileUser.size()<=0){
+                if (transferFileUser.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
                 }
-                minId = transferFileUser.get(transferFileUser.size()-1).getId()+1;
+                minId = transferFileUser.get(transferFileUser.size() - 1).getId() + 1;
 
                 List<String> taskIds = transferFileUser.stream().map(t -> t.getTaskId()).collect(Collectors.toList());
                 List<String> custNums = transferFileUser.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
-                List<MarketingSyncUser> users = marketingSyncInfoMapper.getSyncUserByTaskAndCust(apiCode,taskIds, custNums);
+                List<MarketingSyncUser> users = marketingSyncInfoMapper.getSyncUserByTaskAndCust(apiCode, taskIds, custNums);
                 HashMap<String, String> hsCell = new HashMap<>();
-                users.forEach(t->{
+                users.forEach(t -> {
                     String key = t.getCusBatch().concat("_").concat(t.getCustNum());
-                    if(!hsCell.containsKey(key)){
+                    if (!hsCell.containsKey(key)) {
                         String decode = BrCipherMaker.getInstance().decode(t.getCell());
                         String s = StringUtils.isBlank(decode) ? t.getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
-                        hsCell.put(key,s);
+                        hsCell.put(key, s);
                     }
                 });
 
                 for (TransferUserVO transferUserVO : transferFileUser) {
                     String nowKey = transferUserVO.getTaskId().concat("_").concat(transferUserVO.getCustNum());
-                    String cell = StringUtils.isNotBlank(hsCell.get(nowKey))?hsCell.get(nowKey):"";
+                    String cell = StringUtils.isNotBlank(hsCell.get(nowKey)) ? hsCell.get(nowKey) : "";
                     StringBuilder sb = new StringBuilder();
                     sb.append(transferUserVO.getCustNum().concat(","));
                     sb.append(transferUserVO.getGroupType().concat(","));

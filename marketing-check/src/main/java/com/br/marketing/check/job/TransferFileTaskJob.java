@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
-
-
     @Autowired
     MarketingCustomerMapper customerMapper;
 
@@ -61,17 +59,17 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             ITransferToFileService serviceImpl = getServiceImpl(marketingCustomer);
-            if(serviceImpl==null){
+            if (serviceImpl == null) {
                 continue;
             }
             Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
-            if(ResultCode.SUCCESS.getValue().equals(listResult.getCode())&&listResult.getData().size()>0){
+            if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                 List<TransferFileTask> data = listResult.getData();
                 for (TransferFileTask datum : data) {
                     Result result = serviceImpl.actionTransferToFile(datum);
-                    if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         Result res = sftpInnerService.pushInnerSftp(datum);
-                        if(!ResultCode.SUCCESS.getValue().equals(res.getCode())){
+                        if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
                             RetryMainLog retryMainLog = new RetryMainLog();
                             retryMainLog.setRetryType(1);
                             retryMainLog.setRetryParam(JSON.toJSONString(datum));
@@ -91,10 +89,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
     }
 
-    ITransferToFileService getServiceImpl(MarketingCustomer customer){
-        if(customer.getShortName().contains("萨摩耶")){
+    ITransferToFileService getServiceImpl(MarketingCustomer customer) {
+        if (customer.getShortName().contains("萨摩耶")) {
             return transferToFileBySamoyeServiveImpl;
-        }else{
+        } else {
             return null;
         }
     }
