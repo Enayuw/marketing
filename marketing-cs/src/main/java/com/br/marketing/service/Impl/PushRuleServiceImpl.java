@@ -1034,6 +1034,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         groupTypeSaMoye = new HashSet();
         groupTypeSaMoye.add("S01");
         groupTypeSaMoye.add("S02");
+        groupTypeSaMoye.add("S0202");
         groupTypeSaMoye.add("S04");
         groupTypeSaMoye.add("S06");
         groupTypeSaMoye.add("S08");
