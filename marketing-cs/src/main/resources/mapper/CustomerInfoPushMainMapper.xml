@@ -45,7 +45,7 @@
             <![CDATA[  and create_time >=#{pushBeginTime} ]]>
         </if>
         <if test="pushEndTime !=null and pushEndTime!=''">
-            <![CDATA[  and create_time <#{pushEndTime} ]]>
+            <![CDATA[  and create_time <=#{pushEndTime} ]]>
         </if>
         <if test="pushInfoId !=null and pushInfoId!=''">
             and id = #{pushInfoId}
