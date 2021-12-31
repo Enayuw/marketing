@@ -4,6 +4,7 @@ package com.br.marketing.service.Impl;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
@@ -25,13 +26,14 @@ public class PushInfoServiceImpl implements PushInfoService {
     private CustomerInfoPushMainMapper customerInfoPushMainMapper;
 
     @Override
-    public PageResultReturn getPushInfoList(int current, int size,String mApiCode,String pushBeginTime,String pushEndTime,String pushInfoId,Integer mStatus) {
-        if (StringUtils.isNotEmpty(pushEndTime)){
-            pushEndTime = DateUtils.format(addDay(pushEndTime, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+    public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
+        if (StringUtils.isNotEmpty(dto.getPushEndTime())){
+            String pushEndTime = DateUtils.format(addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+            dto.setPushEndTime(pushEndTime);
         }
-        PageHelper.startPage(current, size);
-        List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(mApiCode,pushBeginTime,pushEndTime,pushInfoId,mStatus);
-        return PageResultReturn.setPageResult(list, current, size);
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+        List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
+        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
     }
 
     private Date addDay(String date, Integer addDays, String format) {
