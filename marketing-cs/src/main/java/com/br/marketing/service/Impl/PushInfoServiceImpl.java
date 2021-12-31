@@ -27,10 +27,6 @@ public class PushInfoServiceImpl implements PushInfoService {
 
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
-        if (StringUtils.isNotEmpty(dto.getPushEndTime())){
-            String pushEndTime = DateUtils.format(addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd"), "yyyy-MM-dd");
-            dto.setPushEndTime(pushEndTime);
-        }
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
         return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
