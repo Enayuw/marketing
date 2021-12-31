@@ -3,7 +3,9 @@ package com.br.marketing.service;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
 import com.br.marketing.dto.PushCustomerDTO;
@@ -27,7 +29,7 @@ public interface PushRuleService {
      * @param dto
      * @return
      */
-    Result<List<ScoreDetailVo>> getBatchInfos(@Valid CustomerBatchNumDTO dto);
+    PageResultReturn getBatchInfos(@Valid CustomerBatchNumDTO dto);
 
     /**
      * 获取任务推送记录

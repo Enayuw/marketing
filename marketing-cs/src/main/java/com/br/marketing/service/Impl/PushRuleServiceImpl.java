@@ -16,6 +16,7 @@ import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -25,6 +26,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
@@ -142,14 +144,25 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String appName;
 
     @Override
-    public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
-        Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
-        dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
+    public PageResultReturn getBatchInfos(CustomerBatchNumDTO dto) {
+        if(dto.getUploadBeginTime()!=null){
+            Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
+            dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
+        }
+        if(dto.getScoreBeginTime()!=null){
+            Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
+            dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
+        }
 
-        Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
-        dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
+        String productName = dto.getProductName();
+        String[] module = productName.split(",");
+        dto.setModuleList(Arrays.asList(module));
+
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreDetailVos);
+        return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
+
+
     }
 
     @Override
@@ -781,7 +794,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json) {
         JSONObject finalReserveFieldObject = (JSONObject) JSONObject.toJSON(finalReserveField);
         if (null != finalReserveFileld1Json) {
-            finalReserveFileld1Json.keySet().stream().forEach(k->{
+            finalReserveFileld1Json.keySet().stream().forEach(k -> {
                 if (!finalReserveFieldObject.containsKey(k)) {
                     finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
                 }

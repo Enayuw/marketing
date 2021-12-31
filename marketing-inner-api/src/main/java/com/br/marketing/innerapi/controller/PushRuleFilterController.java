@@ -3,7 +3,9 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
@@ -47,8 +49,14 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
-    public ApiResult<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
-        return new ApiResult<List<ScoreDetailVo>>().fromResult(pushRuleService.getBatchInfos(dto),1);
+    public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
+        try {
+            PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
+            return new ApiResult<PageResultReturn>().success(listPage);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+        }
     }
 
     /**
