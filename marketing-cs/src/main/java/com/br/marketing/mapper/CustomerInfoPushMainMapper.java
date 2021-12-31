@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.PushInfoListVO;
@@ -11,7 +12,5 @@ public interface CustomerInfoPushMainMapper extends CustomerInfoPushMainMapperBa
 
     List<PushInfoDetailVO> getPushInfos(RequestPushInfoDTO dto);
 
-    List<PushInfoListVO> getPushInfoList(@Param("mApiCode") String mApiCode, @Param("pushBeginTime") String pushBeginTime,
-                                         @Param("pushEndTime") String pushEndTime, @Param("pushInfoId") String pushInfoId,
-                                         @Param("mStatus") Integer mStatus);
+    List<PushInfoListVO> getPushInfoList(PushInfoFilterDTO dto);
 }

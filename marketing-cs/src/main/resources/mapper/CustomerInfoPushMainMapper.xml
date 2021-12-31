@@ -27,7 +27,7 @@
             order by bcipm.id desc
     </select>
 
-    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO">
+    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
         select id,
         m_api_code as mApiCode,
         m_cus_batch_number_list as mCusBatchNumberList,

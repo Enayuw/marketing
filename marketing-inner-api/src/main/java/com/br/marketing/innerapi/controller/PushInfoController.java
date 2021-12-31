@@ -4,10 +4,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.service.PushInfoService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,24 +25,10 @@ public class PushInfoController {
     private PushInfoService pushInfoService;
 
     @ApiOperation(value = "推送列表",notes = "推送列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "mApiCode", value = "合作客户id", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "pushBeginTime", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "pushEndTime", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "pushInfoId", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "mStatus", paramType = "query", dataType = "integer")
-    })
-    @GetMapping("/getPushInfoList")
-    public ApiResult<PageResultReturn> getPushInfoList(@RequestParam(defaultValue = "1") int current,
-                                                       @RequestParam(defaultValue = "10") int size,
-                                                       @RequestParam(required = false) String mApiCode,
-                                                       @RequestParam(required = false) String pushBeginTime,
-                                                       @RequestParam(required = false) String pushEndTime,
-                                                       @RequestParam(required = false) String pushInfoId,
-                                                       @RequestParam(required = false) Integer mStatus){
+    @PostMapping("/getPushInfoList")
+    public ApiResult<PageResultReturn> getPushInfoList(@RequestBody PushInfoFilterDTO dto){
         try {
-            PageResultReturn list = pushInfoService.getPushInfoList(current,size,mApiCode,pushBeginTime,pushEndTime,pushInfoId,mStatus);
+            PageResultReturn list = pushInfoService.getPushInfoList(dto);
             return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage(),ex);
