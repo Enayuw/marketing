@@ -297,10 +297,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private Result<Integer> getTotal(PushCustomerDTO dto){
         QueryBaseBean queryBaseBean = new QueryBaseBean();
-        //todo 查询条件待完善
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
+        queryBaseBean.setJsonData(dto.getmRuleCondition());
         if(dto.getmPlanNum()!=null&&dto.getmPlanNum()>0){
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
@@ -345,6 +345,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
         queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
+        queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
 //        if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
 //            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
 //                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));

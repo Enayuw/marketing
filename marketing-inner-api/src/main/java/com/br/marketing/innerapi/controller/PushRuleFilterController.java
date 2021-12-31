@@ -78,8 +78,8 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
-    public ApiResult pushPreview(@RequestBody PushCustomerDTO dto){
-        return new ApiResult().fromResult(pushRuleService.pushPreview(dto),1);
+    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto){
+        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto),1);
     }
 
     @ApiOperation(value = "测试消费")
