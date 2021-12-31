@@ -2,6 +2,8 @@ package com.br.marketing.task.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.config.MarketingCommonPropertiesConfig;
+import com.br.marketing.config.SpeedCommonConfig;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.service.IProductResultSimpleService;
@@ -24,6 +26,9 @@ public class TestController {
 
     @Value("${myenv}")
     private String myenv;
+
+    @Autowired
+    MarketingCommonPropertiesConfig marketingCommonPropertiesConfig;
 
     @Autowired
     CheckServicePackageImpl checkServicePackage;
@@ -50,6 +55,10 @@ public class TestController {
         return "";
     }
 
+    @GetMapping("/testSpeed")
+    public String testSpeed(){
+        return marketingCommonPropertiesConfig.getPushCustomer();
+    }
 
     @GetMapping("/clearInnerCache")
     public String clearInnerCache(@RequestParam("type") Integer type){
