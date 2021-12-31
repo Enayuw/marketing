@@ -99,6 +99,7 @@ public class ResultUtil {
             mh.setFileId(fileId);
             mh.setTaskId(user.getTaskId());
             mh.setUserType(user.getUserType());
+            mh.setHxSwiftNumber(StringUtils.isNotBlank(resultJson.getString("swift_number"))?resultJson.getString("swift_number"):"");
             //region 写入condition
             HashMap<String,MarketingCondition> conditions = new HashMap<>();
             List<MarketingCondition> conditionList = new ArrayList<>();
