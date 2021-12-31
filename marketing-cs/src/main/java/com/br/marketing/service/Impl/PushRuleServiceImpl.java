@@ -1225,7 +1225,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
             throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
         }
-        if(ResultCode.SUCCESS.getValue().equals(transferRobotOutboundVO.getCode())){
+        if("00".equals(transferRobotOutboundVO.getCode())){
             JSONObject object = JSON.parseObject(transferRobotOutboundVO.getData().toString());
             JSONArray array = object.getJSONArray("unsuccessfulData");
             if (array.size() > 0) {
