@@ -477,6 +477,7 @@
                shf.statistic_file_path as statisticFilePath,
                shf.id as fileId,
                shf.create_time as scoreBeginTime,
+        msp.product_name as productName,
                (shf.actual_num*shf.file_num) as num
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
