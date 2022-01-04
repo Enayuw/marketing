@@ -2,12 +2,12 @@ package com.br.marketing.task.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.speedconfig.MarketingCommonPropertiesConfig;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ public class TestController {
     private String myenv;
 
     @Autowired
-    MarketingCommonPropertiesConfig marketingCommonPropertiesConfig;
+    MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
     CheckServicePackageImpl checkServicePackage;
@@ -56,7 +56,7 @@ public class TestController {
 
     @GetMapping("/testSpeed")
     public String testSpeed(){
-        return marketingCommonPropertiesConfig.getPushCustomer();
+        return marketingCommonConfig.getPushCustomer();
     }
 
     @GetMapping("/clearInnerCache")
