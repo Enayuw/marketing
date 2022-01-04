@@ -34,6 +34,10 @@ public class WebConfig extends WebMvcConfigurationSupport {
                 .addPathPatterns("/rule/**","/pushrulefilter/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**","/pushrulefilter/**");
+//        registry.addInterceptor(sessionInterceptor)
+//                .addPathPatterns("/rule/**");
+//        registry.addInterceptor(authInterceptor)
+//                .addPathPatterns("/rule/**");
         super.addInterceptors(registry);
     }
 }

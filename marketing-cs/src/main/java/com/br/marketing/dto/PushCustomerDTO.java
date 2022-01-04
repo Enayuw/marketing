@@ -19,19 +19,19 @@ public class PushCustomerDTO {
     private String apiCode;
 
     @ApiModelProperty(value = "上传开始时间")
-    @NotNull(message = "上传开始时间不能为空")
+//    @NotNull(message = "上传开始时间不能为空")
     private String uploadBeginTime;
 
     @ApiModelProperty(value = "上传结束时间")
-    @NotNull(message = "上传结束时间不能为空")
+//    @NotNull(message = "上传结束时间不能为空")
     private String uploadEndTime;
 
     @ApiModelProperty(value = "跑分执行开始时间")
-    @NotNull(message = "跑分执行开始时间不能为空")
+//    @NotNull(message = "跑分执行开始时间不能为空")
     private String scoreBeginTime;
 
     @ApiModelProperty(value = "跑分执行结束时间")
-    @NotNull(message = "跑分执行结束时间不能为空")
+//    @NotNull(message = "跑分执行结束时间不能为空")
     private String scoreEndTime;
 
     @ApiModelProperty(value = "批次号")
@@ -58,7 +58,7 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "百分比")
     private BigDecimal mPercentage;
 
-    @ApiModelProperty(value = "用户信息",hidden = false)
+    @ApiModelProperty(value = "用户信息",hidden = true)
     private UserDetail userDetail;
 
     public String getApiCode() {
