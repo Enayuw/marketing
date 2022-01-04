@@ -30,6 +30,7 @@ public interface PushRuleService {
      * @return
      */
     PageResultReturn getBatchInfos(@Valid CustomerBatchNumDTO dto);
+    Integer getBatchInfosCounts(@Valid CustomerBatchNumDTO dto);
 
     /**
      * 获取任务推送记录

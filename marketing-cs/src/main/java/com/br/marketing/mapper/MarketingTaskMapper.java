@@ -198,6 +198,8 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     List<ScoreDetailVo> queryBatchs(CustomerBatchNumDTO dto);
 
+    Integer queryBatchsCount(CustomerBatchNumDTO dto);
+
     MarketingTask selectCycleTopByApiCode(String apiCode);
 
 }

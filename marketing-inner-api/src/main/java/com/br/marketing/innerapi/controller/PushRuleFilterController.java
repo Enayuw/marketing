@@ -58,7 +58,23 @@ public class PushRuleFilterController {
             return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
         }
     }
-
+    /**
+     * 获取批次列表
+     *
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "获取列表跑分总数")
+    @PostMapping("/getBatchInfosCounts")
+    public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
+        try {
+            Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
+            return new ApiResult<Integer>().success(totalNum);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
+        }
+    }
     /**
      * 获取推送列表
      *
