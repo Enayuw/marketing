@@ -27,9 +27,6 @@ public class ScoreDetailVo {
     @ApiModelProperty(value = "跑分数量")
     private Integer actualNum;
 
-    @ApiModelProperty(value = "跑分数量")
-    private Integer totalNum;
-
     @ApiModelProperty(value = "模型名称")
     private String productName;
 }

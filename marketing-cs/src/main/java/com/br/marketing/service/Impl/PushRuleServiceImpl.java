@@ -154,9 +154,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         String productName = dto.getProductName();
-        String[] module = productName.split(",");
-        dto.setModuleList(Arrays.asList(module));
-
+        if(StringUtils.isNotBlank(dto.getProductName())){
+            String[] module = productName.split(",");
+            dto.setModuleList(Arrays.asList(module));
+        }
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
         return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
