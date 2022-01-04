@@ -54,6 +54,9 @@ public class IntelligentCustomerServiceClient {
             log.setHttpStatus(String.valueOf(transfer.getHttpCode()));
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             log.setCode(jsonObject.getString("code"));
+            if(transfer.getHttpCode()!=200){
+                throw new RuntimeException(String.format("接口状态返回非200 是%d",transfer.getHttpCode()));
+            }
             if("00".equals(jsonObject.getString("code"))){
                 result.setCode(ResultCode.SUCCESS.getValue());
             }else{
@@ -61,7 +64,7 @@ public class IntelligentCustomerServiceClient {
             }
         }catch (Exception ex){
             log.setErrorContent(ex.getMessage());
-            result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         log.setCreateTime(new Date());
         customerInfoPushLogMapper.insertSelective(log);

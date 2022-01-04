@@ -399,6 +399,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                         .concat(String.valueOf(System.currentTimeMillis())));
                 dto1.setPhone(marketingHistory.getCell());
                 JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
+                if(varObject == null){
+                    varObject = new JSONObject();
+                }
+                for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
+                    if(StringUtils.isNotBlank(marketingCondition.getCode())){
+                        varObject.put(marketingCondition.getFieldKey(),marketingCondition.getDValue());
+                    }else{
+                        varObject.put(marketingCondition.getFieldKey(),marketingCondition.getStrValue());
+                    }
+                }
                 varObject.put("taskId",marketingHistory.getTaskId());
                 varObject.put("userType",marketingHistory.getUserType());
                 dto1.setVariables(varObject);
@@ -420,6 +430,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
                     pushMarketingUserTaskInfoDTO.getAccessNumber());
+            if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                        pushMarketingUserTaskInfoDTO.getAccessNumber());
+            }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 main.setmStatus(3);
             } else {
