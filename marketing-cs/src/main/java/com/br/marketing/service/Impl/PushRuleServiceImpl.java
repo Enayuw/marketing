@@ -144,6 +144,26 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public PageResultReturn getBatchInfos(CustomerBatchNumDTO dto) {
+        dto = getCustomerBatchNumDTO(dto);
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
+        return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
+    }
+
+    @Override
+    public Integer getBatchInfosCounts(CustomerBatchNumDTO dto) {
+        dto = getCustomerBatchNumDTO(dto);
+        return marketingTaskMapper.queryBatchsCount(dto);
+    }
+    @Override
+    public Result<List<PushInfoDetailVO>> getPushInfos(RequestPushInfoDTO dto) {
+        Date date = addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd");
+        dto.setPushEndTime(DateUtils.format(date, "yyyy-MM-dd"));
+        List<PushInfoDetailVO> pushInfos = customerInfoPushMainMapper.getPushInfos(dto);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushInfos);
+    }
+
+    public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto){
         if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
             Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
             dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
@@ -158,39 +178,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             String[] module = productName.split(",");
             dto.setModuleList(Arrays.asList(module));
         }
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
-        return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
-
-
+        return dto;
     }
-
-    @Override
-    public Integer getBatchInfosCounts(CustomerBatchNumDTO dto) {
-        if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
-            Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
-            dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
-        }
-        if(StringUtils.isNotBlank(dto.getScoreBeginTime())){
-            Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
-            dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
-        }
-
-        String productName = dto.getProductName();
-        String[] module = productName.split(",");
-        dto.setModuleList(Arrays.asList(module));
-        return marketingTaskMapper.queryBatchsCount(dto);
-
-
-    }
-    @Override
-    public Result<List<PushInfoDetailVO>> getPushInfos(RequestPushInfoDTO dto) {
-        Date date = addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd");
-        dto.setPushEndTime(DateUtils.format(date, "yyyy-MM-dd"));
-        List<PushInfoDetailVO> pushInfos = customerInfoPushMainMapper.getPushInfos(dto);
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushInfos);
-    }
-
     private Date addDay(String date, Integer addDays, String format) {
         Calendar c = Calendar.getInstance();
         Date time = null;
