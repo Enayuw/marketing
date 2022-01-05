@@ -59,7 +59,7 @@ public class PushRuleFilterController {
         }
     }
     /**
-     * 获取批次列表
+     * 获取列表跑分总数
      *
      * @param dto
      * @return

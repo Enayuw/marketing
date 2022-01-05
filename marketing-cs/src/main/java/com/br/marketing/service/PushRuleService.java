@@ -30,6 +30,12 @@ public interface PushRuleService {
      * @return
      */
     PageResultReturn getBatchInfos(@Valid CustomerBatchNumDTO dto);
+
+    /**
+     * 获取批次列表跑分总数
+     * @param dto
+     * @return
+     */
     Integer getBatchInfosCounts(@Valid CustomerBatchNumDTO dto);
 
     /**
