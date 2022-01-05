@@ -483,6 +483,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 isContinue = Boolean.TRUE;
             }
         }
+        if(!isContinue){
+            CustomerInfoPushLogExample pushLogExample = new CustomerInfoPushLogExample();
+            logExample.createCriteria().andMIdEqualTo(mId);
+            List<CustomerInfoPushLog> haveLogs = customerInfoPushLogMapper.selectByExample(pushLogExample);
+            long count = haveLogs.stream().map(t -> !"00".equals(t.getRealStauts())).count();
+            CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
+            updateMain.setId(mId);
+            updateMain.setmStatus(count>0?5:4);
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
+        }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
 
