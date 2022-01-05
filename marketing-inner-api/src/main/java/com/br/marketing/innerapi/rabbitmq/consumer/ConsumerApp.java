@@ -74,8 +74,7 @@ public class ConsumerApp {
     public void consumerPushUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::consumerPushCustomer, o,
-                "Marketing.Push.CustomerService.Search.Delay");
+        consumerService.consumerRun(channel, message, pushRuleService::consumerPushCustomer, o,"");
     }
 
 }
