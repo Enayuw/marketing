@@ -114,7 +114,7 @@ public class ResultUtil {
                 if(marketingCondition!=null){
                     marketingCondition.setFlag(resultJson.get("flag_score")==null?"":resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    marketingCondition.setDValue(esResult.get(s)==null?0:Double.valueOf(esResult.getString(s)));
+                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s))?0:Double.valueOf(esResult.getString(s)));
                     marketingCondition.setStrValue("");
                     conditionList.add(marketingCondition);
                 }else{
