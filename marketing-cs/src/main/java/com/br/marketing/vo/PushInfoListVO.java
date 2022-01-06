@@ -25,16 +25,22 @@ public class PushInfoListVO {
     @ApiModelProperty(value = "推送时间")
     private String createTime;
 
-    @ApiModelProperty(value = "执行状态 1-执行中；2-执行成功；3-执行失败")
+    @ApiModelProperty(value = "执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败")
     private Integer mStatus;
 
     public String getmStatusDesc() {
         if (mStatus.equals(1)) {
             return "执行中";
         } else if (mStatus.equals(2)) {
-            return "执行成功";
+            return "待确认";
+        } else if (mStatus.equals(3)) {
+            return "推送失败";
+        } else if (mStatus.equals(4)) {
+            return "确认成功";
+        } else if (mStatus.equals(5)) {
+            return "确认失败";
         } else {
-            return "执行失败";
+            return "状态异常";
         }
     }
 
