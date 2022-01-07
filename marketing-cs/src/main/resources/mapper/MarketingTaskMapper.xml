@@ -502,7 +502,7 @@
 			<![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
 			<![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
 		</if>
-        and shf.score_status = 2 mt.task_type !=1
+        and shf.score_status = 2 and mt.task_type !=1
         order by shf.id desc
 
     </select>
@@ -539,7 +539,7 @@
             <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
         </if>
-        and shf.score_status = 2 mt.task_type !=1
+        and shf.score_status = 2 and mt.task_type !=1
 
     </select>
 </mapper>
