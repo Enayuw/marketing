@@ -156,10 +156,10 @@ public class ErrorControllerAspect {
      */
     private void errorHandle(String typeName,String methodName,Object[] args,Throwable e,CalledInterfaceLog interfaceLog){
         StringBuilder params = new StringBuilder();
-        String br = "<br/>";
+        String br = "\r\n";
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
-                params.append(String.format("Index:%d,Data:%s ", i, args[i])).append(br);
+                params.append(String.format("Index:%d,Data:%s ", i, JSON.toJSONString(args[i]))).append(br);
             }
         }
         UUID uuid = UUID.randomUUID();
@@ -167,9 +167,9 @@ public class ErrorControllerAspect {
                 .append(br).append(String.format("环境：%s", env))
                 .append(br).append(String.format("logId：%s", uuid))
                 .append(br).append(String.format("方法：%s.%s", typeName, methodName))
-                .append(br).append(String.format("参数：%s", params.toString()))
                 .append(br).append(String.format("Exception：%s", e.toString()))
-                .append(br).append(" StackTrace：");
+                .append(br).append(" StackTrace：")
+                .append(br).append(String.format("参数：%s", params.toString()));
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(br).append(e.getStackTrace()[i]);
         }
@@ -177,6 +177,7 @@ public class ErrorControllerAspect {
                 .append(br).append(String.format("环境：%s", env))
                 .append(br).append(String.format("logId：%s", uuid))
                 .append(br).append(String.format("方法：%s.%s", typeName, methodName))
+                .append(br).append(String.format("Exception：%s", e.toString()))
                 .append(br).append(String.format("参数：%s", params.toString()));
         systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(), "marketing-inner-api");
         if (log.isErrorEnabled()) {
