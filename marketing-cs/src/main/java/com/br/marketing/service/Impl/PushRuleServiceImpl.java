@@ -1251,17 +1251,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //todo 调用客服接口
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
-        if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
-            throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
-        }
-        if("00".equals(transferRobotOutboundVO.getCode())){
-            JSONObject object = JSON.parseObject(transferRobotOutboundVO.getData().toString());
-            JSONArray array = object.getJSONArray("unsuccessfulData");
-            if (array.size() > 0) {
-                String content = String.format("客服接口返回错误列表数据：%s", transferRobotOutboundVO.getData().toString());
-                log.error(content);
-                alarmApiClient.sendAlarm(content,"客服接口返回警示信息",appName,secretKey,"60005");
+        if(conversionDataList.size()>0){
+            TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
+            if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
+                throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
+            }
+            if("00".equals(transferRobotOutboundVO.getCode())){
+                JSONObject object = JSON.parseObject(transferRobotOutboundVO.getData().toString());
+                JSONArray array = object.getJSONArray("unsuccessfulData");
+                if (array.size() > 0) {
+                    String content = String.format("客服接口返回错误列表数据：%s", transferRobotOutboundVO.getData().toString());
+                    log.error(content);
+                    alarmApiClient.sendAlarm(content,"客服接口返回警示信息",appName,secretKey,"60005");
+                }
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
