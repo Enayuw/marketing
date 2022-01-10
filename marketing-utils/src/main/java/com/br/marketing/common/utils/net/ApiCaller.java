@@ -110,12 +110,12 @@ public class ApiCaller {
         interfaceLog.setUrl(url);
         interfaceLog.setRequestTime(new Date());
         long start = System.currentTimeMillis();
-        log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
+        Long l = System.currentTimeMillis() - start;
         if(momCommonUtil != null) {
             try {
-                interfaceLog.setCostTime(System.currentTimeMillis() - start);
+                interfaceLog.setCostTime(l);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
                 logDbPool.submit(()->{
@@ -124,6 +124,9 @@ public class ApiCaller {
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+        }
+        if(log.isDebugEnabled()){
+            log.debug("POST=====:{},url:{},cost:{},requestbody:{},response:{}", this, url,l.toString(),postHttpEntity.getBody());
         }
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
         transfer.setResult(stringResponseEntity.getBody());
