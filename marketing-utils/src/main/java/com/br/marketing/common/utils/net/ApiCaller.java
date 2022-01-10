@@ -125,8 +125,8 @@ public class ApiCaller {
                 log.error(ex.getMessage(), ex);
             }
         }
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
+        if(log.isInfoEnabled()) {
+            log.info(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
                     , url, l, postHttpEntity.getBody()
                     , stringResponseEntity.getStatusCodeValue(), stringResponseEntity.getBody()));
         }
