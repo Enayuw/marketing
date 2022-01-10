@@ -126,9 +126,9 @@ public class ApiCaller {
             }
         }
         if(log.isDebugEnabled()) {
-            log.debug("POST=====:{},url:{},cost:{},requestbody:{},code:{},response:{}"
-                    , this, url, l.toString(), postHttpEntity.getBody()
-                    , String.valueOf(stringResponseEntity.getStatusCodeValue()), stringResponseEntity.getBody());
+            log.debug(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
+                    , url, l, postHttpEntity.getBody()
+                    , stringResponseEntity.getStatusCodeValue(), stringResponseEntity.getBody()));
         }
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
         transfer.setResult(stringResponseEntity.getBody());
