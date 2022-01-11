@@ -517,8 +517,9 @@
     </select>
     <select id="queryBatchsCount" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
             resultType="java.lang.Integer">
+        select sum(actualNum) from (
         select
-        sum(shf.actual_num) as totalNum
+        shf.actual_num as actualNum
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
         left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
@@ -542,6 +543,8 @@
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
         </if>
         and shf.score_status = 2 and mt.task_type !=1
+        group by mt.batch_number
+        ) a
 
     </select>
 </mapper>
