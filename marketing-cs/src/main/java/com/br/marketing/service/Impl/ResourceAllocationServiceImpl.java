@@ -1,6 +1,6 @@
-package com.br.marketing.check.service.Impl;
+package com.br.marketing.service.Impl;
 
-import com.br.marketing.check.service.ResourceAllocationService;
+import com.br.marketing.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -22,13 +22,13 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
     public static CuratorFramework client;
 
     @Value("${SERVER_LISTS}")
-    private static String serverList;
+    private String serverList;
 
     private static final String marketPath = "/pd_hx/marketing";
     private static final String loanPath = "/pd_hx/loan_warning";
     private static final String miniPath = "/pd_hx/mini_mark";
 
-    static {
+    {
         System.out.println("开始建立连接。。。");
         System.out.println(serverList);
         // 重连策略
