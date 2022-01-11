@@ -485,7 +485,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if(!isContinue){
             CustomerInfoPushLogExample pushLogExample = new CustomerInfoPushLogExample();
-            logExample.createCriteria().andMIdEqualTo(mId);
+            pushLogExample.createCriteria().andMIdEqualTo(mId);
             List<CustomerInfoPushLog> haveLogs = customerInfoPushLogMapper.selectByExample(pushLogExample);
             long count = haveLogs.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
