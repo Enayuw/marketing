@@ -49,4 +49,7 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushRuleService::pushPersonalTransferData, o, null);
     }
 
+
+
+
 }

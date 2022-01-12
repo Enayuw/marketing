@@ -1013,7 +1013,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+            if(transferInfo.getRequestId().startsWith("black_")){
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
@@ -2034,5 +2038,35 @@ public class PushRuleServiceImpl implements PushRuleService {
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
         return robotOutboundDTO;
+    }
+
+    @Override
+    public Result<Boolean> consumerBlack(Long id) {
+        Integer soleNum = 20;
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        if(transferInfo == null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage("数据不存在");
+        }
+        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+        if(tcId==null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage(String.format("apiCode:%s 未维护cid信息",transferInfo.getApiCode()));
+        }
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+                andRequestIdEqualTo(transferInfo.getRequestId());
+        example.settCid(tcId);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        int page = marketingTransferSyncUsers.size() / 500 + (marketingTransferSyncUsers.size() % 500) == 0 ? 0 : 1;
+        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+
+        }
+        return null;
     }
 }
