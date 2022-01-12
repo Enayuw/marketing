@@ -12,6 +12,8 @@ public class PushInfoListVO {
     private String mApiCode;
 
     @ApiModelProperty(value = "跑分批次号")
+    private String batchNumbers;
+
     private String mCusBatchNumberList;
 
     @ApiModelProperty(value = "规则条件")
@@ -66,6 +68,14 @@ public class PushInfoListVO {
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
         this.mCusBatchNumberList = mCusBatchNumberList;
+    }
+
+    public String getBatchNumbers() {
+        return batchNumbers;
+    }
+
+    public void setBatchNumbers(String batchNumbers) {
+        this.batchNumbers = batchNumbers;
     }
 
     public String getmRuleConditionShow() {
