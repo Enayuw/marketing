@@ -472,12 +472,12 @@
 
     <select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
             resultType="com.br.marketing.vo.ScoreDetailVo">
-        select shf.api_code as apiCode,
+      select * from(select shf.api_code as apiCode,
         shf.show_title as cusBatchNumber,
         mt.batch_number as batchNumber,
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
-        shf.create_time as scoreBeginTime,
+        DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
         GROUP_CONCAT(msp.product_name SEPARATOR ',')as productName,
         shf.actual_num as actualNum
         from stra_his_file as shf
@@ -485,12 +485,7 @@
         left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
         left join b_marketing_task_extend as mte on mt.id = mte.task_id
         where mt.api_code = #{apiCode}
-        <if test="productName !=null and productName !=''">
-            and msp.product_name in
-            <foreach collection="moduleList" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
-        </if>
+
         <if test="productVersion !=null and productVersion !=''">
             and msp.product_version =#{productVersion}
         </if>
@@ -502,9 +497,12 @@
             <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
         </if>
-        and shf.score_status = 2 and mt.task_type !=1
+        and shf.score_status = 2
         group by batchNumber
-        order by shf.id desc
+        order by shf.id desc) vie where apiCode = #{apiCode}
+        <if test="productName !=null and productName !=''">
+        and productName = #{productName}
+        </if>
 
     </select>
 
