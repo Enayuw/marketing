@@ -53,12 +53,16 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
                 if(strategyProductJson!=null && !"".equals(strategyProductJson)){
                     StrategyProductDetailVO strategyProductDetailVO= JSONObject.parseObject(strategyProductJson,StrategyProductDetailVO.class);
                     List<String> fields = strategyProductDetailVO.getFields();
-                    list.addAll(fields);
+                    if(fields!=null && fields.size()>0){
+                        list.addAll(fields);
+                    }
                 }
                 if(extendShowTitle!=null && !"".equals(extendShowTitle)){
                     BaseHeadConfigVO baseHeadConfigVO= JSONObject.parseObject(extendShowTitle,BaseHeadConfigVO.class);
                     List<String> showBaseHead = baseHeadConfigVO.getShowBaseHead();
-                    list.addAll(showBaseHead);
+                    if(showBaseHead!=null && showBaseHead.size()>0){
+                        list.addAll(showBaseHead);
+                    }
                 }
             }else {
                 log.info("stra_his_file表获取batch_number为空！");
