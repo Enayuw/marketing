@@ -2,11 +2,8 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,29 +16,12 @@ import java.util.Map;
 @Slf4j
 public class ResourceAllocationServiceImpl implements ResourceAllocationService {
 
-    public static CuratorFramework client;
-
-    @Value("${SERVER_LISTS}")
-    private String serverList;
-
     private static final String marketPath = "/pd_hx/marketing";
     private static final String loanPath = "/pd_hx/loan_warning";
     private static final String miniPath = "/pd_hx/mini_mark";
 
-    {
-        System.out.println("开始建立连接。。。");
-        System.out.println(serverList);
-        // 重连策略
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        // 建立客户端
-        client = CuratorFrameworkFactory.builder()
-                .connectString(serverList)
-                .sessionTimeoutMs(60 * 1000)  // 会话超时时间
-                .connectionTimeoutMs(5000) // 连接超时时间
-                .retryPolicy(retryPolicy)
-                .build();
-        client.start();
-    }
+    @Autowired
+    private CuratorFramework client;
 
     @Override
     public HashMap getThreadPoolData() throws Exception{
