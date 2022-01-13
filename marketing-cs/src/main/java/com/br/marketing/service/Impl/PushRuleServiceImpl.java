@@ -11,15 +11,15 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.input.*;
+import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.common.LastEnum;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -69,6 +69,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -624,6 +626,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
+    @Autowired
+    RetryMainLogMapper retryMainLogMapper;
+
     /**
      * 消费异步推送人员信息
      *
@@ -1013,7 +1018,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+            if(transferInfo.getRequestId().startsWith("black_")){
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
@@ -2060,5 +2069,119 @@ public class PushRuleServiceImpl implements PushRuleService {
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
         return robotOutboundDTO;
+    }
+
+    @Override
+    public Result<Boolean> consumerBlack(Long id) {
+        Integer soleNum = 20;
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        if(transferInfo == null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage("数据不存在");
+        }
+        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+        if(tcId==null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage(String.format("apiCode:%s 未维护cid信息",transferInfo.getApiCode()));
+        }
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+                andRequestIdEqualTo(transferInfo.getRequestId());
+        example.settCid(tcId);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        int page = marketingTransferSyncUsers.size() / 500 + (marketingTransferSyncUsers.size() % 500) == 0 ? 0 : 1;
+        int yu = marketingTransferSyncUsers.size() % 500;
+        for (int i = 1; i <= page; i++) {
+            int start = (i-1)*500;
+            int end = 0;
+            if(i==page&&yu>0){
+                end= (i-1)*500+yu;
+            }else{
+                end=i*500-1;
+            }
+            List<MarketingTransferSyncUser> users = marketingTransferSyncUsers.subList(start, end);
+            Result result = pushBlack(users);
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                log.error(String.format("推送黑名单报错：%s",result.getData()));
+                if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                    RetryMainLog retryMainLog = new RetryMainLog();
+                    retryMainLog.setRetryType(1);
+                    retryMainLog.setRetryParam(JSON.toJSONString(users));
+                    retryMainLog.setRetryParamType(users.getClass().getName());
+                    retryMainLog.setRetryService("pushRuleServiceImpl");
+                    retryMainLog.setRetryMethod("pushBlack");
+                    retryMainLog.setRetryNum(0);
+                    retryMainLog.setRetryMaxNum(3);
+                    retryMainLog.setRetryStatus(1);
+                    retryMainLog.setCreateTime(new Date());
+                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                    retryMainLogMapper.insertSelective(retryMainLog);
+                }
+            }
+        }
+        return new Result<>()
+                .setCode(ResultCode.SUCCESS.getValue())
+                .setDate(isContinue);
+    }
+
+    public Result<String> pushBlack(List<MarketingTransferSyncUser> marketingTransferSyncUsers){
+        ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
+        String apiCode = "";
+        String requestId = "";
+        String idRang = marketingTransferSyncUsers.get(0).getId()
+                +"-"
+                +marketingTransferSyncUsers.get(marketingTransferSyncUsers.size()-1).getId();
+        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+            if(StringUtils.isEmpty(apiCode)){
+                apiCode = marketingTransferSyncUser.getApiCode();
+            }
+            if(StringUtils.isEmpty(requestId)){
+                requestId = marketingTransferSyncUser.getRequestId();
+            }
+            BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+            JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+            String cell = jsonObject.getString("cell");
+            String createTime = jsonObject.getString("createTime");
+            LocalDateTime time = LocalDateTime.parse(createTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(cell));
+            LocalDateTime lastDay = null;
+            if(marketingTransferSyncUser.getUserType().equals("促首登")){
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }else if(marketingTransferSyncUser.getUserType().equals("促申完")){
+                lastDay = time.plusDays(14);
+            }else if(marketingTransferSyncUser.getUserType().equals("重申")){
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }else if(marketingTransferSyncUser.getUserType().equals("首借")){
+                lastDay = time.plusDays(29);
+            }else{
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }
+            blackDetailDTO.setEffectiveDate(lastDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            blackDetailDTOS.add(blackDetailDTO);
+        }
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailDTOS);
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(jsondata));
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        parentDTO.setExtendInfo(requestId.concat(":").concat(idRang).concat(":").concat(String.valueOf(blackDetailDTOS.size())));
+        ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
+        if("00".equals(reqBlackPhoneVO.getCode())&&(reqBlackPhoneVO.getData()==null||reqBlackPhoneVO.getData().size()<=0)){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
+        ||"9999".equals(reqBlackPhoneVO.getCode())){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
     }
 }
