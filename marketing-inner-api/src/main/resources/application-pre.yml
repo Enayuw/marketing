@@ -78,13 +78,13 @@ api:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service-pred
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   customerService:
     apiCode: 4000296
   pushTransfer:
     robotAi:
-      baseUrl: http://robotai-api-service/api
+      baseUrl: http://robotai-api-service-pred/api
       robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
