@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,23 +28,23 @@ public class ResourceAllocationController {
 
     @ApiOperation(value = "读取线程池信息",notes = "读取线程池信息")
     @GetMapping("/getPushInfoList")
-    public ApiResult<Map> getThreadPoolData(){
+    public ApiResult<List<Map>> getThreadPoolData(){
         try {
-            HashMap map = resourceAllocationService.getThreadPoolData();
-            return new ApiResult<Map>().success(map);
+            List<Map> list = resourceAllocationService.getThreadPoolData();
+            return new ApiResult<List<Map>>().success(list);
         } catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage(),ex);
         }
-        return new ApiResult<Map>().fail(ServiceResultEnum.UNKNOWN_ERROR);
+        return new ApiResult<List<Map>>().fail(ServiceResultEnum.UNKNOWN_ERROR);
     }
 
 
     @ApiOperation(value = "修改线程数量",notes = "修改线程数量")
     @PostMapping("/editThreadPoolNum")
-    public ApiResult<Boolean> editThreadPoolNum(@RequestBody Map map){
+    public ApiResult<Boolean> editThreadPoolNum(@RequestBody List<Map> list){
         try {
-            Boolean flag = resourceAllocationService.editThreadPoolNum(map);
+            Boolean flag = resourceAllocationService.editThreadPoolNum(list);
             return new ApiResult<Boolean>().success(flag);
         }catch (Exception e) {
             e.printStackTrace();

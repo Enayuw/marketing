@@ -1,6 +1,6 @@
 package com.br.marketing.service;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public interface ResourceAllocationService {
@@ -10,12 +10,12 @@ public interface ResourceAllocationService {
      * @return
      * @throws Exception
      */
-    HashMap getThreadPoolData() throws Exception;
+    List<Map> getThreadPoolData() throws Exception;
 
     /**
      * 修改节点值
-     * @param map
+     * @param list
      * @return
      */
-    Boolean editThreadPoolNum(Map map) throws Exception;
+    Boolean editThreadPoolNum(List<Map> list) throws Exception;
 }

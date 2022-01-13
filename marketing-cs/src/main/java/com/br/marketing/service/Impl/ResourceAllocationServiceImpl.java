@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,103 +24,77 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
     @Autowired
     private CuratorFramework client;
 
+
     @Override
-    public HashMap getThreadPoolData() throws Exception{
-        HashMap map = new HashMap<>();
+    public List<Map> getThreadPoolData() throws Exception{
         //营销中台 线程池信息
-        List<String> marketingChild = client.getChildren().forPath(marketPath);
-        if(marketingChild.size()>0 && marketingChild!=null){
-            //读取节点值
-            HashMap child = new HashMap<>();
-            for (String s:marketingChild){
-
-                byte[] bytes = client.getData().forPath(marketPath + "/" + s);
-                if(bytes!=null && bytes.length>0){
-                    String num = new String(bytes);
-                    child.put(s,num);
-                }else {
-                    child.put(s,0);
-                }
-            }
-            map.put("marketing",child);
-        }
-
-
+        List<Map> list = new ArrayList<>();
+        HashMap marketingMap = getData("marketing","智能营销",marketPath);
+        list.add(marketingMap);
         //存量监控 线程池信息
-        List<String> loanChild = client.getChildren().forPath(loanPath);
-        if(loanChild.size()>0 && loanChild!=null){
-            HashMap child = new HashMap<>();
-            //读取节点值
-            for (String s:loanChild){
-
-                byte[] bytes = client.getData().forPath(loanPath + "/" + s);
-                if(bytes!=null && bytes.length>0){
-                    String num = new String(bytes);
-                    child.put(s,num);
-                }else {
-                    child.put(s,0);
-                }
-            }
-            map.put("loan_warning",child);
-        }
-
-
+        HashMap loanMap = getData("loan_warning","存量监控",loanPath);
+        list.add(loanMap);
         //小程序 线程池信息
-        List<String> miniChild = client.getChildren().forPath(miniPath);
-        if(loanChild.size()>0 && loanChild!=null){
-            HashMap child = new HashMap<>();
-            //读取节点值
-            for (String s:miniChild){
+        HashMap miniMap = getData("mini_mark","小程序",miniPath);
+        list.add(miniMap);
 
-                byte[] bytes = client.getData().forPath(miniPath + "/" + s);
+        return list;
+    }
+
+    public HashMap getData(String value,String lable,String path) throws Exception {
+        HashMap threadMap = new HashMap<>();
+        threadMap.put("value",value);
+        threadMap.put("label",lable);
+        List<Map> info = new ArrayList<>();
+        List<String> nodeChild = client.getChildren().forPath(path);
+        if(nodeChild.size()>0 && nodeChild!=null){
+            //读取节点值
+            for (String s:nodeChild){
+                HashMap child = new HashMap<>();
+                byte[] bytes = client.getData().forPath(path + "/" + s);
                 if(bytes!=null && bytes.length>0){
                     String num = new String(bytes);
-                    child.put(s,num);
+                    child.put("threadNum",num);
                 }else {
-                    child.put(s,0);
+                    child.put("threadNum",0);
                 }
+                child.put("threadPoolInfo",s);
+                child.put("threadNumEdit",null);
+                info.add(child);
             }
-            map.put("mini_mark",child);
         }
-
-        return map;
+        threadMap.put("threadInfo",info);
+        return threadMap;
     }
 
     @Override
     @Transactional
-    public Boolean editThreadPoolNum(Map map){
-        //修改节点值
-        Map marketing = (Map) map.get("marketing");
-        marketing.forEach((key,value)->{
-            try {
-                client.setData().forPath(marketPath+"/"+key, value.toString().getBytes());
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error(e.getMessage(),e);
+    public Boolean editThreadPoolNum(List<Map> list) throws Exception {
+        for(Map single:list){
+            String value = single.get("value").toString();
+            List<Map> threadInfo = (List<Map>) single.get("threadInfo");
+            switch (value){
+                case "marketing" :
+                    editNode(threadInfo,marketPath);
+                    break;
+                case "loan_warning" :
+                    editNode(threadInfo,loanPath);
+                    break;
+                case "mini_mark" :
+                    editNode(threadInfo,miniPath);
+                    break;
             }
-        });
-
-        Map loanWarning = (Map) map.get("loan_warning");
-        loanWarning.forEach((key,value)->{
-            try {
-                client.setData().forPath(loanPath+"/"+key, value.toString().getBytes());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                log.error(ex.getMessage(),ex);
-            }
-        });
-
-        Map miniMark = (Map) map.get("mini_mark");
-        miniMark.forEach((key,value)->{
-            try {
-                client.setData().forPath(miniPath+"/"+key, value.toString().getBytes());
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error(e.getMessage(),e);
-            }
-        });
-
+        }
         return true;
+    }
+
+    //修改节点值
+    public void editNode(List<Map> threadInfo,String path) throws Exception {
+        for(Map s :threadInfo){
+            String node = s.get("threadPoolInfo").toString();
+            String numEdit = s.get("threadNumEdit").toString();
+            client.setData().forPath(path+"/"+node, numEdit.getBytes());
+        }
     }
 
 
