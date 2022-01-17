@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -17,10 +18,6 @@ import java.util.Map;
 @Slf4j
 public class ResourceAllocationServiceImpl implements ResourceAllocationService {
 
-    private static final String marketPath = "/pd_hx/marketing";
-    private static final String loanPath = "/pd_hx/loan_warning";
-    private static final String miniPath = "/pd_hx/mini_mark";
-
     @Autowired
     private CuratorFramework client;
 
@@ -29,13 +26,13 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
     public List<Map> getThreadPoolData() throws Exception{
         //营销中台 线程池信息
         List<Map> list = new ArrayList<>();
-        HashMap marketingMap = getData("marketing","智能营销",marketPath);
+        HashMap marketingMap = getData("marketing","智能营销", ZookeeperPath.marketPath);
         list.add(marketingMap);
         //存量监控 线程池信息
-        HashMap loanMap = getData("loan_warning","存量监控",loanPath);
+        HashMap loanMap = getData("loan_warning","存量监控",ZookeeperPath.loanPath);
         list.add(loanMap);
         //小程序 线程池信息
-        HashMap miniMap = getData("mini_mark","小程序",miniPath);
+        HashMap miniMap = getData("mini_mark","小程序",ZookeeperPath.miniPath);
         list.add(miniMap);
 
         return list;
@@ -75,13 +72,13 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
             List<Map> threadInfo = (List<Map>) single.get("threadInfo");
             switch (value){
                 case "marketing" :
-                    editNode(threadInfo,marketPath);
+                    editNode(threadInfo,ZookeeperPath.marketPath);
                     break;
                 case "loan_warning" :
-                    editNode(threadInfo,loanPath);
+                    editNode(threadInfo,ZookeeperPath.loanPath);
                     break;
                 case "mini_mark" :
-                    editNode(threadInfo,miniPath);
+                    editNode(threadInfo,ZookeeperPath.miniPath);
                     break;
             }
         }

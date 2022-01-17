@@ -1,4 +1,8 @@
 package com.br.marketing.task.service.Impl;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -11,6 +15,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.*;
@@ -31,6 +36,9 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +51,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 单任务多片跑分
@@ -104,7 +113,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     final static Integer allMonitorType = 4;
 
-
+    @Autowired
+    private CuratorFramework client;
     /**
      * 1、initBatchNumList 方法统计出所有需要跑分的任务，并且每个任务属性上新增了分片信息和分片个数
      * 2、generateTask 执行跑分，会生成 跑分记录，跑分分片状态表记录
@@ -117,13 +127,35 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      */
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
-        ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
 
         if(customer.getThreadNum()==null){
             customer.setThreadNum(20);
         }
-        warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+        final ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+        try {
+            if(client.checkExists().forPath(zkpath)==null) {
+                client.create().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }else{
+                client.setData().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        NodeCache nodeCache = new NodeCache(client, zkpath);
+        nodeCache.getListenable().addListener(()->{
+            if(nodeCache.getCurrentData()!=null) {
+                warrningExecutor
+                        .setCorePoolSize(Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue());
+                warrningExecutor
+                        .setMaximumPoolSize(Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue());
+            }});
+        try {
+            nodeCache.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try{
             List<MarketingTask> taskList=new ArrayList<>();
 
@@ -152,7 +184,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 String hkey=Constants.HXRESULTERROR_RETRY_KEY+":"+apiCode;
                 Set<String> hkeys = redisChgService.hkeys(hkey);
                 if(!hkeys.isEmpty()&&hkeys.size()>0){
-                    warrningExecutor = BrExecutors.getThreadPool(20,20);
+//                    warrningExecutor = BrExecutors.getThreadPool(20,20);
                     int i=1;
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
@@ -175,17 +207,17 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         }
                     }
                     log.warn("所有重试任务已加入队列，等待结束-----");
-                    warrningExecutor.shutdown();
-                    while (true){
-                        if(warrningExecutor.isTerminated()){
-                            log.warn("重试任务所有线程都执行结束");
-                            break;
-                        }
-                        try {
-                            Thread.sleep(6000);
-                        }catch (Exception e){
-                        }
-                    }
+//                    warrningExecutor.shutdown();
+//                    while (true){
+//                        if(warrningExecutor.isTerminated()){
+//                            log.warn("重试任务所有线程都执行结束");
+//                            break;
+//                        }
+//                        try {
+//                            Thread.sleep(6000);
+//                        }catch (Exception e){
+//                        }
+//                    }
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
@@ -235,6 +267,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
+            while (true){
+                Thread.sleep(5000L);
+            }
+//            client.delete().guaranteed().forPath(zkpath);
         }catch (Exception e){
             log.error("预警调度出错",e);
         }
@@ -762,5 +798,37 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             scoreRuleConfig = scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
         }
         return scoreRuleConfig;
+    }
+
+    public static String getLocalIp() {
+        String ip="";
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows")>-1) {
+            try {
+                ip= InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException e) {
+                log.error("UnknownHostException {}",e);
+            }
+        }else {
+            try {
+                for(Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                    NetworkInterface interf = en.nextElement();
+                    String name= interf.getName();
+                    if (!name.contains("docker")&&!name.contains("lo")) {
+                        for(Enumeration<InetAddress>enumeAddress=interf.getInetAddresses();enumeAddress.hasMoreElements();) {
+                            InetAddress address=    enumeAddress.nextElement();
+                            if (!address.isLoopbackAddress()) {
+                                String ipAddress= address.getHostAddress().toString();
+                                if (!ipAddress.contains("::")&&!ipAddress.contains("0:0")&&!ipAddress.contains("fe80")) {
+                                    ip= ipAddress;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("get Linux local ip error {}",e);
+            }
+        }
+        return ip;
     }
 }
