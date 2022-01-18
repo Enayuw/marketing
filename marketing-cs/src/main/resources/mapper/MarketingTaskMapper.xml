@@ -501,7 +501,7 @@
         group by batchNumber
         order by shf.id desc) vie where apiCode = #{apiCode}
         <if test="productName !=null and productName !=''">
-        and productName = #{productName}
+        and productName like   CONCAT('%',#{productName},'%')
         </if>
 
     </select>
@@ -544,7 +544,7 @@
         group by batchNumber
         order by shf.id desc) vie where apiCode = #{apiCode}
         <if test="productName !=null and productName !=''">
-            and productName = #{productName}
+            and productName like   CONCAT('%',#{productName},'%')
         </if>
 
     </select>
