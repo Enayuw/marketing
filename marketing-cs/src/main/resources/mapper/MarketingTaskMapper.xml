@@ -478,7 +478,7 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name SEPARATOR ',')as productName,
+        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
         shf.actual_num as actualNum
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
@@ -521,7 +521,7 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name SEPARATOR ',')as productName,
+        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
         shf.actual_num as actualNum
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1

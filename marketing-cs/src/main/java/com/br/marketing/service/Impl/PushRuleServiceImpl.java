@@ -173,6 +173,19 @@ public class PushRuleServiceImpl implements PushRuleService {
             Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
             dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
         }
+        if(StringUtils.isNotBlank(dto.getProductName())){
+            HashSet<String> productNameSet = new HashSet<>();
+            String[] products = dto.getProductName().split(",");
+            for (int i = 0; i < products.length; i++) {
+                productNameSet.add(products[i]);
+            }
+            List<String> list = new ArrayList<>();
+            list.addAll(productNameSet);
+            Collections.sort(list);//排序
+            String name  = String.join(",",list);
+            dto.setProductName(name);
+
+        }
         return dto;
     }
     private Date addDay(String date, Integer addDays, String format) {
