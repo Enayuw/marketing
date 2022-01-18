@@ -48,7 +48,7 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
             String batchNumber = straHisFile.getBatchNumber();
             if(batchNumber!=null){
                 MarketingTaskExtend taskExtend = marketingTaskExtendMapper.getProducts(batchNumber);
-                String extendShowTitle = taskExtend.getExtendShowTitle();
+                //String extendShowTitle = taskExtend.getExtendShowTitle();
                 String strategyProductJson = taskExtend.getStrategyProductJson();
                 if(strategyProductJson!=null && !"".equals(strategyProductJson)){
                     StrategyProductDetailVO strategyProductDetailVO= JSONObject.parseObject(strategyProductJson,StrategyProductDetailVO.class);
@@ -57,13 +57,13 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
                         list.addAll(fields);
                     }
                 }
-                if(extendShowTitle!=null && !"".equals(extendShowTitle)){
+               /* if(extendShowTitle!=null && !"".equals(extendShowTitle)){
                     BaseHeadConfigVO baseHeadConfigVO= JSONObject.parseObject(extendShowTitle,BaseHeadConfigVO.class);
                     List<String> showBaseHead = baseHeadConfigVO.getShowBaseHead();
                     if(showBaseHead!=null && showBaseHead.size()>0){
                         list.addAll(showBaseHead);
                     }
-                }
+                }*/
             }else {
                 log.info("stra_his_file表获取batch_number为空！");
             }
