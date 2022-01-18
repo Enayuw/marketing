@@ -34,6 +34,8 @@
         m_rule_condition_show as mRuleConditionShow,
         m_rule_condition as mRuleCondition,
         m_realy_num as mRealyNum,
+        m_plan_num as mPlanNum,
+        m_percentage as mPercentage,
         DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
         m_status as mStatus
         from b_customer_info_push_main
