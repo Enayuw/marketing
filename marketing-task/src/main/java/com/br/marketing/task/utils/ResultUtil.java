@@ -63,15 +63,27 @@ public class ResultUtil {
                 }
                 BaseHeadConfigVO o = JSON.parseObject(baseHeadInfo, new TypeReference<BaseHeadConfigVO>() {
                 }.getType());
-                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
+//                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
                 for (String s : o.getShowBaseHead()) {
                     if(jsonObject!=null){
                         String ss = jsonObject.getString(s);
                         if(StringUtils.isNotBlank(ss)){
                             sb.append(ss);
                         }
-                        Integer tp = headMap.get(s);
-                        if(tp!=null &&tp!= 1){
+                        String title = s.toLowerCase();
+                        if ("taskid".equals(title)
+                                &&StringUtils.isBlank(user.getTaskId())){
+                            user.setTaskId(ss);
+                        }else if("usertype".equals(title)
+                                &&StringUtils.isBlank(user.getUserType())){
+                            user.setUserType(ss);
+                        }else if("custnum".equals(title)&&StringUtils.isBlank(user.getCusNum())){
+                            user.setCusNum(user.getCusNum());
+                        }else if("idcard".equals(title)&&StringUtils.isBlank(user.getIdCard())){
+                            user.setIdCard(user.getIdCard());
+                        }else if("name".equals(title)&&StringUtils.isBlank(user.getName())){
+                            user.setName(user.getName());
+                        }else{
                             esResult.put(s,ss);
                         }
                     }
