@@ -2,6 +2,8 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import java.math.BigDecimal;
+
 
 public class PushInfoListVO {
 
@@ -12,6 +14,8 @@ public class PushInfoListVO {
     private String mApiCode;
 
     @ApiModelProperty(value = "跑分批次号")
+    private String batchNumbers;
+
     private String mCusBatchNumberList;
 
     @ApiModelProperty(value = "规则条件")
@@ -19,7 +23,13 @@ public class PushInfoListVO {
 
     private String mRuleCondition;
 
-    @ApiModelProperty(value = "推送数量")
+    @ApiModelProperty(value = "计划推送数量")
+    private Integer mPlanNum;
+
+    @ApiModelProperty(value = "百分比")
+    private BigDecimal mPercentage;
+
+    @ApiModelProperty(value = "实际推送数量")
     private Integer mRealyNum;
 
     @ApiModelProperty(value = "推送时间")
@@ -68,6 +78,14 @@ public class PushInfoListVO {
         this.mCusBatchNumberList = mCusBatchNumberList;
     }
 
+    public String getBatchNumbers() {
+        return batchNumbers;
+    }
+
+    public void setBatchNumbers(String batchNumbers) {
+        this.batchNumbers = batchNumbers;
+    }
+
     public String getmRuleConditionShow() {
         return mRuleConditionShow;
     }
@@ -106,5 +124,21 @@ public class PushInfoListVO {
 
     public void setmStatus(Integer mStatus) {
         this.mStatus = mStatus;
+    }
+
+    public Integer getmPlanNum() {
+        return mPlanNum;
+    }
+
+    public void setmPlanNum(Integer mPlanNum) {
+        this.mPlanNum = mPlanNum;
+    }
+
+    public BigDecimal getmPercentage() {
+        return mPercentage;
+    }
+
+    public void setmPercentage(BigDecimal mPercentage) {
+        this.mPercentage = mPercentage;
     }
 }
