@@ -156,7 +156,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("案件编号,场景,场景标识,手机号,上传时间");
+            fw.append("taskid,案件编号,场景,场景标识,手机号,上传时间");
             fw.append("\r\n");
             writeDD(fw, apiCode, startDate, endDate, groupTyps, transferFileTask);
         } catch (Exception ex) {
@@ -207,6 +207,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                     String nowKey = transferUserVO.getTaskId().concat("_").concat(transferUserVO.getCustNum());
                     String cell = StringUtils.isNotBlank(hsCell.get(nowKey)) ? hsCell.get(nowKey) : "";
                     StringBuilder sb = new StringBuilder();
+                    sb.append(transferUserVO.getTaskId().concat(","));
                     sb.append(transferUserVO.getCustNum().concat(","));
                     sb.append(transferUserVO.getGroupType().concat(","));
                     sb.append(transferUserVO.getReserveField1().concat(","));
