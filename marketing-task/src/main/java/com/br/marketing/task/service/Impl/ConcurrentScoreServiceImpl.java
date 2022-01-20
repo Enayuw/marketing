@@ -28,12 +28,14 @@ import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.MarketingThread;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -83,6 +85,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
     RedisChgService redisChgService;
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
+    @Autowired
+    ApicodeScoreProductMapper apicodeScoreProductMapper;
     @Resource
     MarketingTaskExtendService marketingTaskExtendService;
     @Resource
@@ -104,7 +108,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     final static Integer allMonitorType = 4;
 
-
+    final static String RedisCodeProduct="apicodescore:product:";
     /**
      * 1、initBatchNumList 方法统计出所有需要跑分的任务，并且每个任务属性上新增了分片信息和分片个数
      * 2、generateTask 执行跑分，会生成 跑分记录，跑分分片状态表记录
@@ -688,16 +692,38 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 if (pList != null) {
                     for (int i = 0; i < pList.size(); i++) {
                         JSONObject jsonObject = pList.getJSONObject(i);
+                        String code = jsonObject.getString("code");
                         MarketingStrategyProduct marketingStrategyProduct = new MarketingStrategyProduct();
                         marketingStrategyProduct.setApiCode(task.getApiCode());
                         marketingStrategyProduct.setBatchNumber(task.getBatchNumber());
                         marketingStrategyProduct.setCreateTime(new Date());
                         marketingStrategyProduct.setCusBatchNumber(task.getFileName());
-                        marketingStrategyProduct.setProductName(jsonObject.getString("code"));
+                        marketingStrategyProduct.setProductName(code);
                         marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
                         marketingStrategyProduct.setStrategyId(task.getStrategyId());
                         marketingStrategyProduct.setFileId(blf.getId());
                         marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
+                        String scorekey = RedisCodeProduct.concat(task.getApiCode());
+                        String s = redisChgService.get(scorekey);
+                        List<String> products = Splitter.on(",").splitToList(s==null?"":s);
+                        if(products.size()<=0||!products.contains(code)){
+                            ApicodeScoreProduct scoreProduct = new ApicodeScoreProduct();
+                            scoreProduct.setApiCode(task.getApiCode());
+                            scoreProduct.setProduct(code);
+                            scoreProduct.setCreateTime(new Date());
+                            try {
+                                apicodeScoreProductMapper.insertSelective(scoreProduct);
+                                products.add(code);
+                                String join = Joiner.on(",").join(products);
+                                redisChgService.set(scorekey,join);
+                                redisChgService.expire(scorekey,60*60);
+                            }catch (DuplicateKeyException keyException){
+
+                            }catch (Exception ex){
+                                log.error(ex.getMessage(),ex);
+                            }
+                        }
+
                     }
                 }
                 if(redisChgService.get(key).equals(v)){
