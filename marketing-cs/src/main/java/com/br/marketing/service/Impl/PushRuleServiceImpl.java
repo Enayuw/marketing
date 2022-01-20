@@ -266,7 +266,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
         customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
         customerInfoPushMain.setmPercentage(dto.getmPercentage());
-        customerInfoPushMain.setmPlanNum(pushNum);
+        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
+        customerInfoPushMain.setmRealyNum(pushNum);
         Date date = new Date();
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
@@ -327,7 +328,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
-        int total = customerInfoPushMain.getmPlanNum();
+        int total = customerInfoPushMain.getmRealyNum();
         String searchAfterStr = "";
         List<String> numList = new ArrayList<>();
         List<Long> fileIds = new ArrayList<>();
