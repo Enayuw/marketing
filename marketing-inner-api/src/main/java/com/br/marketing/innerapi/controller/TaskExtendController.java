@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rule/taskExtend")
@@ -30,13 +30,13 @@ public class TaskExtendController {
     @ApiOperation(value = "根据所选文件获得产品集合",notes = "根据所选文件获得产品集合")
     @ApiImplicitParam(name = "ids", paramType = "query", dataType = "string")
     @GetMapping("/getProducts")
-    public ApiResult<List<String>> getProducts(@RequestParam(required = true) String ids){
+    public ApiResult<Map> getProducts(@RequestParam(required = true) String ids){
         try {
-            List<String> list = marketingTaskExtendService.getProducts(ids);
-            return new ApiResult<List<String>>().success(list);
+            Map map = marketingTaskExtendService.getProducts(ids);
+            return new ApiResult<Map>().success(map);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage(),ex);
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.SUCCESS_1);
+            return new ApiResult<Map>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 

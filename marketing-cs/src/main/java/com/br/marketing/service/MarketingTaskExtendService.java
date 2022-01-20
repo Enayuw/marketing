@@ -3,7 +3,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.entity.MarketingTaskExtend;
 
-import java.util.List;
+import java.util.Map;
 
 public interface MarketingTaskExtendService {
 
@@ -20,5 +20,5 @@ public interface MarketingTaskExtendService {
      * @param ids
      * @return
      */
-    List<String> getProducts(String ids);
+    Map getProducts(String ids);
 }
