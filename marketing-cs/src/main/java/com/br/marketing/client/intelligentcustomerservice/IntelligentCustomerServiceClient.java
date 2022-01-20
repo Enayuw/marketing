@@ -37,7 +37,7 @@ public class IntelligentCustomerServiceClient {
     RestTemplate restTemplate;
 
 
-    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
+    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch,Integer pushNum){
         dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
@@ -45,6 +45,7 @@ public class IntelligentCustomerServiceClient {
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
         log.setParam(s.length()>4999?s.substring(0,4999):s);
+        log.setPushNum(pushNum);
 //        log.setParam("");
         try{
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)

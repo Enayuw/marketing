@@ -430,10 +430,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
 
             Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                    pushMarketingUserTaskInfoDTO.getAccessNumber());
+                    pushMarketingUserTaskInfoDTO.getAccessNumber(),userDetailDTOS.size());
             if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
                 result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                        pushMarketingUserTaskInfoDTO.getAccessNumber());
+                        pushMarketingUserTaskInfoDTO.getAccessNumber(),userDetailDTOS.size());
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 main.setmStatus(3);
@@ -441,7 +441,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 realTotalNum += realNum;
             }
         }
-        main.setmRealyNum(realTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
