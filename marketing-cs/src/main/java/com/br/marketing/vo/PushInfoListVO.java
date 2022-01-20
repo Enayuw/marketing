@@ -3,6 +3,8 @@ package com.br.marketing.vo;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 
 public class PushInfoListVO {
@@ -37,6 +39,9 @@ public class PushInfoListVO {
 
     @ApiModelProperty(value = "执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败")
     private Integer mStatus;
+
+    @ApiModelProperty(value = "推送结果返回")
+    private List<Map> returnMessages;
 
     public String getmStatusDesc() {
         if (mStatus.equals(1)) {
@@ -140,5 +145,13 @@ public class PushInfoListVO {
 
     public void setmPercentage(BigDecimal mPercentage) {
         this.mPercentage = mPercentage;
+    }
+
+    public List<Map> getReturnMessages() {
+        return returnMessages;
+    }
+
+    public void setReturnMessages(List<Map> returnMessages) {
+        this.returnMessages = returnMessages;
     }
 }
