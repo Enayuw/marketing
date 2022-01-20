@@ -477,6 +477,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if ("900013".equals(userStatus.getData())) {
                     isContinue = Boolean.TRUE;
                 }
+                //todo 记录错误信息和错误条数
                 updateLog.setRealStauts(userStatus.getData());
                 customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
             } else {
