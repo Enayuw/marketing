@@ -44,7 +44,8 @@ public class IntelligentCustomerServiceClient {
         log.setmId(mId);
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
-        log.setParam(s.length()>4999?s.substring(0,4999):s);
+//        log.setParam(s.length()>4999?s.substring(0,4999):s);
+        log.setParam(s);
         log.setPushNum(pushNum);
 //        log.setParam("");
         try{
@@ -80,8 +81,13 @@ public class IntelligentCustomerServiceClient {
             ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)
                     .setContentType(MediaType.MULTIPART_FORM_DATA)
                     .setRequestParam(dto).postTransferStr();
-            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
-            result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("code"));
+            if(transfer.getHttpCode() != 200){
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
+            }else {
+                JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("code"));
+                result.setMessage(jsonObject.getString("data"));
+            }
         }catch (Exception ex){
             result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }

@@ -479,6 +479,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //todo 记录错误信息和错误条数
                 updateLog.setRealStauts(userStatus.getData());
+                if(StringUtils.isNotBlank(userStatus.getMessage())){
+                    updateLog.setErrorContent(userStatus.getMessage());
+                    JSONObject error = JSONObject.parseObject(userStatus.getMessage());
+                    if(error!=null&&error.keySet()!=null){
+                        updateLog.setFailNum(error.keySet().size());
+                    }
+                }
                 customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
             } else {
                 isContinue = Boolean.TRUE;

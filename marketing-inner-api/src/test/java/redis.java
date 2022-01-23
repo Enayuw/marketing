@@ -3,6 +3,7 @@ import java.text.DecimalFormat;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.service.MarketingHistoryEsService;
@@ -12,6 +13,7 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.CustGroupTempVO;
 
 import java.util.*;
@@ -477,6 +479,14 @@ public class redis {
 //            System.out.println(bloomFilter.contains("123456"));
 //            //输出true
 //            System.out.println(bloomFilter.contains("10086"));
+    }
+
+    @Autowired
+    PushRuleService pushRuleService;
+    @Test
+    public void testGetCustomerStatus(){
+        Result<Boolean> customerStatus = pushRuleService.getCustomerStatus(180025L);
+        System.out.println(customerStatus.toString());
     }
 
 /*@Resource
