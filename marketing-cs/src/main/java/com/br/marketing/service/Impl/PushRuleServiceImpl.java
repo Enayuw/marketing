@@ -2153,14 +2153,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 end=i*500-1;
             }
             List<PhoneBlack> users = phoneBlacks.subList(start, end);
-            Result result = pushCommonBlack(users);
+            PushBlackReqDTO pushBlackReqDTO = new PushBlackReqDTO();
+            pushBlackReqDTO.setUsers(users);
+            Result result = pushCommonBlack(pushBlackReqDTO);
             if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
                 log.error(String.format("推送黑名单报错：%s",result.getData()));
                 if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
                     RetryMainLog retryMainLog = new RetryMainLog();
                     retryMainLog.setRetryType(1);
-                    retryMainLog.setRetryParam(JSON.toJSONString(users));
-                    retryMainLog.setRetryParamType(users.getClass().getName());
+                    retryMainLog.setRetryParam(JSON.toJSONString(pushBlackReqDTO));
+                    retryMainLog.setRetryParamType(pushBlackReqDTO.getClass().getName());
                     retryMainLog.setRetryService("pushRuleServiceImpl");
                     retryMainLog.setRetryMethod("pushCommonBlack");
                     retryMainLog.setRetryNum(0);
@@ -2430,7 +2432,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
     }
 
-    public Result<String> pushCommonBlack(List<PhoneBlack> users){
+    public Result<String> pushCommonBlack(PushBlackReqDTO pushBlackReqDTO){
+        List<PhoneBlack> users = pushBlackReqDTO.getUsers();
         ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
         Long localId = users.get(0).getLocalId();
         String idRang = users.get(0).getId()
