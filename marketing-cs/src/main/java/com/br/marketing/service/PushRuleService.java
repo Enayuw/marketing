@@ -142,6 +142,9 @@ public interface PushRuleService {
      */
     TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo, List<MarketingTransferSyncUser> transferList);
 
+    Result<Boolean> consumerCommonBlack(Long id);
+
     Result<Boolean> consumerBlack(Long id);
 
+    Result<Boolean> consumerHaLuo(Long id);
 }

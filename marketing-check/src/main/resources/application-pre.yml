@@ -83,7 +83,7 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: marketing-flow
+    virtual-host: marketing-test
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

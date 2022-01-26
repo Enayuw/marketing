@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.*;
@@ -20,7 +21,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
@@ -66,15 +69,18 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
@@ -116,6 +122,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingCustomerMapper marketingCustomerMapper;
+
+    @Autowired
+    PhoneSaleMapper phoneSaleMapper;
 
     @Autowired
     DecodeClient decodeClient;
@@ -222,6 +231,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     final String redisKeySoleNum = "sole:thread:num";
 
     final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
+
+    final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -230,6 +241,25 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     SoleStrategyService soleStrategyService;
+
+    @Autowired
+    TaskTimeMapper taskTimeMapper;
+
+    @Autowired
+    PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
+
+    @Autowired
+    PhoneBlackMapper phoneBlackMapper;
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
+
+    @Autowired
+    LocalFileMapper localFileMapper;
+
+    static List<String> taskApiCode = Arrays.asList("3710028","7410437");
+
+    static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
 
     final static Byte customerStatus = Byte.valueOf("1");
 
@@ -832,6 +862,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
+        if(taskApiCode.contains(apiCode)){
+            String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());
+            if(!taskApiCodeSet.contains(concat)) {
+                try{
+                    TaskTime taskTime = new TaskTime();
+                    taskTime.setApiCode(apiCode);
+                    taskTime.setTaskId(marketingSyncInfo.getCusBatch());
+                    taskTime.setStartDate(new SimpleDateFormat("yyyy-MM-dd").format(marketingSyncInfo.getCreateTime()));
+                    taskTime.setCreateTime(new Date());
+                    taskTimeMapper.insertSelective(taskTime);
+                }catch (DuplicateKeyException ex){
+
+                }
+                if(taskApiCodeSet.size()>=1000){
+                    taskApiCodeSet.clear();
+                }
+                taskApiCodeSet.add(concat);
+
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -897,6 +947,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result consumerTransferData(Long id) {
         List<String> pushCustomerApiCodes = new ArrayList<>();
+        List<String> haluoApiCodes = new ArrayList<>();
         String keyStr = redisChgService.get(redisKeyPushCustomer);
         if (StringUtils.isNotBlank(keyStr)) {
             pushCustomerApiCodes = Splitter.on(",").splitToList(keyStr);
@@ -904,6 +955,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushCustomerApiCodes.add("3710012");
             pushCustomerApiCodes.add("4004643");
             pushCustomerApiCodes.add("3710030");
+        }
+
+        String s = redisChgService.get(redisKeyPushHaluo);
+        if (StringUtils.isNotBlank(s)) {
+            haluoApiCodes = Splitter.on(",").splitToList(s);
+        } else {
+            haluoApiCodes.add("3710028");
         }
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
@@ -1023,6 +1081,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }else{
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
             }
+        }
+        if(haluoApiCodes.contains(transferInfo.getApiCode())){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
@@ -2072,6 +2133,49 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
+    public Result<Boolean> consumerCommonBlack(Long id) {
+        Boolean isContiue = false;
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if(localFile == null){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+        PhoneBlackExample blackExample = new PhoneBlackExample();
+        blackExample.createCriteria().andLocalIdEqualTo(id);
+        List<PhoneBlack> phoneBlacks = phoneBlackMapper.selectByExample(blackExample);
+        int page = phoneBlacks.size() / 500 + (phoneBlacks.size() % 500) == 0 ? 0 : 1;
+        int yu = phoneBlacks.size() % 500;
+        for (int i = 1; i <= page; i++) {
+            int start = (i-1)*500;
+            int end = 0;
+            if(i==page&&yu>0){
+                end= (i-1)*500+yu;
+            }else{
+                end=i*500-1;
+            }
+            List<PhoneBlack> users = phoneBlacks.subList(start, end);
+            Result result = pushCommonBlack(users);
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                log.error(String.format("推送黑名单报错：%s",result.getData()));
+                if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                    RetryMainLog retryMainLog = new RetryMainLog();
+                    retryMainLog.setRetryType(1);
+                    retryMainLog.setRetryParam(JSON.toJSONString(users));
+                    retryMainLog.setRetryParamType(users.getClass().getName());
+                    retryMainLog.setRetryService("pushRuleServiceImpl");
+                    retryMainLog.setRetryMethod("pushCommonBlack");
+                    retryMainLog.setRetryNum(0);
+                    retryMainLog.setRetryMaxNum(3);
+                    retryMainLog.setRetryStatus(1);
+                    retryMainLog.setCreateTime(new Date());
+                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                    retryMainLogMapper.insertSelective(retryMainLog);
+                }
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    @Override
     public Result<Boolean> consumerBlack(Long id) {
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
@@ -2129,6 +2233,147 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .setDate(isContinue);
     }
 
+    @Override
+    public Result<Boolean> consumerHaLuo(Long id) {
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        String apiCode = transferInfo.getApiCode();
+        if(transferInfo == null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage("数据不存在");
+        }
+        String tcId = tableCreateService.getTcId(apiCode);
+        if(tcId==null){
+            return new Result<>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setDate(isContinue)
+                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
+        }
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).
+                andRequestIdEqualTo(transferInfo.getRequestId());
+        example.settCid(tcId);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        LocalFile localFile = new LocalFile();
+        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+            JSONObject jb = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+            boolean a = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
+                    && !"1".equals(marketingTransferSyncUser.getIfApply());
+
+            boolean b = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
+                    && !"1".equals(marketingTransferSyncUser.getIfApply());
+
+            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
+                    && "1".equals(marketingTransferSyncUser.getIfApply())
+                    && "0".equals(marketingTransferSyncUser.getApplyResult());
+
+            Double unlentAmount = Double.valueOf(StringUtils.isNotBlank(marketingTransferSyncUser.getUnlentAmount()) ? marketingTransferSyncUser.getUnlentAmount() : "0");
+            boolean d = unlentAmount>0;
+            if(!a&&!b&&!c&&!d){
+                continue;
+            }
+            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode,marketingTransferSyncUser.getCustNum());
+            if(marketingSyncUser == null){
+                continue;
+            }
+            String cusBatch = marketingSyncUser.getCusBatch();
+            TaskTimeExample timeExample = new TaskTimeExample();
+            timeExample.createCriteria().andApiCodeEqualTo(apiCode).andTaskIdEqualTo(cusBatch);
+            List<TaskTime> taskTimes = taskTimeMapper.selectByExample(timeExample);
+            if(taskTimes.size()<=0){
+                continue;
+            }
+            TaskTime taskTime = taskTimes.get(0);
+            LocalDate startDate = LocalDate.parse(taskTime.getStartDate(),DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate now = LocalDate.now();
+            long days = startDate.until(now, ChronoUnit.DAYS);
+            if(days>30){
+                continue;
+            }
+            LocalDate dxStartDate = now.minusDays(6);
+            PhoneSaleExtendHaluoExample phoneSaleExtendHaluoExample = new PhoneSaleExtendHaluoExample();
+            phoneSaleExtendHaluoExample.createCriteria()
+                    .andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
+                    .andTaskIdEqualTo(cusBatch)
+                    .andAppletDateGreaterThanOrEqualTo(dxStartDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    .andAppletDateLessThanOrEqualTo(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            List<PhoneSaleExtendHaluo> phoneSaleExtendHaluos = phoneSaleExtendHaluoMapper.selectByExample(phoneSaleExtendHaluoExample);
+            if(phoneSaleExtendHaluos.size()>0){
+                long dLen = phoneSaleExtendHaluos.stream().filter(t -> "d".equals(t.getStatus())).count();
+                long abcLen = phoneSaleExtendHaluos.size() - dLen;
+                if(dLen>0){
+                    continue;
+                }
+                if(dLen<=0 && abcLen>=0 &&(a||b||c) && !d){
+                    continue;
+                }
+            }
+
+            String status ="";
+            if(a){
+                status="a";
+            }else if(b){
+                status="b";
+            }else if(c){
+                status="c";
+            }else if(d){
+                status="d";
+            }
+            if(localFile.getId()==null||localFile.getId()<=0){
+                localFile.setApiCode(apiCode);
+                localFile.setCreateTime(new Date());
+                localFile.setFileType(SftpFileTypeEnum.HLBYTRANSFORM.getValue());
+                localFile.setFileName("哈罗—".concat(marketingTransferSyncUser.getRequestId()));
+                localFileMapper.insertSelective(localFile);
+            }
+            String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+            String s = AESUtil.aesEncrypty(cell, aesKey);
+            String name = StringUtils.isNotBlank(marketingSyncUser.getName()) ?
+                    BrCipherMaker.getInstance().decode(marketingSyncUser.getName())
+                    : "";
+            PhoneSale sale = new PhoneSale();
+            sale.setLocalId(localFile.getId().toString());
+            sale.setOrgname("hellobike");
+            sale.setName(name);
+            sale.setPhone(s);
+            sale.setPhoneAes(marketingSyncUser.getCell());
+            sale.setUid(marketingTransferSyncUser.getCustNum());
+            sale.setUserType("d".equals(status)?"3":"2");
+            phoneSaleMapper.insertSelective(sale);
+
+            PhoneSaleExtendHaluo haluo = new PhoneSaleExtendHaluo();
+            haluo.setpId(sale.getId());
+            haluo.setLocalId(localFile.getId());
+            haluo.setTaskId(cusBatch);
+            haluo.setCustNum(marketingTransferSyncUser.getCustNum());
+            haluo.setAppletDate(marketingTransferSyncUser.getRequestData());
+            haluo.setAppletTime(marketingTransferSyncUser.getRequestTime());
+            haluo.setCreateTime(new Date());
+            phoneSaleExtendHaluoMapper.insertSelective(haluo);
+
+            String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(7)
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
+            PhoneBlack phoneBlack = new PhoneBlack();
+            phoneBlack.setLocalId(localFile.getId());
+            phoneBlack.setName(name);
+            phoneBlack.setPhone(marketingSyncUser.getCell());
+            phoneBlack.setExpiredate(expiredate);
+            phoneBlack.setCreateTime(new Date());
+            phoneBlack.setUpdateTime(new Date());
+            phoneBlackMapper.insertSelective(phoneBlack);
+        }
+        if(localFile.getId()!=null&&localFile.getId()>0){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK,localFile.getId().toString());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
     public Result<String> pushBlack(List<MarketingTransferSyncUser> marketingTransferSyncUsers){
         ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
         String apiCode = "";
@@ -2179,6 +2424,38 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
         ||"9999".equals(reqBlackPhoneVO.getCode())){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+    }
+
+    public Result<String> pushCommonBlack(List<PhoneBlack> users){
+        ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
+        Long localId = users.get(0).getLocalId();
+        String idRang = users.get(0).getId()
+                +"-"
+                +users.get(users.size()-1).getId();
+        for (PhoneBlack phoneBlack : users) {
+            BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+            blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(phoneBlack.getPhone()));
+            blackDetailDTO.setEffectiveDate(phoneBlack.getEffectivedate());
+            blackDetailDTOS.add(blackDetailDTO);
+        }
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailDTOS);
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setJsonData(JSON.toJSONString(jsondata));
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        parentDTO.setExtendInfo(localId.toString().concat(":").concat(idRang).concat(":").concat(String.valueOf(blackDetailDTOS.size())));
+        ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
+        if("00".equals(reqBlackPhoneVO.getCode())&&(reqBlackPhoneVO.getData()==null||reqBlackPhoneVO.getData().size()<=0)){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
+                ||"9999".equals(reqBlackPhoneVO.getCode())){
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
                     .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
         }

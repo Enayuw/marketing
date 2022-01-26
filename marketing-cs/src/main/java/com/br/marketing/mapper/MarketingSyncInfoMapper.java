@@ -61,4 +61,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             ,@Param("endTime") String endTime,@Param("minId") Long minId,@Param("groupType") String groupType,@Param("fileTypes") List<String> fileTypes);
 
     List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("taskIds") List<String> taskIds,@Param("custNums") List<String> custNums);
+
+
 }
