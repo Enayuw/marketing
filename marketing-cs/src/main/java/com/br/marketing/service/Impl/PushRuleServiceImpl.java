@@ -257,7 +257,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     LocalFileMapper localFileMapper;
 
-    static List<String> taskApiCode = Arrays.asList("3710028","7410437");
+    static List<String> taskApiCode = Arrays.asList("3710028","7410437","7410850");
 
     static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
 
@@ -2155,6 +2155,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<PhoneBlack> users = phoneBlacks.subList(start, end);
             PushBlackReqDTO pushBlackReqDTO = new PushBlackReqDTO();
             pushBlackReqDTO.setUsers(users);
+            pushBlackReqDTO.setApiCode(localFile.getApiCode());
             Result result = pushCommonBlack(pushBlackReqDTO);
             if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
                 log.error(String.format("推送黑名单报错：%s",result.getData()));
