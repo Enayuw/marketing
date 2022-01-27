@@ -2369,6 +2369,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             haluo.setAppletDate(marketingTransferSyncUser.getRequestData());
             haluo.setAppletTime(marketingTransferSyncUser.getRequestTime());
             haluo.setCreateTime(new Date());
+            haluo.setStatus(status);
             phoneSaleExtendHaluoMapper.insertSelective(haluo);
 
             String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(7)
