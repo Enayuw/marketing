@@ -2450,6 +2450,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         jsondata.setMethod("blackData");
         jsondata.setData(blackDetailDTOS);
         ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode(pushBlackReqDTO.getApiCode());
         dto.setJsonData(JSON.toJSONString(jsondata));
         ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
         parentDTO.setDto(dto);
