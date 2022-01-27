@@ -2315,20 +2315,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if(dLen>0){
                     continue;
                 }
-                if(dLen<=0 && abcLen>=0 &&(a||b||c) && !d){
+                if(dLen==0 && abcLen>0 &&(a||b||c) && !d){
                     continue;
                 }
             }
 
             String status ="";
-            if(a){
-                status="a";
+            if(d){
+                status="d";
             }else if(b){
                 status="b";
             }else if(c){
                 status="c";
-            }else if(d){
-                status="d";
+            }else if(a){
+                status="a";
             }
             if(localFile.getId()==null||localFile.getId()<=0){
                 localFile.setApiCode(apiCode);
