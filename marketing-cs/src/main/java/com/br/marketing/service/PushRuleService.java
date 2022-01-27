@@ -20,8 +20,13 @@ import com.br.marketing.vo.ScoreDetailVo;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 public interface PushRuleService {
+
+
+
+    Result<Map<String,Object>> getCompanyAndModule(String apiCode);
 
     /**
      * 获取批次信息

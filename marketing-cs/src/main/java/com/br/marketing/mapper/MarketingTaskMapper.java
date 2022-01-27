@@ -16,6 +16,8 @@ import java.util.Map;
 @Repository
 public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
+    List<Map<String, Object>> getModule(String apiCode);
+
     /**
      * 查询监控种批次
      * @return

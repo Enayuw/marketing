@@ -144,6 +144,21 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String appName;
 
     @Override
+    public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
+        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        Map<String, Object> map = new HashMap<>();
+        if(StringUtils.isNotEmpty(companyMsg)){
+            JSONObject companyJSONObj = JSON.parseObject(companyMsg);
+            map.put("compName",companyJSONObj.getString("COMP_SHORT_NAME"));
+        }else {
+         return    new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该ApiCode不存在，请核验输入的apiCode");
+        }
+        List<Map<String, Object>> module = marketingTaskMapper.getModule(apiCode);
+        map.put("model",module);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(map).setMessage("查询成功");
+    }
+
+    @Override
     public PageResultReturn getBatchInfos(CustomerBatchNumDTO dto) {
         dto = getCustomerBatchNumDTO(dto);
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
@@ -2070,4 +2085,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
         return robotOutboundDTO;
     }
+
+
 }

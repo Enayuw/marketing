@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -40,6 +42,23 @@ public class PushRuleFilterController {
 
     @Autowired
     PushRuleService pushRuleService;
+
+
+    /**
+     * 根据apiCode 查询信息
+     *
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "接收转化数据")
+    @GetMapping("/getCompanyAndModule")
+    @LogAnnotation
+    public ApiResult getCompanyAndModule(String apiCode) {
+        Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule(apiCode);
+
+        return new ApiResult().fromResult(companyAndModule,000000);
+    }
+
 
     /**
      * 获取批次列表

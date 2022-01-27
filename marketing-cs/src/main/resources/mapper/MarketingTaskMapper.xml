@@ -552,4 +552,7 @@
         </if>
 
     </select>
+    <select id="getModule" resultType="java.util.Map">
+        select id, product as `code` from b_apicode_score_product where api_code = #{apiCode} and is_del = 1 order by id desc;
+    </select>
 </mapper>
