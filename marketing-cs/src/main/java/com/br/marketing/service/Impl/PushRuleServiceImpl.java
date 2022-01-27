@@ -257,6 +257,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     LocalFileMapper localFileMapper;
 
+    @Autowired
+    HaluoCallRelationMapper haluoCallRelationMapper;
+
     static List<String> taskApiCode = Arrays.asList("3710028","7410437","7410850");
 
     static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
@@ -2333,6 +2336,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 localFile.setFileType(SftpFileTypeEnum.HLBYTRANSFORM.getValue());
                 localFile.setFileName("哈罗—".concat(marketingTransferSyncUser.getRequestId()));
                 localFileMapper.insertSelective(localFile);
+
+                HaluoCallRelation haluoCallRelation = new HaluoCallRelation();
+                haluoCallRelation.setTransferId(transferInfo.getId());
+                haluoCallRelation.setDxId(localFile.getId());
+                haluoCallRelation.setBlackId(localFile.getId());
+                haluoCallRelation.setRequestId(transferInfo.getRequestId());
+                haluoCallRelation.setCreateTime(new Date());
+                haluoCallRelationMapper.insertSelective(haluoCallRelation);
+
             }
             String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
             String s = AESUtil.aesEncrypty(cell, aesKey);
