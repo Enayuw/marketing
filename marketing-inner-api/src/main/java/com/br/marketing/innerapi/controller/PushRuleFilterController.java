@@ -50,7 +50,7 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @ApiOperation(value = "接收转化数据")
+    @ApiOperation(value = "根据apiCode 查询信息")
     @GetMapping("/getCompanyAndModule")
     @LogAnnotation
     public ApiResult getCompanyAndModule(String apiCode) {
