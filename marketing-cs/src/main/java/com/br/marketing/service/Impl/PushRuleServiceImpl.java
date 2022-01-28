@@ -2298,7 +2298,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             LocalDate startDate = LocalDate.parse(taskTime.getStartDate(),DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             LocalDate now = LocalDate.now();
             long days = startDate.until(now, ChronoUnit.DAYS);
-            if(days>30){
+            if(days>29){
                 continue;
             }
             LocalDate dxStartDate = now.minusDays(6);
