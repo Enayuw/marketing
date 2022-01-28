@@ -2274,7 +2274,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     && !"1".equals(marketingTransferSyncUser.getIfApply());
 
             boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
-                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
                     && "1".equals(marketingTransferSyncUser.getIfApply())
                     && "0".equals(marketingTransferSyncUser.getApplyResult());
 
