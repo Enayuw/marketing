@@ -2456,7 +2456,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         for (PhoneBlack phoneBlack : users) {
             BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
             blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(phoneBlack.getPhone()));
-            blackDetailDTO.setEffectiveDate(phoneBlack.getEffectivedate());
+            blackDetailDTO.setEffectiveDate(phoneBlack.getExpiredate());
             blackDetailDTOS.add(blackDetailDTO);
         }
         BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
