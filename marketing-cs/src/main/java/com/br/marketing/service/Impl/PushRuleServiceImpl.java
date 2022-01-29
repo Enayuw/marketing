@@ -2401,7 +2401,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             haluo.setStatus(status);
             phoneSaleExtendHaluoMapper.insertSelective(haluo);
 
-            String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(7)
+            String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(6)
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
             PhoneBlack phoneBlack = new PhoneBlack();
             phoneBlack.setLocalId(localFile.getId());
