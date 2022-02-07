@@ -47,7 +47,7 @@ public class DefaultBeanConfigure {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
-        httpRequestFactory.setReadTimeout(5000);
+        httpRequestFactory.setReadTimeout(10000);
         return new RestTemplate(httpRequestFactory);
     }
 
@@ -60,7 +60,7 @@ public class DefaultBeanConfigure {
                 HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000).build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
-        httpRequestFactory.setReadTimeout(5000);
+        httpRequestFactory.setReadTimeout(10000);
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         restTemplate.getMessageConverters()
                 .set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
