@@ -2388,7 +2388,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             sale.setAuditTime(marketingTransferSyncUser.getAuditTime());
             sale.setAuditAmount(marketingTransferSyncUser.getAuditAmount());
             sale.setIfApply(marketingTransferSyncUser.getIfApply());
-            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
+            sale.setApplyDt(marketingTransferSyncUser.getApplyDt());
+            sale.setUnlentAmount(marketingTransferSyncUser.getUnlentAmount());
+//            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
             if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())){
                 JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 if(jsonObject!=null){
@@ -2400,7 +2402,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
-//            sale.setapply
             phoneSaleMapper.insertSelective(sale);
 
             PhoneSaleExtendHaluo haluo = new PhoneSaleExtendHaluo();
