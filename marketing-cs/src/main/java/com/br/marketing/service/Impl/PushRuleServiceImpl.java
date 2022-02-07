@@ -2171,22 +2171,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(localFile == null){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
-        PhoneBlackExample blackExample = new PhoneBlackExample();
-        blackExample.createCriteria().andLocalIdEqualTo(id);
-        List<PhoneBlack> phoneBlacks = phoneBlackMapper.selectByExample(blackExample);
-        int page = phoneBlacks.size() / 500 + (phoneBlacks.size() % 500) == 0 ? 0 : 1;
-        int yu = phoneBlacks.size() % 500;
-        for (int i = 1; i <= page; i++) {
-            int start = (i-1)*500;
-            int end = 0;
-            if(i==page&&yu>0){
-                end= (i-1)*500+yu;
-            }else{
-                end=i*500-1;
+        Long minId = null;
+        boolean action = Boolean.TRUE;
+        while(action){
+            List<PhoneBlack> phoneBlacks = phoneBlackMapper.selectDateByIdRang(id,minId);
+            if(phoneBlacks.size()<=0){
+                action=Boolean.FALSE;
+                continue;
             }
-            List<PhoneBlack> users = phoneBlacks.subList(start, end);
+            minId = phoneBlacks.get(phoneBlacks.size()-1).getId();
             PushBlackReqDTO pushBlackReqDTO = new PushBlackReqDTO();
-            pushBlackReqDTO.setUsers(users);
+            pushBlackReqDTO.setUsers(phoneBlacks);
             pushBlackReqDTO.setApiCode(localFile.getApiCode());
             Result result = pushCommonBlack(pushBlackReqDTO);
             if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
@@ -2388,6 +2383,24 @@ public class PushRuleServiceImpl implements PushRuleService {
             sale.setPhoneAes(marketingSyncUser.getCell());
             sale.setUid(marketingTransferSyncUser.getCustNum());
             sale.setUserType("d".equals(status)?"3":"2");
+            sale.setLoginTime(marketingTransferSyncUser.getLoginTime());
+            sale.setSource("96");
+            sale.setAuditTime(marketingTransferSyncUser.getAuditTime());
+            sale.setAuditAmount(marketingTransferSyncUser.getAuditAmount());
+            sale.setIfApply(marketingTransferSyncUser.getIfApply());
+            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
+            if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())){
+                JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+                if(jsonObject!=null){
+                    String applyInformation = jsonObject.getString("applyInformation");
+                    if(StringUtils.isNotBlank(applyInformation)){
+                        JSONObject jsonObject1 = new JSONObject();
+                        jsonObject1.put("applyInformation",applyInformation);
+                        sale.setExtend(JSON.toJSONString(jsonObject1));
+                    }
+                }
+            }
+//            sale.setapply
             phoneSaleMapper.insertSelective(sale);
 
             PhoneSaleExtendHaluo haluo = new PhoneSaleExtendHaluo();
