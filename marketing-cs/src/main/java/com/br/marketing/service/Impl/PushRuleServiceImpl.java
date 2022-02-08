@@ -147,6 +147,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private PushTransferRobotaiLogService pushTransferRobotaiLogService;
 
+    private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.secretKey:00}")
@@ -2383,12 +2385,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             sale.setPhoneAes(marketingSyncUser.getCell());
             sale.setUid(marketingTransferSyncUser.getCustNum());
             sale.setUserType("d".equals(status)?"3":"2");
-            sale.setLoginTime(marketingTransferSyncUser.getLoginTime());
+            sale.setLoginTime(haluoBydxTimeFormat(marketingTransferSyncUser.getLoginTime()));
             sale.setSource("96");
-            sale.setAuditTime(marketingTransferSyncUser.getAuditTime());
+            sale.setAuditTime(haluoBydxTimeFormat(marketingTransferSyncUser.getAuditTime()));
             sale.setAuditAmount(marketingTransferSyncUser.getAuditAmount());
             sale.setIfApply(marketingTransferSyncUser.getIfApply());
-            sale.setApplyDt(marketingTransferSyncUser.getApplyDt());
+            sale.setApplyDt(haluoBydxTimeFormat(marketingTransferSyncUser.getApplyDt()));
             sale.setUnlentAmount(marketingTransferSyncUser.getUnlentAmount());
 //            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
             if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())){
@@ -2431,6 +2433,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK,localFile.getId().toString());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    private String haluoBydxTimeFormat(String time){
+        if(StringUtils.isBlank(time)){
+            return time;
+        }
+
+        if(Pattern.matches(msTimeRegex,time)){
+            return time.replace(":000","");
+        }
+
+        return time;
     }
 
     public Result<String> pushBlack(List<MarketingTransferSyncUser> marketingTransferSyncUsers){
