@@ -2397,6 +2397,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     : "";
             PhoneSale sale = new PhoneSale();
             sale.setLocalId(localFile.getId().toString());
+            sale.setApiCode(apiCode);
             sale.setOrgname("hellobike");
             sale.setName(name);
             sale.setPhone(s);
