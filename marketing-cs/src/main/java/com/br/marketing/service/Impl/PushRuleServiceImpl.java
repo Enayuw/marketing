@@ -63,6 +63,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -310,7 +311,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
         if(dto.getmPercentage()!=null){
-            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).intValue();
+            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
             return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
         return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
