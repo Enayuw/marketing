@@ -49,6 +49,7 @@ import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -2289,7 +2290,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         example.settCid(tcId);
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
         LocalFile localFile = new LocalFile();
-        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+        validData: for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
             JSONObject jb = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
             boolean a = "1".equals(marketingTransferSyncUser.getIfLogin())
                     && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
@@ -2356,6 +2357,23 @@ public class PushRuleServiceImpl implements PushRuleService {
             }else if(a){
                 status="a";
             }
+            Boolean lock = Boolean.FALSE;
+            while (!lock){
+                Result<Boolean> booleanResult = addHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
+                //不需要等待
+                if(!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())){
+                    continue validData;
+                }
+                lock = booleanResult.getData();
+                //如满足需要等待再次获取
+                if(!lock){
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             if(localFile.getId()==null||localFile.getId()<=0){
                 localFile.setApiCode(apiCode);
                 localFile.setCreateTime(new Date());
@@ -2392,6 +2410,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             sale.setIfApply(marketingTransferSyncUser.getIfApply());
             sale.setApplyDt(haluoBydxTimeFormat(marketingTransferSyncUser.getApplyDt()));
             sale.setUnlentAmount(marketingTransferSyncUser.getUnlentAmount());
+            sale.setCreateTime(new Date());
 //            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
             if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())){
                 JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
@@ -2427,6 +2446,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             phoneBlack.setCreateTime(new Date());
             phoneBlack.setUpdateTime(new Date());
             phoneBlackMapper.insertSelective(phoneBlack);
+            removeHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
         }
         if(localFile.getId()!=null&&localFile.getId()>0){
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
@@ -2435,6 +2455,46 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
 
+    private Result<Boolean> addHaluoLock(String apiCode,String taskId,String custNum,String status){
+        String key = RedisKeyConstant.haluoPushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(taskId).concat(":")
+                .concat(custNum);
+        Long setnx = redisChgService.setnx(key, status, 3);
+        //已经被其他数据抢占锁了
+        if(setnx.equals(0L)){
+
+            //如果当前数据不是d就不推
+            if(!status.equals("d")){
+                return new Result<>().setCode(ResultCode.FAIL.getValue());
+            }
+
+            String s = redisChgService.get(key);
+
+            //分布式锁的数据状态如果是d则都不推
+            if(s.equals("d")){
+                return new Result<>().setCode(ResultCode.FAIL.getValue());
+            }
+
+            //如果当前数据状态是d 并且锁里的数据不是d 需要等待500ms然后再次获取锁
+            if(status.equals("d")){
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+    }
+
+    private void removeHaluoLock(String apiCode,String taskId,String custNum,String status){
+        String key = RedisKeyConstant.haluoPushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(taskId).concat(":")
+                .concat(custNum);
+        String s = redisChgService.get(key);
+        if(status.equals(s)){
+            redisChgService.del(key);
+        }
+    }
+    
     private String haluoBydxTimeFormat(String time){
         if(StringUtils.isBlank(time)){
             return time;

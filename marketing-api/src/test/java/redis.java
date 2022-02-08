@@ -18,14 +18,11 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
-import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
-import com.br.marketing.vo.TaskExtendInfoVO;
-import com.google.common.collect.Lists;
 
 import java.util.*;
 
@@ -36,10 +33,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.es.bean.QueryBaseBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
@@ -51,9 +45,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import javax.script.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.concurrent.*;
 
 
