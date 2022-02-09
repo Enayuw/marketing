@@ -180,14 +180,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto){
-        if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
-            Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
-            dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
-        }
-        if(StringUtils.isNotBlank(dto.getScoreBeginTime())){
-            Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
-            dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
-        }
+        //if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
+        //    Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
+        //    dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
+        //}
+        //if(StringUtils.isNotBlank(dto.getScoreBeginTime())){
+        //    Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
+        //    dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
+        //}
         if(StringUtils.isNotBlank(dto.getProductName())){
             String productName = dto.getProductName();
             String[] module = productName.split(",");
