@@ -45,6 +45,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 /**
  * 单任务多片跑分
@@ -166,6 +167,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                             if(split.length>2){
                                 for (Integer shardingItem : context.getShardingItems()) {
                                     if(Integer.valueOf(split[split.length-2]).equals(shardingItem)) {
+                                        Optional<MarketingTask> first = taskList.stream().filter(t -> t.getBatchNumber().equals(batchNumber)).findFirst();
+                                        if(!first.isPresent()){
+                                            continue;
+                                        }
+                                        task.setFileId(first.get().getFileId());
                                         this.retry(task,apiCode, batchNumber, errorFile, warrningExecutor, i, customer, shardingItem, context.getShardingTotalCount());
                                     }else{
                                         continue;
@@ -280,10 +286,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         marketingTask.setIndexCount(indexCount);
         String separator=marketingSepService.querySepByApiCode(apiCode);
         String baseHeadInfo = getBaseHeadInfo(marketingTask.getId(), separator);
-        Map<String,String> paramMap =new HashedMap();
-        paramMap.put("apiCode",apiCode);
-        paramMap.put("batchNumber",batchNumber);
-        LoanFile  file =loanFileMapper.selectFileComplete(paramMap);
 
         String  productJson="";
         if(marketingTask.getTaskType().compareTo(new Integer(0))==0){
@@ -337,7 +339,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             param.put("url",url);
             param.put("appSecretKey",appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
-            param.put("fileId",file.getId().toString());
+            param.put("fileId",task.getFileId().toString());
             param.put("baseHeadInfo",StringUtils.isNotBlank(baseHeadInfo)
                     ?baseHeadInfo.substring(0,baseHeadInfo.length()-1):"");
             warrningExecutor.submit(new MarketingThread(list, param,currentPage,true,customer,marketingTask,noflagproductlist,flagproductlist,strategyProductDetailVO));

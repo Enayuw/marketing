@@ -261,7 +261,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        List<String> showTitles = straHisFiles.stream().map(t -> t.getShowTitle()).collect(Collectors.toList());
+        List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
         CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
@@ -413,6 +413,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 varObject.put("taskId",marketingHistory.getTaskId());
                 varObject.put("userType",marketingHistory.getUserType());
+                varObject.put("scoreDate",marketingHistory.getRequestTime());
                 dto1.setVariables(varObject);
                 userDetailDTOS.add(dto1);
             }
