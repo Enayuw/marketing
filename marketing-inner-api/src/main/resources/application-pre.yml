@@ -38,14 +38,14 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-test
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-test
     listener:
       retry:
         enabled: true

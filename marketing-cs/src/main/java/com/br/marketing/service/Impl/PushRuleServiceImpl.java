@@ -459,12 +459,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result<Boolean> getCustomerStatus(Long mId) {
 
         CustomerInfoPushMain main = customerInfoPushMainMapper.selectByPrimaryKey(mId);
-
-        CustomerInfoPushLogExample logExample = new CustomerInfoPushLogExample();
-        logExample.createCriteria().andMIdEqualTo(mId).andRealStautsIn(Arrays.asList("1", "900013"));
-        List<CustomerInfoPushLog> customerInfoPushLogs = customerInfoPushLogMapper.selectByExample(logExample);
+        if(main== null){
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
         Boolean isContinue = Boolean.FALSE;
-        for (CustomerInfoPushLog t : customerInfoPushLogs) {
+        ArrayList<String> realStatus = new ArrayList<>();
+        realStatus.add("1");
+        realStatus.add("900013");
+        List<CustomerPushLogVO> customerInfoPushLogs = customerInfoPushLogMapper.getPushLog(mId,realStatus);
+        for (CustomerPushLogVO t : customerInfoPushLogs) {
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(main.getmApiCode());
             pushMarketingUserDTO.setPlatApiCode("");
@@ -479,7 +482,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 updateLog.setRealStauts(userStatus.getData());
                 if ("900013".equals(userStatus.getData())) {
                     isContinue = Boolean.TRUE;
-                }else{
+                }else if("900016".equals(userStatus.getData())){
                     if(StringUtils.isNotBlank(userStatus.getMessage())){
                         updateLog.setErrorContent(userStatus.getMessage());
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());
@@ -488,16 +491,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                     }
                 }
+                if(StringUtils.isNotBlank(userStatus.getMessage())){
+                    updateLog.setErrorContent(userStatus.getMessage());
+                }
                 customerInfoPushLogMapper.updateByPrimaryKeySelective(updateLog);
             } else {
                 isContinue = Boolean.TRUE;
             }
         }
         if(!isContinue){
-            CustomerInfoPushLogExample pushLogExample = new CustomerInfoPushLogExample();
-            pushLogExample.createCriteria().andMIdEqualTo(mId);
-            List<CustomerInfoPushLog> haveLogs = customerInfoPushLogMapper.selectByExample(pushLogExample);
-            long count = haveLogs.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
+            List<CustomerPushLogVO> pushLog = customerInfoPushLogMapper.getPushLog(mId,null);
+            long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
             updateMain.setId(mId);
             updateMain.setmStatus(count>0?5:4);

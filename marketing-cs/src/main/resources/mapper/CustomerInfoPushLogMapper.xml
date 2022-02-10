@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CustomerInfoPushLogMapper" >
+    <select id="getPushLog" resultType="com.br.marketing.vo.CustomerPushLogVO">
+        select id,batch,real_stauts as realStauts
+        from b_customer_info_push_log
+        where m_id = #{mId}
+        <if test="realStatusList!=null and realStatusList.size>0">
+            and real_stauts in
+            <foreach collection="realStatusList" open="(" close=")" separator="," item="realStatus">
+                #{realStatus}
+            </foreach>
+        </if>
+    </select>
 </mapper>
