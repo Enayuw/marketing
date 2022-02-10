@@ -78,16 +78,16 @@ public class MarketingTransferDataController {
 
 
     /**
-     * 智能营销订制转化数据上传接口
+     * 智能营销数禾（客户）订制转化数据上传接口
      *
      * @param apiCode  apiCode
      * @param jsonData 业务数据json结构
      * @return ApiNoDataResult 业务响应
      */
-    @ApiOperation(value = "接收订制转化数据")
-    @PostMapping("/receiveCustomTransferDataSync")
+    @ApiOperation(value = "接收数禾订制转化数据")
+    @PostMapping("/receiveShuheTransferDataSync")
     @LogAnnotation
-    public ApiNoDataResult receiveCustomTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+    public ApiNoDataResult receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
