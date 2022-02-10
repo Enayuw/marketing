@@ -72,16 +72,16 @@ public class ResultUtil {
                         }
                         String title = s.toLowerCase();
                         if ("taskid".equals(title)
-                                &&StringUtils.isBlank(user.getTaskId())){
+                                &&StringUtils.isNotBlank(user.getTaskId())){
                             user.setTaskId(ss);
                         }else if("usertype".equals(title)
-                                &&StringUtils.isBlank(user.getUserType())){
+                                &&StringUtils.isNotBlank(user.getUserType())){
                             user.setUserType(ss);
-                        }else if("custnum".equals(title)&&StringUtils.isBlank(user.getCusNum())){
+                        }else if("custnum".equals(title)&&StringUtils.isNotBlank(user.getCusNum())){
                             user.setCusNum(user.getCusNum());
-                        }else if("idcard".equals(title)&&StringUtils.isBlank(user.getIdCard())){
+                        }else if("idcard".equals(title)&&StringUtils.isNotBlank(user.getIdCard())){
                             user.setIdCard(user.getIdCard());
-                        }else if("name".equals(title)&&StringUtils.isBlank(user.getName())){
+                        }else if("name".equals(title)&&StringUtils.isNotBlank(user.getName())){
                             user.setName(user.getName());
                         }else{
                             esResult.put(s,ss);

@@ -413,7 +413,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 varObject.put("taskId",marketingHistory.getTaskId());
                 varObject.put("userType",marketingHistory.getUserType());
-                varObject.put("scoreDate",marketingHistory.getRequestTime());
+                varObject.put("scoreDate",new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
                 dto1.setVariables(varObject);
                 userDetailDTOS.add(dto1);
             }
