@@ -207,17 +207,17 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         }
                     }
                     log.warn("所有重试任务已加入队列，等待结束-----");
-//                    warrningExecutor.shutdown();
-//                    while (true){
-//                        if(warrningExecutor.isTerminated()){
-//                            log.warn("重试任务所有线程都执行结束");
-//                            break;
-//                        }
-//                        try {
-//                            Thread.sleep(6000);
-//                        }catch (Exception e){
-//                        }
-//                    }
+                    warrningExecutor.shutdown();
+                    while (true){
+                        if(warrningExecutor.isTerminated()){
+                            log.warn("重试任务所有线程都执行结束");
+                            break;
+                        }
+                        try {
+                            Thread.sleep(6000);
+                        }catch (Exception e){
+                        }
+                    }
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
                         MarketingTask task =marketingTaskMapper.queryBlt(batchNumber);
@@ -267,10 +267,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
-            while (true){
-                Thread.sleep(5000L);
-            }
-//            client.delete().guaranteed().forPath(zkpath);
+            client.delete().guaranteed().forPath(zkpath);
         }catch (Exception e){
             log.error("预警调度出错",e);
         }
