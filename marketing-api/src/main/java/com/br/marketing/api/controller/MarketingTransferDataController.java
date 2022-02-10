@@ -16,7 +16,10 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 /**
@@ -64,13 +67,31 @@ public class MarketingTransferDataController {
         try {
             JSONObject jsonObject = JSON.parseObject(jsonData);
             String requestId = jsonObject.getString("requestId");
-            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode,requestId),null);
-        }  catch (JSONException ex) {
+            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode, requestId), null);
+        } catch (JSONException ex) {
             return new ApiResult()
                     .setCode(MarketingErrorInfo.JSON_DATA_ERROR.getErrorCode())
                     .setMessage(MarketingErrorInfo.JSON_DATA_ERROR.getErrorMsg());
 
         }
+    }
+
+
+    /**
+     * 智能营销订制转化数据上传接口
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据json结构
+     * @return ApiNoDataResult 业务响应
+     */
+    @ApiOperation(value = "接收订制转化数据")
+    @PostMapping("/receiveCustomTransferDataSync")
+    @LogAnnotation
+    public ApiNoDataResult receiveCustomTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return new ApiNoDataResult().fromResult(null);
     }
 
 
