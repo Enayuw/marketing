@@ -44,8 +44,8 @@ public class IntelligentCustomerServiceClient {
         log.setmId(mId);
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
-//        log.setParam(s.length()>4999?s.substring(0,4999):s);
-        log.setParam(s);
+        log.setParam(s.length()>4999?s.substring(0,4999):s);
+//        log.setParam(s);
         log.setPushNum(pushNum);
 //        log.setParam("");
         try{
