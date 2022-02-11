@@ -92,7 +92,7 @@ public class MarketingTransferDataController {
      * @return ApiNoDataResult 业务响应
      */
     @ApiOperation(value = "接收数禾订制转化数据")
-    @PostMapping("/receiveShuheTransferDataSync")
+    @PostMapping("receiveShuheTransferDataSync")
     @LogAnnotation
     public ResponseCustomDTO receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
