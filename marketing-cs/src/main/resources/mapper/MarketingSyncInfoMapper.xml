@@ -157,10 +157,17 @@
         <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
             #{taskId}
         </foreach>
-            and cust_num in
+        and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
+    </select>
+
+    <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
+        select user_type
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        order by create_time desc limit 0,1
     </select>
 
 </mapper>

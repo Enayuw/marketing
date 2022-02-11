@@ -63,4 +63,5 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("taskIds") List<String> taskIds,@Param("custNums") List<String> custNums);
 
 
+    String getUserTypeLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 }
