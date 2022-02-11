@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface CustomerInfoPushLogMapper extends CustomerInfoPushLogMapperBase{
     List<CustomerPushLogVO> getPushLog(@Param("mId") Long mId,@Param("realStatusList") List<String> realStatusList);
+
+    List<String> selectRealStatusByMid(@Param("mId")Long mId);
 }

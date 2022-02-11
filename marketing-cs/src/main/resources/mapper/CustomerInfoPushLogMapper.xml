@@ -12,4 +12,9 @@
             </foreach>
         </if>
     </select>
+
+    <select id="selectRealStatusByMid" resultType="java.lang.String">
+        select real_stauts from b_customer_info_push_log WHERE m_id = #{mId}
+    </select>
+
 </mapper>
