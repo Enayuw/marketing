@@ -21,16 +21,17 @@ import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
-import com.br.marketing.mapper.TwosevenFileMapper;
+import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,12 @@ public class PushDataServiceImpl implements PushDataService{
 
     @Autowired
     MarketingApiService marketingApiService;
+
+    @Autowired
+    PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
+
+    @Autowired
+    RabbitMqProducter producter;
 
     @Override
     public Result pushDassData(Long id) {
@@ -296,5 +303,63 @@ public class PushDataServiceImpl implements PushDataService{
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * 数禾推送电销
+     * @param pushShDXDTO
+     * @return
+     */
+    @Override
+    public Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO) {
+        LocalFile localFile = pushShDXDTO.getLocalFile();
+        localFile.setFileType(SftpFileTypeEnum.SHBYTRANSFORM.getValue());
+        PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
+        PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
+        String apiCode = localFile.getApiCode();
+        PhoneSaleExtendShuheExample shuheExample = new PhoneSaleExtendShuheExample();
+        shuheExample.createCriteria().andCustNumEqualTo(phoneSaleExtendShuhe.getCustNum()).andAppletDateEqualTo(phoneSaleExtendShuhe.getAppletDate());
+        List<PhoneSaleExtendShuhe> phoneSaleExtendShuhes = phoneSaleExtendShuheMapper.selectByExample(shuheExample);
+        if(phoneSaleExtendShuhes.size()>0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+
+        Result result = addShuHeLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
+        if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+
+        localFileMapper.insertSelective(localFile);
+        phoneSale.setLocalId(localFile.getId().toString());
+        phoneSaleMapper.insertSelective(phoneSale);
+        phoneSaleExtendShuhe.setLocalId(localFile.getId());
+        phoneSaleExtendShuhe.setpId(phoneSale.getId());
+        phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
+        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+
+        removeHaluoLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+    }
+
+    private Result addShuHeLock(String apiCode,String custNum,String status){
+        String key = RedisKeyConstant.shuhePushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(custNum);
+        Long setnx = redisChgService.setnx(key, status, 3);
+        //已经被其他数据抢占锁了
+        if(setnx.equals(0L)){
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void removeHaluoLock(String apiCode,String custNum,String status){
+        String key = RedisKeyConstant.shuhePushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(custNum);
+        String s = redisChgService.get(key);
+        if(status.equals(s)){
+            redisChgService.del(key);
+        }
     }
 }
