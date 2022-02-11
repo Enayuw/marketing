@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class CaseShuheUserWithBLOBs extends CaseShuheUser {
     /**
-     * ÒµÎñ×Ö¶Î
+     * ä¸šåŠ¡å­—æ®µ
      */
     private String jsonData;
 
     /**
-     * Ô¤Áô×Ö¶Î1
+     * é¢„ç•™å­—æ®µ1
      */
     private String reserveField1;
 
     /**
-     * Ô¤Áô×Ö¶Î2
+     * é¢„ç•™å­—æ®µ2
      */
     private String reserveField2;
 
