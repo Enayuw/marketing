@@ -27,7 +27,7 @@ public class ZkCuratorConfig {
      * @return
      */
     @Bean(initMethod = "start",destroyMethod = "close")
-    @ConditionalOnProperty(name = "SERVER_LISTS")
+//    @ConditionalOnProperty(name = "SERVER_LISTS")
     public CuratorFramework curatorFramework(){
         // 重连策略
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(baseSleepTimeMS, maxRetries);

@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-@ConditionalOnBean(name = "curatorFramework")
+//@ConditionalOnBean(name = "curatorFramework")
 public class ResourceAllocationServiceImpl implements ResourceAllocationService {
 
     @Autowired
