@@ -5,6 +5,7 @@ import com.br.marketing.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@ConditionalOnBean(name = "curatorFramework")
 public class ResourceAllocationServiceImpl implements ResourceAllocationService {
 
     @Autowired

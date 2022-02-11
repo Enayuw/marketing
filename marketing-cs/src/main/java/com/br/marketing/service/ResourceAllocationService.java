@@ -3,6 +3,9 @@ package com.br.marketing.service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 该接口只有在marketing-inner服务使用
+ */
 public interface ResourceAllocationService {
 
     /**

@@ -6,19 +6,20 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ZkCuratorConfig {
 
-    @Value("${SERVER_LISTS}")
+    @Value("${SERVER_LISTS:00}")
     private String serverList;
 
-    @Value("${BASE_SLEEP_TIME_MILLISECONDS}")
+    @Value("${BASE_SLEEP_TIME_MILLISECONDS:00}")
     private int baseSleepTimeMS;
 
-    @Value("${MAX_RETRIES}")
+    @Value("${MAX_RETRIES:00}")
     private int maxRetries;
 
     /**
@@ -26,6 +27,7 @@ public class ZkCuratorConfig {
      * @return
      */
     @Bean(initMethod = "start",destroyMethod = "close")
+    @ConditionalOnProperty(name = "SERVER_LISTS")
     public CuratorFramework curatorFramework(){
         // 重连策略
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(baseSleepTimeMS, maxRetries);
