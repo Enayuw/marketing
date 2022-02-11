@@ -21,4 +21,30 @@ public interface ResourceAllocationService {
      * @return
      */
     Boolean editThreadPoolNum(List<Map> list) throws Exception;
+
+    /**
+     * 创建zk节点
+     * @param path
+     * @param data
+     * @return
+     * @throws Exception
+     */
+    Boolean createZkData(String path,String data) throws Exception;
+
+    /**
+     * 修改zk节点信息
+     * @param path
+     * @param data
+     * @return
+     * @throws Exception
+     */
+    Boolean setNodeData(String path,String data) throws Exception;
+
+    /**
+     * 删除zk节点
+     * @param path
+     * @return
+     * @throws Exception
+     */
+    Boolean deleteZkData(String path) throws Exception;
 }

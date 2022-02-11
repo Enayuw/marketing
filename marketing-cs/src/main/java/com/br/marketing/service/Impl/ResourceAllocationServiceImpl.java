@@ -96,5 +96,45 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
         }
     }
 
+    @Override
+    public Boolean createZkData(String path,String data) throws Exception{
+        // 必须先保证节点不存在
+        if (client.checkExists().forPath(path) == null){
+            // 递归创建节点
+            client.create().creatingParentsIfNeeded().forPath(path, data.getBytes());
+            return true;
+        }
+        else {
+            log.warn(String.format("node already existed:[%s]", path));
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean setNodeData(String path, String jsonStr) throws Exception {
+        // 必须先保证节点存在
+        if(client.checkExists().forPath(path) != null){
+            client.setData().forPath(path, jsonStr.getBytes());
+            return true;
+        }
+        else{
+            log.warn(String.format("node does not exists:[%s]", path));
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean deleteZkData(String path) throws Exception{
+        // 必须先保证节点存在
+        if(client.checkExists().forPath(path) != null) {
+            // 递归删除节点
+            client.delete().deletingChildrenIfNeeded().forPath(path);
+            return true;
+        }
+        else {
+            log.warn(String.format("node does not exists:[%s]", path));
+            return false;
+        }
+    }
 
 }
