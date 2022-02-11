@@ -9,7 +9,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.context.RuntimeDataContext;
+import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
+import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 
 /**
@@ -34,6 +38,9 @@ public class MarketingTransferDataController {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Resource
+    private IPushShuheTransferDataService iPushShuheTransferDataService;
 
 
     /**
@@ -87,11 +94,11 @@ public class MarketingTransferDataController {
     @ApiOperation(value = "接收数禾订制转化数据")
     @PostMapping("/receiveShuheTransferDataSync")
     @LogAnnotation
-    public ApiNoDataResult receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+    public ResponseCustomDTO receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return new ApiNoDataResult().fromResult(null);
+        return iPushShuheTransferDataService.insertShuheTransferData(apiCode, jsonData);
     }
 
 
