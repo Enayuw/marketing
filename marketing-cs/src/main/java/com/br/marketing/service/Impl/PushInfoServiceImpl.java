@@ -5,8 +5,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.entity.CustomerInfoPushBatch;
 import com.br.marketing.entity.CustomerInfoPushBatchExample;
-import com.br.marketing.entity.CustomerInfoPushLog;
-import com.br.marketing.entity.CustomerInfoPushLogExample;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
@@ -62,14 +60,13 @@ public class PushInfoServiceImpl implements PushInfoService {
 
             //获取推送结果信息
             List<Map> msgList = new ArrayList<>();
-            CustomerInfoPushLogExample pushLogExample = new CustomerInfoPushLogExample();
-            pushLogExample.createCriteria().andMIdEqualTo(pushInfoListVO.getId());
-            List<CustomerInfoPushLog> logs = customerInfoPushLogMapper.selectByExample(pushLogExample);
-            for(CustomerInfoPushLog log : logs){
-                if(log.getRealStauts()!=null){
+            List<String> realStatus = customerInfoPushLogMapper.selectRealStatusByMid(pushInfoListVO.getId());
+            realStatus = realStatus.stream().distinct().collect(Collectors.toList());
+            for(String realStatu : realStatus){
+                if(realStatu!=null){
                     Map msg = new HashMap();
-                    msg.put("code",log.getRealStauts());
-                    msg.put("message", ApiReturnEnum.getByCode(log.getRealStauts()));
+                    msg.put("code",realStatu);
+                    msg.put("message", ApiReturnEnum.getByCode(realStatu));
                     msgList.add(msg);
                 }
             }
