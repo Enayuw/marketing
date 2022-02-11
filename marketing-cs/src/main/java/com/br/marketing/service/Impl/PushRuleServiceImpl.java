@@ -370,6 +370,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            searchAfterStr = s;
 //        }
         Integer realTotalNum = 0;
+        Integer number = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
         int totalYuShu = total % 2000;
@@ -386,6 +387,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer realNum = marketingHistories.size();
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             for (int k = 0; k < marketingHistories.size(); k++) {
+                number++;
                 MarketingHistory marketingHistory = marketingHistories.get(k);
                 if (k == (marketingHistories.size() - 1)) {
                     searchAfterStr = marketingHistory.getSearchAfter();
@@ -398,7 +400,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
                 dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
-                        .concat(String.valueOf(System.currentTimeMillis())));
+                        .concat(String.valueOf(System.currentTimeMillis())).concat(number.toString()));
                 dto1.setPhone(marketingHistory.getCell());
                 JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                 if(varObject == null){
