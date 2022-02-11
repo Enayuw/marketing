@@ -19,6 +19,15 @@ public interface IMarketingSyncUserService {
 
     Integer updateRepeatUserStatus(String execSql);
 
+    /**
+     * 根据案件编号获取客户最新的场景
+     *
+     * @param apiCode apiCode
+     * @param custNum 案件编号
+     * @return userType
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/11 18:17
+     */
     String getUserTypeLatestByCustNum(String apiCode, String custNum);
 
 }
