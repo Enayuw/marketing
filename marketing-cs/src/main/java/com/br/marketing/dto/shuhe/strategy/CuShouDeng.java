@@ -10,7 +10,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 17:33
  */
-public class CuShouDeng implements IUserType {
+public class CuShouDeng extends IUserType {
     @Override
     public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
         caseUser.setClcUsrFstLogTimAll(dataItem.getOrDefault("clc_usr_fst_log_tim_all", ""));

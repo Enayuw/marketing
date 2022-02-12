@@ -1,6 +1,8 @@
 package com.br.marketing.dto.shuhe.factory;
 
-import com.br.marketing.dto.shuhe.strategy.*;
+import com.br.marketing.dto.shuhe.strategy.AllUserType;
+import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,9 +18,12 @@ public class UserTypeStrategyFactory {
     private final static Map<String, IUserType> USER_TYPE_CACHE = new HashMap<>();
 
     static {
-        USER_TYPE_CACHE.put("促首登", new CuShouDeng());
-        USER_TYPE_CACHE.put("促申完", new CuShenWan());
-        USER_TYPE_CACHE.put("促首借", new CuShouJie());
+//        USER_TYPE_CACHE.put("促首登", new CuShouDeng());
+//        USER_TYPE_CACHE.put("促申完", new CuShenWan());
+//        USER_TYPE_CACHE.put("促首借", new CuShouJie());
+        USER_TYPE_CACHE.put("促首登", new AllUserType());
+        USER_TYPE_CACHE.put("促申完", new AllUserType());
+        USER_TYPE_CACHE.put("促首借", new AllUserType());
     }
 
     public Set<String> getUserTypes() {
@@ -26,7 +31,7 @@ public class UserTypeStrategyFactory {
     }
 
     public static IUserType getUserTypeStrategy(String userType) {
-        return USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType());
+        return USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
     }
 
 }

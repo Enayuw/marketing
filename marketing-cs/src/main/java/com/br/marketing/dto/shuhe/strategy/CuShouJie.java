@@ -10,7 +10,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 17:33
  */
-public class CuShouJie implements IUserType {
+public class CuShouJie extends IUserType {
     @Override
     public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
         String defaultValue = "";

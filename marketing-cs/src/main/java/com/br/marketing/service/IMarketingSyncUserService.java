@@ -30,4 +30,5 @@ public interface IMarketingSyncUserService {
      */
     String getUserTypeLatestByCustNum(String apiCode, String custNum);
 
+//    Boolean isPeriodOfValidity();
 }
