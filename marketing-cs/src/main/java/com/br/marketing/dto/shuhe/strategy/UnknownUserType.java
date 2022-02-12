@@ -11,6 +11,6 @@ import java.util.Map;
 public class UnknownUserType implements IUserType {
     @Override
     public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
-
+        caseUser.setUserType("");
     }
 }

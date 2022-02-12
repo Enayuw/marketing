@@ -72,6 +72,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (userTypeStrategy instanceof UnknownUserType) {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.failed("抱歉,未知的业务类型\"" + userType + "\"!");
+                caseShuheUser.setErrorInfo(responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
             } else {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
