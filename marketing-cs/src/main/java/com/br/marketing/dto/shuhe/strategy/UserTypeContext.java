@@ -35,6 +35,7 @@ public class UserTypeContext {
                 }
             }
         }
+        USER_TYPE_STRATEGY_CONTEXT.iUserType = iUserType;
         return USER_TYPE_STRATEGY_CONTEXT;
     }
 
