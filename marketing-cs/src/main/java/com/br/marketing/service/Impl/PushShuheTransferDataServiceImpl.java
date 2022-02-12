@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
@@ -14,6 +15,7 @@ import com.br.marketing.mapper.CaseShuheUserMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheTransferDataService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -34,12 +36,19 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private CaseShuheUserMapper caseShuheUserMapper;
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.secretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.appName:00}")
+    private String appName;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(3, 5);
 
     @Override
     public ResponseShuheDTO insertShuheTransferData(String apiCode, String jsonData) {
         String msg = "";
+        String title = "数禾转化接口V2.0-营销转化";
         ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
         try {
             final ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
@@ -56,6 +65,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (!"".equals(msg)) {
                 responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
                 log.info("shuhe-1:{}", responseShuheDTO.getDesc());
+                this.sendAlarmMgs(title, "缺失必填参数".concat(msg).concat("案件编号[").concat(jsonDTO.getOrderId())
+                        .concat("]").concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -70,10 +81,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             IUserType userTypeStrategy = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser;
             if (userTypeStrategy instanceof UnknownUserType) {
+                msg = "未知的业务类型\"" + userType + "\"!";
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
-                responseShuheDTO.failed("抱歉,未知的业务类型\"" + userType + "\"!");
+                responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo(responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
+                this.sendAlarmMgs(title, msg.concat("案件编号[").concat(jsonDTO.getOrderId()).concat("]")
+                        .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.success();
@@ -90,7 +104,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 exception = e;
             }
             if (row == null || row < 1) {
-                msg = "shuhe 推送数据保存失败！";
+                msg = "数禾推送数据保存失败！";
+                this.sendAlarmMgs(title, msg.concat("案件编号[").concat(jsonDTO.getOrderId()).concat("]")
+                        .concat("尽快处理^_^"), appName, secretKey, alarmClient);
                 log.error(msg);
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 caseShuheUser = new CaseShuheUserWithBLOBs();
@@ -116,8 +132,10 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             try {
                 caseShuheUserMapper.insertSelective(User);
             } catch (Exception exception) {
-                log.error(exception.getMessage(), e);
+                log.error(exception.getMessage(), exception);
+                this.sendAlarmMgs(title, exception.getMessage(), appName, secretKey, alarmClient);
             }
+            this.sendAlarmMgs(title, e.getMessage(), appName, secretKey, alarmClient);
             return responseShuheDTO.failed();
         }
     }

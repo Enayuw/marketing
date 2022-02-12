@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.ResponseCustomDTO;
 
 /**
@@ -20,4 +22,9 @@ public interface IPushShuheTransferDataService {
      * @author Guo Zeqiang
      */
     ResponseCustomDTO insertShuheTransferData(String apiCode, String jsonData);
+
+    default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
+        alarmClient.sendAlarm(error, title, appName, secretKey,
+                Constants.sendCodeMap.get("sysError"));
+    }
 }
