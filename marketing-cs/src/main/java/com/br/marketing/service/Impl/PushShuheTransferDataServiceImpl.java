@@ -81,11 +81,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
             // TODO: 2022/2/11 处理 转化数据为 转化？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             Integer row = null;
+            Exception exception = null;
             Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
             try {
                 row = futureInsert.get(5, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error(e.getMessage(), e);
+                exception = e;
             }
             if (row == null || row < 1) {
                 msg = "shuhe 推送数据保存失败！";
@@ -97,17 +99,25 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 caseShuheUser.setApiCode(apiCode);
                 caseShuheUser.setMobile(jsonDTO.getMobile());
                 caseShuheUser.setBiztype(jsonDTO.getBizType());
-                caseShuheUser.setErrorInfo(msg);
+                if (exception != null) {
+                    caseShuheUser.setErrorInfo(msg.concat("##").concat(exception.toString()));
+                } else {
+                    caseShuheUser.setErrorInfo(msg);
+                }
                 caseShuheUserMapper.insertSelective(caseShuheUser);
             }
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            CaseShuheUserWithBLOBs caseShuheUser = new CaseShuheUserWithBLOBs();
-            caseShuheUser.setJsonData(jsonData);
-            caseShuheUser.setApiCode(apiCode);
-            caseShuheUser.setErrorInfo(e.toString());
-            caseShuheUserMapper.insertSelective(caseShuheUser);
+            CaseShuheUserWithBLOBs User = new CaseShuheUserWithBLOBs();
+            User.setJsonData(jsonData);
+            User.setApiCode(apiCode);
+            User.setErrorInfo(e.toString());
+            try {
+                caseShuheUserMapper.insertSelective(User);
+            } catch (Exception exception) {
+                log.error(exception.getMessage(), e);
+            }
             return responseShuheDTO.failed();
         }
     }
