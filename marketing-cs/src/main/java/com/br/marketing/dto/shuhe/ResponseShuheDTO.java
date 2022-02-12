@@ -27,11 +27,6 @@ public class ResponseShuheDTO extends ResponseCustomDTO {
         this.desc = desc;
     }
 
-    public ResponseShuheDTO(String desc) {
-        this.code = ResultEnum.FAILED.getCode();
-        this.desc = desc;
-    }
-
     public ResponseShuheDTO(ResultEnum resultEnum) {
         this.code = resultEnum.getCode();
         this.desc = resultEnum.getDesc();
@@ -43,8 +38,8 @@ public class ResponseShuheDTO extends ResponseCustomDTO {
     }
 
     public ResponseShuheDTO success() {
-        this.setCode(ResultEnum.SUCCESS.getCode());
-        this.setDesc(ResultEnum.SUCCESS.getDesc());
+        this.code = ResultEnum.SUCCESS.getCode();
+        this.desc = ResultEnum.SUCCESS.getDesc();
         return this;
     }
 
@@ -55,8 +50,8 @@ public class ResponseShuheDTO extends ResponseCustomDTO {
     }
 
     public ResponseShuheDTO failed() {
-        this.setCode(ResultEnum.FAILED.getCode());
-        this.setDesc(ResultEnum.FAILED.getDesc());
+        this.code = ResultEnum.FAILED.getCode();
+        this.desc = ResultEnum.FAILED.getDesc();
         return this;
     }
 
