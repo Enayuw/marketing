@@ -79,10 +79,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 responseShuheDTO.success();
             }
             CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
-            System.out.println(finalCaseShuheUser.toString());
+            // TODO: 2022/2/11 处理 转化数据为 转化？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             Integer row = null;
             Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
-            // TODO: 2022/2/11 处理 转化数据为 转化？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             try {
                 row = futureInsert.get(5, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -108,8 +107,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             caseShuheUser.setJsonData(jsonData);
             caseShuheUser.setApiCode(apiCode);
             caseShuheUser.setErrorInfo(e.toString());
-            System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-//            caseShuheUserMapper.insertSelective(caseShuheUser);
+            caseShuheUserMapper.insertSelective(caseShuheUser);
             return responseShuheDTO.failed();
         }
     }
