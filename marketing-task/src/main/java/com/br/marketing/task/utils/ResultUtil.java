@@ -71,20 +71,20 @@ public class ResultUtil {
                             sb.append(ss);
                         }
                         String title = s.toLowerCase();
-                        if ("taskid".equals(title)
-                                &&StringUtils.isNotBlank(user.getTaskId())){
-                            user.setTaskId(ss);
-                        }else if("usertype".equals(title)
-                                &&StringUtils.isNotBlank(user.getUserType())){
-                            user.setUserType(ss);
-                        }else if("custnum".equals(title)&&StringUtils.isNotBlank(user.getCusNum())){
-                            user.setCusNum(user.getCusNum());
-                        }else if("idcard".equals(title)&&StringUtils.isNotBlank(user.getIdCard())){
-                            user.setIdCard(user.getIdCard());
-                        }else if("name".equals(title)&&StringUtils.isNotBlank(user.getName())){
-                            user.setName(user.getName());
+                        if ("taskid".equals(title)){
+                            user.setTaskId(StringUtils.isBlank(ss)?"":ss);
+                        }else if("usertype".equals(title)){
+                            user.setUserType(StringUtils.isBlank(ss)?"":ss);
+                        }else if("custnum".equals(title)){
+                            user.setCusNum(StringUtils.isBlank(ss)?"":ss);
+                        }else if("idcard".equals(title)){
+                            user.setIdCard(StringUtils.isBlank(ss)?"":ss);
+                        }else if("name".equals(title)){
+                            user.setName(StringUtils.isBlank(ss)?"":ss);
+                        }else if("cell".equals(title)){
+
                         }else{
-                            esResult.put(s,ss);
+                            esResult.put(s,StringUtils.isBlank(ss)?"":ss);
                         }
                     }
                     sb.append(sep);
