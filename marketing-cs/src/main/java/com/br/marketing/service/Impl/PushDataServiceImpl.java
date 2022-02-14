@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -22,10 +23,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -47,6 +45,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Service
 public class PushDataServiceImpl implements PushDataService{
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
 
     @Autowired
     PhoneSaleMapper phoneSaleMapper;
@@ -309,14 +310,49 @@ public class PushDataServiceImpl implements PushDataService{
      * 数禾推送电销
      * @param pushShDXDTO
      * @return
+     * 传输数据样例
+     *         LocalFile localFile = new LocalFile();
+     *         PhoneSale phoneSale = new PhoneSale();
+     *         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
+     *         PushShDXDTO pushShDXDTO = new PushShDXDTO()
+     *                 .setLocalFile(localFile)
+     *                 .setPhoneSale(phoneSale)
+     *                 .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
+     *         localFile.setCid("");
+     *         localFile.setApiCode("");
+     *         localFile.setFileName("数禾-转化/客服+数据id");
+     *         phoneSale.setUid("custNum");
+     *         phoneSale.setPhone("手机号明文");
+     *         phoneSale.setName("");
+     *         phoneSale.setOrgname("shuheshenwan");
+     *         phoneSale.setSource("16");
+     *         phoneSale.setUserType("2");
+     *         phoneSale.setLoginTime("");
+     *         phoneSale.setExtend("{\"clc_usr_iso_pho\":\"\",\"clc_usr_iso_idt\":\"\",\"clc_usr_iso_crd\":\"\",\"clc_usr_iso_inf\":\"\"}");
+     *         phoneSaleExtendShuhe.setCustNum("custNum");
+     *         phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
+     *         phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
      */
     @Override
     public Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO) {
+
+        Date date = new Date();
         LocalFile localFile = pushShDXDTO.getLocalFile();
         localFile.setFileType(SftpFileTypeEnum.SHBYTRANSFORM.getValue());
-        PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
-        PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
+        localFile.setCreateTime(date);
         String apiCode = localFile.getApiCode();
+
+        PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
+        phoneSale.setCreateTime(date);
+        String s = AESUtil.aesEncrypty(phoneSale.getPhone(), aesKey);
+        phoneSale.setPhone(s);
+        phoneSale.setPhoneAes(BrCipherMaker.getInstance().encode(phoneSale.getPhone()));
+        phoneSale.setApiCode(apiCode);
+        phoneSale.setApiCid(localFile.getCid());
+
+        PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
+        phoneSaleExtendShuhe.setCreateTime(date);
+
         PhoneSaleExtendShuheExample shuheExample = new PhoneSaleExtendShuheExample();
         shuheExample.createCriteria().andCustNumEqualTo(phoneSaleExtendShuhe.getCustNum()).andAppletDateEqualTo(phoneSaleExtendShuhe.getAppletDate());
         List<PhoneSaleExtendShuhe> phoneSaleExtendShuhes = phoneSaleExtendShuheMapper.selectByExample(shuheExample);

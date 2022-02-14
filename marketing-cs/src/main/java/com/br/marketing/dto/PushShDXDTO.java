@@ -8,7 +8,6 @@ public class PushShDXDTO {
     private LocalFile localFile;
     private PhoneSale phoneSale;
     private PhoneSaleExtendShuhe phoneSaleExtendShuhe;
-    private String stauts;
 
     public LocalFile getLocalFile() {
         return localFile;
@@ -34,15 +33,6 @@ public class PushShDXDTO {
 
     public PushShDXDTO setPhoneSaleExtendShuhe(PhoneSaleExtendShuhe phoneSaleExtendShuhe) {
         this.phoneSaleExtendShuhe = phoneSaleExtendShuhe;
-        return this;
-    }
-
-    public String getStauts() {
-        return stauts;
-    }
-
-    public PushShDXDTO setStauts(String stauts) {
-        this.stauts = stauts;
         return this;
     }
 }
