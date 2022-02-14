@@ -54,13 +54,22 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
-    Integer countTransferFile(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime
-            ,@Param("endTime") String endTime,@Param("groupType") String groupType,@Param("fileTypes") List<String> fileTypes);
+    Integer countTransferFile(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime
+            , @Param("endTime") String endTime, @Param("groupType") String groupType, @Param("fileTypes") List<String> fileTypes);
 
-    List<TransferUserVO> getTransferFileUser(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime
-            ,@Param("endTime") String endTime,@Param("minId") Long minId,@Param("groupType") String groupType,@Param("fileTypes") List<String> fileTypes);
+    List<TransferUserVO> getTransferFileUser(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime
+            , @Param("endTime") String endTime, @Param("minId") Long minId, @Param("groupType") String groupType, @Param("fileTypes") List<String> fileTypes);
 
-    List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("taskIds") List<String> taskIds,@Param("custNums") List<String> custNums);
+    List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode, @Param("taskIds") List<String> taskIds, @Param("custNums") List<String> custNums);
 
-
+    /**
+     * 根据案件编号获取客户最新的场景
+     *
+     * @param apiCode apiCode
+     * @param custNum 案件编号
+     * @return userType
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/11 18:17
+     */
+    String getUserTypeLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 }

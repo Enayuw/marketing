@@ -1,13 +1,10 @@
 package com.br.marketing.service.Impl;
 
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -29,5 +26,10 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public Integer updateRepeatUserStatus(String execSql) {
         return marketingSyncInfoMapper.updateRepeatUserStatus(execSql);
+    }
+
+    @Override
+    public String getUserTypeLatestByCustNum(String apiCode, String custNum) {
+        return marketingSyncInfoMapper.getUserTypeLatestByCustNum(apiCode, custNum);
     }
 }
