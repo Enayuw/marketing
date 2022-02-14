@@ -1,13 +1,11 @@
 package com.br.marketing.service.Impl;
 
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -29,5 +27,15 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public Integer updateRepeatUserStatus(String execSql) {
         return marketingSyncInfoMapper.updateRepeatUserStatus(execSql);
+    }
+
+    @Override
+    public Boolean isPeriodOfValidity(String apiCode, String custNum, PeriodOfValidityDO periodOfValidityDO) {
+        try {
+            long count = marketingSyncInfoMapper.getPeriodOfValiditySum(apiCode, custNum, periodOfValidityDO);
+            return count > 0;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 }
