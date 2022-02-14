@@ -43,7 +43,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
-    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(3, 5);
+    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool();
 
     @Override
     public ResponseShuheDTO insertShuheTransferData(String apiCode, String jsonData) {
@@ -96,7 +96,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             // TODO: 2022/2/11 处理 转化数据为 转化？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             Integer row = null;
             Exception exception = null;
-            Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
+            final Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
             try {
                 row = futureInsert.get(5, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
