@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.concurrent.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 数禾转化实现类
@@ -43,7 +43,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
-    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool();
+    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(3, 5);
 
     @Override
     public ResponseShuheDTO insertShuheTransferData(String apiCode, String jsonData) {
@@ -96,13 +96,14 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             // TODO: 2022/2/11 处理 转化数据为 转化？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             Integer row = null;
             Exception exception = null;
-            final Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
-            try {
-                row = futureInsert.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
-                exception = e;
-            }
+//            final Future<Integer> futureInsert = BR_EXECUTORS.submit(() -> caseShuheUserMapper.insertSelective(finalCaseShuheUser));
+//            try {
+//                row = futureInsert.get(5, TimeUnit.SECONDS);
+//            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+//                log.error(e.getMessage(), e);
+//                exception = e;
+//            }
+            row = caseShuheUserMapper.insertSelective(finalCaseShuheUser);
             if (row == null || row < 1) {
                 msg = "数禾推送数据保存失败！";
                 this.sendAlarmMgs(title, msg.concat("案件编号[").concat(jsonDTO.getOrderId()).concat("]")
