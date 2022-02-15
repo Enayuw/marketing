@@ -58,18 +58,6 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String samoyeZHprefix = "samoye_zhuanhua_";
 
-    private final static Map<Integer, List<String>> FILE_IDENTIFY_TYPE = new HashMap<>();
-    /**
-     * key：filetype:1:断点，2:活跃，3:转化
-     * value:identifyList
-     */
-
-    static {
-        FILE_IDENTIFY_TYPE.put(1, Arrays.asList("2", "3"));
-        FILE_IDENTIFY_TYPE.put(2, Arrays.asList("4"));
-        FILE_IDENTIFY_TYPE.put(3, Arrays.asList("1"));
-    }
-
     @Value("${otherConfig.warning.path:00}")
     private String path;
 
@@ -213,23 +201,43 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             , String endDate, List<String> groupTyps
             , TransferFileTask transferFileTask) throws IOException {
         for (String groupType : groupTyps) {
-            /*List<String> fileTypes = new ArrayList<>();
+            List<String> fileTypes = new ArrayList<>();
             if (groupType.equals("S01")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S02")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
-            } else if (groupType.equals("S08")) {
-                fileTypes = Arrays.asList("2");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S0202")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
-            }*/
-            //根据文件类型获取场景对应的标识：断点，活跃，转化
-            List<String> identifyTypes = getIdentifys(groupType,transferFileTask.getFileType());
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
+            } else if (groupType.equals("S04")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S06")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S08")) {
+                fileTypes = transferFileTask.getFileType().equals(3) ? Arrays.asList("1") : Arrays.asList("2");
+            }
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
             while (isContiue) {
                 List<TransferUserVO> transferFileUser = marketingSyncInfoMapper
-                        .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, identifyTypes);
+                        .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, fileTypes);
                 if (transferFileUser.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
@@ -271,27 +279,6 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-    }
-
-    /**
-     * desc:根据文件类型获取场景对应的标识：断点，活跃，转化
-     * return :identifyList
-     */
-    private List<String> getIdentifys(String groupType, Integer fileType) {
-        List<String> identifys = new ArrayList<>();
-        switch (groupType) {
-            case "S01":
-            case "S02":
-            case "S0202":
-            case "S04":
-            case "S06":
-                identifys = FILE_IDENTIFY_TYPE.get(fileType);
-                break;
-            case "S08":
-                identifys = fileType.equals(1) ? Arrays.asList("1") : Arrays.asList("2");
-                break;
-        }
-        return identifys;
     }
 
 }
