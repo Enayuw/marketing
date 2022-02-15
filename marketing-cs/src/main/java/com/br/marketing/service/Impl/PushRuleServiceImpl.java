@@ -244,8 +244,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getBatchNumberList().size() > 50) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");
         }
+        if(dto.getmPlanNum()!=null&&dto.getmPlanNum()<=0){
+            return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        }
         if(dto.getmPercentage()!=null&&dto.getmPercentage().compareTo(new BigDecimal(0))<=0){
-            return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate("百分比不能小于等于0");
+            return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
 
         StraHisFileExample fileExample = new StraHisFileExample();
@@ -306,6 +309,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
         queryBaseBean.setJsonData(dto.getmRuleCondition());
+        if(dto.getmPlanNum()!=null&&dto.getmPlanNum()<=0){
+            return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        }
         if(dto.getmPlanNum()!=null&&dto.getmPlanNum()>0){
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
@@ -315,7 +321,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if(dto.getmPercentage()!=null){
             if(dto.getmPercentage().compareTo(new BigDecimal(0))<=0){
-                return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate("百分比不能小于等于0");
+                return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
             }
             Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
             return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
