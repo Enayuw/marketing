@@ -2,21 +2,33 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.support.spring.PropertyPreFilters;
+import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.TransferSyncAdapter;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.dos.PeriodOfValidityDO;
+import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
-import com.br.marketing.entity.CaseShuheUserWithBLOBs;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CaseShuheUserMapper;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.mapper.PhoneBlackMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.ITransferSyncUserService;
+import com.br.marketing.service.PushDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,6 +58,20 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private ITransferSyncUserService iTransferSyncUserService;
+    @Resource
+    private PushDataService pushDataService;
+    @Resource
+    private RedisChgService redisChgService;
+    @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
+    @Resource
+    private LocalFileMapper localFileMapper;
+    @Resource
+    private PhoneBlackMapper phoneBlackMapper;
+    @Resource
+    private RabbitMqProducter producter;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.secretKey:00}")
@@ -102,7 +128,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.success();
             }
-            // TODO: 2022/2/11 处理 转化数据为 转化-客服？ 电销？ 黑名单？ 不做处理？ 明文电话需要加密保存到数据库
             Integer row = null;
             Exception exception = null;
 //            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
@@ -113,6 +138,50 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
 //                log.error(e.getMessage(), e);
 //                exception = e;
 //            }
+//            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
+            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
+            // D20220209数禾转化接口V3.0-客服
+            if ("Y".equals(caseShuheUser.getIsBlack())) {
+                // 黑名单逻辑
+                // is_black 字段内容放入transferSyncUser表 reserveField1字段中
+                try {
+                    LocalFile localFile = new LocalFile();
+                    localFile.setApiCode(apiCode);
+                    localFile.setCreateTime(new Date());
+                    localFile.setFileType("");
+                    localFile.setFileName("数禾-转化");
+                    localFileMapper.insertSelective(localFile);
+                    PhoneBlack phoneBlack = new PhoneBlack();
+                    phoneBlack.setLocalId(localFile.getId());
+                    phoneBlack.setName("");
+                    phoneBlack.setPhone(caseShuheUser.getCell());
+                    phoneBlack.setExpiredate(transferSyncUser.getReserveField1());
+                    phoneBlack.setCreateTime(new Date());
+                    phoneBlack.setUpdateTime(new Date());
+                    phoneBlackMapper.insertSelective(phoneBlack);
+                    if (localFile.getId() != null && localFile.getId() > 0) {
+                        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK, localFile.getId().toString());
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    this.sendAlarmMgs(title, "保存到黑名单失败" + e.getMessage(), appName, secretKey, alarmClient);
+
+                }
+            } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
+                    StringUtils.isEmpty(caseShuheUser.getIsBlack())
+                            && StringUtils.isEmpty(caseShuheUser.getIsTurn())
+                            && StringUtils.isEmpty(caseShuheUser.getUserType())
+                            && StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())
+                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
+                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
+                transferSyncUser.setIfTransform("2");
+            } else if (
+                    ("促申完".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) ||
+                            ("促首登".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())) ||
+                            ("促首借".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
+                // 转化
+                transferSyncUser.setIfTransform("1");
+            }
             // D20220209数禾转化数据定制化清洗入库
             row = caseShuheUserMapper.insertSelective(caseShuheUser);
             if (row == null || row < 1) {
@@ -134,33 +203,30 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 }
                 caseShuheUserMapper.insertSelective(caseShuheUser);
             }
-//            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
-            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
-            // D20220209数禾转化接口V3.0-客服
-            if ("Y".equals(caseShuheUser.getIsBlack())) {
-                // 黑名单
-                // is_black 字段内容放入 reserveField1字段中
-            } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
-                    StringUtils.isEmpty(caseShuheUser.getIsBlack())
-                            && StringUtils.isEmpty(caseShuheUser.getIsTurn())
-                            && StringUtils.isEmpty(caseShuheUser.getUserType())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
-                transferSyncUser.setIfTransform("2");
-            } else if (
-                    ("促申完".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) ||
-                            ("促首登".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())) ||
-                            ("促首借".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
-                // 转化
-                transferSyncUser.setIfTransform("1");
-            }
+
             // 转化信息入库
-            int i = iTransferSyncUserService.insertSelective(transferSyncUser);
+            try {
+                transferSyncUser.setRequestId(Md5Utils.cell32(jsonData));
+                int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
+                if (row_sync > 0) {
+                    MarketingTransferInfo transferInfo = new MarketingTransferInfo();
+                    transferInfo.setApiCode(apiCode);
+                    transferInfo.setRequestId(transferInfo.getRequestId());
+                    transferInfo.setCreateTime(new Date());
+                    transferInfo.setJsonData(jsonData);
+                    transferInfo.setActualNum(1);
+                    int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
+                    if (row_info > 0) {
+                        producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, transferInfo.getId().toString());
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                this.sendAlarmMgs(title, "保存到转化信息失败" + e.getMessage(), appName, secretKey, alarmClient);
+            }
             // D20220209数禾申完转电销
             if ("促申完".equals(caseShuheUser.getUserType())) {
                 boolean boolAppStaTim;
-                boolean boolIsoAtoTim;
                 final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 /* 数禾申完转电销 情况a
                  * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
@@ -174,23 +240,88 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     LocalDate appStaDate = appStaTim.toLocalDate();
                     boolAppStaTim = localDate.isEqual(appStaDate);
                 }
-                if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
-                    boolIsoAtoTim = Boolean.FALSE;
-                } else {
-                    LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
-                    LocalDate isoAtoDate = isoAtoTim.toLocalDate();
-                    Date appletTime = iMarketingSyncUserService.getAppletTimeByCustNumAndUserType(apiCode
-                            , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-                    if (appletTime == null) {
+                if (boolAppStaTim) {
+                    boolean boolIsoAtoTim;
+                    if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
                         boolIsoAtoTim = Boolean.FALSE;
                     } else {
-                        LocalDate appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        boolIsoAtoTim = isoAtoDate.isBefore(appletDate) || isoAtoDate.isEqual(appletDate);
+                        LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
+                        Date appletTime = iMarketingSyncUserService.getAppletTimeByCustNumAndUserType(apiCode
+                                , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+                        if (appletTime == null) {
+                            boolIsoAtoTim = Boolean.FALSE;
+                        } else {
+                            LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                            boolIsoAtoTim = isoAtoTim.isBefore(appletDate);
+                        }
                     }
-                }
-                // 校验有效期
-                if (boolAppStaTim & boolIsoAtoTim) {
+                    if (boolIsoAtoTim) {
+                        // 校验有效期
+                        String yyyyMMdd = "yyyy-MM-dd";
+                        Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(apiCode
+                                , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day(yyyyMMdd));
+                        if (periodOfValidity) {
+                            String key = "marketing:api:shuhe:transfer:cid:".concat(apiCode);
+                            String cId;
+                            try {
+                                cId = redisChgService.get(key);
+                                if (StringUtils.isEmpty(cId)) {
+                                    cId = tableCreateService.getTcId(apiCode);
+                                    // 缓存七天
+                                    redisChgService.setex(key, cId, 7 * 86400);
+                                }
+                            } catch (Exception e) {
+                                cId = tableCreateService.getTcId(apiCode);
+                                log.error(e.getMessage(), e);
+                            }
+                            LocalFile localFile = new LocalFile();
+                            PhoneSale phoneSale = new PhoneSale();
+                            PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
+                            localFile.setCid(cId);
+                            localFile.setApiCode(apiCode);
+                            localFile.setFileName("数禾-转化");
+                            phoneSale.setUid(transferSyncUser.getCustNum());
+                            //明文
+                            phoneSale.setPhone(caseShuheUser.getMobile());
+                            phoneSale.setName("");
+                            phoneSale.setOrgname("shuheshenwan");
+                            phoneSale.setSource("16");
+                            phoneSale.setUserType("2");
+                            phoneSale.setLoginTime("");
+                            PropertyPreFilters filters = new PropertyPreFilters();
+                            PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
+                            includefilter.addIncludes("clc_usr_iso_pho_tim"
+                                    , "clc_usr_iso_idt_tim"
+                                    , "clc_usr_iso_crd_tim"
+                                    , "clc_usr_iso_inf_tim"
+                            );
+                            String field1 = JSONObject.toJSONString(JSONObject.parseObject(jsonData), includefilter, SerializerFeature.WriteMapNullValue);
+                            phoneSale.setExtend(field1);
+                            phoneSaleExtendShuhe.setCustNum(transferSyncUser.getCustNum());
+                            LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                            LocalDate localDate = localDateTime.toLocalDate();
+                            phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern(yyyyMMdd)));
+                            phoneSaleExtendShuhe.setAppletTime(localDateTime.format(dateTimeFormatter));
+                            PushShDXDTO pushShDXDTO = new PushShDXDTO()
+                                    .setLocalFile(localFile)
+                                    .setPhoneSale(phoneSale)
+                                    .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
+                            try {
+                                Result<Boolean> booleanResult = pushDataService.pushShDX(pushShDXDTO);
+                                if (booleanResult.getData()) {
+                                    log.info("推送电销成功");
+                                } else {
+                                    msg = String.format("数禾(custNum=%s)推送电销（人工）失败！失败信息：%s", transferSyncUser.getCustNum(), booleanResult.getData());
+                                    log.error(msg);
+                                    this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                                }
+                            } catch (Exception e) {
+                                log.error(e.getMessage(), e);
+                                this.sendAlarmMgs(title, "保存到电销失败" + e.getMessage(), appName, secretKey, alarmClient);
 
+                            }
+                        }
+                    }
                 }
             }
             return responseShuheDTO;
