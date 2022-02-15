@@ -244,6 +244,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getBatchNumberList().size() > 50) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");
         }
+        if(dto.getmPercentage()!=null&&dto.getmPercentage().compareTo(new BigDecimal(0))<=0){
+            return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate("百分比不能小于等于0");
+        }
 
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
@@ -311,6 +314,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
         if(dto.getmPercentage()!=null){
+            if(dto.getmPercentage().compareTo(new BigDecimal(0))<=0){
+                return  new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate("百分比不能小于等于0");
+            }
             Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
             return  new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
