@@ -74,4 +74,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @dateTime 2022/2/14 9:55
      */
     long getPeriodOfValiditySum(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("periodOfValidityDO") PeriodOfValidityDO periodOfValidityDO);
+
+    /**
+     * 根据cust_num获取最新数据
+     * @param apiCode
+     * @param caseNum
+     * @return
+     */
+    MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum")String caseNum);
 }

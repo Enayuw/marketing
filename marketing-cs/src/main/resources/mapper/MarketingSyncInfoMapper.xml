@@ -191,4 +191,10 @@
         </if>
     </select>
 
+    <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cust_num=#{caseNum} order by applet_date desc limit 1;
+    </select>
+
 </mapper>
