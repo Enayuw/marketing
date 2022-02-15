@@ -72,10 +72,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.info("客服传入的案件编号caseNum为空！");
             return true;
         }
-        //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
-        MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
-        //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
-        MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(dto.getCid().toString(),dto.getCaseNum());
 
         PeriodOfValidityDO periodOfValidityDO = PeriodOfValidityDO.closInterval15Day();
         Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), periodOfValidityDO);
@@ -89,6 +85,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+        //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
+        MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
+        //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
+        MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(dto.getCid().toString(),dto.getCaseNum());
+
         LocalFile localFile = new LocalFile();
         PhoneSale phoneSale = new PhoneSale();
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
@@ -101,7 +102,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         localFile.setFileName("客服");
         phoneSale.setUid(dto.getCaseNum());
         String s = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-        phoneSale.setPhone(s);//b_marketing_sync_{apicode}的cell，明文？
+        phoneSale.setPhone(s);//b_marketing_sync_{apicode}的cell，明文
         phoneSale.setName("");
         phoneSale.setOrgname("shuheshenwan");
         phoneSale.setSource("16");
