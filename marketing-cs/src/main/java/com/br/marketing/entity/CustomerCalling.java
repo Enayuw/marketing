@@ -4,12 +4,12 @@ import java.util.Date;
 
 public class CustomerCalling {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -24,9 +24,9 @@ public class CustomerCalling {
     private String columnsDetail;
 
     /**
-     * 状态 1正常，0删除
+     * sftp密码
      */
-    private Byte status;
+    private String sftpPassword;
 
     /**
      * 扩展字段
@@ -54,14 +54,29 @@ public class CustomerCalling {
     private String pushUrl;
 
     /**
-     * 创建时间
+     * sftp 地址
      */
-    private Date createTime;
+    private String sftpPath;
+
+    /**
+     * 用户名
+     */
+    private String sftpName;
+
+    /**
+     * 状态 1正常，0删除
+     */
+    private Byte status;
 
     /**
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 
     public Long getId() {
         return id;
@@ -95,12 +110,12 @@ public class CustomerCalling {
         this.columnsDetail = columnsDetail == null ? null : columnsDetail.trim();
     }
 
-    public Byte getStatus() {
-        return status;
+    public String getSftpPassword() {
+        return sftpPassword;
     }
 
-    public void setStatus(Byte status) {
-        this.status = status;
+    public void setSftpPassword(String sftpPassword) {
+        this.sftpPassword = sftpPassword == null ? null : sftpPassword.trim();
     }
 
     public String getExtendConfigInfo() {
@@ -143,12 +158,28 @@ public class CustomerCalling {
         this.pushUrl = pushUrl == null ? null : pushUrl.trim();
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public String getSftpPath() {
+        return sftpPath;
     }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public void setSftpPath(String sftpPath) {
+        this.sftpPath = sftpPath == null ? null : sftpPath.trim();
+    }
+
+    public String getSftpName() {
+        return sftpName;
+    }
+
+    public void setSftpName(String sftpName) {
+        this.sftpName = sftpName == null ? null : sftpName.trim();
+    }
+
+    public Byte getStatus() {
+        return status;
+    }
+
+    public void setStatus(Byte status) {
+        this.status = status;
     }
 
     public Date getUpdateTime() {
@@ -157,5 +188,13 @@ public class CustomerCalling {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 }

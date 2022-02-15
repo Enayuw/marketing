@@ -375,63 +375,73 @@ public class CustomerCallingExample {
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+        public Criteria andSftpPasswordIsNull() {
+            addCriterion("sftp_password is null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+        public Criteria andSftpPasswordIsNotNull() {
+            addCriterion("sftp_password is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusEqualTo(Byte value) {
-            addCriterion("status =", value, "status");
+        public Criteria andSftpPasswordEqualTo(String value) {
+            addCriterion("sftp_password =", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotEqualTo(Byte value) {
-            addCriterion("status <>", value, "status");
+        public Criteria andSftpPasswordNotEqualTo(String value) {
+            addCriterion("sftp_password <>", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThan(Byte value) {
-            addCriterion("status >", value, "status");
+        public Criteria andSftpPasswordGreaterThan(String value) {
+            addCriterion("sftp_password >", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThanOrEqualTo(Byte value) {
-            addCriterion("status >=", value, "status");
+        public Criteria andSftpPasswordGreaterThanOrEqualTo(String value) {
+            addCriterion("sftp_password >=", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThan(Byte value) {
-            addCriterion("status <", value, "status");
+        public Criteria andSftpPasswordLessThan(String value) {
+            addCriterion("sftp_password <", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThanOrEqualTo(Byte value) {
-            addCriterion("status <=", value, "status");
+        public Criteria andSftpPasswordLessThanOrEqualTo(String value) {
+            addCriterion("sftp_password <=", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIn(List<Byte> values) {
-            addCriterion("status in", values, "status");
+        public Criteria andSftpPasswordLike(String value) {
+            addCriterion("sftp_password like", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotIn(List<Byte> values) {
-            addCriterion("status not in", values, "status");
+        public Criteria andSftpPasswordNotLike(String value) {
+            addCriterion("sftp_password not like", value, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusBetween(Byte value1, Byte value2) {
-            addCriterion("status between", value1, value2, "status");
+        public Criteria andSftpPasswordIn(List<String> values) {
+            addCriterion("sftp_password in", values, "sftpPassword");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotBetween(Byte value1, Byte value2) {
-            addCriterion("status not between", value1, value2, "status");
+        public Criteria andSftpPasswordNotIn(List<String> values) {
+            addCriterion("sftp_password not in", values, "sftpPassword");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPasswordBetween(String value1, String value2) {
+            addCriterion("sftp_password between", value1, value2, "sftpPassword");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPasswordNotBetween(String value1, String value2) {
+            addCriterion("sftp_password not between", value1, value2, "sftpPassword");
             return (Criteria) this;
         }
 
@@ -765,63 +775,203 @@ public class CustomerCallingExample {
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeIsNull() {
-            addCriterion("create_time is null");
+        public Criteria andSftpPathIsNull() {
+            addCriterion("sftp_path is null");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeIsNotNull() {
-            addCriterion("create_time is not null");
+        public Criteria andSftpPathIsNotNull() {
+            addCriterion("sftp_path is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeEqualTo(Date value) {
-            addCriterion("create_time =", value, "createTime");
+        public Criteria andSftpPathEqualTo(String value) {
+            addCriterion("sftp_path =", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeNotEqualTo(Date value) {
-            addCriterion("create_time <>", value, "createTime");
+        public Criteria andSftpPathNotEqualTo(String value) {
+            addCriterion("sftp_path <>", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeGreaterThan(Date value) {
-            addCriterion("create_time >", value, "createTime");
+        public Criteria andSftpPathGreaterThan(String value) {
+            addCriterion("sftp_path >", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("create_time >=", value, "createTime");
+        public Criteria andSftpPathGreaterThanOrEqualTo(String value) {
+            addCriterion("sftp_path >=", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeLessThan(Date value) {
-            addCriterion("create_time <", value, "createTime");
+        public Criteria andSftpPathLessThan(String value) {
+            addCriterion("sftp_path <", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeLessThanOrEqualTo(Date value) {
-            addCriterion("create_time <=", value, "createTime");
+        public Criteria andSftpPathLessThanOrEqualTo(String value) {
+            addCriterion("sftp_path <=", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeIn(List<Date> values) {
-            addCriterion("create_time in", values, "createTime");
+        public Criteria andSftpPathLike(String value) {
+            addCriterion("sftp_path like", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeNotIn(List<Date> values) {
-            addCriterion("create_time not in", values, "createTime");
+        public Criteria andSftpPathNotLike(String value) {
+            addCriterion("sftp_path not like", value, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeBetween(Date value1, Date value2) {
-            addCriterion("create_time between", value1, value2, "createTime");
+        public Criteria andSftpPathIn(List<String> values) {
+            addCriterion("sftp_path in", values, "sftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andCreateTimeNotBetween(Date value1, Date value2) {
-            addCriterion("create_time not between", value1, value2, "createTime");
+        public Criteria andSftpPathNotIn(List<String> values) {
+            addCriterion("sftp_path not in", values, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathBetween(String value1, String value2) {
+            addCriterion("sftp_path between", value1, value2, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathNotBetween(String value1, String value2) {
+            addCriterion("sftp_path not between", value1, value2, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameIsNull() {
+            addCriterion("sftp_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameIsNotNull() {
+            addCriterion("sftp_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameEqualTo(String value) {
+            addCriterion("sftp_name =", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameNotEqualTo(String value) {
+            addCriterion("sftp_name <>", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameGreaterThan(String value) {
+            addCriterion("sftp_name >", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameGreaterThanOrEqualTo(String value) {
+            addCriterion("sftp_name >=", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameLessThan(String value) {
+            addCriterion("sftp_name <", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameLessThanOrEqualTo(String value) {
+            addCriterion("sftp_name <=", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameLike(String value) {
+            addCriterion("sftp_name like", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameNotLike(String value) {
+            addCriterion("sftp_name not like", value, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameIn(List<String> values) {
+            addCriterion("sftp_name in", values, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameNotIn(List<String> values) {
+            addCriterion("sftp_name not in", values, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameBetween(String value1, String value2) {
+            addCriterion("sftp_name between", value1, value2, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpNameNotBetween(String value1, String value2) {
+            addCriterion("sftp_name not between", value1, value2, "sftpName");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNull() {
+            addCriterion("status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNotNull() {
+            addCriterion("status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusEqualTo(Byte value) {
+            addCriterion("status =", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotEqualTo(Byte value) {
+            addCriterion("status <>", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThan(Byte value) {
+            addCriterion("status >", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThanOrEqualTo(Byte value) {
+            addCriterion("status >=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThan(Byte value) {
+            addCriterion("status <", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThanOrEqualTo(Byte value) {
+            addCriterion("status <=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIn(List<Byte> values) {
+            addCriterion("status in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotIn(List<Byte> values) {
+            addCriterion("status not in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusBetween(Byte value1, Byte value2) {
+            addCriterion("status between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotBetween(Byte value1, Byte value2) {
+            addCriterion("status not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -882,6 +1032,66 @@ public class CustomerCallingExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIsNull() {
+            addCriterion("create_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIsNotNull() {
+            addCriterion("create_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeEqualTo(Date value) {
+            addCriterion("create_time =", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotEqualTo(Date value) {
+            addCriterion("create_time <>", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeGreaterThan(Date value) {
+            addCriterion("create_time >", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("create_time >=", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeLessThan(Date value) {
+            addCriterion("create_time <", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeLessThanOrEqualTo(Date value) {
+            addCriterion("create_time <=", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIn(List<Date> values) {
+            addCriterion("create_time in", values, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotIn(List<Date> values) {
+            addCriterion("create_time not in", values, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeBetween(Date value1, Date value2) {
+            addCriterion("create_time between", value1, value2, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotBetween(Date value1, Date value2) {
+            addCriterion("create_time not between", value1, value2, "createTime");
             return (Criteria) this;
         }
     }

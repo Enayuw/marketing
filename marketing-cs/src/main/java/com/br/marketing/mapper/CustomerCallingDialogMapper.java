@@ -1,0 +1,37 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.CustomerCallingDialog;
+import com.br.marketing.entity.CustomerCallingDialogExample;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface CustomerCallingDialogMapper {
+    int countByExample(CustomerCallingDialogExample example);
+
+    int deleteByExample(CustomerCallingDialogExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(CustomerCallingDialog record);
+
+    int insertSelective(CustomerCallingDialog record);
+
+    List<CustomerCallingDialog> selectByExampleWithBLOBs(CustomerCallingDialogExample example);
+
+    List<CustomerCallingDialog> selectByExample(CustomerCallingDialogExample example);
+
+    CustomerCallingDialog selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") CustomerCallingDialog record, @Param("example") CustomerCallingDialogExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") CustomerCallingDialog record, @Param("example") CustomerCallingDialogExample example);
+
+    int updateByExample(@Param("record") CustomerCallingDialog record, @Param("example") CustomerCallingDialogExample example);
+
+    int updateByPrimaryKeySelective(CustomerCallingDialog record);
+
+    int updateByPrimaryKeyWithBLOBs(CustomerCallingDialog record);
+
+    int updateByPrimaryKey(CustomerCallingDialog record);
+}
