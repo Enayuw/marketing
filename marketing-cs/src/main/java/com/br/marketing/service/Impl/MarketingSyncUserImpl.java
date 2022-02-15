@@ -6,6 +6,8 @@ import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
 
@@ -31,5 +33,15 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public String getUserTypeLatestByCustNum(String apiCode, String custNum) {
         return marketingSyncInfoMapper.getUserTypeLatestByCustNum(apiCode, custNum);
+    }
+
+    @Override
+    public String getTaskIdLatestByCustNum(String apiCode, String custNum) {
+        return marketingSyncInfoMapper.getTaskIdLatestByCustNum(apiCode, custNum);
+    }
+
+    @Override
+    public Date getAppletTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
+        return marketingSyncInfoMapper.getAppletTimeByCustNumAndUserType(apiCode, custNum, userType);
     }
 }
