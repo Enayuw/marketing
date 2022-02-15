@@ -68,6 +68,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.info("不符合情况b的userType='促申完'或者A意向！");
             return true;
         }
+        if(StringUtils.isBlank(dto.getCaseNum())){
+            log.info("客服传入的案件编号caseNum为空！");
+            return true;
+        }
         //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
         MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
         //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
