@@ -56,6 +56,20 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String samoyeHYprefix = "samoye_alive_";
 
+    final static String samoyeZHprefix = "samoye_zhuanhua_";
+
+    private final static Map<Integer, List<String>> FILE_IDENTIFY_TYPE = new HashMap<>();
+    /**
+     * key：filetype:1:断点，2:活跃，3:转化
+     * value:identifyList
+     */
+
+    static {
+        FILE_IDENTIFY_TYPE.put(1, Arrays.asList("2", "3"));
+        FILE_IDENTIFY_TYPE.put(2, Arrays.asList("4"));
+        FILE_IDENTIFY_TYPE.put(3, Arrays.asList("1"));
+    }
+
     @Value("${otherConfig.warning.path:00}")
     private String path;
 
@@ -119,6 +133,33 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 resultList.add(transferFileTask);
             }
         }
+        //转化类型文件
+        if (collect.get(3) == null || collect.get(3).size() <= 0) {
+            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("1"));
+            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("1"));
+            Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("1"));
+            Integer s04 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S04", Arrays.asList("1"));
+            Integer s06 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S06", Arrays.asList("1"));
+            Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("1"));
+
+            int num = s01 + s02 + s0202 + s04 + s06 + s08;
+            if (num > 0) {
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(3);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setTaskNumber(num);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
@@ -144,9 +185,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         if (transferFileTask.getFileType().equals(1)) {
             fileName.append(samoyeDDprefix);
             groupTyps = Arrays.asList("S01", "S02", "S08", "S0202");
-        } else {
+        } else if (transferFileTask.getFileType().equals(2)) {
             fileName.append(samoyeHYprefix);
             groupTyps = Arrays.asList("S01", "S02", "S0202");
+        } else {
+            fileName.append(samoyeZHprefix);
+            groupTyps = Arrays.asList("S01", "S02", "S0202", "S04", "S06", "S08");
         }
         fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
@@ -169,7 +213,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             , String endDate, List<String> groupTyps
             , TransferFileTask transferFileTask) throws IOException {
         for (String groupType : groupTyps) {
-            List<String> fileTypes = new ArrayList<>();
+            /*List<String> fileTypes = new ArrayList<>();
             if (groupType.equals("S01")) {
                 fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
             } else if (groupType.equals("S02")) {
@@ -178,12 +222,14 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 fileTypes = Arrays.asList("2");
             } else if (groupType.equals("S0202")) {
                 fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
-            }
+            }*/
+            //根据文件类型获取场景对应的标识：断点，活跃，转化
+            List<String> identifyTypes = getIdentifys(groupType,transferFileTask.getFileType());
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
             while (isContiue) {
                 List<TransferUserVO> transferFileUser = marketingSyncInfoMapper
-                        .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, fileTypes);
+                        .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, identifyTypes);
                 if (transferFileUser.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
@@ -225,6 +271,27 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
+    }
+
+    /**
+     * desc:根据文件类型获取场景对应的标识：断点，活跃，转化
+     * return :identifyList
+     */
+    private List<String> getIdentifys(String groupType, Integer fileType) {
+        List<String> identifys = new ArrayList<>();
+        switch (groupType) {
+            case "S01":
+            case "S02":
+            case "S0202":
+            case "S04":
+            case "S06":
+                identifys = FILE_IDENTIFY_TYPE.get(fileType);
+                break;
+            case "S08":
+                identifys = fileType.equals(1) ? Arrays.asList("1") : Arrays.asList("2");
+                break;
+        }
+        return identifys;
     }
 
 }
