@@ -125,7 +125,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 }
                 caseShuheUserMapper.insertSelective(caseShuheUser);
             }
-            iMarketingSyncUserService
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
             return responseShuheDTO;
         } catch (Exception e) {
