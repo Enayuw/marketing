@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
@@ -328,7 +329,7 @@ public class PushDataServiceImpl implements PushDataService{
      *         phoneSale.setSource("16");
      *         phoneSale.setUserType("2");
      *         phoneSale.setLoginTime("");
-     *         phoneSale.setExtend("{\"clc_usr_iso_pho\":\"\",\"clc_usr_iso_idt\":\"\",\"clc_usr_iso_crd\":\"\",\"clc_usr_iso_inf\":\"\"}");
+     *         phoneSale.setExtend("{\"clc_usr_iso_pho_tim\":\"\",\"clc_usr_iso_idt_tim\":\"\",\"clc_usr_iso_crd_tim\":\"\",\"clc_usr_iso_inf_tim\":\"\"}");
      *         phoneSaleExtendShuhe.setCustNum("custNum");
      *         phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
      *         phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
@@ -349,6 +350,30 @@ public class PushDataServiceImpl implements PushDataService{
         phoneSale.setPhoneAes(BrCipherMaker.getInstance().encode(phoneSale.getPhone()));
         phoneSale.setApiCode(apiCode);
         phoneSale.setApiCid(localFile.getCid());
+        JSONObject jo = new JSONObject();
+        jo.put("face_recognitiion","0");
+        jo.put("is_usr_idt","0");
+        jo.put("is_bindcard","0");
+        jo.put("is_usr_inf","0");
+        if(StringUtils.isNotBlank(phoneSale.getExtend())){
+            JSONObject jsonObject = JSON.parseObject(phoneSale.getExtend());
+            String pho = jsonObject.getString("clc_usr_iso_pho_tim");
+            String idt = jsonObject.getString("clc_usr_iso_idt_tim");
+            String crd = jsonObject.getString("clc_usr_iso_crd_tim");
+            String inf = jsonObject.getString("clc_usr_iso_inf_tim");
+            if(StringUtils.isNotBlank(pho)){
+                jo.put("face_recognitiion","1");
+            }
+            if(StringUtils.isNotBlank(idt)){
+                jo.put("is_usr_idt","1");
+            }
+            if(StringUtils.isNotBlank(crd)){
+                jo.put("is_bindcard","1");
+            }
+            if(StringUtils.isNotBlank(inf)){
+                jo.put("is_usr_inf","1");
+            }
+        }
 
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
         phoneSaleExtendShuhe.setCreateTime(date);
