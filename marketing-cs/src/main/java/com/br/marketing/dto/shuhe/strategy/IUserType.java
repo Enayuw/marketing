@@ -1,5 +1,6 @@
 package com.br.marketing.dto.shuhe.strategy;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.CaseShuheUserWithBLOBs;
@@ -50,6 +51,7 @@ public abstract class IUserType {
         caseUser.setBiztype(jsonDTO.getBizType());
         caseUser.setUserType(this.userType);
         caseUser.setMobile(jsonDTO.getMobile());
+        caseUser.setCell(BrCipherMaker.getInstance().encode(jsonDTO.getMobile()));
         caseUser.setJsonData(jsonData);
         return caseUser;
     }
