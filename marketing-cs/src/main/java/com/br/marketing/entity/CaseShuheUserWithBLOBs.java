@@ -1,8 +1,13 @@
 package com.br.marketing.entity;
 
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.support.spring.PropertyPreFilters;
+import com.br.marketing.adapter.IToTransferSyncAdaptee;
+
 import java.util.Date;
 
-public class CaseShuheUserWithBLOBs extends CaseShuheUser {
+public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransferSyncAdaptee {
     /**
      * 业务字段
      */
@@ -65,5 +70,29 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser {
                 ", reserveField1='" + reserveField1 + '\'' +
                 ", reserveField2='" + reserveField2 + '\'' +
                 '}';
+    }
+
+    @Override
+    public void adapteeRequest(MarketingTransferSyncUser transferSyncUser) {
+        transferSyncUser.setCustNum(this.getCustNum());
+        transferSyncUser.setUserType(this.getUserType());
+        transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());
+        PropertyPreFilters filters = new PropertyPreFilters();
+        PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
+        includefilter.addIncludes("isTurn"
+                , "isBlack"
+                , "clcUsrLstAppStaTim"
+                , "clcUsrIsoPhoTim"
+                , "clcUsrIsoIdtTim"
+                , "clcUsrIsoCrdTim"
+                , "clcUsrIsoInfTim"
+        );
+        String field1 = JSONObject.toJSONString(this, includefilter, SerializerFeature.WriteMapNullValue);
+        transferSyncUser.setReserveField1(field1);
+        transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
+        transferSyncUser.setAuditTime(this.getClcUsrAdtTimRcnLon());
+        transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
+        transferSyncUser.setApplyTime(this.getClcUsrFrtFqOrdTim());
+        transferSyncUser.setLentTime(this.getClcUsrFstLndTimCshBtHl());
     }
 }
