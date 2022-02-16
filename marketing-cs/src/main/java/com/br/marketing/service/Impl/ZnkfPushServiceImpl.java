@@ -116,7 +116,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         //调用 数禾推送电销方法
         Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
         if (!result.getData()) {
-            log.warn("调用推送电销方法失败！");
+            String msg = String.format("数禾(custNum=%s)推送电销失败！失败信息：%s", dto.getCaseNum(), result.getData());
+            log.error(msg);
             return false;
         }
         return true;
