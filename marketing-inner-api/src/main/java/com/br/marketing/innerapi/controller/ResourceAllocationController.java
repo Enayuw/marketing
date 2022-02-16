@@ -2,7 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.service.ResourceAllocationService;
+import com.br.marketing.innerapi.service.ResourceAllocationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;

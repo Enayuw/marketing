@@ -1,4 +1,4 @@
-package com.br.marketing.service;
+package com.br.marketing.innerapi.service;
 
 import java.util.List;
 import java.util.Map;

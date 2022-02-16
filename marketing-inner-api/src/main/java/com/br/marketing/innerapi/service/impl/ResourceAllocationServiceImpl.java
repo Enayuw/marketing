@@ -1,11 +1,10 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.innerapi.service.impl;
 
 import com.br.marketing.common.constants.ZookeeperPath;
-import com.br.marketing.service.ResourceAllocationService;
+import com.br.marketing.innerapi.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
