@@ -95,5 +95,6 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
         transferSyncUser.setApplyTime(this.getClcUsrFrtFqOrdTim());
         transferSyncUser.setLentTime(this.getClcUsrFstLndTimCshBtHl());
+        transferSyncUser.setCreateTime(new Date());
     }
 }

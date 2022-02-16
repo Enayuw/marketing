@@ -27,7 +27,7 @@ public interface IPushShuheTransferDataService {
         try {
             alarmClient.sendAlarm(error, title, appName, secretKey,
                     Constants.sendCodeMap.get("sysError"));
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
     }

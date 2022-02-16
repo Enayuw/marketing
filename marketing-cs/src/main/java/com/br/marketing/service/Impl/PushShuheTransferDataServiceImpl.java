@@ -221,12 +221,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             try {
                 transferSyncUser.setCid(cId);
                 transferSyncUser.settCid(cId);
-                transferSyncUser.setRequestId(Md5Utils.cell32(jsonData));
+                transferSyncUser.setRequestId(Md5Utils.cell32(jsonData.concat("@" + System.currentTimeMillis())));
                 int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
                 if (row_sync > 0) {
                     MarketingTransferInfo transferInfo = new MarketingTransferInfo();
                     transferInfo.setApiCode(apiCode);
-                    transferInfo.setRequestId(transferInfo.getRequestId());
+                    transferInfo.setRequestId(transferSyncUser.getRequestId());
                     transferInfo.setCreateTime(new Date());
                     transferInfo.setJsonData(jsonData);
                     transferInfo.setActualNum(1);
