@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/znkePush")
-@Api(value = "ZnkfPushController")
+@Api(value = "客服推送营销数据")
 public class ZnkfPushController {
 
     private static final Logger log = LoggerFactory.getLogger(ZnkfPushController.class);

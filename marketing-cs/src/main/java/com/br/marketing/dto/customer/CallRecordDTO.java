@@ -51,4 +51,19 @@ public class CallRecordDTO {
      * 拨打明细详情
      */
     private CallRecordDetailDTO detail;
+
+    @Override
+    public String toString() {
+        return "CallRecordDTO{" +
+                "cid=" + cid +
+                ", apiCode='" + apiCode + '\'' +
+                ", callBackType=" + callBackType +
+                ", taskName='" + taskName + '\'' +
+                ", taskId=" + taskId +
+                ", caseNum='" + caseNum + '\'' +
+                ", caseStatus=" + caseStatus +
+                ", dialCount=" + dialCount +
+                ", detail=" + detail +
+                '}';
+    }
 }

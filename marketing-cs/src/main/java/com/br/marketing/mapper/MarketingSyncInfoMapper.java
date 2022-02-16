@@ -9,17 +9,18 @@ import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
-    List<String> getCusBatchByApiAndTime(@Param("apiCode") String apiCode,@Param("beginTime") String beginTime,@Param("endTime") String endTime);
+    List<String> getCusBatchByApiAndTime(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
-    Long minSyncId(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("beginTime") String beginTime,@Param("endTime") String endTime);
+    Long minSyncId(@Param("apiCode") String apiCode, @Param("cusBatch") String cusBatch, @Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
-    List<MarketingSyncInfo> getDatalimit(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch
-                                         ,@Param("id") Long id,@Param("beginTime") String beginTime
-                                         ,@Param("endTime") String endTime);
+    List<MarketingSyncInfo> getDatalimit(@Param("apiCode") String apiCode, @Param("cusBatch") String cusBatch
+            , @Param("id") Long id, @Param("beginTime") String beginTime
+            , @Param("endTime") String endTime);
 
     void createMarketingTransferTable(@Param("tableName") String tableName);
 
@@ -27,9 +28,9 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     int insertTransfer(MarketingTransfer transfer);
 
-    Integer selectTransfersByRequestId(@Param("apiCode") String apiCode,@Param("requestId") String requestId);
+    Integer selectTransfersByRequestId(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
 
-    List<MarketingSyncUser> getPreUserByTaskAndCust(@Param("apiCode") String apiCode,@Param("conditionTextByTaskIdAndCust")String conditionTextByTaskIdAndCust);
+    List<MarketingSyncUser> getPreUserByTaskAndCust(@Param("apiCode") String apiCode, @Param("conditionTextByTaskIdAndCust") String conditionTextByTaskIdAndCust);
 
     Long countRepeat(@Param("execSql") String execSql);
 
@@ -37,11 +38,11 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     Integer updateRepeatUserStatus(@Param("execSql") String execSql);
 
-    Long getMinIdByRuleScore(@Param("apiCode")String apiCode
-            ,@Param("sTimeStr")String sTimeStr,@Param("eTimeStr")String eTimeStr
-            ,@Param("whereStr")String whereStr);
+    Long getMinIdByRuleScore(@Param("apiCode") String apiCode
+            , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
 
-    Long getMaxIdByRuleScore(@Param("apiCode")String apiCode
+    Long getMaxIdByRuleScore(@Param("apiCode") String apiCode
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
@@ -74,6 +75,16 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @dateTime 2022/2/14 9:55
      */
     long getPeriodOfValiditySum(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("periodOfValidityDO") PeriodOfValidityDO periodOfValidityDO);
+    /**
+     * 根据案件编号获取客户最新的场景
+     *
+     * @param apiCode apiCode
+     * @param custNum 案件编号
+     * @return userType
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/11 18:17
+     */
+    String getUserTypeLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
     /**
      * 根据cust_num获取最新数据
@@ -82,4 +93,26 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @return
      */
     MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum")String caseNum);
+    /**
+     * 根据案件编号获取最新的taskId
+     *
+     * @param apiCode apiCode
+     * @param custNum 案件编号
+     * @return taskId
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/15 10:52
+     */
+    String getTaskIdLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+
+    /**
+     * 获取案件编号的上传时间
+     *
+     * @param apiCode  apiCode
+     * @param custNum  案件编号
+     * @param userType 场景
+     * @return AppletTime
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/15 10:52
+     */
+    Date getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
 }
