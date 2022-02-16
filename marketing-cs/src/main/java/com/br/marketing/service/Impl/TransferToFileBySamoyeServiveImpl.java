@@ -56,6 +56,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String samoyeHYprefix = "samoye_alive_";
 
+    final static String samoyeZHprefix = "samoye_zhuanhua_";
+
     @Value("${otherConfig.warning.path:00}")
     private String path;
 
@@ -119,6 +121,33 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 resultList.add(transferFileTask);
             }
         }
+        //转化类型文件
+        if (collect.get(3) == null || collect.get(3).size() <= 0) {
+            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("1"));
+            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("1"));
+            Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("1"));
+            Integer s04 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S04", Arrays.asList("1"));
+            Integer s06 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S06", Arrays.asList("1"));
+            Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("1"));
+
+            int num = s01 + s02 + s0202 + s04 + s06 + s08;
+            if (num > 0) {
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(3);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setTaskNumber(num);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
@@ -144,9 +173,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         if (transferFileTask.getFileType().equals(1)) {
             fileName.append(samoyeDDprefix);
             groupTyps = Arrays.asList("S01", "S02", "S08", "S0202");
-        } else {
+        } else if (transferFileTask.getFileType().equals(2)) {
             fileName.append(samoyeHYprefix);
             groupTyps = Arrays.asList("S01", "S02", "S0202");
+        } else {
+            fileName.append(samoyeZHprefix);
+            groupTyps = Arrays.asList("S01", "S02", "S0202", "S04", "S06", "S08");
         }
         fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
@@ -171,13 +203,35 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         for (String groupType : groupTyps) {
             List<String> fileTypes = new ArrayList<>();
             if (groupType.equals("S01")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S02")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
-            } else if (groupType.equals("S08")) {
-                fileTypes = Arrays.asList("2");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S0202")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
+            } else if (groupType.equals("S04")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S06")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S08")) {
+                fileTypes = transferFileTask.getFileType().equals(3) ? Arrays.asList("1") : Arrays.asList("2");
             }
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
@@ -212,7 +266,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                     sb.append(transferUserVO.getGroupType().concat(","));
                     sb.append(transferUserVO.getReserveField1().concat(","));
                     sb.append(cell.concat(","));
-                    sb.append(transferUserVO.getCreateTime());
+                    sb.append(DateHelper.strToDateLong(transferUserVO.getCreateTime()));
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }
