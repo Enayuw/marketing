@@ -333,6 +333,7 @@ public class PushDataServiceImpl implements PushDataService{
      *         phoneSaleExtendShuhe.setCustNum("custNum");
      *         phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
      *         phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
+     *         phoneSaleExtendShuhe.setStatus("a/b");
      */
     @Override
     public Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO) {
