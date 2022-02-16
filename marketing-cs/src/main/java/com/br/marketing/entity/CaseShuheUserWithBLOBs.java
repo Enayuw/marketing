@@ -75,31 +75,19 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
         transferSyncUser.setCustNum(this.getCustNum());
         transferSyncUser.setUserType(this.getUserType());
         transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());
-//        PropertyPreFilters filters = new PropertyPreFilters();
-//        PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
-//        includefilter.addIncludes("isTurn"
-//                , "isBlack"
-//                , "clcUsrLstAppStaTim"
-//                , "clcUsrIsoPhoTim"
-//                , "clcUsrIsoIdtTim"
-//                , "clcUsrIsoCrdTim"
-//                , "clcUsrIsoInfTim"
-//        );
-//        String field1 = JSONObject.toJSONString(this, includefilter, SerializerFeature.WriteMapNullValue);
-        StringBuilder jsonStr = new StringBuilder("{");
-        jsonStr.append("\"is_turn\":\"").append(this.getIsTurn()).append("\",")
-                .append("\"is_black\":\"").append(this.getIsBlack()).append("\",")
-                .append("\"clc_usr_lst_app_sta_tim\":\"").append(this.getClcUsrLstAppStaTim()).append("\",")
-                .append("\"clc_usr_iso_pho_tim\":\"").append(this.getClcUsrIsoPhoTim()).append("\",")
-                .append("\"clc_usr_iso_idt_tim\":\"").append(this.getClcUsrIsoIdtTim()).append("\",")
-                .append("\"clc_usr_iso_crd_tim\":\"").append(this.getClcUsrIsoCrdTim()).append("\",")
-                .append("\"clc_usr_iso_inf_tim\":\"").append(this.getClcUsrIsoInfTim()).append("\"")
-                .append("}");
-        transferSyncUser.setReserveField1(jsonStr.toString());
+        String jsonStr = "{" + "\"is_turn\":\"" + this.getIsTurn() + "\"," +
+                "\"is_black\":\"" + this.getIsBlack() + "\"," +
+                "\"clc_usr_lst_app_sta_tim\":\"" + this.getClcUsrLstAppStaTim() + "\"," +
+                "\"clc_usr_iso_pho_tim\":\"" + this.getClcUsrIsoPhoTim() + "\"," +
+                "\"clc_usr_iso_idt_tim\":\"" + this.getClcUsrIsoIdtTim() + "\"," +
+                "\"clc_usr_iso_crd_tim\":\"" + this.getClcUsrIsoCrdTim() + "\"," +
+                "\"clc_usr_iso_inf_tim\":\"" + this.getClcUsrIsoInfTim() + "\"," +
+                "\"applyLoanTime\":\"" + this.getClcUsrFrtFqOrdTim() + "\"" +
+                "}";
+        transferSyncUser.setReserveField1(jsonStr);
         transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
         transferSyncUser.setAuditTime(this.getClcUsrAdtTimRcnLon());
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
-        transferSyncUser.setApplyTime(this.getClcUsrFrtFqOrdTim());
         transferSyncUser.setLentTime(this.getClcUsrFstLndTimCshBtHl());
         transferSyncUser.setCreateTime(new Date());
     }
