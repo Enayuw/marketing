@@ -303,6 +303,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             LocalDate localDate = localDateTime.toLocalDate();
                             phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern(yyyyMMdd)));
                             phoneSaleExtendShuhe.setAppletTime(localDateTime.format(dateTimeFormatter));
+                            phoneSaleExtendShuhe.setStatus("b");
                             PushShDXDTO pushShDXDTO = new PushShDXDTO()
                                     .setLocalFile(localFile)
                                     .setPhoneSale(phoneSale)
