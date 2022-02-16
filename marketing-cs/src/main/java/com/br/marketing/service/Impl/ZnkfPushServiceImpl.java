@@ -45,6 +45,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Override
     public Boolean znkfPushCallBack(CallRecordDTO dto) {
         log.info("客服传入拨打明细数据：%s",dto.toString());
+        if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
+            log.warn("传入的apicode或者cid参数为空！");
+            return false;
+        }
+        if(StringUtils.isEmpty(dto.getCaseNum())){
+            log.warn("传入的caseNum参数为空！");
+            return false;
+        }
         try {
             //客服拨打记录落库
             CallRecord callRecord = new CallRecord();
