@@ -44,17 +44,19 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Override
     public Boolean znkfPushCallBack(CallRecordDTO dto) {
-        //客服拨打记录落库
-        CallRecord callRecord = new CallRecord();
-        callRecord.setCreateTime(new Date());
-        BeanUtils.copyProperties(dto,callRecord);
-        BeanUtils.copyProperties(dto.getDetail(),callRecord);
-        callRecord.setCallStartTime(new Date(dto.getDetail().getCallStartTime()));
-        callRecord.setCallConnectTime(new Date(dto.getDetail().getCallConnectTime()));
-        callRecord.setCallEndTime(new Date(dto.getDetail().getCallEndTime()));
-        int insertSelective = callRecordMapper.insertSelective(callRecord);
-        if(StringUtils.isEmpty(insertSelective) || insertSelective<1){
-            log.warn("客服拨打记录落库失败！");
+        log.info("客服传入拨打明细数据：%s",dto.toString());
+        try {
+            //客服拨打记录落库
+            CallRecord callRecord = new CallRecord();
+            callRecord.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto,callRecord);
+            BeanUtils.copyProperties(dto.getDetail(),callRecord);
+            callRecord.setCallStartTime(new Date(dto.getDetail().getCallStartTime()));
+            callRecord.setCallConnectTime(new Date(dto.getDetail().getCallConnectTime()));
+            callRecord.setCallEndTime(new Date(dto.getDetail().getCallEndTime()));
+            callRecordMapper.insertSelective(callRecord);
+        }catch (Exception ex){
+            log.error("客服拨打记录落库失败！",ex);
             return false;
         }
 
@@ -114,6 +116,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
 
         //调用 数禾推送电销方法
+        log.info("调用数禾推送电销 传入的参数为：%s",pushShDXDTO.toString());
         Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
         if (!result.getData()) {
             String msg = String.format("数禾(custNum=%s)推送电销失败！失败信息：%s", dto.getCaseNum(), result.getData());
