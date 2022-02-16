@@ -82,7 +82,8 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
                 "\"clc_usr_iso_idt_tim\":\"" + this.getClcUsrIsoIdtTim() + "\"," +
                 "\"clc_usr_iso_crd_tim\":\"" + this.getClcUsrIsoCrdTim() + "\"," +
                 "\"clc_usr_iso_inf_tim\":\"" + this.getClcUsrIsoInfTim() + "\"," +
-                "\"applyLoanTime\":\"" + this.getClcUsrFrtFqOrdTim() + "\"" +
+                "\"applyLoanTime\":\"" + this.getClcUsrFrtFqOrdTim() + "\"," +
+                "\"cell\":\"" + this.getCell() + "\"" +
                 "}";
         transferSyncUser.setReserveField1(jsonStr);
         transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
