@@ -119,23 +119,23 @@ public class PeriodOfValidityDO implements Serializable {
 
     /**
      * 闭区间 当前时间前15天间隔
+     * eg: 2022-02-02 00:00:00 到 2022-02-16 23:59:59
      */
     public static PeriodOfValidityDO closInterval15Day() {
-        return closInterval15Day("yyyy-MM-dd HH:mm:ss");
-    }
-
-    /**
-     * 闭区间 当前时间前15天间隔
-     */
-    public static PeriodOfValidityDO closInterval15Day(String pattern) {
-        return closInterval15Day(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()), pattern);
+        return closInterval15Day(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
     }
 
     /**
      * 闭区间 @{code date}前15天间隔
+     * eg: 2022-02-02 00:00:00 到 2022-02-16 23:59:59
      */
-    public static PeriodOfValidityDO closInterval15Day(Date date, String pattern) {
-        return closIntervalDay(-14, date, pattern);
+    public static PeriodOfValidityDO closInterval15Day(Date date) {
+        PeriodOfValidityDO periodOfValidityDO = closIntervalDay(-14, date, "yyyy-MM-dd");
+        Period startTime = periodOfValidityDO.getStartTime();
+        Period endTime = periodOfValidityDO.getEndTime();
+        startTime.time = startTime.getTime().concat(" 00:00:00");
+        endTime.time = endTime.getTime().concat(" 23:59:59");
+        return periodOfValidityDO;
     }
 
 

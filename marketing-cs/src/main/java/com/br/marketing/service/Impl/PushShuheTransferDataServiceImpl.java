@@ -273,7 +273,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                         // 校验有效期
                         String yyyyMMdd = "yyyy-MM-dd";
                         Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(apiCode
-                                , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day(yyyyMMdd));
+                                , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day());
                         if (periodOfValidity) {
                             LocalFile localFile = new LocalFile();
                             PhoneSale phoneSale = new PhoneSale();
