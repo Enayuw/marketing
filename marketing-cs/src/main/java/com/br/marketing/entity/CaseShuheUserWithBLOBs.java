@@ -74,6 +74,7 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
 
     @Override
     public void adapteeRequest(MarketingTransferSyncUser transferSyncUser) {
+        transferSyncUser.setApiCode(this.getApiCode());
         transferSyncUser.setCustNum(this.getCustNum());
         transferSyncUser.setUserType(this.getUserType());
         transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());

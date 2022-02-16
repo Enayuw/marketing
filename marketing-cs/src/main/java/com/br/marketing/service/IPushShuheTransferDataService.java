@@ -24,7 +24,11 @@ public interface IPushShuheTransferDataService {
     ResponseCustomDTO insertShuheTransferData(String apiCode, String jsonData);
 
     default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
-        alarmClient.sendAlarm(error, title, appName, secretKey,
-                Constants.sendCodeMap.get("sysError"));
+        try {
+            alarmClient.sendAlarm(error, title, appName, secretKey,
+                    Constants.sendCodeMap.get("sysError"));
+        } catch (Exception e) {
+
+        }
     }
 }
