@@ -220,6 +220,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             // 转化信息入库
             try {
                 transferSyncUser.setCid(cId);
+                transferSyncUser.settCid(cId);
                 transferSyncUser.setRequestId(Md5Utils.cell32(jsonData));
                 int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
                 if (row_sync > 0) {
