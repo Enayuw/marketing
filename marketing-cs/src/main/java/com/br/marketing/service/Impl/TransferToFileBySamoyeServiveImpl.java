@@ -266,7 +266,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                     sb.append(transferUserVO.getGroupType().concat(","));
                     sb.append(transferUserVO.getReserveField1().concat(","));
                     sb.append(cell.concat(","));
-                    sb.append(transferUserVO.getCreateTime());
+                    sb.append(DateHelper.strToDateLong(transferUserVO.getCreateTime()));
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }

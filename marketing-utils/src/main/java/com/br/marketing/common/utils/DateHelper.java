@@ -275,4 +275,20 @@ public class DateHelper {
         c.add(Calendar.DAY_OF_MONTH, days);
         return c.getTime();
     }
+
+    /**
+     * 时间日期转换
+     * @param strDate 字符串
+     * @return 字符串yyyy-MM-dd HH:mm:ss
+     */
+    public static String strToDateLong(String strDate) {
+        Date date = new Date();
+        try {
+            date = new SimpleDateFormat(strDate).parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String str = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
+        return str;
+    }
 }
