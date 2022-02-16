@@ -126,7 +126,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         phoneSaleExtendShuhe.setCustNum(dto.getCaseNum());
         phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
         phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
-
+        phoneSaleExtendShuhe.setStatus("a");
         //调用 数禾推送电销方法
         log.info("调用数禾推送电销 传入的参数为：%s",pushShDXDTO.toString());
         Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
