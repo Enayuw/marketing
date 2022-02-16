@@ -288,7 +288,7 @@ public class DateHelper {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        String str = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
+        String str = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
         return str;
     }
 }
