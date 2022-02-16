@@ -51,6 +51,7 @@ import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -114,6 +115,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     final static Integer allMonitorType = 4;
 
+    static ConcurrentHashMap<String,Integer> threadContextNum = new ConcurrentHashMap<>();
+
     @Autowired
     private CuratorFramework client;
     /**
@@ -142,8 +145,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
             this.generateTask(taskList,warrningExecutor,customer);
 
-
-          /**
+            Thread thread = threadReport(warrningExecutor, customer);
+            /**
            * 等待所有任务都执行完成
            **/
           log.warn("所有任务已加入队列，等待结束-----");
@@ -158,7 +161,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 }catch (Exception e){
                 }
             }
-
+            //region 重试
             try {
                 String hkey=Constants.HXRESULTERROR_RETRY_KEY+":"+apiCode;
                 Set<String> hkeys = redisChgService.hkeys(hkey);
@@ -219,6 +222,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             }catch (Exception e){
                 log.error("重新处理异常数据出错",e);
             }
+            //endregion
             for (MarketingTask task : taskList) {
                 TaskStatusDistribute updateRecord = new TaskStatusDistribute();
                 updateRecord.setStatus(2);
@@ -246,6 +250,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
+
+            thread.interrupt();
             removeZk(customer);
         }catch (Exception e){
             log.error("预警调度出错",e);
@@ -823,32 +829,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         nodeCache.getListenable().addListener(()->{
             if(nodeCache.getCurrentData()!=null) {
                 int threadNum = Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue();
+                threadContextNum.put(customer.getApiCode(),threadNum);
                 executor
                         .setCorePoolSize(threadNum);
                 executor
                         .setMaximumPoolSize(threadNum);
-                new Thread(()->{
-                    Boolean isListion = Boolean.TRUE;
-                    Integer times = 0;
-                    int sleeptime_unit = 1000;
-                    int sleeptime = 1000;
-                    while (isListion){
-                        if(sleeptime<=1000*60*5){
-                            times++;
-                            sleeptime = sleeptime_unit*times;
-                        }
-                        try {
-                            Thread.sleep(sleeptime);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        int activeCount = executor.getActiveCount();
-                        if(activeCount == threadNum || activeCount<=0){
-                            isListion = Boolean.FALSE;
-                        }
-                        log.warn(String.format("跑分线程线程状态(活动线程：%d,核心线程数：%d,变动线程数：%d)",activeCount,executor.getCorePoolSize(),threadNum));
-                    }
-                }).start();
             }
         });
         try {
@@ -856,6 +841,36 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    private Thread threadReport(ThreadPoolExecutor executor,Customer customer){
+        Thread thread1 = new Thread(() -> {
+            try {
+                Boolean isListion = Boolean.TRUE;
+                Integer times = 0;
+                int sleeptime_unit = 10000;
+                int sleeptime = 10000;
+                Integer thread = threadContextNum.get(customer.getApiCode());
+                while (isListion) {
+                    if (sleeptime <= 1000 * 60 * 10) {
+                        times++;
+                        sleeptime = sleeptime_unit * times;
+                    }
+                    Thread.sleep(sleeptime);
+                    int activeCount = executor.getActiveCount();
+                    log.warn(String.format("跑分线程线程状态(活动线程：%d,核心线程数：%d,变动线程数：%d)", activeCount, executor.getCorePoolSize(), threadContextNum));
+                    if (activeCount <= 0) {
+                        threadContextNum.remove(customer.getApiCode());
+                        isListion = Boolean.FALSE;
+                    }
+                }
+            }catch (InterruptedException e){
+                log.error("终止运行");
+            }
+        });
+        thread1.start();
+        return thread1;
     }
 
     private void removeZk(Customer customer){
