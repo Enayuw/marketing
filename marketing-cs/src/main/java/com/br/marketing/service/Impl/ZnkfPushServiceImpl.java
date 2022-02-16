@@ -46,11 +46,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     public Boolean znkfPushCallBack(CallRecordDTO dto) {
         log.info("客服传入拨打明细数据：%s",dto.toString());
         if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
-            log.warn("传入的apicode或者cid参数为空！");
+            log.warn("请传入参数apicode或者cid！");
             return false;
         }
         if(StringUtils.isEmpty(dto.getCaseNum())){
-            log.warn("传入的caseNum参数为空！");
+            log.warn("请传入参数caseNum！");
             return false;
         }
         try {
@@ -70,6 +70,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
         //判断是否符合情况b：userType=促申完&intentionGrade=A&cusNun&有效期内
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
+        if(StringUtils.isEmpty(map.get("groupType"))){
+            log.warn("没有传入参数groupType！");
+            return true;
+        }
         String groupType = map.get("groupType").toString();
 
         boolean intentionGrade = dto.getDetail().getIntentionGrade().equals("A级(有明确意向）");
