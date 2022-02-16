@@ -211,7 +211,7 @@
         order by create_time desc limit 0,1
     </select>
 
-    <select id="getAppletTimeByCustNumAndUserType" resultType="java.lang.String">
+    <select id="getAppletTimeByCustNumAndUserType" resultType="java.util.Date">
         select applet_time
         from b_marketing_sync_${apiCode}
         where cust_num = #{custNum}
