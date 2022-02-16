@@ -128,6 +128,19 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.success();
             }
+            String key = "marketing:api:shuhe:transfer:cid:".concat(apiCode);
+            String cId;
+            try {
+                cId = redisChgService.get(key);
+                if (StringUtils.isEmpty(cId)) {
+                    cId = tableCreateService.getTcId(apiCode);
+                    // 缓存七天
+                    redisChgService.setex(key, cId, 7 * 86400);
+                }
+            } catch (Exception e) {
+                cId = tableCreateService.getTcId(apiCode);
+                log.error(e.getMessage(), e);
+            }
             Integer row = null;
             Exception exception = null;
 //            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
@@ -206,6 +219,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
 
             // 转化信息入库
             try {
+                transferSyncUser.setCid(cId);
                 transferSyncUser.setRequestId(Md5Utils.cell32(jsonData));
                 int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
                 if (row_sync > 0) {
@@ -261,19 +275,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                         Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(apiCode
                                 , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day(yyyyMMdd));
                         if (periodOfValidity) {
-                            String key = "marketing:api:shuhe:transfer:cid:".concat(apiCode);
-                            String cId;
-                            try {
-                                cId = redisChgService.get(key);
-                                if (StringUtils.isEmpty(cId)) {
-                                    cId = tableCreateService.getTcId(apiCode);
-                                    // 缓存七天
-                                    redisChgService.setex(key, cId, 7 * 86400);
-                                }
-                            } catch (Exception e) {
-                                cId = tableCreateService.getTcId(apiCode);
-                                log.error(e.getMessage(), e);
-                            }
                             LocalFile localFile = new LocalFile();
                             PhoneSale phoneSale = new PhoneSale();
                             PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
