@@ -133,7 +133,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             try {
                 cId = redisChgService.get(key);
                 if (StringUtils.isEmpty(cId)) {
-                    cId = tableCreateService.getTcId(apiCode);
+                    cId = tableCreateService.getCId(apiCode);
                     // 缓存七天
                     redisChgService.setex(key, cId, 7 * 86400);
                 }
@@ -219,7 +219,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             // 转化信息入库
             try {
                 transferSyncUser.setCid(cId);
-                transferSyncUser.settCid(cId);
+                transferSyncUser.settCid(cId.replaceFirst("-", ""));
                 transferSyncUser.setRequestId(Md5Utils.cell32(jsonData.concat("@" + System.currentTimeMillis())));
                 int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
                 if (row_sync > 0) {
