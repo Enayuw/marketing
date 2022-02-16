@@ -1,8 +1,5 @@
 package com.br.marketing.entity;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.fastjson.support.spring.PropertyPreFilters;
 import com.br.marketing.adapter.IToTransferSyncAdaptee;
 
 import java.util.Date;
@@ -78,18 +75,27 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
         transferSyncUser.setCustNum(this.getCustNum());
         transferSyncUser.setUserType(this.getUserType());
         transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());
-        PropertyPreFilters filters = new PropertyPreFilters();
-        PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
-        includefilter.addIncludes("isTurn"
-                , "isBlack"
-                , "clcUsrLstAppStaTim"
-                , "clcUsrIsoPhoTim"
-                , "clcUsrIsoIdtTim"
-                , "clcUsrIsoCrdTim"
-                , "clcUsrIsoInfTim"
-        );
-        String field1 = JSONObject.toJSONString(this, includefilter, SerializerFeature.WriteMapNullValue);
-        transferSyncUser.setReserveField1(field1);
+//        PropertyPreFilters filters = new PropertyPreFilters();
+//        PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
+//        includefilter.addIncludes("isTurn"
+//                , "isBlack"
+//                , "clcUsrLstAppStaTim"
+//                , "clcUsrIsoPhoTim"
+//                , "clcUsrIsoIdtTim"
+//                , "clcUsrIsoCrdTim"
+//                , "clcUsrIsoInfTim"
+//        );
+//        String field1 = JSONObject.toJSONString(this, includefilter, SerializerFeature.WriteMapNullValue);
+        StringBuilder jsonStr = new StringBuilder("{");
+        jsonStr.append("\"is_turn\":\"").append(this.getIsTurn()).append("\",")
+                .append("\"is_black\":\"").append(this.getIsBlack()).append("\",")
+                .append("\"clc_usr_lst_app_sta_tim\":\"").append(this.getClcUsrLstAppStaTim()).append("\",")
+                .append("\"clc_usr_iso_pho_tim\":\"").append(this.getClcUsrIsoPhoTim()).append("\",")
+                .append("\"clc_usr_iso_idt_tim\":\"").append(this.getClcUsrIsoIdtTim()).append("\",")
+                .append("\"clc_usr_iso_crd_tim\":\"").append(this.getClcUsrIsoCrdTim()).append("\",")
+                .append("\"clc_usr_iso_inf_tim\":\"").append(this.getClcUsrIsoInfTim()).append("\"")
+                .append("}");
+        transferSyncUser.setReserveField1(jsonStr.toString());
         transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
         transferSyncUser.setAuditTime(this.getClcUsrAdtTimRcnLon());
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
