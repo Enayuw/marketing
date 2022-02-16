@@ -861,9 +861,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     log.warn(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
                             ,customer.getApiCode(), activeCount, executor.getCorePoolSize()
                             , threadContextNum.get(customer.getApiCode())==null?0:threadContextNum.get(customer.getApiCode())));
-                    System.out.println(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
-                            ,customer.getApiCode(), activeCount, executor.getCorePoolSize()
-                            , threadContextNum.get(customer.getApiCode())==null?0:threadContextNum.get(customer.getApiCode())));
                     if (activeCount <= 0) {
                         threadContextNum.remove(customer.getApiCode());
                         isListion = Boolean.FALSE;
