@@ -143,9 +143,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
             initBatchNumList(taskList,apiCode,context);
 
-            this.generateTask(taskList,warrningExecutor,customer);
-
             Thread thread = threadReport(warrningExecutor, customer);
+
+            this.generateTask(taskList,warrningExecutor,customer);
             /**
            * 等待所有任务都执行完成
            **/
@@ -851,7 +851,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 Integer times = 0;
                 int sleeptime_unit = 10000;
                 int sleeptime = 10000;
-                Integer thread = threadContextNum.get(customer.getApiCode());
                 while (isListion) {
                     if (sleeptime <= 1000 * 60 * 10) {
                         times++;
@@ -859,7 +858,12 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     }
                     Thread.sleep(sleeptime);
                     int activeCount = executor.getActiveCount();
-                    log.warn(String.format("跑分线程线程状态(活动线程：%d,核心线程数：%d,变动线程数：%d)", activeCount, executor.getCorePoolSize(), threadContextNum));
+                    log.warn(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
+                            ,customer.getApiCode(), activeCount, executor.getCorePoolSize()
+                            , threadContextNum.get(customer.getApiCode())==null?0:threadContextNum.get(customer.getApiCode())));
+                    System.out.println(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
+                            ,customer.getApiCode(), activeCount, executor.getCorePoolSize()
+                            , threadContextNum.get(customer.getApiCode())==null?0:threadContextNum.get(customer.getApiCode())));
                     if (activeCount <= 0) {
                         threadContextNum.remove(customer.getApiCode());
                         isListion = Boolean.FALSE;
