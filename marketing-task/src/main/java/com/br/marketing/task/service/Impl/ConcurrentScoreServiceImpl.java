@@ -34,6 +34,7 @@ import com.br.marketing.task.thread.MarketingThread;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Splitter;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.curator.framework.CuratorFramework;
@@ -133,29 +134,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             customer.setThreadNum(20);
         }
         final ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
-        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
-        try {
-            if(client.checkExists().forPath(zkpath)==null) {
-                client.create().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
-            }else{
-                client.setData().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        NodeCache nodeCache = new NodeCache(client, zkpath);
-        nodeCache.getListenable().addListener(()->{
-            if(nodeCache.getCurrentData()!=null) {
-                warrningExecutor
-                        .setCorePoolSize(Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue());
-                warrningExecutor
-                        .setMaximumPoolSize(Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue());
-            }});
-        try {
-            nodeCache.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        threadNumListen(warrningExecutor,customer);
         try{
             List<MarketingTask> taskList=new ArrayList<>();
 
@@ -267,7 +246,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
-            client.delete().guaranteed().forPath(zkpath);
+            removeZk(customer);
         }catch (Exception e){
             log.error("预警调度出错",e);
         }
@@ -827,5 +806,64 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             }
         }
         return ip;
+    }
+
+    private void threadNumListen(ThreadPoolExecutor executor,Customer customer){
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+        try {
+            if(client.checkExists().forPath(zkpath)==null) {
+                client.create().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }else{
+                client.setData().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        NodeCache nodeCache = new NodeCache(client, zkpath);
+        nodeCache.getListenable().addListener(()->{
+            if(nodeCache.getCurrentData()!=null) {
+                int threadNum = Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue();
+                executor
+                        .setCorePoolSize(threadNum);
+                executor
+                        .setMaximumPoolSize(threadNum);
+                new Thread(()->{
+                    Boolean isListion = Boolean.TRUE;
+                    Integer times = 0;
+                    int sleeptime_unit = 1000;
+                    int sleeptime = 1000;
+                    while (isListion){
+                        if(sleeptime<=1000*60*5){
+                            times++;
+                            sleeptime = sleeptime_unit*times;
+                        }
+                        try {
+                            Thread.sleep(sleeptime);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        int activeCount = executor.getActiveCount();
+                        if(activeCount == threadNum || activeCount<=0){
+                            isListion = Boolean.FALSE;
+                        }
+                        log.warn(String.format("跑分线程线程状态(活动线程：%d,核心线程数：%d,变动线程数：%d)",activeCount,executor.getCorePoolSize(),threadNum));
+                    }
+                });
+            }
+        });
+        try {
+            nodeCache.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void removeZk(Customer customer){
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+        try {
+            client.delete().guaranteed().forPath(zkpath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
