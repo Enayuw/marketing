@@ -108,7 +108,7 @@ public class DateHelper {
 
         return Integer.parseInt(String.valueOf(betweenDays));
     }
-
+    
     /**
      * 时间戳转换成日期格式字符串
      *
@@ -284,7 +284,7 @@ public class DateHelper {
     public static String strToDateLong(String strDate) {
         Date date = new Date();
         try {
-            date = new SimpleDateFormat(strDate).parse(strDate);
+            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(strDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }
