@@ -168,7 +168,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     phoneBlack.setLocalId(localFile.getId());
                     phoneBlack.setName("");
                     phoneBlack.setPhone(caseShuheUser.getCell());
-                    phoneBlack.setExpiredate(transferSyncUser.getReserveField1());
                     phoneBlack.setCreateTime(new Date());
                     phoneBlack.setUpdateTime(new Date());
                     phoneBlackMapper.insertSelective(phoneBlack);
