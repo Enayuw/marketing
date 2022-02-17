@@ -29,7 +29,6 @@ public abstract class IUserType {
      * 将推送的数据转换为本地数据
      *
      * @param dataItem 业务数据
-     * @return CaseUser
      * @author Guo Zeqiang
      * @dateTime 2022/2/10 17:30
      */
@@ -39,7 +38,7 @@ public abstract class IUserType {
      * 2022/2/11 14:03
      * 初始pojo
      */
-    protected CaseShuheUserWithBLOBs initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
+    protected final CaseShuheUserWithBLOBs initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
         CaseShuheUserWithBLOBs caseUser = new CaseShuheUserWithBLOBs();
         caseUser.setApiCode(apiCode);
         final Map<String, String> dataItem = jsonDTO.getDataItem();
@@ -54,6 +53,22 @@ public abstract class IUserType {
         caseUser.setCell(BrCipherMaker.getInstance().encode(jsonDTO.getMobile()));
         caseUser.setJsonData(jsonData);
         return caseUser;
+    }
+
+    /**
+     * 赋值 其他字段
+     */
+    protected final void setTotalField(Map<String, String> dataItem, CaseShuheUser caseUser) {
+        if (this instanceof CuShouDeng) {
+            new CuShenWan().getCaseUser(dataItem, caseUser);
+            new CuShouJie().getCaseUser(dataItem, caseUser);
+        } else if (this instanceof CuShenWan) {
+            new CuShouDeng().getCaseUser(dataItem, caseUser);
+            new CuShouJie().getCaseUser(dataItem, caseUser);
+        } else if (this instanceof CuShouJie) {
+            new CuShenWan().getCaseUser(dataItem, caseUser);
+            new CuShouDeng().getCaseUser(dataItem, caseUser);
+        }
     }
 
 

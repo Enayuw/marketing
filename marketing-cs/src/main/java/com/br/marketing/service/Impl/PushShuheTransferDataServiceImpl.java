@@ -11,12 +11,12 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
+import com.br.marketing.dto.shuhe.strategy.CuShenWan;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
@@ -115,21 +115,21 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                  */
                 userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
             }
-            IUserType userTypeStrategy = UserTypeStrategyFactory.getUserTypeStrategy(userType);
+            IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser;
-            if (userTypeStrategy instanceof UnknownUserType) {
+            if (iUserType instanceof UnknownUserType) {
                 msg = "未知的业务类型\"" + userType + "\"!";
-                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
+                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo(responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
-                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(userTypeStrategy, jsonDTO, apiCode, jsonData);
+                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.success();
             }
-            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
+//            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
 //            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
             this.setCid(transferSyncUser);
@@ -138,7 +138,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 // 黑名单逻辑
                 // is_black 字段内容放入transferSyncUser表 reserveField1字段中
                 try {
-                    goBlack(apiCode, caseShuheUser);
+                    int i = goBlack(apiCode, caseShuheUser);
                     caseShuheUser.setIsTransfer(2);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
@@ -158,51 +158,19 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             ("促首借".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
                 // 转化
                 transferSyncUser.setIfTransform("1");
+            } else {
+                transferSyncUser.setIfTransform("0");
             }
             caseShuheUser.setIsTransfer(1);
 
             // 转化信息入库
-            goTransferSync(apiCode, caseShuheUser, transferSyncUser);
+            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
 
             // D20220209数禾申完转电销
-            if ("促申完".equals(caseShuheUser.getUserType())) {
-                boolean boolAppStaTim;
-                final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                /* 数禾申完转电销 情况a
-                 * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
-                 * &cusNun&有效期内
-                 */
-                if (StringUtils.isEmpty(caseShuheUser.getClcUsrLstAppStaTim())) {
-                    boolAppStaTim = Boolean.FALSE;
-                } else {
-                    LocalDateTime appStaTim = LocalDateTime.parse(caseShuheUser.getClcUsrLstAppStaTim(), dateTimeFormatter);
-                    LocalDate localDate = LocalDate.now();
-                    LocalDate appStaDate = appStaTim.toLocalDate();
-                    boolAppStaTim = localDate.isEqual(appStaDate);
-                }
-                if (boolAppStaTim) {
-                    boolean boolIsoAtoTim;
-                    if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
-                        boolIsoAtoTim = Boolean.FALSE;
-                    } else {
-                        LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
-                        Date appletTime = iMarketingSyncUserService.getAppletTimeByCustNumAndUserType(apiCode
-                                , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-                        if (appletTime == null) {
-                            boolIsoAtoTim = Boolean.FALSE;
-                        } else {
-                            LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-                            boolIsoAtoTim = isoAtoTim.isBefore(appletDate);
-                        }
-                    }
-                    if (boolIsoAtoTim) {
-                        // 校验有效期
-                        Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(apiCode
-                                , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day());
-                        if (periodOfValidity) {
-                            goShDX(apiCode, caseShuheUser, transferSyncUser);
-                        }
-                    }
+            if (iUserType instanceof CuShenWan) {
+                boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
+                if (satisfyDX) {
+                    int i1 = goShDX(apiCode, caseShuheUser, transferSyncUser);
                 }
             }
 

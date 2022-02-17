@@ -23,6 +23,7 @@ public class UserTypeContext {
 
     public CaseShuheUserWithBLOBs execute(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
         final CaseShuheUserWithBLOBs caseUser = this.iUserType.initCaseUser(jsonDTO, apiCode, jsonData);
+        this.iUserType.setTotalField(jsonDTO.getDataItem(), caseUser);
         this.iUserType.getCaseUser(jsonDTO.getDataItem(), caseUser);
         return caseUser;
     }
