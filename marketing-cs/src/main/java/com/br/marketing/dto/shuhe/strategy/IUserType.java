@@ -68,6 +68,10 @@ public abstract class IUserType {
         } else if (this instanceof CuShouJie) {
             new CuShenWan().getCaseUser(dataItem, caseUser);
             new CuShouDeng().getCaseUser(dataItem, caseUser);
+        } else {
+            new CuShenWan().getCaseUser(dataItem, caseUser);
+            new CuShouDeng().getCaseUser(dataItem, caseUser);
+            new CuShouJie().getCaseUser(dataItem, caseUser);
         }
     }
 
