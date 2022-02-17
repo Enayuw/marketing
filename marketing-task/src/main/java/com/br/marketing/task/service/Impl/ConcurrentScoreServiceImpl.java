@@ -867,7 +867,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     }
                 }
             }catch (InterruptedException e){
-                log.error("终止运行");
+                if(log.isInfoEnabled()){
+                    log.info("终止运行");
+                }
             }
         });
         thread1.start();
