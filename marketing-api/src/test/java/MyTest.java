@@ -152,41 +152,6 @@ public class MyTest {
         System.out.println("输出3："+containsc+"ceshi:"+a % 2);
     }
 
-    @Test
-    public void testThreadShutDown(){
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(2
-                ,2,1000L
-                ,TimeUnit.MILLISECONDS,new ArrayBlockingQueue(200), new ThreadPoolExecutor.CallerRunsPolicy());
 
-        for (int i = 0; i < 100; i++) {
-            final Integer id = i;
-            executor.submit(()->{
-                try {
-                    System.out.println("线程"+id+":执行开始");
-                    TimeUnit.MILLISECONDS.sleep(5L);
-                    System.out.println("线程"+id+":执行结束");
-                } catch (InterruptedException e) {
-                    System.out.println("线程"+id+":被停止");
-                }
-            });
-        }
-
-
-        try {
-
-            executor.shutdown();
-            TimeUnit.SECONDS.sleep(5L);
-            executor.shutdownNow();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        executor.shutdown();
-
-        while (true){
-
-        }
-
-    }
 
 }

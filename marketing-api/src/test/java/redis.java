@@ -671,4 +671,6 @@ public class redis {
             System.out.println(t.concat(",").concat(com.br.common.util.BrCipherMaker.getInstance().decode(t)));
         });
     }
+
+
 }

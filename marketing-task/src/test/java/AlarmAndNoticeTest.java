@@ -2,11 +2,13 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.utils.HxUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -14,6 +16,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Bairong on 2020/7/13.
@@ -37,6 +42,44 @@ public class AlarmAndNoticeTest {
         String s="{\"swift_number\":\"4002511_20200818102903_836744281\",\"code\":\"00\",\"Flag\":{\"scoremconsonsncfclxmodel\":\"1\"},\"scoremconsonsncfclxmodel\":{\"score\":\"100\"}}";
         String s1 = HxUtil.hauXiangFlat(s);
         System.out.println(s1);
+    }
+
+    @Autowired
+    ObservedScoreThreadServiceImpl observedScoreThreadService;
+
+    @Test
+    public void testThreadShutDown(){
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(2
+                ,2,1000L
+                , TimeUnit.MILLISECONDS,new ArrayBlockingQueue(200), new ThreadPoolExecutor.CallerRunsPolicy());
+        observedScoreThreadService.addObserver(executor);
+        for (int i = 0; i < 100; i++) {
+            final Integer id = i;
+            executor.submit(()->{
+                try {
+                    System.out.println("线程"+id+":执行开始");
+                    TimeUnit.SECONDS.sleep(1L);
+                    System.out.println("线程"+id+":执行结束");
+                } catch (InterruptedException e) {
+                    System.out.println("线程"+id+":被停止");
+                }
+            });
+        }
+
+
+        try {
+            TimeUnit.SECONDS.sleep(5L);
+            observedScoreThreadService.stopThread();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        executor.shutdown();
+
+        while (true){
+
+        }
+
     }
 
     @Test
