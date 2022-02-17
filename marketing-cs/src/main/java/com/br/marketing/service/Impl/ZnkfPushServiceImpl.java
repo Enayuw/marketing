@@ -123,8 +123,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
             MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
+            if(marketingSyncUser==null){
+                log.info("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
+                return "true";
+            }
             //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
-            MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(dto.getCid().toString(), dto.getCaseNum());
+            Integer tcid = (Math.abs(dto.getCid()));
+            MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(tcid.toString(), dto.getCaseNum());
 
             LocalFile localFile = new LocalFile();
             PhoneSale phoneSale = new PhoneSale();
@@ -143,8 +148,16 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             phoneSale.setOrgname("shuheshenwan");
             phoneSale.setSource("16");
             phoneSale.setUserType("2");
-            phoneSale.setLoginTime(marketingTransferSyncUser.getLoginTime());//b_marketing_transfer_sync_{cid} 的login_time
-            phoneSale.setExtend(marketingTransferSyncUser.getReserveField1());//b_marketing_transfer_sync_{cid} reserve_field1
+            if(marketingTransferSyncUser!=null){
+                ////b_marketing_transfer_sync_{cid} 的login_time
+                phoneSale.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime())?marketingTransferSyncUser.getLoginTime():"");
+                //b_marketing_transfer_sync_{cid} reserve_field1
+                phoneSale.setExtend(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())?marketingTransferSyncUser.getReserveField1():"");
+            }else {
+                phoneSale.setLoginTime("");
+                phoneSale.setExtend("");
+            }
+
             phoneSaleExtendShuhe.setCustNum(dto.getCaseNum());
             phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
             phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
