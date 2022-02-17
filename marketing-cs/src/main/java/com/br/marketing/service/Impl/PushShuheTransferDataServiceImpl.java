@@ -137,13 +137,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if ("Y".equals(caseShuheUser.getIsBlack())) {
                 // 黑名单逻辑
                 // is_black 字段内容放入transferSyncUser表 reserveField1字段中
-                try {
-                    int i = goBlack(apiCode, caseShuheUser);
-                    caseShuheUser.setIsTransfer(2);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    this.sendAlarmMgs(title, "保存到黑名单失败" + e.getMessage(), appName, secretKey, alarmClient);
-                }
+                int i = goBlack(apiCode, caseShuheUser);
+                caseShuheUser.setIsTransfer(2);
             } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
                     StringUtils.isEmpty(caseShuheUser.getIsBlack())
                             && StringUtils.isEmpty(caseShuheUser.getIsTurn())
@@ -152,16 +147,17 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
                             && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
                 transferSyncUser.setIfTransform("2");
+                caseShuheUser.setIsTransfer(1);
             } else if (
                     ("促申完".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) ||
                             ("促首登".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())) ||
                             ("促首借".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
                 // 转化
                 transferSyncUser.setIfTransform("1");
+                caseShuheUser.setIsTransfer(1);
             } else {
                 transferSyncUser.setIfTransform("0");
             }
-            caseShuheUser.setIsTransfer(1);
 
             // 转化信息入库
             int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
@@ -171,6 +167,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
                 if (satisfyDX) {
                     int i1 = goShDX(apiCode, caseShuheUser, transferSyncUser);
+                    caseShuheUser.setIsTransfer(3);
                 }
             }
 
