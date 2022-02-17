@@ -82,7 +82,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             List<CallRecord> callRecords = callRecordMapper.selectByExample(callRecordExample);
             if(callRecords!=null && callRecords.size()>0){
                 log.info("taskId={},caseNum={},sessionId={} 的拨打记录已落库！",callRecord.getTaskId(),callRecord.getCaseNum(),callRecord.getSessionId());
-                //return "success";
+                return "success";
             }else {
                 callRecordMapper.insertSelective(callRecord);
             }
@@ -182,7 +182,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
             log.warn("参数intentionGrade缺失！");
-            return "参数intentionGrade缺失";
+            return "参数intentionGrade缺失！";
+        }
+        if(StringUtils.isEmpty(dto.getTaskId())){
+            log.warn("参数taskId缺失！");
+            return "参数taskId缺失!";
+        }
+        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
+            log.warn("参数sessionId缺失！");
+            return "参数sessionId缺失!";
         }
         return "true";
     }
