@@ -35,12 +35,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * 数禾转化实现类
@@ -87,8 +90,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     public ResponseShuheDTO insertShuheTransferData(String apiCode, String jsonData) {
         String msg = "";
         ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+        ShuheTransferJsonDTO jsonDTO = null;
         try {
-            final ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
+            jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
             }.getType());
             if (StringUtils.isEmpty(jsonDTO.getOrderId())) {
                 msg += "orderId,释义：批量上传案件编号；";
@@ -121,23 +125,38 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 msg = "未知的业务类型\"" + userType + "\"!";
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.failed("抱歉,".concat(msg));
-                caseShuheUser.setErrorInfo(responseShuheDTO.getDesc());
+                caseShuheUser.setErrorInfo("#1@" + responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
                 responseShuheDTO.success();
+                caseShuheUser.setErrorInfo("");
             }
-//            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
 //            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
             this.setCid(transferSyncUser);
+            List<Future<String>> futureList = new ArrayList<>();
+            CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
             // D20220209数禾转化接口V3.0-客服
             if ("Y".equals(caseShuheUser.getIsBlack())) {
                 // 黑名单逻辑
                 // is_black 字段内容放入transferSyncUser表 reserveField1字段中
-                int i = goBlack(apiCode, caseShuheUser);
+//                int i = goBlack(apiCode, caseShuheUser);
+                try {
+                    futureList.add(BR_EXECUTORS.submit(() -> {
+                        final int i = goBlack(apiCode, finalCaseShuheUser);
+                        if (i > 1) {
+                            return "";
+                        }
+                        return "blackFail";
+                    }));
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                            .concat("转黑名单失败！请尽快处理^_^，原因：") + e.getMessage(), appName, secretKey, alarmClient);
+                }
                 caseShuheUser.setIsTransfer(2);
             } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
                     StringUtils.isEmpty(caseShuheUser.getIsBlack())
@@ -158,23 +177,76 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
 
             // 转化信息入库
-            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
-
+//            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
+            try {
+                futureList.add(BR_EXECUTORS.submit(() -> {
+                    final int i = goTransferSync(apiCode, finalCaseShuheUser, transferSyncUser);
+                    if (i > 0) {
+                        return "";
+                    }
+                    return "transferFail";
+                }));
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("转化入库失败！请尽快处理^_^，原因：") + e.getMessage(), appName, secretKey, alarmClient);
+            }
             // D20220209数禾申完转电销
             if (iUserType instanceof CuShenWan) {
-                boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
-                if (satisfyDX) {
-                    int i1 = goShDX(apiCode, caseShuheUser, transferSyncUser);
-                    caseShuheUser.setIsTransfer(3);
+//                boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
+//                if (satisfyDX) {
+//                    int i1 = goShDX(apiCode, caseShuheUser, transferSyncUser);
+//                    caseShuheUser.setIsTransfer(3);
+//                }
+                try {
+                    futureList.add(BR_EXECUTORS.submit(() -> {
+                        boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(finalCaseShuheUser, iMarketingSyncUserService);
+                        if (satisfyDX) {
+                            int i1 = goShDX(apiCode, finalCaseShuheUser, transferSyncUser);
+                            finalCaseShuheUser.setIsTransfer(3);
+                            if (i1 > 0) {
+                                return "";
+                            }
+                            return "cuShenWanDianXiaoFail";
+                        }
+                        return "";
+                    }));
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                            .concat("数禾促申完转电销失败！请尽快处理^_^，原因：") + e.getMessage(), appName, secretKey, alarmClient);
                 }
+            }
+            try {
+                for (Future<String> future : futureList) {
+                    String stat = future.get(5, TimeUnit.SECONDS);
+                    if (StringUtils.isEmpty(stat)) {
+                        continue;
+                    }
+                    log.error(msg);
+                    msg = "数禾异步推送异常，异常逻辑：" + stat;
+                    this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                            .concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                    String errorInfo = caseShuheUser.getErrorInfo();
+                    if (StringUtils.isEmpty(errorInfo)) {
+                        caseShuheUser.setErrorInfo("#2@" + errorInfo + stat);
+                    } else {
+                        caseShuheUser.setErrorInfo("#2@" + errorInfo + (";").concat(stat));
+                    }
+                }
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error(e.getMessage(), e);
+                this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("推送失败！请尽快处理^_^，失败原因：") + e.getMessage(), appName, secretKey, alarmClient);
+                caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
             }
 
             // D20220209数禾转化数据定制化清洗入库
             int row = caseShuheUserMapper.insertSelective(caseShuheUser);
             if (row < 1) {
                 msg = "数禾推送数据保存失败！";
-                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
-                        .concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("请尽快处理^_^"), appName, secretKey, alarmClient);
                 log.error(msg);
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 caseShuheUser = new CaseShuheUserWithBLOBs();
@@ -183,17 +255,23 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 caseShuheUser.setApiCode(apiCode);
                 caseShuheUser.setMobile(jsonDTO.getMobile());
                 caseShuheUser.setBiztype(jsonDTO.getBizType());
+                caseShuheUser.setErrorInfo("#4@" + caseShuheUser.getErrorInfo() + (";").concat(msg));
                 caseShuheUserMapper.insertSelective(caseShuheUser);
             }
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            CaseShuheUserWithBLOBs User = new CaseShuheUserWithBLOBs();
-            User.setJsonData(jsonData);
-            User.setApiCode(apiCode);
-            User.setErrorInfo(e.toString());
+            CaseShuheUserWithBLOBs user = new CaseShuheUserWithBLOBs();
+            user.setJsonData(jsonData);
+            user.setApiCode(apiCode);
+            user.setErrorInfo("#5@".concat(e.toString()));
+            if (jsonDTO != null) {
+                user.setMobile(jsonDTO.getMobile());
+                user.setBiztype(jsonDTO.getBizType());
+                user.setCustNum(jsonDTO.getOrderId());
+            }
             try {
-                caseShuheUserMapper.insertSelective(User);
+                caseShuheUserMapper.insertSelective(user);
             } catch (Exception exception) {
                 log.error(exception.getMessage(), exception);
                 this.sendAlarmMgs(title, exception.getMessage(), appName, secretKey, alarmClient);
@@ -255,7 +333,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
      */
     private int goTransferSync(String apiCode, CaseShuheUserWithBLOBs caseShuheUser, MarketingTransferSyncUser transferSyncUser) {
         try {
-            transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData().concat("@" + System.currentTimeMillis())));
+            SecureRandom random = new SecureRandom();
+            transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
+                    .concat("@" + System.currentTimeMillis()).concat("@" + random.nextInt(100))));
             int row_sync = iTransferSyncUserService.insertSelective(transferSyncUser);
             if (row_sync > 0) {
                 MarketingTransferInfo transferInfo = new MarketingTransferInfo();
