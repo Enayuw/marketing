@@ -22,6 +22,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -122,10 +123,7 @@ public class MarketingThread implements Callable<String> {
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
             for (MarketingUser blu : list) {
-                if(Thread.currentThread().isInterrupted()){
-                    log.error(String.format("手动停止批次号：%s,userId：%s",blu.getBatchNumber(),blu.getId()));
-                    return String.format("手动停止批次号：%s",blu.getBatchNumber());
-                }
+                TimeUnit.MILLISECONDS.sleep(1L);
                 if (blu.getStatus() != 1) {
                     continue;
                 }
@@ -185,8 +183,10 @@ public class MarketingThread implements Callable<String> {
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();
-
-        } catch (Exception e) {
+        }catch (InterruptedException ex){
+            log.error("当前任务暂停");
+        }
+        catch (Exception e) {
             log.error("生成文件出错。。。。", e);
         }
         return null;
