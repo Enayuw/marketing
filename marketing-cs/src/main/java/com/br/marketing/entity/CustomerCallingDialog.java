@@ -1,5 +1,8 @@
 package com.br.marketing.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Date;
 
 public class CustomerCallingDialog {
@@ -16,11 +19,13 @@ public class CustomerCallingDialog {
     /**
      *
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String cid;
 
     /**
      * 用户类型
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer userType;
 
     /**
@@ -32,6 +37,7 @@ public class CustomerCallingDialog {
     /**
      * 流水号
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String swiftNumber;
 
     /**
@@ -42,11 +48,13 @@ public class CustomerCallingDialog {
     /**
      * 任务名称
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String taskName;
 
     /**
      * 任务类型
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer taskType;
 
     /**
@@ -57,16 +65,19 @@ public class CustomerCallingDialog {
     /**
      * 通话编号
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String dialogId;
 
     /**
      * 案件状态见附录
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer caseStatus;
 
     /**
      * 是否发送短信(0:不发送/1:发送)
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer isSendMsg;
 
     /**
@@ -77,76 +88,91 @@ public class CustomerCallingDialog {
     /**
      * 是否发送数据到客户端(0:未发送/1: 已发送)
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer sendStatus;
 
     /**
      * 通话状态
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer dropStatus;
 
     /**
      * 通话时长
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer realCallTime;
 
     /**
      * 外呼开始时间，首次触达时间
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String callStartTime;
 
     /**
      * 外呼接通时间
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String callConnectTime;
 
     /**
      * 外呼结束时间
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String callEndTime;
 
     /**
      * 第n次拨打
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer dialogRounds;
 
     /**
      * 通话轮次
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer dialogTurns;
 
     /**
      * 录音地址
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String recordingPath;
 
     /**
      * 意向等级(A级【有明确意向】B级【可能有意向】C级【明确拒绝】D级【用户忙】E级【拨打失败】F级【无效客户】)
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String intentionGrade;
 
     /**
      * 通话状态
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer dialogStatus;
 
     /**
      * 状态 1正常，0删除
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Byte status;
 
     /**
      * 创建时间
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date createTime;
 
     /**
      * 更新时间
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date updateTime;
 
     /**
      * 标签列表
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String tagList;
 
     public Long getId() {

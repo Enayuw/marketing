@@ -5,6 +5,7 @@ import com.br.marketing.entity.CustomerCallingDialogExample;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CustomerCallingDialogMapper {
     int countByExample(CustomerCallingDialogExample example);
@@ -34,4 +35,6 @@ public interface CustomerCallingDialogMapper {
     int updateByPrimaryKeyWithBLOBs(CustomerCallingDialog record);
 
     int updateByPrimaryKey(CustomerCallingDialog record);
+
+    List<CustomerCallingDialog> getInfoByColumns(Map<String, Object> cusMap);
 }

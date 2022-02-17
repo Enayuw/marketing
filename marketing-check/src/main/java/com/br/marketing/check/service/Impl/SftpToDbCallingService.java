@@ -16,7 +16,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -78,6 +77,14 @@ public class SftpToDbCallingService {
         return true;
     }
 
+    /**
+     * 处理文件主程序
+     * @param context 文件上下文
+     * @param localFile 本地文件对象
+     * @param baseHeads 基础字段
+     * @param fuc 回调方法
+     * @param sftpClient sftp 客户端
+     */
     public void actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, Function<TxtToDbDTO, Result> fuc, SftpClient sftpClient) {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         HashMap<Integer, String> address = getAddress(context, localFile, baseHeads, txtFilePathAndName);
@@ -86,6 +93,14 @@ public class SftpToDbCallingService {
         }
     }
 
+    /**
+     * 获取文件字段头信息
+     * @param context 文件上下文
+     * @param localFile 本地文件对象
+     * @param baseHeads 基础字段
+     * @param txtFilePathAndName sftp路径
+     * @return 文件字段头
+     */
     private HashMap<Integer, String> getAddress(FileContext context, LocalFile localFile, List<String> baseHeads, String txtFilePathAndName) {
         if (!checkFile(context, localFile, txtFilePathAndName)) {
             return checkAndGetHead(context, localFile, baseHeads, txtFilePathAndName);
@@ -93,12 +108,21 @@ public class SftpToDbCallingService {
         return null;
     }
 
+    /**
+     * 多线程处理逻辑
+     * @param localFile 本地文件
+     * @param fuc 回调方法
+     * @param txtFilePathAndName sftp 路径
+     * @param address 文件字段头
+     * @param sftpClient sftp 客户端
+     */
     private void doProcess(LocalFile localFile, Function<TxtToDbDTO, Result> fuc, String txtFilePathAndName, HashMap<Integer, String> address, SftpClient sftpClient) {
         long start = System.currentTimeMillis();
         Integer line = 1;
         AtomicInteger errorMark = new AtomicInteger(0);
-        try (FileReader read = new FileReader(txtFilePathAndName);
-             BufferedReader br = new BufferedReader(read);) {
+        try {
+            FileReader read = new FileReader(txtFilePathAndName);
+            BufferedReader br = new BufferedReader(read);
             String row;
             // 创建线程池
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
@@ -121,6 +145,16 @@ public class SftpToDbCallingService {
         doProcessAfter(localFile, errorMark, line, sftpClient);
     }
 
+    /**
+     * 线程池处理方法
+     * @param localFile 本地文件对象
+     * @param fuc 回调方法
+     * @param address 基础字段头
+     * @param line 处理行数
+     * @param errorMark 错误条数计数
+     * @param row 文件行
+     * @param threadPool 线程池对象
+     */
     private void doThreadPoolProcess(LocalFile localFile, Function<TxtToDbDTO, Result> fuc, HashMap<Integer, String> address, Integer line, AtomicInteger errorMark, String row, ThreadPoolExecutor threadPool) {
         String trim = row.trim();
         TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
@@ -141,6 +175,13 @@ public class SftpToDbCallingService {
         }
     }
 
+    /**
+     * 主程后处理程序
+     * @param localFile 本地文件对象
+     * @param errorMark 错误计数
+     * @param line 行数
+     * @param sftpClient sftp 客户端
+     */
     private void doProcessAfter(LocalFile localFile, AtomicInteger errorMark, Integer line, SftpClient sftpClient) {
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localFile.getId());
@@ -152,6 +193,13 @@ public class SftpToDbCallingService {
         doRenameFile(localFile, sftpClient);
         doSendEmailAlert(localFile, errorMark, updateFile);
     }
+
+    /**
+     * 邮件方法
+     * @param localFile 本地文件对象
+     * @param errorMark 错误计数
+     * @param updateFile 更新文件日志对象
+     */
     private void doSendEmailAlert(LocalFile localFile, AtomicInteger errorMark, LocalFile updateFile) {
         try {
             StringBuilder content = new StringBuilder();
@@ -169,6 +217,11 @@ public class SftpToDbCallingService {
         }
     }
 
+    /**
+     * 文件重命名方法
+     * @param localFile 本地文件对象
+     * @param sftpClient sftp对象
+     */
     private void doRenameFile(LocalFile localFile, SftpClient sftpClient) {
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String srcPath = localFile.getSrcPath();
@@ -185,6 +238,14 @@ public class SftpToDbCallingService {
         }
     }
 
+    /**
+     * 获取文件头
+     * @param context 文件上下文
+     * @param localFile 本地文件对象
+     * @param baseHeads 基础字段
+     * @param txtFilePathAndName sftp 路径
+     * @return
+     */
     private HashMap<Integer, String> checkAndGetHead(FileContext context, LocalFile localFile, List<String> baseHeads, String txtFilePathAndName) {
         StringBuilder head = MyFileUtil.gethead(txtFilePathAndName);
         HashMap<Integer, String> address = new HashMap<>();
@@ -200,6 +261,13 @@ public class SftpToDbCallingService {
         return address;
     }
 
+    /**
+     * 文件内容检查
+     * @param context 文件上下文
+     * @param localFile 本地文件
+     * @param txtFilePathAndName 文件路径
+     * @return 是否通过
+     */
     private boolean checkFile(FileContext context, LocalFile localFile, String txtFilePathAndName) {
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
         if (totalLines == 0) {
@@ -213,6 +281,13 @@ public class SftpToDbCallingService {
         return false;
     }
 
+    /**
+     * 文件头字段检查
+     * @param head 文件字段
+     * @param address 字段容器
+     * @param baseHeads 基础字段
+     * @return 结果返回
+     */
     public static Result getHeadBase(String head, HashMap<Integer, String> address, List<String> baseHeads) {
         List<String> heads = Splitter.on(",").splitToList(head);
         if (heads.size() <= 0) {

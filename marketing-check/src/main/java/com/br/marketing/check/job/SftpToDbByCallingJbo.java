@@ -12,7 +12,6 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +29,8 @@ import java.util.regex.Pattern;
 @Component
 @Slf4j
 public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
-    //@Value("${otherConfig.warning.path:00}")
-    //private String path;
+    @Value("${otherConfig.warning.path:00}")
+    private String path;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -40,23 +39,19 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
-    private static final Pattern FILE_NAME_REGEX = Pattern.compile("^[0-9]{7}");
-
+    private static final Pattern FILE_NAME_REGEX = Pattern.compile("^\\d{7}");
 
     private static final String PATH = "/Users/chao.z/Desktop/";
 
 
-    @Autowired
+    @Resource
     SftpToDbCallingService sftpToDbCallingService;
 
     @Resource
     LocalFileMapper localFileMapper;
 
-    @Autowired
-    SftpToDbByCommonService sftpToDbByCommonService;
 
-
-    @Autowired
+    @Resource
     CallingToDbService callingToDbservice;
 
     @Resource
@@ -73,14 +68,14 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
     private void process(SftpClient sftpClient) {
         CustomerCallingExample customerCallingExample = new CustomerCallingExample();
         customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
+        customerCallingExample.createCriteria().andPushTypeEqualTo(0);
         List<CustomerCalling> customerCallings = customerCallingMapper.selectByExample(customerCallingExample);
         for (CustomerCalling customerCalling : customerCallings) {
-            Map<String, Set<String>> map = new HashMap<>();
+            Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
             processFile(customerCalling.getSftpPath(), sftpClient, map);
             // 数据处理逻辑
-
-                processData(sftpClient, map, customerCalling);
+            processData(sftpClient, map, customerCalling);
 
         }
     }
@@ -134,7 +129,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
 
     /**
      * @param sftpClient      sftp客户端
-     * @param sftpPathFromMap        sftp 路径
+     * @param sftpPathFromMap sftp 路径
      * @param fileName        文件名称
      * @param context         file上下文
      * @param customerCalling 客户信息
@@ -152,6 +147,12 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         return localFileInstance(context, customerCalling.getApiCode());
     }
 
+    /**
+     * 初始化localFile 对象
+     * @param context 文件上下文信息
+     * @param apiCode 用户aoiCode
+     * @return 本地文件对象
+     */
     static LocalFile localFileInstance(FileContext context, String apiCode) {
         LocalFile localFile = new LocalFile();
         localFile.setApiCode(apiCode);

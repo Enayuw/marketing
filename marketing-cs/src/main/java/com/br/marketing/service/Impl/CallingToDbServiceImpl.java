@@ -6,7 +6,6 @@ import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.service.CallingToDbService;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,29 +30,31 @@ public class CallingToDbServiceImpl implements CallingToDbService {
         String row = dto.getContent();
         HashMap<Integer, String> address = dto.getAddress();
         Integer line = dto.getLine();
-        List<String> datas = Splitter.on(",").splitToList(row);
+        List<String> dataRows = Splitter.on(",").splitToList(row);
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
         customerCallingDialog.setApiCode(dto.getApiCode());
         //是否发送数据到客户端(0:未发送/1: 已发送)
         customerCallingDialog.setSendStatus(0);
         customerCallingDialog.setStatus((byte)1);
         customerCallingDialog.setCreateTime(new Date());
-        for (int i = 0; i < datas.size(); i++) {
-            String sureaddress = address.get(i);
+        for (int i = 0; i < dataRows.size(); i++) {
+            String headAddress = address.get(i);
             //"custNum", "callStartTime", "groupType", "taskId"
-            switch (sureaddress) {
+            switch (headAddress) {
                 case "custNum":
-                    customerCallingDialog.setCaseNum(datas.get(i));
+                    customerCallingDialog.setCaseNum(dataRows.get(i));
                     break;
                 case "callStartTime":
-                    customerCallingDialog.setCallStartTime(datas.get(i));
+                    customerCallingDialog.setCallStartTime(dataRows.get(i));
                     break;
                 case "groupType":
-                    customerCallingDialog.setGroupType(Integer.parseInt(datas.get(i)));
-                    customerCallingDialog.setUserType(Integer.parseInt(datas.get(i)));
+                    customerCallingDialog.setGroupType(Integer.parseInt(dataRows.get(i)));
+                    customerCallingDialog.setUserType(Integer.parseInt(dataRows.get(i)));
                     break;
                 case "taskId":
-                    customerCallingDialog.setTaskId(datas.get(i));
+                    customerCallingDialog.setTaskId(dataRows.get(i));
+                    break;
+                default:
                     break;
             }
         }
