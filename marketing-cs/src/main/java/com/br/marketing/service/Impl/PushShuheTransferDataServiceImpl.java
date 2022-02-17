@@ -159,9 +159,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferSyncUser.setIfTransform("0");
             }
 
-            // 转化信息入库
-            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
-
             // D20220209数禾申完转电销
             if (iUserType instanceof CuShenWan) {
                 boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
@@ -170,6 +167,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     caseShuheUser.setIsTransfer(3);
                 }
             }
+
+            // 转化信息入库
+            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
 
             // D20220209数禾转化数据定制化清洗入库
             int row = caseShuheUserMapper.insertSelective(caseShuheUser);
@@ -267,7 +267,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
-                if (row_info > 0) {
+                if (row_info > 0 && caseShuheUser.getIsTransfer() < 2) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, transferInfo.getId().toString());
                 }
                 return row_sync + row_info;
