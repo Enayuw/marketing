@@ -55,11 +55,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
-    private final String title = "客服推营销拨打记录-推送电销";
+    private final String title = "客服->推送电销";
 
     @Override
     public String znkfPushCallBack(CallRecordDTO dto) {
-        log.info("客服传入拨打明细数据：%s",dto.toString());
         try {
             String paramOfValidity = paramOfValidity(dto);
             if(!"true".equals(paramOfValidity)){
@@ -92,27 +91,34 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
 
         //判断是否符合情况b：userType=促申完&intentionGrade=A&cusNun&有效期内
+        if (isSatisfyPushDX(dto)) {
+            //调用 数禾推送电销方法
+            goShDX(dto);
+        }
+        return "success";
+    }
+
+    /**
+     * 判断是否符合情况b：userType=促申完 && intentionGrade="A级(有明确意向）" && cusNun && 有效期内
+     * @param dto
+     * @return
+     */
+    private Boolean isSatisfyPushDX(CallRecordDTO dto) {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
         String groupType = map.get("groupType").toString();
         boolean intentionGrade = dto.getDetail().getIntentionGrade().equals("A级(有明确意向）");
-
         if(!"促申完".equals(groupType) || !intentionGrade){
             log.info("不符合情况b的userType='促申完'或者A意向！");
-            return "success";
+            return false;
         }
-
         PeriodOfValidityDO periodOfValidityDO = PeriodOfValidityDO.closInterval15Day();
         Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), periodOfValidityDO);
-
         if(!isPeriod) {
             //不在有效期内
             log.info("不符合情况b的有效期！");
-            return "success";
+            return false;
         }
-
-        //调用 数禾推送电销方法
-        goShDX(dto);
-        return "success";
+        return true;
     }
 
     private String goShDX(CallRecordDTO dto) {
@@ -162,7 +168,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
             phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
             phoneSaleExtendShuhe.setStatus("b");
-            log.info("调用数禾推送电销 传入的参数为：%s",pushShDXDTO.toString());
             Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
             if (result.getData()) {
                 log.info("推送电销成功！");
