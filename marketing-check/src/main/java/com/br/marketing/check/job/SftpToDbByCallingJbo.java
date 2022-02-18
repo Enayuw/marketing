@@ -40,8 +40,6 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
     private String sftpPwd;
     private static final Pattern FILE_NAME_REGEX = Pattern.compile("^\\d{7}");
 
-    private static final String PATH = "/Users/chao.z/Desktop/";
-
 
     @Resource
     SftpToDbCallingService sftpToDbCallingService;
@@ -69,11 +67,11 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
         customerCallingExample.createCriteria().andPushTypeEqualTo(0);
         List<CustomerCalling> customerCallings = customerCallingMapper.selectByExample(customerCallingExample);
-        log.warn("1用户信息调用开始：{}",customerCallings);
+        log.warn("1用户信息调用开始：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
-            processFile(customerCalling.getSftpPath(), sftpClient, map,customerCalling.getApiCode());
+            processFile(customerCalling.getSftpPath(), sftpClient, map, customerCalling.getApiCode());
             // 数据处理逻辑
             processData(sftpClient, map, customerCalling);
 
@@ -139,7 +137,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         context.setSftpZipFilePath(sftpPathFromMap);
         context.setApiCode(customerCalling.getApiCode());
         context.setTxtFileName(fileName);
-        context.setLocalTxtFilePath(path.concat("marketing-calling/").concat(customerCalling.getApiCode()).concat("/"));
+        context.setLocalTxtFilePath(path.concat(customerCalling.getApiCode()).concat("/").concat("marketing-calling").concat("/"));
         if (!sftpToDbCallingService.downLoadFile(context)) {
             return null;
         }
@@ -148,6 +146,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
 
     /**
      * 初始化localFile 对象
+     *
      * @param context 文件上下文信息
      * @param apiCode 用户aoiCode
      * @return 本地文件对象
@@ -171,22 +170,22 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      * @param sftpClient sftp 客户端
      * @param map        文件名称容器
      */
-    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map,String apiCode) {
+    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map, String apiCode) {
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
                 String fileName = entry.getKey();
-                if(sftpPath.contains(apiCode)){
-                    if (FILE_NAME_REGEX.matcher(fileName).matches() || "input".equals(fileName)) {
-                        log.warn("isDirectory file:{}", fileName);
-                        processFile(sftpPath + "/" + fileName, sftpClient, map,apiCode);
-                    } else if (fileName.endsWith(".success")) {
-                        Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
-                        set.add(fileName.substring(0, fileName.length() - 8));
-                    }
+                //if (sftpPath.contains("marketing-calling")) {
+                //    log.warn("isDirectory file:{}", fileName);
+                //    processFile(sftpPath + "/" + fileName, sftpClient, map, apiCode);
+                //} else
+                if (fileName.endsWith(".success")) {
+                    Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
+                    set.add(fileName.substring(0, fileName.length() - 8));
                 }
             }
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             log.error("遍历sftp文件出错", e);
         }
     }

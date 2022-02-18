@@ -2,7 +2,6 @@ package com.br.marketing.check.thread;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.CustomerCalling;
@@ -35,14 +34,13 @@ public class CallingDataThread implements Callable<String> {
 
     private final CustomerCalling customerCalling;
 
-    private HttpProxyClient httpProxyClient;
+    private final HttpProxyClient httpProxyClient;
 
 
     public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper, CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
-        //httpProxyClient = CkeckApplication.ac.getBean(HttpProxyClient.class);
         this.httpProxyClient = httpProxyClient;
     }
 
@@ -59,11 +57,7 @@ public class CallingDataThread implements Callable<String> {
         JSONObject param = new JSONObject();
         param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
-        customerCallingDialogLists.forEach(customerCallingDialog -> {
-            customerCallingDialog.setRequestId(null);
-            customerCallingDialog.setUserType(null);
-            dataItems.add(JSONObject.parse(toJson(customerCallingDialog)));
-        });
+        customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
         param.put("dataItems", dataItems);
         log.warn("3用户发送数据：{}", param.toJSONString());
         String extendConfigInfo = customerCalling.getExtendConfigInfo();
