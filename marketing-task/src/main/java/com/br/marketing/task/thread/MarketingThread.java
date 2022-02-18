@@ -123,7 +123,8 @@ public class MarketingThread implements Callable<String> {
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
             for (MarketingUser blu : list) {
-                TimeUnit.MILLISECONDS.sleep(1L);
+                Thread.sleep(2L);
+//                TimeUnit.MILLISECONDS.sleep(1L);
                 if (blu.getStatus() != 1) {
                     continue;
                 }

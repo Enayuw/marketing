@@ -138,6 +138,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
 
             initBatchNumList(taskList, apiCode, context);
 
+//            observedScoreThreadService.addTaskList(taskList);
+
             this.generateTask(taskList, warrningExecutor, customer);
 
 
@@ -509,10 +511,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                         param.put("noflagproduct", noflagproduct);
                         param.put("baseHeadInfo", StringUtils.isNotBlank(baseHeadInfo)
                                 ? baseHeadInfo.substring(0, baseHeadInfo.length() - 1) : "");
-                        Future<String> submit = warrningExecutor.submit(new MarketingThread(list, param, currentPage, firstTime, customer, blt, noflagproductlist, flagproductlist, strategyProductDetailVO));
-                        if(StringUtils.isNotBlank(submit.get())){
-                            blt.setErrorMessage(submit.get());
-                        }
+                        warrningExecutor.submit(new MarketingThread(list, param, currentPage, firstTime, customer, blt, noflagproductlist, flagproductlist, strategyProductDetailVO));
                         Thread.sleep(100);
                     }
                     currentPage++;
