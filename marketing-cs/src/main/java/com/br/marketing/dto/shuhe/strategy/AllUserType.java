@@ -1,6 +1,7 @@
 package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.service.IMarketingSyncUserService;
 
 import java.util.Map;
 
@@ -16,5 +17,10 @@ public class AllUserType extends IUserType {
         new CuShouDeng().getCaseUser(dataItem, caseUser);
         new CuShenWan().getCaseUser(dataItem, caseUser);
         new CuShouJie().getCaseUser(dataItem, caseUser);
+    }
+
+    @Override
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+        return false;
     }
 }

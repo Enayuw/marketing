@@ -1,5 +1,4 @@
 package com.br.marketing.service.Impl;
-import java.util.Date;
 
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.*;
@@ -65,7 +64,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.ParseException;
@@ -75,13 +73,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
@@ -2130,8 +2126,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                     ? "0"
                     : (noHasTransfer.equals(transfer.getIfTransform()) ? "1" : transfer.getIfTransform()));
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            conversionData.setPhone(map.containsKey(transfer.getCustNum())
-                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
+            if (map.containsKey(transfer.getCustNum())) {
+                MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
+                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+                conversionData.setTaskId(marketingSyncUser.getCusBatch());
+            } else {
+                conversionData.setPhone("");
+                conversionData.setTaskId("");
+            }
             TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
             BeanUtils.copyProperties(transfer, vo);
             conversionData.setInversionInfo(JSON.toJSONString(vo));
@@ -2470,7 +2472,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             redisChgService.del(key);
         }
     }
-    
+
     private String haluoBydxTimeFormat(String time){
         if(StringUtils.isBlank(time)){
             return time;

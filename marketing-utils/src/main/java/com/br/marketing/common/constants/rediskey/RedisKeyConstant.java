@@ -26,4 +26,6 @@ public class RedisKeyConstant {
     public static final String fileToDbByJuZi = prefix.concat("ftpToDb:juzi");
 
     public static final String haluoPushDx = prefix.concat("haluo:pushdx");
+
+    public static final String shuhePushDx = prefix.concat("shuhe:pushdx");
 }

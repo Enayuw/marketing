@@ -87,3 +87,5 @@ api:
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   customerService:
     apiCode: 4000296
+  dass:
+    aesKey: ovksl39fcl13m9dF

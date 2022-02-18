@@ -115,7 +115,7 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cust_num, id_card, name, cell, user_type
+        select cust_num, id_card, name, cell, user_type, cus_batch
         from b_marketing_sync_${apiCode}
         <where>
             cust_num in
@@ -163,10 +163,67 @@
         </foreach>
     </select>
 
+    <select id="getPeriodOfValiditySum" resultType="java.lang.Long">
+        select count(id) from
+        b_marketing_sync_${apiCode}
+        where cust_num=#{custNum}
+        <if test="periodOfValidityDO == null">
+            and 1!=1
+        </if>
+        <if test="periodOfValidityDO != null">
+            <if test="periodOfValidityDO.startTime != null">
+                <if test="periodOfValidityDO.startTime.sign!=null
+               and periodOfValidityDO.startTime.sign!=''
+               and periodOfValidityDO.startTime.time != null">
+                    and create_time ${periodOfValidityDO.startTime.sign} #{periodOfValidityDO.startTime.time}
+                </if>
+            </if>
+            <if test="periodOfValidityDO.endTime != null">
+                <if test="periodOfValidityDO.endTime.sign != null
+               and periodOfValidityDO.endTime.sign != ''
+               and periodOfValidityDO.endTime.time != null">
+                    and create_time ${periodOfValidityDO.endTime.sign} #{periodOfValidityDO.endTime.time}
+                </if>
+            </if>
+            <if test="periodOfValidityDO.startTime==null and periodOfValidityDO.endTime==null">
+                and 1!=1
+            </if>
+        </if>
+    </select>
+
+    <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cust_num=#{caseNum} order by applet_date desc limit 1;
+    </select>
+
     <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
         select user_type
         from b_marketing_sync_${apiCode}
         where cust_num = #{custNum}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getTaskIdLatestByCustNum" resultType="java.lang.String">
+        select cus_batch
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getAppletTimeByCustNumAndUserType" resultType="java.util.Date">
+        select applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getCreatTimeByCustNumAndUserType" resultType="java.util.Date">
+        select create_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
         order by create_time desc limit 0,1
     </select>
 

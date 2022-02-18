@@ -1,8 +1,10 @@
 package com.br.marketing.entity;
 
+import com.br.marketing.adapter.IToTransferSyncAdaptee;
+
 import java.util.Date;
 
-public class CaseShuheUserWithBLOBs extends CaseShuheUser {
+public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransferSyncAdaptee {
     /**
      * 业务字段
      */
@@ -65,5 +67,29 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser {
                 ", reserveField1='" + reserveField1 + '\'' +
                 ", reserveField2='" + reserveField2 + '\'' +
                 '}';
+    }
+
+    @Override
+    public void adapteeRequest(MarketingTransferSyncUser transferSyncUser) {
+        transferSyncUser.setApiCode(this.getApiCode());
+        transferSyncUser.setCustNum(this.getCustNum());
+        transferSyncUser.setUserType(this.getUserType());
+        transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());
+        String jsonStr = "{" + "\"is_turn\":\"" + this.getIsTurn() + "\"," +
+                "\"is_black\":\"" + this.getIsBlack() + "\"," +
+                "\"clc_usr_lst_app_sta_tim\":\"" + this.getClcUsrLstAppStaTim() + "\"," +
+                "\"clc_usr_iso_pho_tim\":\"" + this.getClcUsrIsoPhoTim() + "\"," +
+                "\"clc_usr_iso_idt_tim\":\"" + this.getClcUsrIsoIdtTim() + "\"," +
+                "\"clc_usr_iso_crd_tim\":\"" + this.getClcUsrIsoCrdTim() + "\"," +
+                "\"clc_usr_iso_inf_tim\":\"" + this.getClcUsrIsoInfTim() + "\"," +
+                "\"applyLoanTime\":\"" + this.getClcUsrFrtFqOrdTim() + "\"," +
+                "\"cell\":\"" + this.getCell() + "\"" +
+                "}";
+        transferSyncUser.setReserveField1(jsonStr);
+        transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
+        transferSyncUser.setAuditTime(this.getClcUsrAdtTimRcnLon());
+        transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
+        transferSyncUser.setLentTime(this.getClcUsrFstLndTimCshBtHl());
+        transferSyncUser.setCreateTime(new Date());
     }
 }
