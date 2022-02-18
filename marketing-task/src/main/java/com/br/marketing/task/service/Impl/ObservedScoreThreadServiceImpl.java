@@ -2,8 +2,10 @@ package com.br.marketing.task.service.Impl;
 
 import com.br.marketing.entity.MarketingTask;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.error.Mark;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 
 @Service
@@ -11,18 +13,22 @@ public class ObservedScoreThreadServiceImpl {
 
     private ExecutorService executorService;
 
-    private List<MarketingTask> taskList;
+    private CopyOnWriteArraySet<MarketingTask> taskList = new CopyOnWriteArraySet<>();
 
     public void addObserver(ExecutorService executorService){
         this.executorService = executorService;
     }
 
-    public List<MarketingTask> getTaskList() {
-        return taskList;
+    public void addTaskList(MarketingTask task){
+        taskList.add(task);
     }
 
-    public void addTaskList(List<MarketingTask> taskList) {
-        this.taskList = taskList;
+    public void removeTaskList(MarketingTask task){
+        taskList.remove(task);
+    }
+
+    public CopyOnWriteArraySet<MarketingTask> getTaskList(){
+        return taskList;
     }
 
     public void removeThread(){

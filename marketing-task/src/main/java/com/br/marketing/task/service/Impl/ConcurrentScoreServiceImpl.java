@@ -43,6 +43,7 @@ import java.io.FileReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -61,13 +62,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
 
     @Value("${otherConfig.huaXiangInterface.getReport:00}")
     private String url;
-
-    @Resource
-    private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.outsideSecretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.outsideAppName:00}")
-    private String appName;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -123,13 +117,6 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
 
         if (customer.getThreadNum() == null) {
             customer.setThreadNum(20);
-        }
-        if(!TaskExecCommonField.isExecTaskJob.equals(1)){
-            StringBuilder content = new StringBuilder();
-            content.append("当前跑分任务手动停止状态请手动开启");
-            alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
-            return;
         }
         warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
         observedScoreThreadService.addObserver(warrningExecutor);
@@ -220,8 +207,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             } catch (Exception e) {
                 log.error("重新处理异常数据出错", e);
             }
+            CopyOnWriteArraySet<MarketingTask> pauseTask = observedScoreThreadService.getTaskList();
             for (MarketingTask task : taskList) {
-                if(StringUtils.isNull(task.getErrorMessage())){
+                long count = pauseTask.stream().filter(t -> t.getId().equals(task.getId()) && t.getIndex().equals(task.getIndex())).count();
+                if(count<=0){
                     TaskStatusDistribute updateRecord = new TaskStatusDistribute();
                     updateRecord.setStatus(2);
                     updateRecord.setFileId(task.getFileId());

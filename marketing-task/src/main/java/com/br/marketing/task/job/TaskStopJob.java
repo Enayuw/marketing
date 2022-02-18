@@ -31,7 +31,7 @@ public class TaskStopJob extends AbstractSimpleElasticJob {
             }else{
                 observedScoreThreadService.stopThread();
 //                observedScoreThreadService.removeThread();
-                TaskExecCommonField.isExecTaskJob=Integer.valueOf(jobParameter);;
+                TaskExecCommonField.isExecTaskJob=Integer.valueOf(jobParameter);
             }
         }
     }

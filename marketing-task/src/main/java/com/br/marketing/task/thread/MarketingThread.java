@@ -10,6 +10,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.MomUtil;
 import com.br.marketing.task.utils.ResultUtil;
@@ -105,6 +106,7 @@ public class MarketingThread implements Callable<String> {
 
         File errorFile = new File(descPath + "/error" + currentPage + ".txt");
         File file1 = new File(descPath + "/" + currentPage + ".txt");
+        ObservedScoreThreadServiceImpl observedThread = Scheduler.ac.getBean(ObservedScoreThreadServiceImpl.class);
 
         try (Writer errorFw = new BufferedWriter(
                 new OutputStreamWriter(
@@ -123,7 +125,6 @@ public class MarketingThread implements Callable<String> {
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
             for (MarketingUser blu : list) {
-                Thread.sleep(2L);
 //                TimeUnit.MILLISECONDS.sleep(1L);
                 if (blu.getStatus() != 1) {
                     continue;
@@ -184,8 +185,9 @@ public class MarketingThread implements Callable<String> {
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();
+            Thread.sleep(2L);
         }catch (InterruptedException ex){
-            log.error("当前任务暂停");
+            observedThread.addTaskList(marketingTask);
         }
         catch (Exception e) {
             log.error("生成文件出错。。。。", e);

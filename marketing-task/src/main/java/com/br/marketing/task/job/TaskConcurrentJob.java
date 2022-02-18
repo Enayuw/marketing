@@ -1,5 +1,8 @@
 package com.br.marketing.task.job;
 
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.constants.common.TaskExecCommonField;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
@@ -9,6 +12,7 @@ import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -45,12 +49,31 @@ import java.util.List;
 public class TaskConcurrentJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
         List<Customer> customers=customerMapper.getAllCustomer();
+        if(!TaskExecCommonField.isExecTaskJob.equals(1)){
+            StringBuilder content = new StringBuilder();
+            content.append("当前跑分任务手动停止状态请手动开启");
+            alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+            return;
+        }
         customers.forEach(customer -> {
+
+            if(!TaskExecCommonField.isExecTaskJob.equals(1)){
+                return;
+            }
             try {
                 if(customer.getStatus() ==1 && customer.getTaskTime()==1){
                     log.warn("开始执行跑批任务，apicode={}",customer.getApiCode());
