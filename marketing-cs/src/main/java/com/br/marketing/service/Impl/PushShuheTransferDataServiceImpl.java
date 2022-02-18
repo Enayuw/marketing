@@ -104,8 +104,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (!"".equals(msg)) {
                 responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
                 log.info("shuhe-1:{}", responseShuheDTO.getDesc());
-                this.sendAlarmMgs(title, "缺失必填参数".concat(msg).concat("案件编号“").concat(jsonDTO.getOrderId())
-                        .concat("”").concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
+                this.sendAlarmMgs(title, "\n缺失必填参数".concat(msg).concat("\n案件编号“").concat(jsonDTO.getOrderId())
+                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -120,13 +120,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser;
             if (iUserType instanceof UnknownUserType) {
-                msg = "未知的业务类型\"" + userType + "\"!";
+                msg = "未知的业务类型\"" + userType + "\"!\n";
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
                         , jsonData);
                 responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo("#1@" + responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
-                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
+                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
