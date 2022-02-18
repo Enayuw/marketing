@@ -211,10 +211,10 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     if (StringUtils.isEmpty(stat)) {
                         continue;
                     }
-                    log.error(msg);
                     msg = "数禾异步推送异常，异常逻辑：" + stat;
                     this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                             .concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                    log.error(msg);
                     String errorInfo = caseShuheUser.getErrorInfo();
                     if (StringUtils.isEmpty(errorInfo)) {
                         caseShuheUser.setErrorInfo("#2@" + errorInfo + stat);
