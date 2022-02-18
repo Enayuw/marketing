@@ -343,12 +343,13 @@ public class PushDataServiceImpl implements PushDataService{
         localFile.setFileType(SftpFileTypeEnum.SHBYTRANSFORM.getValue());
         localFile.setCreateTime(date);
         String apiCode = localFile.getApiCode();
-
+        String phone ="";
         PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
+        phone = phoneSale.getPhone();
         phoneSale.setCreateTime(date);
         String s = AESUtil.aesEncrypty(phoneSale.getPhone(), aesKey);
         phoneSale.setPhone(s);
-        phoneSale.setPhoneAes(BrCipherMaker.getInstance().encode(phoneSale.getPhone()));
+        phoneSale.setPhoneAes(BrCipherMaker.getInstance().encode(phone));
         phoneSale.setApiCode(apiCode);
         phoneSale.setApiCid(localFile.getCid());
         JSONObject jo = new JSONObject();

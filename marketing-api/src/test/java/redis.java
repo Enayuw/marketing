@@ -651,4 +651,12 @@ public class redis {
         objects.add("3710012");
         redisChgService.sadd(key,objects);
     }
+
+    @Test
+    public void desc(){
+        String ovksl39fcl13m9dF = AESUtil.decrypt("xowlWS+FJYNIFzcMUvDmsA==", "ovksl39fcl13m9dF");
+        System.out.println(ovksl39fcl13m9dF);
+//        AESUtil.aesEncrypty("xowlWS+FJYNIFzcMUvDmsA==", "ovksl39fcl13m9dF");
+    }
+
 }
