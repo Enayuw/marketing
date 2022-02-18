@@ -2,6 +2,7 @@ package com.br.marketing.check.job;
 
 import cn.hutool.log.Log;
 import com.br.marketing.check.thread.CallingDataThread;
+import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
@@ -36,6 +37,8 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerCallingDialogMapper customerCallingDialogMapper;
 
+    @Resource
+    HttpProxyClient httpProxyClient;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -87,7 +90,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                 pushExecutor = BrExecutors.getThreadPool(2, 2);
             }
             log.warn("2用户处理信息：{}",partitions);
-            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling)));
+            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling,httpProxyClient)));
         }
     }
 

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingDialogExample;
@@ -34,34 +35,54 @@ public class CallingDataThread implements Callable<String> {
 
     private final CustomerCalling customerCalling;
 
-    private final HttpProxyClient httpProxyClient;
+    private HttpProxyClient httpProxyClient;
 
 
-    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper, CustomerCalling customerCalling) {
+    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper, CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
-        httpProxyClient = CkeckApplication.ac.getBean(HttpProxyClient.class);
+        //httpProxyClient = CkeckApplication.ac.getBean(HttpProxyClient.class);
+        this.httpProxyClient = httpProxyClient;
     }
 
     @Override
     public String call() throws Exception {
         log.warn("开始多线程调用第三方接口");
-        updateRequestId(customerCalling, customerCallingDialogLists);
-        customerCallingDialogLists.forEach(sendPostRequest());
+        String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
+        updateRequestId(customerCallingDialogLists, requestId);
+        customerCallingDialogLists.forEach(sendPostRequest(requestId));
         return "success";
     }
 
-    private Consumer<? super CustomerCallingDialog> sendPostRequest() {
+    private Consumer<? super CustomerCallingDialog> sendPostRequest(String requestId) {
         JSONObject param = new JSONObject();
-        param.put("requestId", customerCalling.getApiCode() + "_" + UUID.randomUUID());
+        param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
-        customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
+        customerCallingDialogLists.forEach(customerCallingDialog -> {
+            customerCallingDialog.setRequestId(null);
+            customerCallingDialog.setUserType(null);
+            dataItems.add(JSONObject.parse(toJson(customerCallingDialog)));
+        });
         param.put("dataItems", dataItems);
         log.warn("3用户发送数据：{}", param.toJSONString());
-        Map<String, Object> result = httpProxyClient.request(customerCalling.getPushUrl().trim(), param.toJSONString(), true);
-        //log.warn("拨打记录发送返回值：", result);
+        String extendConfigInfo = customerCalling.getExtendConfigInfo();
+        String pushUrl = customerCalling.getPushUrl().trim();
+        JSONObject extendConfigInfoJson = getJsonObject(extendConfigInfo);
+        JSONObject pushUrlJson = getJsonObject(pushUrl);
+        String sendUrl = pushUrlJson.getString("sendUrl");
+        Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
+        Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
+        log.warn("拨打记录发送返回值：", result);
         return null;
+    }
+
+    private JSONObject getJsonObject(String extendConfigInfo) {
+        JSONObject extendConfigInfoJson = new JSONObject();
+        if (StringUtils.isNotBlank(extendConfigInfo)) {
+            extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
+        }
+        return extendConfigInfoJson;
     }
 
 
@@ -72,21 +93,15 @@ public class CallingDataThread implements Callable<String> {
         return gson.toJson(object);
     }
 
-    private void updateRequestId(CustomerCalling customerCalling, List<CustomerCallingDialog> customerCallingDialogLists) {
+    private void updateRequestId(List<CustomerCallingDialog> customerCallingDialogLists, String requestId) {
         List<Long> ids = customerCallingDialogLists
-                .stream()
-                .filter(customerCallingDialog -> {
-                    customerCallingDialog.setRequestId(customerCalling.getApiCode() + "_" + UUID.randomUUID());
-                    return true;
-                })
-                .collect(Collectors.toList())
                 .stream()
                 .map(CustomerCallingDialog::getId)
                 .collect(Collectors.toList());
         CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
         customerCallingDialogExample.createCriteria().andIdIn(ids);
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
-        customerCallingDialog.setRequestId(customerCalling.getApiCode() + "_" + UUID.randomUUID());
+        customerCallingDialog.setRequestId(requestId);
         customerCallingDialog.setSendStatus(1);
         customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
     }
