@@ -206,7 +206,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             try {
                 for (Future<String> future : futureList) {
-                    String stat = future.get(5, TimeUnit.SECONDS);
+                    String stat = future.get(10, TimeUnit.SECONDS);
                     if (StringUtils.isEmpty(stat)) {
                         continue;
                     }
@@ -334,7 +334,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
-                if (row_info > 0 && caseShuheUser.getIsTransfer() != null && caseShuheUser.getIsTransfer() != 2) {
+                if (row_info > 0 && caseShuheUser.getIsTransfer() == 1) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
                             , transferInfo.getId().toString());
                 }
