@@ -104,8 +104,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (!"".equals(msg)) {
                 responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
                 log.info("shuhe-1:{}", responseShuheDTO.getDesc());
-                this.sendAlarmMgs(title, "缺失必填参数".concat(msg).concat("案件编号“").concat(jsonDTO.getOrderId())
-                        .concat("”").concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
+                this.sendAlarmMgs(title, "\n缺失必填参数".concat(msg).concat("\n案件编号“").concat(jsonDTO.getOrderId())
+                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -120,13 +120,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser;
             if (iUserType instanceof UnknownUserType) {
-                msg = "未知的业务类型\"" + userType + "\"!";
+                msg = "未知的业务类型\"" + userType + "\"!\n";
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
                         , jsonData);
                 responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo("#1@" + responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
-                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
+                this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
                 caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
@@ -134,7 +134,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 responseShuheDTO.success();
                 caseShuheUser.setErrorInfo("");
             }
-//            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser)
                     .transferSyncUserRequest();
             this.setCid(transferSyncUser);
@@ -190,7 +189,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                                 , iMarketingSyncUserService);
                         if (satisfyDX) {
                             int i1 = goShDX(apiCode, finalCaseShuheUser, transferSyncUser);
-                            finalCaseShuheUser.setIsTransfer(3);
+                            if (finalCaseShuheUser.getIsTransfer() != null && finalCaseShuheUser.getIsTransfer() == 1) {
+                                // 1+3=4 释义：即满足转化又满足电销的逻辑，记为4
+                                finalCaseShuheUser.setIsTransfer(4);
+                            } else {
+                                finalCaseShuheUser.setIsTransfer(3);
+                            }
                             if (i1 > 0) {
                                 return "";
                             }
@@ -205,29 +209,30 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             , secretKey, alarmClient);
                 }
             }
-            try {
-                for (Future<String> future : futureList) {
-                    String stat = future.get(5, TimeUnit.SECONDS);
+
+            for (Future<String> future : futureList) {
+                try {
+                    String stat = future.get(10, TimeUnit.SECONDS);
                     if (StringUtils.isEmpty(stat)) {
                         continue;
                     }
-                    log.error(msg);
                     msg = "数禾异步推送异常，异常逻辑：" + stat;
                     this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                             .concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                    log.error(msg);
                     String errorInfo = caseShuheUser.getErrorInfo();
                     if (StringUtils.isEmpty(errorInfo)) {
                         caseShuheUser.setErrorInfo("#2@" + errorInfo + stat);
                     } else {
                         caseShuheUser.setErrorInfo("#2@" + errorInfo + (";").concat(stat));
                     }
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    log.error(e.getMessage(), e);
+                    this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                                    .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
+                            , appName, secretKey, alarmClient);
+                    caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
                 }
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
-                this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                                .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
-                        , appName, secretKey, alarmClient);
-                caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
             }
 
             // D20220209数禾转化数据定制化清洗入库
@@ -335,7 +340,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
-                if (row_info > 0 && caseShuheUser.getIsTransfer() != null && caseShuheUser.getIsTransfer() != 2) {
+                if (row_info > 0 && (caseShuheUser.getIsTransfer() == 1 || caseShuheUser.getIsTransfer() == 4)) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
                             , transferInfo.getId().toString());
                 }

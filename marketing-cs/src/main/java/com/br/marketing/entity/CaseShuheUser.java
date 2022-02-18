@@ -120,7 +120,7 @@ public class CaseShuheUser implements Serializable {
     private String clcUsrFstLndTimCshBtHl;
 
     /**
-     * 转化状态 0-无效、1-已转化、2-黑名单、3-人工（电销） 默认 0
+     * 转化状态 0-无效、1-已转化、2-黑名单、3-人工（电销）、4(1+3)-(已转化+人工（电销）) 默认 0
      */
     private Integer isTransfer;
 
