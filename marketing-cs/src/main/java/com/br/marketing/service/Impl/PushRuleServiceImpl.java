@@ -2060,10 +2060,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (StringUtils.isNotBlank(reserveField1)) {
                             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
                             if ("0".equals(user.getApplyResult()) && "1".equals(jsonObject.getString("applyLoan"))) {
-                                return false;
+                                user.setIfTransform("1");
+                                return true;
                             }
                         }
-                        return true;
+                        return false;
                     }).collect(Collectors.toList());
                 }
             }
