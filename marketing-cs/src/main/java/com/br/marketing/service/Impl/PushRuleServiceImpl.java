@@ -239,6 +239,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
 
     final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
+
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -1512,6 +1513,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
     private final String hKey = "marketing:innerapi:tailor:apicodemap:";
+    private final String redisKeyEliminateJiuFu = "marketing:transfer:eliminateJiuFu:apiCode";
 
     @Override
     @Transactional
@@ -2042,6 +2044,30 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return false;
                 }).collect(Collectors.toList());
             }
+
+            /**
+             * D20220214玖富转化数据传输逻辑-玖富apiCode
+             * 转化数据剔除是否申请提现（is_apply）为Y，以及授信审核结果（shouxin_result）为DENY，所有场景都是。
+             * applyLoan=1	applyResult=0
+             */
+
+            String eliminateJiuFu = redisChgService.get(redisKeyEliminateJiuFu);
+            if (StringUtils.isNotBlank(eliminateJiuFu)) {
+                List<String> apiCodes = Arrays.asList(eliminateJiuFu.split(","));
+                if (apiCodes.contains(apiCode)) {
+                    transferList = transferList.stream().filter(user -> {
+                        String reserveField1 = user.getReserveField1();
+                        if (StringUtils.isNotBlank(reserveField1)) {
+                            JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                            if ("0".equals(user.getApplyResult()) && "1".equals(jsonObject.getString("applyLoan"))) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }).collect(Collectors.toList());
+                }
+            }
+
             if (transferList.size() > 0) {
                 TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
                 TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
@@ -2470,7 +2496,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             redisChgService.del(key);
         }
     }
-    
+
     private String haluoBydxTimeFormat(String time){
         if(StringUtils.isBlank(time)){
             return time;
@@ -2532,7 +2558,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
-        ||"9999".equals(reqBlackPhoneVO.getCode())){
+                ||"9999".equals(reqBlackPhoneVO.getCode())){
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
                     .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
         }
