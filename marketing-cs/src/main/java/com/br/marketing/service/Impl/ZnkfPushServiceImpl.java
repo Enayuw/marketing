@@ -175,11 +175,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }else {
                 String msg = String.format("客服->营销(custNum=%s)推送电销失败！失败信息：%s", marketingTransferSyncUser.getCustNum(), result.getData());
                 log.error(msg);
-                alarmClient.sendAlarm(msg, title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
+                //alarmClient.sendAlarm(msg, title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
             }
         }catch (Exception e){
             log.error(e.getMessage(), e);
-            alarmClient.sendAlarm("保存到电销失败" + e.getMessage(), title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
+            //alarmClient.sendAlarm("保存到电销失败" + e.getMessage(), title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
         }
         return "success";
     }
