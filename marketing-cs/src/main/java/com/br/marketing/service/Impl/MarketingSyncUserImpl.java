@@ -55,4 +55,9 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     public Date getAppletTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
         return marketingSyncInfoMapper.getAppletTimeByCustNumAndUserType(apiCode, custNum, userType);
     }
+
+    @Override
+    public Date getCreatTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
+        return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserType(apiCode, custNum, userType);
+    }
 }

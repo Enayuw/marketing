@@ -8,5 +8,5 @@ public interface ZnkfPushService {
      * @param dto
      * @return
      */
-    Boolean znkfPushCallBack(CallRecordDTO dto);
+    String znkfPushCallBack(CallRecordDTO dto);
 }

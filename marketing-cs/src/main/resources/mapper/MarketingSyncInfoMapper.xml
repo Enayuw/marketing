@@ -115,7 +115,7 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cust_num, id_card, name, cell, user_type
+        select cust_num, id_card, name, cell, user_type, cus_batch
         from b_marketing_sync_${apiCode}
         <where>
             cust_num in
@@ -213,6 +213,14 @@
 
     <select id="getAppletTimeByCustNumAndUserType" resultType="java.util.Date">
         select applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getCreatTimeByCustNumAndUserType" resultType="java.util.Date">
+        select create_time
         from b_marketing_sync_${apiCode}
         where cust_num = #{custNum}
           and user_type = #{userType}
