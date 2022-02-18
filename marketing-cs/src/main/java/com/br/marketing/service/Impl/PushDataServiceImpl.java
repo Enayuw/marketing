@@ -375,7 +375,7 @@ public class PushDataServiceImpl implements PushDataService{
                 jo.put("is_usr_inf","1");
             }
         }
-
+        phoneSale.setExtend(JSON.toJSONString(jo));
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
         phoneSaleExtendShuhe.setCreateTime(date);
 
