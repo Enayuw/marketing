@@ -134,7 +134,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 responseShuheDTO.success();
                 caseShuheUser.setErrorInfo("");
             }
-//            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser)
                     .transferSyncUserRequest();
             this.setCid(transferSyncUser);
