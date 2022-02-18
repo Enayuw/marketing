@@ -197,4 +197,25 @@ public class CustomerCalling {
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
+
+    @Override
+    public String toString() {
+        return "CustomerCalling{" +
+                "id=" + id +
+                ", apiCode='" + apiCode + '\'' +
+                ", message='" + message + '\'' +
+                ", columnsDetail='" + columnsDetail + '\'' +
+                ", sftpPassword='" + sftpPassword + '\'' +
+                ", extendConfigInfo='" + extendConfigInfo + '\'' +
+                ", conditions='" + conditions + '\'' +
+                ", pushThreadNum=" + pushThreadNum +
+                ", pushType=" + pushType +
+                ", pushUrl='" + pushUrl + '\'' +
+                ", sftpPath='" + sftpPath + '\'' +
+                ", sftpName='" + sftpName + '\'' +
+                ", status=" + status +
+                ", updateTime=" + updateTime +
+                ", createTime=" + createTime +
+                '}';
+    }
 }

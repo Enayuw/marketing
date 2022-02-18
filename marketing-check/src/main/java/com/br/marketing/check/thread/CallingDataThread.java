@@ -59,7 +59,7 @@ public class CallingDataThread implements Callable<String> {
         customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
         param.put("dataItems", dataItems);
         log.warn("3用户发送数据：{}", param.toJSONString());
-        //Map<String, Object> result = httpProxyClient.request(customerCalling.getPushUrl().trim(), param.toJSONString(), true);
+        Map<String, Object> result = httpProxyClient.request(customerCalling.getPushUrl().trim(), param.toJSONString(), true);
         //log.warn("拨打记录发送返回值：", result);
         return null;
     }

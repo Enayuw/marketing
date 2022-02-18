@@ -43,12 +43,12 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     }
 
     private void process(List<CustomerCalling> customerCallings) {
+        log.warn("1用户信息：{}",customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             String tableColumns = getTableColumns(customerCalling);
             if(tableColumns!=null){
                 doThreadSubmit(customerCalling, getPartitions(customerCalling,tableColumns));
             }
-            log.warn("1用户信息：{}",customerCalling);
         }
     }
 

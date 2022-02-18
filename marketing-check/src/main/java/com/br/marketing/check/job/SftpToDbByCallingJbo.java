@@ -69,6 +69,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
         customerCallingExample.createCriteria().andPushTypeEqualTo(0);
         List<CustomerCalling> customerCallings = customerCallingMapper.selectByExample(customerCallingExample);
+        log.warn("1用户信息调用开始：{}",customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
