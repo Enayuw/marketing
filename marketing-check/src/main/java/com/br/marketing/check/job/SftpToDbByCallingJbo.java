@@ -28,8 +28,8 @@ import java.util.regex.Pattern;
 @Component
 @Slf4j
 public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
-    @Value("${otherConfig.warning.callPath:00}")
-    private String callPath;
+    @Value("${otherConfig.warning.path:00}")
+    private String path;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -138,7 +138,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         context.setSftpZipFilePath(sftpPathFromMap);
         context.setApiCode(customerCalling.getApiCode());
         context.setTxtFileName(fileName);
-        context.setLocalTxtFilePath(callPath.concat("marketing-calling/").concat(customerCalling.getApiCode()).concat("/"));
+        context.setLocalTxtFilePath(path.concat("marketing-calling/").concat(customerCalling.getApiCode()).concat("/"));
         if (!sftpToDbCallingService.downLoadFile(context)) {
             return null;
         }
