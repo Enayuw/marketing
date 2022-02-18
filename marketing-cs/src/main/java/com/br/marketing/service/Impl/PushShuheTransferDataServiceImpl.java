@@ -368,7 +368,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             phoneSale.setOrgname("shuheshenwan");
             phoneSale.setSource("16");
             phoneSale.setUserType("2");
-            phoneSale.setLoginTime("");
+            phoneSale.setLoginTime(transferSyncUser.getLoginTime());
             phoneSale.setType("2");
             String field = String.format("{\"clc_usr_iso_idt_tim\":\"%s\",\"clc_usr_iso_crd_tim\":\"%s\"" +
                             ",\"clc_usr_iso_inf_tim\":\"%s\",\"clc_usr_iso_pho_tim\":\"%s\"}"
