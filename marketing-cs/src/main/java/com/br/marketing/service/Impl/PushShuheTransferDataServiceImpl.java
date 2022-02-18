@@ -377,6 +377,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             phoneSale.setSource("16");
             phoneSale.setUserType("2");
             phoneSale.setLoginTime("");
+            phoneSale.setType("2");
             PropertyPreFilters filters = new PropertyPreFilters();
             PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
             includefilter.addIncludes("clc_usr_iso_pho_tim"
