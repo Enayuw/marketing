@@ -204,8 +204,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             , secretKey, alarmClient);
                 }
             }
-            try {
-                for (Future<String> future : futureList) {
+
+            for (Future<String> future : futureList) {
+                try {
                     String stat = future.get(10, TimeUnit.SECONDS);
                     if (StringUtils.isEmpty(stat)) {
                         continue;
@@ -220,13 +221,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     } else {
                         caseShuheUser.setErrorInfo("#2@" + errorInfo + (";").concat(stat));
                     }
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    log.error(e.getMessage(), e);
+                    this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                                    .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
+                            , appName, secretKey, alarmClient);
+                    caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
                 }
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
-                this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                                .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
-                        , appName, secretKey, alarmClient);
-                caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
             }
 
             // D20220209数禾转化数据定制化清洗入库
