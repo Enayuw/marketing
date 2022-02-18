@@ -189,7 +189,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                                 , iMarketingSyncUserService);
                         if (satisfyDX) {
                             int i1 = goShDX(apiCode, finalCaseShuheUser, transferSyncUser);
-                            finalCaseShuheUser.setIsTransfer(3);
+                            if (finalCaseShuheUser.getIsTransfer() != null && finalCaseShuheUser.getIsTransfer() == 1) {
+                                // 1+3=4 释义：即满足转化又满足电销的逻辑，记为4
+                                finalCaseShuheUser.setIsTransfer(4);
+                            } else {
+                                finalCaseShuheUser.setIsTransfer(3);
+                            }
                             if (i1 > 0) {
                                 return "";
                             }
@@ -335,7 +340,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
-                if (row_info > 0 && caseShuheUser.getIsTransfer() == 1) {
+                if (row_info > 0 && (caseShuheUser.getIsTransfer() == 1 || caseShuheUser.getIsTransfer() == 4)) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
                             , transferInfo.getId().toString());
                 }
