@@ -2,8 +2,6 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.fastjson.support.spring.PropertyPreFilters;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.TransferSyncAdapter;
 import com.br.marketing.client.AlarmApiClient;
@@ -227,7 +225,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error(e.getMessage(), e);
                 this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                        .concat("推送失败！请尽快处理^_^，失败原因：") + e.getMessage(), appName, secretKey, alarmClient);
+                                .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
+                        , appName, secretKey, alarmClient);
                 caseShuheUser.setErrorInfo("#3@".concat(e.toString()));
             }
 
@@ -371,16 +370,11 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             phoneSale.setUserType("2");
             phoneSale.setLoginTime("");
             phoneSale.setType("2");
-            PropertyPreFilters filters = new PropertyPreFilters();
-            PropertyPreFilters.MySimplePropertyPreFilter includefilter = filters.addFilter();
-            includefilter.addIncludes("clc_usr_iso_pho_tim"
-                    , "clc_usr_iso_idt_tim"
-                    , "clc_usr_iso_crd_tim"
-                    , "clc_usr_iso_inf_tim"
-            );
-            String field1 = JSONObject.toJSONString(JSONObject.parseObject(caseShuheUser.getJsonData()), includefilter
-                    , SerializerFeature.WriteMapNullValue);
-            phoneSale.setExtend(field1);
+            String field = String.format("{\"clc_usr_iso_idt_tim\":\"%s\",\"clc_usr_iso_crd_tim\":\"%s\"" +
+                            ",\"clc_usr_iso_inf_tim\":\"%s\",\"clc_usr_iso_pho_tim\":\"%s\"}"
+                    , caseShuheUser.getClcUsrIsoIdtTim(), caseShuheUser.getClcUsrIsoCrdTim()
+                    , caseShuheUser.getClcUsrIsoInfTim(), caseShuheUser.getClcUsrIsoPhoTim());
+            phoneSale.setExtend(field);
             phoneSaleExtendShuhe.setCustNum(transferSyncUser.getCustNum());
             LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
             LocalDate localDate = localDateTime.toLocalDate();
