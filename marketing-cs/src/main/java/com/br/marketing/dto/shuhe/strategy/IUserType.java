@@ -4,6 +4,8 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.CaseShuheUserWithBLOBs;
+import com.br.marketing.service.IMarketingSyncUserService;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,6 +21,9 @@ import java.util.Map;
  */
 public abstract class IUserType {
     private String userType;
+    private final String Y = "Y";
+    public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
     public IUserType setUserType(String userType) {
         this.userType = userType;
@@ -75,5 +80,43 @@ public abstract class IUserType {
         }
     }
 
+    /**
+     * 不同场景判断转化
+     * 判断逻辑（D2022018修改）
+     * <p>
+     * 断点数据：
+     * clc_usr_lst_app_sta_tim（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     * <p>
+     * clc_usr_fst_log_tim_all（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     * <p>
+     * clc_usr_frt_fq_ord_tim（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     */
+    public abstract boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService);
+
+    /**
+     * 全部场景空判断
+     */
+    public boolean isEmpty(CaseShuheUser caseShuheUser) {
+        return (StringUtils.isEmpty(caseShuheUser.getIsBlack())
+                && StringUtils.isEmpty(caseShuheUser.getIsTurn())
+                && StringUtils.isEmpty(caseShuheUser.getUserType())
+                && StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())
+                && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
+                && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()));
+    }
+
+    /**
+     * 黑名单判断
+     */
+    public boolean isBlack(CaseShuheUser caseShuheUser) {
+        return Y.equals(caseShuheUser.getIsBlack());
+    }
+
+    /**
+     * 转化判断
+     */
+    public boolean isTurn(CaseShuheUser caseShuheUser) {
+        return Y.equals(caseShuheUser.getIsTurn());
+    }
 
 }

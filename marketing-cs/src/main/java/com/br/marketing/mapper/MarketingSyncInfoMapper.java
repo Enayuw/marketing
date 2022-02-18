@@ -115,4 +115,16 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @dateTime 2022/2/15 10:52
      */
     Date getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+
+    /**
+     * 获取案件编号的落库的创建时间
+     *
+     * @param apiCode  apiCode
+     * @param custNum  案件编号
+     * @param userType 场景
+     * @return AppletTime
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/18 10:52
+     */
+    Date getCreatTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
 }

@@ -8,7 +8,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -32,9 +31,8 @@ public class CuShenWan extends IUserType {
         caseUser.setClcUsrAdtTimRcnLon(dataItem.getOrDefault("clc_usr_adt_tim_rcn_lon", defaultValue));
     }
 
-    public boolean isSatisfyDX(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public final boolean isSatisfyDX(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
         boolean boolAppStaTim;
-        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         /* 数禾申完转电销 情况a
          * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
          * &cusNun&有效期内
@@ -69,5 +67,24 @@ public class CuShenWan extends IUserType {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+        boolean ifTransfer;
+        if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
+            ifTransfer = Boolean.FALSE;
+        } else {
+            Date appletTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
+                    , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+            if (appletTime == null) {
+                ifTransfer = Boolean.FALSE;
+            } else {
+                LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
+                LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                ifTransfer = isoAtoTim.isAfter(appletDate);
+            }
+        }
+        return ifTransfer;
     }
 }

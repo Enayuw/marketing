@@ -143,7 +143,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             List<Future<String>> futureList = new ArrayList<>();
             CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
             // D20220209数禾转化接口V3.0-客服
-            if ("Y".equals(caseShuheUser.getIsBlack())) {
+            if (iUserType.isBlack(caseShuheUser)) {
                 // 黑名单逻辑
                 // is_black 字段内容放入transferSyncUser表 reserveField1字段中
                 try {
@@ -161,22 +161,10 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                             , appName, secretKey, alarmClient);
                 }
                 caseShuheUser.setIsTransfer(2);
-            } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
-                    StringUtils.isEmpty(caseShuheUser.getIsBlack())
-                            && StringUtils.isEmpty(caseShuheUser.getIsTurn())
-                            && StringUtils.isEmpty(caseShuheUser.getUserType())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
-                            && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
+            } else if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
                 transferSyncUser.setIfTransform("2");
                 caseShuheUser.setIsTransfer(1);
-            } else if (
-                    ("促申完".equals(caseShuheUser.getUserType())
-                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim()))
-                            || ("促首登".equals(caseShuheUser.getUserType())
-                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll()))
-                            || ("促首借".equals(caseShuheUser.getUserType())
-                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
+            } else if (iUserType.ifTransfer(caseShuheUser, iMarketingSyncUserService)) {
                 // 转化
                 transferSyncUser.setIfTransform("1");
                 caseShuheUser.setIsTransfer(1);
@@ -406,14 +394,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             Result<Boolean> booleanResult = pushDataService.pushShDX(pushShDXDTO);
             if (booleanResult.getData()) {
                 log.info("推送电销成功");
-                return 1;
             } else {
                 String msg = String.format("数禾(custNum=%s)推送电销（人工）失败！失败信息：%s"
                         , transferSyncUser.getCustNum(), booleanResult.getData());
                 log.error(msg);
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
-                return 0;
+//                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
             }
+            return 1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             this.sendAlarmMgs(title, "保存到电销失败" + e.getMessage(), appName, secretKey, alarmClient);
