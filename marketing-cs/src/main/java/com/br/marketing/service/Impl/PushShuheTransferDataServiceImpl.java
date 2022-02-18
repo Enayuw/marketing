@@ -123,19 +123,22 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             CaseShuheUserWithBLOBs caseShuheUser;
             if (iUserType instanceof UnknownUserType) {
                 msg = "未知的业务类型\"" + userType + "\"!";
-                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
+                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
+                        , jsonData);
                 responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo("#1@" + responseShuheDTO.getDesc());
                 log.info("shuhe-2:{}", responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("案件编号“").concat(jsonDTO.getOrderId()).concat("”")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), appName, secretKey, alarmClient);
             } else {
-                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode, jsonData);
+                caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType, jsonDTO, apiCode
+                        , jsonData);
                 responseShuheDTO.success();
                 caseShuheUser.setErrorInfo("");
             }
 //            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, caseShuheUser.getCustNum());
-            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser).transferSyncUserRequest();
+            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser)
+                    .transferSyncUserRequest();
             this.setCid(transferSyncUser);
             List<Future<String>> futureList = new ArrayList<>();
             CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
@@ -154,7 +157,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                     this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                            .concat("转黑名单失败！请尽快处理^_^，原因：") + e.getMessage(), appName, secretKey, alarmClient);
+                                    .concat("转黑名单失败！请尽快处理^_^，原因：") + e.getMessage()
+                            , appName, secretKey, alarmClient);
                 }
                 caseShuheUser.setIsTransfer(2);
             } else if ("Y".equals(caseShuheUser.getIsTurn()) || (
@@ -167,9 +171,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferSyncUser.setIfTransform("2");
                 caseShuheUser.setIsTransfer(1);
             } else if (
-                    ("促申完".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) ||
-                            ("促首登".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())) ||
-                            ("促首借".equals(caseShuheUser.getUserType()) && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
+                    ("促申完".equals(caseShuheUser.getUserType())
+                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim()))
+                            || ("促首登".equals(caseShuheUser.getUserType())
+                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll()))
+                            || ("促首借".equals(caseShuheUser.getUserType())
+                            && !StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()))) {
                 // 转化
                 transferSyncUser.setIfTransform("1");
                 caseShuheUser.setIsTransfer(1);
@@ -193,7 +200,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (iUserType instanceof CuShenWan) {
                 try {
                     futureList.add(BR_EXECUTORS.submit(() -> {
-                        boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(finalCaseShuheUser, iMarketingSyncUserService);
+                        boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(finalCaseShuheUser
+                                , iMarketingSyncUserService);
                         if (satisfyDX) {
                             int i1 = goShDX(apiCode, finalCaseShuheUser, transferSyncUser);
                             finalCaseShuheUser.setIsTransfer(3);
@@ -207,7 +215,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                     this.sendAlarmMgs(title, ("案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                            .concat("数禾促申完转电销失败！请尽快处理^_^，原因：") + e.getMessage(), appName, secretKey, alarmClient);
+                                    .concat("数禾促申完转电销失败！请尽快处理^_^，原因：") + e.getMessage(), appName
+                            , secretKey, alarmClient);
                 }
             }
             try {
@@ -324,7 +333,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     /**
      * 去转化
      */
-    private int goTransferSync(String apiCode, CaseShuheUserWithBLOBs caseShuheUser, MarketingTransferSyncUser transferSyncUser) {
+    private int goTransferSync(String apiCode, CaseShuheUserWithBLOBs caseShuheUser
+            , MarketingTransferSyncUser transferSyncUser) {
         try {
             SecureRandom random = new SecureRandom();
             transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
@@ -339,7 +349,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
                 if (row_info > 0 && caseShuheUser.getIsTransfer() != null && caseShuheUser.getIsTransfer() != 2) {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, transferInfo.getId().toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
+                            , transferInfo.getId().toString());
                 }
                 return row_sync + row_info;
             }
@@ -354,7 +365,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     /**
      * 去电销
      */
-    private int goShDX(String apiCode, CaseShuheUserWithBLOBs caseShuheUser, MarketingTransferSyncUser transferSyncUser) {
+    private int goShDX(String apiCode, CaseShuheUserWithBLOBs caseShuheUser
+            , MarketingTransferSyncUser transferSyncUser) {
         try {
             LocalFile localFile = new LocalFile();
             PhoneSale phoneSale = new PhoneSale();
@@ -378,7 +390,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     , "clc_usr_iso_crd_tim"
                     , "clc_usr_iso_inf_tim"
             );
-            String field1 = JSONObject.toJSONString(JSONObject.parseObject(caseShuheUser.getJsonData()), includefilter, SerializerFeature.WriteMapNullValue);
+            String field1 = JSONObject.toJSONString(JSONObject.parseObject(caseShuheUser.getJsonData()), includefilter
+                    , SerializerFeature.WriteMapNullValue);
             phoneSale.setExtend(field1);
             phoneSaleExtendShuhe.setCustNum(transferSyncUser.getCustNum());
             LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -395,7 +408,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 log.info("推送电销成功");
                 return 1;
             } else {
-                String msg = String.format("数禾(custNum=%s)推送电销（人工）失败！失败信息：%s", transferSyncUser.getCustNum(), booleanResult.getData());
+                String msg = String.format("数禾(custNum=%s)推送电销（人工）失败！失败信息：%s"
+                        , transferSyncUser.getCustNum(), booleanResult.getData());
                 log.error(msg);
                 this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
                 return 0;
