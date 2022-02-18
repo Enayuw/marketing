@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import cn.hutool.log.Log;
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerCalling;
@@ -9,7 +10,10 @@ import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -23,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @Date 2022/2/16 10:02 AM
  */
 @Component
+@Slf4j
 public class CallingToSendJob extends AbstractSimpleElasticJob {
 
     @Resource
@@ -39,13 +44,17 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
 
     private void process(List<CustomerCalling> customerCallings) {
         for (CustomerCalling customerCalling : customerCallings) {
-            doThreadSubmit(customerCalling, getPartitions(customerCalling));
+            String tableColumns = getTableColumns(customerCalling);
+            if(tableColumns!=null){
+                doThreadSubmit(customerCalling, getPartitions(customerCalling,tableColumns));
+            }
+            log.warn("1用户信息：{}",customerCalling);
         }
     }
 
-    private List<List<CustomerCallingDialog>> getPartitions(CustomerCalling customerCalling) {
+    private List<List<CustomerCallingDialog>> getPartitions(CustomerCalling customerCalling,String tableColumns) {
         Map<String, Object> cusMap = new HashMap<>(16);
-        cusMap.put("columns", customerCalling.getColumnsDetail());
+        cusMap.put("columns", tableColumns);
         cusMap.put("apiCode", customerCalling.getApiCode());
         cusMap.put("sendStatus", 0);
         cusMap.put("conditions", customerCalling.getConditions());
@@ -53,14 +62,33 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         return Lists.partition(customerCallingDialogs, 20);
     }
 
-    private void doThreadSubmit(CustomerCalling customerCalling, List<List<CustomerCallingDialog>> partitions) {
-        ThreadPoolExecutor pushExecutor;
-        if (customerCalling.getPushThreadNum() != null) {
-            pushExecutor = BrExecutors.getThreadPool(customerCalling.getPushThreadNum(), customerCalling.getPushThreadNum());
-        } else {
-            pushExecutor = BrExecutors.getThreadPool(2, 2);
+    private String getTableColumns(CustomerCalling customerCalling) {
+        String column = customerCalling.getColumnsDetail();
+        if(column!=null&& !column.isEmpty()){
+            String[] columns = column.split(",");
+            List<String> columnsList = new ArrayList<>();
+            Arrays.stream(columns).sequential().forEach(c -> {
+                if ("custNum".equals(c)) {
+                    c = "caseNum";
+                }
+                columnsList.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c));
+            });
+            return Joiner.on(",").join(columnsList);
         }
-        partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling)));
+        return null;
+    }
+
+    private void doThreadSubmit(CustomerCalling customerCalling, List<List<CustomerCallingDialog>> partitions) {
+        if(!partitions.isEmpty()){
+            ThreadPoolExecutor pushExecutor;
+            if (customerCalling.getPushThreadNum() != null) {
+                pushExecutor = BrExecutors.getThreadPool(customerCalling.getPushThreadNum(), customerCalling.getPushThreadNum());
+            } else {
+                pushExecutor = BrExecutors.getThreadPool(2, 2);
+            }
+            log.warn("2用户处理信息：{}",partitions);
+            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling)));
+        }
     }
 
 

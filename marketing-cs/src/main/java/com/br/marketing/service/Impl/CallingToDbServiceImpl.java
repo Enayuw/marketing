@@ -9,6 +9,7 @@ import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,11 +27,17 @@ public class CallingToDbServiceImpl implements CallingToDbService {
     CustomerCallingDialogMapper customerCallingDialogMapper;
 
     @Override
-    public Result callingToDb(TxtToDbDTO dto) {
+    public Result execute(TxtToDbDTO dto) {
         String row = dto.getContent();
         HashMap<Integer, String> address = dto.getAddress();
-        Integer line = dto.getLine();
         List<String> dataRows = Splitter.on(",").splitToList(row);
+        CustomerCallingDialog customerCallingDialog = getCustomerCallingDialog(dto, address, dataRows);
+        int insert = customerCallingDialogMapper.insert(customerCallingDialog);
+        System.out.println(insert);
+        return null;
+    }
+
+    private CustomerCallingDialog getCustomerCallingDialog(TxtToDbDTO dto, HashMap<Integer, String> address, List<String> dataRows) {
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
         customerCallingDialog.setApiCode(dto.getApiCode());
         //是否发送数据到客户端(0:未发送/1: 已发送)
@@ -40,26 +47,23 @@ public class CallingToDbServiceImpl implements CallingToDbService {
         for (int i = 0; i < dataRows.size(); i++) {
             String headAddress = address.get(i);
             //"custNum", "callStartTime", "groupType", "taskId"
-            switch (headAddress) {
-                case "custNum":
-                    customerCallingDialog.setCaseNum(dataRows.get(i));
-                    break;
-                case "callStartTime":
-                    customerCallingDialog.setCallStartTime(dataRows.get(i));
-                    break;
-                case "groupType":
-                    customerCallingDialog.setGroupType(Integer.parseInt(dataRows.get(i)));
-                    customerCallingDialog.setUserType(Integer.parseInt(dataRows.get(i)));
-                    break;
-                case "taskId":
-                    customerCallingDialog.setTaskId(dataRows.get(i));
-                    break;
-                default:
-                    break;
+            try {
+                if(headAddress.equals("custNum")){
+                    headAddress = "caseNum";
+                }
+                Field field = customerCallingDialog.getClass().getDeclaredField(headAddress);
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if(type == Integer.class){
+                    field.set(customerCallingDialog, Integer.parseInt(dataRows.get(i)));
+                }else {
+                    field.set(customerCallingDialog, dataRows.get(i));
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
-        int insert = customerCallingDialogMapper.insert(customerCallingDialog);
-        System.out.println(insert);
-        return null;
+        return customerCallingDialog;
     }
 }

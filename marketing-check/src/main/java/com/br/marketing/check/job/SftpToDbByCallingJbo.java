@@ -1,7 +1,6 @@
 package com.br.marketing.check.job;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
 import com.br.marketing.check.service.Impl.SftpToDbCallingService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.entity.*;
@@ -73,7 +72,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         for (CustomerCalling customerCalling : customerCallings) {
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
-            processFile(customerCalling.getSftpPath(), sftpClient, map);
+            processFile(customerCalling.getSftpPath(), sftpClient, map,customerCalling.getApiCode());
             // 数据处理逻辑
             processData(sftpClient, map, customerCalling);
 
@@ -104,7 +103,6 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      */
     private void processData(SftpClient sftpClient, Map<String, Set<String>> map, CustomerCalling customerCalling) {
         String columnsDetail = customerCalling.getColumnsDetail();
-        String[] columns = columnsDetail.split(",");
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String sftpPathFromMap = entry.getKey();
             Set<String> fileNames = entry.getValue();
@@ -118,8 +116,8 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
                         sftpToDbCallingService.actionTxtFile(
                                 context,
                                 localFile,
-                                Arrays.asList(columns),
-                                callingToDbservice::callingToDb,
+                                Arrays.asList(columnsDetail.split(",")),
+                                callingToDbservice::execute,
                                 sftpClient);
                     }
                 }
@@ -172,17 +170,19 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      * @param sftpClient sftp 客户端
      * @param map        文件名称容器
      */
-    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map) {
+    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map,String apiCode) {
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
                 String fileName = entry.getKey();
-                if (FILE_NAME_REGEX.matcher(fileName).matches() || "input".equals(fileName)) {
-                    log.debug("isDirectory file:{}", fileName);
-                    processFile(sftpPath + "/" + fileName, sftpClient, map);
-                } else if (fileName.endsWith(".success")) {
-                    Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
-                    set.add(fileName.substring(0, fileName.length() - 8));
+                if(sftpPath.contains(apiCode)){
+                    if (FILE_NAME_REGEX.matcher(fileName).matches() || "input".equals(fileName)) {
+                        log.warn("isDirectory file:{}", fileName);
+                        processFile(sftpPath + "/" + fileName, sftpClient, map,apiCode);
+                    } else if (fileName.endsWith(".success")) {
+                        Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
+                        set.add(fileName.substring(0, fileName.length() - 8));
+                    }
                 }
             }
         } catch (Exception e) {

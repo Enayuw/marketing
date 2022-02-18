@@ -228,7 +228,7 @@ public class SftpToDbCallingService {
         String fileName = localFile.getFileName();
         String nameTxt = srcPath + "/" + fileName;
         String nameSuc = srcPath + "/" + fileName + ".success";
-        String newNameTxt = nameTxt + ".bak";
+        String newNameTxt = nameTxt +"_"+ yyyyMMddHHmmss + ".bak";
         String newNameSuc = nameSuc + "_" + yyyyMMddHHmmss + ".bak";
         try {
             sftpClient.rename(nameTxt, newNameTxt);

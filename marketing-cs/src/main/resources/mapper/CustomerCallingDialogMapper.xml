@@ -679,6 +679,6 @@
     </update>
 
     <select id="getInfoByColumns" resultType="com.br.marketing.entity.CustomerCallingDialog">
-        select ${columns} from b_marketing_customer_calling_dialog where api_code = #{apiCode} and send_status = #{sendStatus} ${conditions};
+        select id, ${columns} from b_marketing_customer_calling_dialog where api_code = #{apiCode} and send_status = #{sendStatus} ${conditions};
     </select>
 </mapper>

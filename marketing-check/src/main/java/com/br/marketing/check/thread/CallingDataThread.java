@@ -41,7 +41,7 @@ public class CallingDataThread implements Callable<String> {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
-        httpProxyClient= CkeckApplication.ac.getBean(HttpProxyClient.class);
+        httpProxyClient = CkeckApplication.ac.getBean(HttpProxyClient.class);
     }
 
     @Override
@@ -53,14 +53,14 @@ public class CallingDataThread implements Callable<String> {
     }
 
     private Consumer<? super CustomerCallingDialog> sendPostRequest() {
-        JSONObject param=new JSONObject();
-        param.put("requestId", customerCalling.getApiCode()+"_"+ UUID.randomUUID());
-        JSONArray dataItems =new JSONArray();
+        JSONObject param = new JSONObject();
+        param.put("requestId", customerCalling.getApiCode() + "_" + UUID.randomUUID());
+        JSONArray dataItems = new JSONArray();
         customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
-        param.put("dataItems",dataItems);
-        log.warn("发送数据：{}",param.toJSONString());
-        Map<String,Object> result=httpProxyClient.request(customerCalling.getPushUrl().trim(),param.toJSONString(),true);
-
+        param.put("dataItems", dataItems);
+        log.warn("3用户发送数据：{}", param.toJSONString());
+        //Map<String, Object> result = httpProxyClient.request(customerCalling.getPushUrl().trim(), param.toJSONString(), true);
+        //log.warn("拨打记录发送返回值：", result);
         return null;
     }
 

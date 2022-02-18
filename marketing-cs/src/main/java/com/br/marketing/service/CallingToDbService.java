@@ -10,6 +10,10 @@ import com.br.marketing.dto.TxtToDbDTO;
  * @Date 2022/2/14 6:21 PM
  */
 public interface CallingToDbService {
-
-    Result callingToDb(TxtToDbDTO content);
+    /**
+     * 拨打数据执行器
+     * @param content
+     * @return
+     */
+    Result execute(TxtToDbDTO content);
 }
