@@ -82,14 +82,16 @@ public abstract class IUserType {
 
     /**
      * 不同场景判断转化
-     * 判断逻辑（D2022018修改）
+     * 4.判断逻辑（D2022018修改）
      * <p>
-     * 断点数据：
-     * clc_usr_lst_app_sta_tim（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     * 断点判断规则
+     * 值不为空且
      * <p>
-     * clc_usr_fst_log_tim_all（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     * clc_usr_iso_ato_tim>creattime(上传接口上传该数据时间)   促申完
      * <p>
-     * clc_usr_frt_fq_ord_tim（最近一次登录时间）>creattime(上传接口上传该数据时间)
+     * clc_usr_fst_log_tim_all>creattime(上传接口上传该数据时间)  促首登
+     * <p>
+     * clc_usr_frt_fq_ord_tim>creattime(上传接口上传该数据时间)  	促首借
      */
     public abstract boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService);
 
