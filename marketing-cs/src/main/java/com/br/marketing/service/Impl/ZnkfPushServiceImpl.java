@@ -154,6 +154,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             phoneSale.setOrgname("shuheshenwan");
             phoneSale.setSource("16");
             phoneSale.setUserType("2");
+            phoneSale.setType("2");
             if(marketingTransferSyncUser!=null){
                 ////b_marketing_transfer_sync_{cid} 的login_time
                 phoneSale.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime())?marketingTransferSyncUser.getLoginTime():"");
