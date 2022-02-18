@@ -143,7 +143,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if ("Y".equals(caseShuheUser.getIsBlack())) {
                 // 黑名单逻辑
                 // is_black 字段内容放入transferSyncUser表 reserveField1字段中
-//                int i = goBlack(apiCode, caseShuheUser);
                 try {
                     futureList.add(BR_EXECUTORS.submit(() -> {
                         final int i = goBlack(apiCode, finalCaseShuheUser);
@@ -177,7 +176,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
 
             // 转化信息入库
-//            int i = goTransferSync(apiCode, caseShuheUser, transferSyncUser);
             try {
                 futureList.add(BR_EXECUTORS.submit(() -> {
                     final int i = goTransferSync(apiCode, finalCaseShuheUser, transferSyncUser);
@@ -193,11 +191,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             // D20220209数禾申完转电销
             if (iUserType instanceof CuShenWan) {
-//                boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, iMarketingSyncUserService);
-//                if (satisfyDX) {
-//                    int i1 = goShDX(apiCode, caseShuheUser, transferSyncUser);
-//                    caseShuheUser.setIsTransfer(3);
-//                }
                 try {
                     futureList.add(BR_EXECUTORS.submit(() -> {
                         boolean satisfyDX = ((CuShenWan) iUserType).isSatisfyDX(finalCaseShuheUser, iMarketingSyncUserService);
