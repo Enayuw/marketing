@@ -30,7 +30,7 @@ public class CuShouJie extends IUserType {
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim())) {
             ifTransfer = Boolean.FALSE;
         } else {
-            Date appletTime = iMarketingSyncUserService.getAppletTimeByCustNumAndUserType(caseShuheUser.getApiCode()
+            Date appletTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
                     , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
             if (appletTime == null) {
                 ifTransfer = Boolean.FALSE;
