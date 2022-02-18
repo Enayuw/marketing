@@ -479,11 +479,13 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                 int currentPage = 1;
                 long start = System.currentTimeMillis();
                 Integer actNum = 0;
-                while (begin < maxId && !getCoreDataStatus(fileId,currentPage)) {
+                while (begin < maxId) {
                     blt.setBegin(begin);
                     List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
                     begin = list.get(list.size() - 1).getId();
-                    if (list.size() > 0 && blt.getIndex().equals(currentPage % blt.getIndexCount())) {
+                    if (list.size() > 0
+                            && blt.getIndex().equals(currentPage % blt.getIndexCount())
+                            && !getCoreDataStatus(fileId,currentPage)) {
                         actNum += list.size();
                         Map<String, String> param = new HashMap<>();
                         param.put("apiCode", blt.getApiCode());
