@@ -340,7 +340,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int row_info = marketingTransferInfoMapper.insertSelective(transferInfo);
-                if (row_info > 0 && (caseShuheUser.getIsTransfer() == 1 || caseShuheUser.getIsTransfer() == 4)) {
+                if (row_info > 0 && caseShuheUser.getIsTransfer() != null && (caseShuheUser.getIsTransfer() == 1
+                        || caseShuheUser.getIsTransfer() == 4)) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
                             , transferInfo.getId().toString());
                 }
