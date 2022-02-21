@@ -50,37 +50,41 @@ public class CallingBackInfoJob extends AbstractSimpleElasticJob {
             Object extendConfigInfo = stringObjectMap.get("extendConfigInfo");
             JSONObject extendConfigInfoJson = getJsonObject(extendConfigInfo.toString());
             JSONObject pushUrlJson = getJsonObject(pushUrl.toString());
-            String sendUrl = pushUrlJson.getString("sendUrl");
+            String getUrl = pushUrlJson.getString("getUrl");
             Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
-            JSONObject param = new JSONObject();
-            param.put("requestId", requestId);
-            Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-            String data = result.get("data").toString();
-            JSONObject jsonObject = JSONObject.parseObject(data);
-            JSONArray resultData = jsonObject.getJSONArray("resultData");
-            for(int i=0;i<resultData.size();i++){
-                JSONObject dataItem = resultData.getJSONObject(i);
-                Long id = Long.valueOf(dataItem.getString("id"));
-                String taskId = dataItem.getString("taskId");
-                String caseNum = dataItem.getString("caseNum");
-                String status = dataItem.getString("status");
-                CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
-                customerCallingDialog.setId(id);
-                customerCallingDialog.setSendStatus(2);
-                customerCallingDialogMapper.updateByPrimaryKeySelective(customerCallingDialog);
-                if("failure".equals(status)){
-                    String errorDescription = dataItem.getString("errorDescription");
-                    CustomerCallingDataStatus customerCallingDataStatus = new CustomerCallingDataStatus();
-                    customerCallingDataStatus.setDialogId(id);
-                    customerCallingDataStatus.setRequestId(requestId.toString());
-                    customerCallingDataStatus.setSendStatus(2);
-                    customerCallingDataStatus.setCaseNum(caseNum);
-                    customerCallingDataStatus.setTaskId(taskId);
-                    customerCallingDataStatus.setDescription(errorDescription);
-                    customerCallingDataStatus.setCreateTime(new Date());
-                    customerCallingDataStatusMapper.insertSelective(customerCallingDataStatus);
+            int length = getUrl.length();
+            if(!getUrl.isEmpty()){
+                JSONObject param = new JSONObject();
+                param.put("requestId", requestId);
+                Map<String, Object> result = httpProxyClient.request(getUrl, param.toJSONString(), isProxy);
+                String data = result.get("data").toString();
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                JSONArray resultData = jsonObject.getJSONArray("resultData");
+                for(int i=0;i<resultData.size();i++){
+                    JSONObject dataItem = resultData.getJSONObject(i);
+                    Long id = Long.valueOf(dataItem.getString("id"));
+                    String taskId = dataItem.getString("taskId");
+                    String caseNum = dataItem.getString("caseNum");
+                    String status = dataItem.getString("status");
+                    CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
+                    customerCallingDialog.setId(id);
+                    customerCallingDialog.setSendStatus(2);
+                    customerCallingDialogMapper.updateByPrimaryKeySelective(customerCallingDialog);
+                    if("failure".equals(status)){
+                        String errorDescription = dataItem.getString("errorDescription");
+                        CustomerCallingDataStatus customerCallingDataStatus = new CustomerCallingDataStatus();
+                        customerCallingDataStatus.setDialogId(id);
+                        customerCallingDataStatus.setRequestId(requestId.toString());
+                        customerCallingDataStatus.setSendStatus(2);
+                        customerCallingDataStatus.setCaseNum(caseNum);
+                        customerCallingDataStatus.setTaskId(taskId);
+                        customerCallingDataStatus.setDescription(errorDescription);
+                        customerCallingDataStatus.setCreateTime(new Date());
+                        customerCallingDataStatusMapper.insertSelective(customerCallingDataStatus);
+                    }
                 }
             }
+
         }
     }
 }

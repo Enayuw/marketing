@@ -267,7 +267,7 @@
     <job:simple id="CallingBackInfoJob"
                 class="com.br.marketing.check.job.CallingBackInfoJob"
                 cron="0 0/10 * * * * ?"
-                description="客服拨打明细发送给第三方"
+                description="客服拨打明细发送给第三方回调信息处理"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

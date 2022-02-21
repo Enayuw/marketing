@@ -39,9 +39,6 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     CustomerCallingDialogMapper customerCallingDialogMapper;
 
     @Resource
-    CustomerCallingDataStatusMapper customerCallingDataStatusMapper;
-
-    @Resource
     HttpProxyClient httpProxyClient;
 
     @Override
@@ -66,7 +63,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         cusMap.put("sendStatus", 0);
         cusMap.put("conditions", customerCalling.getConditions());
         List<CustomerCallingDialog> customerCallingDialogs = customerCallingDialogMapper.getInfoByColumns(cusMap);
-        return Lists.partition(customerCallingDialogs, 20);
+        return Lists.partition(customerCallingDialogs, 2000);
     }
 
     private String getTableColumns(CustomerCalling customerCalling) {

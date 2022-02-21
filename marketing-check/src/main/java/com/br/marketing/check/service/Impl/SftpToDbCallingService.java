@@ -125,7 +125,7 @@ public class SftpToDbCallingService {
             BufferedReader br = new BufferedReader(read);
             String row;
             // 创建线程池
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
             while ((row = br.readLine()) != null) {
                 doThreadPoolProcess(localFile, fuc, address, line, errorMark, row, threadPool);
                 line++;
