@@ -139,10 +139,10 @@ public class FtpClient extends BaseFtpClient {
             }
 
             FTPFile fileInfo = fileInfoArray[0];
-            if (fileInfo.getSize() > Integer.MAX_VALUE) {
-                log.error("File {}} is too large.",ftpFileName);
-                return false;
-            }
+//            if (fileInfo.getSize() > Integer.MAX_VALUE) {
+//                log.error("File {}} is too large.",ftpFileName);
+//                return false;
+//            }
 
             if (!ftp.retrieveFile(ftpFileName, out)) {
                 log.error("Error loading file {} from FTP server. Check FTP permissions and path.",ftpFileName);

@@ -30,6 +30,13 @@ public class PushTransferCustomerLogServiceImpl implements PushTransferCustomerL
     }
 
     @Override
+    public List<PushTransferCustomerLog> findListByStatusIs1(int page, int pageSize, String dateYYYYDDMMStr
+            , int transferStatus) {
+        PageHelper.startPage(page, pageSize);
+        return pushTransferCustomerLogMapper.findListByStatusIs1AndDate(dateYYYYDDMMStr, transferStatus);
+    }
+
+    @Override
     public List<PushTransferCustomerLog> findListByStatusAndCodeAndDate(int page, int pageSize, int shardingTotalCount
             , List<Integer> shardingItems, int transferStatus, Date transferInfoTime, String apiCode, int pushStatus) {
         PageHelper.startPage(page, pageSize);

@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
  * Created by Bairong on 2020/7/13.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {Scheduler.class})
-@WebAppConfiguration
+@SpringBootTest(classes = Scheduler.class)
+//@WebAppConfiguration
 public class AlarmAndNoticeTest {
     protected final static Logger log = LoggerFactory.getLogger(AlarmAndNoticeTest.class);
     @Resource
@@ -39,7 +39,7 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void hxflat(){
-        String s="{\"swift_number\":\"4002511_20200818102903_836744281\",\"code\":\"00\",\"Flag\":{\"scoremconsonsncfclxmodel\":\"1\"},\"scoremconsonsncfclxmodel\":{\"score\":\"100\"}}";
+        String s="{\"swift_number\":\"4003434_20220124155040_30484E11A\",\"code\":\"00\",\"Flag\":{\"score\":\"1\",\"scoredata\":\"1\"},\"Score\":{\"scorescashonhrcd\":\"74\",\"scorescashonhrxy\":\"7\"},\"ScoreData\":{\"scorescashonhrcd\":{\"pd_cell_province\":\"辽宁\",\"pd_id_gender\":\"1\",\"pd_cell_type\":\"移动\"},\"scorescashonhrxy\":{\"pd_cell_province\":\"辽宁\",\"pd_id_gender\":\"1\",\"pd_cell_type\":\"移动\"}}}";
         String s1 = HxUtil.hauXiangFlat(s);
         System.out.println(s1);
     }

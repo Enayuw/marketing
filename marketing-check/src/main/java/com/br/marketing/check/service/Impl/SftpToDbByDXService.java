@@ -1,12 +1,9 @@
 package com.br.marketing.check.service.Impl;
-import java.util.*;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.service.AbstractDataToDbService;
-import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -15,7 +12,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.LoadResult;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.PhoneSale;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -26,12 +26,13 @@ import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import javax.xml.ws.soap.Addressing;
 import java.io.*;
-import java.util.concurrent.Future;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -79,48 +80,48 @@ public class SftpToDbByDXService {
 
     private static String phoneReg = "^([\\+]*[0-9]+)$";
 
-    private final static Integer SPLITSIZE=5000;
+    private final static Integer SPLITSIZE = 5000;
 
     public Boolean dowloadFile(FileContext context) {
-        String localFilePath=context.getLocalTxtFilePath();
-        String zipFileName=context.getTxtFileName();
-        SftpClient client =(SftpClient)context.getBaseFtpClient();
-        File dir=new File(localFilePath);
-        if(!dir.exists()||!dir.isDirectory()){
+        String localFilePath = context.getLocalTxtFilePath();
+        String zipFileName = context.getTxtFileName();
+        SftpClient client = (SftpClient) context.getBaseFtpClient();
+        File dir = new File(localFilePath);
+        if (!dir.exists() || !dir.isDirectory()) {
             boolean mkdirs = dir.mkdirs();
-            if(!mkdirs){
-                log.error("创建文件夹失败-{}",context.getLocalZipFilePath());
+            if (!mkdirs) {
+                log.error("创建文件夹失败-{}", context.getLocalZipFilePath());
                 return false;
             }
         }
-        StringBuilder sb=new StringBuilder().append(localFilePath).append(zipFileName);
-        boolean download = client.downloadFile(context.getSftpZipFilePath() , zipFileName, sb.toString());
-        if(!download){
-            log.error("文件下载出错-SftpZipFilePath={},zipFileName={}",context.getSftpZipFilePath(),zipFileName);
+        StringBuilder sb = new StringBuilder().append(localFilePath).append(zipFileName);
+        boolean download = client.downloadFile(context.getSftpZipFilePath(), zipFileName, sb.toString());
+        if (!download) {
+            log.error("文件下载出错-SftpZipFilePath={},zipFileName={}", context.getSftpZipFilePath(), zipFileName);
             return false;
         }
         return true;
     }
 
     public Boolean actionTxtFile(FileContext context,LocalFile localFile) {
-        String txtFilePathAndName=context.getLocalTxtFilePath().concat(context.getTxtFileName());
+        String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
-        if(totalLines==0){
-            log.error(String.format("%s 文件内容为空",context.getTxtFileName()));
+        if (totalLines == 0) {
+            log.error(String.format("%s 文件内容为空", context.getTxtFileName()));
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("4");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
-        head=MyFileUtil.gethead(txtFilePathAndName);
+        head = MyFileUtil.gethead(txtFilePathAndName);
 
         HashMap<Integer, String> address = new HashMap<>();
         HashMap<Integer, String> extSetField = new HashMap<>();
-        Result hashMapResult = SftpToDbUtils.statisticsHead(head.toString(),address,extSetField);
-        if(!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())){
-            log.error(String.format("%s 文件：%s",context.getTxtFileName(),hashMapResult.getMessage()));
+        Result hashMapResult = SftpToDbUtils.statisticsHead(head.toString(), address, extSetField);
+        if (!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())) {
+            log.error(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("2");
@@ -140,14 +141,14 @@ public class SftpToDbByDXService {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
             while ((row = br.readLine()) != null) {
                 String trim = row.trim();
-                if(StringUtils.isNotEmpty(row)&&StringUtils.isNotEmpty(trim)){
-                    if(line>1){
+                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                    if (line > 1) {
                         Integer lineNum = line;
-                        threadPool.submit(()->{
+                        threadPool.submit(() -> {
                             PhoneSale phoneSale = new PhoneSale();
                             phoneSale.setApiCode(localFile.getApiCode());
                             phoneSale.setLocalId(localFile.getId().toString());
-                            setDataByPhone(trim,phoneSale,address,extSetField,errorMark,lineNum);
+                            setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
                         });
                     }
                 }
@@ -157,24 +158,24 @@ public class SftpToDbByDXService {
              * 等待所有任务都执行完成
              **/
             threadPool.shutdown();
-            while (true){
-                if(threadPool.isTerminated()){
+            while (true) {
+                if (threadPool.isTerminated()) {
                     log.info("所有线程都执行结束");
                     break;
                 }
                 try {
                     Thread.sleep(3000);
-                }catch (Exception e){
+                } catch (Exception e) {
                 }
             }
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setActualNumber(line);
-        if(errorMark.get()>0){
-            updateFile.setComplete("3");
-        }
+            if (errorMark.get() > 0) {
+                updateFile.setComplete("3");
+            }
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
@@ -187,105 +188,105 @@ public class SftpToDbByDXService {
 
 
     public void checkConfigFile(FileContext context) {
-        MarketingTask task =context.getTask();
-        String configFilePathAndName=context.getLocalTxtFilePath().concat(context.getConfigFileName());
-            File configFile= new File(configFilePathAndName);
-            if(configFile.exists()&&configFile.isFile()){
+        MarketingTask task = context.getTask();
+        String configFilePathAndName = context.getLocalTxtFilePath().concat(context.getConfigFileName());
+        File configFile = new File(configFilePathAndName);
+        if (configFile.exists() && configFile.isFile()) {
 
-                Map<String,String> configMap = new HashedMap();
-                try(FileReader read = new FileReader(configFilePathAndName);
-                    BufferedReader br = new BufferedReader(read)){
-                    String row;
-                    while ((row = br.readLine()) != null) {
-                        String trim = row.trim();
-                        if(StringUtils.isNotEmpty(trim)){
-                            String[] split = trim.split("=");
-                            if(split.length>=2){
-                                configMap.put(split[0],split[1]);
-                            }
+            Map<String, String> configMap = new HashedMap();
+            try (FileReader read = new FileReader(configFilePathAndName);
+                 BufferedReader br = new BufferedReader(read)) {
+                String row;
+                while ((row = br.readLine()) != null) {
+                    String trim = row.trim();
+                    if (StringUtils.isNotEmpty(trim)) {
+                        String[] split = trim.split("=");
+                        if (split.length >= 2) {
+                            configMap.put(split[0], split[1]);
                         }
                     }
-                    String dataVolume=configMap.get("dataVolume");
-                    if(StringUtils.isNotEmpty(dataVolume)){
-                        try{
-                            int count = Integer.parseInt(dataVolume);
-                            task.setDataVolume(count);
-                        }catch (Exception e){
-                            log.error("dataVolume error",e);
-                        }
+                }
+                String dataVolume = configMap.get("dataVolume");
+                if (StringUtils.isNotEmpty(dataVolume)) {
+                    try {
+                        int count = Integer.parseInt(dataVolume);
+                        task.setDataVolume(count);
+                    } catch (Exception e) {
+                        log.error("dataVolume error", e);
                     }
-                    log.warn("{}，内容为{}",context.getConfigFileName(),configMap);
-                    if(task.getMonitorType()==1){
-                        if(StringUtils.isNotEmpty(configMap.get("strategyId"))&&fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")){
-                            task.setStrategyId(configMap.get("strategyId"));
-                            task.setFrequency(0+"");
-                            task.setCloseDate(DateHelper.getDateAdd(2));
-                            task.setStartDate(DateHelper.getDateAdd(0));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,策略编号异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                    }else if(task.getMonitorType()==2||task.getMonitorType()==3||task.getMonitorType()==4){
-                        if(StringUtils.isNotEmpty(configMap.get("strategyId"))&&fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")){
-                            task.setStrategyId(configMap.get("strategyId"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,策略编号异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorFrequency"))&&fileCheckService.checkConfig("monitorFrequency", configMap.get("monitorFrequency"), task.getApiCode(), "")){
-                            task.setFrequency(configMap.get("monitorFrequency"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控周期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorStartTime"))&&fileCheckService.checkConfig("monitorStartTime", configMap.get("monitorStartTime"), task.getApiCode(), "")){
-                            task.setStartDate(configMap.get("monitorStartTime"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控开始日期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                        if(StringUtils.isNotEmpty(configMap.get("monitorStartTime"))&&fileCheckService.checkConfig("monitorendTime", configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))){
-                            task.setCloseDate(configMap.get("monitorStartTime"));
-                        }else {
-                            task.setMonitorStatus(3);
-                            task.setStatus(1);
-                            task.setErrorMessage("配置文件异常,监控截止日期异常");
-                            fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
-                            return;
-                        }
-                    }else{
+                }
+                log.warn("{}，内容为{}", context.getConfigFileName(), configMap);
+                if (task.getMonitorType() == 1) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                        task.setStrategyId(configMap.get("strategyId"));
+                        task.setFrequency(0 + "");
+                        task.setCloseDate(DateHelper.getDateAdd(2));
+                        task.setStartDate(DateHelper.getDateAdd(0));
+                    } else {
                         task.setMonitorStatus(3);
                         task.setStatus(1);
-                        task.setErrorMessage("监控模式异常");
-                        fileCheckService.errorDetail(context,task.getErrorMessage(),ErrorFileTypeEnum.ERROR_CONFIG);
+                        task.setErrorMessage("配置文件异常,策略编号异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
                         return;
                     }
-
-                } catch (FileNotFoundException e) {
-                    log.error("FileNotFoundException",e);
-                } catch (IOException e) {
-                    log.error("IOException",e);
+                } else if (task.getMonitorType() == 2 || task.getMonitorType() == 3 || task.getMonitorType() == 4) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                        task.setStrategyId(configMap.get("strategyId"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,策略编号异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorFrequency")) && fileCheckService.checkConfig("monitorFrequency", configMap.get("monitorFrequency"), task.getApiCode(), "")) {
+                        task.setFrequency(configMap.get("monitorFrequency"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控周期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorStartTime", configMap.get("monitorStartTime"), task.getApiCode(), "")) {
+                        task.setStartDate(configMap.get("monitorStartTime"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控开始日期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorendTime", configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))) {
+                        task.setCloseDate(configMap.get("monitorStartTime"));
+                    } else {
+                        task.setMonitorStatus(3);
+                        task.setStatus(1);
+                        task.setErrorMessage("配置文件异常,监控截止日期异常");
+                        fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                        return;
+                    }
+                } else {
+                    task.setMonitorStatus(3);
+                    task.setStatus(1);
+                    task.setErrorMessage("监控模式异常");
+                    fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
+                    return;
                 }
-                LoadResult lr=new LoadResult();
-                lr.setApiCode(task.getApiCode());
-                lr.setFileName(context.getConfigFileName());
-                lr.setBatchNumber(task.getBatchNumber());
-                lr.setStatus("1");
-                loadResultMapper.insertLoadResult(lr);
-                task.setMonitorStatus(1);
+
+            } catch (FileNotFoundException e) {
+                log.error("FileNotFoundException", e);
+            } catch (IOException e) {
+                log.error("IOException", e);
             }
+            LoadResult lr = new LoadResult();
+            lr.setApiCode(task.getApiCode());
+            lr.setFileName(context.getConfigFileName());
+            lr.setBatchNumber(task.getBatchNumber());
+            lr.setStatus("1");
+            loadResultMapper.insertLoadResult(lr);
+            task.setMonitorStatus(1);
+        }
         task.setStatus(1);
     }
 

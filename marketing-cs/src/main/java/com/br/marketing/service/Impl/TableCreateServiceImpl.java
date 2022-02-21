@@ -38,20 +38,36 @@ public class TableCreateServiceImpl {
      * @param apiCode
      * @return
      */
-    public String getTcId(String apiCode){
+    public String getTcId(String apiCode) {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if(marketingCustomers.size()==0){
+        if (marketingCustomers.size() == 0) {
             return null;
         }
         String s1 = marketingCustomers.get(0).getCid().replaceFirst("-", "");
         return s1;
     }
 
-    public void createMarketingSyncUserTable(String apiCode){
+    /**
+     * 根据apiCode查询cid
+     *
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/16 17:42
+     */
+    public String getCId(String apiCode) {
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if (marketingCustomers.size() == 0) {
+            return null;
+        }
+        return marketingCustomers.get(0).getCid();
+    }
+
+    public void createMarketingSyncUserTable(String apiCode) {
         String tableName = marketingPreUserTable.concat(apiCode);
-        if(!tableNameSet.contains(tableName)){
+        if (!tableNameSet.contains(tableName)) {
             marketingUserMapper.createMarketingPreUserTable(tableName);
             tableNameSet.add(tableName);
         }

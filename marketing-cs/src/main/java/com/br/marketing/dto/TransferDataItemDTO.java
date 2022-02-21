@@ -152,7 +152,7 @@ public class TransferDataItemDTO {
     private String caseEffective;
 
     /**
-     * 是否转化 1是0否
+     * 是否转化 1是0否 2客户失效（仅数禾）
      */
     private String ifTransform;
 

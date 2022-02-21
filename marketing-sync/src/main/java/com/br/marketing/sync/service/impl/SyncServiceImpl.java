@@ -66,7 +66,7 @@ public class SyncServiceImpl implements SyncService {
 
     private void sync(List<SyncConfig> loanSyncConfigs){
         //当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
-        Set<String> dateSet =new HashSet<>();
+        Set<String> dateSet =new TreeSet<>();
         dateSet.add(DateHelper.getDateByMinute(-60));
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
