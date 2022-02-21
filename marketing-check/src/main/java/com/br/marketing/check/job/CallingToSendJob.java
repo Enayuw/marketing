@@ -75,6 +75,9 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                 if ("custNum".equals(c)) {
                     c = "caseNum";
                 }
+                if("groupType".equals(c)){
+                    c="userType";
+                }
                 columnsList.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c));
             });
             return Joiner.on(",").join(columnsList);
