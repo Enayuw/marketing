@@ -339,10 +339,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             param.put("fileId", file.getId().toString());
             param.put("baseHeadInfo", StringUtils.isNotBlank(baseHeadInfo)
                     ? baseHeadInfo.substring(0, baseHeadInfo.length() - 1) : "");
-            Future<String> submit = warrningExecutor.submit(new MarketingThread(list, param, currentPage, true, customer, marketingTask, noflagproductlist, flagproductlist, strategyProductDetailVO));
-            if(StringUtils.isNotBlank(submit.get())){
-                task.setErrorMessage(submit.get());
-            }
+            warrningExecutor.submit(new MarketingThread(list, param, currentPage, true, customer, marketingTask, noflagproductlist, flagproductlist, strategyProductDetailVO));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -479,7 +476,8 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                 int currentPage = 1;
                 long start = System.currentTimeMillis();
                 Integer actNum = 0;
-                while (begin < maxId) {
+                Boolean threadpoolStatus = Boolean.TRUE;
+                while (begin < maxId&&threadpoolStatus) {
                     blt.setBegin(begin);
                     List<MarketingUser> list = marketingUserMapper.queryUserByid(blt);
                     begin = list.get(list.size() - 1).getId();
@@ -503,6 +501,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                         param.put("baseHeadInfo", StringUtils.isNotBlank(baseHeadInfo)
                                 ? baseHeadInfo.substring(0, baseHeadInfo.length() - 1) : "");
                         warrningExecutor.submit(new MarketingThread(list, param, currentPage, firstTime, customer, blt, noflagproductlist, flagproductlist, strategyProductDetailVO));
+                        if(warrningExecutor.isTerminated()){
+                            threadpoolStatus = Boolean.FALSE;
+                        }
                         Thread.sleep(100);
                     }
                     currentPage++;

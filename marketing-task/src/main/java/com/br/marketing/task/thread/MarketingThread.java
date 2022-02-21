@@ -39,6 +39,7 @@ public class MarketingThread implements Callable<String> {
     private String path;
     private String strategyStr;
     private RedisService redisService;
+//    private ObservedScoreThreadServiceImpl observedThread;
     private String message;
     private boolean firstTime;
     private JSONObject meal = new JSONObject();
@@ -82,7 +83,7 @@ public class MarketingThread implements Callable<String> {
         this.marketingTask = marketingTask;
         this.noflagproductlist = noflagproductlist;
         this.flagProductList = flagProductList;
-
+//        this.observedThread = Scheduler.ac.getBean(ObservedScoreThreadServiceImpl.class);
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -106,7 +107,6 @@ public class MarketingThread implements Callable<String> {
 
         File errorFile = new File(descPath + "/error" + currentPage + ".txt");
         File file1 = new File(descPath + "/" + currentPage + ".txt");
-        ObservedScoreThreadServiceImpl observedThread = Scheduler.ac.getBean(ObservedScoreThreadServiceImpl.class);
 
         try (Writer errorFw = new BufferedWriter(
                 new OutputStreamWriter(
@@ -185,10 +185,11 @@ public class MarketingThread implements Callable<String> {
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();
-            Thread.sleep(2L);
-        }catch (InterruptedException ex){
-            observedThread.addTaskList(marketingTask);
+//            Thread.sleep(2L);
         }
+//        catch (InterruptedException ex){
+////            observedThread.addTaskList(marketingTask);
+//        }
         catch (Exception e) {
             log.error("生成文件出错。。。。", e);
         }
