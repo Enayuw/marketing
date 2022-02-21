@@ -27,11 +27,9 @@ public class TaskStopJob extends AbstractSimpleElasticJob {
         String jobParameter = context.getJobParameter();
         if(StringUtils.isNotBlank(jobParameter)){
             if(jobParameter.equals("1")){
-                TaskExecCommonField.isExecTaskJob=1;
+                observedScoreThreadService.setInterrupt(1);
             }else{
                 observedScoreThreadService.stopThread();
-//                observedScoreThreadService.removeThread();
-                TaskExecCommonField.isExecTaskJob=Integer.valueOf(jobParameter);
             }
         }
     }

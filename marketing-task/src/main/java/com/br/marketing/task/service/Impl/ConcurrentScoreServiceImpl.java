@@ -125,10 +125,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
 
             initBatchNumList(taskList, apiCode, context);
 
-//            observedScoreThreadService.addTaskList(taskList);
-
             this.generateTask(taskList, warrningExecutor, customer);
-
 
             /**
              * 等待所有任务都执行完成
@@ -207,21 +204,17 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             } catch (Exception e) {
                 log.error("重新处理异常数据出错", e);
             }
-            CopyOnWriteArraySet<MarketingTask> pauseTask = observedScoreThreadService.getTaskList();
             for (MarketingTask task : taskList) {
-                long count = pauseTask.stream().filter(t -> t.getId().equals(task.getId()) && t.getIndex().equals(task.getIndex())).count();
-                if(count<=0){
-                    TaskStatusDistribute updateRecord = new TaskStatusDistribute();
-                    updateRecord.setStatus(2);
-                    updateRecord.setFileId(task.getFileId());
-                    updateRecord.setDistributeIndex(task.getIndex());
-                    TaskStatusDistributeExample example = new TaskStatusDistributeExample();
-                    example.createCriteria()
-                            .andFileIdEqualTo(task.getFileId())
-                            .andDistributeIndexEqualTo(task.getIndex())
-                            .andIsDelEqualTo(Constants.DATA_VALID);
-                    taskStatusDistributeMapper.updateByExampleSelective(updateRecord, example);
-                }
+                TaskStatusDistribute updateRecord = new TaskStatusDistribute();
+                updateRecord.setStatus(observedScoreThreadService.isInterrupt()?3:2);
+                updateRecord.setFileId(task.getFileId());
+                updateRecord.setDistributeIndex(task.getIndex());
+                TaskStatusDistributeExample example = new TaskStatusDistributeExample();
+                example.createCriteria()
+                        .andFileIdEqualTo(task.getFileId())
+                        .andDistributeIndexEqualTo(task.getIndex())
+                        .andIsDelEqualTo(Constants.DATA_VALID);
+                taskStatusDistributeMapper.updateByExampleSelective(updateRecord, example);
                 StraHisFile file = straHisFileMapper.selectByPrimaryKey(task.getFileId());
 
                 TaskStatusDistributeExample selStatusExample = new TaskStatusDistributeExample();
@@ -674,7 +667,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                 .andCreateTimeGreaterThanOrEqualTo(nowDayStartTime)
                 .andCreateTimeLessThan(newDay);
         List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(example);
-        if (taskStatusDistributes.size() == 0 || Integer.valueOf(1).equals(taskStatusDistributes.get(0).getStatus())) {
+        if (taskStatusDistributes.size() == 0 || Integer.valueOf(3).equals(taskStatusDistributes.get(0).getStatus())) {
             return true;
         } else {
             return false;

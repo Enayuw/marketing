@@ -11,24 +11,28 @@ import java.util.concurrent.ExecutorService;
 @Service
 public class ObservedScoreThreadServiceImpl {
 
+    private Integer interrupt = 1;
+
     private ExecutorService executorService;
 
-    private CopyOnWriteArraySet<MarketingTask> taskList = new CopyOnWriteArraySet<>();
+    public Integer getInterrupt() {
+        return interrupt;
+    }
 
-    public void addObserver(ExecutorService executorService){
+    public void setInterrupt(Integer interrupt) {
+        this.interrupt = interrupt;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
-    public void addTaskList(MarketingTask task){
-        taskList.add(task);
-    }
-
-    public void removeTaskList(MarketingTask task){
-        taskList.remove(task);
-    }
-
-    public CopyOnWriteArraySet<MarketingTask> getTaskList(){
-        return taskList;
+    public void addObserver(ExecutorService executorService){
+        this.executorService = executorService;
     }
 
     public void removeThread(){
@@ -40,6 +44,15 @@ public class ObservedScoreThreadServiceImpl {
     public void stopThread(){
         if(this.executorService != null){
             this.executorService.shutdownNow();
+        }
+        this.interrupt=0;
+    }
+
+    public boolean isInterrupt(){
+        if(new Integer(0).equals(this.interrupt)){
+            return Boolean.TRUE;
+        }else{
+            return Boolean.FALSE;
         }
     }
 }

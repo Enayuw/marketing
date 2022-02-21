@@ -8,10 +8,12 @@ import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.service.Impl.ConcurrentScoreServiceImpl;
 import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
+import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -57,12 +59,16 @@ public class TaskConcurrentJob extends AbstractSimpleElasticJob {
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
 
+    @Autowired
+    ObservedScoreThreadServiceImpl observedScoreThreadService;
+
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         Long start=System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
         List<Customer> customers=customerMapper.getAllCustomer();
-        if(!TaskExecCommonField.isExecTaskJob.equals(1)){
+        if(observedScoreThreadService.isInterrupt()){
             StringBuilder content = new StringBuilder();
             content.append("当前跑分任务手动停止状态请手动开启");
             alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
@@ -71,7 +77,7 @@ public class TaskConcurrentJob extends AbstractSimpleElasticJob {
         }
         customers.forEach(customer -> {
 
-            if(!TaskExecCommonField.isExecTaskJob.equals(1)){
+            if(observedScoreThreadService.isInterrupt()){
                 return;
             }
             try {

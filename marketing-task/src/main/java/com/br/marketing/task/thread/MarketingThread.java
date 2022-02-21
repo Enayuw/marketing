@@ -188,7 +188,7 @@ public class MarketingThread implements Callable<String> {
 //            Thread.sleep(2L);
         }
 //        catch (InterruptedException ex){
-////            observedThread.addTaskList(marketingTask);
+//            observedThread.addTaskList(marketingTask);
 //        }
         catch (Exception e) {
             log.error("生成文件出错。。。。", e);
