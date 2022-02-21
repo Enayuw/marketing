@@ -3,21 +3,23 @@ package com.br.marketing.check.thread;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.CustomerCalling;
-import com.br.marketing.entity.CustomerCallingDialog;
-import com.br.marketing.entity.CustomerCallingDialogExample;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 
 /**
  * @author guangchao.zhang
@@ -36,8 +38,12 @@ public class CallingDataThread implements Callable<String> {
 
     private final HttpProxyClient httpProxyClient;
 
+    private final String requestId;
 
-    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper, CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
+
+    public CallingDataThread(String RequestId,List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper,
+                             CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
+        this.requestId = RequestId;
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
@@ -47,13 +53,12 @@ public class CallingDataThread implements Callable<String> {
     @Override
     public String call() throws Exception {
         log.warn("开始多线程调用第三方接口");
-        String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
-        updateRequestId(customerCallingDialogLists, requestId);
-        customerCallingDialogLists.forEach(sendPostRequest(requestId));
+        updateRequestId();
+        customerCallingDialogLists.forEach(sendPostRequest());
         return "success";
     }
 
-    private Consumer<? super CustomerCallingDialog> sendPostRequest(String requestId) {
+    private Consumer<? super CustomerCallingDialog> sendPostRequest() {
         JSONObject param = new JSONObject();
         param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
@@ -71,13 +76,6 @@ public class CallingDataThread implements Callable<String> {
         return null;
     }
 
-    private JSONObject getJsonObject(String extendConfigInfo) {
-        JSONObject extendConfigInfoJson = new JSONObject();
-        if (StringUtils.isNotBlank(extendConfigInfo)) {
-            extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
-        }
-        return extendConfigInfoJson;
-    }
 
 
     public static String toJson(Object object) {
@@ -87,7 +85,7 @@ public class CallingDataThread implements Callable<String> {
         return gson.toJson(object);
     }
 
-    private void updateRequestId(List<CustomerCallingDialog> customerCallingDialogLists, String requestId) {
+    private void updateRequestId() {
         List<Long> ids = customerCallingDialogLists
                 .stream()
                 .map(CustomerCallingDialog::getId)

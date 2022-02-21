@@ -70,7 +70,34 @@ public class HttpProxyClient {
 		Map<String,Object> resultMap = new HashMap<>();
 		try {
 			log.warn("http发送数据入参--请求地址:{},参数：{}",url,data);
-			String result = send(data,url,isProxy);
+			//String result = send(data,url,isProxy);
+			String result = "{\n" +
+					"\"code\": 00,\n" +
+					"\"message\": \"操作成功\",\n" +
+					"\"resultData\": [\n" +
+					"    {\n" +
+					"      \"id\":\"453\",\n" +
+					"    \"taskId\": 2837147644194717696,\n" +
+					"    \"caseNum\": 1200543989,\n" +
+					"    \"status\": \"successful\",\n" +
+					"     \"errorDescription\": \"\"\n" +
+					"    },\n" +
+					"    {\n" +
+					"       \"id\":\"455\",\n" +
+					"    \"taskId\": 2837147644194717696,\n" +
+					"    \"caseNum\": 1200543981,\n" +
+					"    \"status\": \"failure\",\n" +
+					"    \"errorDescription\": \"格式不符合要求\"\n" +
+					"    },\n" +
+					"    {\n" +
+					"      \"id\":\"435\",\n" +
+					"    \"taskId\": 2837147644194717696,\n" +
+					"    \"caseNum\": 1200543998,\n" +
+					"    \"status\": \"failure\",\n" +
+					"    \"errorDescription\": \"编号异常\"\n" +
+					"    }\n" +
+					"\t]\n" +
+					"}";
 			log.warn("http发送数据返回结果{}",result);
 			resultMap.put("data",result);
 			if(StringUtils.isNotBlank(result)){

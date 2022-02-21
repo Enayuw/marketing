@@ -175,10 +175,6 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
                 String fileName = entry.getKey();
-                //if (sftpPath.contains("marketing-calling")) {
-                //    log.warn("isDirectory file:{}", fileName);
-                //    processFile(sftpPath + "/" + fileName, sftpClient, map, apiCode);
-                //} else
                 if (fileName.endsWith(".success")) {
                     Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
                     set.add(fileName.substring(0, fileName.length() - 8));

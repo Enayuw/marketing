@@ -37,4 +37,6 @@ public interface CustomerCallingDialogMapper {
     int updateByPrimaryKey(CustomerCallingDialog record);
 
     List<CustomerCallingDialog> getInfoByColumns(Map<String, Object> cusMap);
+
+    List<Map<String, Object>> getRequestId();
 }

@@ -681,4 +681,16 @@
     <select id="getInfoByColumns" resultType="com.br.marketing.entity.CustomerCallingDialog">
         select id, ${columns} from b_marketing_customer_calling_dialog where api_code = #{apiCode} and send_status = #{sendStatus} ${conditions};
     </select>
+    <select id="getRequestId" resultType="java.util.Map">
+        select b.request_id as requestId, a.push_url as pushUrl, a.api_code as apiCode,
+               a.extend_config_info as extendConfigInfo,b.create_time as createTime
+        from b_marketing_customer_calling_dialog b
+                 inner join b_marketing_customer_calling a on a.api_code = b.api_code
+        where b.send_status = '1'
+          and a.status = '1'
+        group by b.request_id, a.api_code
+        order by b.create_time asc;
+
+
+    </select>
 </mapper>
