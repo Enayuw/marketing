@@ -147,14 +147,15 @@ public class PushDataServiceImpl implements PushDataService{
             }catch (Exception e){
             }
         }
-        StringBuilder content = new StringBuilder();
-        content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
-                .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
-                .append("数量：".concat(number.toString()).concat("\r\n"))
-                .append("文件推送dass结束".concat("\r\n"));
-        alarmClient.sendAlarm(content.toString(),"Dass结果文件推送",appName,secretKey,
-                Constants.sendCodeMap.get("uploadSuccess"));
-
+        if(SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())){
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("文件推送dass结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(),"Dass结果文件推送",appName,secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
