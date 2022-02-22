@@ -38,12 +38,9 @@ public class CallingDataThread implements Callable<String> {
 
     private final HttpProxyClient httpProxyClient;
 
-    private final String requestId;
 
-
-    public CallingDataThread(String RequestId,List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper,
+    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper,
                              CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
-        this.requestId = RequestId;
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
@@ -52,13 +49,14 @@ public class CallingDataThread implements Callable<String> {
 
     @Override
     public String call() throws Exception {
+        String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
         log.warn("开始多线程调用第三方接口");
-        updateRequestId();
-        customerCallingDialogLists.forEach(sendPostRequest());
+        updateRequestId(requestId);
+        customerCallingDialogLists.forEach(sendPostRequest(requestId));
         return "success";
     }
 
-    private Consumer<? super CustomerCallingDialog> sendPostRequest() {
+    private Consumer<? super CustomerCallingDialog> sendPostRequest(String requestId) {
         JSONObject param = new JSONObject();
         param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
@@ -85,7 +83,7 @@ public class CallingDataThread implements Callable<String> {
         return gson.toJson(object);
     }
 
-    private void updateRequestId() {
+    private void updateRequestId(String requestId) {
         List<Long> ids = customerCallingDialogLists
                 .stream()
                 .map(CustomerCallingDialog::getId)
