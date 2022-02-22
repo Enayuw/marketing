@@ -89,6 +89,7 @@ public class SftpToDbCallingService {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         HashMap<Integer, String> address = getAddress(context, localFile, baseHeads, txtFilePathAndName);
         if (address != null) {
+            doRenameFile(localFile, sftpClient,".tidying");
             doProcess(localFile, fuc, txtFilePathAndName, address, sftpClient);
         }
     }
@@ -125,7 +126,7 @@ public class SftpToDbCallingService {
             BufferedReader br = new BufferedReader(read);
             String row;
             // 创建线程池
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
             while ((row = br.readLine()) != null) {
                 doThreadPoolProcess(localFile, fuc, address, line, errorMark, row, threadPool);
                 line++;
@@ -190,7 +191,7 @@ public class SftpToDbCallingService {
             updateFile.setComplete("3");
         }
         localFileMapper.updateByPrimaryKeySelective(updateFile);
-        doRenameFile(localFile, sftpClient);
+        doRenameFile(localFile, sftpClient,".bak");
         doSendEmailAlert(localFile, errorMark, updateFile);
     }
 
@@ -222,14 +223,14 @@ public class SftpToDbCallingService {
      * @param localFile 本地文件对象
      * @param sftpClient sftp对象
      */
-    private void doRenameFile(LocalFile localFile, SftpClient sftpClient) {
+    private void doRenameFile(LocalFile localFile, SftpClient sftpClient,String tidying) {
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String srcPath = localFile.getSrcPath();
         String fileName = localFile.getFileName();
         String nameTxt = srcPath + "/" + fileName;
         String nameSuc = srcPath + "/" + fileName + ".success";
-        String newNameTxt = nameTxt +"_"+ yyyyMMddHHmmss + ".bak";
-        String newNameSuc = nameSuc + "_" + yyyyMMddHHmmss + ".bak";
+        String newNameTxt = nameTxt +"_"+ yyyyMMddHHmmss + tidying;
+        String newNameSuc = nameSuc + "_" + yyyyMMddHHmmss + tidying;
         try {
             sftpClient.rename(nameTxt, newNameTxt);
             sftpClient.rename(nameSuc, newNameSuc);
