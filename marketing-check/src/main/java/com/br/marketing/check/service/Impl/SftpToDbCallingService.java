@@ -89,7 +89,7 @@ public class SftpToDbCallingService {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         HashMap<Integer, String> address = getAddress(context, localFile, baseHeads, txtFilePathAndName);
         if (address != null) {
-            doRenameFile(localFile, sftpClient,".tidying");
+            doRenameFile(localFile, sftpClient,".bak");
             doProcess(localFile, fuc, txtFilePathAndName, address, sftpClient);
         }
     }
@@ -191,7 +191,7 @@ public class SftpToDbCallingService {
             updateFile.setComplete("3");
         }
         localFileMapper.updateByPrimaryKeySelective(updateFile);
-        doRenameFile(localFile, sftpClient,".bak");
+
         doSendEmailAlert(localFile, errorMark, updateFile);
     }
 
