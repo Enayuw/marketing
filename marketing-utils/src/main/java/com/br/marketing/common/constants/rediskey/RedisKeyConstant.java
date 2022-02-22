@@ -24,4 +24,8 @@ public class RedisKeyConstant {
      * 没有命中标识的产品
      */
     public static final String fileToDbByJuZi = prefix.concat("ftpToDb:juzi");
+
+    public static final String haluoPushDx = prefix.concat("haluo:pushdx");
+
+    public static final String shuhePushDx = prefix.concat("shuhe:pushdx");
 }

@@ -171,6 +171,9 @@
               and is_task = #{dataType}
           </if>
     </select>
+    <select id="selectSynsUserByCustNumLast" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode} where cust_num = #{custNum} order by applet_time desc limit 1;
+    </select>
     <update id="updateSyncUserStatus">
         update b_marketing_sync_${apiCode} set is_task = #{isTask} where id = #{id}
     </update>

@@ -66,6 +66,12 @@
             <groupId>com.dangdang</groupId>
             <artifactId>br-elastic-job-core</artifactId>
             <version>1.1.7-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
