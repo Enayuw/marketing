@@ -47,7 +47,8 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
         if (day > -1) {
             firstTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             if (day == 0) {
-                lastTime = firstTime.with(TemporalAdjusters.lastDayOfMonth());
+                lastTime = firstTime.with(TemporalAdjusters.lastDayOfMonth())
+                        .withHour(23).withMinute(59).withSecond(59);
             } else {
                 lastTime = firstTime.plusDays(day).withHour(23).withMinute(59).withSecond(59);
             }
