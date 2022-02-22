@@ -1,12 +1,15 @@
 package com.br.marketing.service.Impl;
 
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
 @Service
@@ -32,13 +35,28 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public Boolean isPeriodOfValidity(String apiCode, String custNum, PeriodOfValidityDO periodOfValidityDO) {
-        try {
-            long count = marketingSyncInfoMapper.getPeriodOfValiditySum(apiCode, custNum, periodOfValidityDO);
-            return count > 0;
-        } catch (Exception e) {
-            throw e;
+    public Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day) {
+        final LocalDateTime localDateTime = (date == null ? LocalDateTime.now()
+                : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        final Date creatTime = getCreatTimeByCustNumAndUserType(apiCode, custNum, userType);
+        if (ObjectUtils.isEmpty(creatTime)) {
+            return false;
         }
+        final LocalDateTime firstTime;
+        final LocalDateTime lastTime;
+        if (day > -1) {
+            firstTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            if (day == 0) {
+                lastTime = firstTime.with(TemporalAdjusters.lastDayOfMonth());
+            } else {
+                lastTime = firstTime.plusDays(day).withHour(23).withMinute(59).withSecond(59);
+            }
+        } else {
+            lastTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            firstTime = lastTime.plusDays(day).withHour(0).withMinute(0).withSecond(0);
+        }
+        return (localDateTime.isAfter(firstTime) || localDateTime.isEqual(firstTime))
+                && (localDateTime.isBefore(lastTime) || localDateTime.isEqual(lastTime));
     }
 
     @Override
@@ -52,7 +70,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public Date getAppletTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
+    public String getAppletTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
         return marketingSyncInfoMapper.getAppletTimeByCustNumAndUserType(apiCode, custNum, userType);
     }
 

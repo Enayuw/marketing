@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.entity.*;
@@ -107,15 +105,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
         String groupType = map.get("groupType").toString();
         boolean intentionGrade = dto.getDetail().getIntentionGrade().equals("A类");
-        if(!"促申完".equals(groupType) || !intentionGrade){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A类！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (!"促申完".equals(groupType) || !intentionGrade) {
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A类！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return false;
         }
-        PeriodOfValidityDO periodOfValidityDO = PeriodOfValidityDO.closInterval15Day();
-        Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), periodOfValidityDO);
-        if(!isPeriod) {
+        Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
+                dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
+        if (!isPeriod) {
             //不在有效期内
-            log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return false;
         }
         return true;
