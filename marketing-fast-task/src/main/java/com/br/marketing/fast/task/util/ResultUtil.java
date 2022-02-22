@@ -134,7 +134,7 @@ public class ResultUtil {
 
         ProductResultByConfigSimpleServiceImpl iProductResultSimpleService = FastTaskApplication.ac.
                 getBean(ProductResultByConfigSimpleServiceImpl.class);
-        Result result = iProductResultSimpleService.buildResult(hxJson, products, sb, proFieldMap, sep, user,strategyId,esResult);
+         iProductResultSimpleService.buildResult(hxJson, sb,sep, user,esResult);
 
         if(log.isInfoEnabled()){
             log.info("sb信息--"+sb.toString());

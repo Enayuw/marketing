@@ -18,14 +18,11 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
-import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
-import com.br.marketing.vo.TaskExtendInfoVO;
-import com.google.common.collect.Lists;
 
 import java.util.*;
 
@@ -36,10 +33,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.es.bean.QueryBaseBean;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
@@ -51,9 +45,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import javax.script.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.concurrent.*;
 
 
@@ -631,4 +622,53 @@ public class redis {
 
         }
     }
+
+    @Autowired
+    ProductFlagScoreMapper productFlagScoreMapper;
+
+    @Test
+    public void testExample(){
+        for (int i = 0; i < 50; i++) {
+            new Thread(()->{
+                ProductFlagScoreExample flagScoreExample = new ProductFlagScoreExample();
+                flagScoreExample.createCriteria().andIsDelEqualTo(1);
+                try {
+                    List<ProductFlagScore> productFlagScores = productFlagScoreMapper.selectByExample(flagScoreExample);
+                }catch (Exception ex){
+                    System.out.println(ex.getMessage());
+                }
+            }).start();
+        }
+    }
+
+    @Test
+    public void addvalueRedis(){
+        String key = "marketing:transfer:pushcustomer:apicode";
+        ArrayList<String> objects = new ArrayList<>();
+        objects.add("7410787");
+        objects.add("3710004");
+        objects.add("4004643");
+        objects.add("3710012");
+        redisChgService.sadd(key,objects);
+    }
+
+    @Test
+    public void desc(){
+        JSONArray objects = JSONArray.parseArray("[{\"id\":283074,\"phone\":\"xowlWS+FJYNIFzcMUvDmsA==\"},{\"id\":199439,\"phone\":\"IdXR+LHGRkpnKbVawyvtMw==\"},{\"id\":256011,\"phone\":\"tL5AvKsiC9QUzqEfaEiWEQ==\"},{\"id\":283075,\"phone\":\"lMUkp6FvbBHAVMUbo3uxpg==\"},{\"id\":199440,\"phone\":\"ngol0y13+8Sop84Uv+KcDQ==\"},{\"id\":256012,\"phone\":\"DEIhAMDuY/uG/Q4Tag2RFA==\"},{\"id\":199441,\"phone\":\"oCwy0JFrWki1C5btIDhowg==\"},{\"id\":283076,\"phone\":\"Gey/IVCfDyXoWjpyx5YwDA==\"},{\"id\":256013,\"phone\":\"1s3ekXYtMGyKBCNvCRXetQ==\"},{\"id\":36543,\"phone\":\"sI56roRJVF6DYyih6Dr4qA==\"},{\"id\":283077,\"phone\":\"KxsqRFJPXN/8GfCEp4vEwg==\"},{\"id\":256014,\"phone\":\"MBuTqNEVrz+0hsJJJNEPWA==\"},{\"id\":36544,\"phone\":\"tNfAZYIKRyBXAbg3nSCkIQ==\"},{\"id\":283078,\"phone\":\"Hbk22zyrPNDp6g9N9KWnxw==\"},{\"id\":256015,\"phone\":\"Em0fAej0ZsklPA4wDnavlQ==\"},{\"id\":256017,\"phone\":\"y8uE3syM9wtBlIVD8tDg2g==\"},{\"id\":256018,\"phone\":\"FtlC8icAjbh+vt4KHnIu3Q==\"},{\"id\":300001,\"phone\":\"D5ghHzahjBzsIHYYDu6eHw==\"},{\"id\":156356,\"phone\":\"AOPbG8ZvA6q6WM+n9q7Rsw==\"},{\"id\":256019,\"phone\":\"Eh+3K6EzvULDuAf2ihX2OQ==\"},{\"id\":156357,\"phone\":\"YIikNVeZmMkCJf4+sYWo+A==\"},{\"id\":36545,\"phone\":\"ogAF8SXzpfHydwT7+vT8ug==\"},{\"id\":256020,\"phone\":\"p4qsUFPf8OVFVLU3gI1YCA==\"},{\"id\":224720,\"phone\":\"+Mclya2LMz/I57KexSuwhA==\"},{\"id\":36546,\"phone\":\"LrxY4yz/axNXsT7Xs/zzKw==\"},{\"id\":224721,\"phone\":\"sGn24Bna/mLoRoM+O0Zs0Q==\"},{\"id\":283079,\"phone\":\"HpXGhMmZixBZKNdv95is1A==\"},{\"id\":256021,\"phone\":\"6WrXaK8J+koheC0MltfIkQ==\"},{\"id\":36547,\"phone\":\"pu3fURdmSUR0hwkObTCesg==\"},{\"id\":19534,\"phone\":\"gGyv0sJDYiO0/zwnnm+bYQ==\"},{\"id\":300002,\"phone\":\"WQ9jU5sbWzgxJ095yjj2eA==\"},{\"id\":36548,\"phone\":\"sUc5VJZNDFGQ7nPGdwLetA==\"},{\"id\":36549,\"phone\":\"hUYkna2v54WWpQ+XnVRtUg==\"},{\"id\":199442,\"phone\":\"YiQzwO9PmPF9LormB+0yvw==\"},{\"id\":283080,\"phone\":\"2ZG6x40Ak4tUy3+Q5t1oiQ==\"},{\"id\":283081,\"phone\":\"W7qF0Wj57huOfV+sASH5yw==\"},{\"id\":199443,\"phone\":\"ZAGe9YD9dSDDtZVmUUJsXw==\"},{\"id\":224722,\"phone\":\"tx2Rz4vMvREMA6IXJ0UA5Q==\"},{\"id\":256022,\"phone\":\"KuXoOeB+oYRJpJqCYfjthg==\"},{\"id\":283082,\"phone\":\"dZ9pO7BgB+BRpNOCdb7iMg==\"},{\"id\":256023,\"phone\":\"dj4SIexITEY4SALQyoTHiA==\"},{\"id\":19535,\"phone\":\"HYJA1jXZedYNGRj5vrj/wQ==\"},{\"id\":36550,\"phone\":\"1CxEqGgH6ziATSQhAH8N5g==\"},{\"id\":36551,\"phone\":\"UPWy95RGa/q7hDaRgyV3lQ==\"},{\"id\":36552,\"phone\":\"8U6dTuHvbZsk3TM4AwcX4A==\"},{\"id\":36553,\"phone\":\"PRsc79uz1W0ni3VWEqcMIQ==\"},{\"id\":36554,\"phone\":\"QWCzkGo8vrC8AfJ1O5xvRA==\"},{\"id\":36555,\"phone\":\"bP2GZoxZH5qPN9chYD+Olg==\"},{\"id\":36556,\"phone\":\"/fInKRqniblEg2+6Lif7gQ==\"},{\"id\":156358,\"phone\":\"Y60/mjo5bHLTIl14edB64g==\"},{\"id\":36557,\"phone\":\"YOkgluyi+9fs3MWDKc48ww==\"},{\"id\":300003,\"phone\":\"XMiQK8N3Aj74Q04eVbvo4w==\"},{\"id\":36558,\"phone\":\"NJMMl5rrowu8HhCDQNMkcg==\"},{\"id\":256027,\"phone\":\"TjUEisB+h8YYLUfV+PeK5w==\"},{\"id\":36559,\"phone\":\"P8gTLC0iUcqe2H9dtanc2A==\"},{\"id\":156359,\"phone\":\"aZetBxFAlMVEFciy5BE+dA==\"},{\"id\":156360,\"phone\":\"rxUcQRND8uY1k9F/C7z3jA==\"},{\"id\":36560,\"phone\":\"U/W25KX2JqSSs6+qpGU91A==\"},{\"id\":36561,\"phone\":\"O9WrEIv1NdRUl3PQdlztzQ==\"},{\"id\":36562,\"phone\":\"f24veOu/poNLUMjKZoL9yg==\"},{\"id\":199444,\"phone\":\"ClH07KB+cmRakr7fSSObGg==\"},{\"id\":36563,\"phone\":\"cMeLgoqpgPZDMMQxdNBzjw==\"},{\"id\":36564,\"phone\":\"FS162fSu7b9wugZGkDccDg==\"},{\"id\":256029,\"phone\":\"yI97rfb/vNsKvHpUXEjb9A==\"},{\"id\":36565,\"phone\":\"yNpUR294rYOiKE3+Q3jVFw==\"},{\"id\":36566,\"phone\":\"FFy+fZg1JbE/JcctwfjK/w==\"},{\"id\":156361,\"phone\":\"ojUqasK5rZrpGi1VLJRvOA==\"},{\"id\":36567,\"phone\":\"+33ef0GBER+NGD6DJRNhqQ==\"},{\"id\":36568,\"phone\":\"s/zyIuML6G4xFsFIVUmO8Q==\"},{\"id\":36569,\"phone\":\"NaAZ5BolBNGpPWKCAF2e5A==\"},{\"id\":36570,\"phone\":\"mtPsZmFMglzEDFZjnu7W3A==\"},{\"id\":199445,\"phone\":\"CWTKPBgW52C2vstA04VgPw==\"},{\"id\":224723,\"phone\":\"S1uDVIcDxsqPR0LpWTcrkA==\"},{\"id\":156362,\"phone\":\"QjgTGqMp8f3Qa4+9p2sDUA==\"},{\"id\":36572,\"phone\":\"OKdkOzwtwC8QF7TnDEF55A==\"},{\"id\":36573,\"phone\":\"nJodJXJKfvbH3wV1hl7KzA==\"},{\"id\":156363,\"phone\":\"xpQmbKJXyPVXJm3Io5HhMg==\"},{\"id\":36574,\"phone\":\"JJPof9496DuRetutn6xXDw==\"},{\"id\":36575,\"phone\":\"C1tzEbdhe83FIvWg8WrIZg==\"},{\"id\":19536,\"phone\":\"X/TDRNtrs5VhLLUAAVjx/Q==\"},{\"id\":156364,\"phone\":\"uc/F5/AWRrtwT4N2fiK8yw==\"},{\"id\":36576,\"phone\":\"+sny5HsXuhspOKYuyXo/ig==\"},{\"id\":36577,\"phone\":\"F/DUvx3yG7T5xtdg0wFqQA==\"},{\"id\":224724,\"phone\":\"M9KwyNdpPigWOks63KJiNw==\"},{\"id\":36578,\"phone\":\"S3Eb8FiDDtkPRFAwmpyzJA==\"},{\"id\":36579,\"phone\":\"fybj4cSEW/NG/OII8kofpw==\"},{\"id\":36580,\"phone\":\"hkNmqDuuQN8So+mLWZDfdg==\"},{\"id\":36581,\"phone\":\"2n/DZNXyTtCQ5Z/MdGysUg==\"},{\"id\":36582,\"phone\":\"Asmi/cmmsTkQ+XUu+SGlOg==\"},{\"id\":224725,\"phone\":\"PRYR4aYX1aJq4+WOssQ9XQ==\"},{\"id\":36583,\"phone\":\"cSzNzxhDXtkDDUuEtQdf/Q==\"},{\"id\":36584,\"phone\":\"FXZgHOl0re4re/VvQ6fdCA==\"},{\"id\":19538,\"phone\":\"5CYmlO2lf7jbWO370r8q0A==\"},{\"id\":224726,\"phone\":\"jSIamZw6l/lSg5NgimmSBw==\"},{\"id\":300004,\"phone\":\"ufPk8LSsXZmDxID8S6zFHQ==\"},{\"id\":36585,\"phone\":\"gHoC0itVhP8EU/T/xyuxtA==\"},{\"id\":156365,\"phone\":\"7pUbJJeNsmxPVlLIl6peRg==\"},{\"id\":156366,\"phone\":\"oRqUFtJzzQ0sHciOTzFGug==\"},{\"id\":224727,\"phone\":\"5HI9lOi33LIMLZMaMsV4fw==\"},{\"id\":199446,\"phone\":\"v/wsC5dWWKLNWUCXRMhztw==\"},{\"id\":300005,\"phone\":\"0s22PJXCGTitnETaO9N+1w==\"},{\"id\":156367,\"phone\":\"yoHPjQebfhqDgFORee9xxA==\"},{\"id\":199448,\"phone\":\"wph+KSMOoOVZwb+qMhtN4w==\"},{\"id\":256033,\"phone\":\"hdczWrINkVD7WXGsrR014g==\"},{\"id\":224728,\"phone\":\"t1Ynpl/ZNKq+C3Sz8rojqQ==\"},{\"id\":256034,\"phone\":\"lyNdJ0wWP9gpkJ4wDAimEA==\"},{\"id\":36586,\"phone\":\"xS8uDI1gWYwUMQdC5hJhwQ==\"},{\"id\":199449,\"phone\":\"6sxiC7CNXizEAkpLevQpGQ==\"},{\"id\":36587,\"phone\":\"dHFWnjAW70KswNCD9doshw==\"},{\"id\":36588,\"phone\":\"83PgMW5ByCQDHXbHNYp+HA==\"},{\"id\":199450,\"phone\":\"2Eh6dZDnHY6eqlruqKzMKQ==\"},{\"id\":300006,\"phone\":\"DLWdyCorGmEIFHhTCvHThg==\"},{\"id\":36589,\"phone\":\"JGHcn2A9RjwKsPGdiTCAlA==\"},{\"id\":36590,\"phone\":\"pzp7FDHU5Mt6DxvZaOrO2w==\"},{\"id\":224729,\"phone\":\"QH/cYiaoBvFSNipcAbeH8w==\"},{\"id\":156368,\"phone\":\"JGrxD66EaABjqTdxQbhmpw==\"},{\"id\":36591,\"phone\":\"UUnwcoEfFcVWJAUddAg2fw==\"},{\"id\":156369,\"phone\":\"OZSnum8Eem71yJmdLhBiZQ==\"},{\"id\":300007,\"phone\":\"4LaRsFNOmit4pQ1uDmmaSg==\"},{\"id\":36592,\"phone\":\"gDqHQo2zRM2AmnPDHze5WA==\"},{\"id\":36593,\"phone\":\"Tx7t2A61Ln8nukgMFJoBfA==\"},{\"id\":156370,\"phone\":\"ojsYV18UZLmIW2kTX5pzRA==\"},{\"id\":36594,\"phone\":\"q7Q6QagSINRwgEJg2rruzQ==\"},{\"id\":156371,\"phone\":\"nfbd28KGbgtptM6ZUYpxBQ==\"},{\"id\":156372,\"phone\":\"JY+w1VsqIed0sPMnEvNjSA==\"},{\"id\":156373,\"phone\":\"2zoAggIirsdnptDjuTCuuQ==\"},{\"id\":36595,\"phone\":\"lxxDsHecE0oUInLsnRW0XA==\"},{\"id\":300008,\"phone\":\"njhrnPW//Dz5Ujtg2DCZ2w==\"},{\"id\":36596,\"phone\":\"QP4a1k7bi3UWfuqvxjaQuQ==\"},{\"id\":300009,\"phone\":\"4azluWFMp/R+c7xD9Z1jXQ==\"},{\"id\":199454,\"phone\":\"C5mUBLx7ToEIcmi1MaqKgA==\"},{\"id\":19539,\"phone\":\"4D52UfoVCiI5zvKCTx3gUg==\"},{\"id\":36597,\"phone\":\"fci8VRW3Zu2diMKYBFIdGg==\"},{\"id\":300010,\"phone\":\"kr4XHuOheDJvztiivctt/g==\"}]");
+        StringBuilder stringBuilder = new StringBuilder();
+        String updateSql_temp = "update b_phone_sale set phone = '%s',phone_aes='%s' where id = %d;";
+        objects.forEach(t->{
+             JSONObject t1 = (JSONObject) t;
+             Long id = t1.getLong("id");
+             String phone_old = t1.getString("phone");
+             String phone_new = AESUtil.decrypt(phone_old, "ovksl39fcl13m9dF");
+             String phone_new_aes = AESUtil.aesEncrypty(phone_new, "MgoTm8GxuxTUc6y5");
+             String phone_log = com.br.common.util.BrCipherMaker.getInstance().encode(phone_new);
+             String updateSql = String.format(updateSql_temp, phone_new_aes, phone_log, id);
+            stringBuilder.append(updateSql);
+        });
+        System.out.println(stringBuilder);
+
+    }
+
 }

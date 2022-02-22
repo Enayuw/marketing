@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -8,7 +9,7 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.vo.SyncConfigVO;
+import com.br.marketing.vo.SyncConfigEditVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
@@ -18,8 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,7 +42,13 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public PageResultReturn getSftpList(int page, int pageSize, String apiCode) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<SyncConfigVO> list = syncConfigMapper.getSftpList(apiCode);
+            List<SyncConfigEditVO> list = syncConfigMapper.getSftpList(apiCode);
+            list.stream().map(syncConfigEditVO ->{
+                String s = DataTypeEnum.fromDescByValue(syncConfigEditVO.getDataType());
+                syncConfigEditVO.setDataTypeValue(s);
+                return syncConfigEditVO;
+            }).collect(Collectors.toList());
+
             return PageResultReturn.setPageResult(list, page,pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -49,8 +57,23 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     }
 
     @Override
+    public List<Map> getDataTypeList(){
+        List<Map> list = new ArrayList<>();
+        for(DataTypeEnum typeEnum : DataTypeEnum.values()){
+            Map map = new HashMap();
+            map.put("value",typeEnum.getValue());
+            map.put("desc",typeEnum.getDesc());
+            list.add(map);
+        }
+        return list;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath) {
+    public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath
+            , Integer type, Integer dataType,
+                                       String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
+                                       String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
         syncConfig.setId(null);
         syncConfig.setCreateTime(null);
@@ -58,7 +81,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         SyncConfig syncConfigNew = new SyncConfig();
 
         //判重
-        boolean only = sftpOnly(null, apiCode, syncConfig.getDataType(), syncConfig.getType());
+        boolean only = sftpOnly(null, apiCode, dataType!=null?dataType:syncConfig.getDataType(),
+                type!=null?type:syncConfig.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
         }
@@ -69,6 +93,17 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setApiCode(apiCode);
             syncConfigNew.setSrcPath(srcPath);
             syncConfigNew.setTargetPath(targePath);
+            syncConfigNew.setType(type);
+            syncConfigNew.setDataType(dataType);
+            syncConfigNew.setSuffix(suffix);
+            syncConfigNew.setSrcSftpHost(srcSftpHost);
+            syncConfigNew.setSrcSftpPort(srcSftpPort);
+            syncConfigNew.setSrcSftpUser(srcSftpUser);
+            syncConfigNew.setSrcSftpPwd(srcSftpPwd);
+            syncConfigNew.setTargetSftpHost(targetSftpHost);
+            syncConfigNew.setTargetSftpPort(targetSftpPort);
+            syncConfigNew.setTargetSftpUser(targetSftpUser);
+            syncConfigNew.setTargetSftpPwd(targetSftpPwd);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
         }catch (Exception e){
@@ -86,19 +121,28 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> editSftp(String id, String apiCode, String srcPath, String targePath) {
-        SyncConfig select = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
+    public ApiResult<Boolean> editSftp(SyncConfigEditVO vo) {
+        SyncConfig select = syncConfigMapper.selectByPrimaryKey(vo.getId());
         //判重
-        boolean only = sftpOnly(id, apiCode, select.getDataType(), select.getType());
+        boolean only = sftpOnly(vo.getId().toString(), vo.getApiCode(), select.getDataType(), select.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
         }
 
         SyncConfig syncConfig = new SyncConfig();
-        syncConfig.setId(Long.parseLong(id));
-        syncConfig.setApiCode(apiCode);
-        syncConfig.setSrcPath(srcPath);
-        syncConfig.setTargetPath(targePath);
+
+        try {
+            BeanUtils.copyProperties(syncConfig,vo);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //copyProperties方法Integer如果为null，赋值0，需要单独处理
+        syncConfig.setSrcSftpPort(vo.getSrcSftpPort());
+        syncConfig.setTargetSftpPort(vo.getTargetSftpPort());
+        syncConfig.setDataType(vo.getDataType());
+        syncConfig.setType(vo.getType());
         syncConfig.setUpdateTime(new Date());
         int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
         if (StringUtils.isEmpty(update) || update<=0){

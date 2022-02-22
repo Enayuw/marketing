@@ -12,12 +12,13 @@ import java.util.Map;
 import java.util.Set;
 
 public interface IProductResultSimpleService {
-    Result buildResult(JSONObject hxJson, Set<String> products, StringBuilder sb,
-                       Map<String, String> proFieldMap, String sep, MarketingUser user, String strategyId, JSONObject esResult);
+    Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, MarketingUser user,JSONObject esResult);
 
-    Result<String> getFieldsStrInfo(String apiCode,String batchNumber,String strategyId);
+    Result<String> getFieldsStrInfo(String apiCode,String batchNumber);
 
-    Result<List<String>> getFieldsInfo(String apiCode,String batchNumber,String strategyId);
+    Result<List<String>> getFieldsInfo(String apiCode,String batchNumber);
+
+    String getStrategyProductConfigStr(String apiCode,String batchNumber);
 
     BaseHeadConfigVO getOrderBaseHeadInfo(BaseHeadConfigVO vo);
 

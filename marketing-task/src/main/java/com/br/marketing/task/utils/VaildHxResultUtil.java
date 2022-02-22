@@ -31,7 +31,7 @@ public class VaildHxResultUtil {
      */
     public static boolean isPass(String hxResult, JSONObject meal, String apiCode,
                                  RedisChgService redisChgService, MarketingUser lu
-            , List<MarketingUser> errorList,List<String> noflagproductlist){
+            , List<MarketingUser> errorList,List<String> noflagproductlist,List<String> flagProductList){
         boolean result=true;
         /**
          * 为空的情况一般是网络异常，重试之后也是异常，所以这种情况也需要加入到重新处理的文件中
@@ -65,9 +65,7 @@ public class VaildHxResultUtil {
                 flag="flag_"+s;
                 string = resultJson.getString(flag);
             }else{
-                ProductResultByConfigSimpleServiceImpl bean = Scheduler.ac.getBean(ProductResultByConfigSimpleServiceImpl.class);
-                Result<List<String>> flagProduct = bean.getFlagProduct();
-                if(ResultCode.SUCCESS.getValue().equals(flagProduct.getCode())&&flagProduct.getData().contains(key)){
+                if(flagProductList.contains(key)){
                         flag="flag_score";
                         string = resultJson.getString(flag);
                 }else{

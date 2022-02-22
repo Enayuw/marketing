@@ -3,9 +3,6 @@ package com.br.marketing.common.utils.net;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -13,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Function;
 
 @Slf4j
 public class ApiCaller {
@@ -114,12 +110,12 @@ public class ApiCaller {
         interfaceLog.setUrl(url);
         interfaceLog.setRequestTime(new Date());
         long start = System.currentTimeMillis();
-        log.warn("POST=====:{},url:{},body:{}", this, url, postHttpEntity.getBody());
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
+        Long l = System.currentTimeMillis() - start;
         if(momCommonUtil != null) {
             try {
-                interfaceLog.setCostTime(System.currentTimeMillis() - start);
+                interfaceLog.setCostTime(l);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
                 logDbPool.submit(()->{
@@ -128,6 +124,11 @@ public class ApiCaller {
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+        }
+        if(log.isInfoEnabled()) {
+            log.info(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
+                    , url, l, postHttpEntity.getBody()
+                    , stringResponseEntity.getStatusCodeValue(), stringResponseEntity.getBody()));
         }
         transfer.setHttpCode(stringResponseEntity.getStatusCodeValue());
         transfer.setResult(stringResponseEntity.getBody());

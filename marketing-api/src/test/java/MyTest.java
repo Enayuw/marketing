@@ -1,6 +1,7 @@
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -10,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,6 +23,29 @@ import java.util.regex.Pattern;
 public class MyTest {
 
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+    @Test
+    public void testTime(){
+        LocalDate startDate = LocalDate.parse("2021-12-29",DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDate now = LocalDate.now();
+        long days = startDate.until(now, ChronoUnit.DAYS);
+        System.out.println(days);
+    }
+
+
+    @Test
+    public void haluoBydxTimeFormat(){
+        String time = "2021-10-12 18:07:00:000";
+        if(StringUtils.isBlank(time)){
+            System.out.println("a====="+time);
+        }
+
+        if(Pattern.matches(msTimeRegex,time)){
+            System.out.println("b====="+time.replace(":000",""));
+        }
+
+        System.out.println("c====="+time);
+    }
 
     @Test
     public void testThreadSafe(){
@@ -152,4 +177,8 @@ public class MyTest {
         System.out.println("输出3："+containsc+"ceshi:"+a % 2);
     }
 
+    @Test
+    public void buildEsSql(){
+
+    }
 }

@@ -86,6 +86,13 @@ public class DateHelper {
         return sf.format(c.getTime());
     }
 
+    public static String getDateByHour(int minute) {
+        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.HOUR, minute);
+        return sf.format(c.getTime());
+    }
+
     public static int daysBetween(String dateStr) throws ParseException {
         Date today = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -101,7 +108,7 @@ public class DateHelper {
 
         return Integer.parseInt(String.valueOf(betweenDays));
     }
-
+    
     /**
      * 时间戳转换成日期格式字符串
      *
@@ -267,5 +274,21 @@ public class DateHelper {
         c.setTime(date);
         c.add(Calendar.DAY_OF_MONTH, days);
         return c.getTime();
+    }
+
+    /**
+     * 时间日期转换
+     * @param strDate 字符串
+     * @return 字符串yyyy-MM-dd HH:mm:ss
+     */
+    public static String strToDateLong(String strDate) {
+        Date date = new Date();
+        try {
+            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String str = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+        return str;
     }
 }

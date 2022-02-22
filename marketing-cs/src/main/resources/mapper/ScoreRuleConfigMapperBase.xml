@@ -9,16 +9,19 @@
     <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
     <result column="condition_info" property="conditionInfo" jdbcType="VARCHAR" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
+    <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
     <result column="base_info" property="baseInfo" jdbcType="VARCHAR" />
+    <result column="rule_type" property="ruleType" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="exec_type" property="execType" jdbcType="INTEGER" />
     <result column="cycle_day" property="cycleDay" jdbcType="INTEGER" />
     <result column="cycle_end_day" property="cycleEndDay" jdbcType="VARCHAR" />
     <result column="push_type" property="pushType" jdbcType="INTEGER" />
+    <result column="task_type" property="taskType" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="strategy_product_show" property="strategyProductShow" jdbcType="VARCHAR"/>
+    <result column="strategy_product_show" property="strategyProductShow" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,10 +82,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-      id
-      , rule_name, rule_name_short, start_time, strategy_product_json, condition_info,
-    strategy_id, base_info, is_del, create_time, exec_type, cycle_day, cycle_end_day,
-    push_type, status, update_time, strategy_product_show
+    id, rule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
+    strategy_id, product_info, base_info, rule_type, is_del, create_time, exec_type, 
+    cycle_day, cycle_end_day, push_type, task_type, status, update_time, strategy_product_show
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" >
     select
@@ -99,7 +101,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-      select
+    select 
     <include refid="Base_Column_List" />
     from b_score_rule_config
     where id = #{id,jdbcType=BIGINT}
@@ -118,17 +120,19 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-      insert into b_score_rule_config (rule_name, rule_name_short, start_time,
-      strategy_product_json, condition_info, strategy_id,
-      base_info, is_del, create_time,
-      exec_type, cycle_day, cycle_end_day,
-      push_type, status, update_time,
+    insert into b_score_rule_config (rule_name, rule_name_short, start_time, 
+      strategy_product_json, condition_info, strategy_id, 
+      product_info, base_info, rule_type, 
+      is_del, create_time, exec_type, 
+      cycle_day, cycle_end_day, push_type, 
+      task_type, status, update_time, 
       strategy_product_show)
-      values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR},
-      #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR},
-      #{baseInfo,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
-      #{execType,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR},
-      #{pushType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP},
+    values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
+      #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
+      #{productInfo,jdbcType=VARCHAR}, #{baseInfo,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{execType,jdbcType=INTEGER}, 
+      #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
+      #{taskType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{strategyProductShow,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
@@ -155,8 +159,14 @@
       <if test="strategyId != null" >
         strategy_id,
       </if>
+      <if test="productInfo != null" >
+        product_info,
+      </if>
       <if test="baseInfo != null" >
         base_info,
+      </if>
+      <if test="ruleType != null" >
+        rule_type,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -171,20 +181,23 @@
         cycle_day,
       </if>
       <if test="cycleEndDay != null" >
-          cycle_end_day,
+        cycle_end_day,
       </if>
-        <if test="pushType != null">
-            push_type,
-        </if>
-        <if test="status != null">
-            status,
-        </if>
-        <if test="updateTime != null">
-            update_time,
-        </if>
-        <if test="strategyProductShow != null">
-            strategy_product_show,
-        </if>
+      <if test="pushType != null" >
+        push_type,
+      </if>
+      <if test="taskType != null" >
+        task_type,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="strategyProductShow != null" >
+        strategy_product_show,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
@@ -205,8 +218,14 @@
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
       </if>
+      <if test="productInfo != null" >
+        #{productInfo,jdbcType=VARCHAR},
+      </if>
       <if test="baseInfo != null" >
         #{baseInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleType != null" >
+        #{ruleType,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -223,18 +242,21 @@
       <if test="cycleEndDay != null" >
         #{cycleEndDay,jdbcType=VARCHAR},
       </if>
-        <if test="pushType != null">
-            #{pushType,jdbcType=INTEGER},
-        </if>
-        <if test="status != null">
-            #{status,jdbcType=INTEGER},
-        </if>
-        <if test="updateTime != null">
-            #{updateTime,jdbcType=TIMESTAMP},
-        </if>
-        <if test="strategyProductShow != null">
-            #{strategyProductShow,jdbcType=VARCHAR},
-        </if>
+      <if test="pushType != null" >
+        #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="taskType != null" >
+        #{taskType,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="strategyProductShow != null" >
+        #{strategyProductShow,jdbcType=VARCHAR},
+      </if>
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" resultType="java.lang.Integer" >
@@ -267,8 +289,14 @@
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
+      <if test="record.productInfo != null" >
+        product_info = #{record.productInfo,jdbcType=VARCHAR},
+      </if>
       <if test="record.baseInfo != null" >
         base_info = #{record.baseInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleType != null" >
+        rule_type = #{record.ruleType,jdbcType=INTEGER},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
@@ -283,45 +311,51 @@
         cycle_day = #{record.cycleDay,jdbcType=INTEGER},
       </if>
       <if test="record.cycleEndDay != null" >
-          cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR},
+        cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR},
       </if>
-        <if test="record.pushType != null">
-            push_type = #{record.pushType,jdbcType=INTEGER},
-        </if>
-        <if test="record.status != null">
-            status = #{record.status,jdbcType=INTEGER},
-        </if>
-        <if test="record.updateTime != null">
-            update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-        </if>
-        <if test="record.strategyProductShow != null">
-            strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR},
-        </if>
+      <if test="record.pushType != null" >
+        push_type = #{record.pushType,jdbcType=INTEGER},
+      </if>
+      <if test="record.taskType != null" >
+        task_type = #{record.taskType,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.strategyProductShow != null" >
+        strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-      update b_score_rule_config
-      set id = #{record.id,jdbcType=BIGINT},
+    update b_score_rule_config
+    set id = #{record.id,jdbcType=BIGINT},
       rule_name = #{record.ruleName,jdbcType=VARCHAR},
       rule_name_short = #{record.ruleNameShort,jdbcType=VARCHAR},
       start_time = #{record.startTime,jdbcType=VARCHAR},
       strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       condition_info = #{record.conditionInfo,jdbcType=VARCHAR},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      product_info = #{record.productInfo,jdbcType=VARCHAR},
       base_info = #{record.baseInfo,jdbcType=VARCHAR},
+      rule_type = #{record.ruleType,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       exec_type = #{record.execType,jdbcType=INTEGER},
       cycle_day = #{record.cycleDay,jdbcType=INTEGER},
       cycle_end_day = #{record.cycleEndDay,jdbcType=VARCHAR},
       push_type = #{record.pushType,jdbcType=INTEGER},
+      task_type = #{record.taskType,jdbcType=INTEGER},
       status = #{record.status,jdbcType=INTEGER},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR}
-      <if test="_parameter != null" >
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
@@ -346,8 +380,14 @@
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
       </if>
+      <if test="productInfo != null" >
+        product_info = #{productInfo,jdbcType=VARCHAR},
+      </if>
       <if test="baseInfo != null" >
         base_info = #{baseInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleType != null" >
+        rule_type = #{ruleType,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
@@ -364,39 +404,45 @@
       <if test="cycleEndDay != null" >
         cycle_end_day = #{cycleEndDay,jdbcType=VARCHAR},
       </if>
-        <if test="pushType != null">
-            push_type = #{pushType,jdbcType=INTEGER},
-        </if>
-        <if test="status != null">
-            status = #{status,jdbcType=INTEGER},
-        </if>
-        <if test="updateTime != null">
-            update_time = #{updateTime,jdbcType=TIMESTAMP},
-        </if>
-        <if test="strategyProductShow != null">
-            strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR},
-        </if>
+      <if test="pushType != null" >
+        push_type = #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="taskType != null" >
+        task_type = #{taskType,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="strategyProductShow != null" >
+        strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
-      update b_score_rule_config
-      set rule_name             = #{ruleName,jdbcType=VARCHAR},
-          rule_name_short       = #{ruleNameShort,jdbcType=VARCHAR},
-          start_time            = #{startTime,jdbcType=VARCHAR},
-          strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
-          condition_info        = #{conditionInfo,jdbcType=VARCHAR},
-          strategy_id           = #{strategyId,jdbcType=VARCHAR},
-          base_info             = #{baseInfo,jdbcType=VARCHAR},
-          is_del                = #{isDel,jdbcType=INTEGER},
-          create_time           = #{createTime,jdbcType=TIMESTAMP},
-          exec_type             = #{execType,jdbcType=INTEGER},
-          cycle_day             = #{cycleDay,jdbcType=INTEGER},
-          cycle_end_day         = #{cycleEndDay,jdbcType=VARCHAR},
-          push_type             = #{pushType,jdbcType=INTEGER},
-          status                = #{status,jdbcType=INTEGER},
-          update_time           = #{updateTime,jdbcType=TIMESTAMP},
-          strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR}
-      where id = #{id,jdbcType=BIGINT}
+    update b_score_rule_config
+    set rule_name = #{ruleName,jdbcType=VARCHAR},
+      rule_name_short = #{ruleNameShort,jdbcType=VARCHAR},
+      start_time = #{startTime,jdbcType=VARCHAR},
+      strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
+      condition_info = #{conditionInfo,jdbcType=VARCHAR},
+      strategy_id = #{strategyId,jdbcType=VARCHAR},
+      product_info = #{productInfo,jdbcType=VARCHAR},
+      base_info = #{baseInfo,jdbcType=VARCHAR},
+      rule_type = #{ruleType,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      exec_type = #{execType,jdbcType=INTEGER},
+      cycle_day = #{cycleDay,jdbcType=INTEGER},
+      cycle_end_day = #{cycleEndDay,jdbcType=VARCHAR},
+      push_type = #{pushType,jdbcType=INTEGER},
+      task_type = #{taskType,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

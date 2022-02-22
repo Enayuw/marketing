@@ -11,16 +11,18 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.input.*;
+import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.common.LastEnum;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
@@ -46,6 +48,7 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -62,11 +65,15 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -114,6 +121,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     MarketingCustomerMapper marketingCustomerMapper;
 
     @Autowired
+    PhoneSaleMapper phoneSaleMapper;
+
+    @Autowired
     DecodeClient decodeClient;
 
     @Resource
@@ -131,12 +141,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private PushTransferRobotaiLogService pushTransferRobotaiLogService;
 
+    private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
+
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
@@ -149,6 +162,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreDetailVos);
     }
 
+
     @Override
     public Result<List<PushInfoDetailVO>> getPushInfos(RequestPushInfoDTO dto) {
         Date date = addDay(dto.getPushEndTime(), 1, "yyyy-MM-dd");
@@ -156,6 +170,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<PushInfoDetailVO> pushInfos = customerInfoPushMainMapper.getPushInfos(dto);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushInfos);
     }
+
 
     private Date addDay(String date, Integer addDays, String format) {
         Calendar c = Calendar.getInstance();
@@ -217,6 +232,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKeySoleNum = "sole:thread:num";
 
+    final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
+
+    final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -225,6 +243,28 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     SoleStrategyService soleStrategyService;
+
+    @Autowired
+    TaskTimeMapper taskTimeMapper;
+
+    @Autowired
+    PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
+
+    @Autowired
+    PhoneBlackMapper phoneBlackMapper;
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
+
+    @Autowired
+    LocalFileMapper localFileMapper;
+
+    @Autowired
+    HaluoCallRelationMapper haluoCallRelationMapper;
+
+    static List<String> taskApiCode = Arrays.asList("3710028","7410437","7410850");
+
+    static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
 
     final static Byte customerStatus = Byte.valueOf("1");
 
@@ -340,6 +380,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -621,6 +662,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
+    @Autowired
+    RetryMainLogMapper retryMainLogMapper;
+
     /**
      * 消费异步推送人员信息
      *
@@ -665,6 +709,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             //3 未来客户：只有userType
             String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
             ReserveField1DTO reserveField1 = null;
+            JSONObject reserveFileld1Json = null;
             if (StringUtils.isBlank(reserveField1Str)) {
                 reserveField1 = new ReserveField1DTO();
                 reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
@@ -675,6 +720,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if (StringUtils.isBlank(reserveField1.getUserType())) {
                         reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
                     }
+                    reserveFileld1Json = JSON.parseObject(reserveField1Str);
                 } catch (JSONException ex) {
                     reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
@@ -683,6 +729,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             Integer finalIsCheck = isCheck;
             ReserveField1DTO finalReserveField = reserveField1;
+            JSONObject finalReserveFileld1Json = reserveFileld1Json;
             list.add(() -> {
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -717,7 +764,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
-                marketingSyncUser.setReserveField1(JSON.toJSONString(finalReserveField));
+                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);
@@ -821,7 +868,41 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
+        if(taskApiCode.contains(apiCode)){
+            String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());
+            if(!taskApiCodeSet.contains(concat)) {
+                try{
+                    TaskTime taskTime = new TaskTime();
+                    taskTime.setApiCode(apiCode);
+                    taskTime.setTaskId(marketingSyncInfo.getCusBatch());
+                    taskTime.setStartDate(new SimpleDateFormat("yyyy-MM-dd").format(marketingSyncInfo.getCreateTime()));
+                    taskTime.setCreateTime(new Date());
+                    taskTimeMapper.insertSelective(taskTime);
+                }catch (DuplicateKeyException ex){
+
+                }
+                if(taskApiCodeSet.size()>=1000){
+                    taskApiCodeSet.clear();
+                }
+                taskApiCodeSet.add(concat);
+
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    //ReserveField1DTO中的属性是固定的，无法满足，客户动态增加字段的需求,
+    //所以检查下客户上传的原始JSON，如果有些字段没有在ReserveField1DTO中，则动态拼装到数据中。
+    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json) {
+        JSONObject finalReserveFieldObject = (JSONObject) JSONObject.toJSON(finalReserveField);
+        if (null != finalReserveFileld1Json) {
+            finalReserveFileld1Json.keySet().stream().forEach(k -> {
+                if (!finalReserveFieldObject.containsKey(k)) {
+                    finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
+                }
+            });
+        }
+        return JSONObject.toJSONString(finalReserveFieldObject);
     }
 
     @Override
@@ -871,6 +952,23 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result consumerTransferData(Long id) {
+        List<String> pushCustomerApiCodes = new ArrayList<>();
+        List<String> haluoApiCodes = new ArrayList<>();
+        String keyStr = redisChgService.get(redisKeyPushCustomer);
+        if (StringUtils.isNotBlank(keyStr)) {
+            pushCustomerApiCodes = Splitter.on(",").splitToList(keyStr);
+        } else {
+            pushCustomerApiCodes.add("3710012");
+            pushCustomerApiCodes.add("4004643");
+            pushCustomerApiCodes.add("3710030");
+        }
+
+        String s = redisChgService.get(redisKeyPushHaluo);
+        if (StringUtils.isNotBlank(s)) {
+            haluoApiCodes = Splitter.on(",").splitToList(s);
+        } else {
+            haluoApiCodes.add("3710028");
+        }
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -981,9 +1079,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
-        if (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
-                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part)) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+        if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
+                && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
+            if(transferInfo.getRequestId().startsWith("black_")){
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+            }
+        }
+        if(haluoApiCodes.contains(transferInfo.getApiCode())){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
@@ -1039,6 +1145,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             vo.setErrorInfo(o);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+    }
+
+    final static Set groupTypeSaMoye;
+
+    static {
+        groupTypeSaMoye = new HashSet();
+        groupTypeSaMoye.add("S01");
+        groupTypeSaMoye.add("S02");
+        groupTypeSaMoye.add("S0202");
+        groupTypeSaMoye.add("S04");
+        groupTypeSaMoye.add("S06");
+        groupTypeSaMoye.add("S08");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -1177,6 +1295,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         List<ConversionData> conversionDataList = new ArrayList<>();
         for (TransferUserVO transfer : transfers) {
+            if(!(groupTypeSaMoye.contains(transfer.getGroupType())&&"1".equals(transfer.getReserveField1()))){
+                continue;
+            }
             ConversionData data = new ConversionData();
             data.setCaseNum(transfer.getCustNum());
             data.setInversionDate(transfer.getTransformTime());
@@ -1206,9 +1327,20 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //todo 调用客服接口
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
-        if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
-            throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
+        if(conversionDataList.size()>0){
+            TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO, requestId);
+            if (String.valueOf("9999").equals(transferRobotOutboundVO.getCode())) {
+                throw new CommonException(MarketingErrorInfo.REQUEST_FAIL_ERROR, transferRobotOutboundVO.getMessage());
+            }
+            if("00".equals(transferRobotOutboundVO.getCode())){
+                JSONObject object = JSON.parseObject(transferRobotOutboundVO.getData().toString());
+                JSONArray array = object.getJSONArray("unsuccessfulData");
+                if (array.size() > 0) {
+                    String content = String.format("客服接口返回错误列表数据：%s", transferRobotOutboundVO.getData().toString());
+                    log.error(content);
+                    alarmApiClient.sendAlarm(content,"客服接口返回警示信息",appName,secretKey,"60005");
+                }
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -1374,6 +1506,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 队列模式，false 后人先出，true 先进先出
             false);
 
+    private final String cidKey = "marketing:innerapi:transfer:cid:";
+    private final String hKey = "marketing:innerapi:tailor:apicodemap:";
 
     @Override
     @Transactional
@@ -1398,6 +1532,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCode = info.getApiCode();
             Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
             result.setDate(true);
+            try {
+                String bool = redisChgService.get(hKey.concat(apiCode));
+                if (StringUtils.isNotBlank(bool)) {
+                    tailorApiCodeMap.put(apiCode, Boolean.valueOf(bool));
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
             if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
                 try {
                     info.setId(infoId);
@@ -1423,7 +1565,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             String requestId = info.getRequestId();
             // 2 获取分表后缀
-            String tcId = tableCreateService.getTcId(apiCode);
+            String key = cidKey.concat(apiCode);
+            String cId;
+            try {
+                cId = redisChgService.get(key);
+                if (StringUtils.isEmpty(cId)) {
+                    cId = tableCreateService.getTcId(apiCode);
+                    // 缓存七天
+                    redisChgService.setex(key, cId, 7 * 86400);
+                }
+            } catch (Exception e) {
+                cId = tableCreateService.getTcId(apiCode);
+                log.error(e.getMessage(), e);
+            }
+            final String tcId = cId;
             // 3 获取转化数据,
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
             example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
@@ -1434,20 +1589,22 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<PushTransferCustomerLog> logListAll = new ArrayList<>();
             label:
             for (; ; ) {
-                PageHelper.startPage(page, pageSize);
+                PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-                int size = transferList.size();
                 PageInfo<MarketingTransferSyncUser> pageList = new PageInfo<>(transferList);
+                transferList = transferList.stream().filter(syncUser -> StringUtils.isNotBlank(syncUser.getInsertTime()))
+                        .collect(Collectors.toList());
+                int size = transferList.size();
                 // 总页数
                 int pages = pageList.getPages();
                 boolean b = true;
                 // 处理开始标记
                 switch (transferStatus) {
                     case 0:
-                        if (size < 1) {
+                        if (pageList.getTotal() < 1) {
                             if (info.getActualNum() < 1) {
                                 PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
-                                        new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                        new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
                                 pushTransferCustomerLog.setTransferStatus(transferStatus);
                                 logListAll.add(pushTransferCustomerLog);
                                 break label;
@@ -1457,6 +1614,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 sendAlarm(smg);
                                 return result;
                             }
+                        } else if (size < 1) {
+                            PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                    new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
+                            pushTransferCustomerLog.setTransferStatus(transferStatus);
+                            logListAll.add(pushTransferCustomerLog);
+                            break;
                         }
                         b = asyncPush(transferList, logListAll);
                         break;
@@ -1470,7 +1633,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             } else {
                                 // 检查是否有开始标记
                                 int countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "0,2");
-                                if (countStatus > 0) {
+                                if (countStatus > 0 || size < 1) {
                                     listEnd = transferList;
                                 } else {
                                     // 检查转化信息表是否出现过last为0数据
@@ -1521,7 +1684,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                     countStatus = pushTransferCustomerLogMapper.countByApiCodeAndTransferInfoTimeAndPushStatus(apiCode, createTime, "1,3");
                                     if (countStatus < 1) {
                                         PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
-                                                new PushCustomerRequestDTO(apiCode, transferStatus, null), 3, size);
+                                                new PushCustomerRequestDTO(apiCode, transferStatus, transferList), 3, size);
                                         pushTransferCustomerLog.setTransferStatus(transferStatus);
                                         logListAll.add(pushTransferCustomerLog);
                                         break label;
@@ -1541,6 +1704,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 return result;
                             }
                         } else {
+                            if (size < 1) {
+                                PushTransferCustomerLog pushTransferCustomerLog = sendTransferDataToCustomer(
+                                        new PushCustomerRequestDTO(apiCode, 0, transferList), 3, size);
+                                pushTransferCustomerLog.setTransferStatus(0);
+                                logListAll.add(pushTransferCustomerLog);
+                                break;
+                            }
                             b = asyncPush(transferList, logListAll);
                         }
                         break;
@@ -1800,7 +1970,20 @@ public class PushRuleServiceImpl implements PushRuleService {
         Assert.notNull(transferInfo, "'requestId'不可为null");
         String title = "接口转化(通用标准)数据同步到智能客服警告";
         // 1 获取分表后缀
-        String tcId = tableCreateService.getTcId(apiCode);
+        String key = cidKey.concat(apiCode);
+        String tcId;
+        try {
+            tcId = redisChgService.get(key);
+            if (StringUtils.isEmpty(tcId)) {
+                tcId = tableCreateService.getTcId(apiCode);
+                SecureRandom random = new SecureRandom();
+                // 缓存3~7天
+                redisChgService.setex(key, tcId, (random.nextInt(7) % 5 + 3) * 86400);
+            }
+        } catch (Exception e) {
+            tcId = tableCreateService.getTcId(apiCode);
+            log.error(e.getMessage(), e);
+        }
         // 2 获取转化数据
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andRequestIdEqualTo(requestId);
@@ -1809,13 +1992,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         final int pageSize = 500;
         List<TransferRobotOutboundVO<UnsuccessfulData>> list = new ArrayList<>();
         for (; ; ) {
-            PageHelper.startPage(page, pageSize);
+            PageHelper.startPage(page, pageSize, true).setOrderBy(" id ASC");
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-            if (CollectionUtils.isEmpty(transferList) && transferInfo.getActualNum() < 1) {
-                String smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s", apiCode
-                        , transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
-                alarmClient.sendAlarm(smg, title, appName, secretKey,
-                        Constants.sendCodeMap.get("pushToCustomer"));
+            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
+            if (CollectionUtils.isEmpty(transferList)) {
+                String smg;
+                if (transferInfo.getActualNum() < 1) {
+                    smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】没有找到对应的转化数据，此消息不再放回队列！日期:%s"
+                            , apiCode, transferInfo.getRequestId(), transferInfo.getId(), tcId, DateUtils.getNowyyyy_MM_dd());
+                } else {
+                    smg = String.format("转化信息为【apiCode:[%s],RequestId:[%s],infoId:[%s],tcId:[%s]】转化接口接收(%d)条转化数据，" +
+                                    "但未在转化详情中找到，该消息直接消费！日期:%s", apiCode
+                            , transferInfo.getRequestId(), transferInfo.getId(), tcId, transferInfo.getActualNum()
+                            , DateUtils.getNowyyyy_MM_dd());
+                }
+                alarmClient.sendAlarm(smg, title, appName, secretKey, Constants.sendCodeMap.get("pushToCustomer"));
                 PushTransferRobotaiLog robotaiLog = new PushTransferRobotaiLog(
                         transferInfo.getId()
                         , apiCode
@@ -1831,14 +2022,31 @@ public class PushRuleServiceImpl implements PushRuleService {
                 pushTransferRobotaiLogService.save(robotaiLog);
                 break;
             }
-            TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
-            TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
-            if (!outboundVO.getAccessNumber().equals("-1")) {
-                pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+            /*
+             * D20211128海尔消金-转化需求-3710018
+             * 海尔消金通过转化接口usertype判断转化状态。
+             * usertype	3、4	推送	已转化
+             * usertype	非3、4	不推送	未转化
+             */
+            if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
+                transferList = transferList.stream().filter(syncUser -> {
+                    String userType = syncUser.getUserType();
+                    if (userType.equals("3") || userType.equals("4")) {
+                        syncUser.setIfTransform("1"); // 2021-12-8 10:39:29 添加默认转化状态
+                        return true;
+                    }
+                    return false;
+                }).collect(Collectors.toList());
             }
-            list.add(outboundVO);
-            PageInfo<MarketingTransferSyncUser> pageInfo = new PageInfo<>(transferList);
-            if (page == pageInfo.getPages() || transferList.size() == 0) {
+            if (transferList.size() > 0) {
+                TransferRobotOutboundDTO robotOutboundDTO = getTransferRobotOutbound(transferInfo, transferList);
+                TransferRobotOutboundVO<UnsuccessfulData> outboundVO = pushTransferData(robotOutboundDTO, transferInfo);
+                if (!outboundVO.getAccessNumber().equals("-1")) {
+                    pushTransferRobotaiLogService.saveLog(transferInfo, robotOutboundDTO, outboundVO);
+                }
+                list.add(outboundVO);
+            }
+            if (page >= pageInfo.getPages()) {
                 break;
             }
             page++;
@@ -1848,7 +2056,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public TransferRobotOutboundVO<UnsuccessfulData> pushTransferData(TransferRobotOutboundDTO dto, MarketingTransferInfo transferInfo) {
-        Assert.notNull(dto, String.format("转化数据不存在!\n转化信息[id=%d;apiCode=%s;requestId=%s]"
+        Assert.notNull(dto, String.format("转化数据不存在或已经规则过滤掉!\n转化信息[transferInfoId=%d;apiCode=%s;requestId=%s]"
                 , transferInfo.getId(), transferInfo.getApiCode(), transferInfo.getRequestId()));
         TransferRobotOutboundVO<UnsuccessfulData> outboundVO;
         try {
@@ -1894,7 +2102,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         String apiCode = transferInfo.getApiCode();
         if (CollectionUtils.isEmpty(transferList)) {
-            String smg = String.format("apiCode:[%s],RequestId:[%s],id:[%s]信息不存在！日期:%s", apiCode
+            String smg = String.format("apiCode:[%s],RequestId:[%s],transferInfoId:[%s]转化结果不存在！日期:%s", apiCode
                     , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
             alarmClient.sendAlarm(smg, title, appName, secretKey,
                     Constants.sendCodeMap.get("pushToCustomer"));
@@ -1905,7 +2113,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
                 MarketingSyncUser::getCustNum, syncUser -> syncUser
                 , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
-                        && v2.getCreateTime().before(v1.getCreateTime()) ? v2 : v1));
+                        && v2.getCreateTime().after(v1.getCreateTime()) ? v2 : v1));
         Assert.notNull(preUserByTask, "'MarketingSyncUser'不可为null");
         List<ConversionData> conversionDataArray = new ArrayList<>();
         transferList.forEach(transfer -> {
@@ -1915,11 +2123,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             conversionData.setCaseNum(transfer.getCustNum());
             conversionData.setGroupType(transfer.getUserType());
             conversionData.setInversionStatus(hasTransfer.equals(transfer.getIfTransform())
-                    ?"0"
-                    :(noHasTransfer.equals(transfer.getIfTransform())?"1":transfer.getIfTransform()));
+                    ? "0"
+                    : (noHasTransfer.equals(transfer.getIfTransform()) ? "1" : transfer.getIfTransform()));
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            conversionData.setPhone(map.containsKey(transfer.getCustNum())
-                    ? BrCipherMaker.getInstance().decode(map.get(transfer.getCustNum()).getCell()) : "");
+            if (map.containsKey(transfer.getCustNum())) {
+                MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
+                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+                conversionData.setTaskId(marketingSyncUser.getCusBatch());
+            } else {
+                conversionData.setPhone("");
+                conversionData.setTaskId("");
+            }
             TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
             BeanUtils.copyProperties(transfer, vo);
             conversionData.setInversionInfo(JSON.toJSONString(vo));
@@ -1928,5 +2142,437 @@ public class PushRuleServiceImpl implements PushRuleService {
         robotOutboundDTO.setApiCode(apiCode);
         robotOutboundDTO.setJsonData(new TransferJsonDataDTO(conversionDataArray));
         return robotOutboundDTO;
+    }
+
+    @Override
+    public Result<Boolean> consumerCommonBlack(Long id) {
+        Boolean isContiue = false;
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if(localFile == null){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+        Long minId = null;
+        boolean action = Boolean.TRUE;
+        while(action){
+            List<PhoneBlack> phoneBlacks = phoneBlackMapper.selectDateByIdRang(id,minId);
+            if(phoneBlacks.size()<=0){
+                action=Boolean.FALSE;
+                continue;
+            }
+            minId = phoneBlacks.get(phoneBlacks.size()-1).getId();
+            PushBlackReqDTO pushBlackReqDTO = new PushBlackReqDTO();
+            pushBlackReqDTO.setUsers(phoneBlacks);
+            pushBlackReqDTO.setApiCode(localFile.getApiCode());
+            Result result = pushCommonBlack(pushBlackReqDTO);
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                log.error(String.format("推送黑名单报错：%s",result.getData()));
+                if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                    RetryMainLog retryMainLog = new RetryMainLog();
+                    retryMainLog.setRetryType(1);
+                    retryMainLog.setRetryParam(JSON.toJSONString(pushBlackReqDTO));
+                    retryMainLog.setRetryParamType(pushBlackReqDTO.getClass().getName());
+                    retryMainLog.setRetryService("pushRuleServiceImpl");
+                    retryMainLog.setRetryMethod("pushCommonBlack");
+                    retryMainLog.setRetryNum(0);
+                    retryMainLog.setRetryMaxNum(3);
+                    retryMainLog.setRetryStatus(1);
+                    retryMainLog.setCreateTime(new Date());
+                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                    retryMainLogMapper.insertSelective(retryMainLog);
+                }
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    @Override
+    public Result<Boolean> consumerBlack(Long id) {
+        Integer soleNum = 20;
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        if(transferInfo == null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage("数据不存在");
+        }
+        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+        if(tcId==null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage(String.format("apiCode:%s 未维护cid信息",transferInfo.getApiCode()));
+        }
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+                andRequestIdEqualTo(transferInfo.getRequestId());
+        example.settCid(tcId);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        int page = marketingTransferSyncUsers.size() / 500 + (marketingTransferSyncUsers.size() % 500) == 0 ? 0 : 1;
+        int yu = marketingTransferSyncUsers.size() % 500;
+        for (int i = 1; i <= page; i++) {
+            int start = (i-1)*500;
+            int end = 0;
+            if(i==page&&yu>0){
+                end= (i-1)*500+yu;
+            }else{
+                end=i*500-1;
+            }
+            List<MarketingTransferSyncUser> users = marketingTransferSyncUsers.subList(start, end);
+            Result result = pushBlack(users);
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                log.error(String.format("推送黑名单报错：%s",result.getData()));
+                if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                    RetryMainLog retryMainLog = new RetryMainLog();
+                    retryMainLog.setRetryType(1);
+                    retryMainLog.setRetryParam(JSON.toJSONString(users));
+                    retryMainLog.setRetryParamType(users.getClass().getName());
+                    retryMainLog.setRetryService("pushRuleServiceImpl");
+                    retryMainLog.setRetryMethod("pushBlack");
+                    retryMainLog.setRetryNum(0);
+                    retryMainLog.setRetryMaxNum(3);
+                    retryMainLog.setRetryStatus(1);
+                    retryMainLog.setCreateTime(new Date());
+                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                    retryMainLogMapper.insertSelective(retryMainLog);
+                }
+            }
+        }
+        return new Result<>()
+                .setCode(ResultCode.SUCCESS.getValue())
+                .setDate(isContinue);
+    }
+
+    @Override
+    public Result<Boolean> consumerHaLuo(Long id) {
+        Boolean isContinue = Boolean.FALSE;
+        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
+        String apiCode = transferInfo.getApiCode();
+        if(transferInfo == null){
+            return new Result<>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(isContinue)
+                    .setMessage("数据不存在");
+        }
+        String tcId = tableCreateService.getTcId(apiCode);
+        if(tcId==null){
+            return new Result<>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setDate(isContinue)
+                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
+        }
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).
+                andRequestIdEqualTo(transferInfo.getRequestId());
+        example.settCid(tcId);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        LocalFile localFile = new LocalFile();
+        validData: for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+            JSONObject jb = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+            boolean a = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
+                    && !"1".equals(marketingTransferSyncUser.getIfApply());
+
+            boolean b = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
+                    && !"1".equals(marketingTransferSyncUser.getIfApply());
+
+            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
+                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
+                    && "1".equals(marketingTransferSyncUser.getIfApply())
+                    && "0".equals(marketingTransferSyncUser.getApplyResult());
+
+            Double unlentAmount = Double.valueOf(StringUtils.isNotBlank(marketingTransferSyncUser.getUnlentAmount()) ? marketingTransferSyncUser.getUnlentAmount() : "0");
+            boolean d = unlentAmount>0;
+            if(!a&&!b&&!c&&!d){
+                continue;
+            }
+            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode,marketingTransferSyncUser.getCustNum());
+            if(marketingSyncUser == null){
+                continue;
+            }
+            String cusBatch = marketingSyncUser.getCusBatch();
+            TaskTimeExample timeExample = new TaskTimeExample();
+            timeExample.createCriteria().andApiCodeEqualTo(apiCode).andTaskIdEqualTo(cusBatch);
+            List<TaskTime> taskTimes = taskTimeMapper.selectByExample(timeExample);
+            if(taskTimes.size()<=0){
+                continue;
+            }
+            TaskTime taskTime = taskTimes.get(0);
+            LocalDate startDate = LocalDate.parse(taskTime.getStartDate(),DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate now = LocalDate.now();
+            long days = startDate.until(now, ChronoUnit.DAYS);
+            if(days>29){
+                continue;
+            }
+            LocalDate dxStartDate = now.minusDays(6);
+            PhoneSaleExtendHaluoExample phoneSaleExtendHaluoExample = new PhoneSaleExtendHaluoExample();
+            phoneSaleExtendHaluoExample.createCriteria()
+                    .andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
+                    .andTaskIdEqualTo(cusBatch)
+                    .andAppletDateGreaterThanOrEqualTo(dxStartDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    .andAppletDateLessThanOrEqualTo(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            List<PhoneSaleExtendHaluo> phoneSaleExtendHaluos = phoneSaleExtendHaluoMapper.selectByExample(phoneSaleExtendHaluoExample);
+            if(phoneSaleExtendHaluos.size()>0){
+                long dLen = phoneSaleExtendHaluos.stream().filter(t -> "d".equals(t.getStatus())).count();
+                long abcLen = phoneSaleExtendHaluos.size() - dLen;
+                if(dLen>0){
+                    continue;
+                }
+                if(dLen==0 && abcLen>0 &&(a||b||c) && !d){
+                    continue;
+                }
+            }
+
+            String status ="";
+            if(d){
+                status="d";
+            }else if(b){
+                status="b";
+            }else if(c){
+                status="c";
+            }else if(a){
+                status="a";
+            }
+            Boolean lock = Boolean.FALSE;
+            while (!lock){
+                Result<Boolean> booleanResult = addHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
+                //不需要等待
+                if(!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())){
+                    continue validData;
+                }
+                lock = booleanResult.getData();
+                //如满足需要等待再次获取
+                if(!lock){
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if(localFile.getId()==null||localFile.getId()<=0){
+                localFile.setApiCode(apiCode);
+                localFile.setCreateTime(new Date());
+                localFile.setFileType(SftpFileTypeEnum.HLBYTRANSFORM.getValue());
+                localFile.setFileName("哈罗—".concat(marketingTransferSyncUser.getRequestId()));
+                localFileMapper.insertSelective(localFile);
+
+                HaluoCallRelation haluoCallRelation = new HaluoCallRelation();
+                haluoCallRelation.setTransferId(transferInfo.getId());
+                haluoCallRelation.setDxId(localFile.getId());
+                haluoCallRelation.setBlackId(localFile.getId());
+                haluoCallRelation.setRequestId(transferInfo.getRequestId());
+                haluoCallRelation.setCreateTime(new Date());
+                haluoCallRelationMapper.insertSelective(haluoCallRelation);
+
+            }
+            String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+            String s = AESUtil.aesEncrypty(cell, aesKey);
+            String name = StringUtils.isNotBlank(marketingSyncUser.getName()) ?
+                    BrCipherMaker.getInstance().decode(marketingSyncUser.getName())
+                    : "";
+            PhoneSale sale = new PhoneSale();
+            sale.setLocalId(localFile.getId().toString());
+            sale.setApiCode(apiCode);
+            sale.setOrgname("hellobike");
+            sale.setName(name);
+            sale.setPhone(s);
+            sale.setPhoneAes(marketingSyncUser.getCell());
+            sale.setUid(marketingTransferSyncUser.getCustNum());
+            sale.setUserType("d".equals(status)?"3":"2");
+            sale.setLoginTime(haluoBydxTimeFormat(marketingTransferSyncUser.getLoginTime()));
+            sale.setSource("96");
+            sale.setAuditTime(haluoBydxTimeFormat(marketingTransferSyncUser.getAuditTime()));
+            sale.setAuditAmount(marketingTransferSyncUser.getAuditAmount());
+            sale.setIfApply(marketingTransferSyncUser.getIfApply());
+            sale.setApplyDt(haluoBydxTimeFormat(marketingTransferSyncUser.getApplyDt()));
+            sale.setUnlentAmount(marketingTransferSyncUser.getUnlentAmount());
+            sale.setCreateTime(new Date());
+//            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
+            if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())){
+                JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+                if(jsonObject!=null){
+                    String applyInformation = jsonObject.getString("applyInformation");
+                    if(StringUtils.isNotBlank(applyInformation)){
+                        JSONObject jsonObject1 = new JSONObject();
+                        jsonObject1.put("applyInformation",applyInformation);
+                        sale.setExtend(JSON.toJSONString(jsonObject1));
+                    }
+                }
+            }
+            phoneSaleMapper.insertSelective(sale);
+
+            PhoneSaleExtendHaluo haluo = new PhoneSaleExtendHaluo();
+            haluo.setpId(sale.getId());
+            haluo.setLocalId(localFile.getId());
+            haluo.setTaskId(cusBatch);
+            haluo.setCustNum(marketingTransferSyncUser.getCustNum());
+            haluo.setAppletDate(marketingTransferSyncUser.getRequestData());
+            haluo.setAppletTime(marketingTransferSyncUser.getRequestTime());
+            haluo.setCreateTime(new Date());
+            haluo.setStatus(status);
+            phoneSaleExtendHaluoMapper.insertSelective(haluo);
+
+            String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(6)
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
+            PhoneBlack phoneBlack = new PhoneBlack();
+            phoneBlack.setLocalId(localFile.getId());
+            phoneBlack.setName(name);
+            phoneBlack.setPhone(marketingSyncUser.getCell());
+            phoneBlack.setExpiredate(expiredate);
+            phoneBlack.setCreateTime(new Date());
+            phoneBlack.setUpdateTime(new Date());
+            phoneBlackMapper.insertSelective(phoneBlack);
+            removeHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
+        }
+        if(localFile.getId()!=null&&localFile.getId()>0){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK,localFile.getId().toString());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    private Result<Boolean> addHaluoLock(String apiCode,String taskId,String custNum,String status){
+        String key = RedisKeyConstant.haluoPushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(taskId).concat(":")
+                .concat(custNum);
+        Long setnx = redisChgService.setnx(key, status, 3);
+        //已经被其他数据抢占锁了
+        if(setnx.equals(0L)){
+
+            //如果当前数据不是d就不推
+            if(!status.equals("d")){
+                return new Result<>().setCode(ResultCode.FAIL.getValue());
+            }
+
+            String s = redisChgService.get(key);
+
+            //分布式锁的数据状态如果是d则都不推
+            if(s.equals("d")){
+                return new Result<>().setCode(ResultCode.FAIL.getValue());
+            }
+
+            //如果当前数据状态是d 并且锁里的数据不是d 需要等待500ms然后再次获取锁
+            if(status.equals("d")){
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+    }
+
+    private void removeHaluoLock(String apiCode,String taskId,String custNum,String status){
+        String key = RedisKeyConstant.haluoPushDx.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(taskId).concat(":")
+                .concat(custNum);
+        String s = redisChgService.get(key);
+        if(status.equals(s)){
+            redisChgService.del(key);
+        }
+    }
+
+    private String haluoBydxTimeFormat(String time){
+        if(StringUtils.isBlank(time)){
+            return time;
+        }
+
+        if(Pattern.matches(msTimeRegex,time)){
+            return time.replace(":000","");
+        }
+
+        return time;
+    }
+
+    public Result<String> pushBlack(List<MarketingTransferSyncUser> marketingTransferSyncUsers){
+        ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
+        String apiCode = "";
+        String requestId = "";
+        String idRang = marketingTransferSyncUsers.get(0).getId()
+                +"-"
+                +marketingTransferSyncUsers.get(marketingTransferSyncUsers.size()-1).getId();
+        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+            if(StringUtils.isEmpty(apiCode)){
+                apiCode = marketingTransferSyncUser.getApiCode();
+            }
+            if(StringUtils.isEmpty(requestId)){
+                requestId = marketingTransferSyncUser.getRequestId();
+            }
+            BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+            JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+            String cell = jsonObject.getString("cell");
+            String createTime = jsonObject.getString("createTime");
+            LocalDateTime time = LocalDateTime.parse(createTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(cell));
+            LocalDateTime lastDay = null;
+            if(marketingTransferSyncUser.getUserType().equals("促首登")){
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }else if(marketingTransferSyncUser.getUserType().equals("促申完")){
+                lastDay = time.plusDays(14);
+            }else if(marketingTransferSyncUser.getUserType().equals("重申")){
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }else if(marketingTransferSyncUser.getUserType().equals("首借")){
+                lastDay = time.plusDays(29);
+            }else{
+                lastDay = time.with(TemporalAdjusters.lastDayOfMonth());
+            }
+            blackDetailDTO.setEffectiveDate(lastDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            blackDetailDTOS.add(blackDetailDTO);
+        }
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailDTOS);
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(jsondata));
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        parentDTO.setExtendInfo(requestId.concat(":").concat(idRang).concat(":").concat(String.valueOf(blackDetailDTOS.size())));
+        ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
+        if("00".equals(reqBlackPhoneVO.getCode())&&(reqBlackPhoneVO.getData()==null||reqBlackPhoneVO.getData().size()<=0)){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
+        ||"9999".equals(reqBlackPhoneVO.getCode())){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+    }
+
+    public Result<String> pushCommonBlack(PushBlackReqDTO pushBlackReqDTO){
+        List<PhoneBlack> users = pushBlackReqDTO.getUsers();
+        ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
+        Long localId = users.get(0).getLocalId();
+        String idRang = users.get(0).getId()
+                +"-"
+                +users.get(users.size()-1).getId();
+        for (PhoneBlack phoneBlack : users) {
+            BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+            blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(phoneBlack.getPhone()));
+            blackDetailDTO.setEffectiveDate(phoneBlack.getEffectivedate());
+            blackDetailDTO.setExpireDate(phoneBlack.getExpiredate());
+            blackDetailDTOS.add(blackDetailDTO);
+        }
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailDTOS);
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode(pushBlackReqDTO.getApiCode());
+        dto.setJsonData(JSON.toJSONString(jsondata));
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        parentDTO.setExtendInfo(localId.toString().concat(":").concat(idRang).concat(":").concat(String.valueOf(blackDetailDTOS.size())));
+        ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
+        if("00".equals(reqBlackPhoneVO.getCode())&&(reqBlackPhoneVO.getData()==null||reqBlackPhoneVO.getData().size()<=0)){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        if(("00".equals(reqBlackPhoneVO.getCode())&&reqBlackPhoneVO.getData()!=null&&reqBlackPhoneVO.getData().size()>0)
+                ||"9999".equals(reqBlackPhoneVO.getCode())){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setDate("9999".equals(reqBlackPhoneVO.getCode())?"9999":"部分成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
     }
 }

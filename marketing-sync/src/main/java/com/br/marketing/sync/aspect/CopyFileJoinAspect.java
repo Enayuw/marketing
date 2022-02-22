@@ -5,15 +5,15 @@ import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.entity.LoanFile;
-import com.br.marketing.entity.SyncConfig;
-import com.br.marketing.entity.SyncLog;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
@@ -21,6 +21,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -41,6 +42,9 @@ public class CopyFileJoinAspect {
     SyncLogMapper loanSyncLogMapper;
     @Resource
     LoanFileMapper loanFileMapper;
+
+    @Autowired
+    TransferFileTaskMapper transferFileTaskMapper;
 
     @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.copyFile(..))")
     public void copyFile(){}
@@ -76,10 +80,22 @@ public class CopyFileJoinAspect {
         } catch (Throwable throwable) {
             log.error("copyFile error",throwable);
         }
-        boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog,targetClient);
-        insertSyncLog(loanSyncConfig,fileName,b,loanSyncLog);
-        updateFileHisStatus(loanSyncConfig,fileName,b);
+        if(DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())){
+            insertSyncLog(loanSyncConfig,fileName,true,loanSyncLog);
+            TransferFileTaskExample example = new TransferFileTaskExample();
+            example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
+            TransferFileTask task = new TransferFileTask();
+            task.setStatus(4);
+            transferFileTaskMapper.updateByExampleSelective(task,example);
+        }else{
+            boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog,targetClient);
+            insertSyncLog(loanSyncConfig,fileName,b,loanSyncLog);
+            updateFileHisStatus(loanSyncConfig,fileName,b);
+        }
+
     }
+
+
 
     /**
      * 回传给客户的结果文件，同步完成之后需要更新stra_his_file表中的status字段

@@ -14,5 +14,7 @@ public interface PushTransferRobotaiLogService {
 
     int saveLog(MarketingTransferInfo transferInfo, TransferRobotOutboundDTO robotOutboundDTO, TransferRobotOutboundVO<UnsuccessfulData> outboundVO);
 
+    int save2Log(MarketingTransferInfo transferInfo, TransferRobotOutboundDTO robotOutboundDTO, TransferRobotOutboundVO<UnsuccessfulData> outboundVO);
+
     int save(PushTransferRobotaiLog pushTransferRobotaiLog);
 }
