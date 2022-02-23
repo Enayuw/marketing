@@ -10,6 +10,7 @@ import com.br.marketing.entity.CustomerCallingExample;
 import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingMapper;
+import com.br.marketing.mapper.CustomerCallingPushLogMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.CaseFormat;
@@ -40,6 +41,9 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
 
     @Resource
     HttpProxyClient httpProxyClient;
+
+    @Resource
+    CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -94,7 +98,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                 pushExecutor = BrExecutors.getThreadPool(2, 2);
             }
             log.warn("2用户处理信息：{}",partitions);
-            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling,httpProxyClient)));
+            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling,httpProxyClient,customerCallingPushLogMapper)));
         }
     }
 

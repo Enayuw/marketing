@@ -5,13 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
+import com.br.marketing.mapper.CustomerCallingPushLogMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -35,13 +34,18 @@ public class CallingDataThread implements Callable<String> {
 
     private final HttpProxyClient httpProxyClient;
 
+    private final CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
-    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists, CustomerCallingDialogMapper customerCallingDialogMapper,
-                             CustomerCalling customerCalling, HttpProxyClient httpProxyClient) {
+
+    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists,
+                             CustomerCallingDialogMapper customerCallingDialogMapper,
+                             CustomerCalling customerCalling, HttpProxyClient httpProxyClient,
+    CustomerCallingPushLogMapper customerCallingPushLogMapper) {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
         this.httpProxyClient = httpProxyClient;
+        this.customerCallingPushLogMapper  = customerCallingPushLogMapper;
     }
 
     @Override
@@ -67,10 +71,24 @@ public class CallingDataThread implements Callable<String> {
         String sendUrl = pushUrlJson.getString("sendUrl");
         Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
         Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        log.warn("拨打记录发送返回值：{}", result);
+        savePushLog(requestId, param, result);
         return null;
     }
 
+    private void savePushLog(String requestId, JSONObject param, Map<String, Object> result) {
+        CustomerCallingPushLog customerCallingPushLog = new CustomerCallingPushLog();
+        customerCallingPushLog.setParams(param.toJSONString());
+        customerCallingPushLog.setResult(String.valueOf(result));
+        customerCallingPushLog.setRequestId(requestId);
+        customerCallingPushLog.setCreateTime(new Date());
+        Map<String, Object> map = new HashMap<>();
+        map.put("requestId", requestId);
+        map.put("params", param.toJSONString());
+        map.put("result", result.toString());
+        map.put("createTime",new Date());
+        customerCallingPushLogMapper.insert(map);
+        log.warn("拨打记录发送返回值：{}", result);
+    }
 
 
     public static String toJson(Object object) {
