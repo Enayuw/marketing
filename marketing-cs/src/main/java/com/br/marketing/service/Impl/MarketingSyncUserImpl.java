@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
@@ -36,28 +36,34 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
 
     @Override
     public Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day) {
-        final LocalDateTime localDateTime = (date == null ? LocalDateTime.now()
-                : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         final Date creatTime = getCreatTimeByCustNumAndUserType(apiCode, custNum, userType);
-        if (ObjectUtils.isEmpty(creatTime)) {
+        return isPeriodOfValidity(apiCode, custNum, userType, date, day, creatTime);
+    }
+
+    @Override
+    public Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day
+            , Date validityDate) {
+        final LocalDate localDate = (date == null ? LocalDate.now()
+                : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        if (ObjectUtils.isEmpty(validityDate)) {
             return false;
         }
-        final LocalDateTime firstTime;
-        final LocalDateTime lastTime;
+        LocalDate creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate firstDate;
+        final LocalDate lastDate;
         if (day > -1) {
-            firstTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            firstDate = creatDate;
             if (day == 0) {
-                lastTime = firstTime.with(TemporalAdjusters.lastDayOfMonth())
-                        .withHour(23).withMinute(59).withSecond(59);
+                lastDate = creatDate.with(TemporalAdjusters.lastDayOfMonth());
             } else {
-                lastTime = firstTime.plusDays(day).withHour(23).withMinute(59).withSecond(59);
+                lastDate = creatDate.plusDays(day);
             }
         } else {
-            lastTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            firstTime = lastTime.plusDays(day).withHour(0).withMinute(0).withSecond(0);
+            lastDate = creatDate;
+            firstDate = creatDate.plusDays(day);
         }
-        return (localDateTime.isAfter(firstTime) || localDateTime.isEqual(firstTime))
-                && (localDateTime.isBefore(lastTime) || localDateTime.isEqual(lastTime));
+        return (localDate.isAfter(firstDate) || localDate.isEqual(firstDate))
+                && (localDate.isBefore(lastDate) || localDate.isEqual(lastDate));
     }
 
     @Override
