@@ -116,7 +116,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                  */
                 userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
             }
-            IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
+            final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser;
             if (iUserType instanceof UnknownUserType) {
                 msg = "未知的业务类型\"" + userType + "\"!";
