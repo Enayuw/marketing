@@ -26,13 +26,13 @@ public class CustomerCallingDialog {
      * 用户类型
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Integer userType;
+    private String userType;
 
     /**
      * 用户类型
 
      */
-    private Integer groupType;
+    private String groupType;
 
     /**
      * 流水号
@@ -199,19 +199,19 @@ public class CustomerCallingDialog {
         this.cid = cid == null ? null : cid.trim();
     }
 
-    public Integer getUserType() {
+    public String getUserType() {
         return userType;
     }
 
-    public void setUserType(Integer userType) {
+    public void setUserType(String userType) {
         this.userType = userType;
     }
 
-    public Integer getGroupType() {
+    public String getGroupType() {
         return groupType;
     }
 
-    public void setGroupType(Integer groupType) {
+    public void setGroupType(String groupType) {
         this.groupType = groupType;
     }
 

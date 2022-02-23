@@ -51,6 +51,9 @@ public class CallingToDbServiceImpl implements CallingToDbService {
                 if(headAddress.equals("custNum")){
                     headAddress = "caseNum";
                 }
+                if(headAddress.equals("groupType")){
+                    customerCallingDialog.setUserType(dataRows.get(i));
+                }
                 Field field = customerCallingDialog.getClass().getDeclaredField(headAddress);
                 field.setAccessible(true);
                 Class<?> type = field.getType();

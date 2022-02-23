@@ -5,8 +5,8 @@
         <id column="id" property="id" jdbcType="BIGINT" />
         <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
         <result column="cid" property="cid" jdbcType="VARCHAR" />
-        <result column="user_type" property="userType" jdbcType="INTEGER" />
-        <result column="group_type" property="groupType" jdbcType="INTEGER" />
+        <result column="user_type" property="userType" jdbcType="VARCHAR" />
+        <result column="group_type" property="groupType" jdbcType="VARCHAR" />
         <result column="swift_number" property="swiftNumber" jdbcType="VARCHAR" />
         <result column="task_id" property="taskId" jdbcType="VARCHAR" />
         <result column="task_name" property="taskName" jdbcType="VARCHAR" />
@@ -164,8 +164,8 @@
         recording_path, intention_grade, dialog_status,
         status, create_time, update_time,
         tag_list)
-        values (#{apiCode,jdbcType=VARCHAR}, #{cid,jdbcType=VARCHAR}, #{userType,jdbcType=INTEGER},
-        #{groupType,jdbcType=INTEGER}, #{swiftNumber,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR},
+        values (#{apiCode,jdbcType=VARCHAR}, #{cid,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+        #{groupType,jdbcType=VARCHAR}, #{swiftNumber,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR},
         #{taskName,jdbcType=VARCHAR}, #{taskType,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR},
         #{dialogId,jdbcType=VARCHAR}, #{caseStatus,jdbcType=INTEGER}, #{isSendMsg,jdbcType=INTEGER},
         #{requestId,jdbcType=VARCHAR}, #{sendStatus,jdbcType=INTEGER}, #{dropStatus,jdbcType=INTEGER},
@@ -274,10 +274,10 @@
                 #{cid,jdbcType=VARCHAR},
             </if>
             <if test="userType != null" >
-                #{userType,jdbcType=INTEGER},
+                #{userType,jdbcType=VARCHAR},
             </if>
             <if test="groupType != null" >
-                #{groupType,jdbcType=INTEGER},
+                #{groupType,jdbcType=VARCHAR},
             </if>
             <if test="swiftNumber != null" >
                 #{swiftNumber,jdbcType=VARCHAR},
@@ -373,10 +373,10 @@
                 cid = #{record.cid,jdbcType=VARCHAR},
             </if>
             <if test="record.userType != null" >
-                user_type = #{record.userType,jdbcType=INTEGER},
+                user_type = #{record.userType,jdbcType=VARCHAR},
             </if>
             <if test="record.groupType != null" >
-                group_type = #{record.groupType,jdbcType=INTEGER},
+                group_type = #{record.groupType,jdbcType=VARCHAR},
             </if>
             <if test="record.swiftNumber != null" >
                 swift_number = #{record.swiftNumber,jdbcType=VARCHAR},
@@ -460,8 +460,8 @@
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
         cid = #{record.cid,jdbcType=VARCHAR},
-        user_type = #{record.userType,jdbcType=INTEGER},
-        group_type = #{record.groupType,jdbcType=INTEGER},
+        user_type = #{record.userType,jdbcType=VARCHAR},
+        group_type = #{record.groupType,jdbcType=VARCHAR},
         swift_number = #{record.swiftNumber,jdbcType=VARCHAR},
         task_id = #{record.taskId,jdbcType=VARCHAR},
         task_name = #{record.taskName,jdbcType=VARCHAR},
@@ -495,8 +495,8 @@
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
         cid = #{record.cid,jdbcType=VARCHAR},
-        user_type = #{record.userType,jdbcType=INTEGER},
-        group_type = #{record.groupType,jdbcType=INTEGER},
+        user_type = #{record.userType,jdbcType=VARCHAR},
+        group_type = #{record.groupType,jdbcType=VARCHAR},
         swift_number = #{record.swiftNumber,jdbcType=VARCHAR},
         task_id = #{record.taskId,jdbcType=VARCHAR},
         task_name = #{record.taskName,jdbcType=VARCHAR},
@@ -534,10 +534,10 @@
                 cid = #{cid,jdbcType=VARCHAR},
             </if>
             <if test="userType != null" >
-                user_type = #{userType,jdbcType=INTEGER},
+                user_type = #{userType,jdbcType=VARCHAR},
             </if>
             <if test="groupType != null" >
-                group_type = #{groupType,jdbcType=INTEGER},
+                group_type = #{groupType,jdbcType=VARCHAR},
             </if>
             <if test="swiftNumber != null" >
                 swift_number = #{swiftNumber,jdbcType=VARCHAR},
@@ -618,8 +618,8 @@
         update b_marketing_customer_calling_dialog
         set api_code = #{apiCode,jdbcType=VARCHAR},
             cid = #{cid,jdbcType=VARCHAR},
-            user_type = #{userType,jdbcType=INTEGER},
-            group_type = #{groupType,jdbcType=INTEGER},
+            user_type = #{userType,jdbcType=VARCHAR},
+            group_type = #{groupType,jdbcType=VARCHAR},
             swift_number = #{swiftNumber,jdbcType=VARCHAR},
             task_id = #{taskId,jdbcType=VARCHAR},
             task_name = #{taskName,jdbcType=VARCHAR},
@@ -650,8 +650,8 @@
         update b_marketing_customer_calling_dialog
         set api_code = #{apiCode,jdbcType=VARCHAR},
             cid = #{cid,jdbcType=VARCHAR},
-            user_type = #{userType,jdbcType=INTEGER},
-            group_type = #{groupType,jdbcType=INTEGER},
+            user_type = #{userType,jdbcType=VARCHAR},
+            group_type = #{groupType,jdbcType=VARCHAR},
             swift_number = #{swiftNumber,jdbcType=VARCHAR},
             task_id = #{taskId,jdbcType=VARCHAR},
             task_name = #{taskName,jdbcType=VARCHAR},
