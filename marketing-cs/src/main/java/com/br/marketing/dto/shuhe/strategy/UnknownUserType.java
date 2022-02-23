@@ -3,6 +3,7 @@ package com.br.marketing.dto.shuhe.strategy;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -12,11 +13,21 @@ import java.util.Map;
 public class UnknownUserType extends IUserType {
     @Override
     public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
-        caseUser.setUserType("");
     }
 
     @Override
-    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
         return false;
+    }
+
+    @Override
+    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser
+            , IMarketingSyncUserService iMarketingSyncUserService, Date creatTime) {
+        return false;
+    }
+
+    @Override
+    public String getBlackExpireDate(Date creatTime) {
+        return "";
     }
 }

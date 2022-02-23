@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Map;
 
@@ -93,7 +94,8 @@ public abstract class IUserType {
      * <p>
      * clc_usr_frt_fq_ord_tim>creattime(上传接口上传该数据时间)  	促首借
      */
-    public abstract boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService);
+    public abstract boolean ifTransfer(CaseShuheUser caseShuheUser
+            , Date creatTime);
 
     /**
      * 全部场景空判断
@@ -119,6 +121,46 @@ public abstract class IUserType {
      */
     public boolean isTurn(CaseShuheUser caseShuheUser) {
         return Y.equals(caseShuheUser.getIsTurn());
+    }
+
+    /**
+     * 数据有效期
+     *
+     * @param caseShuheUser             pojo
+     * @param iMarketingSyncUserService javaBean
+     * @param creatTime                 有效期时间
+     * @return true or false 在有效期内为true 否则为false
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/22 15:48
+     */
+    public abstract boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser
+            , IMarketingSyncUserService iMarketingSyncUserService, Date creatTime);
+
+    /**
+     * 黑名单失效日期
+     *
+     * @param creatTime 有效期时间
+     * @return yyyy-MM-dd hh:mm:ss  日期精确到日期，时分秒补充23：59：59即可
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/22 15:48
+     */
+    public abstract String getBlackExpireDate(Date creatTime);
+
+    /**
+     * 计算失效日期
+     */
+    protected final String calculateExpireDate(Date date, int day) {
+        if (date == null) {
+            return "";
+        }
+        final LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        final LocalDateTime localDateTimeNew;
+        if (day == 0) {
+            localDateTimeNew = localDateTime.with(TemporalAdjusters.lastDayOfMonth());
+        } else {
+            localDateTimeNew = localDateTime.plusDays(day);
+        }
+        return localDateTimeNew.withHour(23).withMinute(59).withSecond(59).format(dateTimeFormatter);
     }
 
 }
