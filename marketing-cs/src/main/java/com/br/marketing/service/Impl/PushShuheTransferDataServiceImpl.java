@@ -140,7 +140,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             CaseShuheUserWithBLOBs finalCaseShuheUser = caseShuheUser;
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
                     , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-            // 检验有数据有效期
+
+            // D20220221数禾定制版V3.0优化一期 检验有数据有效期
             if (iUserType.dataPeriodOfValidity(caseShuheUser, iMarketingSyncUserService, creatTime)) {
                 // D20220209数禾转化接口V3.0-客服
                 if (iUserType.isBlack(caseShuheUser)) {
