@@ -58,6 +58,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String samoyeZHprefix = "samoye_zhuanhua_";
 
+    final static String TRANSFER_TIME = " 18:00:00";
+
     @Value("${otherConfig.warning.path:00}")
     private String path;
 
@@ -123,29 +125,36 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         }
         //转化类型文件
         if (collect.get(3) == null || collect.get(3).size() <= 0) {
-            Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("1"));
-            Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("1"));
-            Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("1"));
-            Integer s04 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S04", Arrays.asList("1"));
-            Integer s06 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S06", Arrays.asList("1"));
-            Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("1"));
+            Date now = new Date();
+            Date transferDate = DateHelper.getDatePlusHourMinuteSecond(now, TRANSFER_TIME);
+            bT = LocalDate.now().minusDays(1L).format(ymdDfBy_).concat(TRANSFER_TIME);
+            eT = LocalDate.now().format(ymdDfBy_).concat(TRANSFER_TIME);
+            //每天18:00:00之后执行
+            if (now.after(transferDate)) {
+                Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("1"));
+                Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("1"));
+                Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("1"));
+                Integer s04 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S04", Arrays.asList("1"));
+                Integer s06 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S06", Arrays.asList("1"));
+                Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("1"));
 
-            int num = s01 + s02 + s0202 + s04 + s06 + s08;
-            if (num > 0) {
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(3);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
-                transferFileTask.setTaskNumber(num);
-                transferFileTask.setStartDate(yyyyMMdd);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
+                int num = s01 + s02 + s0202 + s04 + s06 + s08;
+                if (num > 0) {
+                    Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                    String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                    TransferFileTask transferFileTask = new TransferFileTask();
+                    transferFileTask.setApiCode(apiCode);
+                    transferFileTask.setFileType(3);
+                    transferFileTask.setBatchNumber(batchNumber);
+                    transferFileTask.setFileName("");
+                    transferFileTask.setTaskNumber(num);
+                    transferFileTask.setStartDate(yyyyMMdd);
+                    transferFileTask.setContextId(transferFileContextId);
+                    transferFileTask.setCreateTime(new Date());
+                    transferFileTask.setUpdateTime(new Date());
+                    transferFileTaskMapper.insertSelective(transferFileTask);
+                    resultList.add(transferFileTask);
+                }
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
@@ -236,6 +245,11 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
             while (isContiue) {
+                //转化类型修改时间为T日18:00:00
+                if (transferFileTask.getFileType().equals(3)) {
+                    startDate = startDate.concat(TRANSFER_TIME);
+                    endDate = endDate.concat(TRANSFER_TIME);
+                }
                 List<TransferUserVO> transferFileUser = marketingSyncInfoMapper
                         .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, fileTypes);
                 if (transferFileUser.size() <= 0) {
