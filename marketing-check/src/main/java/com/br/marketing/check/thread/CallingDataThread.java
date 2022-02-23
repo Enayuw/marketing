@@ -4,14 +4,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,7 +67,7 @@ public class CallingDataThread implements Callable<String> {
         String sendUrl = pushUrlJson.getString("sendUrl");
         Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
         Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        log.warn("拨打记录发送返回值：", result);
+        log.warn("拨打记录发送返回值：{}", result);
         return null;
     }
 

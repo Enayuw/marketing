@@ -52,7 +52,6 @@ public class CallingBackInfoJob extends AbstractSimpleElasticJob {
             JSONObject pushUrlJson = getJsonObject(pushUrl.toString());
             String getUrl = pushUrlJson.getString("getUrl");
             Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
-            int length = getUrl.length();
             if(!getUrl.isEmpty()){
                 JSONObject param = new JSONObject();
                 param.put("requestId", requestId);

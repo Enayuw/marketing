@@ -68,8 +68,8 @@ public class SftpToDbCallingService {
                 return false;
             }
         }
-        StringBuilder sb = new StringBuilder().append(context.getLocalTxtFilePath()).append(context.getTxtFileName());
-        boolean download = client.downloadFile(context.getSftpZipFilePath(), context.getTxtFileName(), sb.toString());
+        String sb = context.getLocalTxtFilePath() + context.getTxtFileName();
+        boolean download = client.downloadFile(context.getSftpZipFilePath(), context.getTxtFileName(), sb);
         if (!download) {
             log.error("文件下载出错-SftpZipFilePath={},zipFileName={}", context.getSftpZipFilePath(), context.getTxtFileName());
             return false;
@@ -89,7 +89,7 @@ public class SftpToDbCallingService {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         HashMap<Integer, String> address = getAddress(context, localFile, baseHeads, txtFilePathAndName);
         if (address != null) {
-            doRenameFile(localFile, sftpClient,".bak");
+            doRenameFile(localFile, sftpClient);
             doProcess(localFile, fuc, txtFilePathAndName, address, sftpClient);
         }
     }
@@ -220,17 +220,18 @@ public class SftpToDbCallingService {
 
     /**
      * 文件重命名方法
-     * @param localFile 本地文件对象
+     *
+     * @param localFile  本地文件对象
      * @param sftpClient sftp对象
      */
-    private void doRenameFile(LocalFile localFile, SftpClient sftpClient,String tidying) {
+    private void doRenameFile(LocalFile localFile, SftpClient sftpClient) {
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String srcPath = localFile.getSrcPath();
         String fileName = localFile.getFileName();
         String nameTxt = srcPath + "/" + fileName;
         String nameSuc = srcPath + "/" + fileName + ".success";
-        String newNameTxt = nameTxt +"_"+ yyyyMMddHHmmss + tidying;
-        String newNameSuc = nameSuc + "_" + yyyyMMddHHmmss + tidying;
+        String newNameTxt = nameTxt +"_"+ yyyyMMddHHmmss + ".bak";
+        String newNameSuc = nameSuc + "_" + yyyyMMddHHmmss + ".bak";
         try {
             sftpClient.rename(nameTxt, newNameTxt);
             sftpClient.rename(nameSuc, newNameSuc);
@@ -249,7 +250,8 @@ public class SftpToDbCallingService {
      */
     private HashMap<Integer, String> checkAndGetHead(FileContext context, LocalFile localFile, List<String> baseHeads, String txtFilePathAndName) {
         StringBuilder head = MyFileUtil.gethead(txtFilePathAndName);
-        HashMap<Integer, String> address = new HashMap<>();
+        HashMap<Integer, String> address = new HashMap<>(16);
+        assert head != null;
         Result hashMapResult = getHeadBase(head.toString(), address, baseHeads);
         if (!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())) {
             log.error(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
