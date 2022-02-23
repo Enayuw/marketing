@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import IceInternal.Ex;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -20,6 +21,8 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.vo.TransferUserVO;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,6 +49,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
+
+    private static final Logger log = LoggerFactory.getLogger(TransferToFileBySamoyeServiveImpl.class);
 
     final DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -157,6 +162,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 }
             }
         }
+        log.info("萨摩耶转化文件详情transferFileTasks = {}", JSONObject.toJSONString(resultList));
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
