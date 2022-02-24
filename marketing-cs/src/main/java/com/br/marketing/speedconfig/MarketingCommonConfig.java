@@ -2,9 +2,9 @@ package com.br.marketing.speedconfig;
 
 
 import com.br.speed.client.common.annotations.SpeedFile;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+@Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
 public class MarketingCommonConfig {
     private String pushCustomer;
