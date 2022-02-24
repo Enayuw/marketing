@@ -368,7 +368,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         try {
             SecureRandom random = new SecureRandom();
             transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
-                    .concat("@" + System.currentTimeMillis()).concat("@" + random.nextInt(10000))));
+                    .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
             int rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
             if (rowSync > 0) {
                 MarketingTransferInfo transferInfo = new MarketingTransferInfo();
@@ -378,8 +378,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 transferInfo.setJsonData(caseShuheUser.getJsonData());
                 transferInfo.setActualNum(1);
                 int rowInfo = marketingTransferInfoMapper.insertSelective(transferInfo);
-                boolean isSendMq = rowInfo > 0 && caseShuheUser.getIsTransfer() != null && (caseShuheUser.getIsTransfer() == 1
-                        || caseShuheUser.getIsTransfer() == 4);
+                boolean isSendMq = rowInfo > 0 && caseShuheUser.getIsTransfer() != null
+                        && (caseShuheUser.getIsTransfer() == 1 || caseShuheUser.getIsTransfer() == 4);
                 if (isSendMq) {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER
                             , transferInfo.getId().toString());
