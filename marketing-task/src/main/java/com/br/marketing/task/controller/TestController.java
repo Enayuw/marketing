@@ -7,7 +7,6 @@ import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +56,13 @@ public class TestController {
     @GetMapping("/testSpeed")
     public String testSpeed(){
         return marketingCommonConfig.getPushCustomer();
+    }
+    @GetMapping("/flat")
+    public String hxflat(){
+        String s="{\"swift_number\":\"4003434_20220124155040_30484E11A\",\"code\":\"00\",\"Flag\":{\"score\":\"1\",\"scoredata\":\"1\"},\"Score\":{\"scorescashonhrcd\":\"74\",\"scorescashonhrxy\":\"7\"},\"ScoreData\":{\"scorescashonhrcd\":{\"pd_cell_province\":\"辽宁\",\"pd_id_gender\":\"1\",\"pd_cell_type\":\"移动\"},\"scorescashonhrxy\":{\"pd_cell_province\":\"辽宁\",\"pd_id_gender\":\"1\",\"pd_cell_type\":\"移动\"}}}";
+        String s1 = HxUtil.hauXiangFlat(s);
+        System.out.println(s1);
+        return "";
     }
 
     @GetMapping("/clearInnerCache")

@@ -1,8 +1,15 @@
 
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
+import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
+import com.br.marketing.client.robotaiapi.input.BlackPhoneDTO;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.service.MarketingHistoryEsService;
@@ -477,6 +484,37 @@ public class redis {
 //            System.out.println(bloomFilter.contains("123456"));
 //            //输出true
 //            System.out.println(bloomFilter.contains("10086"));
+    }
+
+    @Autowired
+    RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Test
+    public void pushBlack(){
+        BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+        blackDetailDTO.setName("测试");
+        blackDetailDTO.setPhone("13333333333");
+        blackDetailDTO.setEffectiveDate("2021-02-18 10:00:00");
+        blackDetailDTO.setExpireDate("2021-02-19 10:00:00");
+        blackDetailDTO.setRemark("remark");
+        ArrayList<BlackDetailDTO> blackDetailDTOS = new ArrayList<>();
+        blackDetailDTOS.add(blackDetailDTO);
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailDTOS);
+
+
+
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode("7410437");
+        dto.setJsonData(JSON.toJSONString(jsondata));
+
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
+
+        System.out.println(JSON.toJSONString(reqBlackPhoneVO));
+
     }
 
 /*@Resource
