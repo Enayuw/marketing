@@ -7,7 +7,9 @@ import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
+import com.br.marketing.task.utils.HxUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +57,10 @@ public class TestController {
 
     @GetMapping("/testSpeed")
     public String testSpeed(){
-        return marketingCommonConfig.getPushCustomer();
+        System.out.println(marketingCommonConfig.getPushHash());
+        System.out.println(marketingCommonConfig.getApiCodeOfpushCustomer());
+        System.out.println(marketingCommonConfig.getApiCodeOfpushHaluoByTransfer());
+        return "";
     }
     @GetMapping("/flat")
     public String hxflat(){

@@ -42,6 +42,7 @@ import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.PushTransferRobotaiLogService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -150,6 +151,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public Result<List<ScoreDetailVo>> getBatchInfos(CustomerBatchNumDTO dto) {
@@ -262,8 +265,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     HaluoCallRelationMapper haluoCallRelationMapper;
-
-    static List<String> taskApiCode = Arrays.asList("3710028","7410437","7410850");
 
     static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
 
@@ -674,11 +675,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result<Boolean> insertMarketingPreUserSync(Long infoId) {
-        String s = redisChgService.get(redisKeySoleNum);
-        Integer soleNum = 20;
-        if (StringUtils.isNotBlank(s)) {
-            soleNum = Integer.valueOf(s);
-        }
+        Integer soleNum = marketingCommonConfig.getSoleNum();
         if (log.isInfoEnabled()) {
             log.info(String.format("去重线程数：%d", soleNum));
         }
@@ -869,7 +866,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
-        if(taskApiCode.contains(apiCode)){
+        List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
+        if(apiCodeOfRecordTaskTime.contains(apiCode)){
             String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());
             if(!taskApiCodeSet.contains(concat)) {
                 try{
@@ -953,23 +951,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result consumerTransferData(Long id) {
-        List<String> pushCustomerApiCodes = new ArrayList<>();
-        List<String> haluoApiCodes = new ArrayList<>();
-        String keyStr = redisChgService.get(redisKeyPushCustomer);
-        if (StringUtils.isNotBlank(keyStr)) {
-            pushCustomerApiCodes = Splitter.on(",").splitToList(keyStr);
-        } else {
-            pushCustomerApiCodes.add("3710012");
-            pushCustomerApiCodes.add("4004643");
-            pushCustomerApiCodes.add("3710030");
-        }
-
-        String s = redisChgService.get(redisKeyPushHaluo);
-        if (StringUtils.isNotBlank(s)) {
-            haluoApiCodes = Splitter.on(",").splitToList(s);
-        } else {
-            haluoApiCodes.add("3710028");
-        }
+        List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
+        List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -1148,17 +1131,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
     }
 
-    final static Set groupTypeSaMoye;
-
-    static {
-        groupTypeSaMoye = new HashSet();
-        groupTypeSaMoye.add("S01");
-        groupTypeSaMoye.add("S02");
-        groupTypeSaMoye.add("S0202");
-        groupTypeSaMoye.add("S04");
-        groupTypeSaMoye.add("S06");
-        groupTypeSaMoye.add("S08");
-    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -1296,7 +1268,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         List<ConversionData> conversionDataList = new ArrayList<>();
         for (TransferUserVO transfer : transfers) {
-            if(!(groupTypeSaMoye.contains(transfer.getGroupType())&&"1".equals(transfer.getReserveField1()))){
+            if(!(marketingCommonConfig.getGroupTypeSaMoye().contains(transfer.getGroupType())&&"1".equals(transfer.getReserveField1()))){
                 continue;
             }
             ConversionData data = new ConversionData();
@@ -1508,8 +1480,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             false);
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
-    private final String hKey = "marketing:innerapi:tailor:apicodemap:";
-    private final String redisKeyEliminateJiuFu = "marketing:transfer:eliminateJiuFu:apiCode";
 
     @Override
     @Transactional
@@ -1534,14 +1504,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCode = info.getApiCode();
             Date createTime = ObjectUtils.isEmpty(info.getCreateTime()) ? new Date() : info.getCreateTime();
             result.setDate(true);
-            try {
-                String bool = redisChgService.get(hKey.concat(apiCode));
-                if (StringUtils.isNotBlank(bool)) {
-                    tailorApiCodeMap.put(apiCode, Boolean.valueOf(bool));
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+            tailorApiCodeMap = marketingCommonConfig.getCustomerTransferIsYx();
             if (!tailorApiCodeMap.getOrDefault(apiCode, false)) {
                 try {
                     info.setId(infoId);
@@ -2030,7 +1993,8 @@ public class PushRuleServiceImpl implements PushRuleService {
              * usertype	3、4	推送	已转化
              * usertype	非3、4	不推送	未转化
              */
-            if (apiCode.equals("3710018") || apiCode.equals("7410930")) {
+            List<String> haierApiCode = marketingCommonConfig.getHaierApiCode();
+            if (haierApiCode.contains(apiCode)) {
                 transferList = transferList.stream().filter(syncUser -> {
                     String userType = syncUser.getUserType();
                     if (userType.equals("3") || userType.equals("4")) {
@@ -2047,22 +2011,19 @@ public class PushRuleServiceImpl implements PushRuleService {
              * applyLoan=1	applyResult=0
              */
 
-            String eliminateJiuFu = redisChgService.get(redisKeyEliminateJiuFu);
-            if (StringUtils.isNotBlank(eliminateJiuFu)) {
-                List<String> apiCodes = Arrays.asList(eliminateJiuFu.split(","));
-                if (apiCodes.contains(apiCode)) {
-                    transferList = transferList.stream().filter(user -> {
-                        String reserveField1 = user.getReserveField1();
-                        if (StringUtils.isNotBlank(reserveField1)) {
-                            JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-                            if ("0".equals(user.getApplyResult()) && "1".equals(jsonObject.getString("applyLoan"))) {
-                                user.setIfTransform("1");
-                                return true;
-                            }
+            List<String> jfApiCode = marketingCommonConfig.getJfApiCode();
+            if (jfApiCode.contains(apiCode)) {
+                transferList = transferList.stream().filter(user -> {
+                    String reserveField1 = user.getReserveField1();
+                    if (StringUtils.isNotBlank(reserveField1)) {
+                        JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                        if ("0".equals(user.getApplyResult()) && "1".equals(jsonObject.getString("applyLoan"))) {
+                            user.setIfTransform("1");
+                            return true;
                         }
-                        return false;
-                    }).collect(Collectors.toList());
-                }
+                    }
+                    return false;
+                }).collect(Collectors.toList());
             }
 
             if (transferList.size() > 0) {
