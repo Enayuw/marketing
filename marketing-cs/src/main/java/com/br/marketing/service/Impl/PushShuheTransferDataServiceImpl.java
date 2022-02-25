@@ -86,6 +86,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
 
     @Override
     public ResponseShuheDTO insertShuheTransferData(String apiCode, String jsonData) {
+        long first = System.currentTimeMillis();
         String msg = "";
         ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
         ShuheTransferJsonDTO jsonDTO = null;
@@ -149,6 +150,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
             }
+            long last = System.currentTimeMillis();
+            log.info("接收数禾转化数据(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType());
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -334,6 +338,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
      * 去黑名单
      */
     private int goBlack(String apiCode, CaseShuheUserWithBLOBs caseShuheUser, String expireDate) {
+        long first = System.currentTimeMillis();
         try {
             LocalFile localFile = new LocalFile();
             localFile.setApiCode(apiCode);
@@ -352,6 +357,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (localFile.getId() != null && localFile.getId() > 0) {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK, localFile.getId().toString());
             }
+            long last = System.currentTimeMillis();
+            log.info("数禾转化->黑名单(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
             return i + i1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -365,6 +373,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
      */
     private int goTransferSync(String apiCode, CaseShuheUserWithBLOBs caseShuheUser
             , MarketingTransferSyncUser transferSyncUser) {
+        long first = System.currentTimeMillis();
         try {
             SecureRandom random = new SecureRandom();
             transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
@@ -386,6 +395,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 }
                 return rowSync + rowInfo;
             }
+            long last = System.currentTimeMillis();
+            log.info("数禾转化->标准转化(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
             return rowSync;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -399,6 +411,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
      */
     private int goShDx(String apiCode, CaseShuheUserWithBLOBs caseShuheUser
             , MarketingTransferSyncUser transferSyncUser) {
+        long first = System.currentTimeMillis();
         try {
             LocalFile localFile = new LocalFile();
             PhoneSale phoneSale = new PhoneSale();
@@ -438,6 +451,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                         , transferSyncUser.getCustNum(), booleanResult.getData());
                 log.error(msg);
             }
+            long last = System.currentTimeMillis();
+            log.info("数禾转化->电销(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
             return 1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
