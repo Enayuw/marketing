@@ -225,7 +225,7 @@
     />
     <job:simple id="SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
-                cron="0 0/2 * * * ? "
+                cron="0 0 0 1/1 * ?"
                 description="客服拨打明细落库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -239,7 +239,7 @@
     />
     <job:simple id="CallingToSendJob"
                 class="com.br.marketing.check.job.CallingToSendJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0 0 1/1 * ?"
                 description="客服拨打明细发送给第三方"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -253,7 +253,7 @@
     />
     <job:simple id="CallingBackInfoJob"
                 class="com.br.marketing.check.job.CallingBackInfoJob"
-                cron="0 0/10 * * * * ?"
+                cron="0 0 0 1/1 * ?"
                 description="客服拨打明细发送给第三方回调信息处理"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
