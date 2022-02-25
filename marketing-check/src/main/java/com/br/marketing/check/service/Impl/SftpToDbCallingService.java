@@ -103,7 +103,7 @@ public class SftpToDbCallingService {
      * @return 文件字段头
      */
     private HashMap<Integer, String> getAddress(FileContext context, LocalFile localFile, List<String> baseHeads, String txtFilePathAndName) {
-        if (!checkFile(context, localFile, txtFilePathAndName)) {
+        if (checkFile(context, localFile, txtFilePathAndName)) {
             return checkAndGetHead(context, localFile, baseHeads, txtFilePathAndName);
         }
         return null;
@@ -192,7 +192,7 @@ public class SftpToDbCallingService {
         }
         localFileMapper.updateByPrimaryKeySelective(updateFile);
 
-        doSendEmailAlert(localFile, errorMark, updateFile);
+        afterProcessSendEmailAlert(localFile, errorMark, updateFile);
     }
 
     /**
@@ -201,7 +201,7 @@ public class SftpToDbCallingService {
      * @param errorMark 错误计数
      * @param updateFile 更新文件日志对象
      */
-    private void doSendEmailAlert(LocalFile localFile, AtomicInteger errorMark, LocalFile updateFile) {
+    private void afterProcessSendEmailAlert(LocalFile localFile, AtomicInteger errorMark, LocalFile updateFile) {
         try {
             StringBuilder content = new StringBuilder();
             content.append("导入文件名称：".concat(localFile.getFileName()).concat("\r\n"))
@@ -210,12 +210,16 @@ public class SftpToDbCallingService {
                     .append("导入文件状态：".concat(errorMark.get() == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(updateFile.getActualNumber().toString()).concat("\r\n"))
                     .append("其中有问题行数：".concat(errorMark.toString()).concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "sftp数据上传", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            sendEmailAlert(content);
             System.out.println(content);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+    }
+
+    private void sendEmailAlert(StringBuilder content) {
+        alarmClient.sendAlarm(content.toString(), "打回调数据sftp数据上传", appName, secretKey,
+                Constants.sendCodeMap.get("uploadSuccess"));
     }
 
     /**
@@ -259,6 +263,7 @@ public class SftpToDbCallingService {
             updateFile.setId(localFile.getId());
             updateFile.setComplete("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
+            sendEmailAlert(new StringBuilder(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage())));
             return null;
         }
         return address;
@@ -279,9 +284,10 @@ public class SftpToDbCallingService {
             updateFile.setId(localFile.getId());
             updateFile.setComplete("4");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            return true;
+            sendEmailAlert(new StringBuilder(String.format("%s 文件内容为空", context.getTxtFileName())));
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
