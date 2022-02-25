@@ -33,6 +33,7 @@ public class CallingToDbServiceImpl implements CallingToDbService {
         HashMap<Integer, String> address = dto.getAddress();
         List<String> dataRows = Splitter.on(",").splitToList(row);
         Result result = new Result();
+        result.setCode(1);
         try {
             CustomerCallingDialog customerCallingDialog = getCustomerCallingDialog(dto, address, dataRows);
             int insert = customerCallingDialogMapper.insert(customerCallingDialog);
