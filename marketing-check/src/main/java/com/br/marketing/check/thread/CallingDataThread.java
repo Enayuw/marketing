@@ -40,19 +40,18 @@ public class CallingDataThread implements Callable<String> {
     public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists,
                              CustomerCallingDialogMapper customerCallingDialogMapper,
                              CustomerCalling customerCalling, HttpProxyClient httpProxyClient,
-    CustomerCallingPushLogMapper customerCallingPushLogMapper) {
+                             CustomerCallingPushLogMapper customerCallingPushLogMapper) {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
         this.httpProxyClient = httpProxyClient;
-        this.customerCallingPushLogMapper  = customerCallingPushLogMapper;
+        this.customerCallingPushLogMapper = customerCallingPushLogMapper;
     }
 
     @Override
     public String call() throws Exception {
         String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
         log.warn("开始多线程调用第三方接口");
-        updateRequestId(requestId);
         customerCallingDialogLists.forEach(sendPostRequest(requestId));
         return "success";
     }
@@ -71,6 +70,8 @@ public class CallingDataThread implements Callable<String> {
         String sendUrl = pushUrlJson.getString("sendUrl");
         Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
         Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
+        boolean sendStatus = (boolean) result.get("result");
+        updateRequestId(requestId, sendStatus == true ? 1 : 0);
         savePushLog(requestId, param, result);
         return null;
     }
@@ -85,8 +86,10 @@ public class CallingDataThread implements Callable<String> {
         map.put("requestId", requestId);
         map.put("params", param.toJSONString());
         map.put("result", result.toString());
-        map.put("createTime",new Date());
+        map.put("createTime", new Date());
         customerCallingPushLogMapper.insert(map);
+        //{result=false, data={"code":"99","message":"FALSE"}, desc=状态码错误99}
+
         log.warn("拨打记录发送返回值：{}", result);
     }
 
@@ -98,7 +101,7 @@ public class CallingDataThread implements Callable<String> {
         return gson.toJson(object);
     }
 
-    private void updateRequestId(String requestId) {
+    private void updateRequestId(String requestId, Integer sendStatus) {
         List<Long> ids = customerCallingDialogLists
                 .stream()
                 .map(CustomerCallingDialog::getId)
@@ -107,7 +110,7 @@ public class CallingDataThread implements Callable<String> {
         customerCallingDialogExample.createCriteria().andIdIn(ids);
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
         customerCallingDialog.setRequestId(requestId);
-        customerCallingDialog.setSendStatus(1);
+        customerCallingDialog.setSendStatus(sendStatus);
         customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
     }
 
