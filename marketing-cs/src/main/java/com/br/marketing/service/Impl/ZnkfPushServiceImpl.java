@@ -105,10 +105,21 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      */
     private Boolean isSatisfyPushDX(CallRecordDTO dto) {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
+        if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
+            log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
+            return false;
+        }
+        if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
+            log.warn("caseNum={}的数据intentionGrade缺失！",dto.getCaseNum());
+            return false;
+        }
         String groupType = map.get("groupType").toString();
-        boolean intentionGrade = dto.getDetail().getIntentionGrade().equals("A类");
+        boolean intentionGrade = false;
+        if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
+            intentionGrade = true;
+        }
         if(!"促申完".equals(groupType) || !intentionGrade){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A类！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
         PeriodOfValidityDO periodOfValidityDO = PeriodOfValidityDO.closInterval15Day();
@@ -185,7 +196,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     private String paramOfValidity(CallRecordDTO dto) {
-        //cid,apicode,caseNum,groupType,intentionGrade
+        //taskid、caseNum、CID、apicode，sessionId；
+        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
+            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            return "参数sessionId缺失!";
+        }
         if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
             log.warn("taskId={},caseNum={},sessionId={}的数据apicode或者cid缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return "参数apicode或者cid缺失！";
@@ -194,22 +209,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.warn("taskId={},caseNum={},sessionId={}的数据caseNum缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return "参数caseNum缺失!";
         }
-        Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
-        if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
-            log.warn("taskId={},caseNum={},sessionId={}的数据groupType缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数groupType缺失！";
-        }
-        if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据intentionGrade缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数intentionGrade缺失！";
-        }
         if(StringUtils.isEmpty(dto.getTaskId())){
             log.warn("taskId={},caseNum={},sessionId={}的数据taskId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return "参数taskId缺失!";
-        }
-        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数sessionId缺失!";
         }
         return "true";
     }
