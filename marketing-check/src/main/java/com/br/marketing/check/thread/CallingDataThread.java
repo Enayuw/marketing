@@ -39,7 +39,8 @@ public class CallingDataThread implements Callable<String> {
 
     public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists,
                              CustomerCallingDialogMapper customerCallingDialogMapper,
-                             CustomerCalling customerCalling, HttpProxyClient httpProxyClient,
+                             CustomerCalling customerCalling,
+                             HttpProxyClient httpProxyClient,
                              CustomerCallingPushLogMapper customerCallingPushLogMapper) {
         this.customerCallingDialogLists = customerCallingDialogLists;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
@@ -88,8 +89,6 @@ public class CallingDataThread implements Callable<String> {
         map.put("result", result.toString());
         map.put("createTime", new Date());
         customerCallingPushLogMapper.insert(map);
-        //{result=false, data={"code":"99","message":"FALSE"}, desc=状态码错误99}
-
         log.warn("拨打记录发送返回值：{}", result);
     }
 

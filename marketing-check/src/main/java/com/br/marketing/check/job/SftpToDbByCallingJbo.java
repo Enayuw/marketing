@@ -40,7 +40,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
 
 
     @Resource
-    SftpToDbCallingService sftpToDbCallingService;
+     SftpToDbCallingService sftpToDbCallingService;
 
     @Resource
     LocalFileMapper localFileMapper;

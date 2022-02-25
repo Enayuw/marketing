@@ -126,7 +126,7 @@ public class SftpToDbCallingService {
             BufferedReader br = new BufferedReader(read);
             String row;
             // 创建线程池
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
             while ((row = br.readLine()) != null) {
                 doThreadPoolProcess(localFile, fuc, address, line, errorMark, row, threadPool);
                 line++;
@@ -263,7 +263,6 @@ public class SftpToDbCallingService {
             updateFile.setId(localFile.getId());
             updateFile.setComplete("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            sendEmailAlert(new StringBuilder(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage())));
             return null;
         }
         return address;
