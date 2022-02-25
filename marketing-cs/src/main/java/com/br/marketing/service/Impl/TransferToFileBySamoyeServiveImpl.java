@@ -20,6 +20,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.vo.TransferUserVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,6 +216,11 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     void writeDD(Writer fw, String apiCode, String startDate
             , String endDate, List<String> groupTyps
             , TransferFileTask transferFileTask) throws IOException {
+        //转化类型修改时间为T日18:00:00
+        if (transferFileTask.getFileType().equals(3)) {
+            startDate = startDate.concat(TRANSFER_TIME);
+            endDate = endDate.concat(TRANSFER_TIME);
+        }
         for (String groupType : groupTyps) {
             List<String> fileTypes = new ArrayList<>();
             if (groupType.equals("S01")) {
@@ -251,11 +257,6 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
             while (isContiue) {
-                //转化类型修改时间为T日18:00:00
-                if (transferFileTask.getFileType().equals(3)) {
-                    startDate = startDate.concat(TRANSFER_TIME);
-                    endDate = endDate.concat(TRANSFER_TIME);
-                }
                 List<TransferUserVO> transferFileUser = marketingSyncInfoMapper
                         .getTransferFileUser(apiCode, startDate, endDate, minId, groupType, fileTypes);
                 if (transferFileUser.size() <= 0) {
