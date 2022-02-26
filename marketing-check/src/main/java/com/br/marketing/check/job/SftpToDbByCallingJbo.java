@@ -54,7 +54,10 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        log.warn("当前服务发分片数：{}",context.getShardingItems());
+        List<Integer> shardingItems = context.getShardingItems();
+        log.warn("当前服务发分片数：{}",shardingItems);
+        log.warn("总分片数：{}",context.getShardingTotalCount());
+        log.warn("分片内容：{}",context.getShardingItemParameters());
         this.process(getSftpClient(),context);
     }
 
