@@ -157,7 +157,7 @@
     />
     <job:simple id="SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
-                cron="0/1 * * * * ?"
+                cron="0 0 0 1/1 * ?"
                 description="客服拨打明细落库"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
