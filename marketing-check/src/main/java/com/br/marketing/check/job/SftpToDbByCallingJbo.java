@@ -53,14 +53,17 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
     CustomerCallingMapper customerCallingMapper;
 
     @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        this.process(getSftpClient());
+    public void process(JobExecutionMultipleShardingContext context) {
+        log.warn("当前服务发分片数：{}",context.getShardingItems());
+        this.process(getSftpClient(),context);
     }
 
     /**
      * 主程序处理
      */
-    private void process(SftpClient sftpClient) {
+    private void process(SftpClient sftpClient,JobExecutionMultipleShardingContext context) {
+
+
         CustomerCallingExample customerCallingExample = new CustomerCallingExample();
         customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
         customerCallingExample.createCriteria().andPushTypeEqualTo(0);
@@ -69,7 +72,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         for (CustomerCalling customerCalling : customerCallings) {
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
-            processFile(customerCalling.getSftpPath(), sftpClient, map);
+            processFile(customerCalling.getSftpPath(), sftpClient, map,context);
             // 数据处理逻辑
             processData(sftpClient, map, customerCalling);
 
@@ -168,14 +171,24 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      * @param sftpClient sftp 客户端
      * @param map        文件名称容器
      */
-    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map) {
+    private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map,JobExecutionMultipleShardingContext context) {
+        List<Integer> shardingItems = context.getShardingItems();
+
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
                 String fileName = entry.getKey();
                 if (fileName.endsWith(".success")) {
-                    Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
-                    set.add(fileName.substring(0, fileName.length() - 8));
+                    shardingItems.forEach((v)->{
+                        String substringName = fileName.substring(fileName.length() - 14, fileName.length() - 12);
+                        log.warn("当前文件名的分片数值：{}",substringName);
+                        int size = shardingItems.size();
+                        int i = (Integer.valueOf(substringName)) % size;
+                        if(i==Integer.valueOf(v)){
+                            Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
+                            set.add(fileName.substring(0, fileName.length() - 8));
+                        }
+                    });
                 }
             }
         } catch (
