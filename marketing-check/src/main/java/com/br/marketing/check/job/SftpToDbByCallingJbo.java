@@ -76,7 +76,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
             processFile(customerCalling.getSftpPath(), sftpClient, map,context);
             log.warn("分片内容map：{}",map);
             // 数据处理逻辑
-            //processData(sftpClient, map, customerCalling);
+            processData(sftpClient, map, customerCalling);
 
         }
     }
