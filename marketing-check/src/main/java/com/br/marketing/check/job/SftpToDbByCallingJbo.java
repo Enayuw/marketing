@@ -81,8 +81,9 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
             processFile(customerCalling.getSftpPath(), sftpClient, map,context);
+            log.warn("分片内容：{}",map);
             // 数据处理逻辑
-            processData(sftpClient, map, customerCalling);
+            //processData(sftpClient, map, customerCalling);
 
         }
     }
@@ -181,7 +182,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      */
     private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map,JobExecutionMultipleShardingContext context) {
         List<Integer> shardingItems = context.getShardingItems();
-
+        log.warn("当前机器片情况：{}",shardingItems);
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
@@ -190,8 +191,10 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
                     shardingItems.forEach((v)->{
                         String substringName = fileName.substring(fileName.length() - 14, fileName.length() - 12);
                         log.warn("当前文件名的分片数值：{}",substringName);
+                        log.warn("当前文件名的分片数值----：{}",v);
                         int size = shardingItems.size();
                         int i = (Integer.valueOf(substringName)) % size;
+                        log.warn("分片服务：{}",i);
                         if(i==Integer.valueOf(v)){
                             Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
                             set.add(fileName.substring(0, fileName.length() - 8));
