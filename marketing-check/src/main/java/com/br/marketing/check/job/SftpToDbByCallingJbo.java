@@ -58,7 +58,12 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         log.warn("当前服务发分片数：{}",shardingItems);
         log.warn("总分片数：{}",context.getShardingTotalCount());
         log.warn("分片内容：{}",context.getShardingItemParameters());
+        long startTime = System.currentTimeMillis();
+        log.warn("首次拨打调度开始时间：{}",startTime);
         this.process(getSftpClient(),context);
+        long endTime = System.currentTimeMillis();
+        log.warn("首次拨打调度结束时间：{}",endTime);
+        log.warn("首次拨打调度总耗时：{}",endTime-startTime);
     }
 
     /**
