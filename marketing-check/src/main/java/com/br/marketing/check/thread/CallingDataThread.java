@@ -78,16 +78,13 @@ public class CallingDataThread implements Callable<String> {
     }
 
     private void savePushLog(String requestId, JSONObject param, Map<String, Object> result) {
-        CustomerCallingPushLog customerCallingPushLog = new CustomerCallingPushLog();
-        customerCallingPushLog.setParams(param.toJSONString());
-        customerCallingPushLog.setResult(String.valueOf(result));
-        customerCallingPushLog.setRequestId(requestId);
-        customerCallingPushLog.setCreateTime(new Date());
+        JSONArray dataItems = param.getJSONArray("dataItems");
         Map<String, Object> map = new HashMap<>();
         map.put("requestId", requestId);
         map.put("params", param.toJSONString());
         map.put("result", result.toString());
         map.put("createTime", new Date());
+        map.put("sum",dataItems.size());
         customerCallingPushLogMapper.insert(map);
         log.warn("拨打记录发送返回值：{}", result);
     }

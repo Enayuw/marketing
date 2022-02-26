@@ -5,11 +5,13 @@
     <insert id="insert">
         insert into b_marketing_customer_calling_push_log
         (`request_id`,
+         `sum`,
          `create_time`,
          `params`,
          `result`)
         values (
                 #{requestId, jdbcType = VARCHAR},
+                #{sum, jdbcType = INTEGER},
                 #{createTime,jdbcType=TIMESTAMP},
                 #{params},
                 #{result})

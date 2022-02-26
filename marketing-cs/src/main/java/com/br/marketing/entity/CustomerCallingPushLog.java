@@ -13,6 +13,7 @@ public class CustomerCallingPushLog {
      */
     private String requestId;
 
+    private Integer sum;
     /**
      * 创建时间
      */
@@ -32,6 +33,15 @@ public class CustomerCallingPushLog {
      * 返参
      */
     private String result;
+
+
+    public Integer getSum() {
+        return sum;
+    }
+
+    public void setSum(Integer sum) {
+        this.sum = sum;
+    }
 
     public String getParams() {
         return params;

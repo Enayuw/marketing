@@ -1,13 +1,11 @@
 package com.br.marketing.check.job;
 
-import cn.hutool.log.Log;
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingExample;
-import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingMapper;
 import com.br.marketing.mapper.CustomerCallingPushLogMapper;
@@ -67,7 +65,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         cusMap.put("sendStatus", 0);
         cusMap.put("conditions", customerCalling.getConditions());
         List<CustomerCallingDialog> customerCallingDialogs = customerCallingDialogMapper.getInfoByColumns(cusMap);
-        return Lists.partition(customerCallingDialogs, 2000);
+        return Lists.partition(customerCallingDialogs, 1500);
     }
 
     private String getTableColumns(CustomerCalling customerCalling) {
