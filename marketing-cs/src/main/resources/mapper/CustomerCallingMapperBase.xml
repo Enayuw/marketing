@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomerCallingMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerCalling" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="message" property="message" jdbcType="VARCHAR" />
+    <result column="columns_detail" property="columnsDetail" jdbcType="VARCHAR" />
+    <result column="sftp_password" property="sftpPassword" jdbcType="VARCHAR" />
+    <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
+    <result column="conditions" property="conditions" jdbcType="VARCHAR" />
+    <result column="push_thread_num" property="pushThreadNum" jdbcType="INTEGER" />
+    <result column="push_type" property="pushType" jdbcType="INTEGER" />
+    <result column="push_url" property="pushUrl" jdbcType="VARCHAR" />
+    <result column="sftp_path" property="sftpPath" jdbcType="VARCHAR" />
+    <result column="sftp_name" property="sftpName" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, message, columns_detail, sftp_password, extend_config_info, conditions,
+    push_thread_num, push_type, push_url, sftp_path, sftp_name, status, update_time,
+    create_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerCallingExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_customer_calling
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_marketing_customer_calling
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_customer_calling
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerCallingExample" >
+    delete from b_marketing_customer_calling
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.CustomerCalling" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_customer_calling (api_code, message, columns_detail,
+    sftp_password, extend_config_info, conditions,
+    push_thread_num, push_type, push_url,
+    sftp_path, sftp_name, status,
+    update_time, create_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, #{columnsDetail,jdbcType=VARCHAR},
+    #{sftpPassword,jdbcType=VARCHAR}, #{extendConfigInfo,jdbcType=VARCHAR}, #{conditions,jdbcType=VARCHAR},
+    #{pushThreadNum,jdbcType=INTEGER}, #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR},
+    #{sftpPath,jdbcType=VARCHAR}, #{sftpName,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT},
+    #{updateTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerCalling" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_customer_calling
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="message != null" >
+        message,
+      </if>
+      <if test="columnsDetail != null" >
+        columns_detail,
+      </if>
+      <if test="sftpPassword != null" >
+        sftp_password,
+      </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info,
+      </if>
+      <if test="conditions != null" >
+        conditions,
+      </if>
+      <if test="pushThreadNum != null" >
+        push_thread_num,
+      </if>
+      <if test="pushType != null" >
+        push_type,
+      </if>
+      <if test="pushUrl != null" >
+        push_url,
+      </if>
+      <if test="sftpPath != null" >
+        sftp_path,
+      </if>
+      <if test="sftpName != null" >
+        sftp_name,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="message != null" >
+        #{message,jdbcType=VARCHAR},
+      </if>
+      <if test="columnsDetail != null" >
+        #{columnsDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpPassword != null" >
+        #{sftpPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="extendConfigInfo != null" >
+        #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="conditions != null" >
+        #{conditions,jdbcType=VARCHAR},
+      </if>
+      <if test="pushThreadNum != null" >
+        #{pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushType != null" >
+        #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="pushUrl != null" >
+        #{pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpPath != null" >
+        #{sftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpName != null" >
+        #{sftpName,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CustomerCallingExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_customer_calling
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_customer_calling
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.message != null" >
+        message = #{record.message,jdbcType=VARCHAR},
+      </if>
+      <if test="record.columnsDetail != null" >
+        columns_detail = #{record.columnsDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sftpPassword != null" >
+        sftp_password = #{record.sftpPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extendConfigInfo != null" >
+        extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.conditions != null" >
+        conditions = #{record.conditions,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushThreadNum != null" >
+        push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushType != null" >
+        push_type = #{record.pushType,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushUrl != null" >
+        push_url = #{record.pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sftpPath != null" >
+        sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sftpName != null" >
+        sftp_name = #{record.sftpName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=TINYINT},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_customer_calling
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    message = #{record.message,jdbcType=VARCHAR},
+    columns_detail = #{record.columnsDetail,jdbcType=VARCHAR},
+    sftp_password = #{record.sftpPassword,jdbcType=VARCHAR},
+    extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+    conditions = #{record.conditions,jdbcType=VARCHAR},
+    push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
+    push_type = #{record.pushType,jdbcType=INTEGER},
+    push_url = #{record.pushUrl,jdbcType=VARCHAR},
+    sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
+    sftp_name = #{record.sftpName,jdbcType=VARCHAR},
+    status = #{record.status,jdbcType=TINYINT},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerCalling" >
+    update b_marketing_customer_calling
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="message != null" >
+        message = #{message,jdbcType=VARCHAR},
+      </if>
+      <if test="columnsDetail != null" >
+        columns_detail = #{columnsDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpPassword != null" >
+        sftp_password = #{sftpPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="conditions != null" >
+        conditions = #{conditions,jdbcType=VARCHAR},
+      </if>
+      <if test="pushThreadNum != null" >
+        push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushType != null" >
+        push_type = #{pushType,jdbcType=INTEGER},
+      </if>
+      <if test="pushUrl != null" >
+        push_url = #{pushUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpPath != null" >
+        sftp_path = #{sftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpName != null" >
+        sftp_name = #{sftpName,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerCalling" >
+    update b_marketing_customer_calling
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        message = #{message,jdbcType=VARCHAR},
+        columns_detail = #{columnsDetail,jdbcType=VARCHAR},
+        sftp_password = #{sftpPassword,jdbcType=VARCHAR},
+        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+        conditions = #{conditions,jdbcType=VARCHAR},
+        push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
+        push_type = #{pushType,jdbcType=INTEGER},
+        push_url = #{pushUrl,jdbcType=VARCHAR},
+        sftp_path = #{sftpPath,jdbcType=VARCHAR},
+        sftp_name = #{sftpName,jdbcType=VARCHAR},
+        status = #{status,jdbcType=TINYINT},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
