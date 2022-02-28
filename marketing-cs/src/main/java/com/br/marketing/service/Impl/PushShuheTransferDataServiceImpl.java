@@ -104,8 +104,10 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             if (!"".equals(msg)) {
                 responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
-                log.warn("shuhe-1:{}", "缺失必填参数:".concat(msg).concat("\n案件编号“").concat(jsonDTO.getOrderId())
-                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
+                msg = "缺失必填参数:".concat(msg).concat("\n案件编号“").concat(jsonDTO.getOrderId())
+                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
+                log.warn("shuhe-1:{}", msg);
+                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -218,7 +220,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     caseShuheUser.setErrorInfo("#2" + errorInfo + (";").concat(stat));
                 }
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
+                log.error("shuhe-3" + e.getMessage(), e);
                 this.sendAlarmMgs(title, ("案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                                 .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
                         , appName, secretKey, alarmClient);
