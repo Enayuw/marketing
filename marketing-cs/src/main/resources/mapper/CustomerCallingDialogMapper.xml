@@ -679,7 +679,7 @@
     </update>
 
     <select id="getInfoByColumns" resultType="com.br.marketing.entity.CustomerCallingDialog">
-        select id, ${columns} from b_marketing_customer_calling_dialog where  api_code = #{apiCode} and send_status = #{sendStatus} ${conditions};
+        select id, ${columns} from b_marketing_customer_calling_dialog where  api_code = #{apiCode} and send_status = #{sendStatus} orderby id desc limit #{pageNo},#{pageSize};
     </select>
     <select id="getRequestId" resultType="java.util.Map">
         select b.request_id as requestId, a.push_url as pushUrl, a.api_code as apiCode,
