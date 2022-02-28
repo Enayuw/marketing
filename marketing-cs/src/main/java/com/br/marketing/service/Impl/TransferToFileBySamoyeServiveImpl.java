@@ -64,7 +64,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String samoyeZHprefix = "samoye_zhuanhua_";
 
-    final static String TRANSFER_TIME = " 18:00:00";
+    final static String TRANSFER_TIME = " 11:00:00";
 
     @Value("${otherConfig.warning.path:00}")
     private String path;
