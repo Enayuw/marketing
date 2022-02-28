@@ -143,7 +143,7 @@ public class SftpToDbCallingService {
         if (log.isWarnEnabled()) {
             log.warn(String.format("数据入库时长:%d", end - start));
         }
-        doProcessAfter(localFile, errorMark, line, sftpClient);
+        doProcessAfter(localFile, errorMark, line);
     }
 
     /**
@@ -183,7 +183,7 @@ public class SftpToDbCallingService {
      * @param line 行数
      * @param sftpClient sftp 客户端
      */
-    private void doProcessAfter(LocalFile localFile, AtomicInteger errorMark, Integer line, SftpClient sftpClient) {
+    private void doProcessAfter(LocalFile localFile, AtomicInteger errorMark, Integer line) {
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localFile.getId());
         updateFile.setActualNumber(line > 1 ? line - 2 : line);

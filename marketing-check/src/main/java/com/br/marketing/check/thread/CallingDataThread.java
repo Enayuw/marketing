@@ -53,7 +53,7 @@ public class CallingDataThread implements Callable<String> {
     public String call() throws Exception {
         String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
         log.warn("开始多线程调用第三方接口");
-        customerCallingDialogLists.forEach(sendPostRequest(requestId));
+        sendPostRequest(requestId);
         return "success";
     }
 
