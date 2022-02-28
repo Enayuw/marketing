@@ -222,7 +222,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error("shuhe-3:isDone=" + future.isDone() + (e.getMessage()), e);
                 this.sendAlarmMgs(title, ("案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                                .concat("推送任务异常！请尽快处理^_^，失败原因：") + e.getMessage()
+                                .concat("推送任务异常！请尽快处理^_^，失败原因：")
+                                + (StringUtils.isEmpty(e.getMessage()) ? e : e.getMessage())
                         , appName, secretKey, alarmClient);
                 caseShuheUser.setErrorInfo("#3@:isDone=" + future.isDone() + (e));
             }
