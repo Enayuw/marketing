@@ -85,15 +85,15 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             List<CustomerCallingDialog>    customerCallingDialogsByEvery = customerCallingDialogMapper.getInfoByColumns(cusMap);
             index =  customerCallingDialogsByEvery.size()==0?false:true;
             if(index){
-                List<Long> ids = customerCallingDialogsByEvery
-                        .stream()
-                        .map(CustomerCallingDialog::getId)
-                        .collect(Collectors.toList());
-                CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
-                customerCallingDialogExample.createCriteria().andIdIn(ids);
-                CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
-                customerCallingDialog.setSendStatus(1);
-                customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
+                //List<Long> ids = customerCallingDialogsByEvery
+                //        .stream()
+                //        .map(CustomerCallingDialog::getId)
+                //        .collect(Collectors.toList());
+                //CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
+                //customerCallingDialogExample.createCriteria().andIdIn(ids);
+                //CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
+                //customerCallingDialog.setSendStatus(1);
+                //customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
                 sendPostRequest(customerCalling,customerCallingDialogsByEvery);
             }
         }
