@@ -155,7 +155,8 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         String sendUrl = pushUrlJson.getString("sendUrl");
         Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
         Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        updateRequestId(requestId,customerCallingDialogLists);
+        boolean sendStatus = (boolean) result.get("result");
+        updateRequestId(requestId, sendStatus == true ? 1 : 0,customerCallingDialogLists);
         savePushLog(requestId, param, result);
 
     }
@@ -179,7 +180,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         return gson.toJson(object);
     }
 
-    private void updateRequestId(String requestId,List<CustomerCallingDialog>  customerCallingDialogLists) {
+    private void updateRequestId(String requestId,Integer sendStatus,List<CustomerCallingDialog>  customerCallingDialogLists) {
         List<Long> ids = customerCallingDialogLists
                 .stream()
                 .map(CustomerCallingDialog::getId)
@@ -188,6 +189,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         customerCallingDialogExample.createCriteria().andIdIn(ids);
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
         customerCallingDialog.setRequestId(requestId);
+        customerCallingDialog.setSendStatus(sendStatus);
         customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
     }
 
