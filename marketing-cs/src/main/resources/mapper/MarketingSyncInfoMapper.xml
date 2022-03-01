@@ -163,34 +163,6 @@
         </foreach>
     </select>
 
-    <select id="getPeriodOfValiditySum" resultType="java.lang.Long">
-        select count(id) from
-        b_marketing_sync_${apiCode}
-        where cust_num=#{custNum}
-        <if test="periodOfValidityDO == null">
-            and 1!=1
-        </if>
-        <if test="periodOfValidityDO != null">
-            <if test="periodOfValidityDO.startTime != null">
-                <if test="periodOfValidityDO.startTime.sign!=null
-               and periodOfValidityDO.startTime.sign!=''
-               and periodOfValidityDO.startTime.time != null">
-                    and create_time ${periodOfValidityDO.startTime.sign} #{periodOfValidityDO.startTime.time}
-                </if>
-            </if>
-            <if test="periodOfValidityDO.endTime != null">
-                <if test="periodOfValidityDO.endTime.sign != null
-               and periodOfValidityDO.endTime.sign != ''
-               and periodOfValidityDO.endTime.time != null">
-                    and create_time ${periodOfValidityDO.endTime.sign} #{periodOfValidityDO.endTime.time}
-                </if>
-            </if>
-            <if test="periodOfValidityDO.startTime==null and periodOfValidityDO.endTime==null">
-                and 1!=1
-            </if>
-        </if>
-    </select>
-
     <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from
         b_marketing_sync_${apiCode}
@@ -211,7 +183,7 @@
         order by create_time desc limit 0,1
     </select>
 
-    <select id="getAppletTimeByCustNumAndUserType" resultType="java.util.Date">
+    <select id="getAppletTimeByCustNumAndUserType" resultType="java.lang.String">
         select applet_time
         from b_marketing_sync_${apiCode}
         where cust_num = #{custNum}
