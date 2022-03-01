@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.dto.PushShDXDTO;
@@ -87,7 +86,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }catch (Exception ex){
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId(),ex);
-            return "客服拨打记录落库失败!";
+            return "客服拨打记录落库失败(insert b_call_record fail)!";
         }
 
         //判断是否符合情况b：userType=促申完&intentionGrade=A&cusNun&有效期内
@@ -199,19 +198,19 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         //taskid、caseNum、CID、apicode，sessionId；
         if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
             log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数sessionId缺失!";
+            return "no param sessionId!";
         }
         if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
             log.warn("taskId={},caseNum={},sessionId={}的数据apicode或者cid缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数apicode或者cid缺失！";
+            return "no param apicode or cid！";
         }
         if(StringUtils.isEmpty(dto.getCaseNum())){
             log.warn("taskId={},caseNum={},sessionId={}的数据caseNum缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数caseNum缺失!";
+            return "no param caseNum!";
         }
         if(StringUtils.isEmpty(dto.getTaskId())){
             log.warn("taskId={},caseNum={},sessionId={}的数据taskId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数taskId缺失!";
+            return "no param taskId!";
         }
         return "true";
     }
