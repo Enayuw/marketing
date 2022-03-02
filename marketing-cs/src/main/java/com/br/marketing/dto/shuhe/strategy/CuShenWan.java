@@ -1,6 +1,5 @@
 package com.br.marketing.dto.shuhe.strategy;
 
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.util.StringUtils;
@@ -31,7 +30,7 @@ public class CuShenWan extends IUserType {
         caseUser.setClcUsrAdtTimRcnLon(dataItem.getOrDefault("clc_usr_adt_tim_rcn_lon", defaultValue));
     }
 
-    public final boolean isSatisfyDX(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public final boolean isSatisfyDX(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean boolAppStaTim;
         /* 数禾申完转电销 情况a
          * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
@@ -51,40 +50,56 @@ public class CuShenWan extends IUserType {
                 boolIsoAtoTim = Boolean.FALSE;
             } else {
                 LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
-                Date appletTime = iMarketingSyncUserService.getAppletTimeByCustNumAndUserType(caseShuheUser.getApiCode()
-                        , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-                if (appletTime == null) {
+                if (creatTime == null) {
                     boolIsoAtoTim = Boolean.FALSE;
                 } else {
-                    LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                     boolIsoAtoTim = isoAtoTim.isBefore(appletDate);
                 }
             }
-            if (boolIsoAtoTim) {
-                // 校验有效期
-                return iMarketingSyncUserService.isPeriodOfValidity(caseShuheUser.getApiCode()
-                        , caseShuheUser.getCustNum(), PeriodOfValidityDO.closInterval15Day());
-            }
+//            if (boolIsoAtoTim) {
+//                // 校验有效期
+//                return dataPeriodOfValidity(caseShuheUser, iMarketingSyncUserService, creatTime);
+//            }
+            return boolIsoAtoTim;
         }
         return false;
     }
 
     @Override
-    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean ifTransfer;
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
             ifTransfer = Boolean.FALSE;
         } else {
-            Date appletTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
-                    , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-            if (appletTime == null) {
+            if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
                 LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
-                LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                 ifTransfer = isoAtoTim.isAfter(appletDate);
             }
         }
         return ifTransfer;
+    }
+
+    /**
+     * T+15天
+     * api接口上传包含上传日当天和结束日当天闭区间15天（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService
+            , Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(caseShuheUser.getApiCode()
+                , caseShuheUser.getCustNum(), caseShuheUser.getUserType(), new Date(), 14, creatTime);
+    }
+
+    /**
+     * T+15天
+     * api接口上传包含上传日当天和结束日当天闭区间15天（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public String getBlackExpireDate(Date creatTime) {
+        return this.calculateExpireDate(creatTime, 14);
     }
 }
