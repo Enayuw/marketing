@@ -148,10 +148,10 @@ public class DassServiceClient {
         interfaceLog.setCreateTime(new Date());
         long start = System.currentTimeMillis();
         try {
-            log.info("#postBlackList#Request:\n{}", jsonData);
+            log.warn("#postBlackList#Request:\n{}", jsonData);
             boolean boolProxy = !"0".equals(isProxy);
             HashMap<String, String> hashMap = httpProxyClient.sendByCode(jsonData, postBlackList, boolProxy);
-            log.info("#postBlackList#Response:\n{}", hashMap.toString());
+            log.warn("#postBlackList#Response:\n{}", hashMap.toString());
             final String httpcode = hashMap.getOrDefault("httpcode", "");
             if (StringUtils.isNotBlank(httpcode)) {
                 int code = Integer.parseInt(httpcode);
