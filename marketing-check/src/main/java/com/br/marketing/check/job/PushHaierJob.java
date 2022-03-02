@@ -35,6 +35,6 @@ public class PushHaierJob extends AbstractSimpleElasticJob {
     PushDataService pushDataService;
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        pushDataService.pushHaierData();
+//        pushDataService.pushHaierData();
     }
 }
