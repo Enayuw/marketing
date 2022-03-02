@@ -6,6 +6,7 @@ import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -209,7 +210,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                         localFile.setLocalPath(context.getLocalTxtFilePath());
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
-                        localFile.setFileType("dianxiao");
+                        localFile.setFileType(SftpFileTypeEnum.DX.getValue());
                         localFileMapper.insertSelective(localFile);
 
                         try {

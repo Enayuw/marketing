@@ -49,7 +49,8 @@ otherConfig:
   warning:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-    path: /opt/data/inloan/download/marketing/
+#    path: /opt/data/inloan/download/marketing/
+    path: /Users/chao.z/Desktop/
     sftpHost: 10.100.123.65
     sftpPort: 9999
     sftpUser: BRmarketing_pre
@@ -64,6 +65,12 @@ otherConfig:
     proxy_password: Proxy_br
 
 api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service-pred
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   dass:
     baseUrl: http://testdaas.huiyunai.com
     postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
@@ -83,8 +90,9 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: marketing-flow
-
+    virtual-host: marketing-test
+innerSftp:
+  uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-dev-job

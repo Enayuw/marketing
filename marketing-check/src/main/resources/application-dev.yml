@@ -41,7 +41,7 @@ otherConfig:
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: D:/test
+        path: /Users/chao.z/Desktop/
         ftpHost: 10.100.123.65
         ftpPort: 21
         ftpUsername: dev-controller
@@ -64,6 +64,8 @@ api:
     isProxy: 1
   marketing:
     transferUrl: http://k8s.brapp.com/compass-api/api/marketing-api/marketingTransferData/receiveTransferDataSync
+innerSftp:
+  uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181

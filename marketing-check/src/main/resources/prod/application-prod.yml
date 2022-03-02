@@ -72,6 +72,12 @@ otherConfig:
     destinationName: marketing_query_log
 
 api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   dass:
     baseUrl: http://daas.huiyunai.com
     postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
@@ -92,7 +98,8 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
-
+innerSftp:
+  uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
 NAMESPACE: marketing-job

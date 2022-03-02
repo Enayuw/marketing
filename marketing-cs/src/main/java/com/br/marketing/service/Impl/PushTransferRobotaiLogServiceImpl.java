@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
+import com.br.common.util.StringUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
@@ -42,13 +43,14 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
     public int saveLog(MarketingTransferInfo transferInfo, TransferRobotOutboundDTO robotOutboundDTO, TransferRobotOutboundVO<UnsuccessfulData> outboundVO) {
         List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
         String apiCode = transferInfo.getApiCode();
+        final String message = outboundVO.getMessage();
         PushTransferRobotaiLog pushTransferRobotaiLog = new PushTransferRobotaiLog(
                 transferInfo.getId()
                 , apiCode
                 , transferInfo.getRequestId()
                 , JSON.toJSONString(outboundVO.getData())
                 , outboundVO.getCode()
-                , outboundVO.getMessage()
+                , StringUtils.isNotEmpty(message) && message.length() > 255 ? message.substring(0, 255) : message
                 , robotOutboundDTO.getJsonData().getConversionData().size()
                 , JSON.toJSONString(robotOutboundDTO)
                 , String.valueOf(Math.abs(Integer.parseInt(conversionData.get(0).getCid())))

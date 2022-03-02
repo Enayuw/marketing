@@ -238,6 +238,8 @@ public class ErrorControllerAspect {
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(e.getStackTrace()[i]).append(rn);
         }
+        stringBuilder.append(String.format("参数：%s", params.toString())).append(rn);
+
         StringBuilder stringBuilderMail = new StringBuilder()
                 .append(String.format("环境：%s", env)).append(rn)
                 .append(String.format("logId：%s", uuid)).append(rn)

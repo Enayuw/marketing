@@ -1,6 +1,8 @@
 package com.br.marketing.api.controller;
 
 import com.alibaba.fastjson.*;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
@@ -48,6 +50,7 @@ public class MarketingUserPreController {
     @ApiOperation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
     @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult receiveMarketingPreUserSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
@@ -67,10 +70,11 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "转化人员")
+    @ApiOperation(value = "萨摩耶转化人员接口")
     @PostMapping("/transferUser")
     @SaveLog
     @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult transferUser(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
@@ -88,6 +92,7 @@ public class MarketingUserPreController {
      */
     @ApiOperation(value = "获取营销人员数据状态")
     @PostMapping("/getMarketingPreUserStauts")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             MarketingPreUserSyncStatusDTO o = JSON.parseObject(jsonData,

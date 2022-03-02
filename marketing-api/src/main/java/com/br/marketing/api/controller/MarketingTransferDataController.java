@@ -3,20 +3,29 @@ package com.br.marketing.api.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.context.RuntimeDataContext;
+import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
+import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 
 /**
@@ -32,6 +41,9 @@ public class MarketingTransferDataController {
     @Autowired
     PushRuleService pushRuleService;
 
+    @Resource
+    private IPushShuheTransferDataService iPushShuheTransferDataService;
+
 
     /**
      * 智能营销标准转化数据上传接口
@@ -43,6 +55,7 @@ public class MarketingTransferDataController {
     @ApiOperation(value = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
     @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult receiveTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
@@ -60,17 +73,37 @@ public class MarketingTransferDataController {
      */
     @ApiOperation(value = "获取转化数据上传详情")
     @PostMapping("/getTransferDataStauts")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getTransferDataStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             JSONObject jsonObject = JSON.parseObject(jsonData);
             String requestId = jsonObject.getString("requestId");
-            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode,requestId),null);
-        }  catch (JSONException ex) {
+            return new ApiResult().fromResult(pushRuleService.getTransferDataStatus(apiCode, requestId), null);
+        } catch (JSONException ex) {
             return new ApiResult()
                     .setCode(MarketingErrorInfo.JSON_DATA_ERROR.getErrorCode())
                     .setMessage(MarketingErrorInfo.JSON_DATA_ERROR.getErrorMsg());
 
         }
+    }
+
+
+    /**
+     * 智能营销数禾（客户）订制转化数据上传接口
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据json结构
+     * @return ApiNoDataResult 业务响应
+     */
+    @ApiOperation(value = "接收数禾订制转化数据")
+    @PostMapping("receiveShuheTransferDataSync")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return iPushShuheTransferDataService.insertShuheTransferData(apiCode, jsonData);
     }
 
 
