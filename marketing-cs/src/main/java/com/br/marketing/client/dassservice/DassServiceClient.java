@@ -137,9 +137,8 @@ public class DassServiceClient {
      * 2022/3/1 15:00
      * 黑名单数据推送
      */
-    @SuppressWarnings("all")
     public Result<PushBlackListResponse> postBlackList(List<? extends BlackListAbstract> list) {
-        PushBlackListRequest pushBlackListRequest = new PushBlackListRequest(list, secretKey, ascKey);
+        PushBlackListRequest<?> pushBlackListRequest = new PushBlackListRequest<>(list, secretKey, ascKey);
         String jsonData = JSON.toJSONString(pushBlackListRequest);
         Result<PushBlackListResponse> result = new Result<>();
         InterfaceLog interfaceLog = new InterfaceLog();
@@ -150,7 +149,7 @@ public class DassServiceClient {
         long start = System.currentTimeMillis();
         try {
             log.warn("#postBlackList#Request:\n{}", jsonData);
-            boolean boolProxy = isProxy.equals("0") ? false : true;
+            boolean boolProxy = !"0".equals(isProxy);
             HashMap<String, String> hashMap = httpProxyClient.sendByCode(jsonData, postBlackList, boolProxy);
             log.warn("#postBlackList#Response:\n{}", hashMap.toString());
             final String httpcode = hashMap.getOrDefault("httpcode", "");
