@@ -1,4 +1,4 @@
-package com.br.marketing.client.yixinapi.black.input;
+package com.br.marketing.client.dassservice.input.black;
 
 import com.google.common.base.Joiner;
 import org.springframework.util.CollectionUtils;

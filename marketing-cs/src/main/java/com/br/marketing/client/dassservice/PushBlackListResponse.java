@@ -1,4 +1,4 @@
-package com.br.marketing.client.yixinapi.black;
+package com.br.marketing.client.dassservice;
 
 /**
  * 黑名单数据推送 应答消息

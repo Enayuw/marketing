@@ -1,31 +1,30 @@
 package com.br.marketing.client.dassservice;
-import java.util.*;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.black.BlackListAbstract;
+import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.utils.net.ApiCaller;
-import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -58,13 +57,16 @@ public class DassServiceClient {
     InterfaceLogMapper interfaceLogMapper;
     private DassImportDataDTO t;
 
-    public Result postHermesUserData(DassImportAdapDTO dto){
+    @Value("${api.dass.postBlackList:call/postBlackList}")
+    private String postBlackList;
+
+    public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
         List<DassImportDataDTO> dtos = dto.getList();
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
         sortList.add(String.valueOf(l));
-        dtos.forEach(t->{
+        dtos.forEach(t -> {
             BeanMap beanMap = BeanMap.create(t);
             for (Object k : beanMap.keySet()) {
                 if(String.valueOf(k).equals("id")){
@@ -120,11 +122,62 @@ public class DassServiceClient {
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             long end = System.currentTimeMillis();
-            interfaceLog.setExpire(String.valueOf(end-start));
-            interfaceLog.setResult("程序异常："+ex.getMessage());
-            log.error(ex.getMessage(),ex);
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult("程序异常：" + ex.getMessage());
+            log.error(ex.getMessage(), ex);
+        }
+        interfaceLogMapper.insertSelective(interfaceLog);
+        return result;
+    }
+
+
+    /**
+     * 2022/3/1 15:00
+     * 黑名单数据推送
+     */
+    @SuppressWarnings("all")
+    public Result<PushBlackListResponse> postBlackList(List<? extends BlackListAbstract> list) {
+        PushBlackListRequest pushBlackListRequest = new PushBlackListRequest(list, secretKey, ascKey);
+        String jsonData = JSON.toJSONString(pushBlackListRequest);
+        Result<PushBlackListResponse> result = new Result<>();
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setRequestParam(jsonData);
+        interfaceLog.setUrl(postHermesUserDataUrl);
+        interfaceLog.setCreateTime(new Date());
+        long start = System.currentTimeMillis();
+        try {
+            log.warn("#postBlackList#Request:\n{}", jsonData);
+            boolean boolProxy = isProxy.equals("0") ? false : true;
+            HashMap<String, String> hashMap = httpProxyClient.sendByCode(jsonData, postBlackList, boolProxy);
+            log.warn("#postBlackList#Response:\n{}", hashMap.toString());
+            final String httpcode = hashMap.getOrDefault("httpcode", "");
+            if (StringUtils.isNotBlank(httpcode)) {
+                int code = Integer.parseInt(httpcode);
+                interfaceLog.setHttpCode(code);
+                final String content = hashMap.getOrDefault("content", "");
+                interfaceLog.setResult(content);
+                int httpCode = 200;
+                if (httpCode == code) {
+                    result.setCode(ResultCode.SUCCESS.getValue());
+                    result.setDate(JSON.parseObject(content, new TypeReference<PushBlackListResponse>() {
+                    }.getType()));
+                } else {
+                    result.setCode(ResultCode.FAIL.getValue());
+                }
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+            }
+        } catch (Exception ex) {
+            interfaceLog.setResult(ex.getMessage());
+            log.error(ex.getMessage(), ex);
+            result.setCode(ResultCode.FAIL.getValue());
+        } finally {
+            long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            log.warn("postBlackList耗时：{}ms", end);
         }
         interfaceLogMapper.insertSelective(interfaceLog);
         return result;

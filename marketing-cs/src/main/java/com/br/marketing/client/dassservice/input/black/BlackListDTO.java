@@ -1,4 +1,4 @@
-package com.br.marketing.client.yixinapi.black.input;
+package com.br.marketing.client.dassservice.input.black;
 
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;

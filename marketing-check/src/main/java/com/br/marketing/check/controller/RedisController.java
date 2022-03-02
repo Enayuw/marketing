@@ -1,9 +1,9 @@
 package com.br.marketing.check.controller;
 
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.yixinapi.black.BlackApiServiceClient;
-import com.br.marketing.client.yixinapi.black.PushBlackListResponse;
-import com.br.marketing.client.yixinapi.black.input.BlackListDTO;
+import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.PushBlackListResponse;
+import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.common.commondto.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,7 @@ public class RedisController {
     RedisChgService redisChgService;
 
     @Resource
-    private BlackApiServiceClient blackApiServiceClient;
+    private DassServiceClient dassServiceClient;
 
     @GetMapping("get")
     public String get(String key) {
@@ -58,7 +58,7 @@ public class RedisController {
         blackListDTO.setPhone(p);
         blackListDTO.setOrgName("yixin");
         list.add(blackListDTO);
-        final Result<PushBlackListResponse> result = blackApiServiceClient.postBlackList(list);
+        final Result<PushBlackListResponse> result = dassServiceClient.postBlackList(list);
         return result.getData().toString();
     }
 }

@@ -1,4 +1,4 @@
-package com.br.marketing.client.yixinapi.black.input;
+package com.br.marketing.client.dassservice.input.black;
 
 import java.io.Serializable;
 import java.util.List;
