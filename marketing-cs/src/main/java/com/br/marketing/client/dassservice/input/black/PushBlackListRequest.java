@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author Guo Zeqiang
  * @dateTime 2022/3/1 13:33
  */
-public class PushBlackListRequest<T extends BlackListAbstract> {
+public class PushBlackListRequest {
 
     /**
      * 2022/3/1 13:45 签名过期时间
@@ -28,16 +28,16 @@ public class PushBlackListRequest<T extends BlackListAbstract> {
     /**
      * 2022/3/1 13:45 数据
      */
-    private List<T> data;
+    private List<BlackListDTO> data;
 
 
-    public PushBlackListRequest(List<T> data, String secretKey, String ascKey) {
+    public PushBlackListRequest(List<BlackListDTO> data, String secretKey, String ascKey) {
         this.ts = System.currentTimeMillis() / 1000;
         this.sign = spliceSign(data, secretKey, ascKey);
         this.data = data;
     }
 
-    public String spliceSign(List<T> data, String secretKey, String ascKey) {
+    public String spliceSign(List<BlackListDTO> data, String secretKey, String ascKey) {
         List<Object> sortList = new ArrayList<>();
         sortList.add(String.valueOf(this.ts));
         if (CollectionUtils.isEmpty(data)) {
@@ -73,11 +73,11 @@ public class PushBlackListRequest<T extends BlackListAbstract> {
         this.sign = sign;
     }
 
-    public List<T> getData() {
+    public List<BlackListDTO> getData() {
         return data;
     }
 
-    public void setData(List<T> data) {
+    public void setData(List<BlackListDTO> data) {
         this.data = data;
     }
 
