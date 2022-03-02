@@ -95,7 +95,7 @@
 		id &gt; #{begin}
 		AND api_code = #{apiCode}
 		AND batch_number = #{batchNumber}
-		order by id asc limit 100;
+		order by id asc limit 5000;
 	</select>
 	<select id="queryHnnxMaxId" parameterType="com.br.marketing.entity.MarketingTask" resultType="java.lang.Integer">
 		SELECT

@@ -199,6 +199,7 @@ public class MarketingThread implements Callable<String> {
     private void setScoreStatus() {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(String.valueOf(currentPage));
         redisChgService.set(key, "1");
+        redisChgService.expire(key,60*60*24*10);
     }
 
 
