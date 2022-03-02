@@ -52,7 +52,7 @@ public class RedisController {
     }
 
     @GetMapping("blackTest")
-    public String postBlackList(BlackListDTO blackListDTO) {
+    public String postBlackList(BlackListDTO blackListDTO, int bool) {
         List<BlackListDTO> list = new ArrayList<>();
         if (blackListDTO.getUid() == null) {
             blackListDTO.setUid("AreYouOk-" + System.currentTimeMillis());
@@ -66,12 +66,16 @@ public class RedisController {
         if (StringUtils.isNotBlank(blackListDTO.getPhone())) {
             blackListDTO.setPhone(AESUtil.encrypt(blackListDTO.getPhone(), "ovksl39fcl13m9dF"));
         }
-        for (int i = 0; i < 10; i++) {
-            BlackListDTO blackList = new BlackListDTO();
-            BeanUtils.copyProperties(blackListDTO, blackList);
-            blackList.setUid(blackList.getUid() + "-" + i);
-            blackList.setApiCode(blackList.getUid() + "-" + i);
-            list.add(blackList);
+        if (bool > 0) {
+            for (int i = 0; i < 10; i++) {
+                BlackListDTO blackList = new BlackListDTO();
+                BeanUtils.copyProperties(blackListDTO, blackList);
+                blackList.setUid(blackList.getUid() + "-" + i);
+                blackList.setApiCode(blackList.getApiCode() + "-" + i);
+                list.add(blackList);
+            }
+        } else {
+            list.add(blackListDTO);
         }
         final Result<PushBlackListResponse> result = dassServiceClient.postBlackList(list);
         return result.getData().toString();
