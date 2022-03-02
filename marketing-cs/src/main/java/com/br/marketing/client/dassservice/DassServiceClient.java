@@ -60,6 +60,8 @@ public class DassServiceClient {
     @Value("${api.dass.postBlackList:call/postBlackList}")
     private String postBlackList;
 
+    private final static int size = 1000;
+
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
         List<DassImportDataDTO> dtos = dto.getList();
@@ -136,11 +138,17 @@ public class DassServiceClient {
     /**
      * 2022/3/1 15:00
      * 黑名单数据推送
+     * 批量最大1千条
      */
     public Result<PushBlackListResponse> postBlackList(List<? extends BlackListAbstract> list) {
+        Result<PushBlackListResponse> result = new Result<>();
+        if (list != null && list.size() > size) {
+            result.setCode(ResultCode.FAIL.getValue());
+            result.setMessage("接口提供方要求，批量最大为1000");
+            return result;
+        }
         PushBlackListRequest<?> pushBlackListRequest = new PushBlackListRequest<>(list, secretKey, ascKey);
         String jsonData = JSON.toJSONString(pushBlackListRequest);
-        Result<PushBlackListResponse> result = new Result<>();
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setRequestParam(jsonData);
@@ -165,6 +173,7 @@ public class DassServiceClient {
                     }.getType()));
                 } else {
                     result.setCode(ResultCode.FAIL.getValue());
+                    result.setMessage(content);
                 }
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
@@ -173,10 +182,11 @@ public class DassServiceClient {
             interfaceLog.setResult(ex.getMessage());
             log.error(ex.getMessage(), ex);
             result.setCode(ResultCode.FAIL.getValue());
+            result.setMessage(ex.getMessage());
         } finally {
             long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
-            log.warn("postBlackList耗时：{}ms", end);
+            log.warn("postBlackList耗时：{}ms", interfaceLog.getExpire());
         }
         interfaceLogMapper.insertSelective(interfaceLog);
         return result;
