@@ -5,7 +5,9 @@ import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.AESUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,15 +51,26 @@ public class RedisController {
     }
 
     @GetMapping("blackTest")
-    public String postBlackList(String p) {
+    public String postBlackList(BlackListDTO blackListDTO) {
         List<BlackListDTO> list = new ArrayList<>();
-        BlackListDTO blackListDTO = new BlackListDTO();
-        blackListDTO.setUid("yixin-test-" + System.currentTimeMillis());
-        blackListDTO.setApiCode("" + System.currentTimeMillis());
-        blackListDTO.setUserType("haha");
-        blackListDTO.setPhone(p);
-        blackListDTO.setOrgName("yixin");
-        list.add(blackListDTO);
+        if (blackListDTO == null) {
+            blackListDTO = new BlackListDTO();
+            blackListDTO.setUid("AreYouOk-" + System.currentTimeMillis());
+            blackListDTO.setApiCode("YouOk");
+            blackListDTO.setUserType("Ok");
+            blackListDTO.setOrgName("Are");
+            blackListDTO.setType("You");
+            blackListDTO.setSource("AreYou");
+            blackListDTO.setPhone("98765432111");
+        }
+        blackListDTO.setPhone(AESUtil.encrypt(blackListDTO.getPhone(), "ovksl39fcl13m9dF"));
+        for (int i = 0; i < 10; i++) {
+            BlackListDTO blackList = new BlackListDTO();
+            BeanUtils.copyProperties(blackListDTO, blackList);
+            blackList.setUid(blackList.getUid() + "-" + i);
+            blackList.setApiCode(blackList.getUid() + "-" + i);
+            list.add(blackList);
+        }
         final Result<PushBlackListResponse> result = dassServiceClient.postBlackList(list);
         return result.getData().toString();
     }
