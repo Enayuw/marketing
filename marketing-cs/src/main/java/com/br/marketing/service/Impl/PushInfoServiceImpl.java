@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl;
 
-
-import com.br.common.util.DateUtils;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.enums.ApiReturnEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
+import com.br.marketing.entity.CustomerInfoPushBatch;
+import com.br.marketing.entity.CustomerInfoPushBatchExample;
+import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
+import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
@@ -13,10 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
-import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,25 +28,53 @@ public class PushInfoServiceImpl implements PushInfoService {
     @Autowired
     private CustomerInfoPushMainMapper customerInfoPushMainMapper;
 
+    @Autowired
+    private CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
+
+    @Autowired
+    private CustomerInfoPushLogMapper customerInfoPushLogMapper;
+
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
+        final char ch = ',';
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
-        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
-    }
+        list.stream().map(pushInfoListVO->{
+            //获取跑分批次号
+            StringBuilder batchNumbers = new StringBuilder();
+            CustomerInfoPushBatchExample example = new CustomerInfoPushBatchExample();
+            example.createCriteria().andMIdEqualTo(pushInfoListVO.getId()).andIsDelEqualTo(1);
+            List<CustomerInfoPushBatch> batches = customerInfoPushBatchMapper.selectByExample(example);
+            for(CustomerInfoPushBatch s : batches){
+                batchNumbers.append(s.getmBatchNumber()).append(",");
+            }
+            // 得到最后一个字符的索引地址
+            int index = batchNumbers.length() - 1;
+            // 取到最后一个字符
+            char c = batchNumbers.charAt(index);
+            if (ch == c) {
+                // 删除最后一个字符
+                batchNumbers.deleteCharAt(index);
+            }
+            pushInfoListVO.setBatchNumbers(batchNumbers.toString());
 
-    private Date addDay(String date, Integer addDays, String format) {
-        Calendar c = Calendar.getInstance();
-        Date time = null;
-        try {
-            Date endTime = DateUtils.parse(date, format);
-            c.setTime(endTime);
-            c.add(Calendar.DAY_OF_MONTH, addDays);
-            time = c.getTime();
-        } catch (ParseException e) {
-            log.error("date:{} is error", date, e);
-        }
-        return time;
+            //获取推送结果信息
+            List<Map> msgList = new ArrayList<>();
+            List<String> realStatus = customerInfoPushLogMapper.selectRealStatusByMid(pushInfoListVO.getId());
+            realStatus = realStatus.stream().distinct().collect(Collectors.toList());
+            for(String realStatu : realStatus){
+                if(realStatu!=null){
+                    Map msg = new HashMap();
+                    msg.put("code",realStatu);
+                    msg.put("message", ApiReturnEnum.getByCode(realStatu));
+                    msgList.add(msg);
+                }
+            }
+            pushInfoListVO.setReturnMessages(msgList);
+
+            return pushInfoListVO;
+        }).collect(Collectors.toList());
+        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
     }
 
 

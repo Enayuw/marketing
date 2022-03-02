@@ -2,6 +2,10 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
 
 public class PushInfoListVO {
 
@@ -12,6 +16,8 @@ public class PushInfoListVO {
     private String mApiCode;
 
     @ApiModelProperty(value = "跑分批次号")
+    private String batchNumbers;
+
     private String mCusBatchNumberList;
 
     @ApiModelProperty(value = "规则条件")
@@ -19,22 +25,37 @@ public class PushInfoListVO {
 
     private String mRuleCondition;
 
-    @ApiModelProperty(value = "推送数量")
+    @ApiModelProperty(value = "计划推送数量")
+    private Integer mPlanNum;
+
+    @ApiModelProperty(value = "百分比")
+    private BigDecimal mPercentage;
+
+    @ApiModelProperty(value = "实际推送数量")
     private Integer mRealyNum;
 
     @ApiModelProperty(value = "推送时间")
     private String createTime;
 
-    @ApiModelProperty(value = "执行状态 1-执行中；2-执行成功；3-执行失败")
+    @ApiModelProperty(value = "执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败")
     private Integer mStatus;
+
+    @ApiModelProperty(value = "推送结果返回")
+    private List<Map> returnMessages;
 
     public String getmStatusDesc() {
         if (mStatus.equals(1)) {
             return "执行中";
         } else if (mStatus.equals(2)) {
-            return "执行成功";
+            return "待确认";
+        } else if (mStatus.equals(3)) {
+            return "推送失败";
+        } else if (mStatus.equals(4)) {
+            return "确认成功";
+        } else if (mStatus.equals(5)) {
+            return "确认失败";
         } else {
-            return "执行失败";
+            return "状态异常";
         }
     }
 
@@ -60,6 +81,14 @@ public class PushInfoListVO {
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
         this.mCusBatchNumberList = mCusBatchNumberList;
+    }
+
+    public String getBatchNumbers() {
+        return batchNumbers;
+    }
+
+    public void setBatchNumbers(String batchNumbers) {
+        this.batchNumbers = batchNumbers;
     }
 
     public String getmRuleConditionShow() {
@@ -100,5 +129,29 @@ public class PushInfoListVO {
 
     public void setmStatus(Integer mStatus) {
         this.mStatus = mStatus;
+    }
+
+    public Integer getmPlanNum() {
+        return mPlanNum;
+    }
+
+    public void setmPlanNum(Integer mPlanNum) {
+        this.mPlanNum = mPlanNum;
+    }
+
+    public BigDecimal getmPercentage() {
+        return mPercentage;
+    }
+
+    public void setmPercentage(BigDecimal mPercentage) {
+        this.mPercentage = mPercentage;
+    }
+
+    public List<Map> getReturnMessages() {
+        return returnMessages;
+    }
+
+    public void setReturnMessages(List<Map> returnMessages) {
+        this.returnMessages = returnMessages;
     }
 }

@@ -115,8 +115,7 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
-        update_time
+        select cust_num, id_card, name, cell, user_type, cus_batch
         from b_marketing_sync_${apiCode}
         <where>
             cust_num in
@@ -162,6 +161,42 @@
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
+    </select>
+
+    <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cust_num=#{caseNum} order by applet_date desc limit 1;
+    </select>
+
+    <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
+        select user_type
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getTaskIdLatestByCustNum" resultType="java.lang.String">
+        select cus_batch
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getAppletTimeByCustNumAndUserType" resultType="java.lang.String">
+        select applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
+        order by create_time desc limit 0,1
+    </select>
+
+    <select id="getCreatTimeByCustNumAndUserType" resultType="java.util.Date">
+        select create_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
+        order by create_time desc limit 0,1
     </select>
 
 </mapper>

@@ -95,6 +95,12 @@
             <groupId>com.dangdang</groupId>
             <artifactId>br-elastic-job-core</artifactId>
             <version>1.1.7-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -121,6 +127,13 @@
             <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <!--ice连接es公共包-->
+
+        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
+        <dependency>
+            <groupId>com.br.cloud</groupId>
+            <artifactId>spring_boot_exporter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <!-- 预发、生产环境打包方式-->
     <build>

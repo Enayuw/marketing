@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingTaskExtendMapper" >
     <select id="getProducts" resultType="com.br.marketing.entity.MarketingTaskExtend" parameterType="string">
         select bmte.* from b_marketing_task bmt
-        left join b_marketing_task_extend bmte on bmt.id = bmte.task_id
+        left join b_marketing_task_extend bmte on bmt.id = bmte.task_id and bmte.is_del=1
         where batch_number=#{batchNumber}
     </select>
 </mapper>

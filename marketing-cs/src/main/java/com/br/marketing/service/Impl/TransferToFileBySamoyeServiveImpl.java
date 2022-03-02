@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import IceInternal.Ex;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -19,7 +20,10 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.vo.TransferUserVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,6 +51,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     @Autowired
     RuleRedisServiceImpl ruleRedisService;
 
+    private static final Logger log = LoggerFactory.getLogger(TransferToFileBySamoyeServiveImpl.class);
+
     final DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     final DateTimeFormatter ymdDfBy_ = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -55,6 +61,10 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
 
     final static String samoyeHYprefix = "samoye_alive_";
+
+    final static String samoyeZHprefix = "samoye_zhuanhua_";
+
+    final static String TRANSFER_TIME = " 18:00:00";
 
     @Value("${otherConfig.warning.path:00}")
     private String path;
@@ -119,6 +129,41 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                 resultList.add(transferFileTask);
             }
         }
+        //转化类型文件
+        if (collect.get(3) == null || collect.get(3).size() <= 0) {
+            Date now = new Date();
+            Date transferDate = DateHelper.getDatePlusHourMinuteSecond(now, TRANSFER_TIME);
+            bT = LocalDate.now().minusDays(1L).format(ymdDfBy_).concat(TRANSFER_TIME);
+            eT = LocalDate.now().format(ymdDfBy_).concat(TRANSFER_TIME);
+            //每天18:00:00之后执行
+            if (now.after(transferDate)) {
+                Integer s01 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S01", Arrays.asList("1"));
+                Integer s02 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S02", Arrays.asList("1"));
+                Integer s0202 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S0202", Arrays.asList("1"));
+                Integer s04 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S04", Arrays.asList("1"));
+                Integer s06 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S06", Arrays.asList("1"));
+                Integer s08 = marketingSyncInfoMapper.countTransferFile(apiCode, bT, eT, "S08", Arrays.asList("1"));
+
+                int num = s01 + s02 + s0202 + s04 + s06 + s08;
+                if (num > 0) {
+                    Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                    String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                    TransferFileTask transferFileTask = new TransferFileTask();
+                    transferFileTask.setApiCode(apiCode);
+                    transferFileTask.setFileType(3);
+                    transferFileTask.setBatchNumber(batchNumber);
+                    transferFileTask.setFileName("");
+                    transferFileTask.setTaskNumber(num);
+                    transferFileTask.setStartDate(yyyyMMdd);
+                    transferFileTask.setContextId(transferFileContextId);
+                    transferFileTask.setCreateTime(new Date());
+                    transferFileTask.setUpdateTime(new Date());
+                    transferFileTaskMapper.insertSelective(transferFileTask);
+                    resultList.add(transferFileTask);
+                }
+            }
+        }
+        log.info("萨摩耶转化文件详情transferFileTasks = {}", JSONObject.toJSONString(resultList));
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
@@ -144,9 +189,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         if (transferFileTask.getFileType().equals(1)) {
             fileName.append(samoyeDDprefix);
             groupTyps = Arrays.asList("S01", "S02", "S08", "S0202");
-        } else {
+        } else if (transferFileTask.getFileType().equals(2)) {
             fileName.append(samoyeHYprefix);
             groupTyps = Arrays.asList("S01", "S02", "S0202");
+        } else {
+            fileName.append(samoyeZHprefix);
+            groupTyps = Arrays.asList("S01", "S02", "S0202", "S04", "S06", "S08");
         }
         fileName.append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
@@ -156,7 +204,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("案件编号,场景,场景标识,手机号,上传时间");
+            fw.append("taskid,案件编号,场景,场景标识,手机号,上传时间");
             fw.append("\r\n");
             writeDD(fw, apiCode, startDate, endDate, groupTyps, transferFileTask);
         } catch (Exception ex) {
@@ -168,16 +216,43 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     void writeDD(Writer fw, String apiCode, String startDate
             , String endDate, List<String> groupTyps
             , TransferFileTask transferFileTask) throws IOException {
+        //转化类型修改时间为T日18:00:00
+        if (transferFileTask.getFileType().equals(3)) {
+            startDate = startDate.concat(TRANSFER_TIME);
+            endDate = endDate.concat(TRANSFER_TIME);
+        }
         for (String groupType : groupTyps) {
             List<String> fileTypes = new ArrayList<>();
             if (groupType.equals("S01")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S02")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
-            } else if (groupType.equals("S08")) {
-                fileTypes = Arrays.asList("2");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
             } else if (groupType.equals("S0202")) {
-                fileTypes = transferFileTask.getFileType().equals(2) ? Arrays.asList("4") : Arrays.asList("2", "3");
+                if (transferFileTask.getFileType().equals(1)) {
+                    fileTypes = Arrays.asList("2", "3");
+                } else if (transferFileTask.getFileType().equals(2)) {
+                    fileTypes = Arrays.asList("4");
+                } else {
+                    fileTypes = Arrays.asList("1");
+                }
+            } else if (groupType.equals("S04")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S06")) {
+                fileTypes = Arrays.asList("1");
+            } else if (groupType.equals("S08")) {
+                fileTypes = transferFileTask.getFileType().equals(3) ? Arrays.asList("1") : Arrays.asList("2");
             }
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
@@ -207,11 +282,12 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
                     String nowKey = transferUserVO.getTaskId().concat("_").concat(transferUserVO.getCustNum());
                     String cell = StringUtils.isNotBlank(hsCell.get(nowKey)) ? hsCell.get(nowKey) : "";
                     StringBuilder sb = new StringBuilder();
+                    sb.append(transferUserVO.getTaskId().concat(","));
                     sb.append(transferUserVO.getCustNum().concat(","));
                     sb.append(transferUserVO.getGroupType().concat(","));
                     sb.append(transferUserVO.getReserveField1().concat(","));
                     sb.append(cell.concat(","));
-                    sb.append(transferUserVO.getCreateTime());
+                    sb.append(DateHelper.strToDateLong(transferUserVO.getCreateTime()));
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }

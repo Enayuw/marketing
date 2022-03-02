@@ -74,8 +74,39 @@ public class ConsumerApp {
     public void consumerPushUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::consumerPushCustomer, o,
-                "Marketing.Push.CustomerService.Search.Delay");
+        consumerService.consumerRun(channel, message, pushRuleService::consumerPushCustomer, o,"");
+    }
+
+    /**
+     * 消费 黑名单
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_PUSH_BLACK, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK)}, containerFactory = "primaryContainerFactory")
+    public void consumerBlack(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushRuleService::consumerBlack, o, null);
+    }
+
+    /**
+     * 消费 哈啰
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_PUSH_HALUO, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO)}, containerFactory = "primaryContainerFactory")
+    public void consumerHaLuo(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushRuleService::consumerHaLuo, o, null);
     }
 
 }

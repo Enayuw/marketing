@@ -37,7 +37,7 @@ public class IntelligentCustomerServiceClient {
     RestTemplate restTemplate;
 
 
-    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch){
+    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch,Integer pushNum){
         dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
@@ -45,6 +45,8 @@ public class IntelligentCustomerServiceClient {
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
         log.setParam(s.length()>4999?s.substring(0,4999):s);
+//        log.setParam(s);
+        log.setPushNum(pushNum);
 //        log.setParam("");
         try{
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
@@ -79,8 +81,13 @@ public class IntelligentCustomerServiceClient {
             ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)
                     .setContentType(MediaType.MULTIPART_FORM_DATA)
                     .setRequestParam(dto).postTransferStr();
-            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
-            result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("code"));
+            if(transfer.getHttpCode() != 200){
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
+            }else {
+                JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("code"));
+                result.setMessage(jsonObject.getString("data"));
+            }
         }catch (Exception ex){
             result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }

@@ -63,16 +63,28 @@ public class ResultUtil {
                 }
                 BaseHeadConfigVO o = JSON.parseObject(baseHeadInfo, new TypeReference<BaseHeadConfigVO>() {
                 }.getType());
-                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
+//                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
                 for (String s : o.getShowBaseHead()) {
                     if(jsonObject!=null){
                         String ss = jsonObject.getString(s);
                         if(StringUtils.isNotBlank(ss)){
                             sb.append(ss);
                         }
-                        Integer tp = headMap.get(s);
-                        if(tp!=null &&tp!= 1){
-                            esResult.put(s,ss);
+                        String title = s.toLowerCase();
+                        if ("taskid".equals(title)){
+                            user.setTaskId(StringUtils.isBlank(ss)?"":ss);
+                        }else if("usertype".equals(title)){
+                            user.setUserType(StringUtils.isBlank(ss)?"":ss);
+                        }else if("custnum".equals(title)){
+                            user.setCusNum(StringUtils.isBlank(ss)?"":ss);
+                        }else if("idcard".equals(title)){
+                            user.setIdCard(StringUtils.isBlank(ss)?"":ss);
+                        }else if("name".equals(title)){
+                            user.setName(StringUtils.isBlank(ss)?"":ss);
+                        }else if("cell".equals(title)){
+
+                        }else{
+                            esResult.put(s,StringUtils.isBlank(ss)?"":ss);
                         }
                     }
                     sb.append(sep);
@@ -114,7 +126,7 @@ public class ResultUtil {
                 if(marketingCondition!=null){
                     marketingCondition.setFlag(resultJson.get("flag_score")==null?"":resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    marketingCondition.setDValue(esResult.get(s)==null?0:Double.valueOf(esResult.getString(s)));
+                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s))?0:Double.valueOf(esResult.getString(s)));
                     marketingCondition.setStrValue("");
                     conditionList.add(marketingCondition);
                 }else{

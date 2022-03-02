@@ -157,4 +157,10 @@ public interface PushRuleService {
      * @dateTime 2021/11/4 10:53
      */
     TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo, List<MarketingTransferSyncUser> transferList);
+
+    Result<Boolean> consumerCommonBlack(Long id);
+
+    Result<Boolean> consumerBlack(Long id);
+
+    Result<Boolean> consumerHaLuo(Long id);
 }

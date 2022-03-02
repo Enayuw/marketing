@@ -7,14 +7,14 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.MarketingTaskExtendService;
+import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -40,8 +40,13 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
     }
 
     @Override
-    public List<String> getProducts(String ids) {
-        List<String> list = new ArrayList<>();
+    public Map getProducts(String ids) {
+        Map map = new HashMap();
+        List<String> baseHeadList = new ArrayList<>();
+        baseHeadList.add("request_time");
+        baseHeadList.add("strategy_id");
+        baseHeadList.add("cus_num");
+        List<String> fieldsList = new ArrayList<>();
         String[] split = ids.split(",");
         for(String id : split){
             StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.parseLong(id));
@@ -53,17 +58,39 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
                 if(strategyProductJson!=null && !"".equals(strategyProductJson)){
                     StrategyProductDetailVO strategyProductDetailVO= JSONObject.parseObject(strategyProductJson,StrategyProductDetailVO.class);
                     List<String> fields = strategyProductDetailVO.getFields();
-                    list.addAll(fields);
+                    if(fields!=null && fields.size()>0){
+                        fieldsList.addAll(fields);
+                    }
                 }
                 if(extendShowTitle!=null && !"".equals(extendShowTitle)){
                     BaseHeadConfigVO baseHeadConfigVO= JSONObject.parseObject(extendShowTitle,BaseHeadConfigVO.class);
-                    List<String> showBaseHead = baseHeadConfigVO.getShowBaseHead();
-                    list.addAll(showBaseHead);
+                    List<BaseHead> baseHead = baseHeadConfigVO.getBaseHead();
+                    if(baseHead!=null && baseHead.size()>0){
+                        for(BaseHead single : baseHead){
+                            String convert = ifConvert(single.getName());
+                            baseHeadList.add(convert);
+                        }
+                    }
                 }
             }else {
                 log.info("stra_his_file表获取batch_number为空！");
             }
         }
-        return list.stream().distinct().collect(Collectors.toList());
+        map.put("showBaseHead",baseHeadList.stream().distinct().collect(Collectors.toList()));
+        map.put("fields",fieldsList.stream().distinct().collect(Collectors.toList()));
+        return map;
+    }
+
+    public String ifConvert(String s){
+        String lowerCase = s.toLowerCase();
+        //usertype->user_type,idcard->id_card,strategyId->strategy_id，taskid->task_id
+        switch (lowerCase){
+            case "usertype": return "user_type";
+            case "idcard": return "id_card";
+            case "id": return "id_card";
+            case "strategyId": return "strategy_id";
+            case "taskid": return "task_id";
+            default:return s;
+        }
     }
 }
