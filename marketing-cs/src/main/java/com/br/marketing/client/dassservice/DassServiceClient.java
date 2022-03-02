@@ -98,7 +98,7 @@ public class DassServiceClient {
         requestParam.put("sign",sign);
         requestParam.put("data", dtos);
         InterfaceLog interfaceLog = new InterfaceLog();
-        interfaceLog.setExtendInfo("{\"localId\":".concat(dto.getLocalId().toString()).concat("}"));
+        interfaceLog.setExtendInfo(dto.getLocalId().toString());
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setRequestParam(JSON.toJSONString(requestParam));
         interfaceLog.setUrl(postHermesUserDataUrl);

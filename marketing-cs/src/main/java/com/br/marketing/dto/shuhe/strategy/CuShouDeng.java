@@ -22,21 +22,40 @@ public class CuShouDeng extends IUserType {
     }
 
     @Override
-    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean ifTransfer;
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())) {
             ifTransfer = Boolean.FALSE;
         } else {
-            Date appletTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
-                    , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-            if (appletTime == null) {
+            if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDateTime fstLogTimAll = LocalDateTime.parse(caseShuheUser.getClcUsrFstLogTimAll(), dateTimeFormatter);
-                LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                LocalDateTime fstLogTimAll = LocalDateTime.parse(caseShuheUser.getClcUsrFstLogTimAll()
+                        , dateTimeFormatter);
+                LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                 ifTransfer = fstLogTimAll.isAfter(appletDate);
             }
         }
         return ifTransfer;
+    }
+
+    /**
+     * 单个自然月内
+     * 传输案件当月（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService
+            , Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(caseShuheUser.getApiCode()
+                , caseShuheUser.getCustNum(), caseShuheUser.getUserType(), new Date(), 0, creatTime);
+    }
+
+    /**
+     * 单个自然月内
+     * 传输案件当月（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public String getBlackExpireDate(Date creatTime) {
+        return this.calculateExpireDate(creatTime, 0);
     }
 }

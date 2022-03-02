@@ -1,4 +1,8 @@
 package com.br.marketing.task.service.Impl;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -11,6 +15,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.*;
@@ -29,8 +34,12 @@ import com.br.marketing.task.thread.MarketingThread;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Splitter;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,8 +52,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 单任务多片跑分
@@ -108,7 +119,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
 
     final static Integer allMonitorType = 4;
 
+    static ConcurrentHashMap<String,Integer> threadContextNum = new ConcurrentHashMap<>();
 
+    @Autowired
+    private CuratorFramework client;
     /**
      * 1、initBatchNumList 方法统计出所有需要跑分的任务，并且每个任务属性上新增了分片信息和分片个数
      * 2、generateTask 执行跑分，会生成 跑分记录，跑分分片状态表记录
@@ -120,23 +134,24 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
      */
     @Override
     public void process(Customer customer, JobExecutionMultipleShardingContext context){
-        ExecutorService warrningExecutor;
         String apiCode=customer.getApiCode();
 
         if(customer.getThreadNum()==null){
             customer.setThreadNum(20);
         }
-        warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
+        ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(),customer.getThreadNum());
+        threadNumListen(warrningExecutor,customer);
         observedScoreThreadService.addObserver(warrningExecutor);
+
         try {
             List<MarketingTask> taskList = new ArrayList<>();
 
             initBatchNumList(taskList,apiCode,context);
 
+            Thread thread = threadReport(warrningExecutor, customer);
+
             this.generateTask(taskList,warrningExecutor,customer);
-
-
-          /**
+            /**
            * 等待所有任务都执行完成
            **/
           log.warn("所有任务已加入队列，等待结束-----");
@@ -152,12 +167,12 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 }catch (Exception e){
                 }
             }
-
+            //region 重试
             try {
                 String hkey=Constants.HXRESULTERROR_RETRY_KEY+":"+apiCode;
                 Set<String> hkeys = redisChgService.hkeys(hkey);
                 if(!hkeys.isEmpty()&&hkeys.size()>0){
-                    warrningExecutor = BrExecutors.getThreadPool(20,20);
+                   warrningExecutor = BrExecutors.getThreadPool(20,20);
                     int i=1;
                     for(String errorFile:hkeys){
                         String batchNumber = redisChgService.hget(hkey, errorFile);
@@ -213,6 +228,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             } catch (Exception e) {
                 log.error("重新处理异常数据出错", e);
             }
+            //endregion
             for (MarketingTask task : taskList) {
                 TaskStatusDistribute updateRecord = new TaskStatusDistribute();
                 updateRecord.setStatus(observedScoreThreadService.isInterrupt()?3:2);
@@ -239,8 +255,11 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             }
-        } catch (Exception e) {
-            log.error("预警调度出错", e);
+
+            thread.interrupt();
+            removeZk(customer);
+        }catch (Exception e){
+            log.error("预警调度出错",e);
         }
         return;
     }
@@ -403,8 +422,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             if(!fileMark){
                 log.error("创建跑分记录有问题，校验redis或者tidb网络是否有问题:apiCode:{} batchNumber：{}",blt.getApiCode(), blt.getBatchNumber());
                 continue;
-            }
-            StringBuilder addTaskContent = new StringBuilder();
+            } StringBuilder addTaskContent = new StringBuilder();
             addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
             sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
             core(blt,descPath,true,productJson,warrningExecutor,blf.getId().toString(),customer);
@@ -803,5 +821,108 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             scoreRuleConfig = scoreRuleConfigService.getScoreRule(marketingTaskExtend.getRuleId());
         }
         return scoreRuleConfig;
+    }
+
+    public static String getLocalIp() {
+        String ip="";
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows")>-1) {
+            try {
+                ip= InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException e) {
+                log.error("UnknownHostException {}",e);
+            }
+        }else {
+            try {
+                for(Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                    NetworkInterface interf = en.nextElement();
+                    String name= interf.getName();
+                    if (!name.contains("docker")&&!name.contains("lo")) {
+                        for(Enumeration<InetAddress>enumeAddress=interf.getInetAddresses();enumeAddress.hasMoreElements();) {
+                            InetAddress address=    enumeAddress.nextElement();
+                            if (!address.isLoopbackAddress()) {
+                                String ipAddress= address.getHostAddress().toString();
+                                if (!ipAddress.contains("::")&&!ipAddress.contains("0:0")&&!ipAddress.contains("fe80")) {
+                                    ip= ipAddress;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("get Linux local ip error {}",e);
+            }
+        }
+        return ip;
+    }
+
+    private void threadNumListen(ThreadPoolExecutor executor,Customer customer){
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+        try {
+            if(client.checkExists().forPath(zkpath)==null) {
+                client.create().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }else{
+                client.setData().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        NodeCache nodeCache = new NodeCache(client, zkpath);
+        nodeCache.getListenable().addListener(()->{
+            if(nodeCache.getCurrentData()!=null) {
+                int threadNum = Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue();
+                threadContextNum.put(customer.getApiCode(),threadNum);
+                executor
+                        .setCorePoolSize(threadNum);
+                executor
+                        .setMaximumPoolSize(threadNum);
+            }
+        });
+        try {
+            nodeCache.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Thread threadReport(ThreadPoolExecutor executor,Customer customer){
+        Thread thread1 = new Thread(() -> {
+            try {
+                Boolean isListion = Boolean.TRUE;
+                Integer times = 0;
+                int sleeptime_unit = 10000;
+                int sleeptime = 10000;
+                while (isListion) {
+                    if (sleeptime <= 1000 * 60 * 10) {
+                        times++;
+                        sleeptime = sleeptime_unit * times;
+                    }
+                    Thread.sleep(sleeptime);
+                    int activeCount = executor.getActiveCount();
+                    log.warn(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
+                            ,customer.getApiCode(), activeCount, executor.getCorePoolSize()
+                            , threadContextNum.get(customer.getApiCode())==null?0:threadContextNum.get(customer.getApiCode())));
+                    if (activeCount <= 0) {
+                        threadContextNum.remove(customer.getApiCode());
+                        isListion = Boolean.FALSE;
+                    }
+                }
+            }catch (InterruptedException e){
+                if(log.isInfoEnabled()){
+                    log.info("终止运行");
+                }
+            }
+        });
+        thread1.start();
+        return thread1;
+    }
+
+    private void removeZk(Customer customer){
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+        try {
+            client.delete().guaranteed().forPath(zkpath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

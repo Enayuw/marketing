@@ -291,4 +291,19 @@ public class DateHelper {
         String str = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
         return str;
     }
+
+    /**
+     * 时间日期定制
+     * @param date+hhmmss（Date+时分秒）
+     * @return Date
+     */
+    public static Date getDatePlusHourMinuteSecond(Date date,String hhmmss){
+        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(date).concat(hhmmss);
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
+        } catch (ParseException e) {
+            log.error(e.getMessage(),e);
+            return null;
+        }
+    }
 }
