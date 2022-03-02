@@ -6,6 +6,7 @@ import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,8 +54,7 @@ public class RedisController {
     @GetMapping("blackTest")
     public String postBlackList(BlackListDTO blackListDTO) {
         List<BlackListDTO> list = new ArrayList<>();
-        if (blackListDTO == null) {
-            blackListDTO = new BlackListDTO();
+        if (blackListDTO.getUid() == null) {
             blackListDTO.setUid("AreYouOk-" + System.currentTimeMillis());
             blackListDTO.setApiCode("YouOk");
             blackListDTO.setUserType("Ok");
@@ -63,7 +63,9 @@ public class RedisController {
             blackListDTO.setSource("AreYou");
             blackListDTO.setPhone("98765432111");
         }
-        blackListDTO.setPhone(AESUtil.encrypt(blackListDTO.getPhone(), "ovksl39fcl13m9dF"));
+        if (StringUtils.isNotBlank(blackListDTO.getPhone())) {
+            blackListDTO.setPhone(AESUtil.encrypt(blackListDTO.getPhone(), "ovksl39fcl13m9dF"));
+        }
         for (int i = 0; i < 10; i++) {
             BlackListDTO blackList = new BlackListDTO();
             BeanUtils.copyProperties(blackListDTO, blackList);
