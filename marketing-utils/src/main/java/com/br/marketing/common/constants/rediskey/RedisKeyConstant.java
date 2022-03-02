@@ -17,6 +17,11 @@ public class RedisKeyConstant {
     public static final String noFlagProduct = prefix.concat("noFlagProduct");
 
     /**
+     * 跑分状态
+     */
+    public static final String scoreStatus = prefix.concat("scoreStatus");
+
+    /**
      * 没有命中标识的产品
      */
     public static final String fileToDbByXw = prefix.concat("ftpToDb:XW");
