@@ -1,58 +1,59 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.CustomerCallingDialogMapper" >
-    <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerCallingDialog" >
-        <id column="id" property="id" jdbcType="BIGINT" />
-        <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-        <result column="cid" property="cid" jdbcType="VARCHAR" />
-        <result column="user_type" property="userType" jdbcType="VARCHAR" />
-        <result column="group_type" property="groupType" jdbcType="VARCHAR" />
-        <result column="swift_number" property="swiftNumber" jdbcType="VARCHAR" />
-        <result column="task_id" property="taskId" jdbcType="VARCHAR" />
-        <result column="task_name" property="taskName" jdbcType="VARCHAR" />
-        <result column="task_type" property="taskType" jdbcType="INTEGER" />
-        <result column="case_num" property="caseNum" jdbcType="VARCHAR" />
-        <result column="dialog_id" property="dialogId" jdbcType="VARCHAR" />
-        <result column="case_status" property="caseStatus" jdbcType="INTEGER" />
-        <result column="is_send_msg" property="isSendMsg" jdbcType="INTEGER" />
-        <result column="request_id" property="requestId" jdbcType="VARCHAR" />
-        <result column="send_status" property="sendStatus" jdbcType="INTEGER" />
-        <result column="drop_status" property="dropStatus" jdbcType="INTEGER" />
-        <result column="real_call_time" property="realCallTime" jdbcType="INTEGER" />
-        <result column="call_start_time" property="callStartTime" jdbcType="VARCHAR" />
-        <result column="call_connect_time" property="callConnectTime" jdbcType="VARCHAR" />
-        <result column="call_end_time" property="callEndTime" jdbcType="VARCHAR" />
-        <result column="dialog_rounds" property="dialogRounds" jdbcType="INTEGER" />
-        <result column="dialog_turns" property="dialogTurns" jdbcType="INTEGER" />
-        <result column="recording_path" property="recordingPath" jdbcType="VARCHAR" />
-        <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR" />
-        <result column="dialog_status" property="dialogStatus" jdbcType="INTEGER" />
-        <result column="status" property="status" jdbcType="TINYINT" />
-        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+<mapper namespace="com.br.marketing.mapper.CustomerCallingDialogMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerCallingDialog">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="cid" property="cid" jdbcType="VARCHAR"/>
+        <result column="user_type" property="userType" jdbcType="VARCHAR"/>
+        <result column="group_type" property="groupType" jdbcType="VARCHAR"/>
+        <result column="swift_number" property="swiftNumber" jdbcType="VARCHAR"/>
+        <result column="task_id" property="taskId" jdbcType="VARCHAR"/>
+        <result column="task_name" property="taskName" jdbcType="VARCHAR"/>
+        <result column="task_type" property="taskType" jdbcType="INTEGER"/>
+        <result column="case_num" property="caseNum" jdbcType="VARCHAR"/>
+        <result column="dialog_id" property="dialogId" jdbcType="VARCHAR"/>
+        <result column="case_status" property="caseStatus" jdbcType="INTEGER"/>
+        <result column="is_send_msg" property="isSendMsg" jdbcType="INTEGER"/>
+        <result column="request_id" property="requestId" jdbcType="VARCHAR"/>
+        <result column="send_status" property="sendStatus" jdbcType="INTEGER"/>
+        <result column="drop_status" property="dropStatus" jdbcType="INTEGER"/>
+        <result column="real_call_time" property="realCallTime" jdbcType="INTEGER"/>
+        <result column="call_start_time" property="callStartTime" jdbcType="VARCHAR"/>
+        <result column="call_connect_time" property="callConnectTime" jdbcType="VARCHAR"/>
+        <result column="call_end_time" property="callEndTime" jdbcType="VARCHAR"/>
+        <result column="dialog_rounds" property="dialogRounds" jdbcType="INTEGER"/>
+        <result column="dialog_turns" property="dialogTurns" jdbcType="INTEGER"/>
+        <result column="recording_path" property="recordingPath" jdbcType="VARCHAR"/>
+        <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR"/>
+        <result column="dialog_status" property="dialogStatus" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
-    <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.CustomerCallingDialog" extends="BaseResultMap" >
-        <result column="tag_list" property="tagList" jdbcType="LONGVARCHAR" />
+    <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.CustomerCallingDialog" extends="BaseResultMap">
+        <result column="tag_list" property="tagList" jdbcType="LONGVARCHAR"/>
     </resultMap>
-    <sql id="Example_Where_Clause" >
-        <where >
-            <foreach collection="oredCriteria" item="criteria" separator="or" >
-                <if test="criteria.valid" >
-                    <trim prefix="(" suffix=")" prefixOverrides="and" >
-                        <foreach collection="criteria.criteria" item="criterion" >
-                            <choose >
-                                <when test="criterion.noValue" >
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
                                     and ${criterion.condition}
                                 </when>
-                                <when test="criterion.singleValue" >
+                                <when test="criterion.singleValue">
                                     and ${criterion.condition} #{criterion.value}
                                 </when>
-                                <when test="criterion.betweenValue" >
+                                <when test="criterion.betweenValue">
                                     and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                                 </when>
-                                <when test="criterion.listValue" >
+                                <when test="criterion.listValue">
                                     and ${criterion.condition}
-                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
                                         #{listItem}
                                     </foreach>
                                 </when>
@@ -63,25 +64,26 @@
             </foreach>
         </where>
     </sql>
-    <sql id="Update_By_Example_Where_Clause" >
-        <where >
-            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-                <if test="criteria.valid" >
-                    <trim prefix="(" suffix=")" prefixOverrides="and" >
-                        <foreach collection="criteria.criteria" item="criterion" >
-                            <choose >
-                                <when test="criterion.noValue" >
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
                                     and ${criterion.condition}
                                 </when>
-                                <when test="criterion.singleValue" >
+                                <when test="criterion.singleValue">
                                     and ${criterion.condition} #{criterion.value}
                                 </when>
-                                <when test="criterion.betweenValue" >
+                                <when test="criterion.betweenValue">
                                     and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                                 </when>
-                                <when test="criterion.listValue" >
+                                <when test="criterion.listValue">
                                     and ${criterion.condition}
-                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
                                         #{listItem}
                                     </foreach>
                                 </when>
@@ -92,66 +94,70 @@
             </foreach>
         </where>
     </sql>
-    <sql id="Base_Column_List" >
-        id, api_code, cid, user_type, group_type, swift_number, task_id, task_name, task_type,
+    <sql id="Base_Column_List">
+        id
+        , api_code, cid, user_type, group_type, swift_number, task_id, task_name, task_type,
     case_num, dialog_id, case_status, is_send_msg, request_id, send_status, drop_status,
     real_call_time, call_start_time, call_connect_time, call_end_time, dialog_rounds,
     dialog_turns, recording_path, intention_grade, dialog_status, status, create_time,
     update_time
     </sql>
-    <sql id="Blob_Column_List" >
+    <sql id="Blob_Column_List">
         tag_list
     </sql>
-    <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.CustomerCallingDialogExample" >
+    <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs"
+            parameterType="com.br.marketing.entity.CustomerCallingDialogExample">
         select
-        <if test="distinct" >
+        <if test="distinct">
             distinct
         </if>
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         ,
-        <include refid="Blob_Column_List" />
+        <include refid="Blob_Column_List"/>
         from b_marketing_customer_calling_dialog
-        <if test="_parameter != null" >
-            <include refid="Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
         </if>
-        <if test="orderByClause != null" >
+        <if test="orderByClause != null">
             order by ${orderByClause}
         </if>
     </select>
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerCallingDialogExample" >
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.CustomerCallingDialogExample">
         select
-        <if test="distinct" >
+        <if test="distinct">
             distinct
         </if>
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         from b_marketing_customer_calling_dialog
-        <if test="_parameter != null" >
-            <include refid="Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
         </if>
-        <if test="orderByClause != null" >
+        <if test="orderByClause != null">
             order by ${orderByClause}
         </if>
     </select>
-    <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long">
         select
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         ,
-        <include refid="Blob_Column_List" />
+        <include refid="Blob_Column_List"/>
         from b_marketing_customer_calling_dialog
         where id = #{id,jdbcType=BIGINT}
     </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-        delete from b_marketing_customer_calling_dialog
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_marketing_customer_calling_dialog
         where id = #{id,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerCallingDialogExample" >
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerCallingDialogExample">
         delete from b_marketing_customer_calling_dialog
-        <if test="_parameter != null" >
-            <include refid="Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
         </if>
     </delete>
-    <insert id="insert" parameterType="com.br.marketing.entity.CustomerCallingDialog" >
-        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+    <insert id="insert" parameterType="com.br.marketing.entity.CustomerCallingDialog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
         insert into b_marketing_customer_calling_dialog (api_code, cid, user_type,
@@ -175,287 +181,288 @@
         #{status,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
         #{tagList,jdbcType=LONGVARCHAR})
     </insert>
-    <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerCallingDialog" >
-        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerCallingDialog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
         insert into b_marketing_customer_calling_dialog
-        <trim prefix="(" suffix=")" suffixOverrides="," >
-            <if test="apiCode != null" >
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
                 api_code,
             </if>
-            <if test="cid != null" >
+            <if test="cid != null">
                 cid,
             </if>
-            <if test="userType != null" >
+            <if test="userType != null">
                 user_type,
             </if>
-            <if test="groupType != null" >
+            <if test="groupType != null">
                 group_type,
             </if>
-            <if test="swiftNumber != null" >
+            <if test="swiftNumber != null">
                 swift_number,
             </if>
-            <if test="taskId != null" >
+            <if test="taskId != null">
                 task_id,
             </if>
-            <if test="taskName != null" >
+            <if test="taskName != null">
                 task_name,
             </if>
-            <if test="taskType != null" >
+            <if test="taskType != null">
                 task_type,
             </if>
-            <if test="caseNum != null" >
+            <if test="caseNum != null">
                 case_num,
             </if>
-            <if test="dialogId != null" >
+            <if test="dialogId != null">
                 dialog_id,
             </if>
-            <if test="caseStatus != null" >
+            <if test="caseStatus != null">
                 case_status,
             </if>
-            <if test="isSendMsg != null" >
+            <if test="isSendMsg != null">
                 is_send_msg,
             </if>
-            <if test="requestId != null" >
+            <if test="requestId != null">
                 request_id,
             </if>
-            <if test="sendStatus != null" >
+            <if test="sendStatus != null">
                 send_status,
             </if>
-            <if test="dropStatus != null" >
+            <if test="dropStatus != null">
                 drop_status,
             </if>
-            <if test="realCallTime != null" >
+            <if test="realCallTime != null">
                 real_call_time,
             </if>
-            <if test="callStartTime != null" >
+            <if test="callStartTime != null">
                 call_start_time,
             </if>
-            <if test="callConnectTime != null" >
+            <if test="callConnectTime != null">
                 call_connect_time,
             </if>
-            <if test="callEndTime != null" >
+            <if test="callEndTime != null">
                 call_end_time,
             </if>
-            <if test="dialogRounds != null" >
+            <if test="dialogRounds != null">
                 dialog_rounds,
             </if>
-            <if test="dialogTurns != null" >
+            <if test="dialogTurns != null">
                 dialog_turns,
             </if>
-            <if test="recordingPath != null" >
+            <if test="recordingPath != null">
                 recording_path,
             </if>
-            <if test="intentionGrade != null" >
+            <if test="intentionGrade != null">
                 intention_grade,
             </if>
-            <if test="dialogStatus != null" >
+            <if test="dialogStatus != null">
                 dialog_status,
             </if>
-            <if test="status != null" >
+            <if test="status != null">
                 status,
             </if>
-            <if test="createTime != null" >
+            <if test="createTime != null">
                 create_time,
             </if>
-            <if test="updateTime != null" >
+            <if test="updateTime != null">
                 update_time,
             </if>
-            <if test="tagList != null" >
+            <if test="tagList != null">
                 tag_list,
             </if>
         </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides="," >
-            <if test="apiCode != null" >
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
                 #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cid != null" >
+            <if test="cid != null">
                 #{cid,jdbcType=VARCHAR},
             </if>
-            <if test="userType != null" >
+            <if test="userType != null">
                 #{userType,jdbcType=VARCHAR},
             </if>
-            <if test="groupType != null" >
+            <if test="groupType != null">
                 #{groupType,jdbcType=VARCHAR},
             </if>
-            <if test="swiftNumber != null" >
+            <if test="swiftNumber != null">
                 #{swiftNumber,jdbcType=VARCHAR},
             </if>
-            <if test="taskId != null" >
+            <if test="taskId != null">
                 #{taskId,jdbcType=VARCHAR},
             </if>
-            <if test="taskName != null" >
+            <if test="taskName != null">
                 #{taskName,jdbcType=VARCHAR},
             </if>
-            <if test="taskType != null" >
+            <if test="taskType != null">
                 #{taskType,jdbcType=INTEGER},
             </if>
-            <if test="caseNum != null" >
+            <if test="caseNum != null">
                 #{caseNum,jdbcType=VARCHAR},
             </if>
-            <if test="dialogId != null" >
+            <if test="dialogId != null">
                 #{dialogId,jdbcType=VARCHAR},
             </if>
-            <if test="caseStatus != null" >
+            <if test="caseStatus != null">
                 #{caseStatus,jdbcType=INTEGER},
             </if>
-            <if test="isSendMsg != null" >
+            <if test="isSendMsg != null">
                 #{isSendMsg,jdbcType=INTEGER},
             </if>
-            <if test="requestId != null" >
+            <if test="requestId != null">
                 #{requestId,jdbcType=VARCHAR},
             </if>
-            <if test="sendStatus != null" >
+            <if test="sendStatus != null">
                 #{sendStatus,jdbcType=INTEGER},
             </if>
-            <if test="dropStatus != null" >
+            <if test="dropStatus != null">
                 #{dropStatus,jdbcType=INTEGER},
             </if>
-            <if test="realCallTime != null" >
+            <if test="realCallTime != null">
                 #{realCallTime,jdbcType=INTEGER},
             </if>
-            <if test="callStartTime != null" >
+            <if test="callStartTime != null">
                 #{callStartTime,jdbcType=VARCHAR},
             </if>
-            <if test="callConnectTime != null" >
+            <if test="callConnectTime != null">
                 #{callConnectTime,jdbcType=VARCHAR},
             </if>
-            <if test="callEndTime != null" >
+            <if test="callEndTime != null">
                 #{callEndTime,jdbcType=VARCHAR},
             </if>
-            <if test="dialogRounds != null" >
+            <if test="dialogRounds != null">
                 #{dialogRounds,jdbcType=INTEGER},
             </if>
-            <if test="dialogTurns != null" >
+            <if test="dialogTurns != null">
                 #{dialogTurns,jdbcType=INTEGER},
             </if>
-            <if test="recordingPath != null" >
+            <if test="recordingPath != null">
                 #{recordingPath,jdbcType=VARCHAR},
             </if>
-            <if test="intentionGrade != null" >
+            <if test="intentionGrade != null">
                 #{intentionGrade,jdbcType=VARCHAR},
             </if>
-            <if test="dialogStatus != null" >
+            <if test="dialogStatus != null">
                 #{dialogStatus,jdbcType=INTEGER},
             </if>
-            <if test="status != null" >
+            <if test="status != null">
                 #{status,jdbcType=TINYINT},
             </if>
-            <if test="createTime != null" >
+            <if test="createTime != null">
                 #{createTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="updateTime != null" >
+            <if test="updateTime != null">
                 #{updateTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="tagList != null" >
+            <if test="tagList != null">
                 #{tagList,jdbcType=LONGVARCHAR},
             </if>
         </trim>
     </insert>
-    <select id="countByExample" parameterType="com.br.marketing.entity.CustomerCallingDialogExample" resultType="java.lang.Integer" >
+    <select id="countByExample" parameterType="com.br.marketing.entity.CustomerCallingDialogExample"
+            resultType="java.lang.Integer">
         select count(*) from b_marketing_customer_calling_dialog
-        <if test="_parameter != null" >
-            <include refid="Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
         </if>
     </select>
 
-    <update id="updateByExampleSelective" parameterType="map" >
+    <update id="updateByExampleSelective" parameterType="map">
         update b_marketing_customer_calling_dialog
-        <set >
-            <if test="record.id != null" >
+        <set>
+            <if test="record.id != null">
                 id = #{record.id,jdbcType=BIGINT},
             </if>
-            <if test="record.apiCode != null" >
+            <if test="record.apiCode != null">
                 api_code = #{record.apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="record.cid != null" >
+            <if test="record.cid != null">
                 cid = #{record.cid,jdbcType=VARCHAR},
             </if>
-            <if test="record.userType != null" >
+            <if test="record.userType != null">
                 user_type = #{record.userType,jdbcType=VARCHAR},
             </if>
-            <if test="record.groupType != null" >
+            <if test="record.groupType != null">
                 group_type = #{record.groupType,jdbcType=VARCHAR},
             </if>
-            <if test="record.swiftNumber != null" >
+            <if test="record.swiftNumber != null">
                 swift_number = #{record.swiftNumber,jdbcType=VARCHAR},
             </if>
-            <if test="record.taskId != null" >
+            <if test="record.taskId != null">
                 task_id = #{record.taskId,jdbcType=VARCHAR},
             </if>
-            <if test="record.taskName != null" >
+            <if test="record.taskName != null">
                 task_name = #{record.taskName,jdbcType=VARCHAR},
             </if>
-            <if test="record.taskType != null" >
+            <if test="record.taskType != null">
                 task_type = #{record.taskType,jdbcType=INTEGER},
             </if>
-            <if test="record.caseNum != null" >
+            <if test="record.caseNum != null">
                 case_num = #{record.caseNum,jdbcType=VARCHAR},
             </if>
-            <if test="record.dialogId != null" >
+            <if test="record.dialogId != null">
                 dialog_id = #{record.dialogId,jdbcType=VARCHAR},
             </if>
-            <if test="record.caseStatus != null" >
+            <if test="record.caseStatus != null">
                 case_status = #{record.caseStatus,jdbcType=INTEGER},
             </if>
-            <if test="record.isSendMsg != null" >
+            <if test="record.isSendMsg != null">
                 is_send_msg = #{record.isSendMsg,jdbcType=INTEGER},
             </if>
-            <if test="record.requestId != null" >
+            <if test="record.requestId != null">
                 request_id = #{record.requestId,jdbcType=VARCHAR},
             </if>
-            <if test="record.sendStatus != null" >
+            <if test="record.sendStatus != null">
                 send_status = #{record.sendStatus,jdbcType=INTEGER},
             </if>
-            <if test="record.dropStatus != null" >
+            <if test="record.dropStatus != null">
                 drop_status = #{record.dropStatus,jdbcType=INTEGER},
             </if>
-            <if test="record.realCallTime != null" >
+            <if test="record.realCallTime != null">
                 real_call_time = #{record.realCallTime,jdbcType=INTEGER},
             </if>
-            <if test="record.callStartTime != null" >
+            <if test="record.callStartTime != null">
                 call_start_time = #{record.callStartTime,jdbcType=VARCHAR},
             </if>
-            <if test="record.callConnectTime != null" >
+            <if test="record.callConnectTime != null">
                 call_connect_time = #{record.callConnectTime,jdbcType=VARCHAR},
             </if>
-            <if test="record.callEndTime != null" >
+            <if test="record.callEndTime != null">
                 call_end_time = #{record.callEndTime,jdbcType=VARCHAR},
             </if>
-            <if test="record.dialogRounds != null" >
+            <if test="record.dialogRounds != null">
                 dialog_rounds = #{record.dialogRounds,jdbcType=INTEGER},
             </if>
-            <if test="record.dialogTurns != null" >
+            <if test="record.dialogTurns != null">
                 dialog_turns = #{record.dialogTurns,jdbcType=INTEGER},
             </if>
-            <if test="record.recordingPath != null" >
+            <if test="record.recordingPath != null">
                 recording_path = #{record.recordingPath,jdbcType=VARCHAR},
             </if>
-            <if test="record.intentionGrade != null" >
+            <if test="record.intentionGrade != null">
                 intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
             </if>
-            <if test="record.dialogStatus != null" >
+            <if test="record.dialogStatus != null">
                 dialog_status = #{record.dialogStatus,jdbcType=INTEGER},
             </if>
-            <if test="record.status != null" >
+            <if test="record.status != null">
                 status = #{record.status,jdbcType=TINYINT},
             </if>
-            <if test="record.createTime != null" >
+            <if test="record.createTime != null">
                 create_time = #{record.createTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="record.updateTime != null" >
+            <if test="record.updateTime != null">
                 update_time = #{record.updateTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="record.tagList != null" >
+            <if test="record.tagList != null">
                 tag_list = #{record.tagList,jdbcType=LONGVARCHAR},
             </if>
         </set>
-        <if test="_parameter != null" >
-            <include refid="Update_By_Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
         </if>
     </update>
-    <update id="updateByExampleWithBLOBs" parameterType="map" >
+    <update id="updateByExampleWithBLOBs" parameterType="map">
         update b_marketing_customer_calling_dialog
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -486,11 +493,11 @@
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
         tag_list = #{record.tagList,jdbcType=LONGVARCHAR}
-        <if test="_parameter != null" >
-            <include refid="Update_By_Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
         </if>
     </update>
-    <update id="updateByExample" parameterType="map" >
+    <update id="updateByExample" parameterType="map">
         update b_marketing_customer_calling_dialog
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -520,177 +527,184 @@
         status = #{record.status,jdbcType=TINYINT},
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
         update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-        <if test="_parameter != null" >
-            <include refid="Update_By_Example_Where_Clause" />
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
         </if>
     </update>
-    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerCallingDialog" >
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerCallingDialog">
         update b_marketing_customer_calling_dialog
-        <set >
-            <if test="apiCode != null" >
+        <set>
+            <if test="apiCode != null">
                 api_code = #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cid != null" >
+            <if test="cid != null">
                 cid = #{cid,jdbcType=VARCHAR},
             </if>
-            <if test="userType != null" >
+            <if test="userType != null">
                 user_type = #{userType,jdbcType=VARCHAR},
             </if>
-            <if test="groupType != null" >
+            <if test="groupType != null">
                 group_type = #{groupType,jdbcType=VARCHAR},
             </if>
-            <if test="swiftNumber != null" >
+            <if test="swiftNumber != null">
                 swift_number = #{swiftNumber,jdbcType=VARCHAR},
             </if>
-            <if test="taskId != null" >
+            <if test="taskId != null">
                 task_id = #{taskId,jdbcType=VARCHAR},
             </if>
-            <if test="taskName != null" >
+            <if test="taskName != null">
                 task_name = #{taskName,jdbcType=VARCHAR},
             </if>
-            <if test="taskType != null" >
+            <if test="taskType != null">
                 task_type = #{taskType,jdbcType=INTEGER},
             </if>
-            <if test="caseNum != null" >
+            <if test="caseNum != null">
                 case_num = #{caseNum,jdbcType=VARCHAR},
             </if>
-            <if test="dialogId != null" >
+            <if test="dialogId != null">
                 dialog_id = #{dialogId,jdbcType=VARCHAR},
             </if>
-            <if test="caseStatus != null" >
+            <if test="caseStatus != null">
                 case_status = #{caseStatus,jdbcType=INTEGER},
             </if>
-            <if test="isSendMsg != null" >
+            <if test="isSendMsg != null">
                 is_send_msg = #{isSendMsg,jdbcType=INTEGER},
             </if>
-            <if test="requestId != null" >
+            <if test="requestId != null">
                 request_id = #{requestId,jdbcType=VARCHAR},
             </if>
-            <if test="sendStatus != null" >
+            <if test="sendStatus != null">
                 send_status = #{sendStatus,jdbcType=INTEGER},
             </if>
-            <if test="dropStatus != null" >
+            <if test="dropStatus != null">
                 drop_status = #{dropStatus,jdbcType=INTEGER},
             </if>
-            <if test="realCallTime != null" >
+            <if test="realCallTime != null">
                 real_call_time = #{realCallTime,jdbcType=INTEGER},
             </if>
-            <if test="callStartTime != null" >
+            <if test="callStartTime != null">
                 call_start_time = #{callStartTime,jdbcType=VARCHAR},
             </if>
-            <if test="callConnectTime != null" >
+            <if test="callConnectTime != null">
                 call_connect_time = #{callConnectTime,jdbcType=VARCHAR},
             </if>
-            <if test="callEndTime != null" >
+            <if test="callEndTime != null">
                 call_end_time = #{callEndTime,jdbcType=VARCHAR},
             </if>
-            <if test="dialogRounds != null" >
+            <if test="dialogRounds != null">
                 dialog_rounds = #{dialogRounds,jdbcType=INTEGER},
             </if>
-            <if test="dialogTurns != null" >
+            <if test="dialogTurns != null">
                 dialog_turns = #{dialogTurns,jdbcType=INTEGER},
             </if>
-            <if test="recordingPath != null" >
+            <if test="recordingPath != null">
                 recording_path = #{recordingPath,jdbcType=VARCHAR},
             </if>
-            <if test="intentionGrade != null" >
+            <if test="intentionGrade != null">
                 intention_grade = #{intentionGrade,jdbcType=VARCHAR},
             </if>
-            <if test="dialogStatus != null" >
+            <if test="dialogStatus != null">
                 dialog_status = #{dialogStatus,jdbcType=INTEGER},
             </if>
-            <if test="status != null" >
+            <if test="status != null">
                 status = #{status,jdbcType=TINYINT},
             </if>
-            <if test="createTime != null" >
+            <if test="createTime != null">
                 create_time = #{createTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="updateTime != null" >
+            <if test="updateTime != null">
                 update_time = #{updateTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="tagList != null" >
+            <if test="tagList != null">
                 tag_list = #{tagList,jdbcType=LONGVARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
-    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.CustomerCallingDialog" >
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.CustomerCallingDialog">
         update b_marketing_customer_calling_dialog
-        set api_code = #{apiCode,jdbcType=VARCHAR},
-            cid = #{cid,jdbcType=VARCHAR},
-            user_type = #{userType,jdbcType=VARCHAR},
-            group_type = #{groupType,jdbcType=VARCHAR},
-            swift_number = #{swiftNumber,jdbcType=VARCHAR},
-            task_id = #{taskId,jdbcType=VARCHAR},
-            task_name = #{taskName,jdbcType=VARCHAR},
-            task_type = #{taskType,jdbcType=INTEGER},
-            case_num = #{caseNum,jdbcType=VARCHAR},
-            dialog_id = #{dialogId,jdbcType=VARCHAR},
-            case_status = #{caseStatus,jdbcType=INTEGER},
-            is_send_msg = #{isSendMsg,jdbcType=INTEGER},
-            request_id = #{requestId,jdbcType=VARCHAR},
-            send_status = #{sendStatus,jdbcType=INTEGER},
-            drop_status = #{dropStatus,jdbcType=INTEGER},
-            real_call_time = #{realCallTime,jdbcType=INTEGER},
-            call_start_time = #{callStartTime,jdbcType=VARCHAR},
+        set api_code          = #{apiCode,jdbcType=VARCHAR},
+            cid               = #{cid,jdbcType=VARCHAR},
+            user_type         = #{userType,jdbcType=VARCHAR},
+            group_type        = #{groupType,jdbcType=VARCHAR},
+            swift_number      = #{swiftNumber,jdbcType=VARCHAR},
+            task_id           = #{taskId,jdbcType=VARCHAR},
+            task_name         = #{taskName,jdbcType=VARCHAR},
+            task_type         = #{taskType,jdbcType=INTEGER},
+            case_num          = #{caseNum,jdbcType=VARCHAR},
+            dialog_id         = #{dialogId,jdbcType=VARCHAR},
+            case_status       = #{caseStatus,jdbcType=INTEGER},
+            is_send_msg       = #{isSendMsg,jdbcType=INTEGER},
+            request_id        = #{requestId,jdbcType=VARCHAR},
+            send_status       = #{sendStatus,jdbcType=INTEGER},
+            drop_status       = #{dropStatus,jdbcType=INTEGER},
+            real_call_time    = #{realCallTime,jdbcType=INTEGER},
+            call_start_time   = #{callStartTime,jdbcType=VARCHAR},
             call_connect_time = #{callConnectTime,jdbcType=VARCHAR},
-            call_end_time = #{callEndTime,jdbcType=VARCHAR},
-            dialog_rounds = #{dialogRounds,jdbcType=INTEGER},
-            dialog_turns = #{dialogTurns,jdbcType=INTEGER},
-            recording_path = #{recordingPath,jdbcType=VARCHAR},
-            intention_grade = #{intentionGrade,jdbcType=VARCHAR},
-            dialog_status = #{dialogStatus,jdbcType=INTEGER},
-            status = #{status,jdbcType=TINYINT},
-            create_time = #{createTime,jdbcType=TIMESTAMP},
-            update_time = #{updateTime,jdbcType=TIMESTAMP},
-            tag_list = #{tagList,jdbcType=LONGVARCHAR}
+            call_end_time     = #{callEndTime,jdbcType=VARCHAR},
+            dialog_rounds     = #{dialogRounds,jdbcType=INTEGER},
+            dialog_turns      = #{dialogTurns,jdbcType=INTEGER},
+            recording_path    = #{recordingPath,jdbcType=VARCHAR},
+            intention_grade   = #{intentionGrade,jdbcType=VARCHAR},
+            dialog_status     = #{dialogStatus,jdbcType=INTEGER},
+            status            = #{status,jdbcType=TINYINT},
+            create_time       = #{createTime,jdbcType=TIMESTAMP},
+            update_time       = #{updateTime,jdbcType=TIMESTAMP},
+            tag_list          = #{tagList,jdbcType=LONGVARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
-    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerCallingDialog" >
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerCallingDialog">
         update b_marketing_customer_calling_dialog
-        set api_code = #{apiCode,jdbcType=VARCHAR},
-            cid = #{cid,jdbcType=VARCHAR},
-            user_type = #{userType,jdbcType=VARCHAR},
-            group_type = #{groupType,jdbcType=VARCHAR},
-            swift_number = #{swiftNumber,jdbcType=VARCHAR},
-            task_id = #{taskId,jdbcType=VARCHAR},
-            task_name = #{taskName,jdbcType=VARCHAR},
-            task_type = #{taskType,jdbcType=INTEGER},
-            case_num = #{caseNum,jdbcType=VARCHAR},
-            dialog_id = #{dialogId,jdbcType=VARCHAR},
-            case_status = #{caseStatus,jdbcType=INTEGER},
-            is_send_msg = #{isSendMsg,jdbcType=INTEGER},
-            request_id = #{requestId,jdbcType=VARCHAR},
-            send_status = #{sendStatus,jdbcType=INTEGER},
-            drop_status = #{dropStatus,jdbcType=INTEGER},
-            real_call_time = #{realCallTime,jdbcType=INTEGER},
-            call_start_time = #{callStartTime,jdbcType=VARCHAR},
+        set api_code          = #{apiCode,jdbcType=VARCHAR},
+            cid               = #{cid,jdbcType=VARCHAR},
+            user_type         = #{userType,jdbcType=VARCHAR},
+            group_type        = #{groupType,jdbcType=VARCHAR},
+            swift_number      = #{swiftNumber,jdbcType=VARCHAR},
+            task_id           = #{taskId,jdbcType=VARCHAR},
+            task_name         = #{taskName,jdbcType=VARCHAR},
+            task_type         = #{taskType,jdbcType=INTEGER},
+            case_num          = #{caseNum,jdbcType=VARCHAR},
+            dialog_id         = #{dialogId,jdbcType=VARCHAR},
+            case_status       = #{caseStatus,jdbcType=INTEGER},
+            is_send_msg       = #{isSendMsg,jdbcType=INTEGER},
+            request_id        = #{requestId,jdbcType=VARCHAR},
+            send_status       = #{sendStatus,jdbcType=INTEGER},
+            drop_status       = #{dropStatus,jdbcType=INTEGER},
+            real_call_time    = #{realCallTime,jdbcType=INTEGER},
+            call_start_time   = #{callStartTime,jdbcType=VARCHAR},
             call_connect_time = #{callConnectTime,jdbcType=VARCHAR},
-            call_end_time = #{callEndTime,jdbcType=VARCHAR},
-            dialog_rounds = #{dialogRounds,jdbcType=INTEGER},
-            dialog_turns = #{dialogTurns,jdbcType=INTEGER},
-            recording_path = #{recordingPath,jdbcType=VARCHAR},
-            intention_grade = #{intentionGrade,jdbcType=VARCHAR},
-            dialog_status = #{dialogStatus,jdbcType=INTEGER},
-            status = #{status,jdbcType=TINYINT},
-            create_time = #{createTime,jdbcType=TIMESTAMP},
-            update_time = #{updateTime,jdbcType=TIMESTAMP}
+            call_end_time     = #{callEndTime,jdbcType=VARCHAR},
+            dialog_rounds     = #{dialogRounds,jdbcType=INTEGER},
+            dialog_turns      = #{dialogTurns,jdbcType=INTEGER},
+            recording_path    = #{recordingPath,jdbcType=VARCHAR},
+            intention_grade   = #{intentionGrade,jdbcType=VARCHAR},
+            dialog_status     = #{dialogStatus,jdbcType=INTEGER},
+            status            = #{status,jdbcType=TINYINT},
+            create_time       = #{createTime,jdbcType=TIMESTAMP},
+            update_time       = #{updateTime,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=BIGINT}
     </update>
 
     <select id="getInfoByColumns" resultType="com.br.marketing.entity.CustomerCallingDialog">
-        select id, ${columns} from b_marketing_customer_calling_dialog where  api_code = #{apiCode} and send_status = #{sendStatus} orderby id desc limit #{pageNo},#{pageSize};
+        select id, ${columns}
+        from b_marketing_customer_calling_dialog
+        where api_code = #{apiCode}
+          and send_status = #{sendStatus}
+          and status = '1'
+        order by id desc limit #{pageNo}, #{pageSize};
     </select>
     <select id="getRequestId" resultType="java.util.Map">
-        select b.request_id as requestId, a.push_url as pushUrl, a.api_code as apiCode,
-               a.extend_config_info as extendConfigInfo,b.create_time as createTime
+        select b.request_id         as requestId,
+               a.push_url           as pushUrl,
+               a.api_code           as apiCode,
+               a.extend_config_info as extendConfigInfo,
+               b.create_time        as createTime
         from b_marketing_customer_calling_dialog b
                  inner join b_marketing_customer_calling a on a.api_code = b.api_code
         where b.send_status = '1'
           and a.status = '1'
         group by b.request_id, a.api_code
-        order by b.create_time asc;
-
+        order by b.id asc;
 
     </select>
 </mapper>

@@ -1,13 +1,10 @@
 package com.br.marketing.check.job;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
-import com.br.marketing.entity.CustomerCallingDialogExample;
 import com.br.marketing.entity.CustomerCallingExample;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingMapper;
@@ -17,19 +14,12 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import jdk.nashorn.internal.objects.annotations.Where;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 
 /**
  * @author guangchao.zhang
@@ -54,48 +44,43 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
 
-
-
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         this.process(getCustomerCallings());
     }
 
     private void process(List<CustomerCalling> customerCallings) {
-        log.warn("1用户信息：{}",customerCallings);
+        log.warn("1用户信息：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             String tableColumns = getTableColumns(customerCalling);
 
-            if(tableColumns!=null){
-                doThreadSubmit(customerCalling,tableColumns);
-                //doThreadSubmit(customerCalling, getPartitions(customerCalling,tableColumns));
+            if (tableColumns != null) {
+                doThreadSubmit(customerCalling, tableColumns);
             }
         }
     }
 
-    private void doThreadSubmit(CustomerCalling customerCalling,String tableColumns) {
+    private void doThreadSubmit(CustomerCalling customerCalling, String tableColumns) {
         ThreadPoolExecutor pushExecutor;
         if (customerCalling.getPushThreadNum() != null) {
             pushExecutor = BrExecutors.getThreadPool(customerCalling.getPushThreadNum(), customerCalling.getPushThreadNum());
         } else {
-            pushExecutor = BrExecutors.getThreadPool(2, 2);
+            pushExecutor = BrExecutors.getThreadPool(5, 5);
         }
-
         Map<String, Object> cusMap = new HashMap<>(16);
         cusMap.put("columns", tableColumns);
         cusMap.put("apiCode", customerCalling.getApiCode());
         cusMap.put("sendStatus", 0);
-        cusMap.put("conditions", customerCalling.getConditions());
         boolean index = true;
-        Integer pageNo = 0;
-        while (index){
-            cusMap.put("pageNo", pageNo*15000);
-            cusMap.put("pageSize",15000);
+        int pageNo = 0;
+        while (index) {
+            cusMap.put("pageNo", pageNo * 15000);
+            cusMap.put("pageSize", 15000);
             List<CustomerCallingDialog> customerCallingDialogsByEvery = customerCallingDialogMapper.getInfoByColumns(cusMap);
-            index = customerCallingDialogsByEvery.size()==0?false:true;
-            if(index){
+            index = customerCallingDialogsByEvery.size() != 0;
+            if (index) {
                 List<List<CustomerCallingDialog>> partitions = Lists.partition(customerCallingDialogsByEvery, 1500);
-                partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling,httpProxyClient,customerCallingPushLogMapper)));
+                partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling, httpProxyClient, customerCallingPushLogMapper)));
             }
             pageNo++;
         }
@@ -103,16 +88,12 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
 
     private String getTableColumns(CustomerCalling customerCalling) {
         String column = customerCalling.getColumnsDetail();
-        if(column!=null&& !column.isEmpty()){
+        if (column != null && !column.isEmpty()) {
             String[] columns = column.split(",");
             List<String> columnsList = new ArrayList<>();
             Arrays.stream(columns).sequential().forEach(c -> {
-                if ("custNum".equals(c)) {
-                    c = "caseNum";
-                }
-                if("groupType".equals(c)){
-                    c="userType";
-                }
+                c = "custNum".equals(c) ? "caseNum" : c;
+                c = "groupType".equals(c) ? "userType" : c;
                 columnsList.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c));
             });
             return Joiner.on(",").join(columnsList);
