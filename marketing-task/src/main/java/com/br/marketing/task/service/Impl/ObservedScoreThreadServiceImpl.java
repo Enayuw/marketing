@@ -23,29 +23,29 @@ public class ObservedScoreThreadServiceImpl {
     }
 
 
-    public void addObserver(ExecutorService executorService){
+    public void addObserver(ExecutorService executorService) {
         this.executorService.add(executorService);
     }
 
-    public void removeThread(ExecutorService executorService){
-        if(this.executorService != null){
+    public void removeThread(ExecutorService executorService) {
+        if (this.executorService != null) {
             this.executorService.remove(executorService);
         }
     }
 
-    public void stopThread(){
+    public void stopThread() {
         for (ExecutorService service : executorService) {
-            if(service != null&&!service.isTerminated()){
+            if (service != null && !service.isTerminated()) {
                 service.shutdownNow();
             }
         }
-        this.interrupt=0;
+        this.interrupt = 0;
     }
 
-    public boolean isInterrupt(){
-        if(new Integer(0).equals(this.interrupt)){
+    public boolean isInterrupt() {
+        if (new Integer(0).equals(this.interrupt)) {
             return Boolean.TRUE;
-        }else{
+        } else {
             return Boolean.FALSE;
         }
     }
