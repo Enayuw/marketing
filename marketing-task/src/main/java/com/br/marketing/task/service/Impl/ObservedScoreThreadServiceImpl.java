@@ -1,11 +1,10 @@
 package com.br.marketing.task.service.Impl;
 
-import com.br.marketing.entity.MarketingTask;
-import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.error.Mark;
 
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 
 @Service
@@ -13,7 +12,7 @@ public class ObservedScoreThreadServiceImpl {
 
     private Integer interrupt = 1;
 
-    private ExecutorService executorService;
+    private List<ExecutorService> executorService = new ArrayList<>();
 
     public Integer getInterrupt() {
         return interrupt;
@@ -23,27 +22,22 @@ public class ObservedScoreThreadServiceImpl {
         this.interrupt = interrupt;
     }
 
-    public ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    public void setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-    }
 
     public void addObserver(ExecutorService executorService){
-        this.executorService = executorService;
+        this.executorService.add(executorService);
     }
 
-    public void removeThread(){
+    public void removeThread(ExecutorService executorService){
         if(this.executorService != null){
-            this.executorService =null;
+            this.executorService.remove(executorService);
         }
     }
 
     public void stopThread(){
-        if(this.executorService != null){
-            this.executorService.shutdownNow();
+        for (ExecutorService service : executorService) {
+            if(service != null&&!service.isTerminated()){
+                service.shutdownNow();
+            }
         }
         this.interrupt=0;
     }

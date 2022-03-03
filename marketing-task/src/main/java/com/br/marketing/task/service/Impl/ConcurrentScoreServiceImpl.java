@@ -37,6 +37,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
@@ -165,7 +167,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             warrningExecutor.shutdown();
             while (true) {
                 if (warrningExecutor.isTerminated()) {
-                    observedScoreThreadService.removeThread();
+                    observedScoreThreadService.removeThread(warrningExecutor);
                     log.warn("所有线程都执行结束");
                     break;
                 }
@@ -492,7 +494,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                     .andApiCodeEqualTo(blt.getApiCode())
                     .andFileIdEqualTo(Long.valueOf(fileId))
                     .andDistributeIndexEqualTo(blt.getIndex())
-                    .andStatusEqualTo(1);
+                    .andStatusEqualTo(3);
             List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(distributeExample);
             Long distributId = null;
             if(taskStatusDistributes.size()<=0) {
@@ -690,20 +692,21 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                 return false;
             }
         }
-        //一次性任务，该分片只有有状态数据就不能跑
-//        if (task.getMonitorType().equals(1)) {
-//            TaskStatusDistributeExample exampleOnce = new TaskStatusDistributeExample();
-//            exampleOnce.createCriteria()
-//                    .andBatchNumberEqualTo(task.getBatchNumber())
-//                    .andDistributeIndexEqualTo(index)
-//                    .andIsDelEqualTo(Constants.DATA_VALID);
-//            List<TaskStatusDistribute> exampleOnceStatus = taskStatusDistributeMapper.selectByExample(exampleOnce);
-//            if (exampleOnceStatus.size() > 0) {
-//                return false;
-//            } else {
-//                return true;
-//            }
-//        }
+        //一次性任务，该分片只要是非中断 就不在触发跑分
+        if (task.getMonitorType().equals(1)) {
+            TaskStatusDistributeExample exampleOnce = new TaskStatusDistributeExample();
+            exampleOnce.createCriteria()
+                    .andBatchNumberEqualTo(task.getBatchNumber())
+                    .andDistributeIndexEqualTo(index)
+                    .andStartIdIn(Arrays.<Long>asList(1L,2L))
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            List<TaskStatusDistribute> exampleOnceStatus = taskStatusDistributeMapper.selectByExample(exampleOnce);
+            if (exampleOnceStatus.size() > 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
         TaskStatusDistributeExample example = new TaskStatusDistributeExample();
         example.createCriteria()
                 .andBatchNumberEqualTo(task.getBatchNumber())
@@ -772,7 +775,9 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
                         marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
                         String scorekey = RedisCodeProduct.concat(task.getApiCode());
                         String s = redisChgService.get(scorekey);
-                        List<String> products = Splitter.on(",").splitToList(s==null?"":s);
+                        List<String> products = s==null
+                                ?new ArrayList<>()
+                                : IteratorUtils.toList(Splitter.on(",").split(s).iterator());
                         if(products.size()<=0||!products.contains(code)){
                             ApicodeScoreProduct scoreProduct = new ApicodeScoreProduct();
                             scoreProduct.setApiCode(task.getApiCode());
@@ -959,4 +964,5 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService{
             e.printStackTrace();
         }
     }
+
 }
