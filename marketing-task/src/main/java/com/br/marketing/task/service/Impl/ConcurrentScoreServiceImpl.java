@@ -703,7 +703,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             exampleOnce.createCriteria()
                     .andBatchNumberEqualTo(task.getBatchNumber())
                     .andDistributeIndexEqualTo(index)
-                    .andStartIdIn(Arrays.<Long>asList(1L, 2L))
+                    .andStatusIn(Arrays.<Integer>asList(1, 2))
                     .andIsDelEqualTo(Constants.DATA_VALID);
             List<TaskStatusDistribute> exampleOnceStatus = taskStatusDistributeMapper.selectByExample(exampleOnce);
             if (exampleOnceStatus.size() > 0) {
