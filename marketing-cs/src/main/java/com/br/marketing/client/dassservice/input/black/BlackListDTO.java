@@ -2,6 +2,8 @@ package com.br.marketing.client.dassservice.input.black;
 
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.rule.InterfaceParams;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +14,16 @@ import java.util.List;
  * @author Guo Zeqiang
  * @dateTime 2022/3/1 13:36
  */
-public class BlackListDTO extends BlackListAbstract {
+
+@Data
+public class BlackListDTO extends InterfaceParams {
     private static final long serialVersionUID = 2263700614183680472L;
+
+    /**
+     * 数据id
+     */
+    private String dataId;
+
     /**
      * 2022/3/1 13:43 用户唯一ID
      * 是否必填 是
@@ -53,62 +63,6 @@ public class BlackListDTO extends BlackListAbstract {
     public BlackListDTO() {
     }
 
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getUserType() {
-        return userType;
-    }
-
-    public void setUserType(String userType) {
-        this.userType = userType;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
-    }
-
-    public String getOrgName() {
-        return orgName;
-    }
-
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
-    }
-
     public BlackListDTO(String uid, String phone, String type, String userType, String source
             , String apiCode, String orgName) {
         this.uid = uid;
@@ -133,7 +87,6 @@ public class BlackListDTO extends BlackListAbstract {
                 '}';
     }
 
-    @Override
     public List<Object> valueList(String ascKey) {
         List<Object> list = new ArrayList<>();
         if (StringUtils.isNotBlank(this.uid)) {
