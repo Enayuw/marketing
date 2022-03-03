@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
@@ -65,17 +64,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> getSyncUserByTaskAndCust(@Param("apiCode") String apiCode, @Param("taskIds") List<String> taskIds, @Param("custNums") List<String> custNums);
 
     /**
-     * 获取有效期时间内的数量
-     *
-     * @param apiCode            apiCode
-     * @param custNum            案件编号
-     * @param periodOfValidityDO 有效期pojo
-     * @return 数量
-     * @author Guo Zeqiang
-     * @dateTime 2022/2/14 9:55
-     */
-    long getPeriodOfValiditySum(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("periodOfValidityDO") PeriodOfValidityDO periodOfValidityDO);
-    /**
      * 根据案件编号获取客户最新的场景
      *
      * @param apiCode apiCode
@@ -114,7 +102,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/15 10:52
      */
-    Date getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+    String getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
 
     /**
      * 获取案件编号的落库的创建时间
