@@ -1,15 +1,19 @@
 package com.br.marketing.strategy;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.PushRuleService;
 import org.apache.commons.lang3.StringUtils;
@@ -17,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,15 +93,41 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
             } else {
                 subList = transferList.subList((i - 1) * pageSize, pageSize * (i));
             }
+
             robotOutboundDTO.setApiCode(transferInfo.getApiCode());
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
-            ruleService.pushTransferData(robotOutboundDTO, transferInfo);
+            if(!callCustomerTransfer(robotOutboundDTO,transferInfo)){
+                RetryMainLog mainLog = new RetryMainLog();
+                mainLog.setRetryType(1);
+                mainLog.setRetryParam(JSON.toJSONString(robotOutboundDTO));
+                mainLog.setRetryParamType(robotOutboundDTO.getClass().getName());
+                mainLog.setRetryService("customerTransferHandler");
+                mainLog.setRetryMethod("callCustomerTransfer");
+                mainLog.setRetryNum(0);
+                mainLog.setRetryMaxNum(3);
+                mainLog.setRetryStatus(1);
+                mainLog.setCreateTime(new Date());
+                mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                retryMainLogMapper.insertSelective(mainLog);
+            }
+
         }
         return null;
     }
 
-        @Override
-        public InterfaceHandlerEnum handlerEnum () {
+    boolean callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, MarketingTransferInfo transferInfo){
+        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = ruleService.pushTransferData(robotOutboundDTO, transferInfo);
+        boolean flag = StringUtils.isNotBlank(transferRobotOutboundVO.getCode());
+        if (flag){
+            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
+            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
+            saveBizLog(String.join(",",set),handlerEnum().getCode());
+        }
+        return flag;
+    }
+
+    @Override
+    public InterfaceHandlerEnum handlerEnum () {
             return InterfaceHandlerEnum.CUSTOMER_TRANSFER;
         }
     }
