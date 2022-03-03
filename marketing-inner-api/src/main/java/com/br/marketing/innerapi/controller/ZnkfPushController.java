@@ -28,12 +28,11 @@ public class ZnkfPushController {
     @ApiOperation(value = "客服推送营销数据 回调接口")
     @PostMapping("/znkfPushCallBack")
     public String znkfPushCallBack(@RequestBody CallRecordDTO dto) {
-        String flag = "";
         try {
             return znkfPushService.znkfPushCallBack(dto);
         }catch (Exception ex){
             log.error(ex.getMessage());
-            return flag;
+            throw ex;
         }
     }
 
