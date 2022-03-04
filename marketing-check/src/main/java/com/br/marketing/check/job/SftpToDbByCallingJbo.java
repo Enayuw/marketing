@@ -54,8 +54,6 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        List<Integer> shardingItems = context.getShardingItems();
-        log.warn("当前服务发分片数：{}",shardingItems);
         this.process(getSftpClient(),context);
     }
 
@@ -64,11 +62,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      */
     private void process(SftpClient sftpClient,JobExecutionMultipleShardingContext context) {
 
-
-        CustomerCallingExample customerCallingExample = new CustomerCallingExample();
-        customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
-        customerCallingExample.createCriteria().andPushTypeEqualTo(0);
-        List<CustomerCalling> customerCallings = customerCallingMapper.selectByExample(customerCallingExample);
+        List<CustomerCalling> customerCallings = getCustomerCallings();
         log.warn("1用户信息调用开始：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             Map<String, Set<String>> map = new HashMap<>(16);
@@ -79,6 +73,13 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
             processData(sftpClient, map, customerCalling);
 
         }
+    }
+
+    private List<CustomerCalling> getCustomerCallings() {
+        CustomerCallingExample customerCallingExample = new CustomerCallingExample();
+        customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
+        customerCallingExample.createCriteria().andPushTypeEqualTo(0);
+        return customerCallingMapper.selectByExample(customerCallingExample);
     }
 
     /**
@@ -175,7 +176,6 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
      */
     private void processFile(String sftpPath, SftpClient sftpClient, Map<String, Set<String>> map,JobExecutionMultipleShardingContext context) {
         List<Integer> shardingItems = context.getShardingItems();
-        log.warn("当前机器片情况：{}",shardingItems);
         try {
             Map<String, SftpATTRS> attrsMap = sftpClient.listFiles(sftpPath);
             for (Map.Entry<String, SftpATTRS> entry : attrsMap.entrySet()) {
@@ -183,11 +183,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
                 if (fileName.endsWith(".success")) {
                     shardingItems.forEach((v)->{
                         String substringName = fileName.substring(fileName.length() - 14, fileName.length() - 12);
-                        log.warn("当前文件名的分片数值：{}",substringName);
-                        log.warn("当前服务器分片值----：{}",v);
-                        int size = shardingItems.size();
                         int i = (Integer.valueOf(substringName)) % 4;
-                        log.warn("分片服务：{}",i);
                         if(i==Integer.valueOf(v)){
                             Set<String> set = map.computeIfAbsent(sftpPath, k -> new HashSet<>());
                             set.add(fileName.substring(0, fileName.length() - 8));

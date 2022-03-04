@@ -52,29 +52,31 @@ public class CallingDataThread implements Callable<String> {
     @Override
     public String call() throws Exception {
         String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
-        log.warn("开始多线程调用第三方接口");
         sendPostRequest(requestId);
         return "success";
     }
 
     private Consumer<? super CustomerCallingDialog> sendPostRequest(String requestId) {
         JSONObject param = new JSONObject();
-        param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
+        param.put("requestId", requestId);
         customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
         param.put("dataItems", dataItems);
-        log.warn("3用户发送数据：{}", param.toJSONString());
+        Map<String, Object> result = sendRequest(param);
+        boolean sendStatus = (boolean) result.get("result");
+        updateRequestId(requestId, sendStatus ? 1 : 0);
+        savePushLog(requestId, param, result);
+        return null;
+    }
+
+    private Map<String, Object> sendRequest(JSONObject param) {
         String extendConfigInfo = customerCalling.getExtendConfigInfo();
         String pushUrl = customerCalling.getPushUrl().trim();
         JSONObject extendConfigInfoJson = getJsonObject(extendConfigInfo);
         JSONObject pushUrlJson = getJsonObject(pushUrl);
         String sendUrl = pushUrlJson.getString("sendUrl");
         Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
-        Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        boolean sendStatus = (boolean) result.get("result");
-        updateRequestId(requestId, sendStatus == true ? 1 : 0);
-        savePushLog(requestId, param, result);
-        return null;
+        return httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
     }
 
     private void savePushLog(String requestId, JSONObject param, Map<String, Object> result) {
