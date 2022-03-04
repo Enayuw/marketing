@@ -678,7 +678,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.info("文本插入耗时:{}", (System.currentTimeMillis() - l));
             }
             long l3 = System.currentTimeMillis();
-            producter.send("Marketing.PreUser.Receive", syncInfo.getId().toString());
+            if(marketingCommonConfig.getShuheApiCode().contains(apiCode)){
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
+            }else {
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfo.getId().toString());
+            }
             if (log.isInfoEnabled()) {
                 log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
             }

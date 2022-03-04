@@ -52,4 +52,9 @@ public class MarketingCommonConfig {
      * 萨摩耶场景
      */
     private HashSet<String> groupTypeSaMoye;
+
+    /**
+     * 数禾apicode
+     */
+    private List<String> shuheApiCode;
 }
