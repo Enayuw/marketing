@@ -19,9 +19,9 @@ public class TransferSyncAdapter extends TransferSyncTarget {
     }
 
     @Override
-    public MarketingTransferSyncUser transferSyncUserRequest() {
+    public MarketingTransferSyncUser transferSyncUserRequest(String taskId) {
         MarketingTransferSyncUser transferSyncUser = this.newTransferSyncUser();
-        IToTransferSyncAdaptee.adapteeRequest(transferSyncUser);
+        IToTransferSyncAdaptee.adapteeRequest(transferSyncUser, taskId);
         return transferSyncUser;
     }
 }

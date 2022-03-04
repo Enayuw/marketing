@@ -66,13 +66,14 @@ public interface IMarketingSyncUserService {
     /**
      * 根据案件编号获取最新的taskId
      *
-     * @param apiCode apiCode
-     * @param custNum 案件编号
+     * @param apiCode  apiCode
+     * @param custNum  案件编号
+     * @param userType 场景
      * @return taskId
      * @author Guo Zeqiang
      * @dateTime 2022/2/15 10:52
      */
-    String getTaskIdLatestByCustNum(String apiCode, String custNum);
+    String getTaskIdLatestByCustNum(String apiCode, String custNum, String userType);
 
 
     /**

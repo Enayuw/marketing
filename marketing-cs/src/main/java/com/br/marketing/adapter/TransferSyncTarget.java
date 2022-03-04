@@ -12,7 +12,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  */
 public abstract class TransferSyncTarget {
 
-    abstract MarketingTransferSyncUser transferSyncUserRequest();
+    abstract MarketingTransferSyncUser transferSyncUserRequest(String taskId);
 
     protected final MarketingTransferSyncUser newTransferSyncUser() {
         return new MarketingTransferSyncUser();

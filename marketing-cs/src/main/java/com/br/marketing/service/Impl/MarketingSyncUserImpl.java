@@ -72,8 +72,8 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public String getTaskIdLatestByCustNum(String apiCode, String custNum) {
-        return marketingSyncInfoMapper.getTaskIdLatestByCustNum(apiCode, custNum);
+    public String getTaskIdLatestByCustNum(String apiCode, String custNum, String userType) {
+        return marketingSyncInfoMapper.getTaskIdLatestByCustNum(apiCode, custNum, userType);
     }
 
     @Override

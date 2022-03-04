@@ -119,11 +119,22 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                  */
                 userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
             }
+            final ShuheTransferJsonDTO finalJsonDTO = jsonDTO;
+            Future<String> futureTaskId = BR_EXECUTORS.submit(() -> iMarketingSyncUserService.getTaskIdLatestByCustNum(
+                    apiCode, finalJsonDTO.getOrderId(), finalJsonDTO.getBizType()));
             final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUserWithBLOBs caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(
                     iUserType, jsonDTO, apiCode, jsonData);
+            String taskId;
+            if (futureTaskId.isDone()) {
+                taskId = futureTaskId.get();
+            } else {
+                futureTaskId.isCancelled();
+                taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(
+                        apiCode, jsonDTO.getOrderId(), userType);
+            }
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser)
-                    .transferSyncUserRequest();
+                    .transferSyncUserRequest(taskId);
             List<Future<String>> futureList = new ArrayList<>();
             if (iUserType instanceof UnknownUserType) {
                 msg = "未知的业务类型\"" + userType + "\"!";

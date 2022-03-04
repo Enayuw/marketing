@@ -70,7 +70,7 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
     }
 
     @Override
-    public void adapteeRequest(MarketingTransferSyncUser transferSyncUser) {
+    public void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId) {
         transferSyncUser.setApiCode(this.getApiCode());
         transferSyncUser.setCustNum(this.getCustNum());
         transferSyncUser.setUserType(this.getUserType());
@@ -82,6 +82,7 @@ public class CaseShuheUserWithBLOBs extends CaseShuheUser implements IToTransfer
                 "\"clc_usr_iso_idt_tim\":\"" + this.getClcUsrIsoIdtTim() + "\"," +
                 "\"clc_usr_iso_crd_tim\":\"" + this.getClcUsrIsoCrdTim() + "\"," +
                 "\"clc_usr_iso_inf_tim\":\"" + this.getClcUsrIsoInfTim() + "\"," +
+                "\"taskId\":\"" + taskId + "\"," +
                 "\"applyLoanTime\":\"" + this.getClcUsrFrtFqOrdTim() + "\"," +
                 "\"cell\":\"" + this.getCell() + "\"" +
                 "}";

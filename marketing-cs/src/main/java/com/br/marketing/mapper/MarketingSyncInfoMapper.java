@@ -80,7 +80,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @param caseNum
      * @return
      */
-    MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum")String caseNum);
+    MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum") String caseNum);
+
     /**
      * 根据案件编号获取最新的taskId
      *
@@ -90,7 +91,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/15 10:52
      */
-    String getTaskIdLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+    String getTaskIdLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum
+            , @Param("userType") String userType);
 
     /**
      * 获取案件编号的上传时间

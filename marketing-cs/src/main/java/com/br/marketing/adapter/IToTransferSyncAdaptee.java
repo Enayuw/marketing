@@ -10,5 +10,5 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  */
 public interface IToTransferSyncAdaptee {
 
-    void adapteeRequest(MarketingTransferSyncUser transferSyncUser);
+    void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId);
 }
