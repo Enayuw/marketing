@@ -73,6 +73,26 @@ public class RobotaiApiServiceClient {
         }
     }
 
+    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotaiNew(TransferRobotOutboundDTO dto){
+        dto.getJsonData().setPlatApiCode(customerServiceApiCode);
+        try{
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto).postTransferStr();
+            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+                throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
+            }
+            TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+            return result;
+        }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
+            TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
+            result.setCode("9999");
+            result.setMessage(ex.getMessage());
+            return result;
+        }
+    }
 
     public ReqBlackPhoneVO pushBlack(ReqBlackPhoneParentDTO parentDTO){
         ReqBlackPhoneDTO dto = parentDTO.getDto();
