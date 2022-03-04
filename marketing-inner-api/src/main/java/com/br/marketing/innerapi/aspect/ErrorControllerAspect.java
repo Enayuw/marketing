@@ -3,8 +3,11 @@ package com.br.marketing.innerapi.aspect;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
 import com.br.marketing.service.EmailService;
@@ -59,12 +62,14 @@ public class ErrorControllerAspect {
      * @return
      * @throws Throwable
      */
-    @Around("execution(public com.br.marketing.common.commondto.Result com.br.marketing.innerapi.controller..*.*(..))")
+    @Around("execution(public com.br.marketing.common.commondto.ApiResult com.br.marketing.innerapi.controller..*.*(..))")
     public Object handResultException(ProceedingJoinPoint jp) throws Throwable {
         try {
             Object rvt = jp.proceed();
             return rvt;
-        } catch (Throwable e) {
+        }catch (ParamValidErrorException ex){
+            return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(),ex.getMessage());
+        }catch (Throwable e) {
             try {
                 Result obj = new Result();
                 obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -151,10 +156,10 @@ public class ErrorControllerAspect {
      */
     private void errorHandle(String typeName,String methodName,Object[] args,Throwable e,CalledInterfaceLog interfaceLog){
         StringBuilder params = new StringBuilder();
-        String br = "<br/>";
+        String br = "\r\n";
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
-                params.append(String.format("Index:%d,Data:%s ", i, args[i])).append(br);
+                params.append(String.format("Index:%d,Data:%s ", i, JSON.toJSONString(args[i]))).append(br);
             }
         }
         UUID uuid = UUID.randomUUID();
@@ -162,9 +167,9 @@ public class ErrorControllerAspect {
                 .append(br).append(String.format("环境：%s", env))
                 .append(br).append(String.format("logId：%s", uuid))
                 .append(br).append(String.format("方法：%s.%s", typeName, methodName))
-                .append(br).append(String.format("参数：%s", params.toString()))
                 .append(br).append(String.format("Exception：%s", e.toString()))
-                .append(br).append(" StackTrace：");
+                .append(br).append(" StackTrace：")
+                .append(br).append(String.format("参数：%s", params.toString()));
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(br).append(e.getStackTrace()[i]);
         }
@@ -172,6 +177,7 @@ public class ErrorControllerAspect {
                 .append(br).append(String.format("环境：%s", env))
                 .append(br).append(String.format("logId：%s", uuid))
                 .append(br).append(String.format("方法：%s.%s", typeName, methodName))
+                .append(br).append(String.format("Exception：%s", e.toString()))
                 .append(br).append(String.format("参数：%s", params.toString()));
         systemExceptionServiceImpl.sendAlarm(stringBuilderMail.toString(), "marketing-inner-api");
         if (log.isErrorEnabled()) {

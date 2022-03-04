@@ -72,21 +72,6 @@
             <version>3.0.2</version>
         </dependency>
         <dependency>
-            <groupId>com.br.speed</groupId>
-            <artifactId>speed-client</artifactId>
-            <version>1.0.9</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.br.mom</groupId>
             <artifactId>broker_layer_api</artifactId>
             <version>3.0.1</version>
@@ -124,9 +109,16 @@
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <!--ice连接es公共包-->
+
+        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
+        <dependency>
+            <groupId>com.br.cloud</groupId>
+            <artifactId>spring_boot_exporter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <!-- 预发、生产环境打包方式-->
     <build>

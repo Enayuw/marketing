@@ -864,6 +864,66 @@ public class RetryMainLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andServiceTypeIsNull() {
+            addCriterion("service_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeIsNotNull() {
+            addCriterion("service_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeEqualTo(Integer value) {
+            addCriterion("service_type =", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeNotEqualTo(Integer value) {
+            addCriterion("service_type <>", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeGreaterThan(Integer value) {
+            addCriterion("service_type >", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("service_type >=", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeLessThan(Integer value) {
+            addCriterion("service_type <", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("service_type <=", value, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeIn(List<Integer> values) {
+            addCriterion("service_type in", values, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeNotIn(List<Integer> values) {
+            addCriterion("service_type not in", values, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("service_type between", value1, value2, "serviceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andServiceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("service_type not between", value1, value2, "serviceType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

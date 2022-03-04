@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.RetryDetailLog;
@@ -10,18 +11,20 @@ import com.br.marketing.entity.RetryMainLogExample;
 import com.br.marketing.mapper.RetryDetailLogMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class RetryServiceImpl {
 
+    final static Integer aopRetry = 1;
     @Autowired
     RetryMainLogMapper retryMainLogMapper;
 
@@ -41,7 +44,7 @@ public class RetryServiceImpl {
                 exec = Boolean.FALSE;
                 continue;
             }
-            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId();
+            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId()+1;
             for (RetryMainLog retryMainLog : retryMainLogs) {
                 RetryMainLog updateMainLog = new RetryMainLog();
                 updateMainLog.setId(retryMainLog.getId());
@@ -72,12 +75,33 @@ public class RetryServiceImpl {
         try {
             Class<?>  paramType = Class.forName(retryMainLog.getRetryParamType());
             Object o = JSON.parseObject(retryParam, paramType);
-            if(!CkeckApplication.ac.containsBean(retryService)){
+            Object bean = null;
+            if(CkeckApplication.ac.containsBean(retryService)){
+                bean = CkeckApplication.ac.getBean(retryService);
+            }
+            if(bean == null){
+                bean = CkeckApplication.ac.getBean(Class.forName(retryService));
+            }
+            if(bean==null){
                 throw new RuntimeException("找不到对应的bean");
             }
-            Object bean = CkeckApplication.ac.getBean(retryService);
-            Method method =  bean.getClass().getMethod(retryMethod, paramType);
+            Method method = bean.getClass().getMethod(retryMethod, paramType);;
             Result result = (Result) method.invoke(bean, o);
+            if(aopRetry.equals(retryMainLog.getServiceType())){
+                method =  bean.getClass().getMethod(retryMethod, paramType,Integer.class);
+                // 注解的参数值是 常量，无法通过注解优雅实现
+//                RetryMethod annotation = AnnotationUtils.findAnnotation(method, RetryMethod.class);
+//                InvocationHandler h = Proxy.getInvocationHandler(annotation);
+//                Field hField = h.getClass().getDeclaredField("memberValues");
+//                hField.setAccessible(true);
+//                Map memberValues = (Map) hField.get(h);
+//                memberValues.put("isRetry", 2);
+                result = (Result) method.invoke(bean, o,aopRetry);
+            }else{
+                method =  bean.getClass().getMethod(retryMethod, paramType);
+                result = (Result) method.invoke(bean, o);
+            }
+
             if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
                 objectResult.setCode(ResultCode.SUCCESS.getValue());
                 detailLog.setRetryStatus(1);

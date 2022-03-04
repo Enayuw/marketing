@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.FileDbConfigMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.FileDbConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sftp_config_id" property="sftpConfigId" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="inner_path" property="innerPath" jdbcType="VARCHAR" />
+    <result column="db_name" property="dbName" jdbcType="VARCHAR" />
+    <result column="db_fields" property="dbFields" jdbcType="VARCHAR" />
+    <result column="route_key" property="routeKey" jdbcType="VARCHAR" />
+    <result column="file_type" property="fileType" jdbcType="VARCHAR" />
+    <result column="del" property="del" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, sftp_config_id, api_code, inner_path, db_name, db_fields, route_key, file_type, 
+    del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FileDbConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_file_db_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_file_db_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_file_db_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.FileDbConfigExample" >
+    delete from b_file_db_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.FileDbConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_file_db_config (sftp_config_id, api_code, inner_path, 
+      db_name, db_fields, route_key, 
+      file_type, del, create_time, 
+      update_time)
+    values (#{sftpConfigId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{innerPath,jdbcType=VARCHAR}, 
+      #{dbName,jdbcType=VARCHAR}, #{dbFields,jdbcType=VARCHAR}, #{routeKey,jdbcType=VARCHAR}, 
+      #{fileType,jdbcType=VARCHAR}, #{del,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.FileDbConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_file_db_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="sftpConfigId != null" >
+        sftp_config_id,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="innerPath != null" >
+        inner_path,
+      </if>
+      <if test="dbName != null" >
+        db_name,
+      </if>
+      <if test="dbFields != null" >
+        db_fields,
+      </if>
+      <if test="routeKey != null" >
+        route_key,
+      </if>
+      <if test="fileType != null" >
+        file_type,
+      </if>
+      <if test="del != null" >
+        del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="sftpConfigId != null" >
+        #{sftpConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="innerPath != null" >
+        #{innerPath,jdbcType=VARCHAR},
+      </if>
+      <if test="dbName != null" >
+        #{dbName,jdbcType=VARCHAR},
+      </if>
+      <if test="dbFields != null" >
+        #{dbFields,jdbcType=VARCHAR},
+      </if>
+      <if test="routeKey != null" >
+        #{routeKey,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="del != null" >
+        #{del,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.FileDbConfigExample" resultType="java.lang.Integer" >
+    select count(*) from b_file_db_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_file_db_config
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.sftpConfigId != null" >
+        sftp_config_id = #{record.sftpConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.innerPath != null" >
+        inner_path = #{record.innerPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dbName != null" >
+        db_name = #{record.dbName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dbFields != null" >
+        db_fields = #{record.dbFields,jdbcType=VARCHAR},
+      </if>
+      <if test="record.routeKey != null" >
+        route_key = #{record.routeKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileType != null" >
+        file_type = #{record.fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.del != null" >
+        del = #{record.del,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_file_db_config
+    set id = #{record.id,jdbcType=BIGINT},
+      sftp_config_id = #{record.sftpConfigId,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      inner_path = #{record.innerPath,jdbcType=VARCHAR},
+      db_name = #{record.dbName,jdbcType=VARCHAR},
+      db_fields = #{record.dbFields,jdbcType=VARCHAR},
+      route_key = #{record.routeKey,jdbcType=VARCHAR},
+      file_type = #{record.fileType,jdbcType=VARCHAR},
+      del = #{record.del,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.FileDbConfig" >
+    update b_file_db_config
+    <set >
+      <if test="sftpConfigId != null" >
+        sftp_config_id = #{sftpConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="innerPath != null" >
+        inner_path = #{innerPath,jdbcType=VARCHAR},
+      </if>
+      <if test="dbName != null" >
+        db_name = #{dbName,jdbcType=VARCHAR},
+      </if>
+      <if test="dbFields != null" >
+        db_fields = #{dbFields,jdbcType=VARCHAR},
+      </if>
+      <if test="routeKey != null" >
+        route_key = #{routeKey,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        file_type = #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="del != null" >
+        del = #{del,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.FileDbConfig" >
+    update b_file_db_config
+    set sftp_config_id = #{sftpConfigId,jdbcType=BIGINT},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      inner_path = #{innerPath,jdbcType=VARCHAR},
+      db_name = #{dbName,jdbcType=VARCHAR},
+      db_fields = #{dbFields,jdbcType=VARCHAR},
+      route_key = #{routeKey,jdbcType=VARCHAR},
+      file_type = #{fileType,jdbcType=VARCHAR},
+      del = #{del,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

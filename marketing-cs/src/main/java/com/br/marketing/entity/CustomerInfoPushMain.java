@@ -1,10 +1,11 @@
 package com.br.marketing.entity;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class CustomerInfoPushMain {
     /**
-     * 主键，任务流水号
+     * 
      */
     private Long id;
 
@@ -82,6 +83,31 @@ public class CustomerInfoPushMain {
      * 执行结束时间
      */
     private Date finishTime;
+
+    /**
+     * 查询条件
+     */
+    private String mRuleCondition;
+
+    /**
+     * 查询条件前台展示
+     */
+    private String mRuleConditionShow;
+
+    /**
+     * 百分比
+     */
+    private BigDecimal mPercentage;
+
+    /**
+     * 操作人id
+     */
+    private String optUserId;
+
+    /**
+     * 操作人姓名
+     */
+    private String optUserName;
 
     public Long getId() {
         return id;
@@ -209,5 +235,45 @@ public class CustomerInfoPushMain {
 
     public void setFinishTime(Date finishTime) {
         this.finishTime = finishTime;
+    }
+
+    public String getmRuleCondition() {
+        return mRuleCondition;
+    }
+
+    public void setmRuleCondition(String mRuleCondition) {
+        this.mRuleCondition = mRuleCondition == null ? null : mRuleCondition.trim();
+    }
+
+    public String getmRuleConditionShow() {
+        return mRuleConditionShow;
+    }
+
+    public void setmRuleConditionShow(String mRuleConditionShow) {
+        this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
+    }
+
+    public BigDecimal getmPercentage() {
+        return mPercentage;
+    }
+
+    public void setmPercentage(BigDecimal mPercentage) {
+        this.mPercentage = mPercentage;
+    }
+
+    public String getOptUserId() {
+        return optUserId;
+    }
+
+    public void setOptUserId(String optUserId) {
+        this.optUserId = optUserId == null ? null : optUserId.trim();
+    }
+
+    public String getOptUserName() {
+        return optUserName;
+    }
+
+    public void setOptUserName(String optUserName) {
+        this.optUserName = optUserName == null ? null : optUserName.trim();
     }
 }

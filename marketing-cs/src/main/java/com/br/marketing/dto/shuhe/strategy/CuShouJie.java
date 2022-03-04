@@ -25,21 +25,40 @@ public class CuShouJie extends IUserType {
     }
 
     @Override
-    public boolean ifTransfer(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService) {
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean ifTransfer;
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim())) {
             ifTransfer = Boolean.FALSE;
         } else {
-            Date appletTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(caseShuheUser.getApiCode()
-                    , caseShuheUser.getCustNum(), caseShuheUser.getUserType());
-            if (appletTime == null) {
+            if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDateTime frtFqOrdTim = LocalDateTime.parse(caseShuheUser.getClcUsrFrtFqOrdTim(), dateTimeFormatter);
-                LocalDateTime appletDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                LocalDateTime frtFqOrdTim = LocalDateTime.parse(caseShuheUser.getClcUsrFrtFqOrdTim()
+                        , dateTimeFormatter);
+                LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                 ifTransfer = frtFqOrdTim.isAfter(appletDate);
             }
         }
         return ifTransfer;
+    }
+
+    /**
+     * T+30
+     * api接口上传包含上传日当天和结束日当天闭区间30天自然日（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService
+            , Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(caseShuheUser.getApiCode()
+                , caseShuheUser.getCustNum(), caseShuheUser.getUserType(), new Date(), 29, creatTime);
+    }
+
+    /**
+     * T+30
+     * api接口上传包含上传日当天和结束日当天闭区间30天自然日（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
+    public String getBlackExpireDate(Date creatTime) {
+        return this.calculateExpireDate(creatTime, 29);
     }
 }

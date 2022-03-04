@@ -94,7 +94,7 @@ api:
       robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
-        apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true'}"
+        apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true','7410437':'true','7410780':'true','7410797':'true'}"
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

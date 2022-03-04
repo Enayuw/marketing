@@ -1,4 +1,5 @@
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -6,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.*;
 
 import static com.sun.tools.javac.util.Constants.format;
@@ -22,6 +24,28 @@ public class ThreadTest {
     // 通过静态方法创建ScheduledExecutorService的实例
     private ScheduledExecutorService mScheduledExecutorService = Executors.newScheduledThreadPool(4);
 
+    @Test
+    public void testStopThread(){
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+        threadPool.submit(()->{
+            System.out.println("123");
+            try {
+                Thread.sleep(3000L);
+            } catch (InterruptedException e) {
+                System.out.println("手动停止");
+            }
+            System.out.println("456");
+        });
+
+        List<Runnable> runnables = threadPool.shutdownNow();
+        runnables.forEach(t->System.out.println("错误"+t.toString()));
+        Boolean exec = Boolean.TRUE;
+        while (exec){
+            if(threadPool.isTerminated()){
+                exec = Boolean.FALSE;
+            }
+        }
+    }
 
     @Test
     public void test() {

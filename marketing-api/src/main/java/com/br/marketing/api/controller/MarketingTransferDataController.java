@@ -3,6 +3,8 @@ package com.br.marketing.api.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
@@ -53,6 +55,7 @@ public class MarketingTransferDataController {
     @ApiOperation(value = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
     @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult receiveTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
@@ -70,6 +73,7 @@ public class MarketingTransferDataController {
      */
     @ApiOperation(value = "获取转化数据上传详情")
     @PostMapping("/getTransferDataStauts")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getTransferDataStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         try {
             JSONObject jsonObject = JSON.parseObject(jsonData);
@@ -94,6 +98,7 @@ public class MarketingTransferDataController {
     @ApiOperation(value = "接收数禾订制转化数据")
     @PostMapping("receiveShuheTransferDataSync")
     @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ResponseCustomDTO receiveShuheTransferDataSync(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);

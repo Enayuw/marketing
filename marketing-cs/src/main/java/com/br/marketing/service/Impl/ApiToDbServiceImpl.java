@@ -19,7 +19,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -380,7 +379,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(eTimeStr);
-                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()):"");
+                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?JSON.toJSONString(baseHeadConfigVO):null);
                     taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
                     marketingTaskExtendMapper.insertSelective(taskExtend);
                     TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
@@ -945,7 +944,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
                     taskExtend.setCreateTime(new Date());
                     taskExtend.setUploadTime(endTimeJob);
-                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()):"");
+                    taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?JSON.toJSONString(baseHeadConfigVO):null);
                     taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
                     marketingTaskExtendMapper.insertSelective(taskExtend);
                     TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
@@ -1242,7 +1241,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         taskExtend.setGroupType(rule.getRuleNumber());
                         taskExtend.setCreateTime(new Date());
                         taskExtend.setUploadTime(rule.getTaskTime());
-                        taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? Joiner.on(",").join(baseHeadConfigVO.getShowBaseHead()) : "");
+                        taskExtend.setExtendShowTitle(baseHeadConfigVO!=null?JSON.toJSONString(baseHeadConfigVO):null);
                         taskExtend.setStrategyProductJson(rule.getProductField());
                         marketingTaskExtendMapper.insertSelective(taskExtend);
                         TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();

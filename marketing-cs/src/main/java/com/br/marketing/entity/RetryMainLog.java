@@ -63,6 +63,11 @@ public class RetryMainLog {
      */
     private Date updateTime;
 
+    /**
+     * 重试service的实现类型1-aop
+     */
+    private Integer serviceType;
+
     public Long getId() {
         return id;
     }
@@ -157,5 +162,13 @@ public class RetryMainLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(Integer serviceType) {
+        this.serviceType = serviceType;
     }
 }
