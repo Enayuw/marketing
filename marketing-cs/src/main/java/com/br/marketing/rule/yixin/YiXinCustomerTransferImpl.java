@@ -1,18 +1,13 @@
 package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * code is far away from bug with the animal protecting
@@ -57,7 +52,10 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser) {
-        return true;
+        /**
+         * 失效数据需要转化
+         */
+        return "0".equals(transferSyncUser.getCaseEffective());
     }
 
     @Override

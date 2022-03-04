@@ -1,8 +1,6 @@
 package com.br.marketing.rule.yixin;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;

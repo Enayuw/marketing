@@ -2,8 +2,9 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CustomerCallingDataStatus;
 import com.br.marketing.entity.CustomerCallingDataStatusExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface CustomerCallingDataStatusMapper {
     int countByExample(CustomerCallingDataStatusExample example);

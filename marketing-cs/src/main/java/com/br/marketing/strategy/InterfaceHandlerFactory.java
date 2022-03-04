@@ -1,13 +1,12 @@
 package com.br.marketing.strategy;
 
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -46,15 +45,12 @@ import java.util.*;
 @Slf4j
 public class InterfaceHandlerFactory implements ApplicationContextAware {
 
-    /**
-     * 客户标识，用于匹配客户规则
-     */
-    private static String universalCustomer = "marketing:transfer:universal:customer:";
 
     private static ApplicationContext ac;
 
+
     @Resource
-    RedisChgService redisService;
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     /**
@@ -85,8 +81,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
     public Map<Integer, List<InterfaceParams>> assembleData(String apiCode, List<MarketingTransferSyncUser> transferList) {
 
-        String customerLabel = redisService.get(universalCustomer);
         Map<Integer, List<InterfaceParams>> map = new HashMap();
+
+        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
         /**
          * 1、获取 apiCode获取所需的规则匹配方法
          */
@@ -94,7 +91,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         Map<String, AssembleData> assembleDataMap = ac.getBeansOfType(AssembleData.class);
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerLabel)){
+            if (assembleData.label().startsWith(customerRuleMapping.get(apiCode))){
                 assembleDataList.add(assembleData);
             }
         }

@@ -11,7 +11,6 @@ import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.RetryMainLog;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

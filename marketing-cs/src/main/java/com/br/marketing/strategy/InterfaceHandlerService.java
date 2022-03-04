@@ -33,7 +33,6 @@ public class InterfaceHandlerService {
 
     @Resource
     MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-
     /**
      *  处理数据流向
      *  1、根据原始表id，查询该批次中传送数据
@@ -63,7 +62,6 @@ public class InterfaceHandlerService {
                     andRequestIdEqualTo(transferInfo.getRequestId());
             example.settCid(tcId);
             List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-            ;
             Map<Integer, List<InterfaceParams>> map =
                     interfaceHandlerFactory.assembleData(transferInfo.getApiCode(), transferList);
 
