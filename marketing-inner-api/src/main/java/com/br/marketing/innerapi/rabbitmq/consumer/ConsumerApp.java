@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.strategy.InterfaceHandlerService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -31,6 +33,9 @@ public class ConsumerApp {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Resource
+    private InterfaceHandlerService interfaceHandlerService;
 
 
     /**
@@ -79,6 +84,22 @@ public class ConsumerApp {
         }.getType());
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, pushRuleService::consumerHaLuo, o, null);
+    }
+
+    /**
+     * 消费 营销平台数据导入异步处理
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE)}, containerFactory = "primaryContainerFactory")
+    public void consumerUniversalTransfer(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, null);
     }
 
 }

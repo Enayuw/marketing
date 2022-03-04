@@ -2,26 +2,23 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
-import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.service.PushRuleService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -54,30 +51,10 @@ import java.util.stream.Collectors;
 public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<ConversionData> {
 
     @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-
-    @Resource
-    private PushRuleService ruleService;
+    private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @Override
     public JSONObject call(List<ConversionData> transferList, MarketingTransferInfo transferInfo) {
-
-        Set<String> set = transferList.stream().map(ConversionData::getCaseNum).collect(Collectors.toSet());
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(transferInfo.getApiCode(), set);
-        Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(Collectors.toMap(
-                MarketingSyncUser::getCustNum, syncUser -> syncUser
-                , (v1, v2) -> StringUtils.isNotBlank(v2.getCell()) && !ObjectUtils.isEmpty(v2.getCreateTime())
-                        && v2.getCreateTime().after(v1.getCreateTime()) ? v2 : v1));
-        for (ConversionData conversionData : transferList) {
-            if (map.containsKey(conversionData.getCaseNum())) {
-                MarketingSyncUser marketingSyncUser = map.get(conversionData.getCaseNum());
-                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
-                conversionData.setTaskId(marketingSyncUser.getCusBatch());
-            } else {
-                conversionData.setPhone("");
-                conversionData.setTaskId("");
-            }
-        }
 
         /**
          * 客服标准接口 每500条数据一个批次
@@ -96,7 +73,8 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
 
             robotOutboundDTO.setApiCode(transferInfo.getApiCode());
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
-            if(!callCustomerTransfer(robotOutboundDTO,transferInfo)){
+            if("9999".equals(callCustomerTransfer(robotOutboundDTO).getCode())){
+                //调用客户转化接口失败，记录数据入库，定时任务重试
                 RetryMainLog mainLog = new RetryMainLog();
                 mainLog.setRetryType(1);
                 mainLog.setRetryParam(JSON.toJSONString(robotOutboundDTO));
@@ -115,19 +93,24 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         return null;
     }
 
-    boolean callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, MarketingTransferInfo transferInfo){
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = ruleService.pushTransferData(robotOutboundDTO, transferInfo);
-        boolean flag = StringUtils.isNotBlank(transferRobotOutboundVO.getCode());
-        if (flag){
+    /**
+     * 调用客户接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param robotOutboundDTO
+     * @return
+     */
+    private TransferRobotOutboundVO<UnsuccessfulData> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO){
+        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode())){
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",",set),handlerEnum().getCode());
         }
-        return flag;
+        return transferRobotOutboundVO;
     }
 
     @Override
     public InterfaceHandlerEnum handlerEnum () {
             return InterfaceHandlerEnum.CUSTOMER_TRANSFER;
         }
-    }
+}

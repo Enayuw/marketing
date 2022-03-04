@@ -177,4 +177,11 @@
     <update id="updateSyncUserStatus">
         update b_marketing_sync_${apiCode} set is_task = #{isTask} where id = #{id}
     </update>
+
+    <update id="updateSyncUserCaseEffective">
+        update b_marketing_sync_${apiCode} set status = 2 , fail_type = fail_type +' 数据失效剔除' where status = 1 and cust_num  in
+        <foreach collection="uIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

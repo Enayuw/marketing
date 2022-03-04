@@ -6,7 +6,9 @@ public interface AssembleData<T extends InterfaceParams> {
 
     T assemble(MarketingTransferSyncUser transferSyncUser);
 
-    String belongTo();
+    boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser);
+
+    String label();
 
     Integer dataDirection();
 }

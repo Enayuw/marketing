@@ -127,6 +127,26 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(transferPushCustomerQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER);
     }
 
+
+    /**
+     * marketing 转化数据推送客服队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE)
+    public Queue universalTransferQueue() {
+        return new Queue(MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE, true);
+    }
+
+    /**
+     * 绑定——转化数据推送客服队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding universalTransferBinding() {
+        return BindingBuilder.bind(universalTransferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
+    }
     /**
      * 延迟队列-查询推送智能客服状态
      *

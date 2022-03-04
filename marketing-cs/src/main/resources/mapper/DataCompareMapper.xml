@@ -8,7 +8,7 @@
     <result column="remark" property="remark" jdbcType="VARCHAR" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.DataCompare" extends="BaseResultMap" >
-    <result column="arguments" property="arguments" jdbcType="LONGVARCHAR" />
+    <result column="arguments" property="arguments" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -129,7 +129,7 @@
     insert into b_interface_data_compare (external_interface, create_time, 
       remark, arguments)
     values (#{externalInterface,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{remark,jdbcType=VARCHAR}, #{arguments,jdbcType=LONGVARCHAR})
+      #{remark,jdbcType=VARCHAR}, #{arguments,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataCompare" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -161,7 +161,7 @@
         #{remark,jdbcType=VARCHAR},
       </if>
       <if test="arguments != null" >
-        #{arguments,jdbcType=LONGVARCHAR},
+        #{arguments,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -187,7 +187,7 @@
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
       <if test="record.arguments != null" >
-        arguments = #{record.arguments,jdbcType=LONGVARCHAR},
+        arguments = #{record.arguments,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -200,7 +200,7 @@
       external_interface = #{record.externalInterface,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       remark = #{record.remark,jdbcType=VARCHAR},
-      arguments = #{record.arguments,jdbcType=LONGVARCHAR}
+      arguments = #{record.arguments,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -228,7 +228,7 @@
         remark = #{remark,jdbcType=VARCHAR},
       </if>
       <if test="arguments != null" >
-        arguments = #{arguments,jdbcType=LONGVARCHAR},
+        arguments = #{arguments,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -238,7 +238,7 @@
     set external_interface = #{externalInterface,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       remark = #{remark,jdbcType=VARCHAR},
-      arguments = #{arguments,jdbcType=LONGVARCHAR}
+      arguments = #{arguments,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataCompare" >

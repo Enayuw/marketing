@@ -1,6 +1,7 @@
 package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
@@ -33,15 +34,28 @@ import org.springframework.stereotype.Service;
  * @Date : Create in 2022/3/1 15:28
  */
 @Service
-public class YinXinArtificialBlackListImpl implements AssembleData<ConversionData> {
+public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> {
     @Override
-    public ConversionData assemble(MarketingTransferSyncUser transferSyncUser) {
-        return null;
+    public BlackListDTO assemble(MarketingTransferSyncUser transfer) {
+        BlackListDTO blackListDTO = new BlackListDTO();
+        blackListDTO.setDataId(transfer.getId().toString());
+        blackListDTO.setUid(transfer.getCustNum());
+        blackListDTO.setOrgName("yixin");
+        blackListDTO.setApiCode(transfer.getApiCode());
+        return blackListDTO;
     }
 
     @Override
-    public String belongTo() {
-        return "7421067";
+    public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser) {
+        /**
+         * 失效数据需要转化
+         */
+        return "0".equals(transferSyncUser.getCaseEffective());
+    }
+
+    @Override
+    public String label() {
+        return "YiXin_OverdueData_ArtificialBlackList";
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * code is far away from bug with the animal protecting
@@ -39,11 +40,7 @@ import org.springframework.stereotype.Service;
  * @Date : Create in 2022/3/1 15:28
  */
 @Service
-public class YinXinCustomerTransferImpl implements AssembleData<ConversionData> {
-
-    final static String hasTransfer = "1";
-
-    final static String noHasTransfer = "0";
+public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public ConversionData assemble(MarketingTransferSyncUser transfer) {
@@ -51,19 +48,7 @@ public class YinXinCustomerTransferImpl implements AssembleData<ConversionData> 
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setCaseNum(transfer.getCustNum());
-        conversionData.setGroupType(transfer.getUserType());
-        conversionData.setInversionStatus(hasTransfer.equals(transfer.getIfTransform())
-                ? "0"
-                : (noHasTransfer.equals(transfer.getIfTransform()) ? "1" : transfer.getIfTransform()));
-        conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        /*if (map.containsKey(transfer.getCustNum())) {
-            MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
-            conversionData.setTaskId(marketingSyncUser.getCusBatch());
-        } else {
-            conversionData.setPhone("");
-            conversionData.setTaskId("");
-        }*/
+        conversionData.setInversionStatus("2");
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
@@ -71,8 +56,13 @@ public class YinXinCustomerTransferImpl implements AssembleData<ConversionData> 
     }
 
     @Override
-    public String belongTo() {
-        return "5000126";
+    public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser) {
+        return true;
+    }
+
+    @Override
+    public String label() {
+        return "YiXin_OverdueData_CustomerTransfer";
     }
 
     @Override
