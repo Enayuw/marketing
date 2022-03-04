@@ -2,6 +2,7 @@ package com.br.marketing.client.robotaiapi;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
@@ -73,10 +74,11 @@ public class RobotaiApiServiceClient {
         }
     }
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotaiNew(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
-            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
+                    .setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){

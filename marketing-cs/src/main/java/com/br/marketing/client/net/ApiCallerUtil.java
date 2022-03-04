@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
@@ -54,6 +55,13 @@ public class ApiCallerUtil {
 
     private ThreadPoolExecutor logDbPool;
 
+    private String desc;
+
+    public ApiCallerUtil setDesc(String desc) {
+        this.desc = desc;
+        return this;
+    }
+
     public String getUrl() {
         return url;
     }
@@ -93,11 +101,11 @@ public class ApiCallerUtil {
     public ThirdApiResultTransfer postTransferStr() {
         HttpEntity postHttpEntity = createPostHttpEntity();
         InterfaceLog interfaceLog = new InterfaceLog();
-        interfaceLog.setRequestId("");
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setRequestParam(postHttpEntity.getBody().toString());
         interfaceLog.setUrl(url);
         interfaceLog.setHeader(postHttpEntity.getHeaders().toString());
-        interfaceLog.setExtendInfo("");
+        interfaceLog.setExtendInfo(desc);
         interfaceLog.setCreateTime(new Date());
         long start = System.currentTimeMillis();
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
