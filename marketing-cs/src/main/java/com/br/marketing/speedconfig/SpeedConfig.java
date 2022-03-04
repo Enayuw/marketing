@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -95,7 +96,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         if(field.getType().equals(String.class)){
             field.set(config,fieldValue);
         }else if(field.getType().equals(Integer.class)){
-            field.setInt(config,Integer.valueOf(fieldValue));
+            field.set(config,Integer.valueOf(fieldValue));
         }else if(field.getType().equals(Long.class)){
             field.setLong(config,Long.valueOf(fieldValue));
         }else if(field.getType().equals(Double.class)){
