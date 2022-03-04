@@ -64,10 +64,10 @@ public class CustomerInfoPushLogExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -362,6 +362,66 @@ public class CustomerInfoPushLogExample {
 
         public Criteria andParamNotBetween(String value1, String value2) {
             addCriterion("param not between", value1, value2, "param");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumIsNull() {
+            addCriterion("push_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumIsNotNull() {
+            addCriterion("push_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumEqualTo(Integer value) {
+            addCriterion("push_num =", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotEqualTo(Integer value) {
+            addCriterion("push_num <>", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumGreaterThan(Integer value) {
+            addCriterion("push_num >", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_num >=", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumLessThan(Integer value) {
+            addCriterion("push_num <", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumLessThanOrEqualTo(Integer value) {
+            addCriterion("push_num <=", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumIn(List<Integer> values) {
+            addCriterion("push_num in", values, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotIn(List<Integer> values) {
+            addCriterion("push_num not in", values, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumBetween(Integer value1, Integer value2) {
+            addCriterion("push_num between", value1, value2, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_num not between", value1, value2, "pushNum");
             return (Criteria) this;
         }
 
@@ -774,9 +834,69 @@ public class CustomerInfoPushLogExample {
             addCriterion("real_stauts not between", value1, value2, "realStauts");
             return (Criteria) this;
         }
+
+        public Criteria andFailNumIsNull() {
+            addCriterion("fail_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumIsNotNull() {
+            addCriterion("fail_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumEqualTo(Integer value) {
+            addCriterion("fail_num =", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumNotEqualTo(Integer value) {
+            addCriterion("fail_num <>", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumGreaterThan(Integer value) {
+            addCriterion("fail_num >", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("fail_num >=", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumLessThan(Integer value) {
+            addCriterion("fail_num <", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumLessThanOrEqualTo(Integer value) {
+            addCriterion("fail_num <=", value, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumIn(List<Integer> values) {
+            addCriterion("fail_num in", values, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumNotIn(List<Integer> values) {
+            addCriterion("fail_num not in", values, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumBetween(Integer value1, Integer value2) {
+            addCriterion("fail_num between", value1, value2, "failNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFailNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("fail_num not between", value1, value2, "failNum");
+            return (Criteria) this;
+        }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

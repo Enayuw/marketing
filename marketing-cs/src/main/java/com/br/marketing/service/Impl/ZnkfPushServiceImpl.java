@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dos.PeriodOfValidityDO;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.entity.*;
@@ -87,7 +85,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }catch (Exception ex){
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId(),ex);
-            return "客服拨打记录落库失败!";
+            return "客服拨打记录落库失败(insert b_call_record fail)!";
         }
 
         //判断是否符合情况b：userType=促申完&intentionGrade=A&cusNun&有效期内
@@ -105,15 +103,26 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      */
     private Boolean isSatisfyPushDX(CallRecordDTO dto) {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
-        String groupType = map.get("groupType").toString();
-        boolean intentionGrade = dto.getDetail().getIntentionGrade().equals("A类");
-        if(!"促申完".equals(groupType) || !intentionGrade){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A类！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
+            log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
             return false;
         }
-        PeriodOfValidityDO periodOfValidityDO = PeriodOfValidityDO.closInterval15Day();
-        Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), periodOfValidityDO);
-        if(!isPeriod) {
+        if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
+            log.warn("caseNum={}的数据intentionGrade缺失！",dto.getCaseNum());
+            return false;
+        }
+        String groupType = map.get("groupType").toString();
+        boolean intentionGrade = false;
+        if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
+            intentionGrade = true;
+        }
+        if(!"促申完".equals(groupType) || !intentionGrade){
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            return false;
+        }
+        Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
+                dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
+        if (!isPeriod) {
             //不在有效期内
             log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
@@ -185,31 +194,22 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     private String paramOfValidity(CallRecordDTO dto) {
-        //cid,apicode,caseNum,groupType,intentionGrade
+        //taskid、caseNum、CID、apicode，sessionId；
+        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
+            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            return "no param sessionId!";
+        }
         if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
             log.warn("taskId={},caseNum={},sessionId={}的数据apicode或者cid缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数apicode或者cid缺失！";
+            return "no param apicode or cid！";
         }
         if(StringUtils.isEmpty(dto.getCaseNum())){
             log.warn("taskId={},caseNum={},sessionId={}的数据caseNum缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数caseNum缺失!";
-        }
-        Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
-        if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
-            log.warn("taskId={},caseNum={},sessionId={}的数据groupType缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数groupType缺失！";
-        }
-        if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据intentionGrade缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数intentionGrade缺失！";
+            return "no param caseNum!";
         }
         if(StringUtils.isEmpty(dto.getTaskId())){
             log.warn("taskId={},caseNum={},sessionId={}的数据taskId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数taskId缺失!";
-        }
-        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return "参数sessionId缺失!";
+            return "no param taskId!";
         }
         return "true";
     }

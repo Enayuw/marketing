@@ -26,4 +26,9 @@ mybatis:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
-
+#exporter监控
+endpoints:
+  prometheus:
+    enabled: true
+    path: /prometheus
+    sensitive: false

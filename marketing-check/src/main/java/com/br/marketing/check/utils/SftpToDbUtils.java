@@ -366,7 +366,7 @@ public class SftpToDbUtils {
                 address.put(i,"extend");
                 extra.put(i,s);
             }else{
-                address.put(i,s);
+                address.put(i, s);
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());

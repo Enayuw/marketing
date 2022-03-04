@@ -41,7 +41,7 @@ otherConfig:
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: D:/test
+        path: /Users/chao.z/Desktop/
         ftpHost: 10.100.123.65
         ftpPort: 21
         ftpUsername: dev-controller

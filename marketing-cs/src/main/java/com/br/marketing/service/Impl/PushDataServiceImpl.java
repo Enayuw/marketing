@@ -1,9 +1,4 @@
 package com.br.marketing.service.Impl;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -23,6 +18,10 @@ import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.RandomUtils;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.PushShDXDTO;
@@ -32,16 +31,26 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushDataService;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -69,11 +78,28 @@ public class PushDataServiceImpl implements PushDataService{
     LocalFileMapper localFileMapper;
 
     @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
+
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
     private String secretKey;
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
+
+    @Value("${otherConfig.alarm.secretKey:00}")
+    private String secret2Key;
+    @Value("${otherConfig.alarm.appName:00}")
+    private String app2Name;
 
     @Autowired
     TwoSevenService twoSevenService;
@@ -87,6 +113,7 @@ public class PushDataServiceImpl implements PushDataService{
     @Autowired
     RabbitMqProducter producter;
 
+    final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
     @Override
     public Result pushDassData(Long id) {
 

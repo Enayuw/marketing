@@ -83,6 +83,15 @@ api:
     baseUrl: http://8.129.19.178:8888
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku
     isProxy: 1
+  haier:
+    apiCode: "2a43ad9e9b6a247ef9613761dcb191d7"
+    apiKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCTMUmWLeOWOvpr7FzXNOXFShZfh5MM8tz7K57bWFzj4vNRwenafTgX+nOacO2QDH4yvNFS1bwzw0sc0BvWscrbCFf80g81lmBBnxVZJkHID/RKj35gw/SjPg2hSReQwTGL3m7lYhYruMFZDIEZ0O2xKNroiPIj+f/FbJAkJ6ezaQIDAQAB"
+    baseUlr: http://${api.haier.host:60.209.94.196:8088}/
+    custData:
+      receive:
+        url: ${api.haier.baseUlr}app/marketControl/custData/receive
+        info:
+          url: ${api.haier.custData.receive.url}/info
   marketing:
     transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
 spring:

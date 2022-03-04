@@ -155,7 +155,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
      */
     private String createNo() {
         String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String key = "marketing:inner:".concat(yyyyMMdd6);
+        String key = "marketing:inner:fasttaskrule:".concat(yyyyMMdd6);
         Long index = redisChgService.incr(key);
         if (index > 999) {
             throw new BusinessException("很遗憾小主，今天的规则编号(".concat(yyyyMMdd6) + "999)已经用尽");

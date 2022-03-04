@@ -1,4 +1,7 @@
 package com.br.marketing.check.job;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.*;
@@ -25,8 +28,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -182,7 +184,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
             String s = redisChgService.get(RedisKeyConstant.fileToDbByXw);
-            if (StringUtils.isNotBlank(s)) {
+            if(StringUtils.isNotBlank(s)){
                 List xws = Splitter.on(",").splitToList(s);
                 xwList.addAll(xws);
             }

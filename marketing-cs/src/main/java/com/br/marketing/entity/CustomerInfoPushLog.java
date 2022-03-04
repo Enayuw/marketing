@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class CustomerInfoPushLog {
     /**
-     * 主键id
+     * 
      */
     private Long id;
 
@@ -22,6 +22,11 @@ public class CustomerInfoPushLog {
      * 请求参数
      */
     private String param;
+
+    /**
+     * 推送条数
+     */
+    private Integer pushNum;
 
     /**
      * 结果值
@@ -53,6 +58,11 @@ public class CustomerInfoPushLog {
      */
     private String realStauts;
 
+    /**
+     * 失败条数
+     */
+    private Integer failNum;
+
     public Long getId() {
         return id;
     }
@@ -83,6 +93,14 @@ public class CustomerInfoPushLog {
 
     public void setParam(String param) {
         this.param = param == null ? null : param.trim();
+    }
+
+    public Integer getPushNum() {
+        return pushNum;
+    }
+
+    public void setPushNum(Integer pushNum) {
+        this.pushNum = pushNum;
     }
 
     public String getResultContent() {
@@ -131,5 +149,13 @@ public class CustomerInfoPushLog {
 
     public void setRealStauts(String realStauts) {
         this.realStauts = realStauts == null ? null : realStauts.trim();
+    }
+
+    public Integer getFailNum() {
+        return failNum;
+    }
+
+    public void setFailNum(Integer failNum) {
+        this.failNum = failNum;
     }
 }

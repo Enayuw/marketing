@@ -42,16 +42,16 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "获取批次列表")
-    @PostMapping("/getBatchInfos")
-    public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
-        try {
-            return pushRuleService.getBatchInfos(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
-    }
+    //@ApiOperation(value = "获取批次列表")
+    //@PostMapping("/getBatchInfos")
+    //public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
+    //    try {
+    //        return pushRuleService.getBatchInfos(dto);
+    //    } catch (ParamValidErrorException ex) {
+    //        log.error(ex.getMessage());
+    //        return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+    //    }
+    //}
 
     /**
      * 获取推送列表
