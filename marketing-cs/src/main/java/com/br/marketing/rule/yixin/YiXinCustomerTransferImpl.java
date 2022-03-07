@@ -1,6 +1,7 @@
 package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
@@ -8,6 +9,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * code is far away from bug with the animal protecting
@@ -44,6 +46,9 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
         conversionData.setCid(transfer.getCid());
         conversionData.setCaseNum(transfer.getCustNum());
         conversionData.setInversionStatus("2");
+        if (!StringUtils.isEmpty(transfer.getCreateTime())){
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));

@@ -152,7 +152,7 @@ public class DassServiceClient {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setRequestParam(jsonData);
-        interfaceLog.setUrl(postHermesUserDataUrl);
+        interfaceLog.setUrl(postBlackList);
         interfaceLog.setCreateTime(new Date());
         long start = System.currentTimeMillis();
         try {
