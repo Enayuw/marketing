@@ -1,9 +1,11 @@
 package com.br.marketing.innerapi.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,5 +45,17 @@ public class RedisController {
             ProductResultByConfigSimpleServiceImpl.flagScoreByinnerList.clear();
         }
         return "success";
+    }
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    /**
+     * 获取speed的配置信息 方便验证speed是否推送成功
+     * @return
+     */
+    @GetMapping("/getSpeedInfo")
+    public String getSpeedInfo(){
+        return JSON.toJSONString(marketingCommonConfig);
     }
 }
