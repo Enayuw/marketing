@@ -1,5 +1,6 @@
 package com.br.marketing.check.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.haier.HaierServiceClient;
@@ -7,7 +8,9 @@ import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -77,5 +80,17 @@ public class RedisController {
             log.error(e.getMessage(), e);
             return new Result<>().setMessage(e.getMessage());
         }
+    }
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    /**
+     * 获取speed的配置信息 方便验证speed是否推送成功
+     * @return
+     */
+    @GetMapping("/getSpeedInfo")
+    public String getSpeedInfo(){
+        return JSON.toJSONString(marketingCommonConfig);
     }
 }
