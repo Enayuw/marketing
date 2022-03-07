@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.PhoneSaleExtendHaluoMapper" >
+<mapper namespace="com.br.marketing.mapper.PhoneSaleExtendHaluoMapper">
+
+
+    <select id="selectHaluoPhoneSaleExtend" resultType="com.br.marketing.entity.PhoneSaleExtendHaluo">
+        select * from
+        b_phone_sale_extend_haluo
+        <where>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
+            order by id asc limit 5000;
+        </where>
+    </select>
+
+
 </mapper>
