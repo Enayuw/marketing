@@ -57,6 +57,12 @@
                 <!--                 date_format(src.update_time,'%Y-%m-%d %H:%i:%s') &lt;= str_to_date(#{ute},'%Y-%m-%d %H:%i:%s') -->
                 date_format(src.update_time,'%Y-%m-%d') &lt;= str_to_date(#{ute},'%Y-%m-%d')
             </if>
+            <if test="apiCodeList != null and apiCodeList.size()>0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
         </where>
         order by src.update_time desc, src.create_time desc
     </select>

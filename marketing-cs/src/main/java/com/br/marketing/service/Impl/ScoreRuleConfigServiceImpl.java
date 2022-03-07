@@ -30,10 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,10 +59,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     private RedisChgService redisChgService;
 
     @Override
-    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
+    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute,String apiCodes) {
+        List<String> apiCodeList = new ArrayList<>();
+        if(apiCodes != null && !"".equals(apiCodes)){
+            String[] split = apiCodes.split(",");
+            for(String item : split){
+                apiCodeList.add(item);
+            }
+        }
         PageHelper.startPage(page, pageSize);
         try {
-            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute);
+            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute,apiCodeList);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

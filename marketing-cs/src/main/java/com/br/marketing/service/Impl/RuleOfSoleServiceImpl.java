@@ -51,7 +51,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     RuleRedisServiceImpl ruleRedisService;
 
     @Override
-    public PageResultReturn list(int page, int pageSize, String soleName, Integer status,
+    public PageResultReturn list(int page, int pageSize, String soleName, Integer status,String apiCodes,
                                  String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd) {
 
         if (StringUtils.isNotEmpty(createTimeEnd)){
@@ -64,7 +64,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleName = soleName.replace("_", "\\_");
         }
 
-        PageHelper.startPage(page, pageSize);
+        if(apiCodes == null || "".equals(apiCodes)){
+            PageHelper.startPage(page, pageSize);
+        }
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
         soleRuleConfigs.stream().map(soleRuleConfig -> {
@@ -76,9 +78,72 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                     .andIsDelEqualTo(1);
             int count = customerSoleMapper.countByExample(customerSoleExample);
             soleRuleConfig.setCusNum(count);
+            //apicode
+            List<String> apicodeList = new ArrayList<>();
+            Set<String> apicodeSet = new HashSet<>();
+            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
+            for(CustomerSole s:customerSoles){
+                MarketingCustomerExample customerExample = new MarketingCustomerExample();
+                customerExample.createCriteria().andCidEqualTo(s.getCustomerId().toString());
+                List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample);
+                for(MarketingCustomer c:customers){
+                    apicodeSet.add(c.getApiCode());
+                }
+            }
+            apicodeList.addAll(apicodeSet);
+            soleRuleConfig.setApicodes(apicodeList);
+
             return soleRuleConfig;
             }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(soleRuleConfigs, page,pageSize);
+
+        if(apiCodes == null || "".equals(apiCodes)){
+            return PageResultReturn.setPageResult(soleRuleConfigs,page, pageSize);
+        }
+
+        if(apiCodes != null && !"".equals(apiCodes)){
+            String[] split = apiCodes.split(",");
+            soleRuleConfigs = soleRuleConfigs.stream().filter(s -> {
+                for (String item : split) {
+                    if (s.getApicodes().contains(item)) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+        //对结果进行分页并分装
+        PageResultReturn result = new PageResultReturn();
+        result.setCurrent(page);
+        result.setSize(pageSize);
+        if (soleRuleConfigs == null || soleRuleConfigs.size() == 0) {
+            result.setRecords(soleRuleConfigs);
+            result.setTotal(0);
+            return result;
+        }
+
+        Integer count = soleRuleConfigs.size(); // 记录总数
+        Integer pageCount = 0; // 页数
+        if (count % pageSize == 0) {
+            pageCount = count / pageSize;
+        } else {
+            pageCount = count / pageSize + 1;
+        }
+
+        int fromIndex = 0; // 开始索引
+        int toIndex = 0; // 结束索引
+
+        if (page != pageCount) {
+            fromIndex = (page - 1) * pageSize;
+            toIndex = fromIndex + pageSize;
+        } else {
+            fromIndex = (page - 1) * pageSize;
+            toIndex = count;
+        }
+
+        List pageList = soleRuleConfigs.subList(fromIndex, toIndex);
+        result.setRecords(pageList);
+        result.setTotal(count);
+        return result;
     }
 
     private Date addDay(String date, Integer addDays, String format) {

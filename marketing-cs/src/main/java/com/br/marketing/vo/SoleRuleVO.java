@@ -3,7 +3,7 @@ package com.br.marketing.vo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
+import java.util.List;
 
 @Data
 public class SoleRuleVO {
@@ -25,6 +25,9 @@ public class SoleRuleVO {
 
     @ApiModelProperty(value = "使用商户统计")
     private Integer cusNum;
+
+    @ApiModelProperty(value = "apicodes")
+    private List<String> apicodes;
 
     @ApiModelProperty(value = "开启状态")
     private Integer status;
