@@ -217,9 +217,9 @@ public class FtpUtil {
             }
 
             FTPFile fileInfo = fileInfoArray[0];
-            if (fileInfo.getSize() > Integer.MAX_VALUE) {
+            /*if (fileInfo.getSize() > Integer.MAX_VALUE) {
                 throw new IOException("File '" + ftpFileName + "' is too large.");
-            }
+            }*/
 
             if (!ftpClient.retrieveFile(ftpFileName, out)) {
                 throw new IOException("Error loading file '" + ftpFileName + "' from FTP server. Check FTP permissions and path.");
@@ -352,10 +352,10 @@ public class FtpUtil {
             }
 
             FTPFile fileInfo = fileInfoArray[0];
-            if (fileInfo.getSize() > Integer.MAX_VALUE) {
+            /*if (fileInfo.getSize() > Integer.MAX_VALUE) {
                 log.error("File {}} is too large.", ftpFileName);
                 return false;
-            }
+            }*/
 
             if (!ftpClient.retrieveFile(ftpFileName, out)) {
                 log.error("Error loading file {} from FTP server. Check FTP permissions and path.", ftpFileName);

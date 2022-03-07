@@ -18,6 +18,11 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="finish_time" property="finishTime" jdbcType="TIMESTAMP" />
+    <result column="m_rule_condition" property="mRuleCondition" jdbcType="VARCHAR" />
+    <result column="m_rule_condition_show" property="mRuleConditionShow" jdbcType="VARCHAR" />
+    <result column="m_percentage" property="mPercentage" jdbcType="DECIMAL" />
+    <result column="opt_user_id" property="optUserId" jdbcType="VARCHAR" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -80,7 +85,8 @@
   <sql id="Base_Column_List" >
     id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
     m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
-    update_time, finish_time
+    update_time, finish_time, m_rule_condition, m_rule_condition_show, m_percentage, 
+    opt_user_id, opt_user_name
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     select
@@ -120,14 +126,16 @@
       m_num_min, m_num_max, m_score_min, 
       m_score_max, m_plan_num, m_realy_num, 
       m_cus_batch_number_list, m_status, is_del, 
-      create_time, update_time, finish_time
-      )
+      create_time, update_time, finish_time, 
+      m_rule_condition, m_rule_condition_show, m_percentage, 
+      opt_user_id, opt_user_name)
     values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
       #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
       #{mCusBatchNumberList,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}
-      )
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}, 
+      #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mPercentage,jdbcType=DECIMAL}, 
+      #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -180,6 +188,21 @@
       <if test="finishTime != null" >
         finish_time,
       </if>
+      <if test="mRuleCondition != null" >
+        m_rule_condition,
+      </if>
+      <if test="mRuleConditionShow != null" >
+        m_rule_condition_show,
+      </if>
+      <if test="mPercentage != null" >
+        m_percentage,
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id,
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="mApiCode != null" >
@@ -226,6 +249,21 @@
       </if>
       <if test="finishTime != null" >
         #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mRuleCondition != null" >
+        #{mRuleCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="mRuleConditionShow != null" >
+        #{mRuleConditionShow,jdbcType=VARCHAR},
+      </if>
+      <if test="mPercentage != null" >
+        #{mPercentage,jdbcType=DECIMAL},
+      </if>
+      <if test="optUserId != null" >
+        #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        #{optUserName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -286,6 +324,21 @@
       <if test="record.finishTime != null" >
         finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.mRuleCondition != null" >
+        m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mRuleConditionShow != null" >
+        m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mPercentage != null" >
+        m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
+      </if>
+      <if test="record.optUserId != null" >
+        opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optUserName != null" >
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -308,7 +361,12 @@
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      finish_time = #{record.finishTime,jdbcType=TIMESTAMP}
+      finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
+      m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
+      m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
+      m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
+      opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -361,6 +419,21 @@
       <if test="finishTime != null" >
         finish_time = #{finishTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="mRuleCondition != null" >
+        m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="mRuleConditionShow != null" >
+        m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
+      </if>
+      <if test="mPercentage != null" >
+        m_percentage = #{mPercentage,jdbcType=DECIMAL},
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -380,7 +453,12 @@
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      finish_time = #{finishTime,jdbcType=TIMESTAMP}
+      finish_time = #{finishTime,jdbcType=TIMESTAMP},
+      m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
+      m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
+      m_percentage = #{mPercentage,jdbcType=DECIMAL},
+      opt_user_id = #{optUserId,jdbcType=VARCHAR},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

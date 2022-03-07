@@ -3,7 +3,9 @@ package com.br.marketing.service;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
 import com.br.marketing.dto.PushCustomerDTO;
@@ -18,8 +20,13 @@ import com.br.marketing.vo.ScoreDetailVo;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 public interface PushRuleService {
+
+
+
+    Result<Map<String,Object>> getCompanyAndModule(String apiCode);
 
     /**
      * 获取批次信息
@@ -27,7 +34,14 @@ public interface PushRuleService {
      * @param dto
      * @return
      */
-    Result<List<ScoreDetailVo>> getBatchInfos(@Valid CustomerBatchNumDTO dto);
+    PageResultReturn getBatchInfos(@Valid CustomerBatchNumDTO dto);
+
+    /**
+     * 获取批次列表跑分总数
+     * @param dto
+     * @return
+     */
+    Integer getBatchInfosCounts(@Valid CustomerBatchNumDTO dto);
 
     /**
      * 获取任务推送记录
@@ -41,6 +55,8 @@ public interface PushRuleService {
      * @return
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
+
+    Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
 
     Result<Boolean> consumerPushCustomer(Long id);
 
@@ -141,4 +157,10 @@ public interface PushRuleService {
      * @dateTime 2021/11/4 10:53
      */
     TransferRobotOutboundDTO getTransferRobotOutbound(MarketingTransferInfo transferInfo, List<MarketingTransferSyncUser> transferList);
+
+    Result<Boolean> consumerCommonBlack(Long id);
+
+    Result<Boolean> consumerBlack(Long id);
+
+    Result<Boolean> consumerHaLuo(Long id);
 }

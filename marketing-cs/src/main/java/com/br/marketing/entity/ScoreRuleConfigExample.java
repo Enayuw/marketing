@@ -585,6 +585,76 @@ public class ScoreRuleConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andProductInfoIsNull() {
+            addCriterion("product_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoIsNotNull() {
+            addCriterion("product_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoEqualTo(String value) {
+            addCriterion("product_info =", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoNotEqualTo(String value) {
+            addCriterion("product_info <>", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoGreaterThan(String value) {
+            addCriterion("product_info >", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("product_info >=", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoLessThan(String value) {
+            addCriterion("product_info <", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoLessThanOrEqualTo(String value) {
+            addCriterion("product_info <=", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoLike(String value) {
+            addCriterion("product_info like", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoNotLike(String value) {
+            addCriterion("product_info not like", value, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoIn(List<String> values) {
+            addCriterion("product_info in", values, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoNotIn(List<String> values) {
+            addCriterion("product_info not in", values, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoBetween(String value1, String value2) {
+            addCriterion("product_info between", value1, value2, "productInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductInfoNotBetween(String value1, String value2) {
+            addCriterion("product_info not between", value1, value2, "productInfo");
+            return (Criteria) this;
+        }
+
         public Criteria andBaseInfoIsNull() {
             addCriterion("base_info is null");
             return (Criteria) this;
@@ -652,6 +722,66 @@ public class ScoreRuleConfigExample {
 
         public Criteria andBaseInfoNotBetween(String value1, String value2) {
             addCriterion("base_info not between", value1, value2, "baseInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeIsNull() {
+            addCriterion("rule_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeIsNotNull() {
+            addCriterion("rule_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeEqualTo(Integer value) {
+            addCriterion("rule_type =", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotEqualTo(Integer value) {
+            addCriterion("rule_type <>", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeGreaterThan(Integer value) {
+            addCriterion("rule_type >", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("rule_type >=", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeLessThan(Integer value) {
+            addCriterion("rule_type <", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("rule_type <=", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeIn(List<Integer> values) {
+            addCriterion("rule_type in", values, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotIn(List<Integer> values) {
+            addCriterion("rule_type not in", values, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeBetween(Integer value1, Integer value2) {
+            addCriterion("rule_type between", value1, value2, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("rule_type not between", value1, value2, "ruleType");
             return (Criteria) this;
         }
 
@@ -1022,6 +1152,66 @@ public class ScoreRuleConfigExample {
 
         public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("push_type not between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIsNull() {
+            addCriterion("task_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIsNotNull() {
+            addCriterion("task_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeEqualTo(Integer value) {
+            addCriterion("task_type =", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotEqualTo(Integer value) {
+            addCriterion("task_type <>", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeGreaterThan(Integer value) {
+            addCriterion("task_type >", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("task_type >=", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeLessThan(Integer value) {
+            addCriterion("task_type <", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("task_type <=", value, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeIn(List<Integer> values) {
+            addCriterion("task_type in", values, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotIn(List<Integer> values) {
+            addCriterion("task_type not in", values, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeBetween(Integer value1, Integer value2) {
+            addCriterion("task_type between", value1, value2, "taskType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("task_type not between", value1, value2, "taskType");
             return (Criteria) this;
         }
 

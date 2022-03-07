@@ -28,3 +28,9 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#exporter监控
+endpoints:
+  prometheus:
+    enabled: true
+    path: /prometheus
+    sensitive: false

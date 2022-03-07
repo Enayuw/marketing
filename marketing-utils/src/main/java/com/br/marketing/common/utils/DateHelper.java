@@ -108,7 +108,7 @@ public class DateHelper {
 
         return Integer.parseInt(String.valueOf(betweenDays));
     }
-
+    
     /**
      * 时间戳转换成日期格式字符串
      *
@@ -274,5 +274,36 @@ public class DateHelper {
         c.setTime(date);
         c.add(Calendar.DAY_OF_MONTH, days);
         return c.getTime();
+    }
+
+    /**
+     * 时间日期转换
+     * @param strDate 字符串
+     * @return 字符串yyyy-MM-dd HH:mm:ss
+     */
+    public static String strToDateLong(String strDate) {
+        Date date = new Date();
+        try {
+            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String str = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+        return str;
+    }
+
+    /**
+     * 时间日期定制
+     * @param date+hhmmss（Date+时分秒）
+     * @return Date
+     */
+    public static Date getDatePlusHourMinuteSecond(Date date,String hhmmss){
+        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(date).concat(hhmmss);
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
+        } catch (ParseException e) {
+            log.error(e.getMessage(),e);
+            return null;
+        }
     }
 }

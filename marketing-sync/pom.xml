@@ -66,6 +66,12 @@
             <groupId>com.dangdang</groupId>
             <artifactId>br-elastic-job-core</artifactId>
             <version>1.1.7-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -78,6 +84,13 @@
                     <groupId>org.springframework</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
+        <dependency>
+            <groupId>com.br.cloud</groupId>
+            <artifactId>spring_boot_exporter</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

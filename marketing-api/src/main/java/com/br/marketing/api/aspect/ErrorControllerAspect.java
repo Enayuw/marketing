@@ -232,16 +232,19 @@ public class ErrorControllerAspect {
                 .append(String.format("环境：%s", env)).append(rn)
                 .append(String.format("logId：%s", uuid)).append(rn)
                 .append(String.format("方法：%s.%s", typeName, methodName)).append(rn)
-                .append(String.format("参数：%s", params.toString())).append(rn)
                 .append(String.format("Exception：%s", e.toString())).append(rn)
+                .append(String.format("参数：%s", params.toString())).append(rn)
                 .append(" StackTrace：");
         for (int i = 0; i < e.getStackTrace().length; i++) {
             stringBuilder.append(e.getStackTrace()[i]).append(rn);
         }
+        stringBuilder.append(String.format("参数：%s", params.toString())).append(rn);
+
         StringBuilder stringBuilderMail = new StringBuilder()
                 .append(String.format("环境：%s", env)).append(rn)
                 .append(String.format("logId：%s", uuid)).append(rn)
                 .append(String.format("方法：%s.%s", typeName, methodName)).append(rn)
+                .append(String.format("Exception：%s", e.toString())).append(rn)
                 .append(String.format("参数：%s", params.toString()));
         if (log.isErrorEnabled()) {
             log.error(stringBuilder.toString());

@@ -17,4 +17,16 @@ public class ScoreDetailVo {
 
     @ApiModelProperty(value = "统计下载路径")
     private String statisticFilePath;
+
+    @ApiModelProperty(value = "跑分时间")
+    private String scoreBeginTime;
+
+    @ApiModelProperty(value = "apiCode")
+    private String apiCode;
+
+    @ApiModelProperty(value = "跑分数量")
+    private Integer actualNum;
+
+    @ApiModelProperty(value = "模型名称")
+    private String productName;
 }

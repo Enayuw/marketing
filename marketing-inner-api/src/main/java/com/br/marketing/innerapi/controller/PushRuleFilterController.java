@@ -1,11 +1,17 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -18,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -36,6 +43,23 @@ public class PushRuleFilterController {
     @Autowired
     PushRuleService pushRuleService;
 
+
+    /**
+     * 根据apiCode 查询信息
+     *
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "根据apiCode 查询信息")
+    @GetMapping("/getCompanyAndModule")
+    @LogAnnotation
+    public ApiResult getCompanyAndModule(String apiCode) {
+        Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule(apiCode);
+
+        return new ApiResult().fromResult(companyAndModule,000000);
+    }
+
+
     /**
      * 获取批次列表
      *
@@ -44,15 +68,32 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
-    public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
+    public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
         try {
-            return pushRuleService.getBatchInfos(dto);
+            PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
+            return new ApiResult<PageResultReturn>().success(listPage);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
         }
     }
-
+    /**
+     * 获取列表跑分总数
+     *
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "获取列表跑分总数")
+    @PostMapping("/getBatchInfosCounts")
+    public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
+        try {
+            Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
+            return new ApiResult<Integer>().success(totalNum);
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage());
+            return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
+        }
+    }
     /**
      * 获取推送列表
      *
@@ -61,13 +102,8 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
-    public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
-        try {
-            return pushRuleService.getPushInfos(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
+    public ApiResult<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
+        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto),1);
     }
 
     /**
@@ -78,13 +114,15 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "推送客服")
     @PostMapping("/pushCustomer")
-    public Result pushCustomer(@RequestBody PushCustomerDTO dto) {
-        try {
-            return pushRuleService.pushCustomer(dto);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
-        }
+    public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
+        dto.setUserDetail(ThreadContextInfo.getUser());
+        return new ApiResult().fromResult(pushRuleService.pushCustomer(dto),1);
+    }
+
+    @ApiOperation(value = "推送预览")
+    @PostMapping("/pushPreview")
+    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto){
+        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto),1);
     }
 
     @ApiOperation(value = "测试消费")

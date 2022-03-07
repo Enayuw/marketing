@@ -9,6 +9,8 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Detainted;
 import javax.annotation.Resource;
 import java.util.List;
 
@@ -38,6 +40,7 @@ import java.util.List;
  * @Date 2021/5/7 13:05
  * @Description:
  **/
+@Deprecated
 @Component
 @Slf4j
 public class TaskJob extends AbstractSimpleElasticJob {

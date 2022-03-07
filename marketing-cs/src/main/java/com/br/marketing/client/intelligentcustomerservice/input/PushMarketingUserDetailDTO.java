@@ -1,5 +1,6 @@
 package com.br.marketing.client.intelligentcustomerservice.input;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -22,7 +23,7 @@ public class PushMarketingUserDetailDTO implements Serializable {
     /**
      *变量JSON
      */
-    private PushMarketingUserDetailVariablesDTO variables;
+    private JSONObject variables;
 
 
 

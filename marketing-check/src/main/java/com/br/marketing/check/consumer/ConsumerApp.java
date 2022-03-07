@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,9 @@ public class ConsumerApp {
     @Autowired
     PushDataService pushDataService;
 
+    @Autowired
+    PushRuleService pushRuleService;
+
     /**
      * 延迟消费 获取推送客服中心数据状态
      *
@@ -43,6 +47,22 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushDassData, o,"");
+    }
+
+    /**
+     * 消费 黑名单
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_BLACK, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK)}, containerFactory = "containerFactory")
+    public void consumerCommonBlack(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushRuleService::consumerCommonBlack, o, null);
     }
 
     /**
@@ -58,18 +78,18 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushDataService::pushSevenTransferData, o, "");
     }
 
-    /**
-     * 消费海尔消转化数据
-     *
-     * @param channel 通道
-     * @param message 消息
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)}, containerFactory = "containerFactory")
-    public void consumerPushTransferHaier(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
-    }
+//    /**
+//     * 消费海尔消转化数据
+//     *
+//     * @param channel 通道
+//     * @param message 消息
+//     */
+//    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, durable = "true")
+//            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+//            , key = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)}, containerFactory = "containerFactory")
+//    public void consumerPushTransferHaier(Channel channel, Message message) {
+//        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+//        }.getType());
+//        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
+//    }
 }
