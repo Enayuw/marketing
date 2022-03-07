@@ -11,6 +11,5 @@ public interface PushDataService {
 
     Result queryHaierData();
 
-
     Result<Boolean> pushHaierTransferData(Long id);
 }
