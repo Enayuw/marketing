@@ -15,6 +15,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -102,12 +103,13 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
-        final LocalTime startTime = LocalTime.parse(marketingCommonConfig.getShuHeTransferJobStartTime());
+        String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
+        final LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
+                ? "06:00:00" : shuHeTransferJobStartTime);
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
         if (LocalTime.now().isAfter(startTime)) {
-            String dateYyyyMmDdStr = LocalDateTime.now().atZone(
-                    ZoneId.systemDefault()).format(DateTimeFormatter.BASIC_ISO_DATE);
+            String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
             Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
             // 将配置中的有效期处理成天
@@ -122,6 +124,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 transferFileTask.setStartDate(dateYyyyMmDdStr);
                 transferFileTask.setContextId(contextId);
                 transferFileTask.setTaskNumber(0);
+                transferFileTask.setStatus(1);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
                 transferFileTaskList.add(transferFileTask);
@@ -240,12 +243,14 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             if (transferFileTask.getTaskNumber() > 0) {
                 transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
                         .concat("_") + System.currentTimeMillis());
+                transferFileTask.setStatus(2);
                 transferFileTaskMapper.insertSelective(transferFileTask);
             }
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setDate(e.getMessage());
+            transferFileTaskMapper.insertSelective(transferFileTask);
             return result;
         }
         result.setCode(ResultCode.SUCCESS.getValue());
@@ -282,18 +287,24 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         reserveField1Json.getOrDefault("cell", "") + separator +
                         reserveField1Json.getOrDefault("is_turn", "") + separator +
                         reserveField1Json.getOrDefault("is_black", "") + separator +
-                        transferSyncUser.getLoginTime() + separator +
+                        (StringUtils.isEmpty(transferSyncUser.getLoginTime()) ? ""
+                                : transferSyncUser.getLoginTime()) + separator +
                         reserveField1Json.getOrDefault("clc_usr_fst_log_tim_all", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_pho_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_idt_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_crd_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_inf_tim", "") + separator +
-                        transferSyncUser.getApplyTime() + separator +
-                        transferSyncUser.getAuditTime() + separator +
-                        transferSyncUser.getAuditAmount() + separator +
+                        (StringUtils.isEmpty(transferSyncUser.getApplyTime()) ? ""
+                                : transferSyncUser.getApplyTime()) + separator +
+                        (StringUtils.isEmpty(transferSyncUser.getAuditTime()) ? ""
+                                : transferSyncUser.getAuditTime()) + separator +
+                        (StringUtils.isEmpty(transferSyncUser.getAuditAmount()) ? ""
+                                : transferSyncUser.getAuditAmount()) + separator +
                         reserveField1Json.getOrDefault("applyLoanTime", "") + separator +
-                        transferSyncUser.getLentTime() + separator +
-                        transferSyncUser.getInsertTime() + "\r\n";
+                        (StringUtils.isEmpty(transferSyncUser.getLentTime()) ? ""
+                                : transferSyncUser.getLentTime()) + separator +
+                        (ObjectUtils.isEmpty(transferSyncUser.getInsertTime()) ? ""
+                                : transferSyncUser.getInsertTime()) + "\r\n";
                 writer.write(sb);
                 writer.flush();
             }
