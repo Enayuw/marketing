@@ -15,7 +15,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -79,7 +78,7 @@ public class CallingDataThread implements Callable<String> {
         return "success";
     }
 
-    private void sendPostRequest(String requestId) throws IOException {
+    private void sendPostRequest(String requestId) {
         JSONObject param = new JSONObject();
         JSONArray dataItems = new JSONArray();
         param.put("openSerialNo", requestId);
@@ -98,7 +97,7 @@ public class CallingDataThread implements Callable<String> {
             if (!"0".equals(subCode)) {
                 String errorDescription = resultJson.getString("subMsg");
                 CustomerCallingDataStatus customerCallingDataStatus = new CustomerCallingDataStatus();
-                customerCallingDataStatus.setRequestId(requestId.toString());
+                customerCallingDataStatus.setRequestId(requestId);
                 customerCallingDataStatus.setSendStatus(2);
                 customerCallingDataStatus.setDescription(errorDescription);
                 customerCallingDataStatus.setCreateTime(new Date());
@@ -107,7 +106,7 @@ public class CallingDataThread implements Callable<String> {
         }
     }
 
-    private String sendRequest(JSONObject param) throws IOException {
+    private String sendRequest(JSONObject param) {
         HaloApiParam haloApiParam = new HaloApiParam();
         haloApiParam.httpProxyClient(httpProxyClient);
         haloApiParam.openUrl(haloOpenUrl);

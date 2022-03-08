@@ -35,19 +35,19 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class CallingToSendJob extends AbstractSimpleElasticJob {
-    @Value("${api.intelligentCustomerService.halo.openUrl}")
+    @Value("${api.halo.openUrl}")
     private String haloOpenUrl;
 
-    @Value("${api.intelligentCustomerService.halo.appKey}")
+    @Value("${api.halo.appKey}")
     private String haloAppKey;
 
-    @Value("${api.intelligentCustomerService.halo.secret}")
+    @Value("${api.halo.secret}")
     private String haloSecret;
 
-    @Value("${api.intelligentCustomerService.halo.method}")
+    @Value("${api.halo.method}")
     private String method;
 
-    @Value("${api.intelligentCustomerService.halo.isProxy}")
+    @Value("${api.halo.isProxy}")
     private boolean isProxy;
 
     @Resource
@@ -97,12 +97,12 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         int pageNo = 0;
         while (index) {
             cusMap.put("pageNo", pageNo * 2000);
-            cusMap.put("pageSize", 15000);
+            cusMap.put("pageSize", 2000);
             List<HaloCallingDataVo> haloCallingDataVoList = customerCallingDialogMapper.getInfoByColumns(cusMap);
-            updateSendStatus(haloCallingDataVoList);
             index = haloCallingDataVoList.size() != 0;
             if (index) {
-                List<List<HaloCallingDataVo>> partitions = Lists.partition(haloCallingDataVoList, 1500);
+                updateSendStatus(haloCallingDataVoList);
+                List<List<HaloCallingDataVo>> partitions = Lists.partition(haloCallingDataVoList, 20);
                 partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(
                         new CallingDataThread(
                                 customerCallingDialogLists,
