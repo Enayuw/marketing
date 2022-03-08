@@ -167,14 +167,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         return dataExtractMap;
     }
 
-    /**
-     * 根据场景分组
-     */
-    private Map<String, List<MarketingTransferSyncUser>> userTypeTransferSyncUserMap(
-            List<MarketingTransferSyncUser> list) {
-        return list.parallelStream()
-                .collect(Collectors.groupingByConcurrent(MarketingTransferSyncUser::getUserType));
-    }
 
     /**
      * 获取上传表中案件编号最新的创建时间
