@@ -72,11 +72,8 @@ public class CallingBackInfoJob extends AbstractSimpleElasticJob {
                     if("failure".equals(status)){
                         String errorDescription = dataItem.getString("errorDescription");
                         CustomerCallingDataStatus customerCallingDataStatus = new CustomerCallingDataStatus();
-                        customerCallingDataStatus.setDialogId(id);
                         customerCallingDataStatus.setRequestId(requestId.toString());
                         customerCallingDataStatus.setSendStatus(2);
-                        customerCallingDataStatus.setCaseNum(caseNum);
-                        customerCallingDataStatus.setTaskId(taskId);
                         customerCallingDataStatus.setDescription(errorDescription);
                         customerCallingDataStatus.setCreateTime(new Date());
                         customerCallingDataStatusMapper.insertSelective(customerCallingDataStatus);

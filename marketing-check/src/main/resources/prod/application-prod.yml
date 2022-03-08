@@ -100,6 +100,12 @@ api:
           url: ${api.haier.custData.receive.url}/info
   marketing:
     transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+  halo:
+    openUrl: https://open.hellobike.com/openapi
+    appKey: brgroup-pnPnzgxf
+    appSecret: 9c07d3b9923d4269bb8da6a6963fcd27
+    method: hello.finance.loan.marketing.callback
+    isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

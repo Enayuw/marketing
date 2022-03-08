@@ -19,9 +19,13 @@ public class CustomerCalling {
     private String message;
 
     /**
-     * 客户析出字段
+     * sftp文件析出字段
      */
     private String columnsDetail;
+    /**
+     * 客户析出字段
+     */
+    private String apiColumnsDetail;
 
     /**
      * sftp密码
@@ -73,9 +77,19 @@ public class CustomerCalling {
      */
     private Date updateTime;
 
+    public String getApiColumnsDetail() {
+        return apiColumnsDetail;
+    }
+
+    public void setApiColumnsDetail(String apiColumnsDetail) {
+        this.apiColumnsDetail = apiColumnsDetail;
+    }
+
     /**
      * 创建时间
      */
+
+
     private Date createTime;
 
     public Long getId() {
