@@ -1107,10 +1107,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
             }
         }
-        if(pushHaier.contains(transferInfo.getApiCode())&&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
-                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))){
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER,id.toString());
-        }
+//        if(pushHaier.contains(transferInfo.getApiCode())&&(updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
+//                || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))){
+//            producter.send(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER,id.toString());
+//        }
         if(haluoApiCodes.contains(transferInfo.getApiCode())){
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
         }

@@ -12,6 +12,12 @@ public interface PushDataService {
 
     Result queryHaierData();
 
+    /**
+     * 目前该方法不适用当前需求
+     * @param id
+     * @return
+     */
+    @Deprecated
     Result<Boolean> pushHaierTransferData(Long id);
     /**
      * 数禾推送电销

@@ -40,8 +40,10 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -126,6 +128,8 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Autowired
     RabbitMqProducter producter;
+
+    MarketingSyncUserMapper marketingSyncUserMapper;
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -362,33 +366,42 @@ public class PushDataServiceImpl implements PushDataService {
                 mark = Boolean.FALSE;
                 continue;
             }
+            String apiCode = haierData.get(0).getApiCode();
             minId = haierData.get(haierData.size() - 1).getId() + 1;
-            HashMap<String, List<HaierData>> types = new HashMap<>();
-            for (HaierData haierDatum : haierData) {
-                String key = haierDatum.getType();
-                if (types.get(key) == null) {
-                    ArrayList<HaierData> haierData1 = new ArrayList<>();
-                    haierData1.add(haierDatum);
-                    types.put(key, haierData1);
-                } else {
-                    types.get(key)
-                            .add(haierDatum);
-                }
-            }
+            Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
             for (String s : types.keySet()) {
                 String type = s;
                 List<HaierData> haierList = types.get(s);
                 List<List<HaierData>> partition = Lists.partition(haierList, 500);
                 for (List<HaierData> items : partition) {
                     Set<PushDTO.DataItems> datas = new HashSet<>();
-                    ArrayList<HaierData> nolist = new ArrayList<>();
-                    ArrayList<HaierData> yeslist = new ArrayList<>();
-                    getDistinctData(items, yeslist, nolist, type, day.toString());
-                    updateHaierFalse(nolist);
+                    //没有去重逻辑了 v2.0->3.0不需要去重了
+//                    ArrayList<HaierData> nolist = new ArrayList<>();
+//                    ArrayList<HaierData> yeslist = new ArrayList<>();
+//                    getDistinctData(items, yeslist, nolist, type, day.toString());
+//                    updateHaierFalse(nolist);
                     List<Long> ids = new ArrayList<>();
-                    for (HaierData item : yeslist) {
-                        datas.add(new PushDTO.DataItems(item.getTaskId(), item.getCustNum()));
-                        ids.add(item.getId());
+                    Set<String> custNumsByNeed = new HashSet<>();
+                    List<HaierData> haierByNeed = new ArrayList<>();
+                    for (HaierData item : items) {
+                        if(StringUtils.isNotBlank(item.getTaskId())) {
+                            datas.add(new PushDTO.DataItems(item.getTaskId(), item.getCustNum()));
+                            ids.add(item.getId());
+                        }else{
+                            custNumsByNeed.add(item.getCustNum());
+                            haierByNeed.add(item);
+                        }
+                    }
+                    List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, custNumsByNeed);
+                    Map<String, MarketingSyncUser> custMaps = preUserByTask.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum
+                            , Collectors.collectingAndThen(
+                                    Collectors.reducing((v1, v2) -> v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                    , Optional::get)));
+                    for (HaierData data : haierByNeed) {
+                        if(custMaps.containsKey(data.getCustNum())){
+                            datas.add(new PushDTO.DataItems(custMaps.get(data.getCustNum()).getCusBatch(), data.getCustNum()));
+                            ids.add(data.getId());
+                        }
                     }
                     PushDTO.FormData formData = new PushDTO.FormData();
                     formData.setDataItems(datas);
