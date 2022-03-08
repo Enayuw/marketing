@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -52,4 +53,20 @@ public class MarketingCommonConfig {
      * 萨摩耶场景
      */
     private HashSet<String> groupTypeSaMoye;
+
+    /**
+     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天； T+0 代表当天
+     */
+    private Map<String, String> shuHeTransferDataExtractMap;
+
+    /**
+     * 数禾转化客户名称简称集合
+     */
+    private String shuHeTransferShortName;
+
+    /**
+     * 数禾转化数据提取任务开始时间
+     */
+    private String shuHeTransferJobStartTime;
+
 }
