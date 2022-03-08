@@ -199,4 +199,14 @@
         order by create_time desc limit 0,1
     </select>
 
+    <select id="getCreatTimeByCustNumAndUserTypeList" resultType="java.util.List">
+        select cust_num as custNum, create_time as createTime, cus_batch as taskId
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and user_type = #{userType}
+    </select>
+
 </mapper>
