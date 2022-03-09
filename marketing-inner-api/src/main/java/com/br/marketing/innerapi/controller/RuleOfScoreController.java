@@ -52,7 +52,6 @@ public class RuleOfScoreController {
             , @ApiImplicitParam(name = "cte", value = "创建时间结束", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "uts", value = "更新时间开始", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCodes", value = "apiCodes,多个用英文逗号分隔", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
     public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
@@ -63,9 +62,8 @@ public class RuleOfScoreController {
             , @RequestParam(required = false) String cte
             , @RequestParam(required = false) String uts
             , @RequestParam(required = false) String ute
-            , @RequestParam(required = false) String apiCodes
     ) {
-        PageResultReturn listPage = scoreRuleConfigService.findListPage(page, pageSize, search, status, cts, cte, uts, ute,apiCodes);
+        PageResultReturn listPage = scoreRuleConfigService.findListPage(page, pageSize, search, status, cts, cte, uts, ute);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

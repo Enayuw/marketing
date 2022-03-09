@@ -25,8 +25,7 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
             , @Param("cts") String cts
             , @Param("cte") String cte
             , @Param("uts") String uts
-            , @Param("ute") String ute
-            , @Param("apiCodeList") List<String> apiCodeList);
+            , @Param("ute") String ute);
 
     /**
      * 跑分规则下拉列表

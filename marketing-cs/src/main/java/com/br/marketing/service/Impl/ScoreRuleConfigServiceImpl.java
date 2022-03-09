@@ -59,17 +59,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     private RedisChgService redisChgService;
 
     @Override
-    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute,String apiCodes) {
-        List<String> apiCodeList = new ArrayList<>();
-        if(apiCodes != null && !"".equals(apiCodes)){
-            String[] split = apiCodes.split(",");
-            for(String item : split){
-                apiCodeList.add(item);
-            }
-        }
+    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute,apiCodeList);
+            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
