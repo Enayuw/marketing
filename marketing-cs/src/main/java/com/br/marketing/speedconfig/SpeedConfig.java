@@ -57,7 +57,8 @@ public class SpeedConfig implements ISpeedAppendPipeline {
             BufferedReader br = new BufferedReader(read);){
             String row;
 
-            while ((row = br.readLine().trim()) != null){
+            while ((row = br.readLine()) != null){
+                row = row.trim();
                 if(StringUtils.isEmpty(row)){
                     continue;
                 }

@@ -9,6 +9,9 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,8 +40,23 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = "Marketing_PreUser_Receive", containerFactory = "fiveDataContainerFactory")
+    @RabbitListener(queues = MQConstants.MARKETING_PRE_USER_RECEIVE, containerFactory = "fiveDataContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
+    }
+
+    /**
+     * 消费 数禾数据导入异步处理
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener( bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PRE_USER_SHUHERECEIVE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE)}, containerFactory = "fiveDataContainerFactory")
+    public void consumerShuHePreUser(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);

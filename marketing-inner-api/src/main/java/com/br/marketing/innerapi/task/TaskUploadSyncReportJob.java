@@ -115,8 +115,8 @@ public class TaskUploadSyncReportJob extends AbstractSimpleElasticJob {
             //获取前置一小时日期
             String dateByHour = DateHelper.getDateByHour(-1);
             if (!dateByHour.equals(currentDate)) {
-                log.warn("【上传数据统计报表任务】调度更新前置一天统计：{}", currentDate);
-                indexList.add(currentDate);
+                log.warn("【上传数据统计报表任务】调度更新前置一天统计：{}", dateByHour);
+                indexList.add(dateByHour);
             }
         }
         return indexList;

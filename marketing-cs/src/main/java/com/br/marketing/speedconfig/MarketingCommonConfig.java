@@ -54,6 +54,11 @@ public class MarketingCommonConfig {
     private HashSet<String> groupTypeSaMoye;
 
     /**
+     * 数禾apicode
+     */
+    private List<String> shuheApiCode;
+
+    /**
      * 客户使用规则映射
      */
     private HashMap<String,String> customerRuleMapping;
