@@ -6,6 +6,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -128,5 +129,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/3/7 10:52
      */
+    @MapKey("custNum,creatTime,taskId")
     List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums, @Param("userType") String userType);
 }
