@@ -256,7 +256,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 writerFile(apiCode, userType, list, transferFileTask, separator, writer);
             }
             transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
-                    .concat("_") + System.currentTimeMillis());
+                    .concat("_") + transferFileTask.getContextId());
             transferFileTask.setStatus(2);
             transferFileTaskMapper.insertSelective(transferFileTask);
         } catch (IOException e) {
