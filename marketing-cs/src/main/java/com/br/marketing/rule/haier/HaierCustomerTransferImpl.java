@@ -10,6 +10,7 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.AssembleDataWithSyncUser;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -23,16 +24,17 @@ import java.util.Date;
 
 
 @Service
+@Slf4j
 public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<ConversionData> {
 
     final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
+        try {
         if ("4".equals(transferSyncUser.getUserType())) {
             return true;
         }
-        try {
             Date applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
             Date appletTime = syncUser.getAppletTime();
             if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
@@ -40,44 +42,51 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
             }
         } catch (ParseException e) {
             e.printStackTrace();
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
         }
         return false;
     }
 
     @Override
     public ConversionData assemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
-        String status = "";
-        if ("4".equals(transferSyncUser.getUserType())) {
-            status = "0";
-        } else {
-            Date applydt = null;
-            try {
-                applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
-                Date appletTime = syncUser.getAppletTime();
-                if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
-                    status = "2";
+        try {
+            String status = "";
+            if ("4".equals(transferSyncUser.getUserType())) {
+                status = "0";
+            } else {
+                Date applydt = null;
+                try {
+                    applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
+                    Date appletTime = syncUser.getAppletTime();
+                    if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
+                        status = "2";
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
+            if (StringUtils.isEmpty(status)) {
+                return null;
+            }
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(transferSyncUser.getId().toString());
+            conversionData.setCid(transferSyncUser.getCid());
+            conversionData.setCaseNum(transferSyncUser.getCustNum());
+            conversionData.setGroupType(transferSyncUser.getUserType());
+            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+            conversionData.setInversionStatus(status);
+            if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
+                conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            }
+            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+            BeanUtils.copyProperties(transferSyncUser, vo);
+            conversionData.setInversionInfo(JSON.toJSONString(vo));
+            return conversionData;
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
         }
-        if (StringUtils.isEmpty(status)) {
-            return null;
-        }
-        ConversionData conversionData = new ConversionData();
-        conversionData.setDataId(transferSyncUser.getId().toString());
-        conversionData.setCid(transferSyncUser.getCid());
-        conversionData.setCaseNum(transferSyncUser.getCustNum());
-        conversionData.setGroupType(transferSyncUser.getUserType());
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
-        conversionData.setInversionStatus(status);
-        if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
-            conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        }
-        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-        BeanUtils.copyProperties(transferSyncUser, vo);
-        conversionData.setInversionInfo(JSON.toJSONString(vo));
-        return conversionData;
+        return null;
     }
 
     @Override
