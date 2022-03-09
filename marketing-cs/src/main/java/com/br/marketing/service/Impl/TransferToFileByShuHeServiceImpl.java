@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -113,11 +112,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
-        long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
-        if (until < 0 || until > 1) {
-            log.warn("未到数禾转化数据提取任务执行阈值（阈值为0或1时任务执行）当前值为:{}", until);
-            return result;
-        }
+//        long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
+//        if (until < 0 || until > 1) {
+//            log.warn("未到数禾转化数据提取任务执行阈值（阈值为0或1时任务执行）当前值为:{}", until);
+//            return result;
+//        }
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
         Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
