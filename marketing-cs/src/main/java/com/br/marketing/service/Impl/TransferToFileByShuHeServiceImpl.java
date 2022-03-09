@@ -93,9 +93,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     private String path;
 
     private final static String EXTENSION = ".txt";
-    private final static String HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
+    private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
             ",loginTime,clc_usr_fst_log_tim_all,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
-            ",clc_usr_iso_inf_tim,applyTime,auditTime,lentTime,insertime";
+            ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,insertime";
 
     static {
         FILE_NAME_PART = new HashMap<>(4);
@@ -244,7 +244,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String separator = ",";
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filePtah, false), StandardCharsets.UTF_8))) {
-            writer.write(HEADER.concat("\r\n"));
+            writer.write(TABLE_HEADER.concat("\r\n"));
             writer.flush();
             while (list == null || list.size() == pageSize) {
                 example.setOrderByClause(String.format("id ASC LIMIT %s,%s", (page * pageSize), pageSize));
