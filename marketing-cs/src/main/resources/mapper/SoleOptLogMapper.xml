@@ -13,7 +13,7 @@
         opt_user_name as optUserName
         from b_sole_opt_log
         where is_del=1 and sole_id= #{id}
-        order by update_time desc
+        order by update_time,id desc
     </select>
 
 </mapper>
