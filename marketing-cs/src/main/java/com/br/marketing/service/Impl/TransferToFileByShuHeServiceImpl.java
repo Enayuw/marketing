@@ -29,6 +29,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     @Resource
     private RedisChgService redisChgService;
 
-    private final static Pattern PATTERN = Pattern.compile("([-+])?\\d+(\\.\\d+)?");
+    private final static Pattern PATTERN = Pattern.compile("[-+]?\\d+(\\.\\d+)?");
 
     private final static Map<String, String> FILE_NAME_PART;
 
@@ -120,9 +121,10 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         Result<List<TransferFileTask>> result = new Result<>();
         log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
         if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
-            log.warn("数禾[{}]转化数据提取分#", apiCode, shuHeTransferDataExtractMap);
+            log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
+            log.warn("数禾[{}]转化数据提取分2#{}", apiCode, dataExtractMap);
             userTypes.forEach(userType -> {
                 TransferFileTask transferFileTask = new TransferFileTask();
                 long contextId = System.currentTimeMillis();
@@ -169,9 +171,12 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         Map<String, Integer> dataExtractMap = new ConcurrentHashMap<>(
                 (int) (shuHeTransferDataExtractMap.size() / 0.75 + 1));
         userTypes.forEach(userType -> {
-            String day = PATTERN.matcher(shuHeTransferDataExtractMap.get(userType)).group();
-            dataExtractMap.put(userType, StringUtils.isEmpty(day) ? 0
-                    : new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue());
+            Matcher matcher = PATTERN.matcher(shuHeTransferDataExtractMap.get(userType));
+            String day = "0";
+            if (matcher.find()) {
+                day = matcher.group();
+            }
+            dataExtractMap.put(userType, new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue());
         });
         return dataExtractMap;
     }
