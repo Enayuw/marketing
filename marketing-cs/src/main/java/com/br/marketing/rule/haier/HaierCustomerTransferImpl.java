@@ -1,6 +1,7 @@
 package com.br.marketing.rule.haier;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -67,6 +68,7 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
         conversionData.setDataId(transferSyncUser.getId().toString());
         conversionData.setCid(transferSyncUser.getCid());
         conversionData.setCaseNum(transferSyncUser.getCustNum());
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         conversionData.setInversionStatus(status);
         if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
             conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
