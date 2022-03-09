@@ -134,7 +134,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("案件编号,手机号,场景类型,业务标识,转人工时间,类型,上传时间");
+            fw.append("cus_num,cell,groupType,taskId,createtime,status,insertime");
             fw.append("\r\n");
             writeHaluoDx(fw, apiCode, startDate, endDate, transferFileTask);
         } catch (Exception ex) {
