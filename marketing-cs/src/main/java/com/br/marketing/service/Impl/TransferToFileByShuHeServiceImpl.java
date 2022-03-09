@@ -107,14 +107,16 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
+        Result<List<TransferFileTask>> result = new Result<>();
+        result.setDate(transferFileTaskList);
+        result.setCode(ResultCode.SUCCESS.getValue());
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
         long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
-        if (until == 0 || until == 1) {
-            log.warn("xxxxxxxxxxxxxxxxxxxxxxxx:" + until);
-        } else {
-            log.warn("################:" + until);
+        if (until < 0 || until > 1) {
+            log.warn("未到数禾转化数据提取任务执行阈值（阈值为0或1时任务执行）当前值为:{}", until);
+            return result;
         }
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
@@ -125,7 +127,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
                 .andFileNameIn(stringList);
         List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-        Result<List<TransferFileTask>> result = new Result<>();
         log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
         if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
@@ -148,8 +149,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 transferFileTaskList.add(transferFileTask);
             });
         }
-        result.setDate(transferFileTaskList);
-        result.setCode(ResultCode.SUCCESS.getValue());
         return result;
     }
 
