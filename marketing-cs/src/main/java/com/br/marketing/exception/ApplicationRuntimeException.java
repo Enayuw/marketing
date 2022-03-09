@@ -1,7 +1,5 @@
 package com.br.marketing.exception;
 
-import lombok.Data;
-
 /**
  * //				    _ooOoo_
  * //				   o8888888o

@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.StrategyOfGroupDTO;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTask;

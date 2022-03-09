@@ -2,10 +2,8 @@ package com.br.marketing.dto;
 
 import com.br.marketing.dto.userinfo.UserDetail;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;

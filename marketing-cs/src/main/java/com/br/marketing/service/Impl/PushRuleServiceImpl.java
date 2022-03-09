@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.*;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -9,13 +8,14 @@ import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
-import com.br.marketing.client.intelligentcustomerservice.input.*;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -51,7 +51,6 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -271,7 +270,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
 
-    final String redisKeyPushHaier = "marketing:transfer:pushHaier:apicode";
+    final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
+
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
@@ -981,13 +981,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result consumerTransferData(Long id) {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
-        List<String> pushHaier = new ArrayList<>();
-        String haierCode = redisChgService.get(redisKeyPushHaier);
-        if (StringUtils.isNotBlank(haierCode)) {
-            pushHaier = Splitter.on(",").splitToList(haierCode);
-        } else {
-            pushHaier.add("3710018");
-        }
+        List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -1113,6 +1107,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 //        }
         if(haluoApiCodes.contains(transferInfo.getApiCode())){
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
+        }
+        if(universalProcessApiCode.contains(transferInfo.getApiCode())){
+            producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }

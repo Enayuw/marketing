@@ -1,6 +1,5 @@
 package com.br.marketing.client.twosevenservice;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.HttpProxyClient;

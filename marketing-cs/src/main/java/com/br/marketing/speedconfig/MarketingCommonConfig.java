@@ -52,4 +52,14 @@ public class MarketingCommonConfig {
      * 萨摩耶场景
      */
     private HashSet<String> groupTypeSaMoye;
+
+    /**
+     * 客户使用规则映射
+     */
+    private HashMap<String,String> customerRuleMapping;
+
+    /**
+     * 配置走通用流程apiCode
+     */
+    private List<String> universalProcessApiCode;
 }
