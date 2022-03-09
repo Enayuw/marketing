@@ -111,8 +111,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
         long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
-        if (0 > until && until < 2) {
-            log.warn("xxxxxxxxxxxxxxxxxxxxxxxx");
+        if (until == 0 || until == 1) {
+            log.warn("xxxxxxxxxxxxxxxxxxxxxxxx:" + until);
         } else {
             log.warn("################:" + until);
         }
@@ -201,8 +201,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         return creatTimeList.parallelStream().collect(
                 Collectors.toMap(m -> (String) m.get("custNum")
                         , m -> m, (v1, v2) -> {
-                            Object v11 = v1.get("creatTime");
-                            Object v22 = v2.get("creatTime");
+                            Object v11 = v1.get("createTime");
+                            Object v22 = v2.get("createTime");
                             return StringUtils.isEmpty(v11)
                                     ? v2 : StringUtils.isEmpty(v22)
                                     ? v1 : ((Date) v11).before((Date) v22) ? v2 : v1;
@@ -229,7 +229,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String fileNameDefault = FILE_NAME_PART.getOrDefault(userType
                 , "%s_".concat(userType).concat("_%s%s"));
         String fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
-        String fileDirectory = path.concat(File.separator).concat(apiCode).concat(File.separator)
+        String fileDirectory = path.concat(apiCode).concat(File.separator)
                 .concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
         if (!filePath.exists()) {
@@ -256,12 +256,10 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 }
                 writerFile(apiCode, userType, list, transferFileTask, separator, writer);
             }
-//            if (transferFileTask.getTaskNumber() > 0) {
             transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
                     .concat("_") + System.currentTimeMillis());
             transferFileTask.setStatus(2);
             transferFileTaskMapper.insertSelective(transferFileTask);
-//            }
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
@@ -286,11 +284,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             if (creatTimeMap == null) {
                 continue;
             }
-            Object creatTime = creatTimeMap.getOrDefault("creatTime", null);
+            Object creatTime = creatTimeMap.getOrDefault("createTime", null);
             if (creatTime == null) {
                 continue;
             }
-            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(null
+            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(transferSyncUser.getCreateTime()
                     , transferFileTask.getFileType(), (Date) creatTime);
             if (periodOfValidity) {
                 transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
