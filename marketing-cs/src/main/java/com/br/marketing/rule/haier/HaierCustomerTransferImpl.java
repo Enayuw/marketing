@@ -68,6 +68,7 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
         conversionData.setDataId(transferSyncUser.getId().toString());
         conversionData.setCid(transferSyncUser.getCid());
         conversionData.setCaseNum(transferSyncUser.getCustNum());
+        conversionData.setGroupType(transferSyncUser.getUserType());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         conversionData.setInversionStatus(status);
         if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
