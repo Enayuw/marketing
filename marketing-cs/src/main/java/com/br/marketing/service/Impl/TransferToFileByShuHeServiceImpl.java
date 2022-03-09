@@ -230,7 +230,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         int pageSize = 2000;
         String separator = ",";
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(filePtah, true), StandardCharsets.UTF_8))) {
+                new FileOutputStream(filePtah, false), StandardCharsets.UTF_8))) {
             writer.write(HEADER.concat("\r\n"));
             writer.flush();
             while (list == null || list.size() == pageSize) {
@@ -239,12 +239,12 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 list = marketingTransferSyncUserMapper.selectByExample(example);
                 writerFile(apiCode, userType, list, transferFileTask, separator, writer);
             }
-            if (transferFileTask.getTaskNumber() > 0) {
-                transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
-                        .concat("_") + System.currentTimeMillis());
-                transferFileTask.setStatus(2);
-                transferFileTaskMapper.insertSelective(transferFileTask);
-            }
+//            if (transferFileTask.getTaskNumber() > 0) {
+            transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
+                    .concat("_") + System.currentTimeMillis());
+            transferFileTask.setStatus(2);
+            transferFileTaskMapper.insertSelective(transferFileTask);
+//            }
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
