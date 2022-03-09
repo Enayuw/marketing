@@ -79,12 +79,12 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, EXECUTE_TIME);
         //每天01:00:00之后执行
         if (now.after(executeTime)) {
-            log.warn("哈罗转人工数据提取-开始执行,apiCode ={}",apiCode);
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
+                log.warn("哈罗转人工数据提取-开始执行,apiCode ={}",apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
