@@ -202,11 +202,19 @@
     <select id="getCreatTimeByCustNumAndUserTypeList" resultType="java.util.Map">
         select cust_num as custNum, create_time as createTime, cus_batch as taskId
         from b_marketing_sync_${apiCode}
-        where cust_num in
-        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-            #{custNum}
-        </foreach>
-        and user_type = #{userType}
+        where
+        <choose>
+            <when test="custNums!=null and custNums.size()>0">
+                cust_num in
+                <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                    #{custNum}
+                </foreach>
+                and user_type = #{userType}
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

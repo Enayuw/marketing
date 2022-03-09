@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -105,10 +106,17 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
-        String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
+        long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
+        if (until < 2) {
+            log.warn("xxxxxxxxxxxxxxxxxxxxxxxx");
+        } else {
+            log.warn("################:" + until);
+        }
+        String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
         Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
         List<String> stringList = userTypes.parallelStream().map(s -> String.format(FILE_NAME_PART.getOrDefault(s
@@ -117,7 +125,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
                 .andFileNameIn(stringList);
         List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-        List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
         log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
         if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
@@ -244,6 +251,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 example.setOrderByClause(String.format("id ASC LIMIT %s,%s", (page * pageSize), pageSize));
                 page++;
                 list = marketingTransferSyncUserMapper.selectByExample(example);
+                if (list.size() < 1) {
+                    break;
+                }
                 writerFile(apiCode, userType, list, transferFileTask, separator, writer);
             }
 //            if (transferFileTask.getTaskNumber() > 0) {
