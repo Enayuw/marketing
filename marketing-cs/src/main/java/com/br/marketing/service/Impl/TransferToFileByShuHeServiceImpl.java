@@ -7,6 +7,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -103,15 +104,21 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+        String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
-        final LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
+        LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
+        Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
+        Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
+        List<String> stringList = userTypes.parallelStream().map(s -> String.format(FILE_NAME_PART.getOrDefault(s
+                , "%s_".concat(s).concat("_%s%s")), apiCode, dateYyyyMmDdStr, EXTENSION)).collect(Collectors.toList());
+        TransferFileTaskExample taskExample = new TransferFileTaskExample();
+        taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
+                .andFileNameIn(stringList);
+        List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
-        if (LocalTime.now().isAfter(startTime)) {
-            String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-            Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
-            Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
+        if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
             userTypes.forEach(userType -> {
