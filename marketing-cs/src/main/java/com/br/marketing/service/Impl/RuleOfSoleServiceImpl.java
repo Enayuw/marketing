@@ -84,7 +84,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
             for(CustomerSole s:customerSoles){
                 MarketingCustomerExample customerExample = new MarketingCustomerExample();
-                customerExample.createCriteria().andCidEqualTo(s.getCustomerId().toString());
+                customerExample.createCriteria().andIdEqualTo(s.getCustomerId());
                 List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample);
                 for(MarketingCustomer c:customers){
                     apicodeSet.add(c.getApiCode());
