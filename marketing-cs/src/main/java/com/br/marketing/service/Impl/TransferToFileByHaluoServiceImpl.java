@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @Date 2022/03/07 11:31
  * @Description:哈罗的实现
  */
+@Slf4j
 @Service
 public class TransferToFileByHaluoServiceImpl implements ITransferToFileService {
 
@@ -77,6 +79,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, EXECUTE_TIME);
         //每天01:00:00之后执行
         if (now.after(executeTime)) {
+            log.warn("哈罗转人工数据提取-开始执行,apiCode ={}",apiCode);
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd);
@@ -141,7 +144,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
     }
 
     private void writeHaluoDx(Writer fw, String apiCode, String startDate, String endDate, TransferFileTask transferFileTask) throws IOException {
-
+        Long start=System.currentTimeMillis();
         Long minId = null;
         int phoneSaleNum = 0;
         Boolean isContiue = Boolean.TRUE;
@@ -153,7 +156,6 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
                 continue;
             }
             minId = phoneSaleExtendHaluos.get(phoneSaleExtendHaluos.size() - 1).getId() + 1;
-
             List<String> taskIds = phoneSaleExtendHaluos.stream().map(t -> t.getTaskId()).collect(Collectors.toList());
             List<String> custNums = phoneSaleExtendHaluos.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
             List<MarketingSyncUser> users = marketingSyncInfoMapper.getSyncUserByTaskAndCust(apiCode, taskIds, custNums);
@@ -197,6 +199,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(phoneSaleNum);
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
+        log.warn("哈罗转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, phoneSaleNum);
     }
 
 }
