@@ -46,8 +46,6 @@ import java.util.*;
 public class InterfaceHandlerFactory implements ApplicationContextAware {
 
 
-    private static ApplicationContext ac;
-
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -60,11 +58,18 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     private static Map<Integer, AbstractExternalInterfaceHandler> externalInterfaceHandlerMap = new HashMap<>();
 
 
+    /**
+     * 应用上下文中获取所有实现AssembleData接口规则类
+     */
+    private static Map<String, AssembleData> assembleDataMap = new HashMap<>();
+
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         Map<String, AbstractExternalInterfaceHandler> handlerMap = applicationContext.getBeansOfType(AbstractExternalInterfaceHandler.class);
         handlerMap.values().forEach(interfaceHandler -> externalInterfaceHandlerMap.put(interfaceHandler.handlerEnum().getCode(), interfaceHandler));
-        ac = applicationContext;
+
+        assembleDataMap = applicationContext.getBeansOfType(AssembleData.class);
     }
 
     public void handler(int enumFlag, List<InterfaceParams> list, MarketingTransferInfo marketingTransferInfo) {
@@ -82,13 +87,11 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     public Map<Integer, List<InterfaceParams>> assembleData(String apiCode, List<MarketingTransferSyncUser> transferList) {
 
         Map<Integer, List<InterfaceParams>> map = new HashMap();
-
         HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
         /**
          * 1、获取 apiCode获取所需的规则匹配方法
          */
         List<AssembleData> assembleDataList = new ArrayList<>();
-        Map<String, AssembleData> assembleDataMap = ac.getBeansOfType(AssembleData.class);
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
             if (assembleData.label().startsWith(customerRuleMapping.get(apiCode))){
