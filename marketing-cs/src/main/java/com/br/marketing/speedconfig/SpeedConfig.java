@@ -33,15 +33,15 @@ public class SpeedConfig implements ISpeedAppendPipeline {
 
     @Override
     public void reloadSpeedFile(String s, String s1, String s2, ApplicationContext applicationContext) throws Exception {
-        switch (s1){
+        switch (s1) {
             case SpeedNameSpace.MARKETINGCOMMON:
                 Object marketingCommonConfig = applicationContext.getBean("marketingCommonConfig");
-                setValue(marketingCommonConfig,s2);
+                setValue(marketingCommonConfig, s2);
                 break;
             default:
                 break;
         }
-        if(log.isInfoEnabled()){
+        if (log.isInfoEnabled()) {
             log.info(s.concat("======").concat(s1).concat(s2));
         }
     }
@@ -52,16 +52,17 @@ public class SpeedConfig implements ISpeedAppendPipeline {
     }
 
 
-    <T>void setValue(T config,String path){
-        try(FileReader read = new FileReader(path);
-            BufferedReader br = new BufferedReader(read);){
+    <T> void setValue(T config, String path) {
+        try (FileReader read = new FileReader(path);
+             BufferedReader br = new BufferedReader(read);) {
             String row;
 
-            while ((row = br.readLine().trim()) != null){
-                if(StringUtils.isEmpty(row)){
+            while ((row = br.readLine()) != null) {
+                row = row.trim();
+                if (StringUtils.isEmpty(row)) {
                     continue;
                 }
-                if(Pattern.matches(_regexOfannotation,row)){
+                if (Pattern.matches(_regexOfannotation, row)) {
                     continue;
                 }
                 List<String> content = Splitter.on("=").splitToList(row);
@@ -71,7 +72,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                 try {
                     field = config.getClass().getDeclaredField(fieldNm);
                     field.setAccessible(true);
-                    assignmentFieldValue(config,field,fieldValue);
+                    assignmentFieldValue(config, field, fieldValue);
                 } catch (NoSuchFieldException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
@@ -86,22 +87,22 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         }
     }
 
-    <T>void assignmentFieldValue(T config,Field field,String fieldValue) throws IllegalAccessException {
-        if(field.getType().equals(String.class)){
-            field.set(config,fieldValue);
-        }else if(field.getType().equals(Integer.class)){
-            field.set(config,Integer.valueOf(fieldValue));
-        }else if(field.getType().equals(Long.class)){
-            field.setLong(config,Long.valueOf(fieldValue));
-        }else if(field.getType().equals(Double.class)){
-            field.setDouble(config,Double.valueOf(fieldValue));
-        }else if(field.getType().equals(Float.class)){
-            field.setFloat(config,Float.valueOf(fieldValue));
-        }else if(field.getType().equals(Boolean.class)){
-                field.setBoolean(config,Boolean.valueOf(fieldValue));
-        }else {
+    <T> void assignmentFieldValue(T config, Field field, String fieldValue) throws IllegalAccessException {
+        if (field.getType().equals(String.class)) {
+            field.set(config, fieldValue);
+        } else if (field.getType().equals(Integer.class)) {
+            field.set(config, Integer.valueOf(fieldValue));
+        } else if (field.getType().equals(Long.class)) {
+            field.setLong(config, Long.valueOf(fieldValue));
+        } else if (field.getType().equals(Double.class)) {
+            field.setDouble(config, Double.valueOf(fieldValue));
+        } else if (field.getType().equals(Float.class)) {
+            field.setFloat(config, Float.valueOf(fieldValue));
+        } else if (field.getType().equals(Boolean.class)) {
+            field.setBoolean(config, Boolean.valueOf(fieldValue));
+        } else {
             Object o = JSON.parseObject(fieldValue, field.getType());
-            field.set(config,o);
+            field.set(config, o);
         }
     }
 }
