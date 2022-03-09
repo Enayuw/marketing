@@ -111,7 +111,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
         long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
-        if (until < 2) {
+        if (0 > until && until < 2) {
             log.warn("xxxxxxxxxxxxxxxxxxxxxxxx");
         } else {
             log.warn("################:" + until);
@@ -230,7 +230,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 , "%s_".concat(userType).concat("_%s%s"));
         String fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
         String fileDirectory = path.concat(File.separator).concat(apiCode).concat(File.separator)
-                .concat(dateYyyyMmDdStr);
+                .concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
         if (!filePath.exists()) {
             if (!filePath.mkdirs()) {
