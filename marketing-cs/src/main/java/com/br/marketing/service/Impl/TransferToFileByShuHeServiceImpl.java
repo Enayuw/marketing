@@ -118,7 +118,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
+        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
         if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
+            log.warn("数禾[{}]转化数据提取分#", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
             userTypes.forEach(userType -> {
