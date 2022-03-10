@@ -13,6 +13,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -116,7 +117,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, List<String> custNums
+    public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
             , String userType) {
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
     }

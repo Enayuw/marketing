@@ -104,7 +104,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/15 10:52
      */
-    String getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+    String getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode
+            , @Param("custNum") String custNum, @Param("userType") String userType);
 
     /**
      * 获取案件编号的落库的创建时间
@@ -116,7 +117,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/18 10:52
      */
-    Date getCreatTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+    Date getCreatTimeByCustNumAndUserType(@Param("apiCode") String apiCode
+            , @Param("custNum") String custNum, @Param("userType") String userType);
 
 
     /**
@@ -130,5 +132,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @dateTime 2022/3/7 10:52
      */
     @MapKey("custNum,creatTime,taskId")
-    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums, @Param("userType") String userType);
+    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNums, @Param("userType") String userType);
 }

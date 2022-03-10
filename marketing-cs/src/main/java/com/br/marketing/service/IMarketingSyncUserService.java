@@ -5,6 +5,7 @@ import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IMarketingSyncUserService {
 
@@ -126,5 +127,5 @@ public interface IMarketingSyncUserService {
      * @author Guo Zeqiang
      * @dateTime 2022/3/7 10:52
      */
-    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, List<String> custNums, String userType);
+    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums, String userType);
 }
