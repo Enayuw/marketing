@@ -1,7 +1,11 @@
 package com.br.marketing.entity.auth;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class MarketingRole {
     /**
      * 
@@ -33,51 +37,16 @@ public class MarketingRole {
      */
     private Date updateTime;
 
-    public Integer getId() {
-        return id;
-    }
+    /**
+     * 该角色是否勾选
+     */
+    private boolean select = false;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    /***
+     * 角色权限资源  多个资源逗号分隔
+     */
+    private String allResource;
 
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
 
-    public String getNameRemark() {
-        return nameRemark;
-    }
-
-    public void setNameRemark(String nameRemark) {
-        this.nameRemark = nameRemark == null ? null : nameRemark.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
 }
