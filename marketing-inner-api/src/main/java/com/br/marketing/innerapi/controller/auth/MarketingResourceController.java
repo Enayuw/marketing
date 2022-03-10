@@ -2,13 +2,19 @@ package com.br.marketing.innerapi.controller.auth;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.common.constants.auth.CodeEnum;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.entity.auth.MarketingResource;
+import com.br.marketing.entity.auth.ResourceTreeBean;
+import com.br.marketing.service.auth.MarketingResourceService;
 import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * -------------------------------
@@ -20,37 +26,97 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@Api(value = "权限", tags = "resource", description = "权限相关")
+@Api(value = "权限", tags = "resource")
 @RequestMapping(value = "/resource")
 public class MarketingResourceController {
+    @Resource
+    private MarketingResourceService marketingResourceService;
+
     /**
      * 保存权限
      *
-     * @param resource
-     * @return
      */
     @GetMapping("/save")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public String save(MarketingResource resource) {
-        if (!this.checkAuthority(resource.getAuthority())) {
-            return respJson(CodeEnum.PARAM_ERROR.getCode(), "权限名不能以*开头");
+    public ApiResult<Boolean> save(MarketingResource resource) {
+        if (this.checkAuthority(resource.getAuthority())) {
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_HEADER);
         }
-        resourceService.saveResources(resource);
-        return respJson(CodeEnum.SUCC);
+        marketingResourceService.saveResources(resource);
+        return new ApiResult<Boolean>().success(true);
     }
+    /**
+     * 删除权限
+     *
+     */
+    @GetMapping("/delete")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> delete(Integer resourceId) {
+        marketingResourceService.deleteResource(resourceId);
+        return new ApiResult<Boolean>().success(true);
+    }
+    /**
+     * 更新权限
+     *
+     */
+    @GetMapping("/update")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> update(MarketingResource resource) {
+        if (this.checkAuthority(resource.getAuthority())) {
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_HEADER);
+        }
+        marketingResourceService.updateResources(resource);
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    @GetMapping("/getResourceTree")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<ResourceTreeBean> getAllResourceById(Integer resourceId) {
+        if (resourceId != null) {
+            List<ResourceTreeBean> resourceTree = marketingResourceService.getResourcesById(resourceId);
+            ResourceTreeBean treeBean = new ResourceTreeBean();
+            treeBean.setText("root");
+            treeBean.setId(0);
+            treeBean.setChildren(resourceTree);
+            return new ApiResult<ResourceTreeBean>().success(treeBean);
+        }
+        return new ApiResult<ResourceTreeBean>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_HEADER);
+    }
+
+    /**
+     * 获取资源树信息
+     */
+    @GetMapping("/getById")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<MarketingResource> getResourceById(Integer resourceId) {
+        return new ApiResult<MarketingResource>().success(marketingResourceService.selectById(resourceId));
+    }
+    ///**
+    // * 获取所有资源名称
+    // *
+    // * @param
+    // * @return
+    // */
+    //@GetMapping("/getTitles")
+    //@PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    //public ApiResult getOneTitles() {
+    //List<MarketingResource>  marketingResourcesList  =   marketingResourceService.selectMaps();
+    //    List<Map<String, Object>> maps = resourceService.selectMaps(new EntityWrapper<Resource>()
+    //            .setSqlSelect("id as resourceId , name as resourceName").eq("type", 1)
+    //            .eq("isDelete", 0));
+    //    maps.add(Constants.KEY_RESOUTCE_MAP);
+    //    return respJson(CodeEnum.SUCC, maps);
+    //}
+
     /**
      * 检查正则合法性
      *
-     * @return
      */
     private boolean checkAuthority(String authority) {
         if (StringUtils.isBlank(authority)) {
-            return false;
+            return true;
         }
         //不能以*开头
-        if (authority.startsWith("*")) {
-            return false;
-        }
-        return true;
+        return authority.startsWith("*");
     }
 }

@@ -2,9 +2,8 @@ package com.br.marketing.mapper.auth;
 
 import com.br.marketing.entity.auth.MarketingResource;
 import com.br.marketing.entity.auth.MarketingResourceExample;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface MarketingResourceMapper {
     int countByExample(MarketingResourceExample example);
@@ -28,4 +27,6 @@ public interface MarketingResourceMapper {
     int updateByPrimaryKeySelective(MarketingResource record);
 
     int updateByPrimaryKey(MarketingResource record);
+    List<MarketingResource> getResourcesByUid(Integer userId);
+
 }

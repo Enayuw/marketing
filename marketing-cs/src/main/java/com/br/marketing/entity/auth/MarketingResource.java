@@ -36,7 +36,7 @@ public class MarketingResource {
     /**
      * 父资源ID
      */
-    private Integer parentid;
+    private Integer parentId;
 
     /**
      * 资源顺序
@@ -44,29 +44,29 @@ public class MarketingResource {
     private Integer sort;
 
     /**
-     * 
+     * 是否删除 1未被删除 0已删除
      */
-    private Date createdtime;
-
-    /**
-     * 
-     */
-    private Date modifiedtime;
-
-    /**
-     * 是否删除 0未被删除1已删除
-     */
-    private Integer isdelete;
+    private Integer status;
 
     /**
      * 资源英文名
      */
-    private String englishname;
+    private String englishName;
 
     /**
      * 资源类型（1:菜单，2、页面，3、按钮）
      */
     private Integer category;
+
+    /**
+     * 
+     */
+    private Date createTime;
+
+    /**
+     * 
+     */
+    private Date updateTime;
 
     public Integer getId() {
         return id;
@@ -116,12 +116,12 @@ public class MarketingResource {
         this.type = type;
     }
 
-    public Integer getParentid() {
-        return parentid;
+    public Integer getParentId() {
+        return parentId;
     }
 
-    public void setParentid(Integer parentid) {
-        this.parentid = parentid;
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
     }
 
     public Integer getSort() {
@@ -132,36 +132,20 @@ public class MarketingResource {
         this.sort = sort;
     }
 
-    public Date getCreatedtime() {
-        return createdtime;
+    public Integer getStatus() {
+        return status;
     }
 
-    public void setCreatedtime(Date createdtime) {
-        this.createdtime = createdtime;
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
-    public Date getModifiedtime() {
-        return modifiedtime;
+    public String getEnglishName() {
+        return englishName;
     }
 
-    public void setModifiedtime(Date modifiedtime) {
-        this.modifiedtime = modifiedtime;
-    }
-
-    public Integer getIsdelete() {
-        return isdelete;
-    }
-
-    public void setIsdelete(Integer isdelete) {
-        this.isdelete = isdelete;
-    }
-
-    public String getEnglishname() {
-        return englishname;
-    }
-
-    public void setEnglishname(String englishname) {
-        this.englishname = englishname == null ? null : englishname.trim();
+    public void setEnglishName(String englishName) {
+        this.englishName = englishName == null ? null : englishName.trim();
     }
 
     public Integer getCategory() {
@@ -170,5 +154,21 @@ public class MarketingResource {
 
     public void setCategory(Integer category) {
         this.category = category;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }
