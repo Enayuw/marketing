@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 public class InterfaceHandlerFactory implements ApplicationContextAware {
 
 
-
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -130,12 +129,10 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
                                                 , Optional::get)));
                     }
                     MarketingSyncUser marketingSyncUser = custMaps.get(transferSyncUser.getCustNum());
-                    if (marketingSyncUser != null) {
-                        AssembleDataWithSyncUser<?> assembleWithUser = (AssembleDataWithSyncUser<?>) assembleData;
-                        if (assembleWithUser.isNeedAssemble(transferSyncUser, marketingSyncUser)) {
-                            interfaceParam = assembleWithUser.assemble(transferSyncUser, marketingSyncUser);
-
-                        }
+                    AssembleDataWithSyncUser<?> assembleWithUser = (AssembleDataWithSyncUser<?>) assembleData;
+                    //注意 方法内部处理 marketingSyncUser为null的情况
+                    if (assembleWithUser.isNeedAssemble(transferSyncUser, marketingSyncUser)) {
+                        interfaceParam = assembleWithUser.assemble(transferSyncUser, marketingSyncUser);
                     }
                 } else if (AssembleTransferEnum.DEFAULT.equals(assembleData.interfaceType())) {
                     if (assembleData.isNeedAssemble(transferSyncUser)) {
