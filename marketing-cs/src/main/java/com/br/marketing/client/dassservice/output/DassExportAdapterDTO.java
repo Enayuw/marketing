@@ -33,6 +33,8 @@ import java.util.List;
 @Data
 public class DassExportAdapterDTO {
 
+    private Long transferInfoId;
+
     private List<BlackListDTO> list;
 
     public DassExportAdapterDTO(){}

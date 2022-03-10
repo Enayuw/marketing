@@ -27,16 +27,21 @@ public class DataCompare {
     private String remark;
 
     /**
+     * 
+     */
+    private Long transferInfoId;
+
+    /**
      * 数据id，逗号拼接
      */
     private String arguments;
 
     public DataCompare(){}
 
-    public DataCompare(String ids, int enumFlag){
+    public DataCompare(String ids, int enumFlag, long infoId){
         this.arguments = ids;
         this.externalInterface = enumFlag;
         this.createTime = new Date();
+        this.transferInfoId = infoId;
     }
-
 }

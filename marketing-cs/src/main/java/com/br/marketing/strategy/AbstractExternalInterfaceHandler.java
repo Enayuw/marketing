@@ -62,8 +62,8 @@ public abstract class AbstractExternalInterfaceHandler<T extends InterfaceParams
      */
     abstract InterfaceHandlerEnum handlerEnum();
 
-    void saveBizLog(String data, int handlerEnum){
-        DataCompare dataCompare = new DataCompare(data,handlerEnum);
+    void saveBizLog(String data, int handlerEnum,long infoId){
+        DataCompare dataCompare = new DataCompare(data,handlerEnum,infoId);
         dataCompareMapper.insertSelective(dataCompare);
     }
 
