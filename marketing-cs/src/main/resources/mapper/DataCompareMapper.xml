@@ -6,9 +6,10 @@
     <result column="external_interface" property="externalInterface" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="transfer_info_id" property="transferInfoId" jdbcType="BIGINT" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.DataCompare" extends="BaseResultMap" >
-    <result column="arguments" property="arguments" jdbcType="VARCHAR" />
+    <result column="arguments" property="arguments" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -69,7 +70,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, external_interface, create_time, remark
+    id, external_interface, create_time, remark, transfer_info_id
   </sql>
   <sql id="Blob_Column_List" >
     arguments
@@ -127,9 +128,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_interface_data_compare (external_interface, create_time, 
-      remark, arguments)
+      remark, transfer_info_id, arguments
+      )
     values (#{externalInterface,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{remark,jdbcType=VARCHAR}, #{arguments,jdbcType=VARCHAR})
+      #{remark,jdbcType=VARCHAR}, #{transferInfoId,jdbcType=BIGINT}, #{arguments,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataCompare" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -146,6 +149,9 @@
       <if test="remark != null" >
         remark,
       </if>
+      <if test="transferInfoId != null" >
+        transfer_info_id,
+      </if>
       <if test="arguments != null" >
         arguments,
       </if>
@@ -159,6 +165,9 @@
       </if>
       <if test="remark != null" >
         #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="transferInfoId != null" >
+        #{transferInfoId,jdbcType=BIGINT},
       </if>
       <if test="arguments != null" >
         #{arguments,jdbcType=VARCHAR},
@@ -186,8 +195,11 @@
       <if test="record.remark != null" >
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
+      <if test="record.transferInfoId != null" >
+        transfer_info_id = #{record.transferInfoId,jdbcType=BIGINT},
+      </if>
       <if test="record.arguments != null" >
-        arguments = #{record.arguments,jdbcType=VARCHAR},
+        arguments = #{record.arguments,jdbcType=LONGVARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -200,7 +212,8 @@
       external_interface = #{record.externalInterface,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       remark = #{record.remark,jdbcType=VARCHAR},
-      arguments = #{record.arguments,jdbcType=VARCHAR}
+      transfer_info_id = #{record.transferInfoId,jdbcType=BIGINT},
+      arguments = #{record.arguments,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -210,7 +223,8 @@
     set id = #{record.id,jdbcType=BIGINT},
       external_interface = #{record.externalInterface,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      remark = #{record.remark,jdbcType=VARCHAR}
+      remark = #{record.remark,jdbcType=VARCHAR},
+      transfer_info_id = #{record.transferInfoId,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -227,8 +241,11 @@
       <if test="remark != null" >
         remark = #{remark,jdbcType=VARCHAR},
       </if>
+      <if test="transferInfoId != null" >
+        transfer_info_id = #{transferInfoId,jdbcType=BIGINT},
+      </if>
       <if test="arguments != null" >
-        arguments = #{arguments,jdbcType=VARCHAR},
+        arguments = #{arguments,jdbcType=LONGVARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -238,14 +255,16 @@
     set external_interface = #{externalInterface,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       remark = #{remark,jdbcType=VARCHAR},
-      arguments = #{arguments,jdbcType=VARCHAR}
+      transfer_info_id = #{transferInfoId,jdbcType=BIGINT},
+      arguments = #{arguments,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataCompare" >
     update b_interface_data_compare
     set external_interface = #{externalInterface,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      remark = #{remark,jdbcType=VARCHAR}
+      remark = #{remark,jdbcType=VARCHAR},
+      transfer_info_id = #{transferInfoId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

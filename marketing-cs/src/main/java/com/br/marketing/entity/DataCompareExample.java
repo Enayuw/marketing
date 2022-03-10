@@ -354,6 +354,66 @@ public class DataCompareExample {
             addCriterion("remark not between", value1, value2, "remark");
             return (Criteria) this;
         }
+
+        public Criteria andTransferInfoIdIsNull() {
+            addCriterion("transfer_info_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdIsNotNull() {
+            addCriterion("transfer_info_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdEqualTo(Long value) {
+            addCriterion("transfer_info_id =", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdNotEqualTo(Long value) {
+            addCriterion("transfer_info_id <>", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdGreaterThan(Long value) {
+            addCriterion("transfer_info_id >", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("transfer_info_id >=", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdLessThan(Long value) {
+            addCriterion("transfer_info_id <", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdLessThanOrEqualTo(Long value) {
+            addCriterion("transfer_info_id <=", value, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdIn(List<Long> values) {
+            addCriterion("transfer_info_id in", values, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdNotIn(List<Long> values) {
+            addCriterion("transfer_info_id not in", values, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdBetween(Long value1, Long value2) {
+            addCriterion("transfer_info_id between", value1, value2, "transferInfoId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferInfoIdNotBetween(Long value1, Long value2) {
+            addCriterion("transfer_info_id not between", value1, value2, "transferInfoId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

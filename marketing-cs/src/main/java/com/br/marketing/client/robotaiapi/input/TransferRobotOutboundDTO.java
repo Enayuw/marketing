@@ -10,6 +10,7 @@ import lombok.Data;
  */
 @Data
 public class TransferRobotOutboundDTO {
+    private Long transferInfoId;
     private String apiCode;
     private TransferJsonDataDTO jsonData;
 }
