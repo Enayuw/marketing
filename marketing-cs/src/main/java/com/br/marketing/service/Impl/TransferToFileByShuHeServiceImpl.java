@@ -215,28 +215,28 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String dateYyyyMmDdStr = transferFileTask.getStartDate();
         String apiCode = transferFileTask.getApiCode();
         String userType = transferFileTask.getBatchNumber();
-        // 前一天时间范围
-        LocalDateTime localDateTime = LocalDateTime.now();
         LocalDateTime first;
-        LocalDateTime last;
+        // 前一天
+        LocalDateTime last = LocalDateTime.now().minusDays(1);
         Boolean bool = marketingCommonConfig.getShuHeTransferIfUseQuasiTotalQuantity();
         if (bool != null && bool) {
+            // 准全量时间开始时间
             if (transferFileTask.getFileType() == null) {
-                first = localDateTime.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                first = last.withDayOfMonth(1);
             } else {
-                first = localDateTime.minusDays(transferFileTask.getFileType())
-                        .withHour(0).withMinute(0).withSecond(0).withNano(0);
+                first = last.minusDays(transferFileTask.getFileType());
             }
-            last = localDateTime.minusDays(1).withHour(23).withMinute(59).withSecond(59).withNano(0);
         } else {
-            LocalDateTime dateTime = localDateTime.minusDays(1);
-            first = dateTime.withHour(0).withMinute(0).withSecond(0).withNano(0);
-            last = dateTime.withHour(23).withMinute(59).withSecond(59).withNano(0);
+            // 前一天
+            first = last;
         }
+        Date firstDateTime = Date.from(first.withHour(0).withMinute(0).withSecond(0).withNano(0)
+                .atZone(ZoneId.systemDefault()).toInstant());
+        Date lastDateTime = Date.from(last.withHour(23).withMinute(59).withSecond(59).withNano(0)
+                .atZone(ZoneId.systemDefault()).toInstant());
         // 生成检索条件
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andCreateTimeBetween(Date.from(first.atZone(ZoneId.systemDefault()).toInstant())
-                , Date.from(last.atZone(ZoneId.systemDefault()).toInstant())).andApiCodeEqualTo(apiCode)
+        example.createCriteria().andCreateTimeBetween(firstDateTime, lastDateTime).andApiCodeEqualTo(apiCode)
                 .andUserTypeEqualTo(userType);
         example.settCid(setCid(apiCode));
         List<MarketingTransferSyncUser> list = null;
