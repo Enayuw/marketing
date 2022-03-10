@@ -97,7 +97,6 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         int pageNo = 0;
         while (index) {
             cusMap.put("pageNo", pageNo * 2000);
-            cusMap.put("pageSize", 2000);
             List<HaloCallingDataVo> haloCallingDataVoList = customerCallingDialogMapper.getInfoByColumns(cusMap);
             index = haloCallingDataVoList.size() != 0;
             if (index) {
