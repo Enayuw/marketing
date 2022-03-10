@@ -31,12 +31,12 @@ public interface IMarketingSyncUserService {
      * @param custNum  案件编号
      * @param userType 场景
      * @param date     比较的日期
-     * @param day      天的范围，+day 为T+day；-day 为T-day；0为T月底
+     * @param day      天的范围，+day 为T+day；-day 为T-day；null为T月底
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
-    Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day);
+    Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, Integer day);
 
     /**
      * 是否在有效期内
@@ -60,13 +60,14 @@ public interface IMarketingSyncUserService {
      *
      * @param date         比较的日期
      * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
-     *                     0为{@code validityDate}月底
+     *                     null为{@code validityDate}月底
+     *                     0为{@code validityDate}当天
      * @param validityDate 有效日期
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
-    Boolean isPeriodOfValidity(Date date, int day, Date validityDate);
+    Boolean isPeriodOfValidity(Date date, Integer day, Date validityDate);
 
     /**
      * 根据案件编号获取客户最新的场景
