@@ -56,6 +56,6 @@ public class RedisController {
      */
     @GetMapping("/getSpeedInfo")
     public String getSpeedInfo(){
-        return JSON.toJSONString(marketingCommonConfig);
+        return marketingCommonConfig.toString();
     }
 }

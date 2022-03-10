@@ -72,6 +72,7 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
 
             robotOutboundDTO.setApiCode(transferInfo.getApiCode());
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
+            robotOutboundDTO.setTransferInfoId(transferInfo.getId());
             if("9999".equals(callCustomerTransfer(robotOutboundDTO).getCode())){
                 //调用客户转化接口失败，记录数据入库，定时任务重试
                 RetryMainLog mainLog = new RetryMainLog();
@@ -103,7 +104,7 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         if (!"9999".equals(transferRobotOutboundVO.getCode())){
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
-            saveBizLog(String.join(",",set),handlerEnum().getCode());
+            saveBizLog(String.join(",",set),handlerEnum().getCode(),robotOutboundDTO.getTransferInfoId());
         }
         return transferRobotOutboundVO;
     }

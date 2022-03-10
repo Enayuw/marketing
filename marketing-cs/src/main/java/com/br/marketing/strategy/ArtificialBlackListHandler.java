@@ -70,6 +70,7 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
             }
 
             DassExportAdapterDTO dassExportAdapterDTO = new DassExportAdapterDTO(subList);
+            dassExportAdapterDTO.setTransferInfoId(marketingTransferInfo.getId());
             if(!ResultCode.SUCCESS.getValue().equals(callBlackList(dassExportAdapterDTO).getCode())){
                 RetryMainLog mainLog = new RetryMainLog();
                 mainLog.setRetryType(1);
@@ -102,7 +103,7 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
         if (ResultCode.SUCCESS.getValue().equals(pushBlackListResponseResult.getCode())){
             // 1、保存业务调用日志，留存数据id到数据库
             Set<String> set = list.stream().map(BlackListDTO::getDataId).collect(Collectors.toSet());
-            saveBizLog(String.join(",",set),handlerEnum().getCode());
+            saveBizLog(String.join(",",set),handlerEnum().getCode(),dassExportAdapterDTO.getTransferInfoId());
 
             //2、所有失效数据需要修改上传详情表数据库状态
             Map<String, Set<String>> collect = list.stream().collect(Collectors.groupingBy(BlackListDTO::getApiCode,
