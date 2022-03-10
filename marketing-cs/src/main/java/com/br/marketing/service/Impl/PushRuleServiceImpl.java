@@ -1119,6 +1119,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
     private String dateTimeComplet(String data) {
+        if(data == null){
+            return null;
+        }
         String res = "";
         try {
             if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", data)) {
@@ -1141,7 +1144,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             res = data;
-            log.error(ex.getMessage(), ex);
+//            log.error(ex.getMessage(), ex);
         }
         return res;
     }
