@@ -1,12 +1,9 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.SoleRuleConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.CustomerSoleRuleVO;
-import com.br.marketing.vo.RuleConditionVo;
 
 import java.util.List;
 

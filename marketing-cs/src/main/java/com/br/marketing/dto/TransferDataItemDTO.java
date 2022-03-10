@@ -2,8 +2,6 @@ package com.br.marketing.dto;
 
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 public class TransferDataItemDTO {
     /**

@@ -8,8 +8,6 @@ import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.ConfigByApiCodeVO;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface IProductResultSimpleService {
     Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, MarketingUser user,JSONObject esResult);

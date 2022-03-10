@@ -2,13 +2,14 @@
   * Copyright 2021 bejson.com 
   */
 package com.br.marketing.client.robotaiapi.input;
+import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
 
 /**
  * Auto-generated: 2021-08-04 10:58:58
  */
 @Data
-public class ConversionData {
+public class ConversionData extends InterfaceParams {
 
     /**
      * 案件编号

@@ -57,4 +57,14 @@ public class MarketingCommonConfig {
      * 数禾apicode
      */
     private List<String> shuheApiCode;
+
+    /**
+     * 客户使用规则映射
+     */
+    private HashMap<String,String> customerRuleMapping;
+
+    /**
+     * 配置走通用流程apiCode
+     */
+    private List<String> universalProcessApiCode;
 }
