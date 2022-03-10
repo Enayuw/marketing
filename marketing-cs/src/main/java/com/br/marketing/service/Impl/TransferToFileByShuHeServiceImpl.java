@@ -136,7 +136,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 TransferFileTask transferFileTask = new TransferFileTask();
                 long contextId = System.currentTimeMillis();
                 transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(dataExtractMap.getOrDefault(userType, 0));
+                transferFileTask.setFileType(dataExtractMap.getOrDefault(userType, null));
                 transferFileTask.setBatchNumber(userType);
                 transferFileTask.setFileName("");
                 transferFileTask.setStartDate(dateYyyyMmDdStr);
@@ -177,11 +177,13 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 (int) (shuHeTransferDataExtractMap.size() / 0.75 + 1));
         userTypes.forEach(userType -> {
             Matcher matcher = PATTERN.matcher(shuHeTransferDataExtractMap.get(userType));
-            String day = "0";
             if (matcher.find()) {
-                day = matcher.group();
+                String day = matcher.group();
+                dataExtractMap.put(userType, new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue() - 1);
+            } else {
+                dataExtractMap.put(userType, null);
+
             }
-            dataExtractMap.put(userType, new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue());
         });
         return dataExtractMap;
     }
@@ -214,9 +216,23 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String apiCode = transferFileTask.getApiCode();
         String userType = transferFileTask.getBatchNumber();
         // 前一天时间范围
-        LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
-        LocalDateTime first = localDateTime.withHour(0).withMinute(0).withSecond(0);
-        LocalDateTime last = localDateTime.withHour(23).withMinute(59).withSecond(59);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime first;
+        LocalDateTime last;
+        Boolean bool = marketingCommonConfig.getShuHeTransferIfUseQuasiTotalQuantity();
+        if (bool != null && bool) {
+            if (transferFileTask.getFileType() == null) {
+                first = localDateTime.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+            } else {
+                first = localDateTime.minusDays(transferFileTask.getFileType())
+                        .withHour(0).withMinute(0).withSecond(0).withNano(0);
+            }
+            last = localDateTime.minusDays(1).withHour(23).withMinute(59).withSecond(59).withNano(0);
+        } else {
+            LocalDateTime dateTime = localDateTime.minusDays(1);
+            first = dateTime.withHour(0).withMinute(0).withSecond(0).withNano(0);
+            last = dateTime.withHour(23).withMinute(59).withSecond(59).withNano(0);
+        }
         // 生成检索条件
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andCreateTimeBetween(Date.from(first.atZone(ZoneId.systemDefault()).toInstant())

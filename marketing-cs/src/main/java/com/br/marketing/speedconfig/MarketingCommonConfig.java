@@ -69,4 +69,9 @@ public class MarketingCommonConfig {
      */
     private String shuHeTransferJobStartTime;
 
+    /**
+     * 数禾转化数据提取任务是否使用准全量转化数据
+     */
+    private Boolean shuHeTransferIfUseQuasiTotalQuantity;
+
 }
