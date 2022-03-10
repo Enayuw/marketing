@@ -178,7 +178,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             Matcher matcher = PATTERN.matcher(shuHeTransferDataExtractMap.get(userType));
             if (matcher.find()) {
                 String day = matcher.group();
-                dataExtractMap.put(userType, new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue() - 1);
+                dataExtractMap.put(userType, new BigDecimal(day).setScale(0
+                        , BigDecimal.ROUND_HALF_UP).intValue() - 1);
             } else {
                 dataExtractMap.put(userType, null);
 
@@ -288,7 +289,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
      * 写入文件
      */
     private void writerFile(String apiCode, String userType, List<MarketingTransferSyncUser> list,
-                            TransferFileTask transferFileTask, String separator, BufferedWriter writer) throws IOException {
+                            TransferFileTask transferFileTask, String separator, BufferedWriter writer)
+            throws IOException {
         // 获取custNum最新创建时间
         Map<String, Map<String, Object>> custNumMap = getSyncUserLatestUploadTime(list
                 , apiCode, userType);
