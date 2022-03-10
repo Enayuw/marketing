@@ -28,7 +28,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -173,7 +172,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
      */
     private Map<String, Integer> dataExtractDateHandle(Map<String, String> shuHeTransferDataExtractMap
             , Set<String> userTypes) {
-        Map<String, Integer> dataExtractMap = new ConcurrentHashMap<>(
+        Map<String, Integer> dataExtractMap = new HashMap<>(
                 (int) (shuHeTransferDataExtractMap.size() / 0.75 + 1));
         userTypes.forEach(userType -> {
             Matcher matcher = PATTERN.matcher(shuHeTransferDataExtractMap.get(userType));
