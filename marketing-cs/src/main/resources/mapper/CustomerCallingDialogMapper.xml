@@ -691,7 +691,7 @@
         where api_code = #{apiCode}
           and send_status = #{sendStatus}
           and status = '1'
-        order by id desc limit #{pageNo}, #{pageSize};
+        order by id desc limit #{pageSize};
     </select>
     <select id="getRequestId" resultType="java.util.Map">
         select b.request_id         as requestId,
