@@ -94,9 +94,8 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         cusMap.put("apiCode", customerCalling.getApiCode());
         cusMap.put("sendStatus", 0);
         boolean index = true;
-        int pageNo = 0;
         while (index) {
-            cusMap.put("pageNo", pageNo * 2000);
+            cusMap.put("pageSize",2000);
             List<HaloCallingDataVo> haloCallingDataVoList = customerCallingDialogMapper.getInfoByColumns(cusMap);
             index = haloCallingDataVoList.size() != 0;
             if (index) {
@@ -116,7 +115,6 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                                 method,
                                 isProxy)));
             }
-            pageNo++;
         }
     }
 
