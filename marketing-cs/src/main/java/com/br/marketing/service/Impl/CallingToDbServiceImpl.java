@@ -34,8 +34,7 @@ public class CallingToDbServiceImpl implements CallingToDbService {
         Result result = new Result();
         result.setCode(1);
         try {
-            CustomerCallingDialog customerCallingDialog = getCustomerCallingDialog(dto, address, dataRows);
-            int insert = customerCallingDialogMapper.insert(customerCallingDialog);
+            customerCallingDialogMapper.insert(getCustomerCallingDialog(dto, address, dataRows));
         } catch (Exception e) {
             result.setCode(500);
             throw new RuntimeException(e);
@@ -53,10 +52,10 @@ public class CallingToDbServiceImpl implements CallingToDbService {
         for (int i = 0; i < dataRows.size(); i++) {
             String headAddress = address.get(i);
             //"custNum", "callStartTime", "groupType", "taskId"
-            if (headAddress.equals("custNum")) {
+            if ("custNum".equals(headAddress)) {
                 headAddress = "caseNum";
             }
-            if (headAddress.equals("groupType")) {
+            if ("groupType".equals(headAddress)) {
                 customerCallingDialog.setUserType(dataRows.get(i));
             }
             Field field = customerCallingDialog.getClass().getDeclaredField(headAddress);

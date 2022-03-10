@@ -64,6 +64,7 @@ otherConfig:
     proxy_username: bairong
     proxy_password: Proxy_br
 
+
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
@@ -93,6 +94,12 @@ api:
           url: ${api.haier.custData.receive.url}/info
   marketing:
     transferUrl: http://k8s.brapp.com/compass-api/api/marketing-api/marketingTransferData/receiveTransferDataSync
+  halo:
+    openUrl: https://fat-hello-openapi.hellobike.com/openapi
+    appKey: hellobikefinance-bwYuIVvO
+    secret: b3392af427b6449e94269433bdf5fb58
+    method: hello.finance.loan.marketing.callback
+    isProxy: false
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
