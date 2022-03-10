@@ -117,12 +117,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 //            return result;
 //        }
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        Map<String, String> xx = new HashMap<>();
-        xx.put("促首登", "T");
-        xx.put("促申完", "T+15");
-        xx.put("促首借", "T+31");
-        marketingCommonConfig.setShuHeTransferDataExtractMap(xx);
-        marketingCommonConfig.setShuHeTransferIfUseQuasiTotalQuantity(true);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
         Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
         List<String> stringList = userTypes.parallelStream().map(s -> String.format(FILE_NAME_PART.getOrDefault(s
@@ -132,8 +126,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 .andFileNameIn(stringList);
         List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
         log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
-//        if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
-        if (LocalTime.now().isAfter(startTime)) {
+        if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
