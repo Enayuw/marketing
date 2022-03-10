@@ -32,9 +32,12 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
     @Override
     public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
         try {
-        if ("4".equals(transferSyncUser.getUserType())) {
-            return true;
-        }
+            if ("4".equals(transferSyncUser.getUserType())) {
+                return true;
+            }
+            if (syncUser == null) {
+                return false;
+            }
             Date applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
             Date appletTime = syncUser.getAppletTime();
             if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
@@ -42,8 +45,8 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
             }
         } catch (ParseException e) {
             e.printStackTrace();
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
         return false;
     }
@@ -51,6 +54,10 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
     @Override
     public ConversionData assemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
         try {
+            if (syncUser == null) {
+                log.error(String.format("海尔该转化数据没有匹配到原始上传数据 dataId:%d",transferSyncUser.getId()));
+                return null;
+            }
             String status = "";
             if ("4".equals(transferSyncUser.getUserType())) {
                 status = "0";
@@ -83,8 +90,8 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
             BeanUtils.copyProperties(transferSyncUser, vo);
             conversionData.setInversionInfo(JSON.toJSONString(vo));
             return conversionData;
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
         return null;
     }

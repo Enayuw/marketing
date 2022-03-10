@@ -37,10 +37,8 @@ import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -189,13 +187,13 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception e) {
             }
         }
-        if(SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())){
+        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(),"Dass结果文件推送",appName,secretKey,
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
@@ -380,23 +378,25 @@ public class PushDataServiceImpl implements PushDataService {
                     Set<String> custNumsByNeed = new HashSet<>();
                     List<HaierData> haierByNeed = new ArrayList<>();
                     for (HaierData item : items) {
-                        if(StringUtils.isNotBlank(item.getTaskId())) {
+                        if (StringUtils.isNotBlank(item.getTaskId())) {
                             datas.add(new PushDTO.DataItems(item.getTaskId(), item.getCustNum()));
                             ids.add(item.getId());
-                        }else{
+                        } else {
                             custNumsByNeed.add(item.getCustNum());
                             haierByNeed.add(item);
                         }
                     }
-                    List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, custNumsByNeed);
-                    Map<String, MarketingSyncUser> custMaps = preUserByTask.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum
-                            , Collectors.collectingAndThen(
-                                    Collectors.reducing((v1, v2) -> v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                    , Optional::get)));
-                    for (HaierData data : haierByNeed) {
-                        if(custMaps.containsKey(data.getCustNum())){
-                            datas.add(new PushDTO.DataItems(custMaps.get(data.getCustNum()).getCusBatch(), data.getCustNum()));
-                            ids.add(data.getId());
+                    if (custNumsByNeed.size() > 0) {
+                        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, custNumsByNeed);
+                        Map<String, MarketingSyncUser> custMaps = preUserByTask.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                , Collectors.collectingAndThen(
+                                        Collectors.reducing((v1, v2) -> v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                        , Optional::get)));
+                        for (HaierData data : haierByNeed) {
+                            if (custMaps.containsKey(data.getCustNum())) {
+                                datas.add(new PushDTO.DataItems(custMaps.get(data.getCustNum()).getCusBatch(), data.getCustNum()));
+                                ids.add(data.getId());
+                            }
                         }
                     }
                     PushDTO.FormData formData = new PushDTO.FormData();
@@ -408,7 +408,7 @@ public class PushDataServiceImpl implements PushDataService {
                     HaierReqDTO haierReqDTO = new HaierReqDTO();
                     haierReqDTO.setIds(ids);
                     haierReqDTO.setFormData(formData);
-                    if(datas.size()<=0){
+                    if (datas.size() <= 0) {
                         return new Result().setCode(ResultCode.SUCCESS.getValue());
                     }
                     try {
@@ -688,31 +688,31 @@ public class PushDataServiceImpl implements PushDataService {
 
     /**
      * 数禾推送电销
+     *
      * @param pushShDXDTO
-     * @return
-     * 传输数据样例
-     *         LocalFile localFile = new LocalFile();
-     *         PhoneSale phoneSale = new PhoneSale();
-     *         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-     *         PushShDXDTO pushShDXDTO = new PushShDXDTO()
-     *                 .setLocalFile(localFile)
-     *                 .setPhoneSale(phoneSale)
-     *                 .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
-     *         localFile.setCid("");
-     *         localFile.setApiCode("");
-     *         localFile.setFileName("数禾-转化/客服+数据id");
-     *         phoneSale.setUid("custNum");
-     *         phoneSale.setPhone("手机号明文");
-     *         phoneSale.setName("");
-     *         phoneSale.setOrgname("shuheshenwan");
-     *         phoneSale.setSource("16");
-     *         phoneSale.setUserType("2");
-     *         phoneSale.setLoginTime("");
-     *         phoneSale.setExtend("{\"clc_usr_iso_pho_tim\":\"\",\"clc_usr_iso_idt_tim\":\"\",\"clc_usr_iso_crd_tim\":\"\",\"clc_usr_iso_inf_tim\":\"\"}");
-     *         phoneSaleExtendShuhe.setCustNum("custNum");
-     *         phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
-     *         phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
-     *         phoneSaleExtendShuhe.setStatus("a/b");
+     * @return 传输数据样例
+     * LocalFile localFile = new LocalFile();
+     * PhoneSale phoneSale = new PhoneSale();
+     * PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
+     * PushShDXDTO pushShDXDTO = new PushShDXDTO()
+     * .setLocalFile(localFile)
+     * .setPhoneSale(phoneSale)
+     * .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
+     * localFile.setCid("");
+     * localFile.setApiCode("");
+     * localFile.setFileName("数禾-转化/客服+数据id");
+     * phoneSale.setUid("custNum");
+     * phoneSale.setPhone("手机号明文");
+     * phoneSale.setName("");
+     * phoneSale.setOrgname("shuheshenwan");
+     * phoneSale.setSource("16");
+     * phoneSale.setUserType("2");
+     * phoneSale.setLoginTime("");
+     * phoneSale.setExtend("{\"clc_usr_iso_pho_tim\":\"\",\"clc_usr_iso_idt_tim\":\"\",\"clc_usr_iso_crd_tim\":\"\",\"clc_usr_iso_inf_tim\":\"\"}");
+     * phoneSaleExtendShuhe.setCustNum("custNum");
+     * phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
+     * phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
+     * phoneSaleExtendShuhe.setStatus("a/b");
      */
     @Override
     public Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO) {
@@ -722,7 +722,7 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setFileType(SftpFileTypeEnum.SHBYTRANSFORM.getValue());
         localFile.setCreateTime(date);
         String apiCode = localFile.getApiCode();
-        String phone ="";
+        String phone = "";
         PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
         phone = phoneSale.getPhone();
         phoneSale.setCreateTime(date);
@@ -732,27 +732,27 @@ public class PushDataServiceImpl implements PushDataService {
         phoneSale.setApiCode(apiCode);
         phoneSale.setApiCid(localFile.getCid());
         JSONObject jo = new JSONObject();
-        jo.put("face_recognitiion","0");
-        jo.put("is_usr_idt","0");
-        jo.put("is_bindcard","0");
-        jo.put("is_usr_inf","0");
-        if(StringUtils.isNotBlank(phoneSale.getExtend())){
+        jo.put("face_recognitiion", "0");
+        jo.put("is_usr_idt", "0");
+        jo.put("is_bindcard", "0");
+        jo.put("is_usr_inf", "0");
+        if (StringUtils.isNotBlank(phoneSale.getExtend())) {
             JSONObject jsonObject = JSON.parseObject(phoneSale.getExtend());
             String pho = jsonObject.getString("clc_usr_iso_pho_tim");
             String idt = jsonObject.getString("clc_usr_iso_idt_tim");
             String crd = jsonObject.getString("clc_usr_iso_crd_tim");
             String inf = jsonObject.getString("clc_usr_iso_inf_tim");
-            if(StringUtils.isNotBlank(pho)){
-                jo.put("face_recognitiion","1");
+            if (StringUtils.isNotBlank(pho)) {
+                jo.put("face_recognitiion", "1");
             }
-            if(StringUtils.isNotBlank(idt)){
-                jo.put("is_usr_idt","1");
+            if (StringUtils.isNotBlank(idt)) {
+                jo.put("is_usr_idt", "1");
             }
-            if(StringUtils.isNotBlank(crd)){
-                jo.put("is_bindcard","1");
+            if (StringUtils.isNotBlank(crd)) {
+                jo.put("is_bindcard", "1");
             }
-            if(StringUtils.isNotBlank(inf)){
-                jo.put("is_usr_inf","1");
+            if (StringUtils.isNotBlank(inf)) {
+                jo.put("is_usr_inf", "1");
             }
         }
         phoneSale.setExtend(JSON.toJSONString(jo));
@@ -762,12 +762,12 @@ public class PushDataServiceImpl implements PushDataService {
         PhoneSaleExtendShuheExample shuheExample = new PhoneSaleExtendShuheExample();
         shuheExample.createCriteria().andCustNumEqualTo(phoneSaleExtendShuhe.getCustNum()).andAppletDateEqualTo(phoneSaleExtendShuhe.getAppletDate());
         List<PhoneSaleExtendShuhe> phoneSaleExtendShuhes = phoneSaleExtendShuheMapper.selectByExample(shuheExample);
-        if(phoneSaleExtendShuhes.size()>0){
+        if (phoneSaleExtendShuhes.size() > 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
 
         Result result = addShuHeLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
-        if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
 
@@ -777,30 +777,30 @@ public class PushDataServiceImpl implements PushDataService {
         phoneSaleExtendShuhe.setLocalId(localFile.getId());
         phoneSaleExtendShuhe.setpId(phoneSale.getId());
         phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,localFile.getId().toString());
+        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
 
         removeHaluoLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
-    private Result addShuHeLock(String apiCode,String custNum,String status){
+    private Result addShuHeLock(String apiCode, String custNum, String status) {
         String key = RedisKeyConstant.shuhePushDx.concat(":")
                 .concat(apiCode).concat(":")
                 .concat(custNum);
         Long setnx = redisChgService.setnx(key, status, 3);
         //已经被其他数据抢占锁了
-        if(setnx.equals(0L)){
+        if (setnx.equals(0L)) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void removeHaluoLock(String apiCode,String custNum,String status){
+    private void removeHaluoLock(String apiCode, String custNum, String status) {
         String key = RedisKeyConstant.shuhePushDx.concat(":")
                 .concat(apiCode).concat(":")
                 .concat(custNum);
         String s = redisChgService.get(key);
-        if(status.equals(s)){
+        if (status.equals(s)) {
             redisChgService.del(key);
         }
     }
