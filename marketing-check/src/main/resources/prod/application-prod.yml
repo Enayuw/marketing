@@ -104,7 +104,7 @@ api:
   halo:
     openUrl: https://open.hellobike.com/openapi
     appKey: brgroup-pnPnzgxf
-    appSecret: 9c07d3b9923d4269bb8da6a6963fcd27
+    secret: 9c07d3b9923d4269bb8da6a6963fcd27
     method: hello.finance.loan.marketing.callback
     isProxy: true
 spring:
