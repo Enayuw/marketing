@@ -22,6 +22,9 @@ public enum ServiceResultEnum {
     SUCCESS_4("100004", "此配置已存在!"),
     AUTH_FAILED_ERROR_HEADER("200001", "权限名不能以*开头"),
     AUTH_FAILED_ERROR_PARAM("200003", "参数错误"),
+    AUTH_CHECK_CODE_ERROR("200004", "验证码错误"),
+    AUTH_LOGIN_PASS_ERROR("200005", "用户名或者密码错误"),
+
 
     //访问成功业务自定义通用状态
     SUCCESS_5("05", "服务开小差了"),

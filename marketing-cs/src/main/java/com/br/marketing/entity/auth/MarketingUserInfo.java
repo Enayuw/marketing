@@ -73,6 +73,23 @@ public class MarketingUserInfo {
      */
     private Date updateTime;
 
+    public MarketingUserInfo(MarketingUserInfo user) {
+        this.id = user.getId();
+        this.password = user.getPassword();
+        this.realName = user.getRealName();
+        this.phone = user.getPhone();
+        this.email = user.getEmail();
+        this.userName = user.getUserName();
+        this.remark = user.getRemark();
+        this.status = user.getStatus();
+        this.createTime = user.getCreateTime();
+        this.createUserId = user.getCreateUserId();
+        this.updateTime = user.getUpdateTime();
+        this.updateUserId = user.getUpdateUserId();
+    }
+
+    public MarketingUserInfo() {
+    }
     public Integer getId() {
         return id;
     }

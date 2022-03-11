@@ -7,6 +7,7 @@ import com.br.marketing.mapper.auth.MarketingRoleResourceMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingRoleService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * @Date 2022/3/10 11:41 AM
  * ------------------------------
  */
+@Service
 public class MarketingRoleServiceImpl implements MarketingRoleService {
     @Resource
     private MarketingRoleMapper marketingRoleMapper;
