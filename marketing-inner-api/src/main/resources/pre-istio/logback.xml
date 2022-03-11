@@ -41,6 +41,8 @@
     </appender>
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="RollingFile"/>
+    </appender>
+    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 
@@ -52,5 +54,6 @@
     <root>
         <level value="${LOG_LEVEL}"/>
         <appender-ref ref="ASYNC"/>
+        <appender-ref ref="ASYNC_ERROR"/>
     </root>
 </configuration>
