@@ -2,6 +2,8 @@ package com.br.marketing.entity.auth;
 
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class MarketingUserInfo {
     /**
@@ -74,6 +76,10 @@ public class MarketingUserInfo {
      */
     private Date updateTime;
 
+    private String roleIds;
+
+    private List<Map<String, Object>> roles;
+
     public MarketingUserInfo(MarketingUserInfo ucUser) {
         this.id = ucUser.getId();
         this.password = ucUser.getPassword();
@@ -87,6 +93,22 @@ public class MarketingUserInfo {
     }
     public MarketingUserInfo() {
 
+    }
+
+    public List<Map<String, Object>> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Map<String, Object>> roles) {
+        this.roles = roles;
+    }
+
+    public String getRoleIds() {
+        return roleIds;
+    }
+
+    public void setRoleIds(String roleIds) {
+        this.roleIds = roleIds;
     }
 
     public Integer getId() {

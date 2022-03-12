@@ -25,6 +25,12 @@ public enum ServiceResultEnum {
     AUTH_CHECK_CODE_ERROR("200004", "验证码错误"),
     AUTH_LOGIN_PASS_ERROR("200005", "用户名或者密码错误"),
 
+    AUTH_PASSWD_ERROR("200006", "密码错误"),
+
+    AUTH_USER_INVALID_SESSION_ERROR("200006", "session过期"),
+
+    AUTH_USER_REPEAT("200007", "帐号已存在！！"),
+
 
     //访问成功业务自定义通用状态
     SUCCESS_5("05", "服务开小差了"),

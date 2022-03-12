@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.entity.auth.LoginReqObj;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.auth.MarketingUserInfoService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +32,23 @@ public class MarketingAuthController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
         return marketingUserInfoService.login(request,reqObj);
-
+    }
+    /**
+     * 获取用户信息
+     *
+     */
+    @GetMapping
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<MarketingUserDetail> auth(HttpServletRequest request) {
+      return marketingUserInfoService.auth(request);
+    }
+    /**
+     * 登出111
+     *
+     */
+    @GetMapping(value = "/loginOut")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> loginOut(HttpServletRequest request) {
+       return  marketingUserInfoService.logOut(request);
     }
 }

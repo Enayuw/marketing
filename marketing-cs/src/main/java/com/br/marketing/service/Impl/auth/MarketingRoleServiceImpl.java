@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.auth;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingRoleResourceMapper;
@@ -129,6 +130,12 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
         MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
         marketingRoleExample.createCriteria().andStatusEqualTo(1);
         return marketingRoleMapper.selectByExample(marketingRoleExample);
+    }
+
+    @Override
+    public ApiResult<List<MarketingRole>> selectRoleListBySearch(String createStart, String createEnd, String updateStart, String updateEnd, String key) {
+
+        return null;
     }
 
 
