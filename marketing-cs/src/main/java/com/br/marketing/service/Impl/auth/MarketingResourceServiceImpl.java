@@ -38,9 +38,9 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
         //递归删除子菜单
         recursiveDeleteResource(id);
     }
+
     /**
      * 递归删除子菜单
-     *
      */
     private void recursiveDeleteResource(Integer resourceId) {
         //查询当前菜单的子菜单
@@ -65,11 +65,12 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
      */
     @Override
     public List<MarketingResource> getResourcesByUid(Integer id) {
-        return  marketingResourceMapper.getResourcesByUid(id);
+        return marketingResourceMapper.getResourcesByUid(id);
     }
 
     /**
      * 保存系统资源
+     *
      * @param resource resource
      */
     @Override
@@ -157,6 +158,7 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
         Collections.sort(resultList);
         return resultList;
     }
+
     private ResourceTreeBean parseResource(MarketingResource resource) {
         Map<String, Object> attr = new HashMap<>();
         attr.put("type", resource.getType());

@@ -3,10 +3,10 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TableCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.EntityOptLog;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
@@ -63,7 +63,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, UserDetail user) {
+    public ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, MarketingUserDetail user) {
         //新增、变更，还需要记录变更日志，加个日志表
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         marketingCustomer.setMessage(vo.getMessage()!=null?vo.getMessage():"");
@@ -107,8 +107,8 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             content.append("【shortName】=【"+customerOld.getShortName()+"】"+"->【"+marketingCustomer.getShortName()+"】,");
 
             entityOptLog.setContent(content.toString());
-            entityOptLog.setOptUserId(user.getUserId());
-            entityOptLog.setOptUserName(user.getUsername());
+            entityOptLog.setOptUserId(String.valueOf(user.getId()));
+            entityOptLog.setOptUserName(user.getUserName());
             /*entityOptLog.setOptUserId("xxx");
             entityOptLog.setOptUserName("xxxx");*/
             entityOptLog.setCreateTime(new Date());

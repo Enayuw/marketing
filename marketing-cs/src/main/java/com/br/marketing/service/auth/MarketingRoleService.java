@@ -1,6 +1,5 @@
 package com.br.marketing.service.auth;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.br.marketing.entity.auth.MarketingRole;
 
 import java.util.List;
@@ -30,22 +29,7 @@ public interface MarketingRoleService {
      */
     void updateRole(MarketingRole role);
 
-    /**
-     * 根据参数查询角色表
-     *
-     * @param page
-     * @param createStart
-     * @param createEnd
-     * @param updateStart
-     * @param updateEnd
-     * @param key
-     * @return
-     */
-    Page<MarketingRole> getList(Page<MarketingRole> page, String createStart, String createEnd, String updateStart, String updateEnd, String key);
-
     List<MarketingRole> selectList(String ids);
-
-    void updateById(MarketingRole role);
 
     void deleteUserRoleByRid(Integer id);
 
@@ -55,4 +39,6 @@ public interface MarketingRoleService {
     boolean checkName(Integer id, String roleName);
 
     Boolean deleteByIds(String ids);
+
+    List<MarketingRole> selectRoleList();
 }

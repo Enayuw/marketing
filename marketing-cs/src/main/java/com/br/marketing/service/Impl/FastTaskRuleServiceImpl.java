@@ -6,8 +6,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.FastTaskRuleService;
 import com.br.marketing.vo.*;
@@ -81,7 +81,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     @Transactional
-    public ApiResult<Boolean> save(FastTaskRuleDetailVO vo, UserDetail userDetail) {
+    public ApiResult<Boolean> save(FastTaskRuleDetailVO vo, MarketingUserDetail userDetail) {
         String[] split = vo.getRuleIds().split(",");
         Integer i = 1;
         String dataCondition = getDataCondition(vo.getDataIdDesc());
@@ -114,8 +114,8 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             fastTaskRule.setTaskType(scoreRuleConfig.getTaskType());
 
             fastTaskRule.setStatus(1);
-            fastTaskRule.setOptId(userDetail.getUserId());
-            fastTaskRule.setOptName(userDetail.getUsername());
+            fastTaskRule.setOptId(String.valueOf(userDetail.getId()));
+            fastTaskRule.setOptName(userDetail.getUserName());
             fastTaskRule.setIsDel(1);
             fastTaskRule.setCreateTime(new Date());
             fastTaskRule.setUpdateTime(new Date());
@@ -214,14 +214,14 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
     }
 
     @Override
-    public boolean updateStatusById(String id, Integer status,UserDetail userDetail) {
+    public boolean updateStatusById(String id, Integer status,MarketingUserDetail userDetail) {
         try {
             FastTaskRule fastTaskRule = new FastTaskRule();
             fastTaskRule.setId(Long.parseLong(id));
             fastTaskRule.setStatus(status);
             fastTaskRule.setUpdateTime(new Date());
-            fastTaskRule.setOptId(userDetail.getUserId());
-            fastTaskRule.setOptName(userDetail.getUsername());
+            fastTaskRule.setOptId(String.valueOf(userDetail.getId()));
+            fastTaskRule.setOptName(userDetail.getUserName());
             fastTaskRuleMapper.updateByPrimaryKeySelective(fastTaskRule);
             return true;
         }catch (Exception e){
@@ -232,7 +232,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
     }
 
     @Override
-    public ApiResult<Boolean> update(String id,String ruleName, String taskTime, UserDetail user) {
+    public ApiResult<Boolean> update(String id,String ruleName, String taskTime, MarketingUserDetail user) {
         try {
             FastTaskRule fastTaskRule = new FastTaskRule();
             fastTaskRule.setId(Long.parseLong(id));
@@ -240,8 +240,8 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             fastTaskRule.setTaskTime(taskTime);
             fastTaskRule.setStatus(1);
             fastTaskRule.setUpdateTime(new Date());
-            fastTaskRule.setOptId(user.getUserId());
-            fastTaskRule.setOptName(user.getUsername());
+            fastTaskRule.setOptId(String.valueOf(user.getId()));
+            fastTaskRule.setOptName(user.getUserName());
             fastTaskRuleMapper.updateByPrimaryKeySelective(fastTaskRule);
             return new ApiResult<Boolean>().success(true);
         }catch (Exception e){

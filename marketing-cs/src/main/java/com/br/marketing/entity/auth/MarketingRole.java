@@ -1,6 +1,5 @@
 package com.br.marketing.entity.auth;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.util.Date;

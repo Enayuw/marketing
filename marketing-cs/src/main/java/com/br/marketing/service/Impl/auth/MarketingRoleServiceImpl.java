@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.auth;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingRoleResourceMapper;
@@ -62,10 +61,7 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
         }
     }
 
-    @Override
-    public Page<MarketingRole> getList(Page<MarketingRole> page, String createStart, String createEnd, String updateStart, String updateEnd, String key) {
-        return null;
-    }
+
 
     @Override
     public List<MarketingRole> selectList(String ids) {
@@ -76,12 +72,6 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
         return marketingRoleMapper.selectByExample(marketingRoleExample);
     }
 
-    @Override
-    public void updateById(MarketingRole role) {
-
-    }
-
-    @Override
     public void deleteUserRoleByRid(Integer id) {
         MarketingUserInfoRoleExample marketingUserInfoRoleExample = new MarketingUserInfoRoleExample();
         marketingUserInfoRoleExample.createCriteria().andRoleIdEqualTo(id);
@@ -117,22 +107,28 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
     @Override
     public Boolean deleteByIds(String ids) {
         if (StringUtils.isNotBlank(ids)) {
-            //MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
-            //String[] split = ids.split(",");
-            //List<Integer> collect = Arrays.stream(split).map(Integer::parseInt).collect(Collectors.toList());
-            //marketingRoleExample.createCriteria().andIdIn(collect);
-            //List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
-            //marketingRoleMapper.updateByPrimaryKeySelective(marketingRoles);
-            //for (MarketingRole role : marketingRoles) {
-            //    role.setStatus(0);
-            //    role.setUpdateTime(new Date());
-            //    //更新角色表角色的状态--删除
-            //    marketingRoleService.updateById(role);
-            //    //更新用户-角色表之间的关联关系
-            //    marketingRoleService.deleteUserRoleByRid(role.getId());
-            }
+            MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
+            String[] split = ids.split(",");
+            List<Integer> collect = Arrays.stream(split).map(Integer::parseInt).collect(Collectors.toList());
+            marketingRoleExample.createCriteria().andIdIn(collect);
+            List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
+            for (MarketingRole role : marketingRoles) {
+                role.setStatus(0);
+                role.setUpdateTime(new Date());
+                //更新角色表角色的状态--删除
+                marketingRoleMapper.updateByPrimaryKeySelective(role);
+                //更新用户-角色表之间的关联关系
+                deleteUserRoleByRid(role.getId())
+;            }
         }
         return null;
+    }
+
+    @Override
+    public List<MarketingRole> selectRoleList() {
+        MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
+        marketingRoleExample.createCriteria().andStatusEqualTo(1);
+        return marketingRoleMapper.selectByExample(marketingRoleExample);
     }
 
 

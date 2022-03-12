@@ -218,7 +218,15 @@
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map" >
+    <select id="selectUserInfo" resultType="com.br.marketing.entity.auth.MarketingUserInfo">
+      select
+      <include refid="Base_Column_List" />
+      from b_marketing_userinfo
+      <if test="_parameter != null" >
+        <include refid="Example_Where_Clause" />
+      </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map" >
     update b_marketing_userinfo
     <set >
       <if test="record.id != null" >

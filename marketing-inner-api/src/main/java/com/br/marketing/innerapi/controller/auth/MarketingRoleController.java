@@ -55,18 +55,6 @@ public class MarketingRoleController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> delete(String ids) {
        return new ApiResult<Boolean>().success( marketingRoleService.deleteByIds(ids));
-        if (StringUtils.isNotBlank(ids)) {
-            List<MarketingRole> marketingRoles = marketingRoleService.selectList(ids);
-            for (MarketingRole role : marketingRoles) {
-                role.setStatus(0);
-                role.setUpdateTime(new Date());
-                //更新角色表角色的状态--删除
-                marketingRoleService.updateById(role);
-                //更新用户-角色表之间的关联关系
-                marketingRoleService.deleteUserRoleByRid(role.getId());
-            }
-        }
-        return new ApiResult<Boolean>().success();
     }
 
 

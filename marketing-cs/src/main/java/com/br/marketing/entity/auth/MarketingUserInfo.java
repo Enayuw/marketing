@@ -1,5 +1,6 @@
 package com.br.marketing.entity.auth;
 
+
 import java.util.Date;
 
 public class MarketingUserInfo {
@@ -73,23 +74,21 @@ public class MarketingUserInfo {
      */
     private Date updateTime;
 
-    public MarketingUserInfo(MarketingUserInfo user) {
-        this.id = user.getId();
-        this.password = user.getPassword();
-        this.realName = user.getRealName();
-        this.phone = user.getPhone();
-        this.email = user.getEmail();
-        this.userName = user.getUserName();
-        this.remark = user.getRemark();
-        this.status = user.getStatus();
-        this.createTime = user.getCreateTime();
-        this.createUserId = user.getCreateUserId();
-        this.updateTime = user.getUpdateTime();
-        this.updateUserId = user.getUpdateUserId();
+    public MarketingUserInfo(MarketingUserInfo ucUser) {
+        this.id = ucUser.getId();
+        this.password = ucUser.getPassword();
+        this.realName = ucUser.getRealName();
+        this.phone = ucUser.getPhone();
+        this.email = ucUser.getEmail();
+        this.userName = ucUser.getUserName();
+        this.remark = ucUser.getRemark();
+        this.status = ucUser.getStatus();
+        this.apiCode = ucUser.getApiCode();
+    }
+    public MarketingUserInfo() {
+
     }
 
-    public MarketingUserInfo() {
-    }
     public Integer getId() {
         return id;
     }

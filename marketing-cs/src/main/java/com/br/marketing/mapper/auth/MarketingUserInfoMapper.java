@@ -28,4 +28,6 @@ public interface MarketingUserInfoMapper {
     int updateByPrimaryKeySelective(MarketingUserInfo record);
 
     int updateByPrimaryKey(MarketingUserInfo record);
+
+    MarketingUserInfo selectUserInfo(MarketingUserInfoExample marketingUserInfoExample);
 }

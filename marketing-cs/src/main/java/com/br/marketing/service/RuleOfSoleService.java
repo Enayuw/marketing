@@ -2,7 +2,8 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
@@ -39,7 +40,7 @@ public interface RuleOfSoleService {
      * @param status
      * @return
      */
-    boolean updateStatusById(String id, Integer status,UserDetail user);
+    boolean updateStatusById(String id, Integer status, MarketingUserDetail user);
 
     /**
      * 变更记录查看
@@ -53,7 +54,7 @@ public interface RuleOfSoleService {
      * @param vo
      * @return
      */
-    ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail);
+    ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, MarketingUserDetail userDetail);
 
     /**
      * 查看去重规则

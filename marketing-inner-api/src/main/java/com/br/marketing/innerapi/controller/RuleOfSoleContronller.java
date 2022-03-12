@@ -4,7 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.MarketingCustomerVO;
@@ -122,7 +122,7 @@ public class RuleOfSoleContronller {
     public ApiResult<Boolean> saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
         //获取用户上下文
         try {
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             return ruleOfSoleService.saveOrUpdate(vo,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
@@ -154,7 +154,7 @@ public class RuleOfSoleContronller {
     public ApiResult<Boolean> updateStatusById(String id,Integer status){
         //查询
         try {
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             boolean flag = ruleOfSoleService.updateStatusById(id,status,user);
             if(flag){
                 return new ApiResult<Boolean>().success(true,"操作成功！");
