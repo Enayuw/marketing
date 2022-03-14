@@ -45,7 +45,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-//import com.br.common.util.BrExecutors;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {
@@ -60,37 +59,34 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
     private String appName;
     @Value("${otherConfig.warning.path:00}")
     private String path;
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
-    @Autowired
+    @Resource
     MarketingSyncInfoMapper syncInfoMapper;
 
-    @Autowired
+    @Resource
     MarketingUserMapper marketingUserMapper;
 
-    @Autowired
-    GroupStrategyConfigMapper groupStrategyConfigMapper;
-
-    @Autowired
+    @Resource
     MarketingTaskMapper marketingTaskMapper;
 
-    @Autowired
+    @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
     @Autowired
     RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     TaskBatchnumberPreMapper taskBatchnumberPreMapper;
 
-    @Autowired
+    @Resource
     LoanFileMapper loanFileMapper;
 
-    @Autowired
+    @Resource
     TaskStatusMapper taskStatusMapper;
 
-    @Autowired
+    @Resource
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     private final static String redisElasticJobKey = "elasticjob:contextid";
@@ -120,13 +116,13 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         return redisChgService.incr(redisElasticJobKey);
     }
 
-    @Autowired
+    @Resource
     MarketingSyncUserMapper marketingSyncUserMapper;
 
-    @Autowired
+    @Resource
     FastFileRelationMapper fastFileRelationMapper;
 
-    @Autowired
+    @Resource
     FastTaskRuleMapper fastTaskRuleMapper;
 
     @Override
@@ -274,6 +270,7 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                 boolean execMark = true;
                 int currentPage = 1;
                 Integer taskNum = 0;
+                String separator=marketingSepService.querySepByApiCode(apiCode);
                 String filePath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
                         .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
                 while (execMark&& TaskExecCommonField.isBuildTaskJob.equals(1)) {
@@ -291,7 +288,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         continue;
                     }
                     if(isToFile){
-                        String separator=marketingSepService.querySepByApiCode(apiCode);
                         dataToFile(syncUserByRuleScore,baseHeadConfigVO,threadPool,filePath,currentPage,separator);
                     }else {
                         dataToDB(syncUserByRuleScore,apiCode,batchNumber,baseHeadConfigVO,threadPool);
@@ -445,6 +441,51 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         });
     }
 
+    /**
+     * 线程内进行数据筛选
+     * @param syncUserByRuleScore
+     * @param apiCode
+     * @param batchNumber
+     * @param baseHeadConfigVO
+     * @param threadPool
+     * @param userTypes
+     * @param appletDate
+     */
+    private void dataToDB(List<MarketingSyncUser> syncUserByRuleScore, String apiCode, String batchNumber, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool,List<String> userTypes,String appletDate,AtomicInteger preNum) {
+        threadPool.submit(() -> {
+            try {
+                if (!TaskExecCommonField.isBuildTaskJob.equals(1)) {
+                    return;
+                }
+                Integer len = 0;
+                for (MarketingSyncUser syncUser : syncUserByRuleScore) {
+                    if(!(userTypes.contains(syncUser.getUserType()) && appletDate.equals(syncUser.getAppletDate()))){
+                        continue;
+                    }
+                    JSONObject extendJson = getCustomerHead(syncUser, baseHeadConfigVO);
+                    String s = LocalDateTime.now().format(ymdhms);
+                    // api_code,batch_number,cus_num,cell,create_time,update_time,decodeFailType,status,extend_json
+                    String dataSql = String.format("('%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s','%s','%s')"
+                            , apiCode, batchNumber, syncUser.getCustNum()
+                            , syncUser.getCell()
+                            , StringUtils.isBlank(syncUser.getIdCard()) ? "" : syncUser.getIdCard()
+                            , StringUtils.isBlank(syncUser.getName()) ? "" : syncUser.getName(), s, s
+                            , syncUser.getFailType() == null ? "" : syncUser.getFailType()
+                            , syncUser.getStatus()
+                            , JSON.toJSONString(extendJson)
+                            , syncUser.getCusBatch()
+                            , syncUser.getUserType());
+                    marketingUserMapper.insertByRequestId(apiCode, dataSql);
+                    marketingSyncUserMapper.updateSyncUserStatus(apiCode, syncUser.getId(), 2);
+                    len++;
+                }
+                preNum.getAndAdd(len);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        });
+    }
+
     private void dataToDB(MarketingSyncUser syncUser, String apiCode, String batchNumber, BaseHeadConfigVO baseHeadConfigVO) {
         try {
             JSONObject extendJson = getCustomerHead(syncUser, baseHeadConfigVO);
@@ -465,7 +506,6 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        ;
     }
 
     /**
@@ -505,6 +545,57 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                         fw.append(sb).append("\r\n");
                     }
                 }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        });
+    }
+
+    /**
+     * 线程内进行数据筛选
+     * @param syncUserByRuleScore
+     * @param baseHeadConfigVO
+     * @param threadPool
+     * @param filePath
+     * @param currentPage
+     * @param sep
+     * @param userTypes
+     * @param appletDate
+     */
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep,List<String> userTypes,String appletDate,AtomicInteger preNum) {
+
+        File writeName = new File(filePath );
+        if (!writeName.exists()) {
+            writeName.mkdirs();
+        }
+        threadPool.submit(()->{
+            File file1 = new File(filePath + "/" + currentPage + ".txt");
+            try(Writer fw = new BufferedWriter(
+                    new OutputStreamWriter(
+                            new FileOutputStream(file1), "UTF-8"));) {
+                Integer len = 0;
+                for (MarketingSyncUser syncUser : syncUserByRuleScore) {
+
+                    if(!(userTypes.contains(syncUser.getUserType()) && appletDate.equals(syncUser.getAppletDate()))){
+                        continue;
+                    }
+                    //region 用户上传表头配置处理
+                    if (baseHeadConfigVO != null) {
+                        JSONObject extendJson = getCustomerHead(syncUser, baseHeadConfigVO);
+                        StringBuilder sb = new StringBuilder();
+                        for (String s : baseHeadConfigVO.getShowBaseHead()) {
+                            String ss = extendJson.getString(s);
+                            if (StringUtils.isNotBlank(ss)) {
+                                sb.append(ss).append(sep);
+                            } else {
+                                sb.append(sep);
+                            }
+                        }
+                        fw.append(sb).append("\r\n");
+                        len++;
+                    }
+                }
+                preNum.getAndAdd(len);
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
@@ -1168,17 +1259,20 @@ public class ApiToDbServiceImpl  implements IApiToDbService {
                     Long maxId = marketingSyncUserMapper.maxId(apiCode, s, dataType, userTypes);
                     BaseHeadConfigVO headvo = baseHeadConfigVO;
                     String number = batchNumber;
+                    String separator=marketingSepService.querySepByApiCode(apiCode);
+                    Integer currentPage = 1;
+                    String filePath=path.concat("/").concat(Constants.monitorTypeMap.get("1").concat("/").concat(apiCode).concat("/")
+                            .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0"));
                     while (minId <= maxId) {
                         Long nowMaxId = minId + 5000;
                         Long nowMinId = minId;
-                        threadPool.submit(() -> {
-                            List<MarketingSyncUser> users = marketingSyncUserMapper.getUserById(apiCode, nowMinId, nowMaxId, dataType);
-                            List<MarketingSyncUser> canUsers = users.stream().filter(t -> userTypes.contains(t.getUserType()) && s.equals(t.getAppletDate())).collect(Collectors.toList());
-                            preNum.getAndAdd(canUsers.size());
-                            for (MarketingSyncUser canUser : canUsers) {
-                                dataToDB(canUser, apiCode, number, headvo);
-                            }
-                        });
+                        List<MarketingSyncUser> users = marketingSyncUserMapper.getUserById(apiCode, nowMinId, nowMaxId, dataType);
+                        if(rule.getTaskType().equals(new Integer(1))){
+                            dataToFile(users,headvo,threadPool,filePath,currentPage,separator,userTypes,s,preNum);
+                        }else{
+                            dataToDB(users,apiCode,number,headvo,threadPool,userTypes,s,preNum);
+                        }
+                        currentPage++;
                         minId = nowMaxId + 1;
                     }
                 }
