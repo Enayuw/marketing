@@ -213,6 +213,11 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         return  new ApiResult<Boolean>().success();
     }
 
+    @Override
+    public MarketingUserInfo getById(Integer id) {
+        return marketingUserInfoMapper.selectByPrimaryKey(id);
+    }
+
     private ApiResult<Boolean> updateUserRole(MarketingUserInfo marketingUserInfo) {
         if (StringUtils.isNotBlank(marketingUserInfo.getRoleIds())) {
             String[] roleId = marketingUserInfo.getRoleIds().split(",");

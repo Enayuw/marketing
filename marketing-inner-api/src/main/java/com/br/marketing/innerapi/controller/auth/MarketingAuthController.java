@@ -43,7 +43,7 @@ public class MarketingAuthController {
       return marketingUserInfoService.auth(request);
     }
     /**
-     * 登出111
+     * 登出
      *
      */
     @GetMapping(value = "/loginOut")

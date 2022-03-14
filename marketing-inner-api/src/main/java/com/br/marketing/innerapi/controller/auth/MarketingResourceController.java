@@ -91,22 +91,6 @@ public class MarketingResourceController {
     public ApiResult<MarketingResource> getResourceById(Integer resourceId) {
         return new ApiResult<MarketingResource>().success(marketingResourceService.selectById(resourceId));
     }
-    ///**
-    // * 获取所有资源名称
-    // *
-    // * @param
-    // * @return
-    // */
-    //@GetMapping("/getTitles")
-    //@PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    //public ApiResult getOneTitles() {
-    //List<MarketingResource>  marketingResourcesList  =   marketingResourceService.selectMaps();
-    //    List<Map<String, Object>> maps = resourceService.selectMaps(new EntityWrapper<Resource>()
-    //            .setSqlSelect("id as resourceId , name as resourceName").eq("type", 1)
-    //            .eq("isDelete", 0));
-    //    maps.add(Constants.KEY_RESOUTCE_MAP);
-    //    return respJson(CodeEnum.SUCC, maps);
-    //}
 
     /**
      * 检查正则合法性

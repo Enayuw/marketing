@@ -1,12 +1,10 @@
 package com.br.marketing.innerapi.controller.auth;
 
-import cn.hutool.http.server.HttpServerRequest;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
@@ -44,8 +42,6 @@ public class MarketingUserInfoController {
     /**
      * 获取所有角色
      *
-     * @param
-     * @return
      */
     @GetMapping("/getAllRole")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -66,8 +62,6 @@ public class MarketingUserInfoController {
     /**
      * 保存用户
      *
-     * @param user
-     * @return
      */
     @GetMapping("/save")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -79,8 +73,6 @@ public class MarketingUserInfoController {
     /**
      * 校验用户名是否存在
      *
-     * @param username
-     * @return
      */
     @GetMapping("/checkName")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -91,8 +83,6 @@ public class MarketingUserInfoController {
     /**
      * 删除用户
      *
-     * @param ids
-     * @return
      */
     @GetMapping("/delete")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -103,8 +93,6 @@ public class MarketingUserInfoController {
     /**
      * 更新用户
      *
-     * @param user
-     * @return
      */
     @GetMapping("/update")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -113,34 +101,19 @@ public class MarketingUserInfoController {
         return marketingUserInfoService.updateMarketingUserInfo(userDetail, user);
     }
 
-    ///**
-    // * 获取用户信息
-    // *
-    // * @param id
-    // * @return
-    // */
-    //@GetMapping("/getById")
-    //@PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    //public String getUserById(Integer id) {
-    //
-    //    //查询用户基本信息
-    //    User user = userService.selectOne(new EntityWrapper<User>().eq("id", id));
-    //    if (user != null) {
-    //        user.setPassword(null);
-    //        if (StringUtils.isBlank(user.getEmail())) {
-    //            user.setEmail(null);
-    //        }
-    //        userService.getUserById(user);
-    //        return respJson(CodeEnum.SUCC, user);
-    //    }
-    //    return respJson(CodeEnum.PARAM_ERROR);
-    //}
+    /**
+     * 获取用户信息
+     *
+     */
+    @GetMapping("/getById")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<MarketingUserInfo> getUserById(Integer id) {
+        return new ApiResult<MarketingUserInfo>().success(marketingUserInfoService.getById(id));
+    }
 
     /**
      * 校验旧密码
      *
-     * @param passwordReq
-     * @return
      */
     @PostMapping("/ajaxCheckOldPwd")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
@@ -159,8 +132,6 @@ public class MarketingUserInfoController {
     /**
      * 修改登录密码
      *
-     * @param passwordReq
-     * @return
      */
     @PostMapping("/updatePassword")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
