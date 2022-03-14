@@ -1,5 +1,6 @@
 package com.br.marketing.client.haier;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
@@ -7,6 +8,7 @@ import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.client.haier.output.ResultQueryDTO;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.HaierData;
@@ -102,9 +104,12 @@ public class HaierServiceClient {
         List<Long> ids = haierReqDTO.getIds();
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
-        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
+//        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
+        if(log.isWarnEnabled()){
+            log.warn(String.format("推送海尔数据：%s",JSON.toJSONString(formData)));
+        }
         PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
-        log.warn("&&发送内容：[{}]", pushDTO);
+//        log.warn("&&发送内容：[{}]", pushDTO);
         final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {

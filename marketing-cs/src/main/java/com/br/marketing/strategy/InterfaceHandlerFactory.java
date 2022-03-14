@@ -1,8 +1,12 @@
 package com.br.marketing.strategy;
 
+import com.br.marketing.common.enums.AssembleTransferEnum;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.AssembleDataWithSyncUser;
 import com.br.marketing.rule.InterfaceParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -46,14 +51,16 @@ import java.util.*;
 public class InterfaceHandlerFactory implements ApplicationContextAware {
 
 
-
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
 
 
     /**
      * 从应用上下文中处理封装获取三方接口 map <具体的接口枚举值,接口对象>
-     *     {1:ArtificialBlackListHandler,4:CustomerTransferHandler}
+     * {1:ArtificialBlackListHandler,4:CustomerTransferHandler}
      */
     private static Map<Integer, AbstractExternalInterfaceHandler> externalInterfaceHandlerMap = new HashMap<>();
 
@@ -77,9 +84,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          *  1、不同的接口调用不同的三方接口类
          */
         try {
-            externalInterfaceHandlerMap.get(enumFlag).call(list,marketingTransferInfo);
+            externalInterfaceHandlerMap.get(enumFlag).call(list, marketingTransferInfo);
         } catch (Exception e) {
-            log.error("调用三方接口处理异常 -- ",e);
+            log.error("调用三方接口处理异常 -- ", e);
         }
 
     }
@@ -87,6 +94,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     public Map<Integer, List<InterfaceParams>> assembleData(String apiCode, List<MarketingTransferSyncUser> transferList) {
 
         Map<Integer, List<InterfaceParams>> map = new HashMap();
+
+        Map<String, MarketingSyncUser> custMaps = null;
+
         HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
         /**
          * 1、获取 apiCode获取所需的规则匹配方法
@@ -94,7 +104,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         List<AssembleData> assembleDataList = new ArrayList<>();
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerRuleMapping.get(apiCode))){
+            if (assembleData.label().startsWith(customerRuleMapping.get(apiCode))) {
                 assembleDataList.add(assembleData);
             }
         }
@@ -106,14 +116,36 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          */
         for (MarketingTransferSyncUser transferSyncUser : transferList) {
             for (AssembleData assembleData : assembleDataList) {
-                if (assembleData.isNeedAssemble(transferSyncUser)){
-                    InterfaceParams interfaceParam = assembleData.assemble(transferSyncUser);
-                    List<InterfaceParams> array = map.get(assembleData.dataDirection());
-                    if (CollectionUtils.isEmpty(array)){
+                InterfaceParams interfaceParam = null;
+                if (AssembleTransferEnum.WITHSYNCUSER.equals(assembleData.interfaceType())) {
+                    if (custMaps == null) {
+                        Set<String> custNums = transferList.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+                        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, custNums);
+                        custMaps = preUserByTask.stream().collect(
+                                Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                        , Collectors.collectingAndThen(
+                                                Collectors.reducing((v1, v2) ->
+                                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                                , Optional::get)));
+                    }
+                    MarketingSyncUser marketingSyncUser = custMaps.get(transferSyncUser.getCustNum());
+                    AssembleDataWithSyncUser<?> assembleWithUser = (AssembleDataWithSyncUser<?>) assembleData;
+                    //注意 方法内部处理 marketingSyncUser为null的情况
+                    if (assembleWithUser.isNeedAssemble(transferSyncUser, marketingSyncUser)) {
+                        interfaceParam = assembleWithUser.assemble(transferSyncUser, marketingSyncUser);
+                    }
+                } else if (AssembleTransferEnum.DEFAULT.equals(assembleData.interfaceType())) {
+                    if (assembleData.isNeedAssemble(transferSyncUser)) {
+                        interfaceParam = assembleData.assemble(transferSyncUser);
+                    }
+                }
+                List<InterfaceParams> array = map.get(assembleData.dataDirection());
+                if (interfaceParam != null) {
+                    if (CollectionUtils.isEmpty(array)) {
                         array = new ArrayList<>();
                         array.add(interfaceParam);
-                        map.put(assembleData.dataDirection(),array);
-                    }else {
+                        map.put(assembleData.dataDirection(), array);
+                    } else {
                         array.add(interfaceParam);
                     }
                 }
