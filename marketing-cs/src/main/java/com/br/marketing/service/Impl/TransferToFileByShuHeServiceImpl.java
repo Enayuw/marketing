@@ -92,7 +92,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     private final static String EXTENSION = ".txt";
     private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
-            ",loginTime,clc_usr_fst_log_tim_all,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
+            ",loginTime,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
             ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,insertime";
 
     static {
