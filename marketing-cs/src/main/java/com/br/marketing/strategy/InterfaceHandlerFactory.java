@@ -1,13 +1,11 @@
 package com.br.marketing.strategy;
 
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.OriginData;
+import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -15,8 +13,10 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * code is far away from bug with the animal protecting
@@ -64,7 +64,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     /**
      * 应用上下文中获取所有实现OriginData数据来源处理类
      */
-    private static Map<Integer, OriginData> originDataMap = new HashMap<>();
+    private static Map<Integer, OriginDataService> originDataMap = new HashMap<>();
 
 
     @Override
@@ -74,7 +74,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
         assembleDataMap = applicationContext.getBeansOfType(AssembleData.class);
 
-        Map<String, OriginData> dataMap = applicationContext.getBeansOfType(OriginData.class);
+        Map<String, OriginDataService> dataMap = applicationContext.getBeansOfType(OriginDataService.class);
         dataMap.values().forEach(originData -> originDataMap.put(originData.source().getCode(), originData));
     }
 
@@ -90,7 +90,8 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
     }
 
-    public Map<Integer, List<InterfaceParams>> assembleData(List<TransmitFact> facts, List<AssembleData> assembleDataList) {
+    public Map<Integer, List<InterfaceParams>> assembleData(List<TransmitFact> facts, List<AssembleData> assembleDataList,
+                                                            ProcessHandlerContext context) {
 
         Map<Integer, List<InterfaceParams>> map = new HashMap();
 
@@ -102,8 +103,8 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          */
         for (TransmitFact transmitFact : facts) {
             for (AssembleData assembleData : assembleDataList) {
-                if (assembleData.isNeedAssemble(transmitFact)){
-                    InterfaceParams interfaceParam = assembleData.assemble(transmitFact);
+                if (assembleData.isNeedAssemble(transmitFact,context)){
+                    InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
                     List<InterfaceParams> array = map.get(assembleData.dataDirection());
                     if (CollectionUtils.isEmpty(array)){
                         array = new ArrayList<>();
@@ -119,22 +120,22 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
     }
 
-    public Map<Integer, List<InterfaceParams>> collectAndAssembleData(MqFact mqFact, ProcessHandlerContext processHandlerContext) {
+    public Map<Integer, List<InterfaceParams>> collectAndAssembleData(MqFact mqFact, ProcessHandlerContext context) {
 
-        OriginData originData = originDataMap.get(mqFact.getSource());
+        OriginDataService originData = originDataMap.get(mqFact.getSource());
         /**
          * 1、根据不同数据来源收集数据信息
          */
-        List<TransmitFact> transmitFacts = originData.collect(mqFact, processHandlerContext);
+        List<TransmitFact> transmitFacts = originData.collect(mqFact, context);
 
         /**
          * 2、根据不同数据来源 匹配出要执行的规则
          */
-        List<AssembleData> assembleDataList = originData.patternMatch(mqFact, processHandlerContext);
+        List<AssembleData> assembleDataList = originData.patternMatch(mqFact, context);
 
         /**
-         * 组装数据
+         * 3、组装数据
          */
-        return assembleData(transmitFacts,assembleDataList);
+        return assembleData(transmitFacts,assembleDataList,context);
     }
 }

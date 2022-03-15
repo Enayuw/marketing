@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -41,7 +42,7 @@ import org.springframework.util.StringUtils;
 public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
-    public ConversionData assemble(TransmitFact transmitFact) {
+    public ConversionData assemble(TransmitFact transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
@@ -58,7 +59,7 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
     }
 
     @Override
-    public boolean isNeedAssemble(TransmitFact transmitFact) {
+    public boolean isNeedAssemble(TransmitFact transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
         /**
          * 失效数据需要转化

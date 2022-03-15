@@ -1,8 +1,10 @@
 package com.br.marketing.origin.impl;
 
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.*;
@@ -13,10 +15,8 @@ import com.br.marketing.strategy.InterfaceHandlerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -45,7 +45,7 @@ import java.util.List;
  */
 
 @Service
-public class MarketingTransferDataImpl implements OriginData {
+public class MarketingTransferDataImpl implements OriginDataService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -59,14 +59,18 @@ public class MarketingTransferDataImpl implements OriginData {
     @Resource
     MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+
     @Override
     public List<TransmitFact> collect(MqFact mqFact, ProcessHandlerContext context) {
 
         List<TransmitFact> list = new ArrayList<>();
         // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
-        List<MarketingTransferInfo> transferInfos = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(mqFact.getTransferInfoId());
+        List<MarketingTransferInfo> transferInfos = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(mqFact.getSourceId());
         MarketingTransferInfo transferInfo = transferInfos.get(0);
-        transferInfo.setId(mqFact.getTransferInfoId());
+        transferInfo.setId(mqFact.getSourceId());
 
 
         /**
@@ -83,6 +87,19 @@ public class MarketingTransferDataImpl implements OriginData {
         for (MarketingTransferSyncUser transferSyncUser : transferList) {
             list.add(new TransmitFact(transferSyncUser));
         }
+
+        Set<String> set = transferList.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(transferInfo.getApiCode(), set);
+        Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
+                Collectors.groupingBy(MarketingSyncUser::getCustNum
+                        , Collectors.collectingAndThen(
+                                Collectors.reducing((v1, v2) ->
+                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                , Optional::get)));
+        /**
+         * 将查询信息放入全局上下文中
+         */
+        context = new ProcessHandlerContext(transferInfo.getApiCode(),transferInfo.getId(),collect);
         return list;
     }
 

@@ -35,12 +35,12 @@ import java.util.Set;
 public class MqFact extends InterfaceParams {
 
     /**
-     *  b_marketing_transfer_info 数据表中主键id
+     *  mq中数据id
      */
-    private Long transferInfoId;
+    private Long sourceId;
 
     /**
-     *  消息来源
+     *  消息来源 数据来源于 TransferSource枚举类
      */
     private Integer source;
 
@@ -48,5 +48,5 @@ public class MqFact extends InterfaceParams {
      * 数据需要执行的规则，非静置数据该字段为空
      */
 
-    private Set<String> needExecuteRules;
+    private Set<String> includeRules;
 }

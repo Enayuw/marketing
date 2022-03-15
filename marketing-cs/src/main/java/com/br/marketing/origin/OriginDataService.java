@@ -30,7 +30,7 @@ import java.util.List;
  * @Author : jilong.xu
  * @Date : Create in 2022/3/12 14:54
  */
-public interface OriginData {
+public interface OriginDataService {
 
     List<TransmitFact> collect(MqFact mqFact, ProcessHandlerContext context);
 

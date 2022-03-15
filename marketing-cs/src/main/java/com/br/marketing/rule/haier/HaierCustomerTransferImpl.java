@@ -6,8 +6,9 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.ProcessHandlerContext;
+import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.rule.AssembleDataWithSyncUser;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -15,22 +16,19 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 
 @Service
 @Slf4j
-public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<ConversionData> {
-
-    final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
-    public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
+    public boolean isNeedAssemble(TransmitFact fact, ProcessHandlerContext context) {
+        MarketingTransferSyncUser transferSyncUser = fact.getMarketingTransferSyncUser();
+        MarketingSyncUser syncUser = context.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
             if ("4".equals(transferSyncUser.getUserType())) {
                 return true;
@@ -52,7 +50,10 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
     }
 
     @Override
-    public ConversionData assemble(MarketingTransferSyncUser transferSyncUser, MarketingSyncUser syncUser) {
+    public ConversionData assemble(TransmitFact fact, ProcessHandlerContext context) {
+
+        MarketingTransferSyncUser transferSyncUser = fact.getMarketingTransferSyncUser();
+        MarketingSyncUser syncUser = context.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
             if (syncUser == null) {
                 log.error(String.format("海尔该转化数据没有匹配到原始上传数据 dataId:%d",transferSyncUser.getId()));
@@ -94,16 +95,6 @@ public class HaierCustomerTransferImpl implements AssembleDataWithSyncUser<Conve
             log.error(ex.getMessage(), ex);
         }
         return null;
-    }
-
-    @Override
-    public ConversionData assemble(MarketingTransferSyncUser transfer) {
-        return null;
-    }
-
-    @Override
-    public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser) {
-        return false;
     }
 
     @Override
