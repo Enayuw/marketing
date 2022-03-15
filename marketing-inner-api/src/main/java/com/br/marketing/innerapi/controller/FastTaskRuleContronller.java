@@ -4,8 +4,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.Marketing;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.FastTaskRuleService;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
@@ -75,7 +76,7 @@ public class FastTaskRuleContronller {
     public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo){
         //获取用户上下文
         try {
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             return fastTaskRuleService.save(vo,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
@@ -95,7 +96,7 @@ public class FastTaskRuleContronller {
                                      @RequestParam(required = false) String taskTime){
         //获取用户上下文
         try {
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             return fastTaskRuleService.update(id,ruleName,taskTime,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
@@ -127,7 +128,7 @@ public class FastTaskRuleContronller {
     public ApiResult<Boolean> updateStatusById(String id,Integer status){
         //查询
         try {
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             boolean flag = fastTaskRuleService.updateStatusById(id,status,user);
             if(flag){
                 return new ApiResult<Boolean>().success(true,"操作成功！");
