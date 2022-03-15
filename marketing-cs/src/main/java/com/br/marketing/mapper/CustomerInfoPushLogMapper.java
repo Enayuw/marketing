@@ -5,7 +5,6 @@ import com.br.marketing.vo.CustomerPushLogVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-
 import java.util.List;
 @Repository
 public interface CustomerInfoPushLogMapper extends CustomerInfoPushLogMapperBase{

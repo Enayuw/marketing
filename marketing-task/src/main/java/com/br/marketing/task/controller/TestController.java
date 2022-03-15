@@ -57,7 +57,7 @@ public class TestController {
 
     @GetMapping("/testSpeed")
     public String testSpeed(){
-        System.out.println(marketingCommonConfig.getPushHash());
+//        System.out.println(marketingCommonConfig.getPushHash());
         System.out.println(marketingCommonConfig.getApiCodeOfpushCustomer());
         System.out.println(marketingCommonConfig.getApiCodeOfpushHaluoByTransfer());
         return "";

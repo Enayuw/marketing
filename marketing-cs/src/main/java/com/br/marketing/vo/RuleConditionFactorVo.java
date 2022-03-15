@@ -1,6 +1,5 @@
 package com.br.marketing.vo;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 @Data

@@ -1,8 +1,6 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.SyncLog;
-import com.br.marketing.entity.SyncLogExample;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

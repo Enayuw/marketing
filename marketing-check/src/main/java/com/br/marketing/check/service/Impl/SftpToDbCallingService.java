@@ -157,14 +157,13 @@ public class SftpToDbCallingService {
      * @param threadPool 线程池对象
      */
     private void doThreadPoolProcess(LocalFile localFile, Function<TxtToDbDTO, Result> fuc, HashMap<Integer, String> address, Integer line, AtomicInteger errorMark, String row, ThreadPoolExecutor threadPool) {
-        String trim = row.trim();
         TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
         txtToDbDTO.setLine(line);
         txtToDbDTO.setApiCode(localFile.getApiCode());
         txtToDbDTO.setLocalId(localFile.getId());
-        txtToDbDTO.setContent(trim);
+        txtToDbDTO.setContent(row.trim());
         txtToDbDTO.setAddress(address);
-        if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+        if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(row.trim())) {
             if (line > 1) {
                 threadPool.submit(() -> {
                     Result apply = fuc.apply(txtToDbDTO);
@@ -218,7 +217,7 @@ public class SftpToDbCallingService {
     }
 
     private void sendEmailAlert(StringBuilder content) {
-        alarmClient.sendAlarm(content.toString(), "打回调数据sftp数据上传", appName, secretKey,
+        alarmClient.sendAlarm(content.toString(), "----拨打回调数据sftp数据上传", appName, secretKey,
                 Constants.sendCodeMap.get("uploadSuccess"));
     }
 

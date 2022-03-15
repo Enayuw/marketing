@@ -21,6 +21,21 @@ import java.util.Map;
 @Slf4j
 public class DateHelper {
 
+    public static final String SHORT_DATE_FORMAT = "yyyyMMdd";
+    public static final String LINE_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String SLASH_DATE_FORMAT = "yyyy/MM/dd";
+
+    public static final String SHORT_TIME_FORMAT = "HHmmss";
+    public static final String LINE_TIME_FORMAT = "HH-mm-ss";
+    public static final String SLASH_TIME_FORMAT = "HH/mm/ss";
+    public static final String COLON_TIME_FORMAT = "HH:mm:ss";
+
+    public static final String SHORT_DATE_TIME_FORMAT = "yyyyMMddHHmmss";
+    public static final String LINE_DATE_TIME_FORMAT = "yyyy-MM-dd-HH-mm-ss";
+    public static final String SLASH_DATE_TIME_FORMAT = "yyyy/MM/dd/HH/mm/ss";
+
+    public static final String LINE_DATE_COLON_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
     //key为正则 value为日期格式
     private static Map<String, String> PATTERNS = new HashMap();
 

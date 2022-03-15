@@ -55,6 +55,22 @@ public class MarketingCommonConfig {
     private HashSet<String> groupTypeSaMoye;
 
     /**
+     * 数禾apicode
+     */
+    private List<String> shuheApiCode;
+
+    /**
+     * 客户使用规则映射
+     */
+    private HashMap<String,String> customerRuleMapping;
+
+    /**
+     * 配置走通用流程apiCode
+     */
+    private List<String> universalProcessApiCode;
+
+
+    /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
      */
     private Map<String, String> shuHeTransferExtractDayMap;

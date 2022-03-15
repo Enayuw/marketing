@@ -11,7 +11,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.MarketingTaskExtendService;
-import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.ConfigByApiCodeVO;
@@ -21,7 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductResultByConfigSimpleServiceImpl implements IProductResultSimpleService {

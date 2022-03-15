@@ -5,9 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.SoleRuleConfig;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.*;
@@ -17,9 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class SoleDbStrategyImpl implements SoleStrategyService {

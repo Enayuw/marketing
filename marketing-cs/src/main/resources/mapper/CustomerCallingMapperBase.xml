@@ -6,6 +6,7 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="message" property="message" jdbcType="VARCHAR" />
     <result column="columns_detail" property="columnsDetail" jdbcType="VARCHAR" />
+    <result column="api_columns_detail" property="apiColumnsDetail" jdbcType="VARCHAR" />
     <result column="sftp_password" property="sftpPassword" jdbcType="VARCHAR" />
     <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
     <result column="conditions" property="conditions" jdbcType="VARCHAR" />
@@ -77,7 +78,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, message, columns_detail, sftp_password, extend_config_info, conditions,
+    id, api_code, message, columns_detail,api_columns_detail,sftp_password, extend_config_info, conditions,
     push_thread_num, push_type, push_url, sftp_path, sftp_name, status, update_time,
     create_time
   </sql>

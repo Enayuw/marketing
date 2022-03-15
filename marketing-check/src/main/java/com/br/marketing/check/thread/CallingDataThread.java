@@ -3,19 +3,21 @@ package com.br.marketing.check.thread;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.halo.send.HaloApiParam;
+import com.br.marketing.client.halo.send.HaloApiSend;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingPushLogMapper;
+import com.br.marketing.vo.HaloCallingDataVo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 
 /**
  * @author guangchao.zhang
@@ -26,7 +28,7 @@ import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 @Slf4j
 public class CallingDataThread implements Callable<String> {
 
-    private final List<CustomerCallingDialog> customerCallingDialogLists;
+    private final List<HaloCallingDataVo> haloCallingDataVoList;
 
     private final CustomerCallingDialogMapper customerCallingDialogMapper;
 
@@ -36,55 +38,94 @@ public class CallingDataThread implements Callable<String> {
 
     private final CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
+    private final CustomerCallingDataStatusMapper customerCallingDataStatusMapper;
 
-    public CallingDataThread(List<CustomerCallingDialog> customerCallingDialogLists,
+    private final String haloOpenUrl;
+
+    private final String haloAppKey;
+
+    private final String haloMethod;
+
+    private final String haloSecret;
+
+    private final boolean isProxy;
+
+    public CallingDataThread(List<HaloCallingDataVo> haloCallingDataVoList,
                              CustomerCallingDialogMapper customerCallingDialogMapper,
                              CustomerCalling customerCalling,
                              HttpProxyClient httpProxyClient,
-                             CustomerCallingPushLogMapper customerCallingPushLogMapper) {
-        this.customerCallingDialogLists = customerCallingDialogLists;
+                             CustomerCallingPushLogMapper customerCallingPushLogMapper,
+                             CustomerCallingDataStatusMapper customerCallingDataStatusMapper,
+                             String haloOpenUrl, String haloAppKey, String haloSecret,
+                             String method, boolean isProxy) {
+        this.haloCallingDataVoList = haloCallingDataVoList;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
         this.httpProxyClient = httpProxyClient;
         this.customerCallingPushLogMapper = customerCallingPushLogMapper;
+        this.customerCallingDataStatusMapper = customerCallingDataStatusMapper;
+        this.haloOpenUrl = haloOpenUrl;
+        this.haloAppKey = haloAppKey;
+        this.haloSecret = haloSecret;
+        this.haloMethod = method;
+        this.isProxy = isProxy;
     }
 
     @Override
     public String call() throws Exception {
         String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
-        log.warn("开始多线程调用第三方接口");
         sendPostRequest(requestId);
         return "success";
     }
 
-    private Consumer<? super CustomerCallingDialog> sendPostRequest(String requestId) {
+    private void sendPostRequest(String requestId) {
         JSONObject param = new JSONObject();
-        param.put("requestId", requestId);
         JSONArray dataItems = new JSONArray();
-        customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
+        param.put("openSerialNo", requestId);
+        haloCallingDataVoList.forEach(haloCallingDataVo -> dataItems.add(JSONObject.parse(toJson(haloCallingDataVo))));
         param.put("dataItems", dataItems);
-        log.warn("3用户发送数据：{}", param.toJSONString());
-        String extendConfigInfo = customerCalling.getExtendConfigInfo();
-        String pushUrl = customerCalling.getPushUrl().trim();
-        JSONObject extendConfigInfoJson = getJsonObject(extendConfigInfo);
-        JSONObject pushUrlJson = getJsonObject(pushUrl);
-        String sendUrl = pushUrlJson.getString("sendUrl");
-        Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
-        Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        boolean sendStatus = (boolean) result.get("result");
-        updateRequestId(requestId, sendStatus == true ? 1 : 0);
+        String result = sendRequest(param);
+        afterSendDoWork(requestId, result);
         savePushLog(requestId, param, result);
-        return null;
     }
 
-    private void savePushLog(String requestId, JSONObject param, Map<String, Object> result) {
+    private void afterSendDoWork(String requestId, String result) {
+        if (StringUtils.isNotBlank(result)) {
+            JSONObject resultJson = JSONObject.parseObject(result);
+            String subCode = resultJson.getString("subCode");
+            updateRequestId(requestId, "0".equals(subCode) ? 2 : 1);
+            if (!"0".equals(subCode)) {
+                String errorDescription = resultJson.getString("subMsg");
+                CustomerCallingDataStatus customerCallingDataStatus = new CustomerCallingDataStatus();
+                customerCallingDataStatus.setRequestId(requestId);
+                customerCallingDataStatus.setSendStatus(2);
+                customerCallingDataStatus.setDescription(errorDescription);
+                customerCallingDataStatus.setCreateTime(new Date());
+                customerCallingDataStatusMapper.insertSelective(customerCallingDataStatus);
+            }
+        }
+    }
+
+    private String sendRequest(JSONObject param) {
+        HaloApiParam haloApiParam = new HaloApiParam();
+        haloApiParam.httpProxyClient(httpProxyClient);
+        haloApiParam.openUrl(haloOpenUrl);
+        haloApiParam.appKey(haloAppKey);
+        haloApiParam.secret(haloSecret);
+        haloApiParam.method(haloMethod);
+        haloApiParam.param(param);
+        haloApiParam.isProxy(isProxy);
+        return HaloApiSend.post(haloApiParam);
+    }
+
+    private void savePushLog(String requestId, JSONObject param, String result) {
         JSONArray dataItems = param.getJSONArray("dataItems");
         Map<String, Object> map = new HashMap<>();
         map.put("requestId", requestId);
         map.put("params", param.toJSONString());
-        map.put("result", result.toString());
+        map.put("result", result);
         map.put("createTime", new Date());
-        map.put("sum",dataItems.size());
+        map.put("sum", dataItems.size());
         customerCallingPushLogMapper.insert(map);
         log.warn("拨打记录发送返回值：{}", result);
     }
@@ -98,9 +139,9 @@ public class CallingDataThread implements Callable<String> {
     }
 
     private void updateRequestId(String requestId, Integer sendStatus) {
-        List<Long> ids = customerCallingDialogLists
+        List<Long> ids = haloCallingDataVoList
                 .stream()
-                .map(CustomerCallingDialog::getId)
+                .map(HaloCallingDataVo::getId)
                 .collect(Collectors.toList());
         CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
         customerCallingDialogExample.createCriteria().andIdIn(ids);
@@ -108,6 +149,6 @@ public class CallingDataThread implements Callable<String> {
         customerCallingDialog.setRequestId(requestId);
         customerCallingDialog.setSendStatus(sendStatus);
         customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
-    }
 
+    }
 }

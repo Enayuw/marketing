@@ -1,6 +1,5 @@
 package com.br.marketing.client;
 
-import com.br.marketing.common.exception.strategy.LoanTaskException;
 import com.br.redisengin.MultiRedisClusterUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

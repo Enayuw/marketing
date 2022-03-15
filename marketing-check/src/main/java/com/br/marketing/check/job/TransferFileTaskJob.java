@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -38,8 +39,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     TransferFileTaskMapper transferFileTaskMapper;
 
     /*萨摩耶的实现*/
-    @Autowired
+    @Resource
     ITransferToFileService transferToFileBySamoyeServiveImpl;
+
+    /*哈罗的实现*/
+    @Resource
+    ITransferToFileService transferToFileByHaluoServiceImpl;
 
     @Autowired
     SftpInnerServiceImpl sftpInnerService;
@@ -96,6 +101,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
         if (customer.getShortName().contains("萨摩耶")) {
             return transferToFileBySamoyeServiveImpl;
+        }else if (customer.getShortName().contains("哈罗")) {
+            return transferToFileByHaluoServiceImpl;
         } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().contains(customer.getApiCode())) {
             return transferToFileByShuHeService;
         } else {

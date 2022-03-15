@@ -52,6 +52,7 @@ public class PushCustomerJob extends AbstractSimpleElasticJob {
     PushCustomerService pushCustomerService;
     @Resource
     CustomerMapper customerMapper;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Long start=System.currentTimeMillis();

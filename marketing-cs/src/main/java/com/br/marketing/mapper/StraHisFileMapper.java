@@ -5,7 +5,6 @@ import com.br.marketing.vo.TaskExtendInfoVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
 import java.util.List;
 @Repository
 public interface StraHisFileMapper extends StraHisFileMapperBase {
