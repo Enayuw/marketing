@@ -319,7 +319,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         reserveField1Json.getOrDefault("is_black", "") + separator +
                         (StringUtils.isEmpty(transferSyncUser.getLoginTime()) ? ""
                                 : transferSyncUser.getLoginTime()) + separator +
-                        reserveField1Json.getOrDefault("clc_usr_fst_log_tim_all", "") + separator +
+                        reserveField1Json.getOrDefault("clc_usr_lst_app_sta_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_pho_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_idt_tim", "") + separator +
                         reserveField1Json.getOrDefault("clc_usr_iso_crd_tim", "") + separator +
