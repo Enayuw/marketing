@@ -57,21 +57,21 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
      */
-    private Map<String, String> shuHeTransferDataExtractMap;
+    private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
-     * 数禾转化客户名称简称集合
+     * 数禾转化数据提取apiCode集合
      */
-    private String shuHeTransferShortName;
+    private List<String> shuHeTransferExtractApiCodes;
 
     /**
      * 数禾转化数据提取任务开始时间
      */
-    private String shuHeTransferJobStartTime;
+    private String shuHeTransferExtractJobStartTime;
 
     /**
      * 数禾转化数据提取任务是否使用准全量转化数据
      */
-    private Boolean shuHeTransferIfUseQuasiTotalQuantity;
+    private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
 }

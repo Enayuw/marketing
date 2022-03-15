@@ -108,7 +108,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         Result<List<TransferFileTask>> result = new Result<>();
         result.setDate(transferFileTaskList);
         result.setCode(ResultCode.SUCCESS.getValue());
-        String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferJobStartTime();
+        String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferExtractJobStartTime();
         LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
                 ? "06:00:00" : shuHeTransferJobStartTime);
 //        long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
@@ -117,7 +117,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 //            return result;
 //        }
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferDataExtractMap();
+        Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
         Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
         List<String> stringList = userTypes.parallelStream().map(s -> String.format(FILE_NAME_PART.getOrDefault(s
                 , "%s_".concat(s).concat("_%s%s")), apiCode, dateYyyyMmDdStr, EXTENSION)).collect(Collectors.toList());
@@ -218,7 +218,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         LocalDateTime first;
         // 前一天
         LocalDateTime last = LocalDateTime.now().minusDays(1);
-        Boolean bool = marketingCommonConfig.getShuHeTransferIfUseQuasiTotalQuantity();
+        Boolean bool = marketingCommonConfig.getShuHeTransferExtractIfUseQuasiTotalQuantity();
         if (bool != null && bool) {
             // 准全量时间开始时间
             if (transferFileTask.getFileType() == null) {
