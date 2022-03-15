@@ -1,9 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.MarketingSyncReport;
 
-import java.util.List;
 import java.util.Map;
 
 /**

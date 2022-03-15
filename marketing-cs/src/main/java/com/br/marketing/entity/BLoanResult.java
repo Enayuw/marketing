@@ -1,6 +1,5 @@
 package com.br.marketing.entity;
 
-import com.alibaba.excel.annotation.ExcelColumnNum;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.metadata.BaseRowModel;
 import lombok.Data;

@@ -1,7 +1,6 @@
 package com.br.marketing.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 
 public class PushInfoFilterDTO {

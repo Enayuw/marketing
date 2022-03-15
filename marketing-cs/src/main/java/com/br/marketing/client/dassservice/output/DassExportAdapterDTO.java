@@ -1,10 +1,9 @@
-package com.br.marketing.task.config;
+package com.br.marketing.client.dassservice.output;
 
-import com.br.speed.client.common.annotations.SpeedItem;
+import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import lombok.Data;
-import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.util.List;
 
 /**
  * code is far away from bug with the animal protecting
@@ -26,20 +25,21 @@ import java.util.Date;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- *
- * @Description : 商户、产品信息变动接收类
+ * @Description : 适配全局定时重试任务规则
  * ---------------------------------
- * @Author :
- * @Date : Create in 2018/8/1 10:36
+ * @Author : jilong.xu
+ * @Date : Create in 2022/3/2 20:06
  */
-
-@Service
 @Data
-public class AgentItem {
-    private String status;
+public class DassExportAdapterDTO {
 
-    @SpeedItem(key = "marketing-shutdown",topic = "compass_topic")
-    public String getStatus(){
-        return status;
+    private Long transferInfoId;
+
+    private List<BlackListDTO> list;
+
+    public DassExportAdapterDTO(){}
+
+    public DassExportAdapterDTO(List<BlackListDTO> blackListDTOS){
+        this.list = blackListDTOS;
     }
 }

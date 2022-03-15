@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
 
@@ -43,6 +44,8 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusIceThreadPool
 public class MarketingInnerApiApplication {
 
+
+    public static ConfigurableApplicationContext ac;
     /**
      * 启动入口
      *
@@ -52,7 +55,7 @@ public class MarketingInnerApiApplication {
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-inner-api开始启动！");
-        SpringApplication.run(MarketingInnerApiApplication.class, args);
+        ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
         log.warn("marketing-inner-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 

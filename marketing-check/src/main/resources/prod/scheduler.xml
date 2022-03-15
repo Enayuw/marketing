@@ -39,20 +39,20 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-<!--    <job:simple id="finishPutJob"-->
-<!--                class="com.br.marketing.check.job.FinishPutJob"-->
-<!--                cron="00 00 10 * * ?"-->
-<!--                description="推送finish文件"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="1"-->
-<!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
+    <!--    <job:simple id="finishPutJob"-->
+    <!--                class="com.br.marketing.check.job.FinishPutJob"-->
+    <!--                cron="00 00 10 * * ?"-->
+    <!--                description="推送finish文件"-->
+    <!--                registry-center-ref="regCenter"-->
+    <!--                sharding-total-count="1"-->
+    <!--                sharding-item-parameters="0=A"-->
+    <!--                monitor-execution="true"-->
+    <!--                failover="false"-->
+    <!--                misfire="false"-->
+    <!--                disabled="true"-->
+    <!--                overwrite="true"-->
+    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+    <!--    />-->
 
     <job:simple id="monitoringExpirationAlarmJob"
                 class="com.br.marketing.check.job.MonitoringExpirationAlarmJob"
@@ -293,18 +293,5 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="CallingBackInfoJob"
-                class="com.br.marketing.check.job.CallingBackInfoJob"
-                cron="0 0 0 1/1 * ?"
-                description="客服拨打明细发送给第三方回调信息处理"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+
 </beans>

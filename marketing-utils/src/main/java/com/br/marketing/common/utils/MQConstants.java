@@ -20,6 +20,7 @@ public class MQConstants {
 
     //异步处理人员入库的队列
     public static final String MARKETING_PRE_USER_RECEIVE = "Marketing_PreUser_Receive";
+    public static final String MARKETING_PRE_USER_SHUHERECEIVE = "Marketing_PreUser_ShuHeReceive";
     public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
     public static final String MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing_Transfer_Push_Customer";
     public static final String MARKETING_TRANSFER_PUSH_BLACK = "Marketing_Transfer_Push_Black";
@@ -34,6 +35,9 @@ public class MQConstants {
     public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
 
 
+    //通用转化处理队列
+    public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
+
     /**
      * routingkey
      */
@@ -42,6 +46,7 @@ public class MQConstants {
     public static final String CHECK_ROUTING_KEY = "checkRoutingKey";
 
     public static final String ROUTING_KEY_MARKETING_PRE_USER_RECEIVE = "Marketing.PreUser.Receive";
+    public static final String ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE = "Marketing.PreUser.ShuHeReceive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
     public static final String ROUTING_KEY_MARKETING_USER_RECEIVE = "Marketing.User.Receive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing.Transfer.Push.Customer";
@@ -53,5 +58,7 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_PUSH_BLACK = "Marketing.Push.Black";
     public static final String ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing.Push.Seven.FileTransfer";
     public static final String ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing.queue.push.transfer.haier";
+    //通用转化处理队列
+    public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
 
 }

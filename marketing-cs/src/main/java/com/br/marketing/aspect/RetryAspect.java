@@ -3,35 +3,23 @@ package com.br.marketing.aspect;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.annoation.RetryMethod;
-import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.RetryMainLogMapper;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.executable.ExecutableValidator;
 import java.lang.reflect.Method;
 import java.util.Date;
-import java.util.Set;
 
 @Aspect
 @Order(-995) // 异常处理之内

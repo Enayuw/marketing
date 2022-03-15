@@ -1,16 +1,9 @@
 package com.br.marketing.service.Impl;
 
-import java.io.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
-
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.BrCipherMaker;
-//import com.br.common.util.BrExecutors;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
@@ -22,7 +15,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.StrategyOfGroupDTO;
 import com.br.marketing.dto.TaskUserDataConditionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -30,32 +22,30 @@ import com.br.marketing.service.*;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.CustomerScoreRuleVO;
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+//import com.br.common.util.BrExecutors;
 
 @Service
 public class ApiToDbServiceImpl  implements IApiToDbService {

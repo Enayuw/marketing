@@ -1,7 +1,6 @@
 package com.br.marketing.client;
 
 import com.br.redisengin.MultiRedisClusterUtil;
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;

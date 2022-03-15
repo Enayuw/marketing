@@ -115,7 +115,8 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cust_num, id_card, name, cell, user_type, cus_batch
+        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        update_time,applet_date,applet_time
         from b_marketing_sync_${apiCode}
         <where>
             cust_num in
@@ -157,7 +158,7 @@
         <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
             #{taskId}
         </foreach>
-            and cust_num in
+        and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
@@ -197,6 +198,24 @@
         where cust_num = #{custNum}
           and user_type = #{userType}
         order by create_time desc limit 0,1
+    </select>
+
+    <select id="getCreatTimeByCustNumAndUserTypeList" resultType="java.util.Map">
+        select cust_num as custNum, create_time as createTime, cus_batch as taskId
+        from b_marketing_sync_${apiCode}
+        where
+        <choose>
+            <when test="custNums!=null and custNums.size()>0">
+                cust_num in
+                <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                    #{custNum}
+                </foreach>
+                and user_type = #{userType}
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

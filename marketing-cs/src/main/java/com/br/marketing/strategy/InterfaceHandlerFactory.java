@@ -1,0 +1,157 @@
+package com.br.marketing.strategy;
+
+import com.br.marketing.common.enums.AssembleTransferEnum;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferInfo;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.AssembleDataWithSyncUser;
+import com.br.marketing.rule.InterfaceParams;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * code is far away from bug with the animal protecting
+ * ┏┓　　　┏┓
+ * ┏┛┻━━━┛┻┓
+ * ┃　　　　　　　┃
+ * ┃　　　━　　　┃
+ * ┃　┳┛　┗┳　┃
+ * ┃　　　　　　　┃
+ * ┃　　　┻　　　┃
+ * ┃　　　　　　　┃
+ * ┗━┓　　　┏━┛
+ * 　　┃　　　┃神兽保佑
+ * 　　┃　　　┃代码无BUG！
+ * 　　┃　　　┗━━━┓
+ * 　　┃　　　　　　　┣┓
+ * 　　┃　　　　　　　┏┛
+ * 　　┗┓┓┏━┳┓┏┛
+ * 　　　┃┫┫　┃┫┫
+ * 　　　┗┻┛　┗┻┛
+ *
+ * @Description : 第三方接口代理工厂
+ * ---------------------------------
+ * @Author : jilong.xu
+ * @Date : Create in 2022/2/28 20:54
+ */
+
+@Component
+@Slf4j
+public class InterfaceHandlerFactory implements ApplicationContextAware {
+
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+
+    /**
+     * 从应用上下文中处理封装获取三方接口 map <具体的接口枚举值,接口对象>
+     * {1:ArtificialBlackListHandler,4:CustomerTransferHandler}
+     */
+    private static Map<Integer, AbstractExternalInterfaceHandler> externalInterfaceHandlerMap = new HashMap<>();
+
+
+    /**
+     * 应用上下文中获取所有实现AssembleData接口规则类
+     */
+    private static Map<String, AssembleData> assembleDataMap = new HashMap<>();
+
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        Map<String, AbstractExternalInterfaceHandler> handlerMap = applicationContext.getBeansOfType(AbstractExternalInterfaceHandler.class);
+        handlerMap.values().forEach(interfaceHandler -> externalInterfaceHandlerMap.put(interfaceHandler.handlerEnum().getCode(), interfaceHandler));
+
+        assembleDataMap = applicationContext.getBeansOfType(AssembleData.class);
+    }
+
+    public void handler(int enumFlag, List<InterfaceParams> list, MarketingTransferInfo marketingTransferInfo) {
+        /**
+         *  1、不同的接口调用不同的三方接口类
+         */
+        try {
+            externalInterfaceHandlerMap.get(enumFlag).call(list, marketingTransferInfo);
+        } catch (Exception e) {
+            log.error("调用三方接口处理异常 -- ", e);
+        }
+
+    }
+
+    public Map<Integer, List<InterfaceParams>> assembleData(String apiCode, List<MarketingTransferSyncUser> transferList) {
+
+        Map<Integer, List<InterfaceParams>> map = new HashMap();
+
+        Map<String, MarketingSyncUser> custMaps = null;
+
+        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
+        /**
+         * 1、获取 apiCode获取所需的规则匹配方法
+         */
+        List<AssembleData> assembleDataList = new ArrayList<>();
+        Collection<AssembleData> values = assembleDataMap.values();
+        for (AssembleData assembleData : values) {
+            if (assembleData.label().startsWith(customerRuleMapping.get(apiCode))) {
+                assembleDataList.add(assembleData);
+            }
+        }
+
+        /**
+         * 循环遍历所有详情数据，匹配该apiCode下所有匹配规则方法
+         * 生成所对应的接口处理handler枚举及数据
+         * map <具体的接口枚举,接口所需对应的参数类列表>
+         */
+        for (MarketingTransferSyncUser transferSyncUser : transferList) {
+            for (AssembleData assembleData : assembleDataList) {
+                InterfaceParams interfaceParam = null;
+                if (AssembleTransferEnum.WITHSYNCUSER.equals(assembleData.interfaceType())) {
+                    if (custMaps == null) {
+                        Set<String> custNums = transferList.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+                        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, custNums);
+                        custMaps = preUserByTask.stream().collect(
+                                Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                        , Collectors.collectingAndThen(
+                                                Collectors.reducing((v1, v2) ->
+                                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                                , Optional::get)));
+                    }
+                    MarketingSyncUser marketingSyncUser = custMaps.get(transferSyncUser.getCustNum());
+                    AssembleDataWithSyncUser<?> assembleWithUser = (AssembleDataWithSyncUser<?>) assembleData;
+                    //注意 方法内部处理 marketingSyncUser为null的情况
+                    if (assembleWithUser.isNeedAssemble(transferSyncUser, marketingSyncUser)) {
+                        interfaceParam = assembleWithUser.assemble(transferSyncUser, marketingSyncUser);
+                    }
+                } else if (AssembleTransferEnum.DEFAULT.equals(assembleData.interfaceType())) {
+                    if (assembleData.isNeedAssemble(transferSyncUser)) {
+                        interfaceParam = assembleData.assemble(transferSyncUser);
+                    }
+                }
+                List<InterfaceParams> array = map.get(assembleData.dataDirection());
+                if (interfaceParam != null) {
+                    if (CollectionUtils.isEmpty(array)) {
+                        array = new ArrayList<>();
+                        array.add(interfaceParam);
+                        map.put(assembleData.dataDirection(), array);
+                    } else {
+                        array.add(interfaceParam);
+                    }
+                }
+            }
+        }
+        return map;
+
+    }
+}

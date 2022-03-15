@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.vo.MarketingCustomerVO;
-import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
 
 import java.util.List;

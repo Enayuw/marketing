@@ -11,9 +11,9 @@ import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
 import com.github.pagehelper.PageHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,7 +1,5 @@
 package com.br.marketing.service;
 
-import java.util.Map;
-
 /**
  * Created by Bairong on 2020/7/11.
  * 报警&通知接口类
