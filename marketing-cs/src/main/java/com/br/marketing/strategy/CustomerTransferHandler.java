@@ -9,8 +9,8 @@ import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.origin.ProcessHandlerContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,7 +53,7 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @Override
-    public JSONObject call(List<ConversionData> transferList, MarketingTransferInfo transferInfo) {
+    public JSONObject call(List<ConversionData> transferList, ProcessHandlerContext context) {
 
         /**
          * 客服标准接口 每500条数据一个批次
@@ -70,9 +70,9 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
                 subList = transferList.subList((i - 1) * pageSize, pageSize * (i));
             }
 
-            robotOutboundDTO.setApiCode(transferInfo.getApiCode());
+            robotOutboundDTO.setApiCode(context.getApiCode());
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
-            robotOutboundDTO.setTransferInfoId(transferInfo.getId());
+            robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
             if("9999".equals(callCustomerTransfer(robotOutboundDTO).getCode())){
                 //调用客户转化接口失败，记录数据入库，定时任务重试
                 RetryMainLog mainLog = new RetryMainLog();

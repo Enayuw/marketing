@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.rabbitmq.consumer;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.strategy.InterfaceHandlerService;
@@ -124,8 +125,7 @@ public class ConsumerApp {
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE)}, containerFactory = "primaryContainerFactory")
     public void consumerUniversalTransfer(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
+        MqFact o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), MqFact.class);
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, null);
     }

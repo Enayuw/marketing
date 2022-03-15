@@ -1,8 +1,7 @@
-package com.br.marketing.strategy;
+package com.br.marketing.origin;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.origin.ProcessHandlerContext;
+
+import com.br.marketing.rule.AssembleData;
 
 import java.util.List;
 
@@ -26,20 +25,16 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 人工转化接口处理类
+ * @Description : 原始数据处理
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/2/28 18:11
+ * @Date : Create in 2022/3/12 14:54
  */
-public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<ConversionData>{
+public interface OriginData {
 
-    @Override
-    public JSONObject call(List<ConversionData> data, ProcessHandlerContext context) {
-        return null;
-    }
+    List<TransmitFact> collect(MqFact mqFact, ProcessHandlerContext context);
 
-    @Override
-    public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.ARTIFICIAL_TRANSFER;
-    }
+    TransferSource source();
+
+    List<AssembleData> patternMatch(MqFact mqFact, ProcessHandlerContext processHandlerContext);
 }

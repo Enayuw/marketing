@@ -97,6 +97,45 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 消费队列-通用转化队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE)
+    public Queue universalTransferQueue() {
+        return new Queue(MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE, true);
+    }
+
+    /**
+     * 延迟队列-通用转化队列延迟队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY)
+    public Queue universalTransferDelayQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
+        // x-message-ttl  声明队列的TTL
+        args.put("x-message-ttl", 3000);
+        return QueueBuilder.durable(MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY).withArguments(args).build();
+    }
+
+    /**
+     * 绑定死信交换机- 延迟队列通过死信交换机推送到延迟队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding universalTransferQueueBinding() {
+        return BindingBuilder.bind(universalTransferQueue())
+                .to(deadGateExchange())
+                .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
+    }
+
+    /**
      * 消费队列-推送智能客服
      *
      * @return

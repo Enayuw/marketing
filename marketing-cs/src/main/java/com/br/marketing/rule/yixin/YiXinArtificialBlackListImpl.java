@@ -2,6 +2,7 @@ package com.br.marketing.rule.yixin;
 
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> {
     @Override
-    public BlackListDTO assemble(MarketingTransferSyncUser transfer) {
+    public BlackListDTO assemble(TransmitFact transmitFact) {
+        MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
         BlackListDTO blackListDTO = new BlackListDTO();
         blackListDTO.setDataId(transfer.getId().toString());
         blackListDTO.setUid(transfer.getCustNum());
@@ -44,11 +46,12 @@ public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> 
     }
 
     @Override
-    public boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser) {
+    public boolean isNeedAssemble(TransmitFact transmitFact) {
+        MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
         /**
          * 失效数据需要转化
          */
-        return "0".equals(transferSyncUser.getCaseEffective());
+        return "0".equals(transfer.getCaseEffective());
     }
 
     @Override

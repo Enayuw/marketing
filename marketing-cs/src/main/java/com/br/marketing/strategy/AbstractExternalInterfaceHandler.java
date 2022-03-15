@@ -3,9 +3,9 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.entity.DataCompare;
-import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
+import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.InterfaceParams;
 
 import javax.annotation.Resource;
@@ -55,7 +55,7 @@ public abstract class AbstractExternalInterfaceHandler<T extends InterfaceParams
      * @param transferData 通过不同转化规则处理后的数据集合
      * @return
      */
-    abstract JSONObject call(List<T> transferData, MarketingTransferInfo marketingTransferInfo);
+    abstract JSONObject call(List<T> transferData, ProcessHandlerContext context);
 
     /**
      * 按照三方接口逻辑调用接口

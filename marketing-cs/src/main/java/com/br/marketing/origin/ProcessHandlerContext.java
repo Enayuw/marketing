@@ -1,10 +1,6 @@
-package com.br.marketing.strategy;
+package com.br.marketing.origin;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.origin.ProcessHandlerContext;
-
-import java.util.List;
+import lombok.Data;
 
 /**
  * code is far away from bug with the animal protecting
@@ -26,20 +22,15 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 人工转化接口处理类
+ * @Description : 从接收mq消息到处理过程，所需信息放在处理上下文中
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/2/28 18:11
+ * @Date : Create in 2022/3/12 16:26
  */
-public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<ConversionData>{
+@Data
+public class ProcessHandlerContext {
 
-    @Override
-    public JSONObject call(List<ConversionData> data, ProcessHandlerContext context) {
-        return null;
-    }
+    private String apiCode;
 
-    @Override
-    public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.ARTIFICIAL_TRANSFER;
-    }
+    private Long transferInfoId;
 }

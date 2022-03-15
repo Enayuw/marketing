@@ -9,9 +9,9 @@ import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.origin.ProcessHandlerContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -54,7 +54,7 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
-    public JSONObject call(List<BlackListDTO> transferList, MarketingTransferInfo marketingTransferInfo) {
+    public JSONObject call(List<BlackListDTO> transferList, ProcessHandlerContext context) {
         /**
          * 黑名单接口 每1000条数据一个批次
          */
@@ -70,7 +70,7 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
             }
 
             DassExportAdapterDTO dassExportAdapterDTO = new DassExportAdapterDTO(subList);
-            dassExportAdapterDTO.setTransferInfoId(marketingTransferInfo.getId());
+            dassExportAdapterDTO.setTransferInfoId(context.getTransferInfoId());
             if(!ResultCode.SUCCESS.getValue().equals(callBlackList(dassExportAdapterDTO).getCode())){
                 RetryMainLog mainLog = new RetryMainLog();
                 mainLog.setRetryType(1);

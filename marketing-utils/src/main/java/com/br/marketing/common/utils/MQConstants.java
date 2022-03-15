@@ -37,6 +37,7 @@ public class MQConstants {
 
     //通用转化处理队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
+    public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing_Universal_Transfer_Receive_Delay";
 
     /**
      * routingkey

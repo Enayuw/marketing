@@ -2,7 +2,9 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.ProcessHandlerContext;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -26,20 +28,21 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 人工转化接口处理类
+ * @Description : 消息延迟处理类
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/2/28 18:11
+ * @Date : Create in 2022/3/14 10:56
  */
-public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<ConversionData>{
 
+@Service
+public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
     @Override
-    public JSONObject call(List<ConversionData> data, ProcessHandlerContext context) {
+    JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
         return null;
     }
 
     @Override
-    public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.ARTIFICIAL_TRANSFER;
+    InterfaceHandlerEnum handlerEnum() {
+        return InterfaceHandlerEnum.MESSAGE_DELAY;
     }
 }

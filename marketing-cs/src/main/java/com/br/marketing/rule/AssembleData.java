@@ -1,12 +1,12 @@
 package com.br.marketing.rule;
 
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.TransmitFact;
 
 public interface AssembleData<T extends InterfaceParams> {
 
-    T assemble(MarketingTransferSyncUser transferSyncUser);
+    T assemble(TransmitFact transmitFact);
 
-    boolean isNeedAssemble(MarketingTransferSyncUser transferSyncUser);
+    boolean isNeedAssemble(TransmitFact transmitFact);
 
     String label();
 

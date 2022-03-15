@@ -1,10 +1,7 @@
-package com.br.marketing.strategy;
+package com.br.marketing.origin;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.origin.ProcessHandlerContext;
-
-import java.util.List;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import lombok.Data;
 
 /**
  * code is far away from bug with the animal protecting
@@ -26,20 +23,20 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 人工转化接口处理类
+ * @Description : 不同数据来源对象封装到 统一对象上，便于参数传输
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/2/28 18:11
+ * @Date : Create in 2022/3/12 15:28
  */
-public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<ConversionData>{
 
-    @Override
-    public JSONObject call(List<ConversionData> data, ProcessHandlerContext context) {
-        return null;
-    }
+@Data
+public class TransmitFact {
 
-    @Override
-    public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.ARTIFICIAL_TRANSFER;
+    private MarketingTransferSyncUser marketingTransferSyncUser;
+
+    public TransmitFact(){}
+
+    public TransmitFact(MarketingTransferSyncUser transferSyncUser){
+        this.marketingTransferSyncUser = transferSyncUser;
     }
 }

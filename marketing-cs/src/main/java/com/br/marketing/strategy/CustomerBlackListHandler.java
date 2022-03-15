@@ -2,7 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.entity.MarketingTransferInfo;
+import com.br.marketing.origin.ProcessHandlerContext;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import java.util.List;
 public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<ConversionData>{
 
     @Override
-    public JSONObject call(List<ConversionData> data, MarketingTransferInfo marketingTransferInfo) {
+    public JSONObject call(List<ConversionData> data, ProcessHandlerContext context) {
         return null;
     }
 
