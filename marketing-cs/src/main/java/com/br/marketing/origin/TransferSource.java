@@ -29,7 +29,10 @@ package com.br.marketing.origin;
  */
 public enum TransferSource {
 
-    UNIVERSAL_TRANSFER_PROCESS(1, "通用转化流程");
+    UNIVERSAL_TRANSFER_PROCESS(1, "通用转化流程"),
+    CUSTOMER_DIAL_PROCESS(2, "客服拨打流程"),
+    Origin_DATA_UPLOAD_PROCESS(3, "原始数据上传流程"),
+    ARTIFICIAL_DIAL_PROCESS(4, "人工拨打流程");
 
     TransferSource(Integer code, String name) {
         this.code = code;

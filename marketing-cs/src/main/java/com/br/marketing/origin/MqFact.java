@@ -49,4 +49,9 @@ public class MqFact extends InterfaceParams {
      */
 
     private Set<String> includeRules;
+
+    /**
+     *  mq中消息内容
+     */
+    private String message;
 }
