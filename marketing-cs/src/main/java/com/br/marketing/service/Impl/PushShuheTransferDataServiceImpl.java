@@ -172,6 +172,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         user.setJsonData(jsonData);
         user.setApiCode(apiCode);
         user.setErrorInfo("#5".concat(e.toString()));
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
         if (jsonDTO != null) {
             user.setMobile(jsonDTO.getMobile());
             user.setBiztype(jsonDTO.getBizType());
@@ -199,6 +201,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         caseShuheUser.setBiztype(jsonDTO.getBizType());
         caseShuheUser.setErrorInfo("#4" + caseShuheUser.getErrorInfo() + (";").concat(msg));
         caseShuheUser.setIsTransfer(isTransfer);
+        caseShuheUser.setCreateTime(new Date());
+        caseShuheUser.setUpdateTime(new Date());
         caseShuheUserMapper.insertSelective(caseShuheUser);
     }
 
