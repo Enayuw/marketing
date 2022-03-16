@@ -64,9 +64,9 @@ public class MarketingTransferDataImpl implements OriginDataService {
 
 
     @Override
-    public List<TransmitFact> collect(MqFact mqFact, ProcessHandlerContext context) {
+    public List<Object> collect(MqFact mqFact, ProcessHandlerContext context) {
 
-        List<TransmitFact> list = new ArrayList<>();
+        List<Object> list = new ArrayList<>();
         // 1 根据保存到队列的ID查询记录对应的ApiCode、RequestId
         List<MarketingTransferInfo> transferInfos = marketingTransferInfoMapper.findApiCodeRequestIdByIdList(mqFact.getSourceId());
         MarketingTransferInfo transferInfo = transferInfos.get(0);
@@ -84,9 +84,7 @@ public class MarketingTransferDataImpl implements OriginDataService {
                 andRequestIdEqualTo(transferInfo.getRequestId());
         example.settCid(tcId);
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        for (MarketingTransferSyncUser transferSyncUser : transferList) {
-            list.add(new TransmitFact(transferSyncUser));
-        }
+
 
         Set<String> set = transferList.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
         List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(transferInfo.getApiCode(), set);
@@ -100,6 +98,8 @@ public class MarketingTransferDataImpl implements OriginDataService {
          * 将查询信息放入全局上下文中
          */
         context = new ProcessHandlerContext(transferInfo.getApiCode(),transferInfo.getId(),collect);
+
+        list.addAll(transferList);
         return list;
     }
 
