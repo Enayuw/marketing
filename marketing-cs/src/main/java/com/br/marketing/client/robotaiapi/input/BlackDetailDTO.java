@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class BlackDetailDTO extends InterfaceParams {
     /**
-     * 数据ID
+     * 数据ID(必传)
      */
     private String dataId;
 

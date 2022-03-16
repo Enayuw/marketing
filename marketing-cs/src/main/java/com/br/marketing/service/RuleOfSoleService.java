@@ -16,7 +16,7 @@ public interface RuleOfSoleService {
      * @param
      * @return
      */
-    PageResultReturn list(int page, int pageSize, String soleName, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd);
+    PageResultReturn list(int page, int pageSize, String soleName, Integer status, String apiCodes,String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd);
 
     /**
      * 判断规则名称是否重复

@@ -2,6 +2,8 @@ package com.br.marketing.rabbitmq;
 
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.origin.MqFact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -48,6 +50,33 @@ public class RabbitMqProducter {
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
         rabbitTemplate.convertAndSend(exchange,routeKey,message,arg0 -> {
 //            arg0.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            return arg0;
+        },correlationData);
+    }
+
+    /**
+     * 发送mq信息
+     * @param routeKey
+     * @param message
+     */
+    public void sendByExpiration(String routeKey,String message, String expireTime){
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
+        rabbitTemplate.convertAndSend(exchange,routeKey,message,arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            arg0.getMessageProperties().setExpiration(expireTime);
+            return arg0;
+        },correlationData);
+    }
+
+    /**
+     * 发送mq信息
+     * @param mqFact
+     */
+    public void sendToUniversalTransferQueue(MqFact mqFact){
+        String message = JSON.toJSONString(mqFact);
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
+        rabbitTemplate.convertAndSend(exchange, MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE,message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
         },correlationData);

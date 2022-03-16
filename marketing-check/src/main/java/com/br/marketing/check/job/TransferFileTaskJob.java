@@ -2,7 +2,6 @@ package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -15,18 +14,18 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -40,8 +39,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     TransferFileTaskMapper transferFileTaskMapper;
 
     /*萨摩耶的实现*/
-    @Autowired
+    @Resource
     ITransferToFileService transferToFileBySamoyeServiveImpl;
+
+    /*哈罗的实现*/
+    @Resource
+    ITransferToFileService transferToFileByHaluoServiceImpl;
 
     @Autowired
     SftpInnerServiceImpl sftpInnerService;
@@ -51,6 +54,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Autowired
     RetryMainLogMapper retryMainLogMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -92,6 +101,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
         if (customer.getShortName().contains("萨摩耶")) {
             return transferToFileBySamoyeServiveImpl;
+        }else if (customer.getShortName().contains("哈罗")) {
+            return transferToFileByHaluoServiceImpl;
+        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByShuHeService;
         } else {
             return null;
         }

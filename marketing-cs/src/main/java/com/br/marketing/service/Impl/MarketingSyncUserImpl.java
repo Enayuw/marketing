@@ -11,6 +11,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -35,9 +38,9 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day) {
+    public Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, Integer day) {
         final Date creatTime = getCreatTimeByCustNumAndUserType(apiCode, custNum, userType);
-        return isPeriodOfValidity(apiCode, custNum, userType, date, day, creatTime);
+        return isPeriodOfValidity(date, day, creatTime);
     }
 
     @Override
@@ -67,6 +70,33 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
+    public Boolean isPeriodOfValidity(Date date, Integer day, Date validityDate) {
+        final LocalDate localDate = (date == null ? LocalDate.now()
+                : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return false;
+        }
+        LocalDate creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate firstDate;
+        final LocalDate lastDate;
+        if (day == null) {
+            firstDate = creatDate;
+            lastDate = creatDate.with(TemporalAdjusters.lastDayOfMonth());
+        } else if (day == 0) {
+            firstDate = creatDate;
+            lastDate = creatDate;
+        } else if (day > 0) {
+            firstDate = creatDate;
+            lastDate = creatDate.plusDays(day);
+        } else {
+            lastDate = creatDate;
+            firstDate = creatDate.plusDays(day);
+        }
+        return (localDate.isAfter(firstDate) || localDate.isEqual(firstDate))
+                && (localDate.isBefore(lastDate) || localDate.isEqual(lastDate));
+    }
+
+    @Override
     public String getUserTypeLatestByCustNum(String apiCode, String custNum) {
         return marketingSyncInfoMapper.getUserTypeLatestByCustNum(apiCode, custNum);
     }
@@ -84,5 +114,11 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public Date getCreatTimeByCustNumAndUserType(String apiCode, String custNum, String userType) {
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserType(apiCode, custNum, userType);
+    }
+
+    @Override
+    public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
+            , String userType) {
+        return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
     }
 }

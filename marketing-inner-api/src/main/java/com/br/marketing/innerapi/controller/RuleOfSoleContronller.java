@@ -41,17 +41,28 @@ public class RuleOfSoleContronller {
 
     @ApiOperation(value = "去重规则列表",notes = "")
     @GetMapping("/list")
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @ApiImplicitParam(name = "soleName", value = "去重规则名称",paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "status", value = "状态",paramType = "query", dataType = "integer")
+            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "createTimeStart",value = "创建日期开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "createTimeEnd",value = "创建日期截止", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "updateTimeStart",value = "更新日期开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "updateTimeEnd",value = "更新日期截止", paramType = "query", dataType = "string")
+    })
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
                                             , @RequestParam(defaultValue = "10") int size
                                             , @RequestParam(required = false) String soleName
                                             , @RequestParam(required = false) Integer status
+                                            , @RequestParam(required = false) String apiCodes
                                             , @RequestParam(required = false) String createTimeStart
                                             , @RequestParam(required = false) String createTimeEnd
                                             , @RequestParam(required = false) String updateTimeStart
                                             , @RequestParam(required = false) String updateTimeEnd
                                             ){
         try {
-            PageResultReturn list = ruleOfSoleService.list(current, size,soleName,status,
+            PageResultReturn list = ruleOfSoleService.list(current, size,soleName,status,apiCodes,
                     createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
             return new ApiResult<PageResultReturn>().success(list);
         } catch (ParamValidErrorException ex) {

@@ -3,6 +3,9 @@ package com.br.marketing.service;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface IMarketingSyncUserService {
 
@@ -29,12 +32,12 @@ public interface IMarketingSyncUserService {
      * @param custNum  案件编号
      * @param userType 场景
      * @param date     比较的日期
-     * @param day      天的范围，+day 为T+day；-day 为T-day；0为T月底
+     * @param day      天的范围，+day 为T+day；-day 为T-day；null为T月底
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
-    Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day);
+    Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, Integer day);
 
     /**
      * 是否在有效期内
@@ -50,7 +53,22 @@ public interface IMarketingSyncUserService {
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
+    @Deprecated
     Boolean isPeriodOfValidity(String apiCode, String custNum, String userType, Date date, int day, Date validityDate);
+
+    /**
+     * 是否在有效期内
+     *
+     * @param date         比较的日期
+     * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
+     *                     null为{@code validityDate}月底
+     *                     0为{@code validityDate}当天
+     * @param validityDate 有效日期
+     * @return true or false ,在有效期间为true，否则为false
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/14 9:58
+     */
+    Boolean isPeriodOfValidity(Date date, Integer day, Date validityDate);
 
     /**
      * 根据案件编号获取客户最新的场景
@@ -94,9 +112,21 @@ public interface IMarketingSyncUserService {
      * @param apiCode  apiCode
      * @param custNum  案件编号
      * @param userType 场景
-     * @return AppletTime
+     * @return CreatTime
      * @author Guo Zeqiang
      * @dateTime 2022/2/18 10:52
      */
     Date getCreatTimeByCustNumAndUserType(String apiCode, String custNum, String userType);
+
+    /**
+     * 根据案件编号批量获取落库的创建时间
+     *
+     * @param apiCode  apiCode集合
+     * @param custNums 案件编号集合
+     * @param userType 场景
+     * @return key custNum,creatTime,taskId
+     * @author Guo Zeqiang
+     * @dateTime 2022/3/7 10:52
+     */
+    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums, String userType);
 }

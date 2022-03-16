@@ -9,4 +9,5 @@ public class ReqBlackPhoneParentDTO {
     private ReqBlackPhoneDTO dto;
     private String extendInfo;
     private List<BlackDetailDTO> blackDetailDTOList;
+    private Long transferInfoId;
 }
