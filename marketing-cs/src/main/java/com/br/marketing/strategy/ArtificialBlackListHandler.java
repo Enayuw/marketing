@@ -6,16 +6,19 @@ import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -46,6 +49,7 @@ import static java.util.stream.Collectors.toSet;
  * @Date : Create in 2022/2/28 18:12
  */
 @Service
+@Slf4j
 public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler<BlackListDTO>{
     @Resource
     private DassServiceClient dassServiceClient;
@@ -71,20 +75,8 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
 
             DassExportAdapterDTO dassExportAdapterDTO = new DassExportAdapterDTO(subList);
             dassExportAdapterDTO.setTransferInfoId(context.getTransferInfoId());
-            if(!ResultCode.SUCCESS.getValue().equals(callBlackList(dassExportAdapterDTO).getCode())){
-                RetryMainLog mainLog = new RetryMainLog();
-                mainLog.setRetryType(1);
-                mainLog.setRetryParam(JSON.toJSONString(dassExportAdapterDTO));
-                mainLog.setRetryParamType(dassExportAdapterDTO.getClass().getName());
-                mainLog.setRetryService("artificialBlackListHandler");
-                mainLog.setRetryMethod("callBlackList");
-                mainLog.setRetryNum(0);
-                mainLog.setRetryMaxNum(3);
-                mainLog.setRetryStatus(1);
-                mainLog.setCreateTime(new Date());
-                mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                retryMainLogMapper.insertSelective(mainLog);
-            }
+
+            callBlackList(dassExportAdapterDTO,0);
         }
 
         return null;
@@ -96,7 +88,8 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
      * @param dassExportAdapterDTO
      * @return
      */
-    public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO){
+    @RetryMethod
+    public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO,Integer retry){
         List<BlackListDTO> list = dassExportAdapterDTO.getList();
         Result<PushBlackListResponse> pushBlackListResponseResult = dassServiceClient.postBlackList(list);
         // 调用接口成功
@@ -113,7 +106,8 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
                 marketingSyncUserMapper.updateSyncUserCaseEffective(entry.getKey(),entry.getValue());
             }
         }
-        return pushBlackListResponseResult;
+        log.error("调用人工黑名单失败 -- {}",JSON.toJSONString(pushBlackListResponseResult));
+        return pushBlackListResponseResult.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     @Override

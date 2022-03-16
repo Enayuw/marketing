@@ -69,7 +69,7 @@ public class RetryAspect {
             try {
                 Object res=  jp.proceed();
                 if(res instanceof Result){
-                    Result<Boolean> res1 = (Result<Boolean>) res;
+                    Result res1 = (Result) res;
                     if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(res1.getCode())){
                         retryMainLogMapper.insertSelective(retryMainLog);
                     }
