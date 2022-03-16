@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +75,7 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
             ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
             parentDTO.setDto(dto);
             parentDTO.setBlackDetailDTOList(subList);
+            parentDTO.setTransferInfoId(context.getTransferInfoId());
             Result<String> callBalckResult = callCustomerBlack(parentDTO);
             if (!ResultCode.SUCCESS.getValue().equals(callBalckResult.getCode())) {
                 log.error(String.format("推送黑名单报错：%s", callBalckResult.getData()));
@@ -110,7 +110,7 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
         if ("00".equals(reqBlackPhoneVO.getCode()) && (reqBlackPhoneVO.getData() == null || reqBlackPhoneVO.getData().size() <= 0)) {
             Set<String> set = parentDTO.getBlackDetailDTOList().stream().map(BlackDetailDTO::getDataId).collect(Collectors.toSet());
-            saveBizLog(String.join(",", set), handlerEnum().getCode(), 0L);
+            saveBizLog(String.join(",", set), handlerEnum().getCode(), parentDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         if (("00".equals(reqBlackPhoneVO.getCode()) && reqBlackPhoneVO.getData() != null && reqBlackPhoneVO.getData().size() > 0)
