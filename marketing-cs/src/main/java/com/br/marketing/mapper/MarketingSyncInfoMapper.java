@@ -6,10 +6,12 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
@@ -102,7 +104,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/15 10:52
      */
-    String getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+    String getAppletTimeByCustNumAndUserType(@Param("apiCode") String apiCode
+            , @Param("custNum") String custNum, @Param("userType") String userType);
 
     /**
      * 获取案件编号的落库的创建时间
@@ -114,5 +117,21 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @author Guo Zeqiang
      * @dateTime 2022/2/18 10:52
      */
-    Date getCreatTimeByCustNumAndUserType(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("userType") String userType);
+    Date getCreatTimeByCustNumAndUserType(@Param("apiCode") String apiCode
+            , @Param("custNum") String custNum, @Param("userType") String userType);
+
+
+    /**
+     * 获取案件编号的落库的创建时间
+     *
+     * @param apiCode  apiCode
+     * @param custNums 案件编号集合
+     * @param userType 场景
+     * @return key custNum,creatTime,taskId
+     * @author Guo Zeqiang
+     * @dateTime 2022/3/7 10:52
+     */
+    @MapKey("custNum,creatTime,taskId")
+    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNums, @Param("userType") String userType);
 }
