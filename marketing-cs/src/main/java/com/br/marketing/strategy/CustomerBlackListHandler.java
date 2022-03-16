@@ -8,6 +8,7 @@ import com.br.marketing.client.robotaiapi.input.BlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -15,6 +16,7 @@ import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.origin.ProcessHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -79,23 +81,9 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
             parentDTO.setDto(dto);
             parentDTO.setBlackDetailDTOList(subList);
             parentDTO.setTransferInfoId(context.getTransferInfoId());
-            Result<String> callBalckResult = callCustomerBlack(parentDTO);
+            Result<String> callBalckResult = callCustomerBlack(parentDTO,0);
             if (!ResultCode.SUCCESS.getValue().equals(callBalckResult.getCode())) {
                 log.error(String.format("推送黑名单报错：%s", callBalckResult.getData()));
-                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(callBalckResult.getCode())) {
-                    RetryMainLog retryMainLog = new RetryMainLog();
-                    retryMainLog.setRetryType(1);
-                    retryMainLog.setRetryParam(JSON.toJSONString(parentDTO));
-                    retryMainLog.setRetryParamType(parentDTO.getClass().getName());
-                    retryMainLog.setRetryService("customerBlackListHandler");
-                    retryMainLog.setRetryMethod("callCustomerBlack");
-                    retryMainLog.setRetryNum(0);
-                    retryMainLog.setRetryMaxNum(3);
-                    retryMainLog.setRetryStatus(1);
-                    retryMainLog.setCreateTime(new Date());
-                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                    retryMainLogMapper.insertSelective(retryMainLog);
-                }
             }
 
         }
@@ -109,14 +97,15 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
      * @param parentDTO
      * @return
      */
-    private Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO) {
+    @RetryMethod
+    public Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO,Integer retry){
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
-        if ("00".equals(reqBlackPhoneVO.getCode()) && (reqBlackPhoneVO.getData() == null || reqBlackPhoneVO.getData().size() <= 0)) {
+        if ("00".equals(reqBlackPhoneVO.getCode()) && CollectionUtils.isEmpty(reqBlackPhoneVO.getData())) {
             Set<String> set = parentDTO.getBlackDetailDTOList().stream().map(BlackDetailDTO::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), handlerEnum().getCode(), parentDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        if (("00".equals(reqBlackPhoneVO.getCode()) && reqBlackPhoneVO.getData() != null && reqBlackPhoneVO.getData().size() > 0)
+        if (("00".equals(reqBlackPhoneVO.getCode()) && (!CollectionUtils.isEmpty(reqBlackPhoneVO.getData())))
                 || "9999".equals(reqBlackPhoneVO.getCode())) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
                     .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
