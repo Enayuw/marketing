@@ -8,14 +8,15 @@ import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.origin.ProcessHandlerContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
  */
 
 @Service
+@Slf4j
 public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<ConversionData> {
 
     @Resource
@@ -73,22 +75,8 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
             robotOutboundDTO.setApiCode(context.getApiCode());
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
             robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
-            if("9999".equals(callCustomerTransfer(robotOutboundDTO).getCode())){
-                //调用客户转化接口失败，记录数据入库，定时任务重试
-                RetryMainLog mainLog = new RetryMainLog();
-                mainLog.setRetryType(1);
-                mainLog.setRetryParam(JSON.toJSONString(robotOutboundDTO));
-                mainLog.setRetryParamType(robotOutboundDTO.getClass().getName());
-                mainLog.setRetryService("customerTransferHandler");
-                mainLog.setRetryMethod("callCustomerTransfer");
-                mainLog.setRetryNum(0);
-                mainLog.setRetryMaxNum(3);
-                mainLog.setRetryStatus(1);
-                mainLog.setCreateTime(new Date());
-                mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                retryMainLogMapper.insertSelective(mainLog);
-            }
 
+            callCustomerTransfer(robotOutboundDTO,0);
         }
         return null;
     }
@@ -99,14 +87,18 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
      * @param robotOutboundDTO
      * @return
      */
-    private TransferRobotOutboundVO<UnsuccessfulData> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO){
+    @RetryMethod
+    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO,Integer retry){
         TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
         if (!"9999".equals(transferRobotOutboundVO.getCode())){
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",",set),handlerEnum().getCode(),robotOutboundDTO.getTransferInfoId());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        return transferRobotOutboundVO;
+        log.error("调用客服接口失败 -- {}",JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.ProcessHandlerContext;

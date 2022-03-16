@@ -8,7 +8,6 @@ import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.client.haier.output.ResultQueryDTO;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.HaierData;
