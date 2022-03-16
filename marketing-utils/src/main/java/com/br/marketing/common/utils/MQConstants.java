@@ -61,5 +61,7 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing.queue.push.transfer.haier";
     //通用转化处理队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
+    //通用转化处理延迟队列
+    public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing.Universal.Transfer.Receive.Delay";
 
 }

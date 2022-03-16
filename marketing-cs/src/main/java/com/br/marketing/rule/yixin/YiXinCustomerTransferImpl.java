@@ -5,7 +5,6 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.ProcessHandlerContext;
-import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -42,8 +41,8 @@ import org.springframework.util.StringUtils;
 public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
-    public ConversionData assemble(TransmitFact transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
+    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -59,8 +58,8 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
     }
 
     @Override
-    public boolean isNeedAssemble(TransmitFact transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = transmitFact.getMarketingTransferSyncUser();
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         /**
          * 失效数据需要转化
          */

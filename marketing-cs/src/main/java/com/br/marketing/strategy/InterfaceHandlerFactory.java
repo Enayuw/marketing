@@ -3,7 +3,6 @@ package com.br.marketing.strategy;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.origin.ProcessHandlerContext;
-import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +89,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
     }
 
-    public Map<Integer, List<InterfaceParams>> assembleData(List<TransmitFact> facts, List<AssembleData> assembleDataList,
+    public Map<Integer, List<InterfaceParams>> assembleData(List<Object> facts, List<AssembleData> assembleDataList,
                                                             ProcessHandlerContext context) {
 
         Map<Integer, List<InterfaceParams>> map = new HashMap();
@@ -101,7 +100,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 生成所对应的接口处理handler枚举及数据
          * map <具体的接口枚举,接口所需对应的参数类列表>
          */
-        for (TransmitFact transmitFact : facts) {
+        for (Object transmitFact : facts) {
             for (AssembleData assembleData : assembleDataList) {
                 if (assembleData.isNeedAssemble(transmitFact,context)){
                     InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
@@ -126,7 +125,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         /**
          * 1、根据不同数据来源收集数据信息
          */
-        List<TransmitFact> transmitFacts = originData.collect(mqFact, context);
+        List<Object> transmitFacts = originData.collect(mqFact, context);
 
         /**
          * 2、根据不同数据来源 匹配出要执行的规则

@@ -7,7 +7,6 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.ProcessHandlerContext;
-import com.br.marketing.origin.TransmitFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -26,8 +25,8 @@ import java.util.Date;
 public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
-    public boolean isNeedAssemble(TransmitFact fact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transferSyncUser = fact.getMarketingTransferSyncUser();
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
         MarketingSyncUser syncUser = context.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
             if ("4".equals(transferSyncUser.getUserType())) {
@@ -50,9 +49,9 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
     }
 
     @Override
-    public ConversionData assemble(TransmitFact fact, ProcessHandlerContext context) {
+    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
 
-        MarketingTransferSyncUser transferSyncUser = fact.getMarketingTransferSyncUser();
+        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
         MarketingSyncUser syncUser = context.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
             if (syncUser == null) {

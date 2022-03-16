@@ -136,6 +136,18 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 绑定交换机- 发送消息到延迟队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding universalTransferQueueDelayBinding() {
+        return BindingBuilder.bind(universalTransferDelayQueue())
+                .to(gateExchange())
+                .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY);
+    }
+
+    /**
      * 消费队列-推送智能客服
      *
      * @return

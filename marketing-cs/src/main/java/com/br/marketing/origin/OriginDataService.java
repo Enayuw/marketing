@@ -32,7 +32,7 @@ import java.util.List;
  */
 public interface OriginDataService {
 
-    List<TransmitFact> collect(MqFact mqFact, ProcessHandlerContext context);
+    List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
 
     TransferSource source();
 
