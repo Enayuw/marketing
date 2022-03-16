@@ -1,9 +1,15 @@
 package com.br.marketing.client.robotaiapi.input;
 
+import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
 
 @Data
-public class BlackDetailDTO {
+public class BlackDetailDTO extends InterfaceParams {
+    /**
+     * 数据ID
+     */
+    private String dataId;
+
     /**
      * 姓名
      */
