@@ -1,6 +1,7 @@
 package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.adapter.shuhe.CaseShuheUserAdaptee;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.CaseShuheUserWithBLOBs;
@@ -45,7 +46,7 @@ public abstract class IUserType {
      * 初始pojo
      */
     protected final CaseShuheUserWithBLOBs initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
-        CaseShuheUserWithBLOBs caseUser = new CaseShuheUserWithBLOBs();
+        CaseShuheUserWithBLOBs caseUser = new CaseShuheUserAdaptee();
         caseUser.setApiCode(apiCode);
         final Map<String, String> dataItem = jsonDTO.getDataItem();
         caseUser.setIsTurn(dataItem.getOrDefault("is_turn", ""));

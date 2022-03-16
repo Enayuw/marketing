@@ -24,10 +24,10 @@ public class CaseShuheUserFactory {
     }
 
     private static class CaseShuheUserFactoryInstance {
-        private final static CaseShuheUserFactory instance = new CaseShuheUserFactory();
+        private final static CaseShuheUserFactory INSTANCE = new CaseShuheUserFactory();
     }
 
     public static CaseShuheUserFactory newInstance() {
-        return CaseShuheUserFactoryInstance.instance;
+        return CaseShuheUserFactoryInstance.INSTANCE;
     }
 }

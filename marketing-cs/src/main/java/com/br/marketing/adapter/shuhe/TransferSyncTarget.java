@@ -1,4 +1,4 @@
-package com.br.marketing.adapter;
+package com.br.marketing.adapter.shuhe;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
@@ -12,6 +12,9 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  */
 public abstract class TransferSyncTarget {
 
+    /**
+     * 适配为转化数据
+     */
     abstract MarketingTransferSyncUser transferSyncUserRequest(String taskId);
 
     protected final MarketingTransferSyncUser newTransferSyncUser() {

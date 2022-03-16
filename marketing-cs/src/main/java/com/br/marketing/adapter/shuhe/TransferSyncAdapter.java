@@ -1,4 +1,4 @@
-package com.br.marketing.adapter;
+package com.br.marketing.adapter.shuhe;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
@@ -9,19 +9,16 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  * @dateTime 2022/2/14 17:33
  */
 public class TransferSyncAdapter extends TransferSyncTarget {
-    private IToTransferSyncAdaptee IToTransferSyncAdaptee;
+    private final IToTransferSyncAdaptee iToTransferSyncAdaptee;
 
-    private TransferSyncAdapter() {
-    }
-
-    public TransferSyncAdapter(IToTransferSyncAdaptee IToTransferSyncAdaptee) {
-        this.IToTransferSyncAdaptee = IToTransferSyncAdaptee;
+    public TransferSyncAdapter(IToTransferSyncAdaptee iToTransferSyncAdaptee) {
+        this.iToTransferSyncAdaptee = iToTransferSyncAdaptee;
     }
 
     @Override
     public MarketingTransferSyncUser transferSyncUserRequest(String taskId) {
         MarketingTransferSyncUser transferSyncUser = this.newTransferSyncUser();
-        IToTransferSyncAdaptee.adapteeRequest(transferSyncUser, taskId);
+        iToTransferSyncAdaptee.adapteeRequest(transferSyncUser, taskId);
         return transferSyncUser;
     }
 }

@@ -1,4 +1,4 @@
-package com.br.marketing.adapter;
+package com.br.marketing.adapter.shuhe;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
@@ -9,6 +9,8 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  * @dateTime 2022/2/14 17:45
  */
 public interface IToTransferSyncAdaptee {
-
+    /**
+     * 适配
+     */
     void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId);
 }
