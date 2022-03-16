@@ -41,6 +41,7 @@ public class MqFact extends InterfaceParams {
 
     /**
      *  消息来源 数据来源于 TransferSource枚举类
+     * @see com.br.marketing.origin.TransferSource
      */
     private Integer source;
 
