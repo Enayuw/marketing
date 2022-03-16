@@ -51,7 +51,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
 
         for (MqFact mqFact : mqFacts) {
             String message = JSON.toJSONString(mqFact);
-            producer.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message);
+            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,"");
         }
         return null;
     }
