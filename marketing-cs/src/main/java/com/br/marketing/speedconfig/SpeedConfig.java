@@ -93,14 +93,14 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         } else if (field.getType().equals(Integer.class)) {
             field.set(config, Integer.valueOf(fieldValue));
         } else if (field.getType().equals(Long.class)) {
-            field.setLong(config, Long.valueOf(fieldValue));
+            field.set(config, Long.valueOf(fieldValue));
         } else if (field.getType().equals(Double.class)) {
-            field.setDouble(config, Double.valueOf(fieldValue));
+            field.set(config, Double.valueOf(fieldValue));
         } else if (field.getType().equals(Float.class)) {
-            field.setFloat(config, Float.valueOf(fieldValue));
+            field.set(config, Float.valueOf(fieldValue));
         } else if (field.getType().equals(Boolean.class)) {
-            field.setBoolean(config, Boolean.valueOf(fieldValue));
-        } else {
+            field.set(config, Boolean.valueOf(fieldValue));
+        }  else {
             Object o = JSON.parseObject(fieldValue, field.getType());
             field.set(config, o);
         }
