@@ -193,6 +193,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         user.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         user.setUploadDate(LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
         user.setErrorInfo("#5".concat(e.toString()));
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
         if (jsonDTO != null) {
             user.setMobile(jsonDTO.getMobile());
             user.setBiztype(jsonDTO.getBizType());

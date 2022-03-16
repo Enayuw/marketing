@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingDialogExample;
+import com.br.marketing.vo.HaloCallingDataVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public interface CustomerCallingDialogMapper {
 
     int updateByPrimaryKey(CustomerCallingDialog record);
 
-    List<CustomerCallingDialog> getInfoByColumns(Map<String, Object> cusMap);
+    List<HaloCallingDataVo> getInfoByColumns(Map<String, Object> cusMap);
 
     List<Map<String, Object>> getRequestId();
 }

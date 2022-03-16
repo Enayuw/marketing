@@ -3,8 +3,6 @@ package com.br.marketing.vo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 public class SoleRuleVO {
 

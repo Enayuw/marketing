@@ -2,8 +2,6 @@ package com.br.marketing.entity;
 
 import lombok.Data;
 
-import java.util.List;
-
 
 /**
  * Created by Bairong on 2019/8/19.

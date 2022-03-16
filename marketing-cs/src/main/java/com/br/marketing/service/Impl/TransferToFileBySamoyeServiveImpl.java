@@ -1,27 +1,19 @@
 package com.br.marketing.service.Impl;
 
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.client.DecodeClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.vo.TransferUserVO;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +21,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

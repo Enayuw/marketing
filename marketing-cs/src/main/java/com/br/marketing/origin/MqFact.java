@@ -1,10 +1,9 @@
-package com.br.marketing.task.config;
+package com.br.marketing.origin;
 
-import com.br.speed.client.common.annotations.SpeedItem;
+import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
-import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.util.Set;
 
 /**
  * code is far away from bug with the animal protecting
@@ -26,20 +25,33 @@ import java.util.Date;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- *
- * @Description : 商户、产品信息变动接收类
+ * @Description : Marketing_Universal_Transfer_Receive mq队列中消息字段
  * ---------------------------------
- * @Author :
- * @Date : Create in 2018/8/1 10:36
+ * @Author : jilong.xu
+ * @Date : Create in 2022/3/12 15:50
  */
 
-@Service
 @Data
-public class AgentItem {
-    private String status;
+public class MqFact extends InterfaceParams {
 
-    @SpeedItem(key = "marketing-shutdown",topic = "compass_topic")
-    public String getStatus(){
-        return status;
-    }
+    /**
+     *  mq中数据id
+     */
+    private Long sourceId;
+
+    /**
+     *  消息来源 数据来源于 TransferSource枚举类
+     */
+    private Integer source;
+
+    /**
+     * 数据需要执行的规则，非静置数据该字段为空
+     */
+
+    private Set<String> includeRules;
+
+    /**
+     *  mq中消息内容
+     */
+    private String message;
 }

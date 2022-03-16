@@ -1,7 +1,5 @@
 package com.br.marketing.check.job;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.utils.BrExecutors;
@@ -9,27 +7,24 @@ import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingDialogExample;
 import com.br.marketing.entity.CustomerCallingExample;
+import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
 import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.CustomerCallingMapper;
 import com.br.marketing.mapper.CustomerCallingPushLogMapper;
+import com.br.marketing.vo.HaloCallingDataVo;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import jdk.nashorn.internal.objects.annotations.Where;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 
 /**
  * @author guangchao.zhang
@@ -40,6 +35,20 @@ import static com.br.marketing.check.utils.CallingUtil.getJsonObject;
 @Component
 @Slf4j
 public class CallingToSendJob extends AbstractSimpleElasticJob {
+    @Value("${api.halo.openUrl}")
+    private String haloOpenUrl;
+
+    @Value("${api.halo.appKey}")
+    private String haloAppKey;
+
+    @Value("${api.halo.secret}")
+    private String haloSecret;
+
+    @Value("${api.halo.method}")
+    private String method;
+
+    @Value("${api.halo.isProxy}")
+    private boolean isProxy;
 
     @Resource
     CustomerCallingMapper customerCallingMapper;
@@ -48,12 +57,13 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     CustomerCallingDialogMapper customerCallingDialogMapper;
 
     @Resource
+    CustomerCallingDataStatusMapper customerCallingDataStatusMapper;
+
+    @Resource
     HttpProxyClient httpProxyClient;
 
     @Resource
     CustomerCallingPushLogMapper customerCallingPushLogMapper;
-
-
 
 
     @Override
@@ -62,75 +72,84 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     }
 
     private void process(List<CustomerCalling> customerCallings) {
-        log.warn("1用户信息：{}",customerCallings);
+        log.warn("1用户信息：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             String tableColumns = getTableColumns(customerCalling);
 
-            if(tableColumns!=null){
-                getPartitions(customerCalling,tableColumns);
-                //doThreadSubmit(customerCalling, getPartitions(customerCalling,tableColumns));
+            if (tableColumns != null) {
+                doThreadSubmit(customerCalling, tableColumns);
             }
         }
     }
 
-    private List<List<CustomerCallingDialog>> getPartitions(CustomerCalling customerCalling,String tableColumns) {
+    private void doThreadSubmit(CustomerCalling customerCalling, String tableColumns) {
+        ThreadPoolExecutor pushExecutor;
+        if (customerCalling.getPushThreadNum() != null) {
+            pushExecutor = BrExecutors.getThreadPool(customerCalling.getPushThreadNum(), customerCalling.getPushThreadNum());
+        } else {
+            pushExecutor = BrExecutors.getThreadPool(5, 5);
+        }
         Map<String, Object> cusMap = new HashMap<>(16);
         cusMap.put("columns", tableColumns);
         cusMap.put("apiCode", customerCalling.getApiCode());
         cusMap.put("sendStatus", 0);
-        cusMap.put("conditions", customerCalling.getConditions());
         boolean index = true;
-        List<CustomerCallingDialog> list = new ArrayList<>();
-        while (index){
-            List<CustomerCallingDialog>    customerCallingDialogsByEvery = customerCallingDialogMapper.getInfoByColumns(cusMap);
-            index =  customerCallingDialogsByEvery.size()==0?false:true;
-            if(index){
-                List<Long> ids = customerCallingDialogsByEvery
-                        .stream()
-                        .map(CustomerCallingDialog::getId)
-                        .collect(Collectors.toList());
-                CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
-                customerCallingDialogExample.createCriteria().andIdIn(ids);
-                CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
-                customerCallingDialog.setSendStatus(1);
-                customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
-                sendPostRequest(customerCalling,customerCallingDialogsByEvery);
+        while (index) {
+            cusMap.put("pageSize",2000);
+            List<HaloCallingDataVo> haloCallingDataVoList = customerCallingDialogMapper.getInfoByColumns(cusMap);
+            index = haloCallingDataVoList.size() != 0;
+            if (index) {
+                updateSendStatus(haloCallingDataVoList);
+                List<List<HaloCallingDataVo>> partitions = Lists.partition(haloCallingDataVoList, 20);
+                partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(
+                        new CallingDataThread(
+                                customerCallingDialogLists,
+                                customerCallingDialogMapper,
+                                customerCalling,
+                                httpProxyClient,
+                                customerCallingPushLogMapper,
+                                customerCallingDataStatusMapper,
+                                haloOpenUrl,
+                                haloAppKey,
+                                haloSecret,
+                                method,
+                                isProxy)));
             }
         }
-        return Lists.partition(list, 1500);
+    }
 
+    private void updateSendStatus(List<HaloCallingDataVo> haloCallingDataVoList) {
+        List<Long> ids = haloCallingDataVoList
+                .stream()
+                .map(HaloCallingDataVo::getId)
+                .collect(Collectors.toList());
+        CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
+        customerCallingDialogExample.createCriteria().andIdIn(ids);
+        CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
+        customerCallingDialog.setSendStatus(1);
+        customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
     }
 
     private String getTableColumns(CustomerCalling customerCalling) {
-        String column = customerCalling.getColumnsDetail();
-        if(column!=null&& !column.isEmpty()){
+        String column = customerCalling.getApiColumnsDetail();
+        if (column != null && !column.isEmpty()) {
             String[] columns = column.split(",");
             List<String> columnsList = new ArrayList<>();
             Arrays.stream(columns).sequential().forEach(c -> {
-                if ("custNum".equals(c)) {
-                    c = "caseNum";
+                if("callStartTime".equals(c)){
+                    c="UNIX_TIMESTAMP(call_start_time) as callStartTime";
+                    columnsList.add(c);
+                } else if("customerNo".equals(c)){
+                    c="case_num as customerNo";
+                    columnsList.add(c);
+                }else {
+                    c = "groupType".equals(c) ? "userType" : c;
+                    columnsList.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c));
                 }
-                if("groupType".equals(c)){
-                    c="userType";
-                }
-                columnsList.add(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c));
             });
             return Joiner.on(",").join(columnsList);
         }
         return null;
-    }
-
-    private void doThreadSubmit(CustomerCalling customerCalling, List<List<CustomerCallingDialog>> partitions) {
-        if(!partitions.isEmpty()){
-            ThreadPoolExecutor pushExecutor;
-            if (customerCalling.getPushThreadNum() != null) {
-                pushExecutor = BrExecutors.getThreadPool(customerCalling.getPushThreadNum(), customerCalling.getPushThreadNum());
-            } else {
-                pushExecutor = BrExecutors.getThreadPool(2, 2);
-            }
-            log.warn("2用户处理信息：{}",partitions);
-            partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(new CallingDataThread(customerCallingDialogLists, customerCallingDialogMapper, customerCalling,httpProxyClient,customerCallingPushLogMapper)));
-        }
     }
 
 
@@ -140,55 +159,5 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         return customerCallingMapper.selectByExample(customerCallingExample);
     }
 
-    private void sendPostRequest(CustomerCalling customerCalling, List<CustomerCallingDialog>  customerCallingDialogLists) {
-        String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
-        JSONObject param = new JSONObject();
-        param.put("requestId", requestId);
-        JSONArray dataItems = new JSONArray();
-        customerCallingDialogLists.forEach(customerCallingDialog -> dataItems.add(JSONObject.parse(toJson(customerCallingDialog))));
-        param.put("dataItems", dataItems);
-        log.warn("3用户发送数据：{}", param.toJSONString());
-        String extendConfigInfo = customerCalling.getExtendConfigInfo();
-        String pushUrl = customerCalling.getPushUrl().trim();
-        JSONObject extendConfigInfoJson = getJsonObject(extendConfigInfo);
-        JSONObject pushUrlJson = getJsonObject(pushUrl);
-        String sendUrl = pushUrlJson.getString("sendUrl");
-        Boolean isProxy = extendConfigInfoJson.getBoolean("isProxy") == null ? Boolean.TRUE : extendConfigInfoJson.getBoolean("isProxy");
-        Map<String, Object> result = httpProxyClient.request(sendUrl, param.toJSONString(), isProxy);
-        updateRequestId(requestId,customerCallingDialogLists);
-        savePushLog(requestId, param, result);
-
-    }
-    private void savePushLog(String requestId, JSONObject param, Map<String, Object> result) {
-        JSONArray dataItems = param.getJSONArray("dataItems");
-        Map<String, Object> map = new HashMap<>();
-        map.put("requestId", requestId);
-        map.put("params", param.toJSONString());
-        map.put("result", result.toString());
-        map.put("createTime", new Date());
-        map.put("sum",dataItems.size());
-        customerCallingPushLogMapper.insert(map);
-        log.warn("拨打记录发送返回值：{}", result);
-    }
-
-
-    public static String toJson(Object object) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting(); //生成格式化后的json
-        Gson gson = gsonBuilder.create();
-        return gson.toJson(object);
-    }
-
-    private void updateRequestId(String requestId,List<CustomerCallingDialog>  customerCallingDialogLists) {
-        List<Long> ids = customerCallingDialogLists
-                .stream()
-                .map(CustomerCallingDialog::getId)
-                .collect(Collectors.toList());
-        CustomerCallingDialogExample customerCallingDialogExample = new CustomerCallingDialogExample();
-        customerCallingDialogExample.createCriteria().andIdIn(ids);
-        CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
-        customerCallingDialog.setRequestId(requestId);
-        customerCallingDialogMapper.updateByExampleSelective(customerCallingDialog, customerCallingDialogExample);
-    }
 
 }

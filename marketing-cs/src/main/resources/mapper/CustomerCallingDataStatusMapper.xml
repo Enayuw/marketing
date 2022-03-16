@@ -3,10 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.CustomerCallingDataStatusMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerCallingDataStatus" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="dialog_id" property="dialogId" jdbcType="BIGINT" />
     <result column="request_id" property="requestId" jdbcType="VARCHAR" />
-    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
-    <result column="case_num" property="caseNum" jdbcType="VARCHAR" />
     <result column="send_status" property="sendStatus" jdbcType="INTEGER" />
     <result column="description" property="description" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
@@ -71,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, dialog_id, request_id, task_id, case_num, send_status, description, status, create_time
+    id, request_id,  send_status, description, status, create_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerCallingDataStatusExample" >
     select
@@ -107,11 +104,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_customer_calling_data_status (dialog_id, request_id, task_id,
-    case_num, send_status, description,
+    insert into b_marketing_customer_calling_data_status ( request_id,
+ send_status, description,
     status, create_time)
-    values (#{dialogId,jdbcType=BIGINT}, #{requestId,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR},
-    #{caseNum,jdbcType=VARCHAR}, #{sendStatus,jdbcType=INTEGER}, #{description,jdbcType=VARCHAR},
+    values ( #{requestId,jdbcType=VARCHAR},#{sendStatus,jdbcType=INTEGER}, #{description,jdbcType=VARCHAR},
     #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerCallingDataStatus" >
@@ -120,18 +116,11 @@
     </selectKey>
     insert into b_marketing_customer_calling_data_status
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="dialogId != null" >
-        dialog_id,
-      </if>
+
       <if test="requestId != null" >
         request_id,
       </if>
-      <if test="taskId != null" >
-        task_id,
-      </if>
-      <if test="caseNum != null" >
-        case_num,
-      </if>
+
       <if test="sendStatus != null" >
         send_status,
       </if>
@@ -146,18 +135,11 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="dialogId != null" >
-        #{dialogId,jdbcType=BIGINT},
-      </if>
+
       <if test="requestId != null" >
         #{requestId,jdbcType=VARCHAR},
       </if>
-      <if test="taskId != null" >
-        #{taskId,jdbcType=VARCHAR},
-      </if>
-      <if test="caseNum != null" >
-        #{caseNum,jdbcType=VARCHAR},
-      </if>
+
       <if test="sendStatus != null" >
         #{sendStatus,jdbcType=INTEGER},
       </if>
@@ -184,18 +166,11 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.dialogId != null" >
-        dialog_id = #{record.dialogId,jdbcType=BIGINT},
-      </if>
+
       <if test="record.requestId != null" >
         request_id = #{record.requestId,jdbcType=VARCHAR},
       </if>
-      <if test="record.taskId != null" >
-        task_id = #{record.taskId,jdbcType=VARCHAR},
-      </if>
-      <if test="record.caseNum != null" >
-        case_num = #{record.caseNum,jdbcType=VARCHAR},
-      </if>
+
       <if test="record.sendStatus != null" >
         send_status = #{record.sendStatus,jdbcType=INTEGER},
       </if>
@@ -216,10 +191,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_customer_calling_data_status
     set id = #{record.id,jdbcType=BIGINT},
-    dialog_id = #{record.dialogId,jdbcType=BIGINT},
     request_id = #{record.requestId,jdbcType=VARCHAR},
-    task_id = #{record.taskId,jdbcType=VARCHAR},
-    case_num = #{record.caseNum,jdbcType=VARCHAR},
     send_status = #{record.sendStatus,jdbcType=INTEGER},
     description = #{record.description,jdbcType=VARCHAR},
     status = #{record.status,jdbcType=INTEGER},
@@ -231,17 +203,8 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerCallingDataStatus" >
     update b_marketing_customer_calling_data_status
     <set >
-      <if test="dialogId != null" >
-        dialog_id = #{dialogId,jdbcType=BIGINT},
-      </if>
       <if test="requestId != null" >
         request_id = #{requestId,jdbcType=VARCHAR},
-      </if>
-      <if test="taskId != null" >
-        task_id = #{taskId,jdbcType=VARCHAR},
-      </if>
-      <if test="caseNum != null" >
-        case_num = #{caseNum,jdbcType=VARCHAR},
       </if>
       <if test="sendStatus != null" >
         send_status = #{sendStatus,jdbcType=INTEGER},
@@ -260,10 +223,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerCallingDataStatus" >
     update b_marketing_customer_calling_data_status
-    set dialog_id = #{dialogId,jdbcType=BIGINT},
+    set
         request_id = #{requestId,jdbcType=VARCHAR},
-        task_id = #{taskId,jdbcType=VARCHAR},
-        case_num = #{caseNum,jdbcType=VARCHAR},
         send_status = #{sendStatus,jdbcType=INTEGER},
         description = #{description,jdbcType=VARCHAR},
         status = #{status,jdbcType=INTEGER},

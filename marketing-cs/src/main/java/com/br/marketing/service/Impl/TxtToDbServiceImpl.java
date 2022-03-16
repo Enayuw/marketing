@@ -161,7 +161,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     }
                 }
                 if(fieldMust.contains(sureaddress)){
-                    error = error.replace(String.format("%s不能为空;",sureaddress), "");
+                    if(StringUtils.isNotBlank(datas.get(i))){
+                        error = error.replace(String.format("%s不能为空;",sureaddress), "");
+                    }
                 }
                 if(sureaddress.equals("extend")){
                     String s = extSetField.get(i);
@@ -177,7 +179,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 insertFields.append("extend").append(",");
                 valueFields.append(jo.toJSONString()).append(",");
             }
-            if (!StringUtils.isEmpty(error)) {
+            if (StringUtils.isNotEmpty(error)) {
                 status=2;
                 insertFields.append("status").append(",");
                 insertFields.append("data_message").append(",");

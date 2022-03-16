@@ -22,6 +22,9 @@ import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.AssembleDataWithSyncUser;
+import com.br.marketing.rule.yixin.YiXinCustomerTransferImpl;
 import com.br.marketing.vo.CustGroupTempVO;
 
 import java.util.*;
@@ -683,5 +686,6 @@ public class redis {
         System.out.println(stringBuilder);
 
     }
+
 
 }

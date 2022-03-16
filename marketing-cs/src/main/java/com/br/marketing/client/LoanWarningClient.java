@@ -9,7 +9,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.net.SocketTimeoutException;
 
 /**调用流失预警api客户端
  * Created by Bairong on 2019/8/21.
