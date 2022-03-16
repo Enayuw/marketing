@@ -126,6 +126,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     @Resource
     FastTaskRuleMapper fastTaskRuleMapper;
 
+    @Resource
+    StraHisFileMapper straHisFileMapper;
+
     @Override
     public Result pushToDb(String apiCode) {
         return pushToDb(apiCode, 0, null);
@@ -665,6 +668,35 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     private void saveTaskStatusDistribute(MarketingTask task, LoanFile loanFile) {
         TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
         statusDistribute.setFileId(Long.valueOf(loanFile.getId()));
+        statusDistribute.setApiCode(task.getApiCode());
+        statusDistribute.setBatchNumber(task.getBatchNumber());
+        statusDistribute.setDistributeIndex(0);
+        statusDistribute.setActualNum(task.getActualNumber().longValue());
+        Date date = new Date();
+        statusDistribute.setCreateTime(date);
+        statusDistribute.setUpdateTime(date);
+        taskStatusDistributeMapper.insertSelective(statusDistribute);
+    }
+
+    private void saveFileTask(MarketingTask task,String filePath){
+        StraHisFile blf = new StraHisFile();
+        blf.setApiCode(task.getApiCode());
+        blf.setBatchNumber(task.getBatchNumber());
+        blf.setFilePath(filePath);
+        blf.setCreateTime(new Date());
+        blf.setUpdateTime(new Date());
+        blf.setStatus(3);
+        if (1 == task.getMonitorType()) {
+            blf.setType(2);
+        } else if (4 == task.getMonitorType()) {
+            blf.setType(1);
+        }
+        blf.setIndexNum(1);
+        straHisFileMapper.insertSelective(blf);
+
+
+        TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
+        statusDistribute.setFileId(blf.getId());
         statusDistribute.setApiCode(task.getApiCode());
         statusDistribute.setBatchNumber(task.getBatchNumber());
         statusDistribute.setDistributeIndex(0);
