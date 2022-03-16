@@ -1236,7 +1236,6 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 }
                 if (StringUtils.isNotBlank(batchNumber)) {
                     //region 处理task
-//                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                     int actNum = isToFile ? preNum.get() : marketingUserMapper.countBySureUser(apiCode, batchNumber);
                     if (actNum > 0) {
                         MarketingTask task = new MarketingTask();
