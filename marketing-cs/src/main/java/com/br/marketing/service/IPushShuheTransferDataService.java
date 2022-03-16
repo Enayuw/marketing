@@ -21,7 +21,18 @@ public interface IPushShuheTransferDataService {
      * @return ResponseShuheDTO
      * @author Guo Zeqiang
      */
+    @Deprecated
     ResponseCustomDTO insertShuheTransferData(String apiCode, String jsonData);
+
+    /**
+     * 保存数禾（客户订制）转化数据
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据
+     * @return ResponseShuheDTO
+     * @author Guo Zeqiang
+     */
+    ResponseCustomDTO sveaShuheTransferData(String apiCode, String jsonData);
 
     default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
         try {

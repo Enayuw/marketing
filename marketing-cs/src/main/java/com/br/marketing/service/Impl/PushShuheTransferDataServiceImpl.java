@@ -3,13 +3,15 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
-import com.br.marketing.adapter.TransferSyncAdapter;
+import com.br.marketing.adapter.shuhe.CaseShuheUserAdaptee;
+import com.br.marketing.adapter.shuhe.TransferSyncAdapter;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.PushShDXDTO;
+import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
@@ -22,6 +24,8 @@ import com.br.marketing.mapper.CaseShuheUserMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.PhoneBlackMapper;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheTransferDataService;
@@ -125,7 +129,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(
                         apiCode, jsonDTO.getOrderId(), userType);
             }
-            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(caseShuheUser)
+            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter((CaseShuheUserAdaptee) caseShuheUser)
                     .transferSyncUserRequest(taskId);
             List<Future<String>> futureList = new ArrayList<>();
             if (iUserType instanceof UnknownUserType) {
@@ -188,6 +192,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private void exceptionSave(ShuheTransferJsonDTO jsonDTO, String jsonData
             , String apiCode, Exception e) {
         CaseShuheUserWithBLOBs user = new CaseShuheUserWithBLOBs();
+        user.setIsTransfer(-1);
         user.setJsonData(jsonData);
         user.setApiCode(apiCode);
         user.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
@@ -217,6 +222,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private void faultTolerantInsert(ShuheTransferJsonDTO jsonDTO, int isTransfer, String jsonData
             , String apiCode, String msg) {
         CaseShuheUserWithBLOBs caseShuheUser = new CaseShuheUserWithBLOBs();
+        caseShuheUser.setIsTransfer(-3);
         caseShuheUser.setJsonData(jsonData);
         caseShuheUser.setCustNum(jsonDTO.getOrderId());
         caseShuheUser.setApiCode(apiCode);
@@ -508,6 +514,133 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                     .concat("保存到电销失败\n") + e, appName, secretKey, alarmClient);
             return -1;
+        }
+    }
+
+    @Override
+    public ResponseCustomDTO sveaShuheTransferData(String apiCode, String jsonData) {
+        long first = System.currentTimeMillis();
+        ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+        ShuheTransferJsonDTO jsonDTO = null;
+        try {
+            jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
+            }.getType());
+            // 1、校验参数合法性
+            String msg = nonNullCheck(jsonDTO);
+            if (!"".equals(msg)) {
+                responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
+                msg = "缺失必填参数:".concat(msg).concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
+                        .concat(jsonDTO.getBizType()).concat("”\n案件编号“").concat(jsonDTO.getOrderId())
+                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
+                log.warn("shuhe-1:{}", msg);
+                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                return responseShuheDTO;
+            }
+            String userType = jsonDTO.getBizType();
+            // 2、判断场景类型
+            if (StringUtils.isEmpty(userType)) {
+                /*
+                 * 对bizType字段做兜底，对应营销userType,
+                 * 当bizType未传时，需要主动去上传接口中查找，
+                 * 如果未查到需要返回给客户提示信息，并将数据落库到本地
+                 */
+                userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+            }
+            // 3、异步查询db获取相应TaskId
+            final ShuheTransferJsonDTO finalJsonDTO = jsonDTO;
+            Future<String> futureTaskId = BR_EXECUTORS.submit(() -> iMarketingSyncUserService.getTaskIdLatestByCustNum(
+                    apiCode, finalJsonDTO.getOrderId(), finalJsonDTO.getBizType()));
+            final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
+            CaseShuheUserWithBLOBs caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(
+                    iUserType, jsonDTO, apiCode, jsonData);
+            String taskId;
+            // 3.1、异步任务是否完成
+            if (futureTaskId.isDone()) {
+                taskId = futureTaskId.get();
+            } else {
+                // 3.2、取消异步任务，使用同步任务获取
+                futureTaskId.isCancelled();
+                taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(
+                        apiCode, jsonDTO.getOrderId(), userType);
+            }
+            // 4、客户转化数据适配标准转化数据
+            MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
+                    (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId);
+            // 5、转化信息入转化标准库
+            goTransferNew(apiCode, caseShuheUser, transferSyncUser);
+            // 6、数据落前置库
+            int row = caseShuheUserMapper.insertSelective(caseShuheUser);
+            if (row < 1) {
+                msg = "数禾推送数据保存失败！";
+                this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
+                        .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("请尽快处理^_^"), appName, secretKey, alarmClient);
+                log.error(msg);
+                responseShuheDTO.failed("抱歉，".concat(msg));
+                faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
+            }
+            long last = System.currentTimeMillis();
+            log.warn("接收数禾转化数据(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType());
+            return responseShuheDTO;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            exceptionSave(jsonDTO, jsonData, apiCode, e);
+            return responseShuheDTO.failed();
+        }
+    }
+
+    /**
+     * 去转化新方法 适应框架
+     */
+    private void goTransferNew(String apiCode, CaseShuheUserWithBLOBs caseShuheUser
+            , MarketingTransferSyncUser transferSyncUser) {
+        long first = System.currentTimeMillis();
+        try {
+            SecureRandom random = new SecureRandom();
+            transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
+                    .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
+            int rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
+            if (rowSync > 0) {
+                MarketingTransferInfo transferInfo = new MarketingTransferInfo();
+                transferInfo.setApiCode(apiCode);
+                transferInfo.setRequestId(transferSyncUser.getRequestId());
+                transferInfo.setCreateTime(new Date());
+                transferInfo.setJsonData(caseShuheUser.getJsonData());
+                transferInfo.setActualNum(1);
+                int rowInfo = marketingTransferInfoMapper.insertSelective(transferInfo);
+                if (rowInfo > 0) {
+                    final MqFact mqFact = new MqFact();
+                    mqFact.setSourceId(transferInfo.getId());
+                    mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+                    producter.sendToUniversalTransferQueue(mqFact);
+                } else {
+                    caseShuheUser.setErrorInfo("#2saveTransferInfo:保存到标准转化信息失败");
+                    caseShuheUser.setIsTransfer(-2);
+                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                            .concat("”\nuserType“").concat(caseShuheUser.getUserType())
+                            .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
+                            .concat(caseShuheUser.getErrorInfo()).concat("\n"), appName, secretKey, alarmClient);
+                }
+            } else {
+                caseShuheUser.setIsTransfer(-2);
+                caseShuheUser.setErrorInfo("#1saveTransferInfo:保存到标准转化详情失败");
+                this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                        .concat("”\nuserType“").concat(caseShuheUser.getUserType())
+                        .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
+                        .concat(caseShuheUser.getErrorInfo()).concat("\n"), appName, secretKey, alarmClient);
+            }
+            long last = System.currentTimeMillis();
+            log.warn("数禾转化->标准转化(apiCode={};custNum={};userType={})共耗时:{}ms"
+                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+        } catch (Exception e) {
+            caseShuheUser.setErrorInfo("#3goTransferNew:保存到标准转化失败:" + e);
+            caseShuheUser.setIsTransfer(-2);
+            log.error(e.getMessage(), e);
+            this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                    .concat("”\nuserType“").concat(caseShuheUser.getUserType())
+                    .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
+                    .concat(caseShuheUser.getErrorInfo()).concat(e.toString()), appName, secretKey, alarmClient);
         }
     }
 }
