@@ -1367,7 +1367,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             StraHisFile blf = new StraHisFile();
             blf.setApiCode(task.getApiCode());
             blf.setBatchNumber(task.getBatchNumber());
-            blf.setFilePath(filePath);
+            blf.setFilePath(filePath.substring(0, filePath.lastIndexOf("/")));
             blf.setCreateTime(new Date());
             blf.setUpdateTime(new Date());
             blf.setStatus(3);
