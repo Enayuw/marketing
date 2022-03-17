@@ -122,6 +122,9 @@ public class BlackListDTO extends InterfaceParams {
         if (StringUtils.isNotBlank(this.orgName)) {
             list.add(this.orgName);
         }
+        if (StringUtils.isNotBlank(this.expiration_date)) {
+            list.add(this.expiration_date);
+        }
         return list;
     }
 }
