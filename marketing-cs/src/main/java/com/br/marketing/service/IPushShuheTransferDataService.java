@@ -32,7 +32,7 @@ public interface IPushShuheTransferDataService {
      * @return ResponseShuheDTO
      * @author Guo Zeqiang
      */
-    ResponseCustomDTO sveaShuheTransferData(String apiCode, String jsonData);
+    ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
 
     default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
         try {

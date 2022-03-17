@@ -1,7 +1,7 @@
 package com.br.marketing.adapter.transfer.adaptee;
 
 import com.br.marketing.adapter.transfer.IToTransferSyncAdaptee;
-import com.br.marketing.entity.CaseShuheUserWithBLOBs;
+import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
 import java.util.Date;
@@ -12,7 +12,7 @@ import java.util.Date;
  * @author Guo Zeqiang
  * @dateTime 2022/3/16 16:50
  */
-public class CaseShuheUserAdaptee extends CaseShuheUserWithBLOBs implements IToTransferSyncAdaptee {
+public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSyncAdaptee {
 
     private static final long serialVersionUID = -6001852261613858955L;
 

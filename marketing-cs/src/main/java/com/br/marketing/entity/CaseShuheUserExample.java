@@ -1685,6 +1685,76 @@ public class CaseShuheUserExample {
             return (Criteria) this;
         }
 
+        public Criteria andJsonDataIsNull() {
+            addCriterion("json_data is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIsNotNull() {
+            addCriterion("json_data is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataEqualTo(String value) {
+            addCriterion("json_data =", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotEqualTo(String value) {
+            addCriterion("json_data <>", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThan(String value) {
+            addCriterion("json_data >", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThanOrEqualTo(String value) {
+            addCriterion("json_data >=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThan(String value) {
+            addCriterion("json_data <", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThanOrEqualTo(String value) {
+            addCriterion("json_data <=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLike(String value) {
+            addCriterion("json_data like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotLike(String value) {
+            addCriterion("json_data not like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIn(List<String> values) {
+            addCriterion("json_data in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotIn(List<String> values) {
+            addCriterion("json_data not in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataBetween(String value1, String value2) {
+            addCriterion("json_data between", value1, value2, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotBetween(String value1, String value2) {
+            addCriterion("json_data not between", value1, value2, "jsonData");
+            return (Criteria) this;
+        }
+
         public Criteria andIsTransferIsNull() {
             addCriterion("is_transfer is null");
             return (Criteria) this;
@@ -1745,73 +1815,263 @@ public class CaseShuheUserExample {
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoIsNull() {
-            addCriterion("error_info is null");
+        public Criteria andReserveField1IsNull() {
+            addCriterion("reserve_field1 is null");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoIsNotNull() {
-            addCriterion("error_info is not null");
+        public Criteria andReserveField1IsNotNull() {
+            addCriterion("reserve_field1 is not null");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoEqualTo(String value) {
-            addCriterion("error_info =", value, "errorInfo");
+        public Criteria andReserveField1EqualTo(String value) {
+            addCriterion("reserve_field1 =", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoNotEqualTo(String value) {
-            addCriterion("error_info <>", value, "errorInfo");
+        public Criteria andReserveField1NotEqualTo(String value) {
+            addCriterion("reserve_field1 <>", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoGreaterThan(String value) {
-            addCriterion("error_info >", value, "errorInfo");
+        public Criteria andReserveField1GreaterThan(String value) {
+            addCriterion("reserve_field1 >", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoGreaterThanOrEqualTo(String value) {
-            addCriterion("error_info >=", value, "errorInfo");
+        public Criteria andReserveField1GreaterThanOrEqualTo(String value) {
+            addCriterion("reserve_field1 >=", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoLessThan(String value) {
-            addCriterion("error_info <", value, "errorInfo");
+        public Criteria andReserveField1LessThan(String value) {
+            addCriterion("reserve_field1 <", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoLessThanOrEqualTo(String value) {
-            addCriterion("error_info <=", value, "errorInfo");
+        public Criteria andReserveField1LessThanOrEqualTo(String value) {
+            addCriterion("reserve_field1 <=", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoLike(String value) {
-            addCriterion("error_info like", value, "errorInfo");
+        public Criteria andReserveField1Like(String value) {
+            addCriterion("reserve_field1 like", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoNotLike(String value) {
-            addCriterion("error_info not like", value, "errorInfo");
+        public Criteria andReserveField1NotLike(String value) {
+            addCriterion("reserve_field1 not like", value, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoIn(List<String> values) {
-            addCriterion("error_info in", values, "errorInfo");
+        public Criteria andReserveField1In(List<String> values) {
+            addCriterion("reserve_field1 in", values, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoNotIn(List<String> values) {
-            addCriterion("error_info not in", values, "errorInfo");
+        public Criteria andReserveField1NotIn(List<String> values) {
+            addCriterion("reserve_field1 not in", values, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoBetween(String value1, String value2) {
-            addCriterion("error_info between", value1, value2, "errorInfo");
+        public Criteria andReserveField1Between(String value1, String value2) {
+            addCriterion("reserve_field1 between", value1, value2, "reserveField1");
             return (Criteria) this;
         }
 
-        public Criteria andErrorInfoNotBetween(String value1, String value2) {
-            addCriterion("error_info not between", value1, value2, "errorInfo");
+        public Criteria andReserveField1NotBetween(String value1, String value2) {
+            addCriterion("reserve_field1 not between", value1, value2, "reserveField1");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2IsNull() {
+            addCriterion("reserve_field2 is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2IsNotNull() {
+            addCriterion("reserve_field2 is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2EqualTo(String value) {
+            addCriterion("reserve_field2 =", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2NotEqualTo(String value) {
+            addCriterion("reserve_field2 <>", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2GreaterThan(String value) {
+            addCriterion("reserve_field2 >", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2GreaterThanOrEqualTo(String value) {
+            addCriterion("reserve_field2 >=", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2LessThan(String value) {
+            addCriterion("reserve_field2 <", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2LessThanOrEqualTo(String value) {
+            addCriterion("reserve_field2 <=", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2Like(String value) {
+            addCriterion("reserve_field2 like", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2NotLike(String value) {
+            addCriterion("reserve_field2 not like", value, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2In(List<String> values) {
+            addCriterion("reserve_field2 in", values, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2NotIn(List<String> values) {
+            addCriterion("reserve_field2 not in", values, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2Between(String value1, String value2) {
+            addCriterion("reserve_field2 between", value1, value2, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField2NotBetween(String value1, String value2) {
+            addCriterion("reserve_field2 not between", value1, value2, "reserveField2");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNull() {
+            addCriterion("status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNotNull() {
+            addCriterion("status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusEqualTo(Integer value) {
+            addCriterion("status =", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotEqualTo(Integer value) {
+            addCriterion("status <>", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThan(Integer value) {
+            addCriterion("status >", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("status >=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThan(Integer value) {
+            addCriterion("status <", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("status <=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIn(List<Integer> values) {
+            addCriterion("status in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotIn(List<Integer> values) {
+            addCriterion("status not in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusBetween(Integer value1, Integer value2) {
+            addCriterion("status between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("status not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusIsNull() {
+            addCriterion("save_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusIsNotNull() {
+            addCriterion("save_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusEqualTo(Integer value) {
+            addCriterion("save_status =", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusNotEqualTo(Integer value) {
+            addCriterion("save_status <>", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusGreaterThan(Integer value) {
+            addCriterion("save_status >", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("save_status >=", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusLessThan(Integer value) {
+            addCriterion("save_status <", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("save_status <=", value, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusIn(List<Integer> values) {
+            addCriterion("save_status in", values, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusNotIn(List<Integer> values) {
+            addCriterion("save_status not in", values, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusBetween(Integer value1, Integer value2) {
+            addCriterion("save_status between", value1, value2, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSaveStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("save_status not between", value1, value2, "saveStatus");
             return (Criteria) this;
         }
     }

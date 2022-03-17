@@ -4,7 +4,6 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.CaseShuheUserWithBLOBs;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.util.StringUtils;
 
@@ -45,8 +44,8 @@ public abstract class IUserType {
      * 2022/2/11 14:03
      * 初始pojo
      */
-    protected final CaseShuheUserWithBLOBs initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
-        CaseShuheUserWithBLOBs caseUser = new CaseShuheUserAdaptee();
+    protected final CaseShuheUser initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
+        CaseShuheUser caseUser = new CaseShuheUserAdaptee();
         caseUser.setApiCode(apiCode);
         final Map<String, String> dataItem = jsonDTO.getDataItem();
         caseUser.setIsTurn(dataItem.getOrDefault("is_turn", ""));

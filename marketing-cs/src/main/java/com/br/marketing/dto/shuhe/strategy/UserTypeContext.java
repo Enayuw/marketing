@@ -1,7 +1,7 @@
 package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
-import com.br.marketing.entity.CaseShuheUserWithBLOBs;
+import com.br.marketing.entity.CaseShuheUser;
 
 /**
  * 场景策略上下文
@@ -21,8 +21,8 @@ public class UserTypeContext {
         this.iUserType = iUserType;
     }
 
-    public CaseShuheUserWithBLOBs execute(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
-        final CaseShuheUserWithBLOBs caseUser = this.iUserType.initCaseUser(jsonDTO, apiCode, jsonData);
+    public CaseShuheUser execute(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
+        final CaseShuheUser caseUser = this.iUserType.initCaseUser(jsonDTO, apiCode, jsonData);
         this.iUserType.setTotalField(jsonDTO.getDataItem(), caseUser);
         this.iUserType.getCaseUser(jsonDTO.getDataItem(), caseUser);
         return caseUser;

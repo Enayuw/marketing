@@ -2,7 +2,6 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.CaseShuheUserExample;
-import com.br.marketing.entity.CaseShuheUserWithBLOBs;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -14,25 +13,25 @@ public interface CaseShuheUserMapperBase {
 
     int deleteByPrimaryKey(Long id);
 
-    int insert(CaseShuheUserWithBLOBs record);
+    int insert(CaseShuheUser record);
 
-    int insertSelective(CaseShuheUserWithBLOBs record);
+    int insertSelective(CaseShuheUser record);
 
-    List<CaseShuheUserWithBLOBs> selectByExampleWithBLOBs(CaseShuheUserExample example);
+    List<CaseShuheUser> selectByExampleWithBLOBs(CaseShuheUserExample example);
 
     List<CaseShuheUser> selectByExample(CaseShuheUserExample example);
 
-    CaseShuheUserWithBLOBs selectByPrimaryKey(Long id);
+    CaseShuheUser selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") CaseShuheUserWithBLOBs record, @Param("example") CaseShuheUserExample example);
+    int updateByExampleSelective(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") CaseShuheUserWithBLOBs record, @Param("example") CaseShuheUserExample example);
+    int updateByExampleWithBLOBs(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
 
     int updateByExample(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
 
-    int updateByPrimaryKeySelective(CaseShuheUserWithBLOBs record);
+    int updateByPrimaryKeySelective(CaseShuheUser record);
 
-    int updateByPrimaryKeyWithBLOBs(CaseShuheUserWithBLOBs record);
+    int updateByPrimaryKeyWithBLOBs(CaseShuheUser record);
 
     int updateByPrimaryKey(CaseShuheUser record);
 }

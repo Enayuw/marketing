@@ -1,9 +1,8 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class CaseShuheUser implements Serializable {
+public class CaseShuheUser {
     /**
      *
      */
@@ -120,47 +119,39 @@ public class CaseShuheUser implements Serializable {
     private String clcUsrFstLndTimCshBtHl;
 
     /**
-     * 转化状态
-     * -1-客户异常数据 -2-标准转化入库异常 -3-客户原始数据入库异常
-     * 0-无效、1-已转化、2-黑名单、3-人工（电销）、4(1+3)-(已转化+人工（电销）) 默认 0
+     * 业务字段
+     */
+    private String jsonData;
+
+    /**
+     * 转化状态 0-无效、1-转化、2-黑名单、3-人工（电销）、4(1+3)-(转化+人工（电销）) 默认 0
      */
     private Integer isTransfer;
+
+    /**
+     * 预留字段1
+     */
+    private String reserveField1;
+
+    /**
+     * 预留字段2
+     */
+    private String reserveField2;
+
+    /**
+     * 数据状态 0-有效、1-未知场景、2-异常数据
+     */
+    private Integer status;
+
+    /**
+     * 数据保存状态 0-成功、1-原始数据保存失败、2-保存转化信息异常、3-保存转化详情异常
+     */
+    private Integer saveStatus;
 
     /**
      * 异常信息
      */
     private String errorInfo;
-
-    public CaseShuheUser() {
-    }
-
-    public CaseShuheUser(Long id, String apiCode, String custNum, String cell, String userType, String uploadDate, Date createTime, Date updateTime, String mobile, String biztype, String isBlack, String isTurn, String clcUsrFstLogTimAll, String clcUsrLstAppStaTim, String clcUsrIsoPhoTim, String clcUsrIsoIdtTim, String clcUsrIsoCrdTim, String clcUsrIsoInfTim, String clcUsrIsoAtoTim, String clcUsrAdtTimRcnLon, String clcUsrAdtLmtItr, String clcUsrFrtFqOrdTim, String clcUsrFstLndTimCshBtHl, Integer isTransfer, String errorInfo) {
-        this.id = id;
-        this.apiCode = apiCode;
-        this.custNum = custNum;
-        this.cell = cell;
-        this.userType = userType;
-        this.uploadDate = uploadDate;
-        this.createTime = createTime;
-        this.updateTime = updateTime;
-        this.mobile = mobile;
-        this.biztype = biztype;
-        this.isBlack = isBlack;
-        this.isTurn = isTurn;
-        this.clcUsrFstLogTimAll = clcUsrFstLogTimAll;
-        this.clcUsrLstAppStaTim = clcUsrLstAppStaTim;
-        this.clcUsrIsoPhoTim = clcUsrIsoPhoTim;
-        this.clcUsrIsoIdtTim = clcUsrIsoIdtTim;
-        this.clcUsrIsoCrdTim = clcUsrIsoCrdTim;
-        this.clcUsrIsoInfTim = clcUsrIsoInfTim;
-        this.clcUsrIsoAtoTim = clcUsrIsoAtoTim;
-        this.clcUsrAdtTimRcnLon = clcUsrAdtTimRcnLon;
-        this.clcUsrAdtLmtItr = clcUsrAdtLmtItr;
-        this.clcUsrFrtFqOrdTim = clcUsrFrtFqOrdTim;
-        this.clcUsrFstLndTimCshBtHl = clcUsrFstLndTimCshBtHl;
-        this.isTransfer = isTransfer;
-        this.errorInfo = errorInfo;
-    }
 
     public Long getId() {
         return id;
@@ -346,12 +337,52 @@ public class CaseShuheUser implements Serializable {
         this.clcUsrFstLndTimCshBtHl = clcUsrFstLndTimCshBtHl == null ? null : clcUsrFstLndTimCshBtHl.trim();
     }
 
+    public String getJsonData() {
+        return jsonData;
+    }
+
+    public void setJsonData(String jsonData) {
+        this.jsonData = jsonData == null ? null : jsonData.trim();
+    }
+
     public Integer getIsTransfer() {
         return isTransfer;
     }
 
     public void setIsTransfer(Integer isTransfer) {
         this.isTransfer = isTransfer;
+    }
+
+    public String getReserveField1() {
+        return reserveField1;
+    }
+
+    public void setReserveField1(String reserveField1) {
+        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    }
+
+    public String getReserveField2() {
+        return reserveField2;
+    }
+
+    public void setReserveField2(String reserveField2) {
+        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getSaveStatus() {
+        return saveStatus;
+    }
+
+    public void setSaveStatus(Integer saveStatus) {
+        this.saveStatus = saveStatus;
     }
 
     public String getErrorInfo() {
