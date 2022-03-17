@@ -644,10 +644,4 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         }
     }
 
-    public static void main(String[] args) {
-        MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
-                (transferSyncUser1, taskId) -> {
-
-                }).transferSyncUserRequest("");
-    }
 }
