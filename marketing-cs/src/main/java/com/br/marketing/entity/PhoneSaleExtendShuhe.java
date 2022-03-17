@@ -1,12 +1,19 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class PhoneSaleExtendShuhe {
-    /**
-     * 
-     */
+/**
+ * b_phone_sale_extend_shuhe
+ * @author 
+ */
+public class PhoneSaleExtendShuhe implements Serializable {
     private Long id;
+
+    /**
+     * 商户编号
+     */
+    private String apiCode;
 
     /**
      * 电销表记录id
@@ -22,6 +29,16 @@ public class PhoneSaleExtendShuhe {
      * 案件编号
      */
     private String custNum;
+
+    /**
+     * taskId
+     */
+    private String taskId;
+
+    /**
+     * 场景
+     */
+    private String userType;
 
     /**
      * 数据上传日期
@@ -53,12 +70,22 @@ public class PhoneSaleExtendShuhe {
      */
     private Date updateTime;
 
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode;
     }
 
     public Long getpId() {
@@ -82,7 +109,23 @@ public class PhoneSaleExtendShuhe {
     }
 
     public void setCustNum(String custNum) {
-        this.custNum = custNum == null ? null : custNum.trim();
+        this.custNum = custNum;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 
     public String getAppletDate() {

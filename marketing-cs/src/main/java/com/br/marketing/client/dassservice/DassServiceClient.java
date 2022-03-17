@@ -1,12 +1,16 @@
 package com.br.marketing.client.dassservice;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
+import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
@@ -14,10 +18,12 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -200,13 +206,13 @@ public class DassServiceClient {
     /**
      * 单条用户数据实时推送
      */
-    public Result postRealTimeUserData(DassImportAdapDTO dto) {
+    public Result postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
-        List<DassImportDataDTO> dtos = dto.getList();
+        List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dto.getDassSingleImportDataDTO());
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
         sortList.add(String.valueOf(l));
-        dtos.forEach(t -> {
+        dassSingleImportAdapDTOList.forEach(t -> {
             BeanMap beanMap = BeanMap.create(t);
             for (Object k : beanMap.keySet()) {
                 if (String.valueOf(k).equals("id")) {
@@ -238,40 +244,20 @@ public class DassServiceClient {
         HashMap requestParam = new HashMap();
         requestParam.put("ts", l);
         requestParam.put("sign", sign);
-        requestParam.put("data", dtos);
-        InterfaceLog interfaceLog = new InterfaceLog();
-        //存储b_phone_sale_extend_shuhe 表的id
-        interfaceLog.setExtendInfo(dto.getLocalId().toString());
-        interfaceLog.setRequestId(UUID.randomUUID().toString());
-        interfaceLog.setRequestParam(JSON.toJSONString(requestParam));
-        interfaceLog.setUrl(postRealTimeUserDataUrl);
-        interfaceLog.setCreateTime(new Date());
-        long start = System.currentTimeMillis();
-        try {
-            HashMap<String, String> hashMap = httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postRealTimeUserDataUrl, isProxy.equals("0") ? false : true);
-            long end = System.currentTimeMillis();
-            Integer code = null;
-            if (StringUtils.isNotBlank(hashMap.get("httpcode"))) {
-                code = Integer.valueOf(hashMap.get("httpcode"));
-                interfaceLog.setHttpCode(Integer.valueOf(hashMap.get("httpcode")));
+        requestParam.put("data", dassSingleImportAdapDTOList);
+        HashMap<String, String> hashMap = httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postRealTimeUserDataUrl, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dto.getExtendInfo());
+        final String httpCode = hashMap.getOrDefault("httpcode", "5000");
+        if (httpCode.equals("200")) {
+            final String respStr = hashMap.getOrDefault("content", "");
+            log.warn("%%应答内容：[{}]", respStr);
+            if (org.springframework.util.StringUtils.isEmpty(respStr)) {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
             }
-            interfaceLog.setResult(hashMap.get("content"));
-            interfaceLog.setExpire(String.valueOf(end - start));
-            if (Integer.valueOf(200).equals(code)) {
-                result.setCode(ResultCode.SUCCESS.getValue());
-            } else {
-                result.setCode(ResultCode.FAIL.getValue());
-                result.setMessage(hashMap.get("content"));
-            }
-        } catch (Exception ex) {
-            long end = System.currentTimeMillis();
-            interfaceLog.setExpire(String.valueOf(end - start));
-            interfaceLog.setResult("程序异常：" + ex.getMessage());
-            result.setCode(ResultCode.FAIL.getValue());
-            result.setMessage(ex.getMessage());
-            log.error(ex.getMessage(), ex);
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+        } else {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
-        interfaceLogMapper.insertSelective(interfaceLog);
         return result;
     }
 }
