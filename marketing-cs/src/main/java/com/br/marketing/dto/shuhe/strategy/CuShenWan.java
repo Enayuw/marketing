@@ -75,9 +75,11 @@ public class CuShenWan extends IUserType {
             if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
-                LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-                ifTransfer = isoAtoTim.isAfter(appletDate);
+                LocalDate isoAtoTim = LocalDateTime.parse(
+                        caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter).toLocalDate();
+                LocalDate appletDate = creatTime.toInstant().atZone(
+                        ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
+                ifTransfer = isoAtoTim.isAfter(appletDate) || isoAtoTim.isEqual(appletDate);
             }
         }
         return ifTransfer;

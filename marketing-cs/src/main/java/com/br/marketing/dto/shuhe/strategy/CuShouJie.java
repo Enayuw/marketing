@@ -4,6 +4,7 @@ import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -33,10 +34,11 @@ public class CuShouJie extends IUserType {
             if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDateTime frtFqOrdTim = LocalDateTime.parse(caseShuheUser.getClcUsrFrtFqOrdTim()
-                        , dateTimeFormatter);
-                LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-                ifTransfer = frtFqOrdTim.isAfter(appletDate);
+                LocalDate frtFqOrdTim = LocalDateTime.parse(caseShuheUser.getClcUsrFrtFqOrdTim()
+                        , dateTimeFormatter).toLocalDate();
+                LocalDate appletDate = creatTime.toInstant().atZone(
+                        ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
+                ifTransfer = frtFqOrdTim.isAfter(appletDate) || frtFqOrdTim.isEqual(appletDate);
             }
         }
         return ifTransfer;
