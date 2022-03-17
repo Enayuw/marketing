@@ -489,7 +489,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                             } else {
                                 sb.append(sep);
                             }
-                            buildEs(s, ss, mh, conditionList);
+                            buildEs(s, ss, mh, conditionList,extendJson);
                         }
                         fw.append(sb).append("\r\n");
                         insertEs(file, mh, conditionList);
@@ -566,6 +566,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                                     ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
                                     .decode(syncUser.getCell()).getBytes())
                                     : syncUser.getCell();
+                            extendJson.put("cellSource", syncUser.getCell());
                             break;
                         case "name":
                             str = StringUtils.isBlank(syncUser.getFailType())
@@ -643,17 +644,19 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     }
 
     private void updateFile(StraHisFile straHisFile) {
+
+        TaskStatusDistribute taskStatusDistribute = new TaskStatusDistribute();
+        taskStatusDistribute.setStatus(2);
+        taskStatusDistribute.setActualNum(Long.valueOf(straHisFile.getActualNum()));
+        TaskStatusDistributeExample example = new TaskStatusDistributeExample();
+        example.createCriteria().andFileIdEqualTo(straHisFile.getId());
+        taskStatusDistributeMapper.updateByExampleSelective(taskStatusDistribute, example);
+
         StraHisFile file = new StraHisFile();
         file.setId(straHisFile.getId());
         file.setStatus(1);
         file.setActualNum(straHisFile.getActualNum());
         straHisFileMapper.updateByPrimaryKeySelective(file);
-
-        TaskStatusDistribute taskStatusDistribute = new TaskStatusDistribute();
-        taskStatusDistribute.setStatus(2);
-        TaskStatusDistributeExample example = new TaskStatusDistributeExample();
-        example.createCriteria().andFileIdEqualTo(straHisFile.getId());
-        taskStatusDistributeMapper.updateByExampleSelective(taskStatusDistribute, example);
 
         MarketingTask updateTask = new MarketingTask();
         updateTask.setActualNumber(straHisFile.getActualNum());
@@ -1401,7 +1404,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 
     }
 
-    private void buildEs(String field, String value, MarketingHistory mh, List<MarketingCondition> conditionList) {
+    private void buildEs(String field, String value, MarketingHistory mh, List<MarketingCondition> conditionList,JSONObject json) {
         field = field.toLowerCase();
         if ((field.equals("id")
                 || field.equals("idcard"))
@@ -1409,7 +1412,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             mh.setIdCard(value);
         }else if (field.equals("cell")
                 && StringUtils.isNotNull(value)) {
-            mh.setCell(value);
+            String cellSource = json.getString("cellSource");
+            mh.setCell(cellSource);
         } else if (field.equals("name")
                 && StringUtils.isNotNull(value)) {
             mh.setName(value);
