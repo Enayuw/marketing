@@ -3,7 +3,7 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.DassServiceClient;
-import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
@@ -24,7 +24,7 @@ import java.util.List;
  * @Author : lizhen
  * @Date : Create in 2022/03/17 16:11
  */
-public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterfaceHandler<RealTimeUserDataDTO>{
+public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterfaceHandler<RealTimeUserDataDTO> {
 
     @Autowired
     PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
@@ -34,30 +34,33 @@ public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterface
 
     @Override
     JSONObject call(List<RealTimeUserDataDTO> transferData, ProcessHandlerContext context) {
-        PhoneSaleExtendShuhe phoneSaleExtendShuhe = transferData.get(0).getPhoneSaleExtendShuhe();
-        //插入b_phone_sale_extend_shuhe
-        //后续不同商户考虑抽出来
-        phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
-        //调用Dass
-        DassImportAdapDTO  dassImportAdapDTO = transferData.get(0).getDassImportAdapDTO();
-        dassImportAdapDTO.setLocalId(phoneSaleExtendShuhe.getId());
-        dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
-        callDassRealTimeUserData(dassImportAdapDTO,0);
+        for (RealTimeUserDataDTO realTimeUserDataDTO : transferData) {
+            PhoneSaleExtendShuhe phoneSaleExtendShuhe = realTimeUserDataDTO.getPhoneSaleExtendShuhe();
+            //插入b_phone_sale_extend_shuhe
+            //后续不同商户考虑抽出来
+            phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
+            //调用Dass
+            DassSingleImportAdapDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
+            dassImportAdapDTO.setExtendInfo(phoneSaleExtendShuhe.getId().toString());
+            dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
+            callDassRealTimeUserData(dassImportAdapDTO, 0);
+        }
         return null;
     }
 
     /**
-     * 调用Daas接口
+     * 调用Dass接口
      * 调用成功，将该批数据记录到数据库中以便数据对比
+     *
      * @param dassImportAdapDTO
      * @return
      */
     @RetryMethod
-    public Result  callDassRealTimeUserData(DassImportAdapDTO dassImportAdapDTO, Integer retry){
+    public Result callDassRealTimeUserData(DassSingleImportAdapDTO dassImportAdapDTO, Integer retry) {
 
         Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            saveBizLog(dassImportAdapDTO.getLocalId().toString(),handlerEnum().getCode(),dassImportAdapDTO.getTransferInfoId());
+            saveBizLog(dassImportAdapDTO.getExtendInfo(), handlerEnum().getCode(), dassImportAdapDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));

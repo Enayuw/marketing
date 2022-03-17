@@ -1,6 +1,5 @@
 package com.br.marketing.client.dassservice.input.userdata;
 
-import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
@@ -18,7 +17,7 @@ public class RealTimeUserDataDTO extends InterfaceParams {
     /**
      * 调用Dass 入参
      */
-    private DassImportAdapDTO dassImportAdapDTO;
+    private DassSingleImportAdapDTO dassSingleImportAdapDTO;
 
     /**
      * 插入b_phone_sale_extend_shuhu表入参
