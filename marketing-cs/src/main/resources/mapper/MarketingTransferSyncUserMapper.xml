@@ -6,4 +6,10 @@
         where cust_num=#{caseNum}
         order by create_time desc limit 1;
     </select>
+
+    <select id="getNewestByCusnumAndApicode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${cid}
+        where cust_num=#{caseNum} and api_code=#{apicode}
+        order by create_time desc limit 1;
+    </select>
 </mapper>

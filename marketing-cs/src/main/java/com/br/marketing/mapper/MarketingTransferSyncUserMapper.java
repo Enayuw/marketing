@@ -12,4 +12,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     MarketingTransferSyncUser getNewestByCusnum(@Param("cid") String cid, @Param("caseNum") String caseNum);
+
+    /**
+     * 根据cust_num、Apicode获取最新数据
+     */
+    MarketingTransferSyncUser getNewestByCusnumAndApicode(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("apicode") String apicode);
+
+
 }

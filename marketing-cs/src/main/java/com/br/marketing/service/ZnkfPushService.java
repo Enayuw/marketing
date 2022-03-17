@@ -9,4 +9,19 @@ public interface ZnkfPushService {
      * @return
      */
     String znkfPushCallBack(CallRecordDTO dto);
+
+    /**
+     * 判断是否符合情况b：userType=促申完 && intentionGrade="A级(有明确意向）" && cusNun && 有效期内
+     * @param dto
+     * @return
+     */
+    Boolean isSatisfyPushDX(CallRecordDTO dto);
+
+    /**
+     * 判断案件编号是否为当天首次传输
+     * @param key
+     * @return
+     */
+    Boolean cusNumIsFirstToday(String key);
+
 }

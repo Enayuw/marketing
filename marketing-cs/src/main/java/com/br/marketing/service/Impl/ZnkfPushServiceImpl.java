@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushShDXDTO;
@@ -11,6 +12,9 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.TransferSource;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
@@ -22,6 +26,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +55,19 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Resource
     private AlarmApiClient alarmClient;
 
+    @Autowired
+    RedisChgService redisChgService;
+
+    @Resource
+    private RabbitMqProducter producter;
+
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
     private final String title = "客服->推送电销";
+
 
     @Override
     public String znkfPushCallBack(CallRecordDTO dto) {
@@ -82,16 +96,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 return "success";
             }else {
                 callRecordMapper.insertSelective(callRecord);
+                //推mq
+                final MqFact mqFact = new MqFact();
+                mqFact.setSourceId(callRecord.getId());
+                mqFact.setSource(TransferSource.CUSTOMER_DIAL_PROCESS.getCode());
+                producter.sendToUniversalTransferQueue(mqFact);
             }
         }catch (Exception ex){
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId(),ex);
             return "客服拨打记录落库失败(insert b_call_record fail)!";
-        }
-
-        //判断是否符合情况b：userType=促申完&intentionGrade=A&cusNun&有效期内
-        if (isSatisfyPushDX(dto)) {
-            //调用 数禾推送电销方法
-            goShDX(dto);
         }
         return "success";
     }
@@ -101,7 +114,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      * @param dto
      * @return
      */
-    private Boolean isSatisfyPushDX(CallRecordDTO dto) {
+    @Override
+    public Boolean isSatisfyPushDX(CallRecordDTO dto) {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
         if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
             log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
@@ -128,6 +142,38 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * key存在-->不是首次；key不存在-->是首次传输，redis过期时间为第二天凌晨0点
+     * @param key
+     * @return
+     */
+    @Override
+    public Boolean cusNumIsFirstToday(String key) {
+        if (redisChgService.exists(key)) {
+            return false;
+        }
+        Integer seconds = getRemainSecondsOneDay(new Date());
+        redisChgService.setex(key,"1",seconds);
+        return true;
+    }
+
+    /**
+     * 获取传入时间与第二天凌晨相差秒数
+     * @param currentDate
+     * @return
+     */
+    public static Integer getRemainSecondsOneDay(Date currentDate) {
+        //使用plusDays加传入的时间加1天，将时分秒设置成0
+        LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
+                ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
+                .withSecond(0).withNano(0);
+        LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentDate.toInstant(),
+                ZoneId.systemDefault());
+        //使用ChronoUnit.SECONDS.between方法，传入两个LocalDateTime对象即可得到相差的秒数
+        long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
+        return (int) seconds;
     }
 
     private String goShDX(CallRecordDTO dto) {
