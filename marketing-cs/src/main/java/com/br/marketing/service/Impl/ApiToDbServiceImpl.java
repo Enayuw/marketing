@@ -284,7 +284,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 String filePath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
                         .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
                 StraHisFile file = null;
-                if(isToFile){
+                if (isToFile) {
                     file = saveTask(apiCode, number, filePath, null, customerScoreRuleVO, baseHeadConfigVO, null, null, isToFile, taskStart, taskEnd);
                 }
 
@@ -303,7 +303,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         continue;
                     }
                     if (isToFile) {
-                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, separator,file);
+                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, separator, file);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, threadPool);
                     }
@@ -337,10 +337,10 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = isToFile ? taskNum : marketingUserMapper.countBySureUser(apiCode, number);
                 if (actNum > 0) {
-                    if(!isToFile){
+                    if (!isToFile) {
                         AtomicInteger num = new AtomicInteger(taskNum);
-                        saveTask(apiCode, number, filePath, null,customerScoreRuleVO, baseHeadConfigVO, actNum, num, isToFile,taskStart,taskEnd);
-                    }else{
+                        saveTask(apiCode, number, filePath, null, customerScoreRuleVO, baseHeadConfigVO, actNum, num, isToFile, taskStart, taskEnd);
+                    } else {
                         file.setActualNum(actNum);
                         updateFile(file);
                     }
@@ -442,8 +442,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
      * @param currentPage
      * @param sep
      */
-    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep,StraHisFile file) {
-        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, sep,file, null, null, null);
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep, StraHisFile file) {
+        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, sep, file, null, null, null);
     }
 
     /**
@@ -458,7 +458,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
      * @param userTypes
      * @param appletDate
      */
-    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep,StraHisFile file, List<String> userTypes, String appletDate, AtomicInteger preNum) {
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep, StraHisFile file, List<String> userTypes, String appletDate, AtomicInteger preNum) {
 
         File writeName = new File(filePath);
         if (!writeName.exists()) {
@@ -489,10 +489,10 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                             } else {
                                 sb.append(sep);
                             }
-                            buildEs(s,ss,mh,conditionList);
+                            buildEs(s, ss, mh, conditionList);
                         }
                         fw.append(sb).append("\r\n");
-                        insertEs(file,mh,conditionList);
+                        insertEs(file, mh, conditionList);
                         len++;
                     }
                 }
@@ -642,7 +642,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         taskStatusDistributeMapper.insertSelective(statusDistribute);
     }
 
-    private void updateFile(StraHisFile straHisFile){
+    private void updateFile(StraHisFile straHisFile) {
         StraHisFile file = new StraHisFile();
         file.setId(straHisFile.getId());
         file.setStatus(1);
@@ -653,7 +653,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         taskStatusDistribute.setStatus(2);
         TaskStatusDistributeExample example = new TaskStatusDistributeExample();
         example.createCriteria().andFileIdEqualTo(straHisFile.getId());
-        taskStatusDistributeMapper.updateByExample(taskStatusDistribute,example);
+        taskStatusDistributeMapper.updateByExampleSelective(taskStatusDistribute, example);
 
         MarketingTask updateTask = new MarketingTask();
         updateTask.setActualNumber(straHisFile.getActualNum());
@@ -1199,7 +1199,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     //endregion
 
                     if (isToFile && file == null) {
-                        file = saveTask(apiCode, batchNumber, filePath, rule,null, baseHeadConfigVO, null, preNum, isToFile,null,null);
+                        file = saveTask(apiCode, batchNumber, filePath, rule, null, baseHeadConfigVO, null, preNum, isToFile, null, null);
                     }
                     Long maxId = marketingSyncUserMapper.maxId(apiCode, s, dataType, userTypes);
                     BaseHeadConfigVO headvo = baseHeadConfigVO;
@@ -1211,7 +1211,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         Long nowMinId = minId;
                         List<MarketingSyncUser> users = marketingSyncUserMapper.getUserById(apiCode, nowMinId, nowMaxId, dataType);
                         if (isToFile) {
-                            dataToFile(users, headvo, threadPool, filePath, currentPage, separator,file, userTypes, s, preNum);
+                            dataToFile(users, headvo, threadPool, filePath, currentPage, separator, file, userTypes, s, preNum);
                         } else {
                             dataToDB(users, apiCode, number, headvo, threadPool, userTypes, s, preNum);
                         }
@@ -1237,8 +1237,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     int actNum = isToFile ? preNum.get() : marketingUserMapper.countBySureUser(apiCode, batchNumber);
                     if (actNum > 0) {
                         if (!isToFile) {
-                            saveTask(apiCode, batchNumber, filePath, rule,null, baseHeadConfigVO, actNum, preNum, isToFile,null,null);
-                        }else{
+                            saveTask(apiCode, batchNumber, filePath, rule, null, baseHeadConfigVO, actNum, preNum, isToFile, null, null);
+                        } else {
                             file.setActualNum(preNum.get());
                             updateFile(file);
                         }
@@ -1263,7 +1263,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private StraHisFile saveTask(String apiCode, String batchNumber, String filePath, FastTaskRule rule,CustomerScoreRuleVO ruleVO, BaseHeadConfigVO baseHeadConfigVO, Integer actNum, AtomicInteger preNum, boolean isToFile,String taskStart,String taskEnd) {
+    private StraHisFile saveTask(String apiCode, String batchNumber, String filePath, FastTaskRule rule, CustomerScoreRuleVO ruleVO, BaseHeadConfigVO baseHeadConfigVO, Integer actNum, AtomicInteger preNum, boolean isToFile, String taskStart, String taskEnd) {
 
         //region 处理task
         MarketingTask task = new MarketingTask();
@@ -1271,9 +1271,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         task.setBatchNumber(batchNumber);
         task.setMonitorStatus(isToFile ? 2 : 1);
         task.setStatus(1);
-        task.setActualNumber(actNum==null?0:actNum);
-        task.setTaskNumber(preNum==null?0:preNum.get());
-        if(rule != null){
+        task.setActualNumber(actNum == null ? 0 : actNum);
+        task.setTaskNumber(preNum == null ? 0 : preNum.get());
+        if (rule != null) {
             LocalDate startDate = LocalDate.parse(rule.getTaskTime(), ymd);
             String closeDate = startDate.plusDays(1).format(ymd);
             task.setTaskType(rule.getTaskType());
@@ -1285,7 +1285,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             task.setCloseDate(closeDate);
             task.setMonitorType(1);
         }
-        if(ruleVO !=null){
+        if (ruleVO != null) {
             task.setTaskType(ruleVO.getTaskType());
             task.setStrategyId(ruleVO.getStrategyId());
             task.setProductInfo(ruleVO.getProductInfo());
@@ -1318,8 +1318,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         //endregion
 
         //region 不定时不定量跑分关系表
+        FastFileRelation relation = null;
         if (rule != null) {
-            FastFileRelation relation = new FastFileRelation();
+            relation = new FastFileRelation();
             relation.setFastTaskId(rule.getId());
             relation.setTaskId(task.getId());
             relation.setCreateTime(new Date());
@@ -1333,14 +1334,14 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         taskExtend.setTaskId(Long.valueOf(task.getId()));
         taskExtend.setCreateTime(new Date());
         taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? JSON.toJSONString(baseHeadConfigVO) : null);
-        if(rule != null){
+        if (rule != null) {
             taskExtend.setCusTaskId(rule.getId().toString());
             taskExtend.setRuleId(rule.getId());
             taskExtend.setGroupType(rule.getRuleNumber());
             taskExtend.setStrategyProductJson(rule.getProductField());
             taskExtend.setUploadTime(rule.getTaskTime());
         }
-        if(ruleVO != null){
+        if (ruleVO != null) {
             taskExtend.setCusTaskId(ruleVO.getId().toString());
             taskExtend.setRuleId(ruleVO.getId());
             taskExtend.setGroupType(ruleVO.getRuleNameShort());
@@ -1385,6 +1386,13 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             statusDistribute.setCreateTime(date);
             statusDistribute.setUpdateTime(date);
             taskStatusDistributeMapper.insertSelective(statusDistribute);
+
+            if (relation != null) {
+                FastFileRelation update = new FastFileRelation();
+                update.setFileId(blf.getId());
+                update.setId(relation.getId());
+                fastFileRelationMapper.updateByPrimaryKeySelective(update);
+            }
             return blf;
         }
         //endregion
@@ -1393,25 +1401,28 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 
     }
 
-    private void buildEs(String field,String value,MarketingHistory mh,List<MarketingCondition> conditionList){
+    private void buildEs(String field, String value, MarketingHistory mh, List<MarketingCondition> conditionList) {
         field = field.toLowerCase();
-        if((field.equals("id")
-                ||field.equals("idcard"))
-                &&StringUtils.isNotNull(value)){
+        if ((field.equals("id")
+                || field.equals("idcard"))
+                && StringUtils.isNotNull(value)) {
             mh.setIdCard(value);
-        }else if (field.equals("name")
-                &&StringUtils.isNotNull(value)){
+        }else if (field.equals("cell")
+                && StringUtils.isNotNull(value)) {
+            mh.setCell(value);
+        } else if (field.equals("name")
+                && StringUtils.isNotNull(value)) {
             mh.setName(value);
-        }else if ((field.equals("taskid")
-                ||field.equals("cusbatch"))
-                &&StringUtils.isNotNull(value)){
+        } else if ((field.equals("taskid")
+                || field.equals("cusbatch"))
+                && StringUtils.isNotNull(value)) {
             mh.setTaskId(value);
-        }else if ((field.equals("usertype")
-                ||field.equals("grouptype"))
-                &&StringUtils.isNotNull(value)){
+        } else if ((field.equals("usertype")
+                || field.equals("grouptype"))
+                && StringUtils.isNotNull(value)) {
             mh.setUserType(value);
-        }else {
-            if(StringUtils.isNotNull(value)){
+        } else {
+            if (StringUtils.isNotNull(value)) {
                 MarketingCondition marketingConditionStr = new MarketingCondition();
                 marketingConditionStr.setFieldKey(field);
                 marketingConditionStr.setStrValue(value);
@@ -1421,10 +1432,11 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         }
     }
 
-    private void insertEs(StraHisFile file,MarketingHistory mh,List<MarketingCondition> conditionList){
+    private void insertEs(StraHisFile file, MarketingHistory mh, List<MarketingCondition> conditionList) {
         mh.setCondition(conditionList);
         mh.setBatchNumber(file.getBatchNumber());
         mh.setFileId(file.getId().toString());
+        mh.setApiCode(file.getApiCode());
         String id = UuidUtils.getUuid();
         marketingHistoryEsService.insert(mh, id);
     }
