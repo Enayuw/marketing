@@ -49,8 +49,7 @@ otherConfig:
   warning:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-#    path: /opt/data/inloan/download/marketing/
-    path: /Users/chao.z/Desktop/
+    path: /opt/data/inloan/download/marketing/
     sftpHost: 10.100.123.65
     sftpPort: 9999
     sftpUser: BRmarketing_pre

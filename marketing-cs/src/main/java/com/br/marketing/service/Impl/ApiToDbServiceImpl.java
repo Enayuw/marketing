@@ -17,6 +17,10 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TaskUserDataConditionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.es.bean.MarketingCondition;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.BaseHead;
@@ -28,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -36,10 +41,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,11 +131,13 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     @Resource
     StraHisFileMapper straHisFileMapper;
 
+    @Autowired
+    MarketingHistoryEsServiceImpl marketingHistoryEsService;
+
     @Override
     public Result pushToDb(String apiCode) {
         return pushToDb(apiCode, 0, null);
     }
-
 
     @Override
     public Result pushToDb(String code, int shardingTotalCount, List<Integer> shardingItems) {
@@ -279,6 +283,11 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 String separator = marketingSepService.querySepByApiCode(apiCode);
                 String filePath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
                         .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
+                StraHisFile file = null;
+                if(isToFile){
+                    file = saveTask(apiCode, number, filePath, null, customerScoreRuleVO, baseHeadConfigVO, null, null, isToFile, taskStart, taskEnd);
+                }
+
                 while (execMark && TaskExecCommonField.isBuildTaskJob.equals(1)) {
                     String batchNumber = number;
                     Long nowMaxId = minId + 5000;
@@ -294,7 +303,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                         continue;
                     }
                     if (isToFile) {
-                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, separator);
+                        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, separator,file);
                     } else {
                         dataToDB(syncUserByRuleScore, apiCode, batchNumber, baseHeadConfigVO, threadPool);
                     }
@@ -328,61 +337,12 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 //                int i = marketingUserMapper.countByPreUser(apiCode, taskId, strategyOfGroupDTO.getGroupType(),preDate);
                 int actNum = isToFile ? taskNum : marketingUserMapper.countBySureUser(apiCode, number);
                 if (actNum > 0) {
-                    MarketingTask task = new MarketingTask();
-                    task.setApiCode(apiCode);
-                    task.setBatchNumber(number);
-                    task.setMonitorStatus(isToFile ? 2 : 1);
-                    task.setTaskType(customerScoreRuleVO.getTaskType());
-                    task.setProductInfo(customerScoreRuleVO.getProductInfo());
-                    task.setStatus(1);
-                    task.setStrategyId(customerScoreRuleVO.getStrategyId());
-                    task.setFileName(String.format("%s_%s", customerScoreRuleVO.getId().toString(), customerScoreRuleVO.getRuleNameShort()));
-                    task.setCusBatch(customerScoreRuleVO.getId().toString());
-                    task.setActualNumber(actNum);
-                    task.setTaskNumber(taskNum);
-                    String s = DateUtils.format(new Date(), "yyyy-MM-dd");
-                    task.setMonitorType(customerScoreRuleVO.getExecType());
-                    if (Integer.valueOf(4).equals(customerScoreRuleVO.getExecType())) {
-                        MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-                        if (task1 != null) {
-                            task.setStartDate(task1.getStartDate());
-                            task.setCloseDate(task1.getCloseDate());
-                        } else {
-                            task.setStartDate(taskStart);
-                            task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
-                        }
-                        task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    } else if (Integer.valueOf(3).equals(customerScoreRuleVO.getExecType())) {
-                        task.setMonitorType(4);
-                        task.setStartDate(taskStart);
-                        task.setCloseDate(customerScoreRuleVO.getCycleEndDay());
-                        task.setCycleDay(customerScoreRuleVO.getCycleDay().toString());
-                    } else {
-                        task.setStartDate(taskStart);
-                        task.setCloseDate(taskEnd);
-                    }
-                    task.setContextId(getTaskContextId());
-                    marketingTaskMapper.insertTask(task);
-                    MarketingTaskExtend taskExtend = new MarketingTaskExtend();
-                    taskExtend.setApiCode(apiCode);
-                    taskExtend.setTaskId(Long.valueOf(task.getId()));
-                    taskExtend.setCusTaskId(customerScoreRuleVO.getId().toString());
-                    taskExtend.setRuleId(customerScoreRuleVO.getId());
-                    taskExtend.setGroupType(customerScoreRuleVO.getRuleNameShort());
-                    taskExtend.setCreateTime(new Date());
-                    taskExtend.setUploadTime(eTimeStr);
-                    taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? JSON.toJSONString(baseHeadConfigVO) : null);
-                    taskExtend.setStrategyProductJson(customerScoreRuleVO.getStrategyProductJson());
-                    marketingTaskExtendMapper.insertSelective(taskExtend);
-                    TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
-                    updateBatchExample.createCriteria().andBatchNumberEqualTo(number);
-                    TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
-                    updateBatchnumber.setStatus(2);
-                    taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
-
-                    if (isToFile) {
-                        LoanFile loanFile = saveStraHisFile(task, customerScoreRuleVO, eTimeStr, filePath);
-                        saveTaskStatusDistribute(task, loanFile);
+                    if(!isToFile){
+                        AtomicInteger num = new AtomicInteger(taskNum);
+                        saveTask(apiCode, number, filePath, null,customerScoreRuleVO, baseHeadConfigVO, actNum, num, isToFile,taskStart,taskEnd);
+                    }else{
+                        file.setActualNum(actNum);
+                        updateFile(file);
                     }
                     try {
                         StringBuilder content = new StringBuilder();
@@ -482,8 +442,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
      * @param currentPage
      * @param sep
      */
-    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep) {
-        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, sep, null, null, null);
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep,StraHisFile file) {
+        dataToFile(syncUserByRuleScore, baseHeadConfigVO, threadPool, filePath, currentPage, sep,file, null, null, null);
     }
 
     /**
@@ -498,7 +458,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
      * @param userTypes
      * @param appletDate
      */
-    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep, List<String> userTypes, String appletDate, AtomicInteger preNum) {
+    private void dataToFile(List<MarketingSyncUser> syncUserByRuleScore, BaseHeadConfigVO baseHeadConfigVO, ExecutorService threadPool, String filePath, int currentPage, String sep,StraHisFile file, List<String> userTypes, String appletDate, AtomicInteger preNum) {
 
         File writeName = new File(filePath);
         if (!writeName.exists()) {
@@ -520,6 +480,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     if (baseHeadConfigVO != null) {
                         JSONObject extendJson = getCustomerHead(syncUser, baseHeadConfigVO);
                         StringBuilder sb = new StringBuilder();
+                        MarketingHistory mh = new MarketingHistory();
+                        List<MarketingCondition> conditionList = new ArrayList<>();
                         for (String s : baseHeadConfigVO.getShowBaseHead()) {
                             String ss = extendJson.getString(s);
                             if (StringUtils.isNotBlank(ss)) {
@@ -527,8 +489,10 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                             } else {
                                 sb.append(sep);
                             }
+                            buildEs(s,ss,mh,conditionList);
                         }
                         fw.append(sb).append("\r\n");
+                        insertEs(file,mh,conditionList);
                         len++;
                     }
                 }
@@ -678,33 +642,24 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         taskStatusDistributeMapper.insertSelective(statusDistribute);
     }
 
-    private void saveFileTask(MarketingTask task,String filePath){
-        StraHisFile blf = new StraHisFile();
-        blf.setApiCode(task.getApiCode());
-        blf.setBatchNumber(task.getBatchNumber());
-        blf.setFilePath(filePath);
-        blf.setCreateTime(new Date());
-        blf.setUpdateTime(new Date());
-        blf.setStatus(3);
-        if (1 == task.getMonitorType()) {
-            blf.setType(2);
-        } else if (4 == task.getMonitorType()) {
-            blf.setType(1);
-        }
-        blf.setIndexNum(1);
-        straHisFileMapper.insertSelective(blf);
+    private void updateFile(StraHisFile straHisFile){
+        StraHisFile file = new StraHisFile();
+        file.setId(straHisFile.getId());
+        file.setStatus(1);
+        file.setActualNum(straHisFile.getActualNum());
+        straHisFileMapper.updateByPrimaryKeySelective(file);
 
+        TaskStatusDistribute taskStatusDistribute = new TaskStatusDistribute();
+        taskStatusDistribute.setStatus(2);
+        TaskStatusDistributeExample example = new TaskStatusDistributeExample();
+        example.createCriteria().andFileIdEqualTo(straHisFile.getId());
+        taskStatusDistributeMapper.updateByExample(taskStatusDistribute,example);
 
-        TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
-        statusDistribute.setFileId(blf.getId());
-        statusDistribute.setApiCode(task.getApiCode());
-        statusDistribute.setBatchNumber(task.getBatchNumber());
-        statusDistribute.setDistributeIndex(0);
-        statusDistribute.setActualNum(task.getActualNumber().longValue());
-        Date date = new Date();
-        statusDistribute.setCreateTime(date);
-        statusDistribute.setUpdateTime(date);
-        taskStatusDistributeMapper.insertSelective(statusDistribute);
+        MarketingTask updateTask = new MarketingTask();
+        updateTask.setActualNumber(straHisFile.getActualNum());
+        updateTask.setBatchNumber(straHisFile.getBatchNumber());
+        updateTask.setApiCode(straHisFile.getApiCode());
+        marketingTaskMapper.modifyTaskActualNum(updateTask);
     }
 
     private void saveTaskStatus(MarketingTask task, LoanFile loanFile) {
@@ -1170,17 +1125,11 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             List<FastTaskRule> ruls = fastTaskRule.getData();
             outFor:
             for (FastTaskRule rule : ruls) {
-                LocalDate startDate = LocalDate.parse(rule.getTaskTime(), ymd);
-                String closeDate = startDate.plusDays(1).format(ymd);
-                BaseHeadConfigVO baseHeadConfigVO = null;
-                if (StringUtils.isNotBlank(rule.getCallbackInfo())) {
-                    baseHeadConfigVO = JSON.parseObject(rule.getCallbackInfo(), new TypeReference<BaseHeadConfigVO>() {
-                    }.getType());
-                }
                 ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
                 String batchNumber = "";
                 String filePath = "";
-                //region check
+
+                //region check不定时不定量跑分规则数据是否正常
                 Result checkRes = iRuleConfigService.checkFastTaskRule(rule);
                 if (!ResultCode.SUCCESS.getValue().equals(checkRes.getCode())) {
                     continue;
@@ -1203,14 +1152,27 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     continue;
                 }
                 //endregion
+
+                //region 基于日期和场景 创建查询条件
+                BaseHeadConfigVO baseHeadConfigVO = null;
+                if (StringUtils.isNotBlank(rule.getCallbackInfo())) {
+                    baseHeadConfigVO = JSON.parseObject(rule.getCallbackInfo(), new TypeReference<BaseHeadConfigVO>() {
+                    }.getType());
+                }
+
                 Map<String, List<String>> conditions = dataConditionDTOList.stream()
                         .collect(Collectors.groupingBy(m -> m.getAppletDate()
                                 , Collectors.collectingAndThen(Collectors.toList()
                                         , m -> m.stream().map(t -> t.getUserType()).collect(Collectors.toList()))));
                 Integer dataType = Integer.valueOf(2).equals(rule.getDataType()) ? 1 : null;
+                //endregion
+
                 AtomicInteger preNum = new AtomicInteger();
                 boolean isToFile = rule.getTaskType().equals(new Integer(1));
+                StraHisFile file = null;
                 for (String s : conditions.keySet()) {
+
+                    //region 校验范围内是否存在数据
                     List<String> userTypes = conditions.get(s);
                     Long minId = marketingSyncUserMapper.minId(apiCode, s, dataType, userTypes);
                     if (minId == null || minId <= 0) {
@@ -1234,18 +1196,22 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     if (StringUtils.isBlank(batchNumber)) {
                         continue;
                     }
+                    //endregion
+
+                    if (isToFile && file == null) {
+                        file = saveTask(apiCode, batchNumber, filePath, rule,null, baseHeadConfigVO, null, preNum, isToFile,null,null);
+                    }
                     Long maxId = marketingSyncUserMapper.maxId(apiCode, s, dataType, userTypes);
                     BaseHeadConfigVO headvo = baseHeadConfigVO;
                     String number = batchNumber;
                     String separator = marketingSepService.querySepByApiCode(apiCode);
                     Integer currentPage = 1;
-
                     while (minId <= maxId) {
                         Long nowMaxId = minId + 5000;
                         Long nowMinId = minId;
                         List<MarketingSyncUser> users = marketingSyncUserMapper.getUserById(apiCode, nowMinId, nowMaxId, dataType);
                         if (isToFile) {
-                            dataToFile(users, headvo, threadPool, filePath, currentPage, separator, userTypes, s, preNum);
+                            dataToFile(users, headvo, threadPool, filePath, currentPage, separator,file, userTypes, s, preNum);
                         } else {
                             dataToDB(users, apiCode, number, headvo, threadPool, userTypes, s, preNum);
                         }
@@ -1270,48 +1236,11 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     //region 处理task
                     int actNum = isToFile ? preNum.get() : marketingUserMapper.countBySureUser(apiCode, batchNumber);
                     if (actNum > 0) {
-                        MarketingTask task = new MarketingTask();
-                        task.setApiCode(apiCode);
-                        task.setBatchNumber(batchNumber);
-                        task.setMonitorStatus(1);
-                        task.setTaskType(rule.getTaskType());
-                        task.setStatus(1);
-                        task.setStrategyId(rule.getStrategyId());
-                        task.setProductInfo(rule.getProductInfo());
-                        task.setFileName(String.format("%s_%s", rule.getId().toString(), rule.getRuleNumber()));
-                        task.setCusBatch(rule.getId().toString());
-                        task.setActualNumber(actNum);
-                        task.setTaskNumber(preNum.get());
-                        String s = DateUtils.format(new Date(), "yyyy-MM-dd");
-                        task.setMonitorType(1);
-                        task.setStartDate(rule.getTaskTime());
-                        task.setCloseDate(closeDate);
-                        task.setContextId(getTaskContextId());
-                        marketingTaskMapper.insertTask(task);
-                        FastFileRelation relation = new FastFileRelation();
-                        relation.setFastTaskId(rule.getId());
-                        relation.setTaskId(task.getId());
-                        relation.setCreateTime(new Date());
-                        fastFileRelationMapper.insertSelective(relation);
-                        MarketingTaskExtend taskExtend = new MarketingTaskExtend();
-                        taskExtend.setApiCode(apiCode);
-                        taskExtend.setTaskId(Long.valueOf(task.getId()));
-                        taskExtend.setCusTaskId(rule.getId().toString());
-                        taskExtend.setRuleId(rule.getId());
-                        taskExtend.setGroupType(rule.getRuleNumber());
-                        taskExtend.setCreateTime(new Date());
-                        taskExtend.setUploadTime(rule.getTaskTime());
-                        taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? JSON.toJSONString(baseHeadConfigVO) : null);
-                        taskExtend.setStrategyProductJson(rule.getProductField());
-                        marketingTaskExtendMapper.insertSelective(taskExtend);
-                        TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
-                        updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
-                        TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
-                        updateBatchnumber.setStatus(2);
-                        taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
-                        if (isToFile) {
-                            LoanFile loanFile = saveStraHisFile(task, null, rule.getTaskTime(), filePath);
-                            saveTaskStatusDistribute(task, loanFile);
+                        if (!isToFile) {
+                            saveTask(apiCode, batchNumber, filePath, rule,null, baseHeadConfigVO, actNum, preNum, isToFile,null,null);
+                        }else{
+                            file.setActualNum(preNum.get());
+                            updateFile(file);
                         }
                         try {
                             StringBuilder content = new StringBuilder();
@@ -1332,5 +1261,171 @@ public class ApiToDbServiceImpl implements IApiToDbService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private StraHisFile saveTask(String apiCode, String batchNumber, String filePath, FastTaskRule rule,CustomerScoreRuleVO ruleVO, BaseHeadConfigVO baseHeadConfigVO, Integer actNum, AtomicInteger preNum, boolean isToFile,String taskStart,String taskEnd) {
+
+        //region 处理task
+        MarketingTask task = new MarketingTask();
+        task.setApiCode(apiCode);
+        task.setBatchNumber(batchNumber);
+        task.setMonitorStatus(isToFile ? 2 : 1);
+        task.setStatus(1);
+        task.setActualNumber(actNum==null?0:actNum);
+        task.setTaskNumber(preNum==null?0:preNum.get());
+        if(rule != null){
+            LocalDate startDate = LocalDate.parse(rule.getTaskTime(), ymd);
+            String closeDate = startDate.plusDays(1).format(ymd);
+            task.setTaskType(rule.getTaskType());
+            task.setStrategyId(rule.getStrategyId());
+            task.setProductInfo(rule.getProductInfo());
+            task.setFileName(String.format("%s_%s", rule.getId().toString(), rule.getRuleNumber()));
+            task.setCusBatch(rule.getId().toString());
+            task.setStartDate(rule.getTaskTime());
+            task.setCloseDate(closeDate);
+            task.setMonitorType(1);
+        }
+        if(ruleVO !=null){
+            task.setTaskType(ruleVO.getTaskType());
+            task.setStrategyId(ruleVO.getStrategyId());
+            task.setProductInfo(ruleVO.getProductInfo());
+            task.setFileName(String.format("%s_%s", ruleVO.getId().toString(), ruleVO.getRuleNameShort()));
+            task.setCusBatch(ruleVO.getId().toString());
+            task.setMonitorType(ruleVO.getExecType());
+            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
+                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
+                if (task1 != null) {
+                    task.setStartDate(task1.getStartDate());
+                    task.setCloseDate(task1.getCloseDate());
+                } else {
+                    task.setStartDate(taskStart);
+                    task.setCloseDate(ruleVO.getCycleEndDay());
+                }
+                task.setCycleDay(ruleVO.getCycleDay().toString());
+            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
+                task.setMonitorType(4);
+                task.setStartDate(taskStart);
+                task.setCloseDate(ruleVO.getCycleEndDay());
+                task.setCycleDay(ruleVO.getCycleDay().toString());
+            } else {
+                task.setStartDate(taskStart);
+                task.setCloseDate(taskEnd);
+            }
+        }
+        task.setContextId(getTaskContextId());
+        marketingTaskMapper.insertTask(task);
+
+        //endregion
+
+        //region 不定时不定量跑分关系表
+        if (rule != null) {
+            FastFileRelation relation = new FastFileRelation();
+            relation.setFastTaskId(rule.getId());
+            relation.setTaskId(task.getId());
+            relation.setCreateTime(new Date());
+            fastFileRelationMapper.insertSelective(relation);
+        }
+        //endregion
+
+        //region跑分扩展表
+        MarketingTaskExtend taskExtend = new MarketingTaskExtend();
+        taskExtend.setApiCode(apiCode);
+        taskExtend.setTaskId(Long.valueOf(task.getId()));
+        taskExtend.setCreateTime(new Date());
+        taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? JSON.toJSONString(baseHeadConfigVO) : null);
+        if(rule != null){
+            taskExtend.setCusTaskId(rule.getId().toString());
+            taskExtend.setRuleId(rule.getId());
+            taskExtend.setGroupType(rule.getRuleNumber());
+            taskExtend.setStrategyProductJson(rule.getProductField());
+            taskExtend.setUploadTime(rule.getTaskTime());
+        }
+        if(ruleVO != null){
+            taskExtend.setCusTaskId(ruleVO.getId().toString());
+            taskExtend.setRuleId(ruleVO.getId());
+            taskExtend.setGroupType(ruleVO.getRuleNameShort());
+            taskExtend.setStrategyProductJson(ruleVO.getStrategyProductJson());
+            taskExtend.setUploadTime(taskStart);
+        }
+        marketingTaskExtendMapper.insertSelective(taskExtend);
+        //endregion
+
+        //region 跑分编号表
+        TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
+        updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
+        TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
+        updateBatchnumber.setStatus(2);
+        taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
+        //endregion
+
+        //region 跑分记录表
+        if (isToFile) {
+            StraHisFile blf = new StraHisFile();
+            blf.setApiCode(task.getApiCode());
+            blf.setBatchNumber(task.getBatchNumber());
+            blf.setFilePath(filePath);
+            blf.setCreateTime(new Date());
+            blf.setUpdateTime(new Date());
+            blf.setStatus(3);
+            if (1 == task.getMonitorType()) {
+                blf.setType(2);
+            } else if (4 == task.getMonitorType()) {
+                blf.setType(1);
+            }
+            blf.setIndexNum(1);
+            straHisFileMapper.insertSelective(blf);
+
+            TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
+            statusDistribute.setFileId(blf.getId());
+            statusDistribute.setApiCode(task.getApiCode());
+            statusDistribute.setBatchNumber(task.getBatchNumber());
+            statusDistribute.setDistributeIndex(0);
+            statusDistribute.setActualNum(task.getActualNumber().longValue());
+            Date date = new Date();
+            statusDistribute.setCreateTime(date);
+            statusDistribute.setUpdateTime(date);
+            taskStatusDistributeMapper.insertSelective(statusDistribute);
+            return blf;
+        }
+        //endregion
+
+        return null;
+
+    }
+
+    private void buildEs(String field,String value,MarketingHistory mh,List<MarketingCondition> conditionList){
+        field = field.toLowerCase();
+        if((field.equals("id")
+                ||field.equals("idcard"))
+                &&StringUtils.isNotNull(value)){
+            mh.setIdCard(value);
+        }else if (field.equals("name")
+                &&StringUtils.isNotNull(value)){
+            mh.setName(value);
+        }else if ((field.equals("taskid")
+                ||field.equals("cusbatch"))
+                &&StringUtils.isNotNull(value)){
+            mh.setTaskId(value);
+        }else if ((field.equals("usertype")
+                ||field.equals("grouptype"))
+                &&StringUtils.isNotNull(value)){
+            mh.setUserType(value);
+        }else {
+            if(StringUtils.isNotNull(value)){
+                MarketingCondition marketingConditionStr = new MarketingCondition();
+                marketingConditionStr.setFieldKey(field);
+                marketingConditionStr.setStrValue(value);
+                conditionList.add(marketingConditionStr);
+            }
+
+        }
+    }
+
+    private void insertEs(StraHisFile file,MarketingHistory mh,List<MarketingCondition> conditionList){
+        mh.setCondition(conditionList);
+        mh.setBatchNumber(file.getBatchNumber());
+        mh.setFileId(file.getId().toString());
+        String id = UuidUtils.getUuid();
+        marketingHistoryEsService.insert(mh, id);
     }
 }

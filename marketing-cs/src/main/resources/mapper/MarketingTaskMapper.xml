@@ -403,6 +403,12 @@
         WHERE api_code = #{apiCode}
           AND batch_number = #{batchNumber}
     </update>
+    <update id="modifyTaskActualNum" parameterType="com.br.marketing.entity.MarketingTask">
+        UPDATE b_marketing_task
+        SET actual_number=#{actualNumber}
+        WHERE api_code = #{apiCode}
+          AND batch_number = #{batchNumber}
+    </update>
     <update id="updateIsCheck" parameterType="com.br.marketing.entity.MarketingTask">
         UPDATE b_marketing_task
         SET is_check =1
