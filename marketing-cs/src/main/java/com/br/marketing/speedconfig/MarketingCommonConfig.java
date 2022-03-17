@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -67,4 +68,26 @@ public class MarketingCommonConfig {
      * 配置走通用流程apiCode
      */
     private List<String> universalProcessApiCode;
+
+
+    /**
+     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
+     */
+    private Map<String, String> shuHeTransferExtractDayMap;
+
+    /**
+     * 数禾转化数据提取apiCode集合
+     */
+    private List<String> shuHeTransferExtractApiCodes;
+
+    /**
+     * 数禾转化数据提取任务开始时间
+     */
+    private String shuHeTransferExtractJobStartTime;
+
+    /**
+     * 数禾转化数据提取任务是否使用准全量转化数据
+     */
+    private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
+
 }

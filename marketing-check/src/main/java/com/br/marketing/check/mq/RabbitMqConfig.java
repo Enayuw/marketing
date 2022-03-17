@@ -55,12 +55,14 @@ public class RabbitMqConfig {
 
     @Bean(name = "warningExchange")
     public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.EX_CHANGER_NAME,true,false);
+        return new TopicExchange(MQConstants.EX_CHANGER_NAME, true, false);
     }
+
     @Bean(name = "checkQueue")
     public Queue checkQueue() {
         return new Queue(MQConstants.CHECK_QUEUE_NAME, true, false, false);
     }
+
     @Bean(name = "bindingCheckQueue")
     public Binding bindingCheckQueue() {
         return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.CHECK_ROUTING_KEY);
@@ -70,6 +72,7 @@ public class RabbitMqConfig {
     public Queue pushDassQueue() {
         return new Queue(MQConstants.MARKETING_PUSH_DASS_SCORE, true, false, false);
     }
+
     @Bean(name = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE)
     public Binding bindingPushDassQueue() {
         return BindingBuilder.bind(pushDassQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE);
@@ -85,22 +88,24 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(pushSevenQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_TWOSEVEN_FILETRANSFER);
     }
 
-    /**
-     * 海尔消金转电销-转化数据队列
-     */
-    @Bean(name = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
-    public Queue pushTransferHaierQueue() {
-        return new Queue(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, true, false, false);
-    }
-
-    /**
-     * 海尔消金转电销-交换机绑定队列
-     */
-    @Bean(name = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
-    public Binding bindingTransferHaierQueue(@Qualifier(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER) Queue queue
-            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) Exchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER).noargs();
-    }
+    //region 海尔3.0 没有转化数据推电销
+//    /**
+//     * 海尔消金转电销-转化数据队列
+//     */
+//    @Bean(name = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
+//    public Queue pushTransferHaierQueue() {
+//        return new Queue(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, true, false, false);
+//    }
+//
+//    /**
+//     * 海尔消金转电销-交换机绑定队列
+//     */
+//    @Bean(name = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)
+//    public Binding bindingTransferHaierQueue(@Qualifier(MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER) Queue queue
+//            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) Exchange exchange) {
+//        return BindingBuilder.bind(queue).to(exchange).with(MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER).noargs();
+//    }
+//endregion
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
