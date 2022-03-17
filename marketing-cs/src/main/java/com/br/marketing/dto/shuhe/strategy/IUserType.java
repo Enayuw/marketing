@@ -133,8 +133,20 @@ public abstract class IUserType {
      * @author Guo Zeqiang
      * @dateTime 2022/2/22 15:48
      */
+    @Deprecated
     public abstract boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser
             , IMarketingSyncUserService iMarketingSyncUserService, Date creatTime);
+
+    /**
+     * 数据有效期
+     *
+     * @param iMarketingSyncUserService javaBean
+     * @param creatTime                 有效期时间
+     * @return true or false 在有效期内为true 否则为false
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/22 15:48
+     */
+    public abstract boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService, Date creatTime);
 
     /**
      * 黑名单失效日期

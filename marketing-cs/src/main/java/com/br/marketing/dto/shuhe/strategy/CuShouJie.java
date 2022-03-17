@@ -60,6 +60,16 @@ public class CuShouJie extends IUserType {
      * api接口上传包含上传日当天和结束日当天闭区间30天自然日（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
      */
     @Override
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(new Date(), 29, creatTime);
+    }
+
+    /**
+     * T+30
+     * api接口上传包含上传日当天和结束日当天闭区间30天自然日（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
     public String getBlackExpireDate(Date creatTime) {
         return this.calculateExpireDate(creatTime, 29);
     }
