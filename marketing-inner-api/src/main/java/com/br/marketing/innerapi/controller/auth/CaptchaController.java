@@ -28,6 +28,14 @@ public class CaptchaController {
     @Resource
     RedisAuthService redisAuthService;
 
+
+    @GetMapping("/authTest")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<JSONObject> authTest(HttpSession session) {
+        String id = session.getId();
+        return new ApiResult<JSONObject>().success(id);
+    }
+
     /**
      * 验证码
      *
