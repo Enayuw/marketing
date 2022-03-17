@@ -30,11 +30,20 @@ public class CuShenWan extends IUserType {
         caseUser.setClcUsrAdtTimRcnLon(dataItem.getOrDefault("clc_usr_adt_tim_rcn_lon", defaultValue));
     }
 
-    public final boolean isSatisfyDX(CaseShuheUser caseShuheUser, Date creatTime) {
+    /**
+     * 转电销规则
+     */
+    public final boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean boolAppStaTim;
         /* 数禾申完转电销 情况a
          * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
          * &cusNun&有效期内
+         *
+         * 2022-3-17 19:25:02 更新
+         * http://c.100credit.cn/pages/viewpage.action?pageId=66167599
+         * D20220309数禾转电销V4.0
+         *  clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim<原始数据上传时间(小于情况包含该字段为空的情况)3月11日变更
+         *  &userType=促申完&cusNun&有效期内
          */
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrLstAppStaTim())) {
             boolAppStaTim = Boolean.FALSE;
@@ -47,7 +56,9 @@ public class CuShenWan extends IUserType {
         if (boolAppStaTim) {
             boolean boolIsoAtoTim;
             if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
-                boolIsoAtoTim = Boolean.FALSE;
+//                boolIsoAtoTim = Boolean.FALSE;
+                // 2022-3-17 19:27:41 更新
+                boolIsoAtoTim = Boolean.TRUE;
             } else {
                 LocalDateTime isoAtoTim = LocalDateTime.parse(caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter);
                 if (creatTime == null) {

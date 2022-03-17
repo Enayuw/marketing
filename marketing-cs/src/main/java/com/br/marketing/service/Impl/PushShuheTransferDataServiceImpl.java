@@ -328,9 +328,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             if (iUserType instanceof CuShenWan) {
                 try {
                     futureList.add(BR_EXECUTORS.submit(() -> {
-                        boolean satis = ((CuShenWan) iUserType).isSatisfyDX(caseShuheUser, creatTime);
+                        boolean satis = ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime);
                         if (satis) {
-                            int i1 = goShDx(caseShuheUser.getApiCode(), caseShuheUser, transferSyncUser);
+                            int i1 = goShPhoneSale(caseShuheUser.getApiCode(), caseShuheUser, transferSyncUser);
                             if (caseShuheUser.getIsTransfer() != null
                                     && caseShuheUser.getIsTransfer() == 1) {
                                 // 1+3=4 释义：即满足转化又满足电销的逻辑，记为4
@@ -461,7 +461,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     /**
      * 去电销
      */
-    private int goShDx(String apiCode, CaseShuheUser caseShuheUser
+    private int goShPhoneSale(String apiCode, CaseShuheUser caseShuheUser
             , MarketingTransferSyncUser transferSyncUser) {
         long first = System.currentTimeMillis();
         try {
