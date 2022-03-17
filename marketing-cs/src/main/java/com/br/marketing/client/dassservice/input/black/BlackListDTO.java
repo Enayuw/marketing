@@ -60,6 +60,14 @@ public class BlackListDTO extends InterfaceParams {
      */
     private String orgName;
 
+
+    /**
+     * 失效日期	yyyy-MM-dd
+     * 是否必填 否
+     */
+    private String expiration_date;
+
+
     public BlackListDTO() {
     }
 
