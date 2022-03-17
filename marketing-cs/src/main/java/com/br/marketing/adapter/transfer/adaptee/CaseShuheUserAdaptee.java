@@ -1,5 +1,6 @@
-package com.br.marketing.adapter.shuhe;
+package com.br.marketing.adapter.transfer.adaptee;
 
+import com.br.marketing.adapter.transfer.IToTransferSyncAdaptee;
 import com.br.marketing.entity.CaseShuheUserWithBLOBs;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 

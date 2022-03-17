@@ -1,4 +1,4 @@
-package com.br.marketing.adapter.shuhe;
+package com.br.marketing.adapter.transfer;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 

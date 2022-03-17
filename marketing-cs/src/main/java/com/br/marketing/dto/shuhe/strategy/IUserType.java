@@ -1,7 +1,7 @@
 package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.adapter.shuhe.CaseShuheUserAdaptee;
+import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.CaseShuheUserWithBLOBs;

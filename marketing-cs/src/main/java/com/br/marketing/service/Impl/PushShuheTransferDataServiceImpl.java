@@ -3,8 +3,8 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
-import com.br.marketing.adapter.shuhe.CaseShuheUserAdaptee;
-import com.br.marketing.adapter.shuhe.TransferSyncAdapter;
+import com.br.marketing.adapter.transfer.TransferSyncAdapter;
+import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -642,5 +642,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                     .concat(caseShuheUser.getErrorInfo()).concat(e.toString()), appName, secretKey, alarmClient);
         }
+    }
+
+    public static void main(String[] args) {
+        MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
+                (transferSyncUser1, taskId) -> {
+
+                }).transferSyncUserRequest("");
     }
 }
