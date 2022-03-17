@@ -8,7 +8,8 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_TRANSFER(4, "客服转化"),
     ARTIFICIAL_DIAL_PUSH(5, "人工拨打推送"),
     MESSAGE_DELAY(6, "消息延迟"),
-    UNDEFINED(7, "未定义接口");
+    UNDEFINED(7, "未定义接口"),
+    ARTIFICIAL_REAL_TIME_USERDATA(8, "人工实时推送用户名单");
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;

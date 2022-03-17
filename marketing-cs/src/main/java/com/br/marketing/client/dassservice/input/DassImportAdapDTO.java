@@ -8,4 +8,6 @@ import java.util.List;
 public class DassImportAdapDTO {
     Long localId;
     List<DassImportDataDTO> list;
+    private Long transferInfoId;
+
 }

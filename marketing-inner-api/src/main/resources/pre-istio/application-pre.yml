@@ -95,6 +95,7 @@ api:
     baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
     postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
+    postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealtimeUserData # 实时单条用户名单数据推送
   dass:
     baseUrl: http://testdaas.huiyunai.com
     postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
