@@ -84,7 +84,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     @Value("${otherConfig.alarm.appName:00}")
     private String appName;
 
-    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool();
+    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
