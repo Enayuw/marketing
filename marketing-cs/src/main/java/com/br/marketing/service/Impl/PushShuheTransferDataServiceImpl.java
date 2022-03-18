@@ -25,6 +25,7 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.PhoneBlackMapper;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -671,4 +672,30 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         alarmMgs(caseShuheUser, null);
     }
 
+    @Override
+    public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
+        Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
+                , transfer.getCustNum(), transfer.getUserType());
+        context.setCreatTime(creatTime);
+        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
+        context.setiUserType(iUserType);
+        context.setContinueJudgeRule(true);
+        String reserveField1 = transfer.getReserveField1();
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(reserveField1)) {
+            JSONObject object = JSONObject.parseObject(reserveField1);
+            CaseShuheUser caseShuheUser = new CaseShuheUser();
+            caseShuheUser.setIsTurn(object.getString("is_turn"));
+            caseShuheUser.setIsBlack(object.getString("is_black"));
+            caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
+            caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
+            caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
+            caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
+            caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
+            caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
+            caseShuheUser.setCell(object.getString("cell"));
+            context.setCaseShuheUser(caseShuheUser);
+            context.setTaskId(object.getString("taskId"));
+        }
+
+    }
 }

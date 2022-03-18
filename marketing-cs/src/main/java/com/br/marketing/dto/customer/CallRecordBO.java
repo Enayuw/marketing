@@ -15,4 +15,11 @@ public class CallRecordBO extends CallRecordDTO{
      */
     private Integer dataSource;
 
+    @Override
+    public String toString() {
+        return "CallRecordBO{" +
+                "id=" + id +
+                ", dataSource=" + dataSource +
+                '}';
+    }
 }

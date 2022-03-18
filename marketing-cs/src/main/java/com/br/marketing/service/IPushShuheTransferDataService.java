@@ -3,6 +3,8 @@ package com.br.marketing.service;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.ShuHeProcessHandlerContext;
 
 /**
  * 数禾推转化数据接口
@@ -42,4 +44,9 @@ public interface IPushShuheTransferDataService {
 
         }
     }
+
+    /**
+     * 构建数禾上下文
+     */
+    void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer);
 }
