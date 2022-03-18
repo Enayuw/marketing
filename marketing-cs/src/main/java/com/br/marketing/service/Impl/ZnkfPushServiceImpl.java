@@ -7,6 +7,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushShDXDTO;
+import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
@@ -115,7 +116,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      * @return
      */
     @Override
-    public Boolean isSatisfyPushDX(CallRecordDTO dto) {
+    public Boolean isSatisfyPushDX(CallRecordBO dto) {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
         if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
             log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
