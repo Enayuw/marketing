@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * 数禾推送转化至客服业务
+ * 数禾推送转化至客服转化 业务
  *
  * @author Guo Zeqiang
  * @dateTime 2022/3/17 19:35
@@ -76,20 +76,25 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
             context = shuHeContext;
         }
         ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-        final IUserType iUserType = shuHeContext.getiUserType();
-        final Date creatTime = shuHeContext.getCreatTime();
-        final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
-            MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
-            transferSyncUser.setId(transfer.getId());
-            if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
-                transferSyncUser.setIfTransform("2");
-                iTransferSyncUserService.insertSelective(transferSyncUser);
-            } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
-                // 转化
-                transferSyncUser.setIfTransform("1");
-                iTransferSyncUserService.insertSelective(transferSyncUser);
-                return true;
+        if (shuHeContext.isContinueJudgeRule()) {
+            final IUserType iUserType = shuHeContext.getiUserType();
+            final Date creatTime = shuHeContext.getCreatTime();
+            final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+            if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
+                MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+                transferSyncUser.setId(transfer.getId());
+                if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
+                    transferSyncUser.setIfTransform("2");
+                    iTransferSyncUserService.insertSelective(transferSyncUser);
+                    ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                    // 转化
+                    transferSyncUser.setIfTransform("1");
+                    iTransferSyncUserService.insertSelective(transferSyncUser);
+                    ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                    return true;
+                }
+                return false;
             }
         }
         return false;
