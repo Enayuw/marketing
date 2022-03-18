@@ -1,6 +1,7 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
@@ -19,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -81,13 +81,16 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
             ////b_marketing_transfer_sync_{cid} 的login_time
             dassSingleImportDataDTO.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime())?marketingTransferSyncUser.getLoginTime():"");
             if(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
-                Map map = JSON.parseObject(marketingTransferSyncUser.getReserveField1(), Map.class);
+
+                JSONObject json = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+                Date createTime = marketingTransferSyncUser.getCreateTime();
+                String time = new SimpleDateFormat("yyyy-MM-dd").format(createTime);
                 //clc_usr_iso_pho_tim如果有值且为接收转化数据当天赋1 ，非1为0
-                extendMap.put("face_recognitiion",getValueByCreateTime(map.get("clc_usr_iso_pho_tim"),marketingTransferSyncUser.getCreateTime()));
-                extendMap.put("is_usr_idt",getValueByCreateTime(map.get("clc_usr_iso_idt_tim"),marketingTransferSyncUser.getCreateTime()));
-                extendMap.put("is_bindcard",getValueByCreateTime(map.get("clc_usr_iso_crd_tim"),marketingTransferSyncUser.getCreateTime()));
-                extendMap.put("is_usr_inf",getValueByCreateTime(map.get("clc_usr_iso_inf_tim"),marketingTransferSyncUser.getCreateTime()));
-                extendMap.put("is_usr_lst_app_sta_tim",getValueByCreateTime(map.get("clc_usr_iso_inf_tim"),marketingTransferSyncUser.getCreateTime()));
+                extendMap.put("face_recognitiion",getValueByCreateTime(json.getString("clc_usr_iso_pho_tim"),time));
+                extendMap.put("is_usr_idt",getValueByCreateTime(json.getString("clc_usr_iso_idt_tim"),time));
+                extendMap.put("is_bindcard",getValueByCreateTime(json.getString("clc_usr_iso_crd_tim"),time));
+                extendMap.put("is_usr_inf",getValueByCreateTime(json.getString("clc_usr_iso_inf_tim"),time));
+                extendMap.put("is_usr_lst_app_sta_tim",getValueByCreateTime(json.getString("clc_usr_iso_inf_tim"),time));
                 extendMap.put("typeSign","2");
             }
         }else {
@@ -113,11 +116,8 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
         //延迟队列消费&不剔除-->推电销
         CallRecordBO bo = (CallRecordBO) transmitFact;
         log.info("进入ShuHeCustomerCallRecordFromDelay规则，获取的数据id为{}",bo.getId());
-        Boolean isEliminate = isEliminate(bo);
-        if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==1 && !isEliminate){
-            return true;
-        }
-        return false;
+
+        return StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==1 && !isEliminate(bo);
     }
 
     @Override
@@ -132,14 +132,13 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
 
     /**
      * target如果有值且=createTime(日期)返回1,否则为0
-     * @param target
+     * @param reserveFieldTime
      * @param createTime
      * @return
      */
-    private String getValueByCreateTime(Object target, Date createTime) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String createTimeString = formatter.format(createTime);
-        if(StringUtils.isNotEmpty(target)&&createTimeString.equals(target.toString().split(" ")[0])){
+
+    private String getValueByCreateTime(String reserveFieldTime, String createTime) {
+        if (StringUtils.isNotBlank(reserveFieldTime)&&reserveFieldTime.startsWith(createTime)){
             return "1";
         }
         return "0";
@@ -151,45 +150,25 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
      * @return
      */
     public Boolean isEliminate(CallRecordBO bo) {
-        MarketingTransferSyncUser newest = marketingTransferSyncUserMapper.getNewestByCusnumAndApicode(bo.getCid().toString(), bo.getCaseNum(), bo.getApiCode());
-        if(newest == null){
-            return false;
-        }
-        if(StringUtils.isEmpty(newest.getReserveField1())){
-            return false;
-        }
-        Map map = JSON.parseObject(newest.getReserveField1(), Map.class);
-        Boolean isTurn = false;
-        Boolean isBlack = false;
-        Boolean isoAtoTimIsSatisfy = false;
-        if(StringUtils.isNotEmpty(map.get("is_turn"))){
-            isTurn = "Y".equals(map.get("is_turn").toString());
-        }
-        if(StringUtils.isNotEmpty(map.get("is_black"))){
-            isBlack = "Y".equals(map.get("is_black").toString());
-        }
-        if(StringUtils.isNotEmpty(map.get("clc_usr_iso_ato_tim"))){
-            String timTime = DateUtils.format(addDay(map.get("clc_usr_iso_ato_tim").toString(), 1, "yyyy-MM-dd"), "yyyy-MM-dd");
-            int count = callRecordMapper.selectIsIsSatisfyByCreateTime(bo.getId(), timTime);
-            isoAtoTimIsSatisfy = count > 0;
-        }
-        if(isTurn || isBlack || isoAtoTimIsSatisfy){
-            return true;
+        JSONObject userProperties = JSON.parseObject(bo.getDetail().getUserProperties());
+        String userType = userProperties.get("groupType").toString();
+        MarketingTransferSyncUser newest = marketingTransferSyncUserMapper.getNewestByCusnumAndApicode(bo.getCid().toString(), bo.getCaseNum(), bo.getApiCode(),userType);
+        if (StringUtils.isNotEmpty(newest)&&StringUtils.isNotBlank(newest.getReserveField1())){
+            JSONObject json = JSON.parseObject(newest.getReserveField1());
+            boolean isTurn = "Y".equals(json.getString("is_turn"));
+            boolean isBlack = "Y".equals(json.getString("is_black"));
+            boolean isoAtoTimIsSatisfy = false;
+            String clcUsrIsoAtoTim = json.getString("clc_usr_iso_ato_tim");
+            if (StringUtils.isNotBlank(clcUsrIsoAtoTim)){
+                Date date = json.getDate("clc_usr_iso_ato_tim");
+                Calendar c = Calendar.getInstance();
+                c.setTime(date);
+                c.add(Calendar.DAY_OF_MONTH, 1);
+                String time = DateUtils.format(c.getTime(), "yyyy-MM-dd");
+                isoAtoTimIsSatisfy = callRecordMapper.selectIsIsSatisfyByCreateTime(bo.getId(), time) > 0;
+            }
+            return isTurn || isBlack || isoAtoTimIsSatisfy;
         }
         return false;
-    }
-
-    private Date addDay(String date, Integer addDays, String format) {
-        Calendar c = Calendar.getInstance();
-        Date time = null;
-        try {
-            Date endTime = DateUtils.parse(date, format);
-            c.setTime(endTime);
-            c.add(Calendar.DAY_OF_MONTH, addDays);
-            time = c.getTime();
-        } catch (ParseException e) {
-            log.error("date:{} is error", date, e);
-        }
-        return time;
     }
 }

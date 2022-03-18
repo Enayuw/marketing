@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 
 public interface ZnkfPushService {
@@ -15,7 +16,7 @@ public interface ZnkfPushService {
      * @param dto
      * @return
      */
-    Boolean isSatisfyPushDX(CallRecordDTO dto);
+    Boolean isSatisfyPushDX(CallRecordBO dto);
 
     /**
      * 判断案件编号是否为当天首次传输

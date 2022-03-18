@@ -1,6 +1,7 @@
 package com.br.marketing.origin.impl;
 
 import com.br.marketing.dto.customer.CallRecordBO;
+import com.br.marketing.dto.customer.CallRecordDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.origin.MqFact;
@@ -36,8 +37,10 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         callRecord.setId(mqFact.getSourceId());
 
         CallRecordBO bo = new CallRecordBO();
-        BeanUtils.copyProperties(bo,callRecord);
-        BeanUtils.copyProperties(bo.getDetail(),callRecord);
+        CallRecordDetailDTO callRecordDetailDTO = new CallRecordDetailDTO();
+        BeanUtils.copyProperties(callRecord,bo);
+        BeanUtils.copyProperties(callRecord,callRecordDetailDTO);
+        bo.setDetail(callRecordDetailDTO);
 
         if(mqFact.getIsDelay()!=null && "1".equals(mqFact.getIsDelay())){
             bo.setDataSource(1);
@@ -46,6 +49,12 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         }
         log.info("拨打记录数据，id={},data={}",mqFact.getSourceId(),bo);
         list.add(bo);
+        Map<String, CallRecordBO> collect = new HashMap<>();
+        collect.put(bo.getCaseNum(),bo);
+        /**
+         * 将查询信息放入全局上下文中
+         */
+        context = new ProcessHandlerContext(bo.getApiCode(),bo.getId(),null);
         return list;
     }
 

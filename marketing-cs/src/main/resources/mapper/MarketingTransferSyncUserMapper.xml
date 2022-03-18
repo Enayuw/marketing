@@ -9,7 +9,7 @@
 
     <select id="getNewestByCusnumAndApicode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from b_marketing_transfer_sync_${cid}
-        where cust_num=#{caseNum} and api_code=#{apicode}
+        where cust_num=#{caseNum} and api_code=#{apicode} and user_type=#{userType}
         order by create_time desc limit 1;
     </select>
 </mapper>
