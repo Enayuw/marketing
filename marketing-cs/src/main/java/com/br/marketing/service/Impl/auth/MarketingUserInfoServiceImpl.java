@@ -257,11 +257,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     private boolean kapError(LoginReqObj reqObj) {
         //得到redis中框架生成的验证码
         String captchaExpected = redisAuthService.get(reqObj.getSessionId(), AuthConstants.SESSION_CAPTCHA);
+        log.warn("缓存验证码：{}",captchaExpected);
+        redisAuthService.del(reqObj.getSessionId(), AuthConstants.SESSION_CAPTCHA);
         //校验验证码是否正确
-        if (!reqObj.getCaptcha().equals(StringUtils.isNotBlank(captchaExpected) ? captchaExpected : "")) {
-            redisAuthService.del(reqObj.getSessionId(), AuthConstants.SESSION_CAPTCHA);
-            return true;
-        }
-        return false;
+        return !reqObj.getCaptcha().equals(captchaExpected);
     }
 }
