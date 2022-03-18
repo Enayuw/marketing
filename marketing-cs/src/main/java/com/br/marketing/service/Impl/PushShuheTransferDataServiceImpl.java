@@ -679,6 +679,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         context.setCreatTime(creatTime);
         IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
         context.setiUserType(iUserType);
+        context.setContinueJudgeRule(true);
         String reserveField1 = transfer.getReserveField1();
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(reserveField1)) {
             JSONObject object = JSONObject.parseObject(reserveField1);
