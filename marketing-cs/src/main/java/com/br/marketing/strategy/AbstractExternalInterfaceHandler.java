@@ -1,10 +1,8 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.entity.DataCompare;
 import com.br.marketing.mapper.DataCompareMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.InterfaceParams;
 
@@ -37,12 +35,6 @@ import java.util.List;
  * @Date : Create in 2022/2/28 16:28
  */
 public abstract class AbstractExternalInterfaceHandler<T extends InterfaceParams> {
-
-    @Resource
-    RedisChgService redisChgService;
-
-    @Resource
-    RetryMainLogMapper retryMainLogMapper;
 
     @Resource
     DataCompareMapper dataCompareMapper;

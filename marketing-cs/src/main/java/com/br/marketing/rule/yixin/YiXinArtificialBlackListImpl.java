@@ -43,8 +43,9 @@ import java.util.Date;
 @Slf4j
 public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> {
     @Override
-    public BlackListDTO assemble(MarketingTransferSyncUser transfer) {
+    public BlackListDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         try {
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             BlackListDTO blackListDTO = new BlackListDTO();
             blackListDTO.setDataId(transfer.getId().toString());
             blackListDTO.setUid(transfer.getCustNum());

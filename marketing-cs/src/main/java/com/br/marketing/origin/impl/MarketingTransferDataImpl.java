@@ -7,12 +7,8 @@ import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.OriginDataService;
-import com.br.marketing.origin.ProcessHandlerContext;
-import com.br.marketing.origin.TransferSource;
+import com.br.marketing.origin.*;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerFactory;
 import org.springframework.stereotype.Service;
@@ -57,7 +53,7 @@ public class MarketingTransferDataImpl implements OriginDataService {
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
     @Resource
-    private TableCreateServiceImpl tableCreateService;
+    private DataLoadingHandlerService handlerService;
 
     @Resource
     MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -81,7 +77,7 @@ public class MarketingTransferDataImpl implements OriginDataService {
          *     如 { 1:List<BlackListDTO>,4:List<ConversionData>}
          */
 
-        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+        String tcId = handlerService.getTcIdFromRedis(transferInfo.getApiCode());
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
                 andRequestIdEqualTo(transferInfo.getRequestId());

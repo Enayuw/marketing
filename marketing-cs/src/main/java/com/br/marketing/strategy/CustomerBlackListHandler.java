@@ -11,15 +11,12 @@ import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.origin.ProcessHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

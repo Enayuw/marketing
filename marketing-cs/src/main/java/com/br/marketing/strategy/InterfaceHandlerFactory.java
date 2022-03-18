@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,12 +106,14 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
                 if (assembleData.isNeedAssemble(transmitFact,context)){
                     InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
                     List<InterfaceParams> array = map.get(assembleData.dataDirection());
-                    if (CollectionUtils.isEmpty(array)){
-                        array = new ArrayList<>();
-                        array.add(interfaceParam);
-                        map.put(assembleData.dataDirection(),array);
-                    }else {
-                        array.add(interfaceParam);
+                    if (!StringUtils.isEmpty(interfaceParam)){
+                        if (CollectionUtils.isEmpty(array)){
+                            array = new ArrayList<>();
+                            array.add(interfaceParam);
+                            map.put(assembleData.dataDirection(),array);
+                        }else {
+                            array.add(interfaceParam);
+                        }
                     }
                 }
             }

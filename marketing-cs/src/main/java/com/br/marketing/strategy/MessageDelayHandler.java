@@ -40,6 +40,9 @@ import java.util.List;
 @Service
 public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
 
+    //消息过期时间 1h
+    private static final String EXPIRE_TIME = "3600000";
+
     @Resource
     private RabbitMqProducter producer;
 
@@ -50,7 +53,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
 
         for (MqFact mqFact : mqFacts) {
             String message = JSON.toJSONString(mqFact);
-            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,"");
+            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,EXPIRE_TIME);
         }
         return null;
     }

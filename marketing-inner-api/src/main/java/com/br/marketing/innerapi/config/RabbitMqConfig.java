@@ -119,7 +119,7 @@ public class RabbitMqConfig {
         // x-dead-letter-routing-key  这里声明当前队列的死信路由key
         args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
         // x-message-ttl  声明队列的TTL
-        args.put("x-message-ttl", 3000);
+        //args.put("x-message-ttl", 3000);
         return QueueBuilder.durable(MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY).withArguments(args).build();
     }
 

@@ -2,8 +2,9 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.entity.PhoneSaleExtendShuheExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface PhoneSaleExtendShuheMapperBase {
     long countByExample(PhoneSaleExtendShuheExample example);
