@@ -2308,14 +2308,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                     && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
                     && !"1".equals(marketingTransferSyncUser.getIfApply());
 
-            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
-                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-                    && "1".equals(marketingTransferSyncUser.getIfApply())
-                    && "0".equals(marketingTransferSyncUser.getApplyResult());
+//            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
+//                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
+//                    && "1".equals(marketingTransferSyncUser.getIfApply())
+//                    && "0".equals(marketingTransferSyncUser.getApplyResult());
 
             Double unlentAmount = Double.valueOf(StringUtils.isNotBlank(marketingTransferSyncUser.getUnlentAmount()) ? marketingTransferSyncUser.getUnlentAmount() : "0");
             boolean d = unlentAmount > 0;
-            if (!a && !b && !c && !d) {
+//            if (!a && !b && !c && !d) {
+//                continue;
+//            }
+            if (!a && !b && !d) {
                 continue;
             }
             MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, marketingTransferSyncUser.getCustNum());
@@ -2350,7 +2353,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if (dLen > 0) {
                     continue;
                 }
-                if (dLen == 0 && abcLen > 0 && (a || b || c) && !d) {
+//                if (dLen == 0 && abcLen > 0 && (a || b || c) && !d) {
+//                    continue;
+//                }
+                if (dLen == 0 && abcLen > 0 && (a || b) && !d) {
                     continue;
                 }
             }
@@ -2360,9 +2366,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 status = "d";
             } else if (b) {
                 status = "b";
-            } else if (c) {
-                status = "c";
-            } else if (a) {
+            }
+//            else if (c) {
+//                status = "c";
+//            }
+            else if (a) {
                 status = "a";
             }
             Boolean lock = Boolean.FALSE;
