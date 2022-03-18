@@ -2,6 +2,9 @@ package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.PushDataService;
@@ -25,6 +28,9 @@ public class DataController {
     
     @Autowired
     PushDataService pushDataService;
+
+    @Autowired
+    private DassServiceClient dassServiceClient;
     
     @GetMapping("testApiToDb")
     public String testApiToDb(@RequestParam("apiCode") String apiCode){
@@ -83,6 +89,22 @@ public class DataController {
     @GetMapping("retryAop")
     public String retryAop(){
         retryTestService.ret(1,null);
+        return "success";
+    }
+
+    @GetMapping("pushDassRealTimeSingleTest")
+    public String pushDassRealTimeSingleTest(){
+        DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
+        DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
+        dassSingleImportDataDTO.setOrgname("shuheshoujie");
+        dassSingleImportDataDTO.setName("张");
+        dassSingleImportDataDTO.setPhone("p5ho9PDsqrnJz9CJYNHyqA==");
+        dassSingleImportDataDTO.setUid("2617811");
+        dassSingleImportDataDTO.setUserType("1");
+        dassSingleImportDataDTO.setPrioritySymbol("1");
+        dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
+        Result result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        log.warn("调用人工实时推送用户返回 -- {}", JSON.toJSONString(result));
         return "success";
     }
 
