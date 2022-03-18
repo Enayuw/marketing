@@ -10,6 +10,7 @@ import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingUserInfoService;
 import com.github.pagehelper.PageHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.*;
  * @Date 2022/3/11 9:48 AM
  * ------------------------------
  */
+@Slf4j
 @Service
 public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
@@ -41,6 +43,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
+        log.warn("入参:{}",request);
         if (checkParam(reqObj)) {
             if (kapError(reqObj)) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
@@ -56,12 +59,12 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             // 查询当前角色的资源
             List<MarketingResource> marketingResources = marketingUserInfoRoleMapper.getResourcesByUid(marketingUserInfo.getId());
             MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, new HashMap<>(16));
-            marketingUserDetail.setSessionId(reqObj.getSessionid());
+            marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
             request.getSession().setAttribute(AuthConstants.SESSION_USER, marketingUserDetail);
-            redisAuthService.set(reqObj.getSessionid(), JSON.toJSONString(marketingUserDetail), AuthConstants.SESSION_FLAG);
+            redisAuthService.set(reqObj.getSessionId(), JSON.toJSONString(marketingUserDetail), AuthConstants.SESSION_FLAG);
             //过期时间
-            redisAuthService.expire(reqObj.getSessionid(), AuthConstants.SESSION_FLAG, 30 * 60);
+            redisAuthService.expire(reqObj.getSessionId(), AuthConstants.SESSION_FLAG, 30 * 60);
             return new ApiResult<MarketingUserDetail>().success(marketingUserDetail);
         }
         return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
@@ -245,7 +248,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      */
     private boolean checkParam(LoginReqObj reqObj) {
         return StringUtils.isNotBlank(reqObj.getUsername()) && StringUtils.isNotBlank(reqObj.getPassword())
-                && StringUtils.isNotBlank(reqObj.getCaptcha()) && StringUtils.isNotBlank(reqObj.getSessionid());
+                && StringUtils.isNotBlank(reqObj.getCaptcha()) && StringUtils.isNotBlank(reqObj.getSessionId());
     }
 
     /**
@@ -253,10 +256,10 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      */
     private boolean kapError(LoginReqObj reqObj) {
         //得到redis中框架生成的验证码
-        String captchaExpected = redisAuthService.get(reqObj.getSessionid(), AuthConstants.SESSION_CAPTCHA);
+        String captchaExpected = redisAuthService.get(reqObj.getSessionId(), AuthConstants.SESSION_CAPTCHA);
         //校验验证码是否正确
         if (!reqObj.getCaptcha().equals(StringUtils.isNotBlank(captchaExpected) ? captchaExpected : "")) {
-            redisAuthService.del(reqObj.getSessionid(), AuthConstants.SESSION_CAPTCHA);
+            redisAuthService.del(reqObj.getSessionId(), AuthConstants.SESSION_CAPTCHA);
             return true;
         }
         return false;
