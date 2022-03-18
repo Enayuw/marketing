@@ -76,7 +76,7 @@ public class RabbitMqProducter {
     public void sendToUniversalTransferQueue(MqFact mqFact){
         String message = JSON.toJSONString(mqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
-        rabbitTemplate.convertAndSend(exchange, MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE,message, arg0 -> {
+        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE,message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
         },correlationData);
