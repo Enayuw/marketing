@@ -41,6 +41,7 @@ public class InterfaceHandlerService {
              *     如 { 1:List<BlackListDTO>,4:List<ConversionData>}
              */
             ProcessHandlerContext processHandlerContext = new ProcessHandlerContext();
+            processHandlerContext.setMqFact(mqFact);
 
             Map<Integer, List<InterfaceParams>> map =interfaceHandlerFactory.collectAndAssembleData(mqFact,processHandlerContext);
 

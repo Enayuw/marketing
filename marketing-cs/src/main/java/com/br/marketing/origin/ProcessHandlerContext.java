@@ -46,8 +46,12 @@ public class ProcessHandlerContext {
     /**
      * 海尔客服转化所需信息
      */
-    Map<String, MarketingSyncUser> customerMap;
+    private Map<String, MarketingSyncUser> customerMap;
 
+    /**
+     * 上下文消息对象
+     */
+    private MqFact mqFact;
 
     public ProcessHandlerContext(){}
 
