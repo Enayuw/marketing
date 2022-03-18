@@ -102,7 +102,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public String label() {
-        return "ShuHe_OverdueData_CustomerTransfer";
+        return "ShuHe_TransferData_CustomerTransfer";
     }
 
     @Override

@@ -61,7 +61,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
 
     @Override
     public String label() {
-        return "ShuHe_OverdueData_CustomerBlackList";
+        return "ShuHe_TransferData_CustomerBlackList";
     }
 
     @Override
