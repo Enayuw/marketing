@@ -1173,6 +1173,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 AtomicInteger preNum = new AtomicInteger();
                 boolean isToFile = rule.getTaskType().equals(new Integer(1));
                 StraHisFile file = null;
+                Integer currentPage = 1;
                 for (String s : conditions.keySet()) {
 
                     //region 校验范围内是否存在数据
@@ -1208,7 +1209,6 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     BaseHeadConfigVO headvo = baseHeadConfigVO;
                     String number = batchNumber;
                     String separator = marketingSepService.querySepByApiCode(apiCode);
-                    Integer currentPage = 1;
                     while (minId <= maxId) {
                         Long nowMaxId = minId + 5000;
                         Long nowMinId = minId;
