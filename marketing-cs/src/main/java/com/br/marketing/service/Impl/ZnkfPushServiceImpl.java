@@ -99,7 +99,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 //推mq
                 final MqFact mqFact = new MqFact();
                 mqFact.setSourceId(callRecord.getId());
-                mqFact.setSource(TransferSource.CUSTOMER_DIAL_PROCESS.getCode());
+                mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 producter.sendToUniversalTransferQueue(mqFact);
             }
         }catch (Exception ex){
