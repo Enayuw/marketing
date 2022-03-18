@@ -96,7 +96,9 @@ public class MarketingTransferDataImpl implements OriginDataService {
         /**
          * 将查询信息放入全局上下文中
          */
-        context = new ProcessHandlerContext(transferInfo.getApiCode(),transferInfo.getId(),collect);
+        context.setTransferInfoId(transferInfo.getId());
+        context.setApiCode(transferInfo.getApiCode());
+        context.setCustomerMap(collect);
 
         list.addAll(transferList);
         return list;

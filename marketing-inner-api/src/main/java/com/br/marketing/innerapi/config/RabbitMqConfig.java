@@ -248,7 +248,26 @@ public class RabbitMqConfig {
     public SimpleRabbitListenerContainerFactory primaryContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
-        return containerFactory(configurer, connectionFactory);
+        return containerFactory(configurer, connectionFactory,null);
+    }
+
+    /**
+     * factory：
+     * 可设置的信息：
+     * 1、消费线程数
+     * 2、消费最大线程树
+     * 3、.....
+     * 等等rabbitMQ队列的配置信息
+     *
+     * @param configurer
+     * @param connectionFactory
+     * @return
+     */
+    @Bean(name = "fiveDataContainerFactory")
+    public SimpleRabbitListenerContainerFactory fiveDataContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return containerFactory(configurer, connectionFactory,5);
     }
 
     /**
@@ -260,9 +279,12 @@ public class RabbitMqConfig {
      */
     private SimpleRabbitListenerContainerFactory containerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
-            ConnectionFactory connectionFactory) {
+            ConnectionFactory connectionFactory,Integer prefetchCount) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        if(prefetchCount!=null&&prefetchCount>0){
+            factory.setPrefetchCount(prefetchCount);
+        }
         configurer.configure(factory, connectionFactory);
         return factory;
     }
