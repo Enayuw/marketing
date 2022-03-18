@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CallRecordMapper" >
-
+    <select id="selectIsIsSatisfyByCreateTime" resultType="java.lang.Integer">
+        select count(*) from b_call_record bcr
+            where bcr.id = #{id}
+            <if test="timTime !=null and timTime!=''">
+                <![CDATA[  and bcr.create_time < #{timTime} ]]>
+            </if>
+    </select>
 </mapper>
