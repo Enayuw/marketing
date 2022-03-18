@@ -32,6 +32,7 @@ public class CuShenWan extends IUserType {
 
     /**
      * 转电销规则
+     * true 满足推电销
      */
     public final boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean boolAppStaTim;
