@@ -117,8 +117,11 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         //延迟队列消费&剔除-->false
         //延迟队列消费&不剔除-->推电销
-        CallRecordBO bo = (CallRecordBO) transmitFact;
-        boolean flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo);
+        boolean flag = Boolean.FALSE;
+        if (transmitFact instanceof CallRecordBO){
+            CallRecordBO bo = (CallRecordBO) transmitFact;
+            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo);
+        }
         return flag;
     }
 

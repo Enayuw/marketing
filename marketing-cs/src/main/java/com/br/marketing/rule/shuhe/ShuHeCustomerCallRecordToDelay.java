@@ -39,14 +39,17 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         //正常队列消费&数据非当天首次传输-->false
         //正常队列消费&数据当天首次传输&符合规则-->推延迟队列
-        CallRecordBO bo = (CallRecordBO) transmitFact;
-        String key = redisKeyCusNumIsFirst+bo.getCaseNum();
-        Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
-        Boolean pushDX = znkfPushService.isSatisfyPushDX(bo);
-        if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==0 && isFirstToday && pushDX){
-            return true;
+        boolean flag = Boolean.FALSE;
+        if (transmitFact instanceof CallRecordBO){
+            CallRecordBO bo = (CallRecordBO) transmitFact;
+            String key = redisKeyCusNumIsFirst+bo.getCaseNum();
+            Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
+            Boolean pushDX = znkfPushService.isSatisfyPushDX(bo);
+            if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==0 && isFirstToday && pushDX){
+                flag = true;
+            }
         }
-        return false;
+        return flag;
     }
 
     @Override
