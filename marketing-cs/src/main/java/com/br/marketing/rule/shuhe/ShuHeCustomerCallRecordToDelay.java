@@ -27,6 +27,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO bo = (CallRecordBO) transmitFact;
+        log.warn("匹配上ShuHeCustomerCallRecordToDelay规则，获取的拨打记录数据id为{}",bo.getId());
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(bo.getId());
         mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
@@ -39,7 +40,6 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
         //正常队列消费&数据非当天首次传输-->false
         //正常队列消费&数据当天首次传输&符合规则-->推延迟队列
         CallRecordBO bo = (CallRecordBO) transmitFact;
-        log.info("进入ShuHeCustomerCallRecordToDelay规则，获取的数据id为{}",bo.getId());
         String key = redisKeyCusNumIsFirst+bo.getCaseNum();
         Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
         Boolean pushDX = znkfPushService.isSatisfyPushDX(bo);

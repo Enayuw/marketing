@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 
+/**
+ * 数据来源于 客服拨打记录表
+ */
 @Service
 @Slf4j
 public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
@@ -42,15 +45,13 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         BeanUtils.copyProperties(callRecord,callRecordDetailDTO);
         bo.setDetail(callRecordDetailDTO);
 
-        if(mqFact.getIsDelay()!=null && "1".equals(mqFact.getIsDelay())){
+        if(mqFact.getIsDelay()!=null && mqFact.getIsDelay()==1){
             bo.setDataSource(1);
         }else {
             bo.setDataSource(0);
         }
-        log.info("拨打记录数据，id={},data={}",mqFact.getSourceId(),bo);
+        log.warn("collect()拨打记录数据，id={},data={}",mqFact.getSourceId(),bo);
         list.add(bo);
-        Map<String, CallRecordBO> collect = new HashMap<>();
-        collect.put(bo.getCaseNum(),bo);
         /**
          * 将查询信息放入全局上下文中
          */
@@ -79,12 +80,13 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
          */
         List<AssembleData> assembleDataList = new ArrayList<>();
         Collection<AssembleData> values = InterfaceHandlerFactory.assembleDataMap.values();
+        CallRecord callRecord = callRecordMapper.selectByPrimaryKey(mqFact.getSourceId());
         for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerRuleMapping.get(context.getApiCode()))){
+            if (assembleData.label().startsWith(customerRuleMapping.get(callRecord.getApiCode()))){
                 assembleDataList.add(assembleData);
             }
         }
-        log.info("拨打数据匹配的规则有{}个：{},{}",assembleDataList.size(),assembleDataList.get(0),assembleDataList.get(1));
+        log.warn("拨打数据匹配的规则有{}个：{},{}",assembleDataList.size(),assembleDataList.get(0),assembleDataList.get(1));
         return assembleDataList;
     }
 }

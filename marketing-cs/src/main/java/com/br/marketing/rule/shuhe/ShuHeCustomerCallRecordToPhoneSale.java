@@ -20,15 +20,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 消费延迟队列，推电销
+ */
 @Service
 @Slf4j
-public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUserDataDTO> {
+public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTimeUserDataDTO> {
 
     @Autowired
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -42,6 +46,7 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
+        log.warn("匹配上ShuHeCustomerCallRecordToPhoneSale规则，获取的拨打记录数据id为{}",dto.getId());
         Date day = new Date();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -49,7 +54,7 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
         //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
         MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
         if(marketingSyncUser==null){
-            log.info("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
+            log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
             return null;
         }
         //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
@@ -91,7 +96,6 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
                 extendMap.put("is_bindcard",getValueByCreateTime(json.getString("clc_usr_iso_crd_tim"),time));
                 extendMap.put("is_usr_inf",getValueByCreateTime(json.getString("clc_usr_iso_inf_tim"),time));
                 extendMap.put("is_usr_lst_app_sta_tim",getValueByCreateTime(json.getString("clc_usr_iso_inf_tim"),time));
-                extendMap.put("typeSign","2");
             }
         }else {
             dassSingleImportDataDTO.setLoginTime("");
@@ -106,7 +110,6 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         realTimeUserDataDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);
         realTimeUserDataDTO.setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
-        log.info("推电销数据{}",realTimeUserDataDTO.toString());
         return realTimeUserDataDTO;
     }
 
@@ -115,9 +118,8 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
         //延迟队列消费&剔除-->false
         //延迟队列消费&不剔除-->推电销
         CallRecordBO bo = (CallRecordBO) transmitFact;
-        log.info("进入ShuHeCustomerCallRecordFromDelay规则，获取的数据id为{}",bo.getId());
-
-        return StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==1 && !isEliminate(bo);
+        boolean flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo);
+        return flag;
     }
 
     @Override
@@ -152,7 +154,8 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
     public Boolean isEliminate(CallRecordBO bo) {
         JSONObject userProperties = JSON.parseObject(bo.getDetail().getUserProperties());
         String userType = userProperties.get("groupType").toString();
-        MarketingTransferSyncUser newest = marketingTransferSyncUserMapper.getNewestByCusnumAndApicode(bo.getCid().toString(), bo.getCaseNum(), bo.getApiCode(),userType);
+        String tcid = bo.getCid().toString().replaceFirst("-", "");
+        MarketingTransferSyncUser newest = marketingTransferSyncUserMapper.getNewestByCusnumAndApicode(tcid, bo.getCaseNum(), bo.getApiCode(),userType);
         if (StringUtils.isNotEmpty(newest)&&StringUtils.isNotBlank(newest.getReserveField1())){
             JSONObject json = JSON.parseObject(newest.getReserveField1());
             boolean isTurn = "Y".equals(json.getString("is_turn"));
@@ -165,7 +168,17 @@ public class ShuHeCustomerCallRecordFromDelay implements AssembleData<RealTimeUs
                 c.setTime(date);
                 c.add(Calendar.DAY_OF_MONTH, 1);
                 String time = DateUtils.format(c.getTime(), "yyyy-MM-dd");
-                isoAtoTimIsSatisfy = callRecordMapper.selectIsIsSatisfyByCreateTime(bo.getId(), time) > 0;
+                Date date2 = null;
+                try {
+                    date2 = DateUtils.parse(time, "yyyy-MM-dd");
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    log.warn("日期转换出错！");
+                }
+                CallRecordExample example = new CallRecordExample();
+                example.createCriteria().andIdEqualTo(bo.getId()).andCreateTimeLessThan(date2);
+                isoAtoTimIsSatisfy = callRecordMapper.countByExample(example)>0;
+                //isoAtoTimIsSatisfy = callRecordMapper.selectIsIsSatisfyByCreateTime(bo.getId(), time) > 0;
             }
             return isTurn || isBlack || isoAtoTimIsSatisfy;
         }
