@@ -57,11 +57,13 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFact.setSourceId(transfer.getId());
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         mqFact.setIsDelay(1);
+        log.warn("@@2符合人工的数据进入延迟:{}", mqFact);
         return mqFact;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        boolean bool = Boolean.FALSE;
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         if (!(context instanceof ShuHeProcessHandlerContext)) {
             ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
@@ -74,15 +76,11 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
             final Date creatTime = shuHeContext.getCreatTime();
             boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
-            if (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime) && cacheExists(transfer)) {
-                log.warn("##数禾满足延迟队列规则##{}:{}:{}", transfer.getCustNum(),
-                        transfer.getApiCode(), transfer.getUserType());
-                return true;
-            }
+            bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime) && cacheExists(transfer));
         }
-        log.warn("@@数禾不满足延迟队列规则@@{}:{}:{}", transfer.getCustNum(),
+        log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}]", bool, transfer.getCustNum(),
                 transfer.getApiCode(), transfer.getUserType());
-        return false;
+        return bool;
     }
 
     @Override

@@ -50,12 +50,14 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer));
+        log.warn("@2数禾转化推送人工电销:{}", realTimeUserDataDTO);
         return realTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        boolean bool = Boolean.FALSE;
         if (context.getMqFact().getIsDelay() == 1 && context instanceof ShuHeProcessHandlerContext
                 && transfer != null) {
             String tCid = redisChgService.get(String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
@@ -70,18 +72,18 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 String isBlack = object.getString("is_black");
                 String applyTime = dbTransferSyncUser.getApplyTime();
                 String y = "Y";
-                if (StringUtils.isEmpty(applyTime) || y.equals(isTurn) || y.equals(isBlack)) {
-                    return false;
+                if (!StringUtils.isEmpty(applyTime) && !y.equals(isTurn) && !y.equals(isBlack)) {
+                    LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
+                            .toLocalDate();
+                    ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                    LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
+                            ZoneId.systemDefault()).toLocalDate();
+                    bool = !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
                 }
-                LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
-                        .toLocalDate();
-                ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-                LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
-                        ZoneId.systemDefault()).toLocalDate();
-                return !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
             }
         }
-        return false;
+        log.warn("@1数禾转化推送人工电销剔除规则状态:{}", bool);
+        return bool;
     }
 
     @Override

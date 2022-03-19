@@ -16,6 +16,7 @@ import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ import java.util.Map;
  * @dateTime 2022/3/17 19:35
  */
 @Service
+@Slf4j
 public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private final static String HAS_TRANS_FER = "1";
     private final static String NO_HAS_TRANSFER = "0";
@@ -64,40 +66,44 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        log.warn("$$2数禾推送转化至客服转化:{}", conversionData);
         return conversionData;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        if (!(context instanceof ShuHeProcessHandlerContext)) {
-            ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-            iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-            context = shuHeContext;
-        }
-        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-        if (shuHeContext.isContinueJudgeRule()) {
-            final IUserType iUserType = shuHeContext.getiUserType();
-            final Date creatTime = shuHeContext.getCreatTime();
-            final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-            if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
-                MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
-                transferSyncUser.setId(transfer.getId());
-                if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
-                    transferSyncUser.setIfTransform("2");
-                    iTransferSyncUserService.insertSelective(transferSyncUser);
-                    ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
-                } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
-                    // 转化
-                    transferSyncUser.setIfTransform("1");
-                    iTransferSyncUserService.insertSelective(transferSyncUser);
-                    ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
-                    return true;
+        boolean bool = Boolean.FALSE;
+        if (context.getMqFact().getIsDelay() != 1) {
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            if (!(context instanceof ShuHeProcessHandlerContext)) {
+                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                context = shuHeContext;
+            }
+            ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+            if (shuHeContext.isContinueJudgeRule()) {
+                final IUserType iUserType = shuHeContext.getiUserType();
+                final Date creatTime = shuHeContext.getCreatTime();
+                final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
+                    MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+                    transferSyncUser.setId(transfer.getId());
+                    if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
+                        transferSyncUser.setIfTransform("2");
+                        iTransferSyncUserService.insertSelective(transferSyncUser);
+                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                    } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                        // 转化
+                        transferSyncUser.setIfTransform("1");
+                        iTransferSyncUserService.insertSelective(transferSyncUser);
+                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                        bool = Boolean.TRUE;
+                    }
                 }
-                return false;
             }
         }
-        return false;
+        log.warn("$$1数禾推送转化至客服转化规则状态:{}", bool);
+        return bool;
     }
 
     @Override
