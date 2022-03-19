@@ -178,7 +178,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 CallRecordExample example = new CallRecordExample();
                 example.createCriteria().andIdEqualTo(bo.getId()).andCreateTimeLessThan(date2);
                 isoAtoTimIsSatisfy = callRecordMapper.countByExample(example)>0;
-                //isoAtoTimIsSatisfy = callRecordMapper.selectIsIsSatisfyByCreateTime(bo.getId(), time) > 0;
             }
             return isTurn || isBlack || isoAtoTimIsSatisfy;
         }
