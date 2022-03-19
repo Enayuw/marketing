@@ -53,12 +53,8 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
             Integer isDelay = context.getMqFact().getIsDelay();
             if (isDelay == null || isDelay != 1) {
                 MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-                if (!(context instanceof ShuHeProcessHandlerContext)) {
-                    ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                    iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                    context = shuHeContext;
-                }
-                ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
                 if (shuHeContext.isContinueJudgeRule()) {
                     final IUserType iUserType = shuHeContext.getiUserType();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();

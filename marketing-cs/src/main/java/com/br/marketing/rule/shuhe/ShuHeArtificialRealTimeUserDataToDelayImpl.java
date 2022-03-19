@@ -63,12 +63,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if (!(context instanceof ShuHeProcessHandlerContext)) {
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                context = shuHeContext;
-            }
-            ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+            ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+            iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
             final IUserType iUserType = shuHeContext.getiUserType();
             if ((iUserType instanceof CuShenWan) && (shuHeContext.getMqFact().getIsDelay() != 1)) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();

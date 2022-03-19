@@ -63,11 +63,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if (!(context instanceof ShuHeProcessHandlerContext)) {
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                context = shuHeContext;
-            }
             Integer isDelay = context.getMqFact().getIsDelay();
             if (isDelay != null && isDelay != 1) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(
@@ -82,7 +77,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String isTurn = object.getString("is_turn");
                     String isBlack = object.getString("is_black");
                     String applyTime = dbTransferSyncUser.getApplyTime();
-                    ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                    ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                    iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
                     IUserType iUserType = shuHeContext.getiUserType();
                     if (!StringUtils.isEmpty(applyTime) && !iUserType.getY().equals(isTurn)
                             && !iUserType.getY().equals(isBlack)) {
