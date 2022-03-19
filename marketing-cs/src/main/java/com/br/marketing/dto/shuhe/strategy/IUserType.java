@@ -175,4 +175,7 @@ public abstract class IUserType {
         return localDateTimeNew.withHour(23).withMinute(59).withSecond(59).format(dateTimeFormatter);
     }
 
+    public String getY() {
+        return Y;
+    }
 }

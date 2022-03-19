@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
+import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
@@ -60,8 +61,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             Integer isDelay = context.getMqFact().getIsDelay();
-            if (isDelay != null && isDelay != 1 && context instanceof ShuHeProcessHandlerContext
-                    && transfer != null) {
+            if (isDelay != null && isDelay != 1 && context instanceof ShuHeProcessHandlerContext) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
                         , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum())) : transfer.gettCid();
                 MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
@@ -73,11 +73,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String isTurn = object.getString("is_turn");
                     String isBlack = object.getString("is_black");
                     String applyTime = dbTransferSyncUser.getApplyTime();
-                    String y = "Y";
-                    if (!StringUtils.isEmpty(applyTime) && !y.equals(isTurn) && !y.equals(isBlack)) {
+                    ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                    IUserType iUserType = shuHeContext.getiUserType();
+                    if (!StringUtils.isEmpty(applyTime) && !iUserType.getY().equals(isTurn)
+                            && !iUserType.getY().equals(isBlack)) {
                         LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
                                 .toLocalDate();
-                        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
                         LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
                                 ZoneId.systemDefault()).toLocalDate();
                         bool = !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
