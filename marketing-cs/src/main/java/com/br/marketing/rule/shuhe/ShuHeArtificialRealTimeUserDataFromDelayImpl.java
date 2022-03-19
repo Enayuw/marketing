@@ -14,6 +14,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private RedisChgService redisChgService;
-    private final static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    @Resource
+    private IPushShuheTransferDataService iPushShuheTransferDataService;
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     @Override
@@ -60,10 +63,16 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            if (!(context instanceof ShuHeProcessHandlerContext)) {
+                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                context = shuHeContext;
+            }
             Integer isDelay = context.getMqFact().getIsDelay();
-            if (isDelay != null && isDelay != 1 && context instanceof ShuHeProcessHandlerContext) {
-                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
-                        , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum())) : transfer.gettCid();
+            if (isDelay != null && isDelay != 1) {
+                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(
+                        String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
+                                , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum())) : transfer.gettCid();
                 MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
                         transfer.getCustNum(), transfer.getApiCode()
                         , transfer.getUserType(), tCid, transfer.getCreateTime());
@@ -135,7 +144,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
         phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        phoneSaleExtendShuhe.setAppletTime(localDateTime.format(dateTimeFormatter));
+        phoneSaleExtendShuhe.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
         phoneSaleExtendShuhe.setStatus("a");
         return phoneSaleExtendShuhe;
     }
@@ -169,7 +178,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         if (StringUtils.isEmpty(dateTimeStr)) {
             return value;
         }
-        LocalDate localDate = LocalDateTime.parse(dateTimeStr, dateTimeFormatter)
+        LocalDate localDate = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER)
                 .atZone(ZoneId.systemDefault()).toLocalDate();
         return LocalDate.now().isEqual(localDate) ? "1" : value;
     }
