@@ -49,25 +49,28 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean bool = Boolean.FALSE;
-        if (context.getMqFact().getIsDelay() != 1) {
-            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if (!(context instanceof ShuHeProcessHandlerContext)) {
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                context = shuHeContext;
-            }
-            ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-            if (shuHeContext.isContinueJudgeRule()) {
-                final IUserType iUserType = shuHeContext.getiUserType();
-                final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
-                if (b && iUserType.isBlack(caseShuheUser)) {
-                    ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
-                    bool = Boolean.TRUE;
+        if (transmitFact instanceof MarketingTransferSyncUser) {
+            Integer isDelay = context.getMqFact().getIsDelay();
+            if (isDelay == null || isDelay != 1) {
+                MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+                if (!(context instanceof ShuHeProcessHandlerContext)) {
+                    ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                    iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                    context = shuHeContext;
+                }
+                ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                if (shuHeContext.isContinueJudgeRule()) {
+                    final IUserType iUserType = shuHeContext.getiUserType();
+                    final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
+                    if (b && iUserType.isBlack(caseShuheUser)) {
+                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                        bool = Boolean.TRUE;
+                    }
                 }
             }
+            log.warn("##1数禾转化推送客服黑名单规则状态:{}", bool);
         }
-        log.warn("##1数禾转化推送客服黑名单规则状态:{}", bool);
         return bool;
     }
 

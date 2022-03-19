@@ -11,10 +11,10 @@ import com.br.marketing.origin.*;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheTransferDataService;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -42,9 +42,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     @Resource
     private DataLoadingHandlerService handlerService;
 
-    @Resource
-    private TableCreateServiceImpl tableCreateService;
-
     /**
      * apiCoid:userType:cusNum
      */
@@ -64,22 +61,25 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean bool = Boolean.FALSE;
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        if (!(context instanceof ShuHeProcessHandlerContext)) {
-            ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-            iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-            context = shuHeContext;
+        if (transmitFact instanceof MarketingTransferSyncUser) {
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            if (!(context instanceof ShuHeProcessHandlerContext)) {
+                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                context = shuHeContext;
+            }
+            ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+            final IUserType iUserType = shuHeContext.getiUserType();
+            if ((iUserType instanceof CuShenWan) && (shuHeContext.getMqFact().getIsDelay() != 1)) {
+                final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                final Date creatTime = shuHeContext.getCreatTime();
+                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
+                bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime)
+                        && cacheExists(transfer));
+            }
+            log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}]", bool, transfer.getCustNum(),
+                    transfer.getApiCode(), transfer.getUserType());
         }
-        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-        final IUserType iUserType = shuHeContext.getiUserType();
-        if ((iUserType instanceof CuShenWan) && (shuHeContext.getMqFact().getIsDelay() != 1)) {
-            final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-            final Date creatTime = shuHeContext.getCreatTime();
-            boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
-            bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime) && cacheExists(transfer));
-        }
-        log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}]", bool, transfer.getCustNum(),
-                transfer.getApiCode(), transfer.getUserType());
         return bool;
     }
 
@@ -115,16 +115,18 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         try {
             boolean exists = redisChgService.exists(key);
             if (!exists) {
-                String tCid = handlerService.getTcIdFromRedis(apiCode);
-                if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid, transfer.getCreateTime())) {
+                String tCid = StringUtils.isEmpty(transfer.getCid()) ? handlerService.getTcIdFromRedis(apiCode)
+                        : transfer.getCid();
+                if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
+                        , transfer.getCreateTime())) {
                     long setnx = redisChgService.setnx(key, tCid, (int) getKeyExpiration());
                     return setnx == 1;
                 }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            String tCid = tableCreateService.getTcId(apiCode);
-            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid, transfer.getCreateTime());
+            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), transfer.getCid()
+                    , transfer.getCreateTime());
         }
         return false;
     }

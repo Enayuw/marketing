@@ -73,36 +73,39 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean bool = Boolean.FALSE;
-        if (context.getMqFact().getIsDelay() != 1) {
-            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if (!(context instanceof ShuHeProcessHandlerContext)) {
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                context = shuHeContext;
-            }
-            ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-            if (shuHeContext.isContinueJudgeRule()) {
-                final IUserType iUserType = shuHeContext.getiUserType();
-                final Date creatTime = shuHeContext.getCreatTime();
-                final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
-                    MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
-                    transferSyncUser.setId(transfer.getId());
-                    if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
-                        transferSyncUser.setIfTransform("2");
-                        iTransferSyncUserService.insertSelective(transferSyncUser);
-                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
-                    } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
-                        // 转化
-                        transferSyncUser.setIfTransform("1");
-                        iTransferSyncUserService.insertSelective(transferSyncUser);
-                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
-                        bool = Boolean.TRUE;
+        if (transmitFact instanceof MarketingTransferSyncUser) {
+            Integer isDelay = context.getMqFact().getIsDelay();
+            if (isDelay == null || isDelay != 1) {
+                MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+                if (!(context instanceof ShuHeProcessHandlerContext)) {
+                    ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                    iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                    context = shuHeContext;
+                }
+                ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                if (shuHeContext.isContinueJudgeRule()) {
+                    final IUserType iUserType = shuHeContext.getiUserType();
+                    final Date creatTime = shuHeContext.getCreatTime();
+                    final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                    if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
+                        MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+                        transferSyncUser.setId(transfer.getId());
+                        if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
+                            transferSyncUser.setIfTransform("2");
+                            iTransferSyncUserService.insertSelective(transferSyncUser);
+                            ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                        } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                            // 转化
+                            transferSyncUser.setIfTransform("1");
+                            iTransferSyncUserService.insertSelective(transferSyncUser);
+                            ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                            bool = Boolean.TRUE;
+                        }
                     }
                 }
             }
+            log.warn("$$1数禾推送转化至客服转化规则状态:{}", bool);
         }
-        log.warn("$$1数禾推送转化至客服转化规则状态:{}", bool);
         return bool;
     }
 

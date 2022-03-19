@@ -56,33 +56,36 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         boolean bool = Boolean.FALSE;
-        if (context.getMqFact().getIsDelay() == 1 && context instanceof ShuHeProcessHandlerContext
-                && transfer != null) {
-            String tCid = redisChgService.get(String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
-                    , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum()));
-            MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
-                    transfer.getCustNum(), transfer.getApiCode()
-                    , transfer.getUserType(), tCid, transfer.getCreateTime());
-            if (dbTransferSyncUser != null) {
-                String reserveField1 = dbTransferSyncUser.getReserveField1();
-                JSONObject object = JSONObject.parseObject(reserveField1);
-                String isTurn = object.getString("is_turn");
-                String isBlack = object.getString("is_black");
-                String applyTime = dbTransferSyncUser.getApplyTime();
-                String y = "Y";
-                if (!StringUtils.isEmpty(applyTime) && !y.equals(isTurn) && !y.equals(isBlack)) {
-                    LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
-                            .toLocalDate();
-                    ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
-                    LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
-                            ZoneId.systemDefault()).toLocalDate();
-                    bool = !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
+        if (transmitFact instanceof MarketingTransferSyncUser) {
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            Integer isDelay = context.getMqFact().getIsDelay();
+            if (isDelay != null && isDelay != 1 && context instanceof ShuHeProcessHandlerContext
+                    && transfer != null) {
+                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
+                        , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum())) : transfer.gettCid();
+                MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
+                        transfer.getCustNum(), transfer.getApiCode()
+                        , transfer.getUserType(), tCid, transfer.getCreateTime());
+                if (dbTransferSyncUser != null) {
+                    String reserveField1 = dbTransferSyncUser.getReserveField1();
+                    JSONObject object = JSONObject.parseObject(reserveField1);
+                    String isTurn = object.getString("is_turn");
+                    String isBlack = object.getString("is_black");
+                    String applyTime = dbTransferSyncUser.getApplyTime();
+                    String y = "Y";
+                    if (!StringUtils.isEmpty(applyTime) && !y.equals(isTurn) && !y.equals(isBlack)) {
+                        LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
+                                .toLocalDate();
+                        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+                        LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
+                                ZoneId.systemDefault()).toLocalDate();
+                        bool = !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
+                    }
                 }
             }
+            log.warn("@1数禾转化推送人工电销剔除规则状态:{}", bool);
         }
-        log.warn("@1数禾转化推送人工电销剔除规则状态:{}", bool);
         return bool;
     }
 
