@@ -65,7 +65,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
             final IUserType iUserType = shuHeContext.getiUserType();
             final Integer isDelay = shuHeContext.getMqFact().getIsDelay();
-            if ((iUserType instanceof CuShenWan) && (isDelay == null || isDelay != 1)) {
+            boolean typeBool = (iUserType instanceof CuShenWan) && (isDelay == null || isDelay != 1);
+            if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
