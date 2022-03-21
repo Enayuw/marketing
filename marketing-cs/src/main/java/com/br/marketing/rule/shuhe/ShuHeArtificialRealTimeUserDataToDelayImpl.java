@@ -50,9 +50,14 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
         MqFact mqFact = context.getMqFact();
-        mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-        mqFact.setIsDelay(1);
-        log.warn("@@2符合人工的数据进入延迟:{}", mqFact);
+        MqFact mqFactNew = new MqFact();
+        mqFactNew.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+        mqFactNew.setIsDelay(1);
+        mqFactNew.setSourceId(mqFact.getSourceId());
+        mqFactNew.setMessage(mqFact.getMessage());
+        mqFactNew.setIncludeRules(mqFact.getIncludeRules());
+        mqFact.setIsDelay(0);
+        log.warn("@@2符合人工的数据进入延迟:{}", mqFactNew);
         return mqFact;
     }
 
