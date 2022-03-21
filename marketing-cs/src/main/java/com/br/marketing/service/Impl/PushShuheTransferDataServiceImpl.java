@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.lang.ref.SoftReference;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -672,8 +673,27 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         alarmMgs(caseShuheUser, null);
     }
 
+    private final SoftReference<ThreadLocal<ShuHeProcessHandlerContext>> localSoftReference =
+            new SoftReference<>(new ThreadLocal<>());
+
     @Override
     public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
+        if (threadLocal != null) {
+            ShuHeProcessHandlerContext shuContext = threadLocal.get();
+            if (shuContext != null) {
+                context.setApiCode(shuContext.getApiCode());
+                context.setContinueJudgeRule(shuContext.isContinueJudgeRule());
+                context.setTaskId(shuContext.getTaskId());
+                context.setMqFact(shuContext.getMqFact());
+                context.setCaseShuheUser(shuContext.getCaseShuheUser());
+                context.setiUserType(shuContext.getiUserType());
+                context.setCreatTime(shuContext.getCreatTime());
+                context.setTransferInfoId(shuContext.getTransferInfoId());
+                context.setCustomerMap(shuContext.getCustomerMap());
+                return;
+            }
+        }
         Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
                 , transfer.getCustNum(), transfer.getUserType());
         context.setCreatTime(creatTime);
@@ -695,6 +715,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             caseShuheUser.setCell(object.getString("cell"));
             context.setCaseShuheUser(caseShuheUser);
             context.setTaskId(object.getString("taskId"));
+            if (threadLocal != null) {
+                threadLocal.set(context);
+            }
         }
 
     }
