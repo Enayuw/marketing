@@ -58,7 +58,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
         log.warn("@@2符合人工的数据进入延迟:{}", mqFactNew);
-        return mqFact;
+        return mqFactNew;
     }
 
     @Override
