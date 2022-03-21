@@ -1425,6 +1425,9 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 || field.equals("grouptype"))
                 && StringUtils.isNotNull(value)) {
             mh.setUserType(value);
+        } else if(field.equals("custnum")
+                && StringUtils.isNotNull(value)){
+            mh.setCusNum(value);
         } else {
             if (StringUtils.isNotNull(value)) {
                 MarketingCondition marketingConditionStr = new MarketingCondition();
