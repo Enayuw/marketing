@@ -6,6 +6,7 @@ import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -14,10 +15,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.util.*;
 
 /**
  * code is far away from bug with the animal protecting
@@ -48,6 +47,9 @@ import java.util.Map;
 @Component
 @Slf4j
 public class InterfaceHandlerFactory implements ApplicationContextAware {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     /**
@@ -137,8 +139,16 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
         /**
          * 2、根据不同数据来源 匹配出要执行的规则
+         * 获取 apiCode获取所需的规则匹配方法
          */
-        List<AssembleData> assembleDataList = originData.patternMatch(mqFact, context);
+        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
+        List<AssembleData> assembleDataList = new ArrayList<>();
+        Collection<AssembleData> values = assembleDataMap.values();
+        for (AssembleData assembleData : values) {
+            if (assembleData.label().startsWith(customerRuleMapping.get(context.getApiCode()))){
+                assembleDataList.add(assembleData);
+            }
+        }
 
         /**
          * 3、组装数据

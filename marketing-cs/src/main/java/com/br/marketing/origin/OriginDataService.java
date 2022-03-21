@@ -1,8 +1,6 @@
 package com.br.marketing.origin;
 
 
-import com.br.marketing.rule.AssembleData;
-
 import java.util.List;
 
 /**
@@ -35,6 +33,4 @@ public interface OriginDataService {
     List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
 
     TransferSource source();
-
-    List<AssembleData> patternMatch(MqFact mqFact, ProcessHandlerContext processHandlerContext);
 }

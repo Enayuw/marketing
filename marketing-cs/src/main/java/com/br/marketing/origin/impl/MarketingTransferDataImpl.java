@@ -8,9 +8,6 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.*;
-import com.br.marketing.rule.AssembleData;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.InterfaceHandlerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,9 +42,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class MarketingTransferDataImpl implements OriginDataService {
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
@@ -109,27 +103,4 @@ public class MarketingTransferDataImpl implements OriginDataService {
         return TransferSource.UNIVERSAL_TRANSFER_PROCESS;
     }
 
-
-    /**
-     *  获取该数据流程，数据需要匹配的规则
-     * @param mqFact
-     * @param context
-     * @return
-     */
-    @Override
-    public List<AssembleData> patternMatch(MqFact mqFact, ProcessHandlerContext context) {
-
-        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
-        /**
-         * 1、获取 apiCode获取所需的规则匹配方法
-         */
-        List<AssembleData> assembleDataList = new ArrayList<>();
-        Collection<AssembleData> values = InterfaceHandlerFactory.assembleDataMap.values();
-        for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerRuleMapping.get(context.getApiCode()))){
-                assembleDataList.add(assembleData);
-            }
-        }
-        return assembleDataList;
-    }
 }

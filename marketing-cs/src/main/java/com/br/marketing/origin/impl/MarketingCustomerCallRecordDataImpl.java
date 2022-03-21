@@ -2,21 +2,19 @@ package com.br.marketing.origin.impl;
 
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDetailDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CallRecord;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.TransferSource;
-import com.br.marketing.rule.AssembleData;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.InterfaceHandlerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 数据来源于 客服拨打记录表
@@ -24,9 +22,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
     private CallRecordMapper callRecordMapper;
@@ -63,31 +58,5 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
     @Override
     public TransferSource source() {
         return TransferSource.CUSTOMER_CALL_RECORD;
-    }
-
-
-    /**
-     *  获取该数据流程，数据需要匹配的规则
-     * @param mqFact
-     * @param context
-     * @return
-     */
-    @Override
-    public List<AssembleData> patternMatch(MqFact mqFact, ProcessHandlerContext context) {
-
-        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
-        /**
-         * 1、获取 apiCode获取所需的规则匹配方法
-         */
-        List<AssembleData> assembleDataList = new ArrayList<>();
-        Collection<AssembleData> values = InterfaceHandlerFactory.assembleDataMap.values();
-        CallRecord callRecord = callRecordMapper.selectByPrimaryKey(mqFact.getSourceId());
-        for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerRuleMapping.get(callRecord.getApiCode()))){
-                assembleDataList.add(assembleData);
-            }
-        }
-        log.warn("拨打数据匹配的规则有{}个：{},{}",assembleDataList.size(),assembleDataList.get(0),assembleDataList.get(1));
-        return assembleDataList;
     }
 }
