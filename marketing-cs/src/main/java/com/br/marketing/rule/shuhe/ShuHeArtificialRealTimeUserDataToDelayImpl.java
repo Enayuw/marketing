@@ -113,7 +113,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             boolean exists = redisChgService.exists(key);
             if (!exists) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
-                        : transfer.getCid();
+                        : transfer.gettCid();
                 if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
                         , transfer.getCreateTime())) {
                     long setnx = redisChgService.setnx(key, tCid, (int) getKeyExpiration());
