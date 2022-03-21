@@ -30,10 +30,10 @@ public class WebConfig extends WebMvcConfigurationSupport {
 
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(sessionInterceptor)
-//                .addPathPatterns("/rule/**","/pushrulefilter/**");
-//        registry.addInterceptor(authInterceptor)
-//                .addPathPatterns("/rule/**","/pushrulefilter/**");
+        registry.addInterceptor(sessionInterceptor)
+                .addPathPatterns("/rule/**","/pushrulefilter/**");
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/rule/**","/pushrulefilter/**");
 //        registry.addInterceptor(sessionInterceptor)
 //                .addPathPatterns("/rule/**");
 //        registry.addInterceptor(authInterceptor)
