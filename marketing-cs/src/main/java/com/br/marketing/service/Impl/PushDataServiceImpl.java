@@ -783,6 +783,20 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
+    @Override
+    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status) {
+        //a/b状态一天只能推一条
+        String key = RedisKeyConstant.shuhePushDxSingleMutex.concat(":")
+                .concat(apiCode).concat(":")
+                .concat(custNum);
+        if (redisChgService.exists(key)) {
+            return false;
+        }
+        Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
+        redisChgService.setex(key,status,seconds);
+        return true;
+    }
+
     private Result addShuHeLock(String apiCode, String custNum, String status) {
         String key = RedisKeyConstant.shuhePushDx.concat(":")
                 .concat(apiCode).concat(":")

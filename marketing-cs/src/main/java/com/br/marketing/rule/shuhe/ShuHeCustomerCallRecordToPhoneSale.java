@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
 
     @Autowired
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Autowired
+    private PushDataService pushDataService;
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -120,7 +124,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo);
+            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b");
         }
         return flag;
     }
