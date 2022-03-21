@@ -25,4 +25,13 @@ public interface PushDataService {
      * @return code=1处理成功 data=true有推送 data=false无需推送
      */
     Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO);
+
+    /**
+     * 单条推电销 a/b 一天推一条,true-->推;false-->不推
+     * @param apiCode
+     * @param custNum
+     * @param status
+     * @return
+     */
+    Boolean pushShDXSingleMutex(String apiCode, String custNum, String status);
 }

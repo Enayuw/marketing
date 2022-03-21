@@ -5,6 +5,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
@@ -27,9 +28,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -155,26 +153,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if (redisChgService.exists(key)) {
             return false;
         }
-        Integer seconds = getRemainSecondsOneDay(new Date());
+        Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
         redisChgService.setex(key,"1",seconds);
         return true;
-    }
-
-    /**
-     * 获取传入时间与第二天凌晨相差秒数
-     * @param currentDate
-     * @return
-     */
-    public static Integer getRemainSecondsOneDay(Date currentDate) {
-        //使用plusDays加传入的时间加1天，将时分秒设置成0
-        LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
-                ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
-                .withSecond(0).withNano(0);
-        LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentDate.toInstant(),
-                ZoneId.systemDefault());
-        //使用ChronoUnit.SECONDS.between方法，传入两个LocalDateTime对象即可得到相差的秒数
-        long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
-        return (int) seconds;
     }
 
     private String goShDX(CallRecordDTO dto) {

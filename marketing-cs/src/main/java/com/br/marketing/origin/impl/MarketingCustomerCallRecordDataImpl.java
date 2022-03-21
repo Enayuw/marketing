@@ -55,7 +55,8 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         /**
          * 将查询信息放入全局上下文中
          */
-        context = new ProcessHandlerContext(bo.getApiCode(),bo.getId(),null);
+        context.setApiCode(bo.getApiCode());
+        context.setTransferInfoId(bo.getId());
         return list;
     }
 
