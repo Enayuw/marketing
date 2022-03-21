@@ -66,15 +66,16 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
             iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
             final IUserType iUserType = shuHeContext.getiUserType();
-            if ((iUserType instanceof CuShenWan) && (shuHeContext.getMqFact().getIsDelay() != 1)) {
+            if ((iUserType instanceof CuShenWan) && (shuHeContext.getMqFact().getIsDelay() != null
+                    && shuHeContext.getMqFact().getIsDelay() != 1)) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
                 bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
-            log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}]", bool, transfer.getCustNum(),
-                    transfer.getApiCode(), transfer.getUserType());
+            log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}:{}]", bool, transfer.getCustNum(),
+                    transfer.getApiCode(), transfer.getUserType(), context.getMqFact().getSourceId());
         }
         return bool;
     }

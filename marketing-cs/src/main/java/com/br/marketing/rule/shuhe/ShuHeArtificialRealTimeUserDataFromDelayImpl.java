@@ -58,7 +58,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer));
-        log.warn("@2数禾转化推送人工电销:{}", realTimeUserDataDTO);
+        log.warn("@2数禾转化推送人工电销:transmitFact:{}\nrealTimeUserDataDTO:{}", transfer.getId(), realTimeUserDataDTO);
         return realTimeUserDataDTO;
     }
 
@@ -97,7 +97,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     }
                 }
             }
-            log.warn("@1数禾转化推送人工电销剔除规则状态:{}", bool);
+            log.warn("@1数禾转化推送人工电销剔除规则状态:{};{}", bool, context);
         }
         return bool;
     }
