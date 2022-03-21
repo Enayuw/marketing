@@ -1,5 +1,6 @@
 package com.br.marketing.strategy;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.origin.ProcessHandlerContext;
@@ -103,18 +104,22 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          */
         for (Object transmitFact : facts) {
             for (AssembleData assembleData : assembleDataList) {
-                if (assembleData.isNeedAssemble(transmitFact,context)){
-                    InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
-                    List<InterfaceParams> array = map.get(assembleData.dataDirection());
-                    if (!StringUtils.isEmpty(interfaceParam)){
-                        if (CollectionUtils.isEmpty(array)){
-                            array = new ArrayList<>();
-                            array.add(interfaceParam);
-                            map.put(assembleData.dataDirection(),array);
-                        }else {
-                            array.add(interfaceParam);
+                try {
+                    if (assembleData.isNeedAssemble(transmitFact,context)){
+                        InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
+                        List<InterfaceParams> array = map.get(assembleData.dataDirection());
+                        if (!StringUtils.isEmpty(interfaceParam)){
+                            if (CollectionUtils.isEmpty(array)){
+                                array = new ArrayList<>();
+                                array.add(interfaceParam);
+                                map.put(assembleData.dataDirection(),array);
+                            }else {
+                                array.add(interfaceParam);
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    log.error("数据组装逻辑出错 transmitFact -- {} -- ", JSON.toJSONString(transmitFact),e);
                 }
             }
         }
