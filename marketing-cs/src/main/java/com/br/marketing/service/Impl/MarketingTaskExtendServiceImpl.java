@@ -103,7 +103,7 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
             case "id": return "id_card";
             case "strategyId": return "strategy_id";
             case "taskid": return "task_id";
-            case "custnum": return "cust_num";
+            case "custnum": return "cus_num";
             default:return s;
         }
     }

@@ -1444,6 +1444,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
         mh.setBatchNumber(file.getBatchNumber());
         mh.setFileId(file.getId().toString());
         mh.setApiCode(file.getApiCode());
+        mh.setRequestTime(new Date());
         String id = UuidUtils.getUuid();
         marketingHistoryEsService.insert(mh, id);
     }
