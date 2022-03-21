@@ -61,7 +61,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                     boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
                     if (b && iUserType.isBlack(caseShuheUser)) {
-                        ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
+                        shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
                     }
                 }
