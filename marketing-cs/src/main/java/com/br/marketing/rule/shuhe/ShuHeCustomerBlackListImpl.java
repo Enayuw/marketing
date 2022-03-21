@@ -34,7 +34,8 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+        ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+        iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
         final IUserType iUserType = shuHeContext.getiUserType();
         final Date creatTime = shuHeContext.getCreatTime();
         final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
