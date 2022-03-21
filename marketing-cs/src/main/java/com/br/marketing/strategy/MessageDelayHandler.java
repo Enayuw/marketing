@@ -41,7 +41,7 @@ import java.util.List;
 public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
 
     //消息过期时间 1h
-    private static final String EXPIRE_TIME = "3600000";
+    private static final String EXPIRE_TIME = "600000";
 
     @Resource
     private RabbitMqProducter producer;
