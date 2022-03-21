@@ -91,6 +91,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             transferSyncUser.setIfTransform("2");
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
+                            bool = Boolean.TRUE;
                         } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
