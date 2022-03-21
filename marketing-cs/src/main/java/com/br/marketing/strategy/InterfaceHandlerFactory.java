@@ -141,11 +141,15 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 2、根据不同数据来源 匹配出要执行的规则
          * 获取 apiCode获取所需的规则匹配方法
          */
-        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
         List<AssembleData> assembleDataList = new ArrayList<>();
+        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
+        String rulePrefix = customerRuleMapping.get(context.getApiCode());
+        if (StringUtils.isEmpty(rulePrefix)){
+            log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
+        }
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(customerRuleMapping.get(context.getApiCode()))){
+            if (assembleData.label().startsWith(rulePrefix)){
                 assembleDataList.add(assembleData);
             }
         }
