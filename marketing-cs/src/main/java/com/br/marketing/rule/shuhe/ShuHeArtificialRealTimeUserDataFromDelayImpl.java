@@ -54,7 +54,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ShuHeProcessHandlerContext shuHeContext = (ShuHeProcessHandlerContext) context;
+        ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+        iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer));
@@ -68,7 +69,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             Integer isDelay = context.getMqFact().getIsDelay();
-            if (isDelay != null && isDelay != 1) {
+            if (isDelay != null && isDelay == 1) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(
                         String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
                                 , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum()))
@@ -87,7 +88,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     IUserType iUserType = shuHeContext.getiUserType();
                     if (!StringUtils.isEmpty(applyTime) && !iUserType.getY().equals(isTurn)
                             && !iUserType.getY().equals(isBlack)) {
-                        LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DateTimeFormatter.ofPattern(""))
+                        LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DATE_TIME_FORMATTER)
                                 .toLocalDate();
                         LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
                                 ZoneId.systemDefault()).toLocalDate();
