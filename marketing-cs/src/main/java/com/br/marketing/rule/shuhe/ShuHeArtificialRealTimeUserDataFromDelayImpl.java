@@ -15,6 +15,7 @@ import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IPushShuheTransferDataService;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private RedisChgService redisChgService;
     @Resource
     private IPushShuheTransferDataService iPushShuheTransferDataService;
+    @Resource
+    private PushDataService pushDataService;
+
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
@@ -67,7 +71,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             if (isDelay != null && isDelay != 1) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? redisChgService.get(
                         String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
-                                , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum())) : transfer.gettCid();
+                                , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum()))
+                        : transfer.gettCid();
                 MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
                         transfer.getCustNum(), transfer.getApiCode()
                         , transfer.getUserType(), tCid, transfer.getCreateTime());
@@ -86,7 +91,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 .toLocalDate();
                         LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
                                 ZoneId.systemDefault()).toLocalDate();
-                        bool = !(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate));
+                        bool = (!(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate)))
+                                && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                , "a");
                     }
                 }
             }
