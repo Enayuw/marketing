@@ -55,8 +55,7 @@ public class PushRuleFilterController {
     @LogAnnotation
     public ApiResult getCompanyAndModule(String apiCode) {
         Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule(apiCode);
-
-        return new ApiResult().fromResult(companyAndModule,000000);
+        return new ApiResult().fromResult(companyAndModule, 000000);
     }
 
 
@@ -69,14 +68,10 @@ public class PushRuleFilterController {
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
     public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
-        try {
-            PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
-            return new ApiResult<PageResultReturn>().success(listPage);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
-        }
+        PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
+        return new ApiResult<PageResultReturn>().success(listPage);
     }
+
     /**
      * 获取列表跑分总数
      *
@@ -86,14 +81,10 @@ public class PushRuleFilterController {
     @ApiOperation(value = "获取列表跑分总数")
     @PostMapping("/getBatchInfosCounts")
     public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
-        try {
-            Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
-            return new ApiResult<Integer>().success(totalNum);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage());
-            return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
-        }
+        Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
+        return new ApiResult<Integer>().success(totalNum);
     }
+
     /**
      * 获取推送列表
      *
@@ -103,7 +94,7 @@ public class PushRuleFilterController {
     @ApiOperation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
     public ApiResult<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
-        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto),1);
+        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto), 1);
     }
 
     /**
@@ -116,13 +107,13 @@ public class PushRuleFilterController {
     @PostMapping("/pushCustomer")
     public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
-        return new ApiResult().fromResult(pushRuleService.pushCustomer(dto),1);
+        return new ApiResult().fromResult(pushRuleService.pushCustomer(dto), 1);
     }
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
-    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto){
-        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto),1);
+    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
     }
 
     @ApiOperation(value = "测试消费")

@@ -24,19 +24,12 @@ public class PushInfoController {
     @Autowired
     private PushInfoService pushInfoService;
 
-    @ApiOperation(value = "推送列表",notes = "推送列表")
+    @ApiOperation(value = "推送列表", notes = "推送列表")
     @PostMapping("/getPushInfoList")
-    public ApiResult<PageResultReturn> getPushInfoList(@RequestBody PushInfoFilterDTO dto){
-        try {
-            PageResultReturn list = pushInfoService.getPushInfoList(dto);
-            return new ApiResult<PageResultReturn>().success(list);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.SUCCESS_1);
-        }
+    public ApiResult<PageResultReturn> getPushInfoList(@RequestBody PushInfoFilterDTO dto) {
+        PageResultReturn list = pushInfoService.getPushInfoList(dto);
+        return new ApiResult<PageResultReturn>().success(list);
     }
-
-
 
 
 }
