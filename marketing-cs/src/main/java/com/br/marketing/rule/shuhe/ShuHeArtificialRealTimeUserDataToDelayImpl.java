@@ -112,7 +112,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         try {
             boolean exists = redisChgService.exists(key);
             if (!exists) {
-                String tCid = StringUtils.isEmpty(transfer.getCid()) ? handlerService.getTcIdFromRedis(apiCode)
+                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
                         : transfer.getCid();
                 if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
                         , transfer.getCreateTime())) {
@@ -122,7 +122,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), transfer.getCid()
+            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), transfer.gettCid()
                     , transfer.getCreateTime());
         }
         return false;
