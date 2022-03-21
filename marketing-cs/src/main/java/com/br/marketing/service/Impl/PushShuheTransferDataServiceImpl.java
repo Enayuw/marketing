@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.lang.ref.SoftReference;
 import java.security.SecureRandom;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -165,7 +166,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             long last = System.currentTimeMillis();
             log.warn("接收数禾转化数据(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , last - first, apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType());
+                    , apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType(), last - first);
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -198,10 +199,13 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         user.setApiCode(apiCode);
         user.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         user.setUploadDate(LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        user.setErrorInfo("#5".concat(e.toString()));
+        user.setErrorInfo("#5".concat(e.getMessage()));
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setStatus(2);
+        if (e instanceof SQLException) {
+            user.setSaveStatus(1);
+        }
         if (jsonDTO != null) {
             user.setMobile(jsonDTO.getMobile());
             user.setBiztype(jsonDTO.getBizType());
@@ -407,7 +411,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             long last = System.currentTimeMillis();
             log.warn("数禾转化->黑名单(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+                    , apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType(), last - first);
             return i + i1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -448,7 +452,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             long last = System.currentTimeMillis();
             log.warn("数禾转化->标准转化(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+                    , apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType(), last - first);
             return rowSync;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -507,7 +511,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             long last = System.currentTimeMillis();
             log.warn("数禾转化->电销(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+                    , apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType(), last - first);
             return 1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -597,7 +601,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             long last = System.currentTimeMillis();
             log.warn("接收数禾转化数据(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , last - first, apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType());
+                    , apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType(), last - first);
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -616,16 +620,16 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         SecureRandom random = new SecureRandom();
         transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
+        int rowSync = 0;
         try {
-            int rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
+            rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
             if (rowSync < 1) {
                 caseShuheUser.setSaveStatus(3);
-                caseShuheUser.setErrorInfo("#1.1saveTransferInfo:保存到标准转化详情失败");
+                caseShuheUser.setErrorInfo("#3.1saveTransferInfo:保存到标准转化详情失败");
                 alarmMgs(caseShuheUser);
-                return;
             }
         } catch (Exception e) {
-            caseShuheUser.setErrorInfo("#1.2saveTransferInfo:保存到标准转化详情异常:".concat(e.getMessage()));
+            caseShuheUser.setErrorInfo("#3.2saveTransferInfo:保存到标准转化详情异常:".concat(e.getMessage()));
             caseShuheUser.setSaveStatus(3);
             log.error(e.getMessage(), e);
             alarmMgs(caseShuheUser, e);
@@ -634,16 +638,27 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         transferInfo.setApiCode(apiCode);
         transferInfo.setRequestId(transferSyncUser.getRequestId());
         transferInfo.setCreateTime(new Date());
-        transferInfo.setJsonData(caseShuheUser.getJsonData());
+        transferInfo.setJsonData(JSONObject.toJSONString(transferSyncUser));
         transferInfo.setActualNum(1);
         try {
             int rowInfo = marketingTransferInfoMapper.insertSelective(transferInfo);
             if (rowInfo > 0) {
-                final MqFact mqFact = new MqFact();
-                mqFact.setSourceId(transferInfo.getId());
-                mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-                if (sendToQueueBool) {
-                    producter.sendToUniversalTransferQueue(mqFact);
+                if (rowSync > 0) {
+                    final MqFact mqFact = new MqFact();
+                    mqFact.setSourceId(transferInfo.getId());
+                    mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+                    if (sendToQueueBool) {
+                        producter.sendToUniversalTransferQueue(mqFact);
+                    }
+                } else {
+                    caseShuheUser.setErrorInfo("#3.3saveTransferInfo:保存到标准转化详情异常");
+                    caseShuheUser.setSaveStatus(3);
+                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                                    .concat("”\nuserType“").concat(caseShuheUser.getUserType())
+                                    .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
+                                    .concat("”\ntransferInfoId“" + rowInfo).concat("”\n")
+                                    .concat(caseShuheUser.getErrorInfo())
+                            , appName, secretKey, alarmClient);
                 }
             } else {
                 caseShuheUser.setErrorInfo("#2.1saveTransferInfo:保存到标准转化信息失败");
@@ -658,7 +673,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         }
         long last = System.currentTimeMillis();
         log.warn("数禾转化->标准转化(apiCode={};custNum={};userType={})共耗时:{}ms"
-                , last - first, apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType());
+                , apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType(), last - first);
     }
 
 
