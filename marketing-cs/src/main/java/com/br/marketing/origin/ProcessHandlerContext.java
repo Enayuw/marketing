@@ -53,14 +53,20 @@ public class ProcessHandlerContext {
      */
     private MqFact mqFact;
 
-    public ProcessHandlerContext(){}
+    public ProcessHandlerContext() {
+    }
 
 
-    public ProcessHandlerContext(String apiCode, long transferInfoId, Map<String, MarketingSyncUser> map){
+    public ProcessHandlerContext(String apiCode, long transferInfoId, Map<String, MarketingSyncUser> map) {
         this.apiCode = apiCode;
         this.transferInfoId = transferInfoId;
         this.customerMap = map;
     }
 
-
+    public ProcessHandlerContext(String apiCode, Long transferInfoId, Map<String, MarketingSyncUser> customerMap, MqFact mqFact) {
+        this.apiCode = apiCode;
+        this.transferInfoId = transferInfoId;
+        this.customerMap = customerMap;
+        this.mqFact = mqFact;
+    }
 }

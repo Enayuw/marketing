@@ -39,7 +39,7 @@ public class ShuHeProcessHandlerContext extends AbstractProcessHandlerContext {
 
 
     public ShuHeProcessHandlerContext(ProcessHandlerContext context) {
-        super(context.getApiCode(), context.getTransferInfoId(), context.getCustomerMap());
+        super(context.getApiCode(), context.getTransferInfoId(), context.getCustomerMap(), context.getMqFact());
     }
 
     public IUserType getiUserType() {

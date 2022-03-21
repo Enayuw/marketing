@@ -14,4 +14,8 @@ public abstract class AbstractProcessHandlerContext extends ProcessHandlerContex
     public AbstractProcessHandlerContext(String apiCode, long transferInfoId, Map<String, MarketingSyncUser> map) {
         super(apiCode, transferInfoId, map);
     }
+
+    public AbstractProcessHandlerContext(String apiCode, Long transferInfoId, Map<String, MarketingSyncUser> customerMap, MqFact mqFact) {
+        super(apiCode, transferInfoId, customerMap, mqFact);
+    }
 }
