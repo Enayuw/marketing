@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -689,12 +689,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         alarmMgs(caseShuheUser, null);
     }
 
-    private final SoftReference<ThreadLocal<ShuHeProcessHandlerContext>> localSoftReference =
-            new SoftReference<>(new ThreadLocal<>());
+    public final WeakReference<ThreadLocal<ShuHeProcessHandlerContext>> localWeakReference =
+            new WeakReference<>(new ThreadLocal<>());
 
     @Override
     public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
-        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localWeakReference.get();
         if (threadLocal != null) {
             ShuHeProcessHandlerContext shuContext = threadLocal.get();
             if (shuContext != null) {

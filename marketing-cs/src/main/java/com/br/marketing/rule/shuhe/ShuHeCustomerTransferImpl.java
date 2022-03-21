@@ -86,14 +86,15 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {
                         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                         transferSyncUser.setId(transfer.getId());
+                        transferSyncUser.settCid(transfer.gettCid());
                         if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
                             transferSyncUser.setIfTransform("2");
-                            iTransferSyncUserService.insertSelective(transferSyncUser);
+                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
                         } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
-                            iTransferSyncUserService.insertSelective(transferSyncUser);
+                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             ((ShuHeProcessHandlerContext) context).setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
                         }

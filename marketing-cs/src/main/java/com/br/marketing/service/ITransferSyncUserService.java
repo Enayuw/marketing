@@ -11,4 +11,8 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 public interface ITransferSyncUserService {
 
     int insertSelective(MarketingTransferSyncUser marketingTransferSyncUser);
+
+    int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
+
+
 }

@@ -25,4 +25,9 @@ public class TransferSyncUserServiceImpl implements ITransferSyncUserService {
     public int insertSelective(MarketingTransferSyncUser marketingTransferSyncUser) {
         return marketingTransferSyncUserMapper.insertSelective(marketingTransferSyncUser);
     }
+
+    @Override
+    public int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser) {
+        return marketingTransferSyncUserMapper.updateByPrimaryKeySelective(marketingTransferSyncUser);
+    }
 }
