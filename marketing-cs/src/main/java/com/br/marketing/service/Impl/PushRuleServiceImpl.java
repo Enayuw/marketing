@@ -39,6 +39,8 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
@@ -1112,7 +1114,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
         }
         if(universalProcessApiCode.contains(transferInfo.getApiCode())){
-            producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, id.toString());
+            MqFact mqFact = new MqFact();
+            mqFact.setSourceId(id);
+            mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
