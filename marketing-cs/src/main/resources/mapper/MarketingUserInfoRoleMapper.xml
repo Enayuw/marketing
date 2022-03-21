@@ -164,32 +164,32 @@
     <select id="getRolesByUid" resultType="com.br.marketing.entity.auth.MarketingRole">
         select r.id,
                r.name,
-               r.nameRemark,
-               r.createTime,
-               r.updateTime,
+               r.name_remark as nameRemark,
+               r.create_time as createTime,
+               r.update_time as updateTime,
                r.status
         from b_marketing_userinfo_role ur
-                 inner join b_marketing_role r on ur.roleId = r.id
-        where userId = #{userId}
-          and ur.status = 0
+                 inner join b_marketing_role r on ur.role_id = r.id
+        where user_id = #{userId}
+          and ur.status = 1
     </select>
     <select id="getResourcesByUid" resultType="com.br.marketing.entity.auth.MarketingResource">
-        select distinct r.id,
+        select  r.id,
                         r.icon,
                         r.name,
                         r.authority,
                         r.url,
                         r.type,
-                        r.parentId,
+                        r.parent_id as parentId,
                         r.sort,
-                        r.englishName,
+                        r.english_name as englishName,
                         r.category,
                         r.status
         from role
-                 inner join b_marketinig_userinfo_role ur on role.id = ur.roleId
-                 inner join b_marketing_role_resource rr on ur.roleId = rr.roleId
-                 inner join b_marketing_resource r on rr.resourceId = r.id
-        where ur.userId = #{userId}
+                 inner join b_marketing_userinfo_role ur on role.id = ur.role_id
+                 inner join b_marketing_role_resource rr on ur.role_id = rr.role_id
+                 inner join b_marketing_resource r on rr.resource_id = r.id
+        where ur.user_id = #{userId}
           and role.status = 1
           and ur.status = 1
           and rr.status = 1
