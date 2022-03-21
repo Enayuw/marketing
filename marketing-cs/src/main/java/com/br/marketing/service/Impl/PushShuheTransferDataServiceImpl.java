@@ -612,6 +612,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private void goTransferNew(String apiCode, CaseShuheUser caseShuheUser
             , MarketingTransferSyncUser transferSyncUser, boolean sendToQueueBool) {
         long first = System.currentTimeMillis();
+        this.setCid(transferSyncUser);
         SecureRandom random = new SecureRandom();
         transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
@@ -624,7 +625,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 return;
             }
         } catch (Exception e) {
-            caseShuheUser.setErrorInfo("#1.2saveTransferInfo:保存到标准转化详情异常:" + e);
+            caseShuheUser.setErrorInfo("#1.2saveTransferInfo:保存到标准转化详情异常:".concat(e.getMessage()));
             caseShuheUser.setSaveStatus(3);
             log.error(e.getMessage(), e);
             alarmMgs(caseShuheUser, e);
@@ -651,7 +652,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
         } catch (Exception e) {
             caseShuheUser.setSaveStatus(2);
-            caseShuheUser.setErrorInfo("#2.2saveTransferInfo:保存到标准转化信息异常:" + e);
+            caseShuheUser.setErrorInfo("#2.2saveTransferInfo:保存到标准转化信息异常:" + e.getMessage());
             log.error(e.getMessage(), e);
             alarmMgs(caseShuheUser, e);
         }
