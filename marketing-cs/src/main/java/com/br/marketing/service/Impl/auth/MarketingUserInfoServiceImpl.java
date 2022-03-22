@@ -124,7 +124,10 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     public PageResultReturn selectList(String key, Integer pageNo, Integer pageSize) {
         PageHelper.startPage(pageNo, pageSize);
         MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
-        marketingUserInfoExample.createCriteria().andStatusEqualTo(1).andUserNameLike(key).andRealNameLike(key);
+        if (StringUtils.isNotBlank(key)) {
+            marketingUserInfoExample.createCriteria().andUserNameLike(key);
+        }
+        marketingUserInfoExample.createCriteria().andStatusEqualTo(1);
         marketingUserInfoExample.setOrderByClause("create_time desc");
         List<MarketingUserInfo> marketingUserInfos = marketingUserInfoMapper.selectByExample(marketingUserInfoExample);
         return PageResultReturn.setPageResult(marketingUserInfos, pageNo, pageSize);
