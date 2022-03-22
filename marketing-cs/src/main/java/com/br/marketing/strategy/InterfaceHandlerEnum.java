@@ -4,8 +4,8 @@ public enum InterfaceHandlerEnum {
 
     ARTIFICIAL_BLACK_LIST(1, "人工黑名单"),
     ARTIFICIAL_TRANSFER(2, "人工转化"),
-    CUSTOMER_BLACK_LIST(3, "客服黑名单"),
-    CUSTOMER_TRANSFER(4, "客服转化"),
+    CUSTOMER_BLACK_LIST(4, "客服黑名单"),
+    CUSTOMER_TRANSFER(3, "客服转化"),
     ARTIFICIAL_DIAL_PUSH(5, "人工拨打推送"),
     MESSAGE_DELAY(6, "消息延迟"),
     UNDEFINED(7, "未定义接口"),
