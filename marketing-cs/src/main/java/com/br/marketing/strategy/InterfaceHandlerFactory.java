@@ -1,9 +1,10 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.context.AbstractRuleCollectDataService;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -17,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -70,6 +72,12 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     private static Map<Integer, OriginDataService> originDataMap = new HashMap<>();
 
 
+    /**
+     * 应用上下文中获取所有实现AbstractRuleCollectDataService数据来源处理类
+     */
+    private static Map<Integer, AbstractRuleCollectDataService> ruleDataCollectionMap = new HashMap<>();
+
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         Map<String, AbstractExternalInterfaceHandler> handlerMap = applicationContext.getBeansOfType(AbstractExternalInterfaceHandler.class);
@@ -79,6 +87,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
 
         Map<String, OriginDataService> dataMap = applicationContext.getBeansOfType(OriginDataService.class);
         dataMap.values().forEach(originData -> originDataMap.put(originData.source().getCode(), originData));
+
+        Map<String, AbstractRuleCollectDataService> collectDataServiceMap = applicationContext.getBeansOfType(AbstractRuleCollectDataService.class);
+        collectDataServiceMap.values().forEach(ruleDataCollection -> ruleDataCollectionMap.put(ruleDataCollection.label().getCode(), ruleDataCollection));
     }
 
     public void handler(int enumFlag, List<InterfaceParams> list, ProcessHandlerContext context) {
@@ -155,7 +166,18 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         }
 
         /**
-         * 3、组装数据
+         * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
+         */
+        Set<Integer> set = assembleDataList.stream().map(AssembleData::ruleDataCollection).filter(s -> !StringUtils.isEmpty(s)).collect(Collectors.toSet());
+        if (set.size() > 1){
+            log.error("规则配置的上下文加载处理方法有误");
+        }
+        for (Integer label : set) {
+            ruleDataCollectionMap.get(label).ruleNecessaryData(transmitFacts,context);
+        }
+
+        /**
+         * 4、组装数据
          */
         return assembleData(transmitFacts,assembleDataList,context);
     }

@@ -1,9 +1,4 @@
-package com.br.marketing.origin;
-
-
-import com.br.marketing.context.ProcessHandlerContext;
-
-import java.util.List;
+package com.br.marketing.context;
 
 /**
  * code is far away from bug with the animal protecting
@@ -25,14 +20,28 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 原始数据处理
+ * @Description :
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/3/12 14:54
+ * @Date : Create in 2022/3/2 14:11
  */
-public interface OriginDataService {
+public enum  RuleDataCollectionEnum {
+    HAI_ER_RULE_DATA_COLLECTION(1, "海尔规则所需数据收集"),
+    SHU_HE_RULE_DATA_COLLECTION(2, "数禾规则所需数据收集");
 
-    List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
+    RuleDataCollectionEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
+    }
 
-    TransferSource source();
+    private final Integer code;
+    private final String name;
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getName() {
+        return this.name;
+    }
 }

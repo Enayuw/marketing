@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.CallRecordExample;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -16,7 +17,6 @@ import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -140,6 +140,11 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return null;
     }
 
     /**

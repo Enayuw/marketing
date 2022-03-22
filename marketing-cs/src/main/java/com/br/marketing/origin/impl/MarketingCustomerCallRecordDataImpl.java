@@ -1,12 +1,12 @@
 package com.br.marketing.origin.impl;
 
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDetailDTO;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.TransferSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

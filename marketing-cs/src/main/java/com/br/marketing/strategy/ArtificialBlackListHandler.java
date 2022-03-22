@@ -9,8 +9,8 @@ import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.origin.ProcessHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

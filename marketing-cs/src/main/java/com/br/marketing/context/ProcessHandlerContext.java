@@ -1,6 +1,7 @@
-package com.br.marketing.origin;
+package com.br.marketing.context;
 
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.origin.MqFact;
 import lombok.Data;
 
 import java.util.Map;
@@ -52,6 +53,11 @@ public class ProcessHandlerContext {
      * 上下文消息对象
      */
     private MqFact mqFact;
+
+    /**
+     *
+     */
+    private RuleNecessaryData ruleNecessaryData;
 
     public ProcessHandlerContext() {
     }

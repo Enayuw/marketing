@@ -1,9 +1,9 @@
 package com.br.marketing.rule.shuhe;
 
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
@@ -60,6 +60,11 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.MESSAGE_DELAY.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return null;
     }
 
 }

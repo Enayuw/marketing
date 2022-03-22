@@ -1,7 +1,5 @@
-package com.br.marketing.origin;
+package com.br.marketing.context;
 
-
-import com.br.marketing.context.ProcessHandlerContext;
 
 import java.util.List;
 
@@ -25,14 +23,14 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 原始数据处理
+ * @Description : 规则需要数据加载收集
  * ---------------------------------
  * @Author : jilong.xu
  * @Date : Create in 2022/3/12 14:54
  */
-public interface OriginDataService {
+public interface AbstractRuleCollectDataService {
 
-    List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
+    void ruleNecessaryData(List transmitFacts,ProcessHandlerContext context);
 
-    TransferSource source();
+    RuleDataCollectionEnum label();
 }

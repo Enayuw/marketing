@@ -3,8 +3,8 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -74,5 +74,10 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return null;
     }
 }

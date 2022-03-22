@@ -1,9 +1,4 @@
-package com.br.marketing.origin;
-
-
-import com.br.marketing.context.ProcessHandlerContext;
-
-import java.util.List;
+package com.br.marketing.context;
 
 /**
  * code is far away from bug with the animal protecting
@@ -25,14 +20,10 @@ import java.util.List;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 原始数据处理
+ * @Description : 规则运行时所需数据
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/3/12 14:54
+ * @Date : Create in 2022/3/22 14:16
  */
-public interface OriginDataService {
-
-    List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
-
-    TransferSource source();
+public class RuleNecessaryData {
 }

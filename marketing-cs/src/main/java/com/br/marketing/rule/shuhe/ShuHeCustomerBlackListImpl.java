@@ -1,10 +1,11 @@
 package com.br.marketing.rule.shuhe;
 
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -79,5 +80,10 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.CUSTOMER_BLACK_LIST.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return RuleDataCollectionEnum.SHU_HE_RULE_DATA_COLLECTION.getCode();
     }
 }

@@ -1,13 +1,18 @@
 package com.br.marketing.rule.shuhe;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.dto.shuhe.strategy.CuShenWan;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.*;
+import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.ShuHeProcessHandlerContext;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheTransferDataService;
@@ -92,6 +97,11 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.MESSAGE_DELAY.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return RuleDataCollectionEnum.SHU_HE_RULE_DATA_COLLECTION.getCode();
     }
 
     /**

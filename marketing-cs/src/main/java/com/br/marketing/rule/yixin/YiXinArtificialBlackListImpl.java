@@ -3,8 +3,8 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -82,5 +82,10 @@ public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> 
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.ARTIFICIAL_BLACK_LIST.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return null;
     }
 }

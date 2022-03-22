@@ -1,9 +1,9 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.DataCompare;
 import com.br.marketing.mapper.DataCompareMapper;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.rule.InterfaceParams;
 
 import javax.annotation.Resource;

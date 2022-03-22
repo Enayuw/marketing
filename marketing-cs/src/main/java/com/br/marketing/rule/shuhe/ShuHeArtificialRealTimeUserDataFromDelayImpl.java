@@ -5,13 +5,14 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IPushShuheTransferDataService;
@@ -111,6 +112,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Override
     public Integer dataDirection() {
         return InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA.getCode();
+    }
+
+    @Override
+    public Integer ruleDataCollection() {
+        return RuleDataCollectionEnum.SHU_HE_RULE_DATA_COLLECTION.getCode();
     }
 
     /**

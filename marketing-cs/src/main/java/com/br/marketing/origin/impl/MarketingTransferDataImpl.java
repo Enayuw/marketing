@@ -1,18 +1,21 @@
 package com.br.marketing.origin.impl;
 
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.*;
+import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.OriginDataService;
+import com.br.marketing.origin.TransferSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * code is far away from bug with the animal protecting
@@ -78,21 +81,11 @@ public class MarketingTransferDataImpl implements OriginDataService {
         example.settCid(tcId);
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
 
-
-        Set<String> set = transferList.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(transferInfo.getApiCode(), set);
-        Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
-                Collectors.groupingBy(MarketingSyncUser::getCustNum
-                        , Collectors.collectingAndThen(
-                                Collectors.reducing((v1, v2) ->
-                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                , Optional::get)));
         /**
          * 将查询信息放入全局上下文中
          */
         context.setTransferInfoId(transferInfo.getId());
         context.setApiCode(transferInfo.getApiCode());
-        context.setCustomerMap(collect);
 
         list.addAll(transferList);
         return list;

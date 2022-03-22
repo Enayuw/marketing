@@ -1,6 +1,6 @@
 package com.br.marketing.rule;
 
-import com.br.marketing.origin.ProcessHandlerContext;
+import com.br.marketing.context.ProcessHandlerContext;
 
 public interface AssembleData<T extends InterfaceParams> {
 
@@ -11,4 +11,6 @@ public interface AssembleData<T extends InterfaceParams> {
     String label();
 
     Integer dataDirection();
+
+    Integer ruleDataCollection();
 }
