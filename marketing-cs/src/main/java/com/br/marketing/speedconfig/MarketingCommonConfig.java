@@ -93,6 +93,6 @@ public class MarketingCommonConfig {
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
      */
-    private Map<String, String> shuHePeriodOfValidityMap;
+    private Map<String, String> shuHePeriodOfValidityDayMap;
 
 }
