@@ -22,7 +22,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     @Autowired
     private ZnkfPushService znkfPushService;
 
-    final static String redisKeyCusNumIsFirst = "customer:callrecord:first:";
+    final static String redisKeyCusNumIsFirst = "customer:callrecord:cushenwan:first:";
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -43,9 +43,10 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String key = redisKeyCusNumIsFirst+bo.getCaseNum();
-            Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
+            //先符合推电销的规则后,再去判断是否是当天首次传输
             Boolean pushDX = znkfPushService.isSatisfyPushDX(bo);
-            if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==0 && isFirstToday && pushDX){
+            Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
+            if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==0 && pushDX && isFirstToday){
                 flag = true;
             }
         }

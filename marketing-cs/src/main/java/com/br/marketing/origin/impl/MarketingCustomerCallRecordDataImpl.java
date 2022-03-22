@@ -32,7 +32,6 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         List<Object> list = new ArrayList<>();
         // 1 根据保存到队列的ID查询记录对应的数据
         CallRecord callRecord = callRecordMapper.selectByPrimaryKey(mqFact.getSourceId());
-        callRecord.setId(mqFact.getSourceId());
 
         CallRecordBO bo = new CallRecordBO();
         CallRecordDetailDTO callRecordDetailDTO = new CallRecordDetailDTO();

@@ -113,6 +113,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
         phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
         phoneSaleExtendShuhe.setStatus("b");
+        phoneSaleExtendShuhe.setApiCode(dto.getApiCode());
+        phoneSaleExtendShuhe.setTaskId(dto.getTaskId().toString());
 
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         realTimeUserDataDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);
@@ -127,7 +129,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b");
+            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b","cushenwan");
         }
         return flag;
     }
