@@ -129,12 +129,22 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
             intentionGrade = true;
         }
-        if(!"促申完".equals(groupType) || !intentionGrade){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的userType='促申完'或者A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if(!intentionGrade){
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
-        Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
-                dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
+        if(!"促申完".equals(groupType) || !"促首借".equals(groupType)){
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            return false;
+        }
+        Boolean isPeriod = false;
+        if("促申完".equals(groupType)){
+            isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
+                    dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
+        }else if("促首借".equals(groupType)){
+            //先返回false，需要加促首借的有效期
+            return false;
+        }
         if (!isPeriod) {
             //不在有效期内
             log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
