@@ -79,7 +79,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         dassSingleImportDataDTO.setUid(dto.getCaseNum());
         String s = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
         dassSingleImportDataDTO.setPhone(s);//b_marketing_sync_{apicode}的cell，明文
-        dassSingleImportDataDTO.setName("");
+        dassSingleImportDataDTO.setName("1");
         if("促申完".equals(dto.getUserType())){
             dassSingleImportDataDTO.setOrgname("shuheshenwan");
             dassSingleImportDataDTO.setSource("16");
