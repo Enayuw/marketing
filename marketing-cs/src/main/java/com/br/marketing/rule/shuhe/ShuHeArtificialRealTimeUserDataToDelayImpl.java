@@ -20,7 +20,6 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -102,7 +101,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         LocalDateTime localDateTime = now.plusDays(1);
         // 第二天凌晨
         final ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
-        System.out.println(zonedDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return ChronoUnit.SECONDS.between(now, zonedDateTime);
     }
 

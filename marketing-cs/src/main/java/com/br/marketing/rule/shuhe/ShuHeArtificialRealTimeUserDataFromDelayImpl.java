@@ -146,10 +146,10 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private PhoneSaleExtendShuhe getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
             , ShuHeProcessHandlerContext shuHeContext) {
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-        phoneSaleExtendShuhe.setCustNum(transfer.getCustNum());
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
         phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        phoneSaleExtendShuhe.setCustNum(transfer.getCustNum());
         phoneSaleExtendShuhe.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
         phoneSaleExtendShuhe.setStatus("a");
         phoneSaleExtendShuhe.setApiCode(transfer.getApiCode());
