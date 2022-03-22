@@ -1405,27 +1405,27 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     }
 
     private void buildEs(String field, String value, MarketingHistory mh, List<MarketingCondition> conditionList,JSONObject json) {
-        field = field.toLowerCase();
-        if ((field.equals("id")
+        String _lowField = field.toLowerCase();
+        if ((_lowField.equals("id")
                 || field.equals("idcard"))
                 && StringUtils.isNotNull(value)) {
             mh.setIdCard(value);
-        }else if (field.equals("cell")
+        }else if (_lowField.equals("cell")
                 && StringUtils.isNotNull(value)) {
             String cellSource = json.getString("cellSource");
             mh.setCell(cellSource);
-        } else if (field.equals("name")
+        } else if (_lowField.equals("name")
                 && StringUtils.isNotNull(value)) {
             mh.setName(value);
-        } else if ((field.equals("taskid")
-                || field.equals("cusbatch"))
+        } else if ((_lowField.equals("taskid")
+                || _lowField.equals("cusbatch"))
                 && StringUtils.isNotNull(value)) {
             mh.setTaskId(value);
-        } else if ((field.equals("usertype")
-                || field.equals("grouptype"))
+        } else if ((_lowField.equals("usertype")
+                || _lowField.equals("grouptype"))
                 && StringUtils.isNotNull(value)) {
             mh.setUserType(value);
-        } else if(field.equals("custnum")
+        } else if(_lowField.equals("custnum")
                 && StringUtils.isNotNull(value)){
             mh.setCusNum(value);
         } else {
