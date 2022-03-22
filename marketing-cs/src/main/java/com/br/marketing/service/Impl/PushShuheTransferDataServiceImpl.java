@@ -730,6 +730,11 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
             caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
             caseShuheUser.setCell(object.getString("cell"));
+            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
+            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
+            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
+            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
+            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
             context.setCaseShuheUser(caseShuheUser);
             context.setTaskId(object.getString("taskId"));
         }

@@ -90,12 +90,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         transferSyncUser.settCid(transfer.gettCid());
                         if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
                             transferSyncUser.setIfTransform("2");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
                         } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
