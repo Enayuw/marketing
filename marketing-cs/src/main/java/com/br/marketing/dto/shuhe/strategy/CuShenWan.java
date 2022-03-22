@@ -1,5 +1,6 @@
 package com.br.marketing.dto.shuhe.strategy;
 
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.util.StringUtils;
@@ -34,7 +35,8 @@ public class CuShenWan extends IUserType {
      * 转电销规则
      * true 满足推电销
      */
-    public final boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
+    @Override
+    public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean boolAppStaTim;
         /* 数禾申完转电销 情况a
          * clc_usr_lst_app_sta_tim日期值为当天&clc_usr_iso_ato_tim日期不大于原始数据上传时间&userType=促申完
@@ -124,5 +126,35 @@ public class CuShenWan extends IUserType {
     @Override
     public String getBlackExpireDate(Date creatTime) {
         return this.calculateExpireDate(creatTime, 14);
+    }
+
+    /**
+     * 2022/3/22 17:18
+     * is_black=Y（剔除）
+     * 或
+     * is_turn=Y（剔除）
+     * 或
+     * clc_usr_iso_ato_tim日期>=原始数据上
+     */
+    @Override
+    public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
+        final String clcUsrIsoAtoTim = caseShuheUser.getClcUsrIsoAtoTim();
+        boolean bool = isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+        if (!bool && !StringUtils.isEmpty(clcUsrIsoAtoTim)) {
+            LocalDate clcUsrIsoAtoTimDate = LocalDateTime.parse(clcUsrIsoAtoTim, dateTimeFormatter)
+                    .toLocalDate();
+            LocalDate createDate = creatTime.toInstant().atZone(
+                    ZoneId.systemDefault()).toLocalDate();
+            bool = (clcUsrIsoAtoTimDate.isAfter(createDate) || clcUsrIsoAtoTimDate.isEqual(createDate));
+        }
+        return bool;
+    }
+
+    @Override
+    public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
+        dataDTO.setUserType("2");
+        dataDTO.setOrgname("shuheshenwan");
+        dataDTO.setSource("16");
+        dataDTO.setType("2");
     }
 }
