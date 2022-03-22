@@ -22,7 +22,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     @Autowired
     private ZnkfPushService znkfPushService;
 
-    final static String cusNumIsFirstCushenwan = "customer:callrecord:cushenwan:first:";
+    final static String cusNumIsFirst = "customer:callrecord:first";
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -37,17 +37,25 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        //正常队列消费&数据非当天首次传输-->false
-        //正常队列消费&数据当天首次传输&符合规则-->推延迟队列
+        //正常队列消费&符合规则&数据非当天首次传输-->false
+        //正常队列消费&符合规则&数据当天首次传输-->推延迟队列
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            String key = cusNumIsFirstCushenwan+bo.getCaseNum();
             //先符合推电销的规则后,再去判断是否是当天首次传输
             Boolean pushDXSatisfy = znkfPushService.isSatisfyPushDX(bo);
+            if(bo.getDataSource()!=0 || !pushDXSatisfy){
+                return false;
+            }
+            String key = "";
+            if(StringUtils.isNotEmpty(bo.getUserType()) && "促申完".equals(bo.getUserType())){
+                key = cusNumIsFirst.concat(":").concat("cushenwan").concat(":").concat(bo.getCaseNum());
+            }else if(StringUtils.isNotEmpty(bo.getUserType()) && "促首借".equals(bo.getUserType())){
+                key = cusNumIsFirst.concat(":").concat("cushoujie").concat(":").concat(bo.getCaseNum());
+            }
             Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
-            if(StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource()==0 && pushDXSatisfy && isFirstToday){
-                flag = true;
+            if(!isFirstToday){
+                return false;
             }
         }
         return flag;
