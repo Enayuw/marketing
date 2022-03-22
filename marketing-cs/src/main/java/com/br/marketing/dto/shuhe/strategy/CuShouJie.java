@@ -99,6 +99,9 @@ public class CuShouJie extends IUserType {
 
     @Override
     public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
+        if (true) {
+            return false;
+        }
         boolean bool;
         /* 数禾促首借转电销 情况a
          * clc_usr_lst_app_sta_tim日期值为当天
