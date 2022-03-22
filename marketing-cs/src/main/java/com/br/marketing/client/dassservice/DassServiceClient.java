@@ -208,7 +208,10 @@ public class DassServiceClient {
      */
     public Result postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
-        List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dto.getDassSingleImportDataDTO());
+        DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
+        String phoneAesEncrypt = AESUtil.aesEncrypty(dassSingleImportDataDTO.getPhone(), ascKey);
+        dassSingleImportDataDTO.setPhone(phoneAesEncrypt);
+        List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dassSingleImportDataDTO);
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
         sortList.add(String.valueOf(l));
