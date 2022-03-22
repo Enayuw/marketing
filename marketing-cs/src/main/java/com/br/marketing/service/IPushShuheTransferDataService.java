@@ -49,4 +49,9 @@ public interface IPushShuheTransferDataService {
      * 构建数禾上下文
      */
     void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer);
+
+    /**
+     * 删除数禾上下文
+     */
+    void removeHandlerContext();
 }

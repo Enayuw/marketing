@@ -66,6 +66,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        iPushShuheTransferDataService.removeHandlerContext();
         log.warn("$$2数禾推送转化至客服转化:{}", conversionData);
         return conversionData;
     }
@@ -103,6 +104,9 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                 }
             }
             log.warn("$$1数禾推送转化至客服转化规则状态:{}", bool);
+            if (!bool) {
+                iPushShuheTransferDataService.removeHandlerContext();
+            }
         }
         return bool;
     }

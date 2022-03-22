@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -689,12 +689,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         alarmMgs(caseShuheUser, null);
     }
 
-    public final WeakReference<ThreadLocal<ShuHeProcessHandlerContext>> localWeakReference =
-            new WeakReference<>(new ThreadLocal<>());
+    private final SoftReference<ThreadLocal<ShuHeProcessHandlerContext>> localSoftReference =
+            new SoftReference<>(new ThreadLocal<>());
 
     @Override
     public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
-        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localWeakReference.get();
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
         if (threadLocal != null) {
             ShuHeProcessHandlerContext shuContext = threadLocal.get();
             if (shuContext != null) {
@@ -709,6 +709,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 context.setCustomerMap(shuContext.getCustomerMap());
                 return;
             }
+            threadLocal.set(context);
         }
         Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
                 , transfer.getCustNum(), transfer.getUserType());
@@ -731,10 +732,14 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             caseShuheUser.setCell(object.getString("cell"));
             context.setCaseShuheUser(caseShuheUser);
             context.setTaskId(object.getString("taskId"));
-            if (threadLocal != null) {
-                threadLocal.set(context);
-            }
         }
+    }
 
+    @Override
+    public void removeHandlerContext() {
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
+        if (threadLocal != null) {
+            threadLocal.remove();
+        }
     }
 }

@@ -99,8 +99,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
      */
     private long getKeyExpiration() {
         LocalDateTime now = LocalDateTime.now();
-        // 当前毫秒数
-        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         LocalDateTime localDateTime = now.plusDays(1);
         // 第二天凌晨
         final ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());

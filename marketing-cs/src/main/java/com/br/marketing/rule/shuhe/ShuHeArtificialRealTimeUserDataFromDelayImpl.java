@@ -58,8 +58,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
-        realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer));
+        realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer, shuHeContext));
         log.warn("@2数禾转化推送人工电销:transmitFact:{}\nrealTimeUserDataDTO:{}", transfer.getId(), realTimeUserDataDTO);
+        iPushShuheTransferDataService.removeHandlerContext();
         return realTimeUserDataDTO;
     }
 
@@ -142,7 +143,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     /**
      * 封装电销扩展数据
      */
-    private PhoneSaleExtendShuhe getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer) {
+    private PhoneSaleExtendShuhe getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
+            , ShuHeProcessHandlerContext shuHeContext) {
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
         phoneSaleExtendShuhe.setCustNum(transfer.getCustNum());
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -150,6 +152,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         phoneSaleExtendShuhe.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
         phoneSaleExtendShuhe.setStatus("a");
+        phoneSaleExtendShuhe.setApiCode(transfer.getApiCode());
+        phoneSaleExtendShuhe.setUserType(transfer.getUserType());
+        phoneSaleExtendShuhe.setTaskId(shuHeContext.getTaskId());
         return phoneSaleExtendShuhe;
     }
 
