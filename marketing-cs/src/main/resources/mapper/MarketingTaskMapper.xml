@@ -505,7 +505,7 @@
         </if>
         and shf.score_status = 2
         group by batchNumber
-        order by shf.id desc) vie where apiCode = #{apiCode}
+        order by shf.create_time desc) vie where apiCode = #{apiCode}
         <if test="productName !=null and productName !=''">
             <foreach collection="moduleList" item="item" index="index" open="and" separator="and">
                  find_in_set (#{item},productName)
