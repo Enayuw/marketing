@@ -43,7 +43,6 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
         blackDetailDTO.setExpireDate(iUserType.getBlackExpireDate(creatTime));
         blackDetailDTO.setPhone(caseShuheUser.getCell());
-        iPushShuheTransferDataService.removeHandlerContext();
         log.warn("##2数禾转化推送客服黑名单:{}\n{}", blackDetailDTO, context);
         return blackDetailDTO;
     }
@@ -69,15 +68,12 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
             }
             log.warn("##1数禾转化推送客服黑名单规则状态:{}\n{}", bool, context);
         }
-        if (!bool) {
-            iPushShuheTransferDataService.removeHandlerContext();
-        }
         return bool;
     }
 
     @Override
     public String label() {
-        return "ShuHe_TransferData_CustomerBlackList";
+        return "ShuHe_1_TransferData_CustomerBlackList";
     }
 
     @Override

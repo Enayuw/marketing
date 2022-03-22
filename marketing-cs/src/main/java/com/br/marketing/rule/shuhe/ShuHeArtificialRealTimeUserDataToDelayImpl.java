@@ -1,7 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.dto.shuhe.strategy.CuShenWan;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -57,6 +56,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
         log.warn("@@2符合人工的数据进入延迟:{}\n{}", mqFactNew, context);
+        iPushShuheTransferDataService.removeHandlerContext();
         return mqFactNew;
     }
 
@@ -69,22 +69,25 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
             final IUserType iUserType = shuHeContext.getiUserType();
             final Integer isDelay = shuHeContext.getMqFact().getIsDelay();
-            boolean typeBool = (iUserType instanceof CuShenWan) && (isDelay == null || isDelay != 1);
+            boolean typeBool = (isDelay == null || isDelay != 1);
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
-                bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime)
+                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
             log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
+            if (!bool) {
+                iPushShuheTransferDataService.removeHandlerContext();
+            }
         }
         return bool;
     }
 
     @Override
     public String label() {
-        return "ShuHe_TransferData_ArtificialRealTimeUserDataToDelay";
+        return "ShuHe_3_TransferData_ArtificialRealTimeUserDataToDelay";
     }
 
     @Override

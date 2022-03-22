@@ -6,7 +6,10 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
@@ -72,31 +75,30 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                         String.format(ShuHeArtificialRealTimeUserDataToDelayImpl.KEY
                                 , transfer.getApiCode(), transfer.getUserType(), transfer.getCustNum()))
                         : transfer.gettCid();
-                MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(
-                        transfer.getCustNum(), transfer.getApiCode()
-                        , transfer.getUserType(), tCid, transfer.getCreateTime());
-                if (dbTransferSyncUser != null) {
-                    String reserveField1 = dbTransferSyncUser.getReserveField1();
-                    JSONObject object = JSONObject.parseObject(reserveField1);
-                    String isTurn = object.getString("is_turn");
-                    String isBlack = object.getString("is_black");
-                    String applyTime = dbTransferSyncUser.getApplyTime();
-                    ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                    iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-                    IUserType iUserType = shuHeContext.getiUserType();
-                    if (!StringUtils.isEmpty(applyTime) && !iUserType.getY().equals(isTurn)
-                            && !iUserType.getY().equals(isBlack)) {
-                        LocalDate clcUsrIsoAtoTim = LocalDateTime.parse(applyTime, DATE_TIME_FORMATTER)
-                                .toLocalDate();
-                        LocalDate createDate = shuHeContext.getCreatTime().toInstant().atZone(
-                                ZoneId.systemDefault()).toLocalDate();
-                        bool = (!(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate)))
-                                && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
-                                , "a", transfer.getUserType());
-                    }
-                }
+                MarketingTransferSyncUser dbTransferSyncUser = getDbTransferSyncUser(transfer.getCustNum()
+                        , transfer.getApiCode(), transfer.getUserType(), tCid, transfer.getCreateTime());
+                String reserveField1 = dbTransferSyncUser.getReserveField1();
+                JSONObject object = JSONObject.parseObject(reserveField1);
+                String isTurn = object.getString("is_turn");
+                String isBlack = object.getString("is_black");
+                String applyLoanTime = object.getString("applyLoanTime");
+                String applyTime = dbTransferSyncUser.getApplyTime();
+                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
+                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                caseShuheUser.setIsTurn(isTurn);
+                caseShuheUser.setIsBlack(isBlack);
+                caseShuheUser.setClcUsrIsoAtoTim(applyTime);
+                caseShuheUser.setClcUsrFrtFqOrdTim(applyLoanTime);
+                IUserType iUserType = shuHeContext.getiUserType();
+                bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
+                        && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                        , "a", transfer.getUserType());
             }
             log.warn("@1数禾转化推送人工电销剔除规则状态:{}\n{}", bool, context);
+            if (!bool) {
+                iPushShuheTransferDataService.removeHandlerContext();
+            }
         }
         return bool;
     }
@@ -125,7 +127,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         example.settCid(tCid);
         example.setOrderByClause("create_time desc limit 0,1");
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return transferList.size() > 0 ? transferList.get(0) : null;
+        return transferList.get(0);
     }
 
     /**
@@ -134,8 +136,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private DassSingleImportAdapDTO getDassSingleImportAdap(MarketingTransferSyncUser transfer
             , ShuHeProcessHandlerContext shuHeContext) {
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        IUserType iUserType = shuHeContext.getiUserType();
         DassSingleImportAdapDTO adapDTO = new DassSingleImportAdapDTO();
-        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, transfer));
+        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, transfer, iUserType));
         adapDTO.setTransferInfoId(transfer.getId());
         return adapDTO;
     }
@@ -160,7 +163,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     }
 
     private DassSingleImportDataDTO getDassSingleImportData(CaseShuheUser caseShuheUser
-            , MarketingTransferSyncUser transfer) {
+            , MarketingTransferSyncUser transfer, IUserType iUserType) {
         DassSingleImportDataDTO dataDTO = new DassSingleImportDataDTO();
         dataDTO.setPrioritySymbol("1");
         JSONObject extend = new JSONObject();
@@ -170,12 +173,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         extend.put("is_usr_inf", valuableAndCurrentDay(caseShuheUser.getClcUsrIsoInfTim()));
         extend.put("is_usr_lst_app_sta_tim", valuableAndCurrentDay(caseShuheUser.getClcUsrLstAppStaTim()));
         extend.put("typeSign", "1");
-        dataDTO.setOrgname("shuheshenwan");
         dataDTO.setPhone(caseShuheUser.getCell());
-        dataDTO.setUserType("2");
         dataDTO.setLoginTime(transfer.getLoginTime());
-        dataDTO.setSource("16");
-        dataDTO.setType("2");
+        iUserType.getPrivateInfo(dataDTO);
         dataDTO.setExtend(extend.toJSONString());
         return dataDTO;
     }
