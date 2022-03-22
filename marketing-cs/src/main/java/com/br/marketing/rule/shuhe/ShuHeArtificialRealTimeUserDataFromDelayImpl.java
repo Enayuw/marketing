@@ -59,7 +59,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer, shuHeContext));
-        log.warn("@2数禾转化推送人工电销:transmitFact:{}\nrealTimeUserDataDTO:{}", transfer.getId(), realTimeUserDataDTO);
+        log.warn("@2数禾转化推送人工电销:{}\n{}", realTimeUserDataDTO, context);
         iPushShuheTransferDataService.removeHandlerContext();
         return realTimeUserDataDTO;
     }
@@ -99,7 +99,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     }
                 }
             }
-            log.warn("@1数禾转化推送人工电销剔除规则状态:{};{}", bool, context);
+            log.warn("@1数禾转化推送人工电销剔除规则状态:{}\n{}", bool, context);
         }
         return bool;
     }
@@ -149,7 +149,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private PhoneSaleExtendShuhe getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
             , ShuHeProcessHandlerContext shuHeContext) {
         PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-        LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime localDateTime = transfer.getCreateTime().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
         phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         phoneSaleExtendShuhe.setCustNum(transfer.getCustNum());

@@ -56,7 +56,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
-        log.warn("@@2符合人工的数据进入延迟:{}", mqFactNew);
+        log.warn("@@2符合人工的数据进入延迟:{}\n{}", mqFactNew, context);
         return mqFactNew;
     }
 
@@ -77,8 +77,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
-            log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}:{}]", bool, transfer.getCustNum(),
-                    transfer.getApiCode(), transfer.getUserType(), context.getMqFact().getSourceId());
+            log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
         }
         return bool;
     }

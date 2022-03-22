@@ -620,6 +620,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         SecureRandom random = new SecureRandom();
         transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
+        LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        transferSyncUser.setInsertTime(localDateTime.format(dateTimeFormatter));
         int rowSync = 0;
         try {
             rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
