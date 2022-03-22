@@ -1,14 +1,25 @@
 package com.br.marketing.context.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
+import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
+import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.service.IMarketingSyncUserService;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -38,12 +49,51 @@ import java.util.List;
 @Service
 public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService {
 
+    @Resource
+    private IMarketingSyncUserService iMarketingSyncUserService;
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
+        Assert.notNull(transmitFacts, "转化数据不能为null");
         ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
-        shuHeRuleNecessaryData.setCreatTime(new Date());
         context.setRuleNecessaryData(shuHeRuleNecessaryData);
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFacts.get(0);
+        // 获取上传表信息
+        Set<String> set = new HashSet<>(Arrays.asList(transfer.getCustNum()));
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
+        Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
+                Collectors.groupingBy(MarketingSyncUser::getCustNum
+                        , Collectors.collectingAndThen(
+                                Collectors.reducing((v1, v2) ->
+                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                , Optional::get)));
+        context.setCustomerMap(collect);
+
+        // 生成后续使用数据上下文
+        Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
+                , transfer.getCustNum(), transfer.getUserType());
+        shuHeRuleNecessaryData.setCreatTime(creatTime);
+        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
+        shuHeRuleNecessaryData.setIUserType(iUserType);
+        shuHeRuleNecessaryData.setContinueJudgeRule(true);
+        String reserveField1 = transfer.getReserveField1();
+        if (StringUtils.isNotEmpty(reserveField1)) {
+            JSONObject object = JSONObject.parseObject(reserveField1);
+            CaseShuheUser caseShuheUser = new CaseShuheUser();
+            caseShuheUser.setIsTurn(object.getString("is_turn"));
+            caseShuheUser.setIsBlack(object.getString("is_black"));
+            caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
+            caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
+            caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
+            caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
+            caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
+            caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
+            caseShuheUser.setCell(object.getString("cell"));
+            shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
+            shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
+        }
     }
 
     @Override
@@ -55,8 +105,28 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
     @Data
     public class ShuHeRuleNecessaryData extends RuleNecessaryData {
         /**
+         * 场景策略
+         */
+        private IUserType iUserType;
+        /**
          * 上传数据创建时间
          */
         private Date creatTime;
+
+        /**
+         * 数禾原始数据-结构
+         */
+        private CaseShuheUser caseShuheUser;
+
+        /**
+         * 批次号
+         */
+        private String taskId;
+
+        /**
+         * 是否继续判断规则
+         * true 继续
+         */
+        private boolean continueJudgeRule;
     }
 }
