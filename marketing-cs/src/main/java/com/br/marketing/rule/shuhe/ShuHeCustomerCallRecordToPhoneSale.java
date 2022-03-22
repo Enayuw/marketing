@@ -9,10 +9,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.customer.CallRecordBO;
-import com.br.marketing.entity.CallRecordExample;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.PhoneSaleExtendShuhe;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -76,7 +73,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
 
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
-        PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
+        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();//单条
 
         dassSingleImportDataDTO.setUid(dto.getCaseNum());
@@ -114,16 +111,16 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         }
         dassSingleImportDataDTO.setExtend(JSON.toJSONString(extendMap));
 
-        phoneSaleExtendShuhe.setCustNum(dto.getCaseNum());
-        phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
-        phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
-        phoneSaleExtendShuhe.setStatus("b");
-        phoneSaleExtendShuhe.setApiCode(dto.getApiCode());
-        phoneSaleExtendShuhe.setTaskId(dto.getTaskId().toString());
+        phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
+        phoneSaleExtendInfo.setAppletDate(dfDay.format(day));
+        phoneSaleExtendInfo.setAppletTime(dfSecond.format(day));
+        phoneSaleExtendInfo.setStatus("b");
+        phoneSaleExtendInfo.setApiCode(dto.getApiCode());
+        phoneSaleExtendInfo.setTaskId(dto.getTaskId().toString());
 
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         realTimeUserDataDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);
-        realTimeUserDataDTO.setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
+        realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
         return realTimeUserDataDTO;
     }
 

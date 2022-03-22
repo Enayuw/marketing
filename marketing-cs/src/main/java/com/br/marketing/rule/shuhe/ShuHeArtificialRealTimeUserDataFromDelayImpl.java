@@ -6,10 +6,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleExtendShuhe;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.ProcessHandlerContext;
 import com.br.marketing.origin.ShuHeProcessHandlerContext;
@@ -58,7 +55,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
-        realTimeUserDataDTO.setPhoneSaleExtendShuhe(getPhoneSaleExtendShuhe(transfer, shuHeContext));
+        realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
         log.warn("@2数禾转化推送人工电销:{}\n{}", realTimeUserDataDTO, context);
         iPushShuheTransferDataService.removeHandlerContext();
         return realTimeUserDataDTO;
@@ -146,20 +143,20 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     /**
      * 封装电销扩展数据
      */
-    private PhoneSaleExtendShuhe getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
+    private PhoneSaleExtendInfo getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
             , ShuHeProcessHandlerContext shuHeContext) {
-        PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
+        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         LocalDateTime localDateTime = transfer.getCreateTime().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
-        phoneSaleExtendShuhe.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        phoneSaleExtendShuhe.setCustNum(transfer.getCustNum());
-        phoneSaleExtendShuhe.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
-        phoneSaleExtendShuhe.setStatus("a");
-        phoneSaleExtendShuhe.setApiCode(transfer.getApiCode());
-        phoneSaleExtendShuhe.setUserType(transfer.getUserType());
-        phoneSaleExtendShuhe.setTaskId(shuHeContext.getTaskId());
-        return phoneSaleExtendShuhe;
+        phoneSaleExtendInfo.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
+        phoneSaleExtendInfo.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
+        phoneSaleExtendInfo.setStatus("a");
+        phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
+        phoneSaleExtendInfo.setUserType(transfer.getUserType());
+        phoneSaleExtendInfo.setTaskId(shuHeContext.getTaskId());
+        return phoneSaleExtendInfo;
     }
 
     private DassSingleImportDataDTO getDassSingleImportData(CaseShuheUser caseShuheUser
