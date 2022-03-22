@@ -1,6 +1,7 @@
 package com.br.marketing.service.auth;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingRole;
 
 import java.util.List;
@@ -80,5 +81,8 @@ public interface MarketingRoleService {
      * @param key 关键字
      * @return 返回查询结果
      */
-    ApiResult<List<MarketingRole>> selectRoleListBySearch(String createStart, String createEnd, String updateStart, String updateEnd, String key);
+    PageResultReturn selectRoleListBySearch(String createStart, String createEnd,
+                                            String updateStart, String updateEnd,
+                                            String key,
+                                            Integer current, Integer size);
 }

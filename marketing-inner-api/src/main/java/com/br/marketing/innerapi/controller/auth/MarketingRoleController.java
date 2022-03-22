@@ -3,6 +3,8 @@ package com.br.marketing.innerapi.controller.auth;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.ResourceTreeBean;
 import com.br.marketing.service.auth.MarketingResourceService;
@@ -70,8 +72,15 @@ public class MarketingRoleController {
      */
     @GetMapping("/list")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ApiResult<List<MarketingRole>> list(String createStart, String createEnd, String updateStart, String updateEnd, String key) {
-       return marketingRoleService.selectRoleListBySearch(createStart,createEnd,updateStart,updateEnd,key);
+    public ApiResult<PageResultReturn> list(String createStart, String createEnd, String updateStart,
+                                            String updateEnd, String key, Integer current, Integer size) {
+        PageResultReturn listPage =  marketingRoleService.selectRoleListBySearch(
+                createStart,createEnd,updateStart,updateEnd,key,
+                current,size);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
     /**

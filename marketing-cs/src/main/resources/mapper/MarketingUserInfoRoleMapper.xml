@@ -174,7 +174,7 @@
           and ur.status = 1
     </select>
     <select id="getResourcesByUid" resultType="com.br.marketing.entity.auth.MarketingResource">
-        select  r.id,
+        select   r.id,
                         r.icon,
                         r.name,
                         r.authority,
@@ -183,17 +183,17 @@
                         r.parent_id as parentId,
                         r.sort,
                         r.english_name as englishName,
-                        r.category,
-                        r.status
-        from role
-                 inner join b_marketing_userinfo_role ur on role.id = ur.role_id
+                        r.category
+
+        from b_marketing_role ro
+                 inner join b_marketing_userinfo_role ur on ro.id = ur.role_id
                  inner join b_marketing_role_resource rr on ur.role_id = rr.role_id
                  inner join b_marketing_resource r on rr.resource_id = r.id
         where ur.user_id = #{userId}
-          and role.status = 1
+          and ro.status = 1
           and ur.status = 1
           and rr.status = 1
-          and r.status = 1
+          and r.status = 1;
     </select>
     <update id="updateByExampleSelective" parameterType="map">
         update b_marketing_userinfo_role

@@ -1,11 +1,15 @@
 package com.br.marketing.service.Impl.auth;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingRoleResourceMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingRoleService;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -133,9 +137,37 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
     }
 
     @Override
-    public ApiResult<List<MarketingRole>> selectRoleListBySearch(String createStart, String createEnd, String updateStart, String updateEnd, String key) {
+    public PageResultReturn selectRoleListBySearch(String createStart, String createEnd, String updateStart, String updateEnd,
+                                                   String key, Integer current, Integer size) {
 
-        return null;
+        MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
+        marketingRoleExample.createCriteria().andStatusEqualTo(1);
+        if (StringUtils.isNotBlank(key)) {
+            marketingRoleExample.createCriteria().andNameLike(key);
+        }
+        marketingRoleExample.setOrderByClause("create_time desc");
+        PageHelper.startPage(current, size);
+        List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
+        return PageResultReturn.setPageResult(marketingRoles, current, size);
+        //if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
+        // marketingRoleExample.createCriteria().andCreateTimeBetween(createStart ,createStart);
+        //}
+        //
+        //EntityWrapper<MarketingRole> wrapper = new EntityWrapper<>();
+        //wrapper.eq("isDelete", 0).orderBy("createdTime", false)
+        //        .orderBy("modifiedTime", false);
+        //if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
+        //    wrapper.andNew("createdTime between {0} and {1}", createStart + " 00:00:00", createEnd + " 23:59:59");
+        //}
+        //if (StringUtils.isNotBlank(updateStart) && StringUtils.isNotBlank(updateEnd)) {
+        //    wrapper.andNew("modifiedTime between {0} and {1}", updateStart + " 00:00:00", updateEnd + " 23:59:59");
+        //}
+        ////模糊查询条件拼接
+        //if (StringUtils.isNotBlank(key)) {
+        //    key = "%" + key + "%";
+        //    String sql = "name like {0}";
+        //    wrapper.andNew(sql, key);
+        //}
     }
 
 

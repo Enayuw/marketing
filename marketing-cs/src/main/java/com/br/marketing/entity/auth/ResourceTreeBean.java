@@ -10,7 +10,7 @@ import java.util.Map;
  * 权限资源树bean
  * Created by lmc on 2017/7/7.
  */
-@Data
+
 public class ResourceTreeBean implements Comparable<ResourceTreeBean> {
     /**
      * 资源id
@@ -63,5 +63,69 @@ public class ResourceTreeBean implements Comparable<ResourceTreeBean> {
         this.sort = sort;
         this.aAttr = attr;
         this.data = data;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public Map<String, Object> getaAttr() {
+        return aAttr;
+    }
+
+    public void setaAttr(Map<String, Object> aAttr) {
+        this.aAttr = aAttr;
+    }
+
+    public boolean isSelect() {
+        return select;
+    }
+
+    public void setSelect(boolean select) {
+        this.select = select;
+    }
+
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
+
+    public Integer getSort() {
+        return sort;
+    }
+
+    public void setSort(Integer sort) {
+        this.sort = sort;
+    }
+
+    public List<ResourceTreeBean> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<ResourceTreeBean> children) {
+        this.children = children;
     }
 }

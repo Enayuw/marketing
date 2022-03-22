@@ -34,7 +34,9 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
         // 删除当前菜单
         MarketingResourceExample mre = new MarketingResourceExample();
         mre.createCriteria().andIdEqualTo(id);
-        marketingResourceMapper.deleteByExample(mre);
+        MarketingResource marketingResource = new MarketingResource();
+        marketingResource.setStatus(0);
+        marketingResourceMapper.updateByExampleSelective(marketingResource,mre);
         //递归删除子菜单
         recursiveDeleteResource(id);
     }
@@ -45,14 +47,16 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
     private void recursiveDeleteResource(Integer resourceId) {
         //查询当前菜单的子菜单
         MarketingResourceExample mre = new MarketingResourceExample();
-        mre.createCriteria().andParentIdEqualTo(resourceId).andStatusEqualTo(0);
+        mre.createCriteria().andParentIdEqualTo(resourceId).andStatusEqualTo(1);
         List<MarketingResource> marketingResources = marketingResourceMapper.selectByExample(mre);
         List<Integer> ids = marketingResources.stream().map(MarketingResource::getId).collect(Collectors.toList());
         if (!ids.isEmpty()) {
             //删除当前菜单的所有子菜单
             MarketingResourceExample subMre = new MarketingResourceExample();
             subMre.createCriteria().andIdIn(ids);
-            marketingResourceMapper.deleteByExample(subMre);
+            MarketingResource marketingResource = new MarketingResource();
+            marketingResource.setStatus(0);
+            marketingResourceMapper.updateByExampleSelective(marketingResource,subMre);
             // 递归删除子菜单
             for (Integer integer : ids) {
                 recursiveDeleteResource(integer);
@@ -103,9 +107,8 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
     @Override
     public List<ResourceTreeBean> getResourcesTree(Integer roleId) {
         MarketingResourceExample mre = new MarketingResourceExample();
-        mre.createCriteria().andStatusEqualTo(0);
-        mre.setOrderByClause("type desc");
-        mre.setOrderByClause("sort desc");
+        mre.createCriteria().andStatusEqualTo(1);
+        mre.setOrderByClause("type asc,sort asc");
         List<MarketingResource> marketingResources = marketingResourceMapper.selectByExample(mre);
 
         Map<Integer, ResourceTreeBean> title1 = new HashMap<>(16);
@@ -145,8 +148,11 @@ public class MarketingResourceServiceImpl implements MarketingResourceService {
             //判断是否选中状态
             if (resourceTreeBean != null) {
                 Integer id = resourceTreeBean.getId();
-                marketingRoleResourceExample.createCriteria().andRoleIdEqualTo(roleId).andStatusEqualTo(1);
-                List<MarketingRoleResource> marketingRoleResources = marketingRoleResourceMapper.selectByExample(marketingRoleResourceExample);
+                List<MarketingRoleResource> marketingRoleResources = new ArrayList<>();
+                if (roleId != null) {
+                    marketingRoleResourceExample.createCriteria().andRoleIdEqualTo(roleId).andStatusEqualTo(1);
+                    marketingRoleResources =  marketingRoleResourceMapper.selectByExample(marketingRoleResourceExample);
+                }
                 List<Integer> marketingRoleResourcesList = marketingRoleResources.stream().map(MarketingRoleResource::getResourceId).collect(Collectors.toList());
                 if (marketingRoleResourcesList.contains(id)) {
                     resourceTreeBean.setSelect(true);

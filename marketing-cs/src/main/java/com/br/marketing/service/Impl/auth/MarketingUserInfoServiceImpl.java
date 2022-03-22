@@ -6,6 +6,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.AuthConstants;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
@@ -44,7 +45,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
-        log.warn("入参:{}",request.toString());
+        log.warn("入参:{}",reqObj.toString());
         if (checkParam(reqObj)) {
             if (kapError(reqObj)) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
@@ -120,15 +121,13 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     }
 
     @Override
-    public ApiResult<List<MarketingUserInfo>> selectList(String key, Integer pageNo, Integer pageSize) {
+    public PageResultReturn selectList(String key, Integer pageNo, Integer pageSize) {
         PageHelper.startPage(pageNo, pageSize);
         MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
         marketingUserInfoExample.createCriteria().andStatusEqualTo(1).andUserNameLike(key).andRealNameLike(key);
-        marketingUserInfoExample.setOrderByClause("create_time");
-        marketingUserInfoExample.setOrderByClause("update_time");
+        marketingUserInfoExample.setOrderByClause("create_time desc");
         List<MarketingUserInfo> marketingUserInfos = marketingUserInfoMapper.selectByExample(marketingUserInfoExample);
-        return new ApiResult<List<MarketingUserInfo>>().success(marketingUserInfos);
-
+        return PageResultReturn.setPageResult(marketingUserInfos, pageNo, pageSize);
     }
 
     @Override

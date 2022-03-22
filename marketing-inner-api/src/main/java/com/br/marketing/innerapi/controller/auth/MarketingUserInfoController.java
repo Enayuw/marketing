@@ -5,6 +5,7 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
@@ -55,8 +56,12 @@ public class MarketingUserInfoController {
      */
     @GetMapping("/list")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ApiResult<List<MarketingUserInfo>> list(String key, Integer pageNo, Integer pageSize) {
-        return marketingUserInfoService.selectList(key, pageNo, pageSize);
+    public ApiResult<PageResultReturn>  list(String key, Integer current, Integer size) {
+        PageResultReturn listPage = marketingUserInfoService.selectList(key, current, size);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
     /**

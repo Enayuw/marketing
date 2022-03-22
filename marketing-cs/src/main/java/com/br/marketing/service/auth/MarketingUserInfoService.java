@@ -1,6 +1,7 @@
 package com.br.marketing.service.auth;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.LoginReqObj;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
@@ -48,7 +49,7 @@ public interface MarketingUserInfoService {
      * @param pageSize 每页数量
      * @return 返回用户列表
      */
-    ApiResult<List<MarketingUserInfo>> selectList(String key, Integer pageNo, Integer pageSize);
+    PageResultReturn selectList(String key, Integer pageNo, Integer pageSize);
 
     ApiResult<Boolean> save(MarketingUserDetail userDetail, MarketingUserInfo user);
 
