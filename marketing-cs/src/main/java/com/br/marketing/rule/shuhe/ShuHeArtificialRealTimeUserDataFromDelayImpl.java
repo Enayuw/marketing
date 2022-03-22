@@ -95,7 +95,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 ZoneId.systemDefault()).toLocalDate();
                         bool = (!(clcUsrIsoAtoTim.isAfter(createDate) || clcUsrIsoAtoTim.isEqual(createDate)))
                                 && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
-                                , "a");
+                                , "a", transfer.getUserType());
                     }
                 }
             }
@@ -120,8 +120,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private MarketingTransferSyncUser getDbTransferSyncUser(String custNum, String apiCode, String userType
             , String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        LocalDateTime localDateTime = createTime.toInstant().atZone(
+                ZoneId.systemDefault()).toLocalDateTime().plusHours(1);
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                .andCustNumEqualTo(custNum).andCreateTimeGreaterThanOrEqualTo(createTime);
+                .andCustNumEqualTo(custNum).andCreateTimeGreaterThanOrEqualTo(createTime)
+                .andCreateTimeLessThanOrEqualTo(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
         example.settCid(tCid);
         example.setOrderByClause("create_time desc limit 0,1");
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
