@@ -54,7 +54,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
         log.info("匹配上ShuHeCustomerCallRecordToPhoneSale规则，获取的拨打记录数据id为{}",dto.getId());
-        Date day = new Date();
+        Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
