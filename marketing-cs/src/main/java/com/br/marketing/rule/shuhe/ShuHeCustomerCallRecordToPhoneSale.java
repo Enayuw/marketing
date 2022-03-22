@@ -64,9 +64,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
             return null;
         }
+
+        Date dtoCreateTime = dto.getCreateTime();
+        Calendar c = Calendar.getInstance();
+        c.setTime(dtoCreateTime);
+        c.add(Calendar.HOUR_OF_DAY, 1);
+        String timeAddHour = DateUtils.format(c.getTime(), "yyyy-MM-dd HH:mm:ss");
         //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
         Integer tcid = (Math.abs(dto.getCid()));
-        MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(tcid.toString(), dto.getCaseNum());
+        MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnumInHour(tcid.toString(), dto.getCaseNum(),timeAddHour);
 
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
@@ -93,7 +99,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             ////b_marketing_transfer_sync_{cid} 的login_time
             dassSingleImportDataDTO.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime())?marketingTransferSyncUser.getLoginTime():"");
             if(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
-
                 JSONObject json = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 Date createTime = marketingTransferSyncUser.getCreateTime();
                 String time = new SimpleDateFormat("yyyy-MM-dd").format(createTime);
@@ -129,7 +134,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b","cushenwan");
+            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
         }
         return flag;
     }
