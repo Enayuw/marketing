@@ -138,9 +138,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
      * 查询db获取cusNum当天最早的数据
      */
     private boolean getDbTransferSyncUser(String custNum, String apiCode, String userType, long id
-            , String tCid
-            , Date createTime
-    ) {
+            , String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(
