@@ -499,6 +499,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
                     }
                 }
+                varObject.put("custNum",marketingHistory.getCusNum());
+                varObject.put("idCard",marketingHistory.getIdCard());
+                varObject.put("name",marketingHistory.getName());
+                varObject.put("batchNumber",marketingHistory.getBatchNumber());
                 varObject.put("taskId", marketingHistory.getTaskId());
                 varObject.put("userType", marketingHistory.getUserType());
                 varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));

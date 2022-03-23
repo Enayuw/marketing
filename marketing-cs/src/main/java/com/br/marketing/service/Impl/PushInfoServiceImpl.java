@@ -10,6 +10,7 @@ import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
+import com.br.marketing.vo.RulePushLogOfStatusVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,41 +40,36 @@ public class PushInfoServiceImpl implements PushInfoService {
         final char ch = ',';
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
-        list.stream().map(pushInfoListVO->{
-            //获取跑分批次号
-            StringBuilder batchNumbers = new StringBuilder();
+        List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
+        if(ids.size()>0) {
             CustomerInfoPushBatchExample example = new CustomerInfoPushBatchExample();
-            example.createCriteria().andMIdEqualTo(pushInfoListVO.getId()).andIsDelEqualTo(1);
+            example.createCriteria().andMIdIn(ids).andIsDelEqualTo(1);
             List<CustomerInfoPushBatch> batches = customerInfoPushBatchMapper.selectByExample(example);
-            for(CustomerInfoPushBatch s : batches){
-                batchNumbers.append(s.getmBatchNumber()).append(",");
-            }
-            // 得到最后一个字符的索引地址
-            int index = batchNumbers.length() - 1;
-            // 取到最后一个字符
-            char c = batchNumbers.charAt(index);
-            if (ch == c) {
-                // 删除最后一个字符
-                batchNumbers.deleteCharAt(index);
-            }
-            pushInfoListVO.setBatchNumbers(batchNumbers.toString());
 
-            //获取推送结果信息
-            List<Map> msgList = new ArrayList<>();
-            List<String> realStatus = customerInfoPushLogMapper.selectRealStatusByMid(pushInfoListVO.getId());
-            realStatus = realStatus.stream().distinct().collect(Collectors.toList());
-            for(String realStatu : realStatus){
-                if(realStatu!=null){
-                    Map msg = new HashMap();
-                    msg.put("code",realStatu);
-                    msg.put("message", ApiReturnEnum.getByCode(realStatu));
-                    msgList.add(msg);
+            HashMap<Long, String> batchNumberOfMid = batches.stream()
+                    .collect(Collectors.groupingBy(CustomerInfoPushBatch::getmId
+                            , HashMap::new
+                            , Collectors.mapping(CustomerInfoPushBatch::getmBatchNumber, Collectors.joining(","))));
+
+            List<RulePushLogOfStatusVO> rulePushLogOfStatusVOS = customerInfoPushLogMapper.selectRealStatusByMid(ids);
+            Map<Long, List<RulePushLogOfStatusVO>> realStatusOfMid = rulePushLogOfStatusVOS.stream()
+                    .collect(Collectors.groupingBy(RulePushLogOfStatusVO::getMId));
+
+            list.forEach(t -> {
+                t.setBatchNumbers(batchNumberOfMid.get(t.getId()));
+                List<RulePushLogOfStatusVO> rulePushLogOfStatusVOS1 = realStatusOfMid.get(t.getId());
+                List<Map> msgList = new ArrayList<>();
+                if(rulePushLogOfStatusVOS1!=null){
+                    rulePushLogOfStatusVOS1.forEach(k -> {
+                        Map msg = new HashMap();
+                        msg.put("code", k.getRealStatus());
+                        msg.put("message", ApiReturnEnum.getByCode(k.getRealStatus()));
+                        msgList.add(msg);
+                    });
                 }
-            }
-            pushInfoListVO.setReturnMessages(msgList);
-
-            return pushInfoListVO;
-        }).collect(Collectors.toList());
+                t.setReturnMessages(msgList);
+            });
+        }
         return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
     }
 

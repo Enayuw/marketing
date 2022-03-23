@@ -1,7 +1,9 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.vo.TaskInfoVO;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 
 public interface MarketingTaskExtendMapper extends MarketingTaskExtendMapperBase{
@@ -11,5 +13,5 @@ public interface MarketingTaskExtendMapper extends MarketingTaskExtendMapperBase
      * @param batchNumber
      * @return
      */
-    MarketingTaskExtend getProducts(@Param("batchNumber") String batchNumber);
+    List<TaskInfoVO> getProducts(@Param("batchNumbers") List<String> batchNumbers);
 }

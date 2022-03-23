@@ -31,13 +31,7 @@ public class TaskExtendController {
     @ApiImplicitParam(name = "ids", paramType = "query", dataType = "string")
     @GetMapping("/getProducts")
     public ApiResult<Map> getProducts(@RequestParam(required = true) String ids){
-        try {
-            Map map = marketingTaskExtendService.getProducts(ids);
-            return new ApiResult<Map>().success(map);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<Map>().fail(ServiceResultEnum.SUCCESS_1);
-        }
+            return new ApiResult<Map>().success(marketingTaskExtendService.getProducts(ids));
     }
 
 
