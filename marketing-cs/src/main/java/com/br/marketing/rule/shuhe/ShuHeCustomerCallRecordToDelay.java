@@ -27,7 +27,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO bo = (CallRecordBO) transmitFact;
-        log.info("匹配上ShuHeCustomerCallRecordToDelay规则，获取的拨打记录数据id为{}",bo.getId());
+        log.warn("符合推延迟队列规则，获取的拨打记录数据id为{}",bo.getId());
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(bo.getId());
         mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());

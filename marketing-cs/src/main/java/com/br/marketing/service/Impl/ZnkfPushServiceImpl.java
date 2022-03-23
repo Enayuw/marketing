@@ -141,14 +141,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if("促申完".equals(groupType)){
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
                     dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
-            log.warn("促申完有效期isPeriod=",isPeriod);
         }else if("促首借".equals(groupType)){
             //先返回false，需要加促首借的有效期
             return false;
         }
         if (!isPeriod) {
             //不在有效期内
-            log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            log.warn("{}场景,id={}不在有效期内",groupType,dto.getId());
             return false;
         }
         return true;
