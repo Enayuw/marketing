@@ -126,6 +126,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         phoneSaleExtendInfo.setStatus("b");
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setTaskId(dto.getTaskId().toString());
+        phoneSaleExtendInfo.setUserType(dto.getUserType());
 
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         realTimeUserDataDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);

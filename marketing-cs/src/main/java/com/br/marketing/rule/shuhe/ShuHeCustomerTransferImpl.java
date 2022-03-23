@@ -85,8 +85,9 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     final IUserType iUserType = shuHeContext.getIUserType();
                     final Date creatTime = shuHeContext.getCreatTime();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
-                    if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime, day)) {
+                    Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
+                    if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, transfer.getCreateTime()
+                            , creatTime)) {
                         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                         transferSyncUser.setId(transfer.getId());
                         transferSyncUser.settCid(transfer.gettCid());

@@ -115,8 +115,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 生成所对应的接口处理handler枚举及数据
          * map <具体的接口枚举,接口所需对应的参数类列表>
          */
-        for (AssembleData assembleData : assembleDataList) {
-            for (Object transmitFact : facts) {
+
+        for (Object transmitFact : facts) {
+            for (AssembleData assembleData : assembleDataList) {
                 try {
                     if (assembleData.isNeedAssemble(transmitFact,context)){
                         InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);

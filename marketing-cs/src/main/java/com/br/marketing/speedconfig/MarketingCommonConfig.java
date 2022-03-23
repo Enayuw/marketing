@@ -95,4 +95,9 @@ public class MarketingCommonConfig {
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
+    /**
+     * 消息队列过期时间
+     */
+    private String messageQueueExpireTime;
+
 }

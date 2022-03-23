@@ -171,7 +171,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         extend.put("is_usr_lst_app_sta_tim", valuableAndCurrentDay(caseShuheUser.getClcUsrLstAppStaTim()));
         extend.put("typeSign", "1");
         dataDTO.setPhone(caseShuheUser.getCell());
-        dataDTO.setLoginTime(transfer.getLoginTime());
+        dataDTO.setLoginTime(caseShuheUser.getClcUsrLstAppStaTim());
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setExtend(extend.toJSONString());

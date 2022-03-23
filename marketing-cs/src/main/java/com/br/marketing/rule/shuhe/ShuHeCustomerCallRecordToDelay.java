@@ -51,16 +51,14 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
                 log.warn("callrecord数据id为{}不符合推电销b规则",bo.getId());
                 return false;
             }
-            String key = "";
-            if(StringUtils.isNotEmpty(bo.getUserType()) && "促申完".equals(bo.getUserType())){
-                key = cusNumIsFirst.concat(":").concat("cushenwan").concat(":").concat(bo.getCaseNum());
-            }else if(StringUtils.isNotEmpty(bo.getUserType()) && "促首借".equals(bo.getUserType())){
-                key = cusNumIsFirst.concat(":").concat("cushoujie").concat(":").concat(bo.getCaseNum());
-            }
+            String key = cusNumIsFirst.concat(":").concat(bo.getUserType()).concat(":").concat(bo.getCaseNum());
             Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
             if(!isFirstToday){
                 log.warn("callrecord数据id为{}不符合usertype={},casenum={}首次传输",bo.getId(),bo.getUserType(),bo.getCaseNum());
                 return false;
+            }
+            if(bo.getDataSource()==0 && pushDXSatisfy && isFirstToday){
+                flag = true;
             }
         }
         return flag;

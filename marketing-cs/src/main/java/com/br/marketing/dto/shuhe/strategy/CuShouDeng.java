@@ -68,6 +68,16 @@ public class CuShouDeng extends IUserType {
      * 传输案件当月（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
      */
     @Override
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date tCreatTime, Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(tCreatTime, null, creatTime);
+    }
+
+    /**
+     * 单个自然月内
+     * 传输案件当月（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
     public String getBlackExpireDate(Date creatTime) {
         return this.calculateExpireDate(creatTime, 0);
     }

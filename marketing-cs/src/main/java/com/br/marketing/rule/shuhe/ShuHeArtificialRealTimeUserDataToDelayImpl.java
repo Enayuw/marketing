@@ -29,6 +29,9 @@ import java.util.List;
 
 /**
  * 符合人工的数据进入延迟
+ *
+ * @author Guo Zeqiang
+ * @dateTime 2022/3/18 14:45
  */
 @Service
 @Slf4j
@@ -73,8 +76,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
-                Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
-                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime, day);
+                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                        , transfer.getCreateTime(), creatTime);
                 bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
@@ -136,9 +139,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
      * 查询db获取cusNum当天最早的数据
      */
     private boolean getDbTransferSyncUser(String custNum, String apiCode, String userType, long id
-            , String tCid
-            , Date createTime
-    ) {
+            , String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(

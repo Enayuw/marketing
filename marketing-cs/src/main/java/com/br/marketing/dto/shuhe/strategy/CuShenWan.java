@@ -128,6 +128,16 @@ public class CuShenWan extends IUserType {
      * api接口上传包含上传日当天和结束日当天闭区间15天（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
      */
     @Override
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date tCreatTime, Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(tCreatTime, 14, creatTime);
+    }
+
+    /**
+     * T+15天
+     * api接口上传包含上传日当天和结束日当天闭区间15天（非24h滚动计算，日期精确到日期，时分秒补充23：59：59即可）
+     */
+    @Override
     public String getBlackExpireDate(Date creatTime) {
         return this.calculateExpireDate(creatTime, 14);
     }
