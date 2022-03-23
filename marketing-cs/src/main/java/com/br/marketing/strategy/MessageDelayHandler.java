@@ -6,7 +6,9 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -40,20 +42,23 @@ import java.util.List;
 @Service
 public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     //消息过期时间 1h
-    private static final String EXPIRE_TIME = "300000";
+    private static final String EXPIRE_TIME = "3600000";
 
     @Resource
     private RabbitMqProducter producer;
 
     @Override
     JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
-
-        //todo 将需要静置的数据，重新放置到延迟队列里
+        String expireTime = StringUtils.hasText(marketingCommonConfig.getMessageQueueExpireTime())
+                ?marketingCommonConfig.getMessageQueueExpireTime():EXPIRE_TIME;
 
         for (MqFact mqFact : mqFacts) {
             String message = JSON.toJSONString(mqFact);
-            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,EXPIRE_TIME);
+            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
         }
         return null;
     }
