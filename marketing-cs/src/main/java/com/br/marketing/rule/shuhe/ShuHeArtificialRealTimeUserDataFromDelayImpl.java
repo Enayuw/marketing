@@ -57,7 +57,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
-        log.warn("@2数禾转化推送人工电销:{}\n{}", realTimeUserDataDTO, context);
         return realTimeUserDataDTO;
     }
 
@@ -92,7 +91,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                         && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                         , "a", transfer.getUserType());
             }
-            log.warn("@1数禾转化推送人工电销剔除规则状态:{}\n{}", bool, context);
         }
         return bool;
     }
@@ -173,7 +171,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         extend.put("is_usr_lst_app_sta_tim", valuableAndCurrentDay(caseShuheUser.getClcUsrLstAppStaTim()));
         extend.put("typeSign", "1");
         dataDTO.setPhone(caseShuheUser.getCell());
-        dataDTO.setLoginTime(transfer.getLoginTime());
+        dataDTO.setLoginTime(caseShuheUser.getClcUsrLstAppStaTim());
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setExtend(extend.toJSONString());

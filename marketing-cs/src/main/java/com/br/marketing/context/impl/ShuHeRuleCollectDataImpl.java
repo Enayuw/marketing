@@ -13,12 +13,13 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -56,20 +57,16 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        Assert.notNull(transmitFacts, "转化数据不能为null");
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
             context.setRuleNecessaryData(shuHeRuleNecessaryData);
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFacts.get(0);
             // 获取上传表信息
-            Set<String> set = new HashSet<>(Arrays.asList(transfer.getCustNum()));
+            Set<String> set = new HashSet<>(Collections.singletonList(transfer.getCustNum()));
             List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
             Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
-                    Collectors.groupingBy(MarketingSyncUser::getCustNum
-                            , Collectors.collectingAndThen(
-                                    Collectors.reducing((v1, v2) ->
-                                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                    , Optional::get)));
+                    Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity(), (v1, v2) ->
+                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2));
             shuHeRuleNecessaryData.setCustomerMap(collect);
 
             // 生成后续使用数据上下文
@@ -97,6 +94,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
                 caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
                 caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
+                caseShuheUser.setUserType(transfer.getUserType());
                 shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
                 shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
             }
@@ -109,6 +107,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
     }
 
 
+    @EqualsAndHashCode(callSuper = true)
     @Data
     public static class ShuHeRuleNecessaryData extends RuleNecessaryData {
         /**

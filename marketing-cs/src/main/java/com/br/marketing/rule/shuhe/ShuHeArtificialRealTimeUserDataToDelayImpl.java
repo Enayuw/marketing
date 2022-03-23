@@ -29,6 +29,9 @@ import java.util.List;
 
 /**
  * 符合人工的数据进入延迟
+ *
+ * @author Guo Zeqiang
+ * @dateTime 2022/3/18 14:45
  */
 @Service
 @Slf4j
@@ -57,7 +60,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
-        log.warn("@@2符合人工的数据进入延迟:{}\n{}", mqFactNew, context);
         return mqFactNew;
     }
 
@@ -78,7 +80,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
-            log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
         }
         return bool;
     }
@@ -137,9 +138,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
      * 查询db获取cusNum当天最早的数据
      */
     private boolean getDbTransferSyncUser(String custNum, String apiCode, String userType, long id
-            , String tCid
-            , Date createTime
-    ) {
+            , String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(
