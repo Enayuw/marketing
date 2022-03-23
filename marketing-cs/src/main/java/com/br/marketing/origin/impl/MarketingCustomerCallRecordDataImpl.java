@@ -44,7 +44,7 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
 
         Map map = (Map) JSONObject.parse(bo.getDetail().getUserProperties());
         if(StringUtils.isNotEmpty(map) && StringUtils.isNotEmpty(map.get("groupType"))){
-            String groupType = map.get("groupType").toString();
+            String groupType = map.get("groupType").toString().trim();
             bo.setUserType(groupType);
         }
         if(mqFact.getIsDelay()!=null && mqFact.getIsDelay()==1){
