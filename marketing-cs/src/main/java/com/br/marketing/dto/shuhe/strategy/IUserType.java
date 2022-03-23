@@ -22,9 +22,9 @@ import java.util.Map;
  * @dateTime 2022/2/10 16:54
  */
 public abstract class IUserType {
-    private String userType;
-    private final String Y = "Y";
-    public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    protected String userType;
+    protected final String Y = "Y";
+    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     public IUserType setUserType(String userType) {
