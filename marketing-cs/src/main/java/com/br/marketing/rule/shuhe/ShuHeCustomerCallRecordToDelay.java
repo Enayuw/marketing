@@ -44,7 +44,11 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
             CallRecordBO bo = (CallRecordBO) transmitFact;
             //先符合推电销的规则后,再去判断是否是当天首次传输
             Boolean pushDXSatisfy = znkfPushService.isSatisfyPushDX(bo);
-            if(bo.getDataSource()!=0 || !pushDXSatisfy){
+            if(bo.getDataSource()!=0){
+                return false;
+            }
+            if(!pushDXSatisfy){
+                log.warn("callrecord数据id为{}不符合推电销b规则",bo.getId());
                 return false;
             }
             String key = "";
@@ -55,6 +59,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
             }
             Boolean isFirstToday = znkfPushService.cusNumIsFirstToday(key);
             if(!isFirstToday){
+                log.warn("callrecord数据id为{}不符合usertype={},casenum={}首次传输",bo.getId(),bo.getUserType(),bo.getCaseNum());
                 return false;
             }
         }
