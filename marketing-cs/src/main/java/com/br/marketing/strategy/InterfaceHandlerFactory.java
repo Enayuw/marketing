@@ -157,6 +157,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         String rulePrefix = customerRuleMapping.get(context.getApiCode());
         if (StringUtils.isEmpty(rulePrefix)){
             log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
+            return new HashMap<>();
         }
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
