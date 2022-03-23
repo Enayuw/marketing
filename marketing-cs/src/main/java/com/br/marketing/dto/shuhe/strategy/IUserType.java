@@ -104,7 +104,7 @@ public abstract class IUserType {
     public final boolean isEmpty(CaseShuheUser caseShuheUser) {
         return (StringUtils.isEmpty(caseShuheUser.getIsBlack())
                 && StringUtils.isEmpty(caseShuheUser.getIsTurn())
-                && (StringUtils.isEmpty(caseShuheUser.getUserType()) || StringUtils.isEmpty(this.userType))
+                && StringUtils.isEmpty(caseShuheUser.getUserType())
                 && StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())
                 && StringUtils.isEmpty(caseShuheUser.getClcUsrFstLogTimAll())
                 && StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim()));
