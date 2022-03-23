@@ -74,9 +74,14 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
-                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
-                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                        && cacheExists(transfer));
+                try {
+                    Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
+                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime, day);
+                    bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
+                            && cacheExists(transfer));
+                } catch (IllegalAccessException e) {
+                    log.error(e.getMessage(), e);
+                }
             }
             log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
         }
