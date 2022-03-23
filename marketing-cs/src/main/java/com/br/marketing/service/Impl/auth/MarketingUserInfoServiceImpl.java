@@ -7,7 +7,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.AuthConstants;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.MarketingDirtyUserExample;
 import com.br.marketing.entity.auth.*;
+import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingUserInfoService;
@@ -35,7 +37,7 @@ import java.util.*;
 public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
     @Resource
-    RedisChgService redisChgService;
+    RedisAuthService redisAuthService;
 
     @Resource
     private MarketingUserInfoMapper marketingUserInfoMapper;
@@ -43,9 +45,12 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     @Resource
     private MarketingUserInfoRoleMapper marketingUserInfoRoleMapper;
 
+    @Resource
+    private MarketingRoleMapper marketingRoleMapper;
+
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
-        log.warn("入参:{}",reqObj.toString());
+        log.warn("入参:{}", reqObj.toString());
         if (checkParam(reqObj)) {
             if (kapError(reqObj)) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
@@ -64,7 +69,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
             request.getSession().setAttribute(AuthConstants.SESSION_USER, marketingUserDetail);
-            redisChgService.set(reqObj.getSessionId(), JSON.toJSONString(marketingUserDetail));
+            redisAuthService.set(reqObj.getSessionId(), JSON.toJSONString(marketingUserDetail), "app_session_prefix");
             //过期时间
             return new ApiResult<MarketingUserDetail>().success(marketingUserDetail);
         }
@@ -78,7 +83,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         //清除session的所有信息
         request.getSession().invalidate();
         if (StringUtils.isNotBlank(sessionId)) {
-            redisChgService.del(sessionId);
+            redisAuthService.del(sessionId);
         }
         return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS);
     }
@@ -110,7 +115,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     public ApiResult<MarketingUserDetail> auth(HttpServletRequest request) {
         String sessionId = request.getHeader("sessionId");
         if (StringUtils.isNotBlank(sessionId)) {
-            String userMsg = redisChgService.get(sessionId);
+            String userMsg = redisAuthService.get(sessionId, "app_session_prefix");
             if (StringUtils.isNotBlank(userMsg)) {
                 return new ApiResult<MarketingUserDetail>().success(JSON.parseObject(userMsg, MarketingUserDetail.class));
             } else {
@@ -123,13 +128,11 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     @Override
     public PageResultReturn selectList(String key, Integer pageNo, Integer pageSize) {
         PageHelper.startPage(pageNo, pageSize);
-        MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
+        Map<String, Object> marketingUserInfo = new HashMap<>();
         if (StringUtils.isNotBlank(key)) {
-            marketingUserInfoExample.createCriteria().andUserNameLike(key);
+            marketingUserInfo.put("key", "%" + key + "%");
         }
-        marketingUserInfoExample.createCriteria().andStatusEqualTo(1);
-        marketingUserInfoExample.setOrderByClause("create_time desc");
-        List<MarketingUserInfo> marketingUserInfos = marketingUserInfoMapper.selectByExample(marketingUserInfoExample);
+        List<MarketingUserInfo> marketingUserInfos = marketingUserInfoMapper.selectByExampleList(marketingUserInfo);
         return PageResultReturn.setPageResult(marketingUserInfos, pageNo, pageSize);
     }
 
@@ -215,19 +218,45 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     @Override
     public ApiResult<Boolean> updateMarketingUserPassword(MarketingUserInfo marketingUserInfo) {
         marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
-        return  new ApiResult<Boolean>().success();
+        return new ApiResult<Boolean>().success();
     }
 
     @Override
     public MarketingUserInfo getById(Integer id) {
-        return marketingUserInfoMapper.selectByPrimaryKey(id);
+        MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectByPrimaryKey(id);
+
+        Set<Integer> set = marketingUserInfoRoleMapper.getRoleIds(marketingUserInfo.getId());
+        MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
+        marketingRoleExample.createCriteria().andStatusEqualTo(1);
+        List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
+
+        List<Map<String, Object>> roles = new ArrayList<>();
+        for (int i = 0; i < marketingRoles.size(); i++) {
+            Integer roleId = marketingRoles.get(i).getId();
+            String name = marketingRoles.get(i).getName();
+            Map<String, Object> roleMap = new HashMap<>();
+            roleMap.put("name", name);
+            roleMap.put("id", roleId);
+            if (set.contains(roleId)) {
+                roleMap.put("select", Boolean.TRUE);
+            } else {
+                roleMap.put("select", Boolean.FALSE);
+            }
+            roles.add(roleMap);
+        }
+        marketingUserInfo.setRoles(roles);
+        return marketingUserInfo;
     }
 
     private ApiResult<Boolean> updateUserRole(MarketingUserInfo marketingUserInfo) {
         if (StringUtils.isNotBlank(marketingUserInfo.getRoleIds())) {
             String[] roleId = marketingUserInfo.getRoleIds().split(",");
             //删除原角色
-            marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
+            MarketingUserInfoRoleExample marketingUserInfoRoleExample = new MarketingUserInfoRoleExample();
+            MarketingUserInfoRole marketingUserInfoRole = new MarketingUserInfoRole();
+            marketingUserInfoRole.setStatus(0);
+            marketingUserInfoRoleExample.createCriteria().andUserIdEqualTo(marketingUserInfo.getId());
+            marketingUserInfoRoleMapper.updateByExampleSelective(marketingUserInfoRole, marketingUserInfoRoleExample);
             //创建新角色
             for (String id : roleId) {
                 MarketingUserInfoRole ucUserRole = new MarketingUserInfoRole();
@@ -258,9 +287,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      */
     private boolean kapError(LoginReqObj reqObj) {
         //得到redis中框架生成的验证码
-        String captchaExpected = redisChgService.get(reqObj.getSessionId());
-        log.warn("缓存验证码：{}",captchaExpected);
-        redisChgService.del(reqObj.getSessionId());
+        String captchaExpected = redisAuthService.get(reqObj.getSessionId(), "app_captcha_prefix");
+        log.warn("缓存验证码：{}", captchaExpected);
+        redisAuthService.del(reqObj.getSessionId(), "app_captcha_prefix");
         //校验验证码是否正确
         return !reqObj.getCaptcha().equals(captchaExpected);
     }

@@ -10,6 +10,7 @@ import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.entity.auth.PasswordReq;
+import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.auth.MarketingRoleService;
 import com.br.marketing.service.auth.MarketingUserInfoService;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +72,7 @@ public class MarketingUserInfoController {
     @GetMapping("/save")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> insert(HttpServletRequest request, MarketingUserInfo user) {
-        MarketingUserDetail userDetail = (MarketingUserDetail) request.getSession().getAttribute("userDetail");
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         return marketingUserInfoService.save(userDetail, user);
     }
 
@@ -102,7 +103,7 @@ public class MarketingUserInfoController {
     @GetMapping("/update")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> update(HttpServletRequest request, MarketingUserInfo user) {
-        MarketingUserDetail userDetail = (MarketingUserDetail) request.getSession().getAttribute("userDetail");
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         return marketingUserInfoService.updateMarketingUserInfo(userDetail, user);
     }
 
@@ -123,7 +124,7 @@ public class MarketingUserInfoController {
     @PostMapping("/ajaxCheckOldPwd")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> ajaxCheckOldPwd(HttpServletRequest request, PasswordReq passwordReq) {
-        MarketingUserDetail userDetail = (MarketingUserDetail) request.getSession().getAttribute("userDetail");
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (StringUtils.isNotBlank(passwordReq.getOldPassword())) {
             MarketingUserInfo marketingUserInfos = marketingUserInfoService.selectById(userDetail);
             if (!passwordReq.getOldPassword().equals(marketingUserInfos.getPassword())) {
@@ -141,7 +142,7 @@ public class MarketingUserInfoController {
     @PostMapping("/updatePassword")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> updatePassword(HttpServletRequest request, PasswordReq passwordReq) {
-        MarketingUserDetail userDetail = (MarketingUserDetail) request.getSession().getAttribute("userDetail");
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (StringUtils.isNotBlank(passwordReq.getNewPassword()) && StringUtils.isNotBlank(passwordReq.getOldPassword())) {
             MarketingUserInfo marketingUserInfo = marketingUserInfoService.selectById(userDetail);
             if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword())) {

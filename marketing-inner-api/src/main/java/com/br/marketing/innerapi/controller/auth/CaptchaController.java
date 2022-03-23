@@ -31,28 +31,19 @@ import java.util.Map;
 @Api(value = "验证码", tags = "captcha")
 public class CaptchaController {
     @Resource
-    RedisChgService redisChgService;
+    RedisAuthService redisAuthService;
 
     @Resource
     RestTemplate restTemplate;
     private static String url = "http://k8s.brapp.com/compass-api/api/strategy-distribution/strategy-customizer/distributeList?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
-    private static String url1="http://k8s.brapp.com/compass-api/api/strategy-distribution/inside/sendEmailTest";
+    private static String url1="http://STRATEGY-DISTRIBUTION/inside/sendEmailTest";
 
     @GetMapping("/authTest")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ApiResult<JSONObject> authTest(HttpSession session) {
-        String id = session.getId();
-        Map<String, Object> urlVariables = new HashMap<>();
-        urlVariables.put("apiCode", "7492629");
-        urlVariables.put("strategyCategory", "7");
-        urlVariables.put("distributeType", "3");
-        urlVariables.put("strategyType", "8");
-
-        //restTemplate.getForObject("",);
-        String result = restTemplate.getForObject(url, String.class, urlVariables);
-
-        return new ApiResult<JSONObject>().success(id);
+    public String authTest(HttpSession session) {
+        String result = restTemplate.getForObject(url1, String.class);
+        return  result;
     }
 
     /**
@@ -68,7 +59,7 @@ public class CaptchaController {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sessionId", session.getId());
         jsonObject.put("captcha", image);
-        redisChgService.setnx(session.getId(), code.toLowerCase(), 3 * 60);
+        redisAuthService.set(session.getId(), code.toLowerCase(), 3 * 60,"app_captcha_prefix");
         //过期时间3分钟
         return new ApiResult<JSONObject>().success(jsonObject);
     }

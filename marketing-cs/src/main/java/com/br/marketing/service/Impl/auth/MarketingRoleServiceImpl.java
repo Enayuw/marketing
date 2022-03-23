@@ -14,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +67,6 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
             updateRoleResource(role);
         }
     }
-
 
 
     @Override
@@ -124,7 +125,8 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
                 marketingRoleMapper.updateByPrimaryKeySelective(role);
                 //更新用户-角色表之间的关联关系
                 deleteUserRoleByRid(role.getId())
-;            }
+                ;
+            }
         }
         return null;
     }
@@ -141,33 +143,31 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
                                                    String key, Integer current, Integer size) {
 
         MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
-        marketingRoleExample.createCriteria().andStatusEqualTo(1);
+        MarketingRoleExample.Criteria criteria = marketingRoleExample.createCriteria().andStatusEqualTo(1);
         if (StringUtils.isNotBlank(key)) {
-            marketingRoleExample.createCriteria().andNameLike(key);
+            criteria.andNameLike(key);
+        }
+        try {
+            if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date createStartDate = simpleDateFormat.parse(createStart);
+                Date createEndDate = simpleDateFormat.parse(createEnd);
+                criteria.andCreateTimeBetween(createStartDate, createEndDate);
+            }
+            if (StringUtils.isNotBlank(updateStart) && StringUtils.isNotBlank(updateEnd)) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date updateStartDate = simpleDateFormat.parse(updateStart);
+                Date updateEndDate = simpleDateFormat.parse(updateEnd);
+                criteria.andCreateTimeBetween(updateStartDate, updateEndDate);
+            }
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
         marketingRoleExample.setOrderByClause("create_time desc");
         PageHelper.startPage(current, size);
         List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
         return PageResultReturn.setPageResult(marketingRoles, current, size);
-        //if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
-        // marketingRoleExample.createCriteria().andCreateTimeBetween(createStart ,createStart);
-        //}
-        //
-        //EntityWrapper<MarketingRole> wrapper = new EntityWrapper<>();
-        //wrapper.eq("isDelete", 0).orderBy("createdTime", false)
-        //        .orderBy("modifiedTime", false);
-        //if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
-        //    wrapper.andNew("createdTime between {0} and {1}", createStart + " 00:00:00", createEnd + " 23:59:59");
-        //}
-        //if (StringUtils.isNotBlank(updateStart) && StringUtils.isNotBlank(updateEnd)) {
-        //    wrapper.andNew("modifiedTime between {0} and {1}", updateStart + " 00:00:00", updateEnd + " 23:59:59");
-        //}
-        ////模糊查询条件拼接
-        //if (StringUtils.isNotBlank(key)) {
-        //    key = "%" + key + "%";
-        //    String sql = "name like {0}";
-        //    wrapper.andNew(sql, key);
-        //}
+
     }
 
 

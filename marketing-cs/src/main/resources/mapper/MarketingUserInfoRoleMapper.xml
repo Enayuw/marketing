@@ -195,6 +195,10 @@
           and rr.status = 1
           and r.status = 1;
     </select>
+    <select id="getRoleIds" resultType="java.lang.Integer">
+        select  role_id as roleId from b_marketing_userinfo_role where user_id=#{id} and status=1;
+
+    </select>
     <update id="updateByExampleSelective" parameterType="map">
         update b_marketing_userinfo_role
         <set>

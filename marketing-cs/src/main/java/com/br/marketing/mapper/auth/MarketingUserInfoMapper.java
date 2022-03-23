@@ -5,6 +5,7 @@ import com.br.marketing.entity.auth.MarketingUserInfoExample;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MarketingUserInfoMapper {
     int countByExample(MarketingUserInfoExample example);
@@ -30,4 +31,6 @@ public interface MarketingUserInfoMapper {
     int updateByPrimaryKey(MarketingUserInfo record);
 
     MarketingUserInfo selectUserInfo(MarketingUserInfoExample marketingUserInfoExample);
+
+    List<MarketingUserInfo> selectByExampleList(Map<String,Object> marketingUserInfoExample);
 }
