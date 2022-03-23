@@ -50,18 +50,20 @@ public class HaiErRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        HaiErRuleNecessaryData haiErRuleNecessaryData = new HaiErRuleNecessaryData();
-        List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
-        Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
-                Collectors.groupingBy(MarketingSyncUser::getCustNum
-                        , Collectors.collectingAndThen(
-                                Collectors.reducing((v1, v2) ->
-                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                , Optional::get)));
-        haiErRuleNecessaryData.setCustomerMap(collect);
-        context.setRuleNecessaryData(haiErRuleNecessaryData);
+        if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
+            HaiErRuleNecessaryData haiErRuleNecessaryData = new HaiErRuleNecessaryData();
+            List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
+            Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
+            Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
+                    Collectors.groupingBy(MarketingSyncUser::getCustNum
+                            , Collectors.collectingAndThen(
+                                    Collectors.reducing((v1, v2) ->
+                                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                    , Optional::get)));
+            haiErRuleNecessaryData.setCustomerMap(collect);
+            context.setRuleNecessaryData(haiErRuleNecessaryData);
+        }
     }
 
     @Override

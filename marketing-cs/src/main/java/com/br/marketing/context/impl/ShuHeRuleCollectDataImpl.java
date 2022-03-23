@@ -57,47 +57,49 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         Assert.notNull(transmitFacts, "转化数据不能为null");
-        ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
-        context.setRuleNecessaryData(shuHeRuleNecessaryData);
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFacts.get(0);
-        // 获取上传表信息
-        Set<String> set = new HashSet<>(Arrays.asList(transfer.getCustNum()));
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
-        Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
-                Collectors.groupingBy(MarketingSyncUser::getCustNum
-                        , Collectors.collectingAndThen(
-                                Collectors.reducing((v1, v2) ->
-                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                , Optional::get)));
-        shuHeRuleNecessaryData.setCustomerMap(collect);
+        if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
+            ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
+            context.setRuleNecessaryData(shuHeRuleNecessaryData);
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFacts.get(0);
+            // 获取上传表信息
+            Set<String> set = new HashSet<>(Arrays.asList(transfer.getCustNum()));
+            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
+            Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
+                    Collectors.groupingBy(MarketingSyncUser::getCustNum
+                            , Collectors.collectingAndThen(
+                                    Collectors.reducing((v1, v2) ->
+                                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                    , Optional::get)));
+            shuHeRuleNecessaryData.setCustomerMap(collect);
 
-        // 生成后续使用数据上下文
-        Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
-                , transfer.getCustNum(), transfer.getUserType());
-        shuHeRuleNecessaryData.setCreatTime(creatTime);
-        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
-        shuHeRuleNecessaryData.setIUserType(iUserType);
-        shuHeRuleNecessaryData.setContinueJudgeRule(true);
-        String reserveField1 = transfer.getReserveField1();
-        if (StringUtils.isNotEmpty(reserveField1)) {
-            JSONObject object = JSONObject.parseObject(reserveField1);
-            CaseShuheUser caseShuheUser = new CaseShuheUser();
-            caseShuheUser.setIsTurn(object.getString("is_turn"));
-            caseShuheUser.setIsBlack(object.getString("is_black"));
-            caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
-            caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
-            caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
-            caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
-            caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
-            caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
-            caseShuheUser.setCell(object.getString("cell"));
-            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
-            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
-            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
-            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
-            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
-            shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
-            shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
+            // 生成后续使用数据上下文
+            Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
+                    , transfer.getCustNum(), transfer.getUserType());
+            shuHeRuleNecessaryData.setCreatTime(creatTime);
+            IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
+            shuHeRuleNecessaryData.setIUserType(iUserType);
+            shuHeRuleNecessaryData.setContinueJudgeRule(true);
+            String reserveField1 = transfer.getReserveField1();
+            if (StringUtils.isNotEmpty(reserveField1)) {
+                JSONObject object = JSONObject.parseObject(reserveField1);
+                CaseShuheUser caseShuheUser = new CaseShuheUser();
+                caseShuheUser.setIsTurn(object.getString("is_turn"));
+                caseShuheUser.setIsBlack(object.getString("is_black"));
+                caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
+                caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
+                caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
+                caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
+                caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
+                caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
+                caseShuheUser.setCell(object.getString("cell"));
+                caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
+                caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
+                caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
+                caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
+                caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
+                shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
+                shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
+            }
         }
     }
 
