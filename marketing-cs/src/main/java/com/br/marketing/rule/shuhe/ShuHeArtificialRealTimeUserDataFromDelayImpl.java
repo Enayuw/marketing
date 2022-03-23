@@ -178,6 +178,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setExtend(extend.toJSONString());
+        dataDTO.setUid(transfer.getCustNum());
         return dataDTO;
     }
 
