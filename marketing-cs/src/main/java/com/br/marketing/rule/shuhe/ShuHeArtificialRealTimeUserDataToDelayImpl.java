@@ -3,7 +3,7 @@ package com.br.marketing.rule.shuhe;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.dto.shuhe.strategy.CuShenWan;
+import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -11,11 +11,9 @@ import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
-import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,8 +33,6 @@ import java.util.List;
 @Service
 @Slf4j
 public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<MqFact> {
-    @Resource
-    private IPushShuheTransferDataService iPushShuheTransferDataService;
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
@@ -62,7 +58,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
         log.warn("@@2符合人工的数据进入延迟:{}\n{}", mqFactNew, context);
-        iPushShuheTransferDataService.removeHandlerContext();
         return mqFactNew;
     }
 
@@ -71,10 +66,10 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-            iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-            final IUserType iUserType = shuHeContext.getiUserType();
-            final Integer isDelay = shuHeContext.getMqFact().getIsDelay();
+            ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                    (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
+            final IUserType iUserType = shuHeContext.getIUserType();
+            final Integer isDelay = context.getMqFact().getIsDelay();
             boolean typeBool = (isDelay == null || isDelay != 1);
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
@@ -84,9 +79,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                         && cacheExists(transfer));
             }
             log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
-            if (!bool) {
-                iPushShuheTransferDataService.removeHandlerContext();
-            }
         }
         return bool;
     }

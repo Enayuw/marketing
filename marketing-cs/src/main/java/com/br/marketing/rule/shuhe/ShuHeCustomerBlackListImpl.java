@@ -3,13 +3,12 @@ package com.br.marketing.rule.shuhe;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
-import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,17 +26,14 @@ import java.util.Date;
 @Slf4j
 public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> {
     @Resource
-    private IPushShuheTransferDataService iPushShuheTransferDataService;
-
-    @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-        iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
-        final IUserType iUserType = shuHeContext.getiUserType();
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
+        final IUserType iUserType = shuHeContext.getIUserType();
         final Date creatTime = shuHeContext.getCreatTime();
         final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
@@ -54,11 +50,10 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         if (transmitFact instanceof MarketingTransferSyncUser) {
             Integer isDelay = context.getMqFact().getIsDelay();
             if (isDelay == null || isDelay != 1) {
-                MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                        (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    final IUserType iUserType = shuHeContext.getiUserType();
+                    final IUserType iUserType = shuHeContext.getIUserType();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                     boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
                     if (b && iUserType.isBlack(caseShuheUser)) {

@@ -7,15 +7,14 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +44,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Resource
     private RedisChgService redisChgService;
     @Resource
-    private IPushShuheTransferDataService iPushShuheTransferDataService;
-    @Resource
     private PushDataService pushDataService;
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -55,13 +52,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-        iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
         realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
         log.warn("@2数禾转化推送人工电销:{}\n{}", realTimeUserDataDTO, context);
-        iPushShuheTransferDataService.removeHandlerContext();
         return realTimeUserDataDTO;
     }
 
@@ -84,22 +80,19 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 String isBlack = object.getString("is_black");
                 String applyLoanTime = object.getString("applyLoanTime");
                 String applyTime = dbTransferSyncUser.getApplyTime();
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                        (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 caseShuheUser.setIsTurn(isTurn);
                 caseShuheUser.setIsBlack(isBlack);
                 caseShuheUser.setClcUsrIsoAtoTim(applyTime);
                 caseShuheUser.setClcUsrFrtFqOrdTim(applyLoanTime);
-                IUserType iUserType = shuHeContext.getiUserType();
+                IUserType iUserType = shuHeContext.getIUserType();
                 bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
                         && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                         , "a", transfer.getUserType());
             }
             log.warn("@1数禾转化推送人工电销剔除规则状态:{}\n{}", bool, context);
-            if (!bool) {
-                iPushShuheTransferDataService.removeHandlerContext();
-            }
         }
         return bool;
     }
@@ -140,9 +133,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      * 封装电销接口数据
      */
     private DassSingleImportAdapDTO getDassSingleImportAdap(MarketingTransferSyncUser transfer
-            , ShuHeProcessHandlerContext shuHeContext) {
+            , ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        IUserType iUserType = shuHeContext.getiUserType();
+        IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportAdapDTO adapDTO = new DassSingleImportAdapDTO();
         adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, transfer, iUserType));
         adapDTO.setTransferInfoId(transfer.getId());
@@ -153,7 +146,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      * 封装电销扩展数据
      */
     private PhoneSaleExtendInfo getPhoneSaleExtendShuhe(MarketingTransferSyncUser transfer
-            , ShuHeProcessHandlerContext shuHeContext) {
+            , ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         LocalDateTime localDateTime = transfer.getCreateTime().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDateTime();

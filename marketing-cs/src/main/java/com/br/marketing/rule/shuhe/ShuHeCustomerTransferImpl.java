@@ -6,14 +6,13 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.ShuHeProcessHandlerContext;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
-import com.br.marketing.service.IPushShuheTransferDataService;
 import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -39,8 +38,6 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
-    private IPushShuheTransferDataService iPushShuheTransferDataService;
-    @Resource
     private ITransferSyncUserService iTransferSyncUserService;
 
     @Override
@@ -55,7 +52,9 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                 ? NO_HAS_TRANSFER : (NO_HAS_TRANSFER.equals(transfer.getIfTransform())
                 ? HAS_TRANS_FER : transfer.getIfTransform()));
         conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        Map<String, MarketingSyncUser> map = context.getCustomerMap();
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeRuleNecessaryData =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, MarketingSyncUser> map = shuHeRuleNecessaryData.getCustomerMap();
         if (map != null && map.containsKey(transfer.getCustNum())) {
             MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
             conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
@@ -78,10 +77,10 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
             Integer isDelay = context.getMqFact().getIsDelay();
             if (isDelay == null || isDelay != 1) {
                 MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-                ShuHeProcessHandlerContext shuHeContext = new ShuHeProcessHandlerContext(context);
-                iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
+                ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                        (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    final IUserType iUserType = shuHeContext.getiUserType();
+                    final IUserType iUserType = shuHeContext.getIUserType();
                     final Date creatTime = shuHeContext.getCreatTime();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                     if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime)) {

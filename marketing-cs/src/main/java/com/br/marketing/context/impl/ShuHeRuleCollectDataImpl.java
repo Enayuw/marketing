@@ -103,7 +103,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
 
     @Data
-    public class ShuHeRuleNecessaryData extends RuleNecessaryData {
+    public static class ShuHeRuleNecessaryData extends RuleNecessaryData {
         /**
          * 场景策略
          */
