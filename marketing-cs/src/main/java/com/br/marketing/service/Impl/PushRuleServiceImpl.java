@@ -100,31 +100,31 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
-    @Autowired
+    @Resource
     MarketingTaskMapper marketingTaskMapper;
 
-    @Autowired
+    @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
 
-    @Autowired
+    @Resource
     CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
 
-    @Autowired
+    @Resource
     CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
-    @Autowired
+    @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
 
-    @Autowired
+    @Resource
     MarketingUserMapper marketingUserMapper;
 
-    @Autowired
+    @Resource
     MarketingSyncUserMapper marketingSyncUserMapper;
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
-    @Autowired
+    @Resource
     PhoneSaleMapper phoneSaleMapper;
 
     @Autowired
@@ -243,16 +243,16 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     MarketingHistoryEsServiceImpl marketingHistoryEsService;
 
-    @Autowired
+    @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
 
-    @Autowired
+    @Resource
     MarketingSyncErrorInfoMapper marketingSyncErrorInfoMapper;
 
-    @Autowired
+    @Resource
     MarketingTransferInfoMapper marketingTransferInfoMapper;
 
-    @Autowired
+    @Resource
     MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Autowired
@@ -261,7 +261,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     StraHisFileMapper straHisFileMapper;
 
     @Autowired
@@ -284,22 +284,22 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     SoleStrategyService soleStrategyService;
 
-    @Autowired
+    @Resource
     TaskTimeMapper taskTimeMapper;
 
-    @Autowired
+    @Resource
     PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
 
-    @Autowired
+    @Resource
     PhoneBlackMapper phoneBlackMapper;
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
 
-    @Autowired
+    @Resource
     HaluoCallRelationMapper haluoCallRelationMapper;
 
     static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
@@ -703,7 +703,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
-    @Autowired
+    @Resource
     RetryMainLogMapper retryMainLogMapper;
 
     /**
@@ -1115,7 +1115,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (haluoApiCodes.contains(transferInfo.getApiCode())) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
         }
-        if(universalProcessApiCode.contains(transferInfo.getApiCode())){
+        if (universalProcessApiCode.contains(transferInfo.getApiCode())) {
             producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, id.toString());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
@@ -1123,7 +1123,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
     private String dateTimeComplet(String data) {
-        if(data == null){
+        if (data == null) {
             return null;
         }
         String res = "";
@@ -2312,14 +2312,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                     && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
                     && !"1".equals(marketingTransferSyncUser.getIfApply());
 
-            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
-                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-                    && "1".equals(marketingTransferSyncUser.getIfApply())
-                    && "0".equals(marketingTransferSyncUser.getApplyResult());
+//            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
+//                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
+//                    && "1".equals(marketingTransferSyncUser.getIfApply())
+//                    && "0".equals(marketingTransferSyncUser.getApplyResult());
 
             Double unlentAmount = Double.valueOf(StringUtils.isNotBlank(marketingTransferSyncUser.getUnlentAmount()) ? marketingTransferSyncUser.getUnlentAmount() : "0");
             boolean d = unlentAmount > 0;
-            if (!a && !b && !c && !d) {
+//            if (!a && !b && !c && !d) {
+//                continue;
+//            }
+            if (!a && !b && !d) {
                 continue;
             }
             MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, marketingTransferSyncUser.getCustNum());
@@ -2354,7 +2357,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if (dLen > 0) {
                     continue;
                 }
-                if (dLen == 0 && abcLen > 0 && (a || b || c) && !d) {
+//                if (dLen == 0 && abcLen > 0 && (a || b || c) && !d) {
+//                    continue;
+//                }
+                if (dLen == 0 && abcLen > 0 && (a || b) && !d) {
                     continue;
                 }
             }
@@ -2364,9 +2370,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 status = "d";
             } else if (b) {
                 status = "b";
-            } else if (c) {
-                status = "c";
-            } else if (a) {
+            }
+//            else if (c) {
+//                status = "c";
+//            }
+            else if (a) {
                 status = "a";
             }
             Boolean lock = Boolean.FALSE;
