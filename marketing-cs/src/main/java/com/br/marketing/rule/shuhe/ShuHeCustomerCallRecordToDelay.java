@@ -62,6 +62,9 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
                 log.warn("callrecord数据id为{}不符合usertype={},casenum={}首次传输",bo.getId(),bo.getUserType(),bo.getCaseNum());
                 return false;
             }
+            if(bo.getDataSource()==0 && pushDXSatisfy && isFirstToday){
+                flag = true;
+            }
         }
         return flag;
     }
