@@ -133,7 +133,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
-        if(!"促申完".equals(groupType) || !"促首借".equals(groupType)){
+        if(!"促申完".equals(groupType) && !"促首借".equals(groupType)){
             log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
@@ -147,7 +147,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         if (!isPeriod) {
             //不在有效期内
-            log.info("taskId={},caseNum={},sessionId={}的数据不在情况b的有效期内！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+            log.warn("{}场景,id={}不在有效期内",groupType,dto.getId());
             return false;
         }
         return true;

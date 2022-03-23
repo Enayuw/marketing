@@ -97,6 +97,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
                 caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
                 caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
+                caseShuheUser.setUserType(transfer.getUserType());
                 shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
                 shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
             }
