@@ -7,6 +7,7 @@ import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -27,6 +28,8 @@ import java.util.Date;
 public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> {
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
+    @Resource
+    private DataLoadingHandlerService handlerService;
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -44,7 +47,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             Integer isDelay = context.getMqFact().getIsDelay();
@@ -54,7 +57,9 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
                 if (shuHeContext.isContinueJudgeRule()) {
                     final IUserType iUserType = shuHeContext.getIUserType();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
+                    final Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
+                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                            , shuHeContext.getCreatTime(), day);
                     if (b && iUserType.isBlack(caseShuheUser)) {
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;

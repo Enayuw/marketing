@@ -61,7 +61,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -73,14 +73,10 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
-                try {
-                    Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
-                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime, day);
-                    bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                            && cacheExists(transfer));
-                } catch (IllegalAccessException e) {
-                    log.error(e.getMessage(), e);
-                }
+                Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
+                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime, day);
+                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
+                        && cacheExists(transfer));
             }
         }
         return bool;
