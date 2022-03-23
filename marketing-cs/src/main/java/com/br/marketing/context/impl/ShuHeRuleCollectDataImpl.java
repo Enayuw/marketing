@@ -69,7 +69,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                                 Collectors.reducing((v1, v2) ->
                                         v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                 , Optional::get)));
-        context.setCustomerMap(collect);
+        shuHeRuleNecessaryData.setCustomerMap(collect);
 
         // 生成后续使用数据上下文
         Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
@@ -128,5 +128,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
          * true 继续
          */
         private boolean continueJudgeRule;
+
+        private Map<String, MarketingSyncUser> customerMap;
     }
 }

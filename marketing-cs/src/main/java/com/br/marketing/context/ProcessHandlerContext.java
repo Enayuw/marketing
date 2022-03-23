@@ -1,10 +1,7 @@
 package com.br.marketing.context;
 
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.origin.MqFact;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * code is far away from bug with the animal protecting
@@ -44,10 +41,6 @@ public class ProcessHandlerContext {
      */
     private Long transferInfoId;
 
-    /**
-     * 海尔客服转化所需信息
-     */
-    private Map<String, MarketingSyncUser> customerMap;
 
     /**
      * 上下文消息对象
@@ -56,23 +49,7 @@ public class ProcessHandlerContext {
 
     /**
      *
-     */
-    private RuleNecessaryData ruleNecessaryData;
-
-    public ProcessHandlerContext() {
-    }
+     */private RuleNecessaryData ruleNecessaryData;
 
 
-    public ProcessHandlerContext(String apiCode, long transferInfoId, Map<String, MarketingSyncUser> map) {
-        this.apiCode = apiCode;
-        this.transferInfoId = transferInfoId;
-        this.customerMap = map;
-    }
-
-    public ProcessHandlerContext(String apiCode, Long transferInfoId, Map<String, MarketingSyncUser> customerMap, MqFact mqFact) {
-        this.apiCode = apiCode;
-        this.transferInfoId = transferInfoId;
-        this.customerMap = customerMap;
-        this.mqFact = mqFact;
-    }
 }
