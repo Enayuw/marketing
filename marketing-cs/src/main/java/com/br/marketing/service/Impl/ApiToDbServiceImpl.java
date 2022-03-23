@@ -1421,8 +1421,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 || _lowField.equals("cusbatch"))
                 && StringUtils.isNotNull(value)) {
             mh.setTaskId(value);
-        } else if ((_lowField.equals("usertype")
-                || _lowField.equals("grouptype"))
+        } else if ((_lowField.equals("usertype"))
                 && StringUtils.isNotNull(value)) {
             mh.setUserType(value);
         } else if(_lowField.equals("custnum")
