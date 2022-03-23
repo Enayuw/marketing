@@ -133,7 +133,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
-        if(!"促申完".equals(groupType) || !"促首借".equals(groupType)){
+        if(!"促申完".equals(groupType) && !"促首借".equals(groupType)){
             log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
@@ -141,6 +141,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if("促申完".equals(groupType)){
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
                     dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
+            log.warn("促申完有效期isPeriod=",isPeriod);
         }else if("促首借".equals(groupType)){
             //先返回false，需要加促首借的有效期
             return false;
