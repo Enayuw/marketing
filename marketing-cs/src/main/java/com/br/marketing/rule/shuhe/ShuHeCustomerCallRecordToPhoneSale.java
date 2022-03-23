@@ -92,6 +92,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setType("4");
         }
         dassSingleImportDataDTO.setPrioritySymbol("2");
+        dassSingleImportDataDTO.setUid(dto.getCaseNum());
         Map extendMap = new HashMap();
         extendMap.put("face_recognitiion","0");
         extendMap.put("is_usr_idt","0");
