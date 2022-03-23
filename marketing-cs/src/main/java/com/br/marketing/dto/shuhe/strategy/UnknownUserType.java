@@ -33,6 +33,12 @@ public class UnknownUserType extends IUserType {
     }
 
     @Override
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date tCreatTime, Date creatTime) {
+        return false;
+    }
+
+    @Override
     public String getBlackExpireDate(Date creatTime) {
         return "";
     }

@@ -129,7 +129,7 @@ public abstract class IUserType {
      *
      * @param caseShuheUser             pojo
      * @param iMarketingSyncUserService javaBean
-     * @param creatTime                 有效期时间
+     * @param creatTime                 上传表创建时间
      * @return true or false 在有效期内为true 否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/22 15:48
@@ -142,7 +142,7 @@ public abstract class IUserType {
      * 数据有效期
      *
      * @param iMarketingSyncUserService javaBean
-     * @param creatTime                 有效期时间
+     * @param creatTime                 上传表创建时间
      * @return true or false 在有效期内为true 否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/22 15:48
@@ -153,15 +153,29 @@ public abstract class IUserType {
      * 数据有效期
      *
      * @param iMarketingSyncUserService javaBean
-     * @param creatTime                 有效期时间
+     * @param tCreatTime                转化数据创建时间
+     * @param creatTime                 上传表创建时间
+     * @return true or false 在有效期内为true 否则为false
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/22 15:48
+     */
+    public abstract boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date tCreatTime, Date creatTime);
+
+    /**
+     * 数据有效期
+     *
+     * @param iMarketingSyncUserService javaBean
+     * @param tCreatTime                转化数据创建时间
+     * @param creatTime                 上传表创建时间
      * @param day                       有效期
      * @return true or false 在有效期内为true 否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/3/22 15:48
      */
     public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
-            , Date creatTime, Integer day) {
-        return iMarketingSyncUserService.isPeriodOfValidity(new Date(), day, creatTime);
+            , Date tCreatTime, Integer day, Date creatTime) {
+        return iMarketingSyncUserService.isPeriodOfValidity(tCreatTime, day, creatTime);
     }
 
 

@@ -47,6 +47,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             Integer isDelay = context.getMqFact().getIsDelay();
             if (isDelay == null || isDelay != 1) {
                 ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
@@ -54,7 +55,8 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
                 if (shuHeContext.isContinueJudgeRule()) {
                     final IUserType iUserType = shuHeContext.getIUserType();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, shuHeContext.getCreatTime());
+                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                            , transfer.getCreateTime(), shuHeContext.getCreatTime());
                     if (b && iUserType.isBlack(caseShuheUser)) {
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
