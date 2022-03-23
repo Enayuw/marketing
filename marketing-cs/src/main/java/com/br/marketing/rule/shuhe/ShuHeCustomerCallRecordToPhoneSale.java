@@ -50,7 +50,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        log.info("匹配上ShuHeCustomerCallRecordToPhoneSale规则，获取的拨打记录数据id为{}",dto.getId());
+        log.warn("符合情况b推电销规则，数据id为{}",dto.getId());
         Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -198,6 +198,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 isRemoveFlag = isRemove(bo.getId(), json, "clc_usr_iso_ato_tim");
             }else if("促首借".equals(bo.getUserType())){
                 isRemoveFlag = isRemove(bo.getId(), json, "clc_usr_frt_fq_ord_tim");
+            }
+            if(isTurn || isBlack || isRemoveFlag){
+                log.warn("数据id为{}符合前置剔除规则",bo.getId());
             }
             return isTurn || isBlack || isRemoveFlag;
         }
