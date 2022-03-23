@@ -408,19 +408,15 @@ public class PushDataServiceImpl implements PushDataService {
                     HaierReqDTO haierReqDTO = new HaierReqDTO();
                     haierReqDTO.setIds(ids);
                     haierReqDTO.setFormData(formData);
-                    if (datas.size() <= 0) {
-                        return new Result().setCode(ResultCode.SUCCESS.getValue());
-                    }
-                    try {
-                        Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if(datas.size()>0) {
+                        try {
+                            Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-
             }
-
-
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
