@@ -1,5 +1,6 @@
 package com.br.marketing.dto.shuhe.strategy;
 
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.util.StringUtils;
@@ -72,5 +73,66 @@ public class CuShouJie extends IUserType {
     @Override
     public String getBlackExpireDate(Date creatTime) {
         return this.calculateExpireDate(creatTime, 29);
+    }
+
+    @Override
+    public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
+        final String clcUsrFrtFqOrdTim = caseShuheUser.getClcUsrFrtFqOrdTim();
+        boolean bool = isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+        if (!bool && !StringUtils.isEmpty(clcUsrFrtFqOrdTim)) {
+            LocalDate clcUsrFrtFqOrdTimDate = LocalDateTime.parse(clcUsrFrtFqOrdTim, dateTimeFormatter)
+                    .toLocalDate();
+            LocalDate createDate = creatTime.toInstant().atZone(
+                    ZoneId.systemDefault()).toLocalDate();
+            bool = (clcUsrFrtFqOrdTimDate.isAfter(createDate) || clcUsrFrtFqOrdTimDate.isEqual(createDate));
+        }
+        return bool;
+    }
+
+    @Override
+    public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
+        dataDTO.setUserType("4");
+        dataDTO.setOrgname("shuheshoujie");
+        dataDTO.setSource("18");
+        dataDTO.setType("1");
+    }
+
+    @Override
+    public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
+        if (true) {
+            return false;
+        }
+        boolean bool;
+        /* 数禾促首借转电销 情况a
+         * clc_usr_lst_app_sta_tim日期值为当天
+         * &clc_usr_frt_fq_ord_tim<原始数据上传时间(小于情况包含该字段为空的情况)
+         * &userType=促首借
+         * &cusNun
+         * &有效期内
+         */
+        if (StringUtils.isEmpty(caseShuheUser.getClcUsrLstAppStaTim())) {
+            bool = Boolean.FALSE;
+        } else {
+            LocalDateTime appStaTim = LocalDateTime.parse(caseShuheUser.getClcUsrLstAppStaTim(), dateTimeFormatter);
+            LocalDate localDate = LocalDate.now();
+            LocalDate appStaDate = appStaTim.toLocalDate();
+            bool = localDate.isEqual(appStaDate);
+        }
+        if (bool) {
+            boolean boolFrtFqOrdTim;
+            if (StringUtils.isEmpty(caseShuheUser.getClcUsrFrtFqOrdTim())) {
+                boolFrtFqOrdTim = Boolean.TRUE;
+            } else {
+                LocalDateTime frtFqOrdTim = LocalDateTime.parse(caseShuheUser.getClcUsrFrtFqOrdTim(), dateTimeFormatter);
+                if (creatTime == null) {
+                    boolFrtFqOrdTim = Boolean.FALSE;
+                } else {
+                    LocalDateTime appletDate = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    boolFrtFqOrdTim = frtFqOrdTim.isBefore(appletDate);
+                }
+            }
+            return boolFrtFqOrdTim;
+        }
+        return false;
     }
 }

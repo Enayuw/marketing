@@ -9,12 +9,15 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.entity.PhoneSaleExtendShuhe;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendShuheMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -27,7 +30,7 @@ import java.util.List;
 public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterfaceHandler<RealTimeUserDataDTO> {
 
     @Autowired
-    PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
+    PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     @Autowired
     private DassServiceClient dassServiceClient;
@@ -35,13 +38,14 @@ public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterface
     @Override
     JSONObject call(List<RealTimeUserDataDTO> transferData, ProcessHandlerContext context) {
         for (RealTimeUserDataDTO realTimeUserDataDTO : transferData) {
-            PhoneSaleExtendShuhe phoneSaleExtendShuhe = realTimeUserDataDTO.getPhoneSaleExtendShuhe();
-            //插入b_phone_sale_extend_shuhe
-            //后续不同商户考虑抽出来
-            phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
+            PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
+            //插入b_phone_sale_extend_info
+            Date date = new Date();
+            phoneSaleExtendInfo.setCreateTime(date);
+            phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
             //调用Dass
             DassSingleImportAdapDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
-            dassImportAdapDTO.setExtendInfo(phoneSaleExtendShuhe.getId().toString());
+            dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             callDassRealTimeUserData(dassImportAdapDTO, 0);
         }

@@ -33,5 +33,5 @@ public interface PushDataService {
      * @param status
      * @return
      */
-    Boolean pushShDXSingleMutex(String apiCode, String custNum, String status);
+    Boolean pushShDXSingleMutex(String apiCode, String custNum, String status, String userType);
 }

@@ -2,6 +2,8 @@ package com.br.marketing.dto.customer;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class CallRecordBO{
 
@@ -24,6 +26,11 @@ public class CallRecordBO{
      *
      */
     private String apiCode;
+
+    /**
+     * userType场景
+     */
+    private String userType;
 
     /**
      * 回调参数类型(1:拨打结果 2:短信发送结果)
@@ -61,6 +68,11 @@ public class CallRecordBO{
      */
     private CallRecordDetailDTO detail;
 
+    /**
+     * 入库时间
+     */
+    private Date createTime;
+
     @Override
     public String toString() {
         return "CallRecordBO{" +
@@ -75,6 +87,7 @@ public class CallRecordBO{
                 ", caseStatus=" + caseStatus +
                 ", dialCount=" + dialCount +
                 ", detail=" + detail +
+                ", createTime=" + createTime +
                 '}';
     }
 }

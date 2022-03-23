@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -620,6 +620,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         SecureRandom random = new SecureRandom();
         transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
+        LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        transferSyncUser.setInsertTime(localDateTime.format(dateTimeFormatter));
         int rowSync = 0;
         try {
             rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
@@ -689,12 +691,12 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         alarmMgs(caseShuheUser, null);
     }
 
-    public final WeakReference<ThreadLocal<ShuHeProcessHandlerContext>> localWeakReference =
-            new WeakReference<>(new ThreadLocal<>());
+    private final SoftReference<ThreadLocal<ShuHeProcessHandlerContext>> localSoftReference =
+            new SoftReference<>(new ThreadLocal<>());
 
     @Override
     public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
-        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localWeakReference.get();
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
         if (threadLocal != null) {
             ShuHeProcessHandlerContext shuContext = threadLocal.get();
             if (shuContext != null) {
@@ -709,6 +711,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 context.setCustomerMap(shuContext.getCustomerMap());
                 return;
             }
+            threadLocal.set(context);
         }
         Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
                 , transfer.getCustNum(), transfer.getUserType());
@@ -729,12 +732,21 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
             caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
             caseShuheUser.setCell(object.getString("cell"));
+            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
+            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
+            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
+            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
+            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
             context.setCaseShuheUser(caseShuheUser);
             context.setTaskId(object.getString("taskId"));
-            if (threadLocal != null) {
-                threadLocal.set(context);
-            }
         }
+    }
 
+    @Override
+    public void removeHandlerContext() {
+        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
+        if (threadLocal != null) {
+            threadLocal.remove();
+        }
     }
 }

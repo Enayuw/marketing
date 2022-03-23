@@ -2,6 +2,7 @@ package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -100,7 +101,7 @@ public abstract class IUserType {
     /**
      * 全部场景空判断
      */
-    public boolean isEmpty(CaseShuheUser caseShuheUser) {
+    public final boolean isEmpty(CaseShuheUser caseShuheUser) {
         return (StringUtils.isEmpty(caseShuheUser.getIsBlack())
                 && StringUtils.isEmpty(caseShuheUser.getIsTurn())
                 && StringUtils.isEmpty(caseShuheUser.getUserType())
@@ -149,6 +150,22 @@ public abstract class IUserType {
     public abstract boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService, Date creatTime);
 
     /**
+     * 数据有效期
+     *
+     * @param iMarketingSyncUserService javaBean
+     * @param creatTime                 有效期时间
+     * @param day                       有效期
+     * @return true or false 在有效期内为true 否则为false
+     * @author Guo Zeqiang
+     * @dateTime 2022/3/22 15:48
+     */
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
+            , Date creatTime, Integer day) {
+        return iMarketingSyncUserService.isPeriodOfValidity(new Date(), day, creatTime);
+    }
+
+
+    /**
      * 黑名单失效日期
      *
      * @param creatTime 有效期时间
@@ -175,7 +192,23 @@ public abstract class IUserType {
         return localDateTimeNew.withHour(23).withMinute(59).withSecond(59).format(dateTimeFormatter);
     }
 
-    public String getY() {
-        return Y;
+    public final boolean isY(String str) {
+        return Y.equals(str);
     }
+
+    /**
+     * 前置剔除条件
+     */
+    public abstract boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime);
+
+    /**
+     * 获取私有信息
+     */
+    public abstract void getPrivateInfo(DassSingleImportDataDTO dataDTO);
+
+    /**
+     * 转电销规则
+     * true 满足推电销
+     */
+    public abstract boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime);
 }

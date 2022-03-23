@@ -1,6 +1,8 @@
 package com.br.marketing.origin.impl;
 
 import com.br.marketing.context.ProcessHandlerContext;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDetailDTO;
 import com.br.marketing.entity.CallRecord;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据来源于 客服拨打记录表
@@ -32,7 +35,6 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         List<Object> list = new ArrayList<>();
         // 1 根据保存到队列的ID查询记录对应的数据
         CallRecord callRecord = callRecordMapper.selectByPrimaryKey(mqFact.getSourceId());
-        callRecord.setId(mqFact.getSourceId());
 
         CallRecordBO bo = new CallRecordBO();
         CallRecordDetailDTO callRecordDetailDTO = new CallRecordDetailDTO();
@@ -40,6 +42,11 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         BeanUtils.copyProperties(callRecord,callRecordDetailDTO);
         bo.setDetail(callRecordDetailDTO);
 
+        Map map = (Map) JSONObject.parse(bo.getDetail().getUserProperties());
+        if(StringUtils.isNotEmpty(map) && StringUtils.isNotEmpty(map.get("groupType"))){
+            String groupType = map.get("groupType").toString();
+            bo.setUserType(groupType);
+        }
         if(mqFact.getIsDelay()!=null && mqFact.getIsDelay()==1){
             bo.setDataSource(1);
         }else {

@@ -67,7 +67,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
-        log.warn("$$2数禾推送转化至客服转化:{}", conversionData);
+        log.warn("$$2数禾推送转化至客服转化:{}\n{}", conversionData, context);
         return conversionData;
     }
 
@@ -90,12 +90,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         transferSyncUser.settCid(transfer.gettCid());
                         if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
                             transferSyncUser.setIfTransform("2");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
                         } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
@@ -103,14 +105,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     }
                 }
             }
-            log.warn("$$1数禾推送转化至客服转化规则状态:{}", bool);
+            log.warn("$$1数禾推送转化至客服转化规则状态:{}\n{}", bool, context);
         }
         return bool;
     }
 
     @Override
     public String label() {
-        return "ShuHe_TransferData_CustomerTransfer";
+        return "ShuHe_2_TransferData_CustomerTransfer";
     }
 
     @Override

@@ -25,7 +25,6 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +61,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
-        log.warn("@@2符合人工的数据进入延迟:{}", mqFactNew);
+        log.warn("@@2符合人工的数据进入延迟:{}\n{}", mqFactNew, context);
+        iPushShuheTransferDataService.removeHandlerContext();
         return mqFactNew;
     }
 
@@ -75,23 +75,25 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             iPushShuheTransferDataService.handlerContext(shuHeContext, transfer);
             final IUserType iUserType = shuHeContext.getiUserType();
             final Integer isDelay = shuHeContext.getMqFact().getIsDelay();
-            boolean typeBool = (iUserType instanceof CuShenWan) && (isDelay == null || isDelay != 1);
+            boolean typeBool = (isDelay == null || isDelay != 1);
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, creatTime);
-                bool = (b && ((CuShenWan) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime)
+                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer));
             }
-            log.warn("@@1符合人工的数据进入延迟规则状态{}[{}:{}:{}:{}]", bool, transfer.getCustNum(),
-                    transfer.getApiCode(), transfer.getUserType(), context.getMqFact().getSourceId());
+            log.warn("@@1符合人工的数据进入延迟规则状态{}\n{}", bool, context);
+            if (!bool) {
+                iPushShuheTransferDataService.removeHandlerContext();
+            }
         }
         return bool;
     }
 
     @Override
     public String label() {
-        return "ShuHe_TransferData_ArtificialRealTimeUserDataToDelay";
+        return "ShuHe_3_TransferData_ArtificialRealTimeUserDataToDelay";
     }
 
     @Override
@@ -109,12 +111,9 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
      */
     private long getKeyExpiration() {
         LocalDateTime now = LocalDateTime.now();
-        // 当前毫秒数
-        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         LocalDateTime localDateTime = now.plusDays(1);
         // 第二天凌晨
         final ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
-        System.out.println(zonedDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return ChronoUnit.SECONDS.between(now, zonedDateTime);
     }
 

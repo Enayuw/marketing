@@ -784,11 +784,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status) {
-        //a/b状态一天只能推一条
+    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status,String userType) {
+        //a/b状态一天只能推一条,apicode+casenum+usertype下
         String key = RedisKeyConstant.shuhePushDxSingleMutex.concat(":")
                 .concat(apiCode).concat(":")
-                .concat(custNum);
+                .concat(custNum).concat(":")
+                .concat(userType);
         if (redisChgService.exists(key)) {
             return false;
         }

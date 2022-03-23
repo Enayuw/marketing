@@ -6,6 +6,8 @@ import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.RetryTestService;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -31,7 +34,10 @@ public class DataController {
 
     @Autowired
     private DassServiceClient dassServiceClient;
-    
+
+    @Autowired
+    PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
     @GetMapping("testApiToDb")
     public String testApiToDb(@RequestParam("apiCode") String apiCode){
         iApiToDbService.pushToDb(apiCode);
@@ -98,7 +104,7 @@ public class DataController {
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         dassSingleImportDataDTO.setOrgname("shuheshoujie");
         dassSingleImportDataDTO.setName("张");
-        dassSingleImportDataDTO.setPhone("p5ho9PDsqrnJz9CJYNHyqA==");
+        dassSingleImportDataDTO.setPhone("AQYBBAcBUgΒ2lWV1Y");
         dassSingleImportDataDTO.setUid("2617811");
         dassSingleImportDataDTO.setUserType("1");
         dassSingleImportDataDTO.setPrioritySymbol("1");

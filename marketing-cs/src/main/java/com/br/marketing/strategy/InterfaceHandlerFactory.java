@@ -115,8 +115,8 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 生成所对应的接口处理handler枚举及数据
          * map <具体的接口枚举,接口所需对应的参数类列表>
          */
-        for (Object transmitFact : facts) {
-            for (AssembleData assembleData : assembleDataList) {
+        for (AssembleData assembleData : assembleDataList) {
+            for (Object transmitFact : facts) {
                 try {
                     if (assembleData.isNeedAssemble(transmitFact,context)){
                         InterfaceParams interfaceParam = assembleData.assemble(transmitFact,context);
@@ -152,7 +152,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 2、根据不同数据来源 匹配出要执行的规则
          * 获取 apiCode获取所需的规则匹配方法
          */
-        List<AssembleData> assembleDataList = new ArrayList<>();
+        List<AssembleData> list = new ArrayList<>();
         HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
         String rulePrefix = customerRuleMapping.get(context.getApiCode());
         if (StringUtils.isEmpty(rulePrefix)){
@@ -161,10 +161,14 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         Collection<AssembleData> values = assembleDataMap.values();
         for (AssembleData assembleData : values) {
             if (assembleData.label().startsWith(rulePrefix)){
-                assembleDataList.add(assembleData);
+                list.add(assembleData);
             }
         }
 
+        /**
+         * 规则排序
+         */
+        List<AssembleData> assembleDataList = list.stream().sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
         /**
          * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
          */

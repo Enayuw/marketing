@@ -10,6 +10,18 @@
     <select id="getNewestByCusnumAndApicode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from b_marketing_transfer_sync_${cid}
         where cust_num=#{caseNum} and api_code=#{apicode} and user_type=#{userType}
+        <if test="timeAddHour !=null and timeAddHour !=''">
+            <![CDATA[ and create_time<= #{timeAddHour} ]]>
+        </if>
+        order by create_time desc limit 1;
+    </select>
+
+    <select id="getNewestByCusnumInHour" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${cid}
+        where cust_num=#{caseNum}
+        <if test="timeAddHour !=null and timeAddHour !=''">
+            <![CDATA[ and create_time<= #{timeAddHour} ]]>
+        </if>
         order by create_time desc limit 1;
     </select>
 </mapper>
