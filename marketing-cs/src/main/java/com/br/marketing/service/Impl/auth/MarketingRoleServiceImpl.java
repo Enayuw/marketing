@@ -155,7 +155,7 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
                 criteria.andCreateTimeBetween(createStartDate, createEndDate);
             }
             if (StringUtils.isNotBlank(updateStart) && StringUtils.isNotBlank(updateEnd)) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 Date updateStartDate = simpleDateFormat.parse(updateStart+" 00:00:00");
                 Date updateEndDate = simpleDateFormat.parse(updateEnd+" 59:59:59");
                 criteria.andUpdateTimeBetween(updateStartDate, updateEndDate);
