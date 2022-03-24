@@ -2,12 +2,10 @@ package com.br.marketing.service.Impl.auth;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisAuthService;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.AuthConstants;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.MarketingDirtyUserExample;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
@@ -234,9 +232,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         List<MarketingRole> marketingRoles = marketingRoleMapper.selectByExample(marketingRoleExample);
 
         List<Map<String, Object>> roles = new ArrayList<>();
-        for (int i = 0; i < marketingRoles.size(); i++) {
-            Integer roleId = marketingRoles.get(i).getId();
-            String name = marketingRoles.get(i).getName();
+        for (MarketingRole marketingRole : marketingRoles) {
+            Integer roleId = marketingRole.getId();
+            String name = marketingRole.getName();
             Map<String, Object> roleMap = new HashMap<>();
             roleMap.put("name", name);
             roleMap.put("id", roleId);
