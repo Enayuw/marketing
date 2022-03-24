@@ -11,7 +11,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
@@ -21,8 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,13 +41,12 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Autowired
-    private CallRecordMapper callRecordMapper;
-
-    @Autowired
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Autowired
     private PushDataService pushDataService;
+
+    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -196,9 +197,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             boolean isBlack = "Y".equals(json.getString("is_black"));
             boolean isRemoveFlag = false;
             if("促申完".equals(bo.getUserType())){
-                isRemoveFlag = isRemove(bo.getId(), json, "clc_usr_iso_ato_tim");
+                String clcUsrIsoAtoTim = newest.getApplyTime();
+                if(StringUtils.isNotEmpty(clcUsrIsoAtoTim)){
+                    isRemoveFlag = isRemove(bo, clcUsrIsoAtoTim);
+                }
             }else if("促首借".equals(bo.getUserType())){
-                isRemoveFlag = isRemove(bo.getId(), json, "clc_usr_frt_fq_ord_tim");
+                String ordTim = json.getString("clc_usr_frt_fq_ord_tim");
+                if(StringUtils.isNotEmpty(ordTim)){
+                    isRemoveFlag = isRemove(bo,ordTim);
+                }
             }
             if(isTurn || isBlack || isRemoveFlag){
                 log.warn("callrecord数据id为{}符合前置剔除规则",bo.getId());
@@ -208,26 +215,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         return false;
     }
 
-    private boolean isRemove(Long id, JSONObject json, String timeField) {
-        boolean isRemoveFlag = false;
-        String clcUsrIsoAtoTim = json.getString(timeField);
-        if (StringUtils.isNotBlank(clcUsrIsoAtoTim)){
-            Date date = json.getDate(timeField);
-            Calendar c = Calendar.getInstance();
-            c.setTime(date);
-            c.add(Calendar.DAY_OF_MONTH, 1);
-            String time = DateUtils.format(c.getTime(), "yyyy-MM-dd");
-            Date date2 = null;
-            try {
-                date2 = DateUtils.parse(time, "yyyy-MM-dd");
-            } catch (ParseException e) {
-                e.printStackTrace();
-                log.warn("日期转换出错！");
-            }
-            CallRecordExample example = new CallRecordExample();
-            example.createCriteria().andIdEqualTo(id).andCreateTimeLessThan(date2);
-            isRemoveFlag = callRecordMapper.countByExample(example)>0;
-        }
+    private boolean isRemove(CallRecordBO bo, String clcUsrIsoAtoTim) {
+        boolean isRemoveFlag;
+        LocalDate clcUsrIsoAtoTimDate = LocalDateTime.parse(clcUsrIsoAtoTim, dateTimeFormatter)
+                .toLocalDate();
+        LocalDate createDate = bo.getCreateTime().toInstant().atZone(
+                ZoneId.systemDefault()).toLocalDate();
+        isRemoveFlag = (clcUsrIsoAtoTimDate.isAfter(createDate) || clcUsrIsoAtoTimDate.isEqual(createDate));
         return isRemoveFlag;
     }
+
+
 }
