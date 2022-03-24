@@ -189,6 +189,8 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      */
     void modifyTask(MarketingTask lt);
 
+    void modifyTaskActualNum(MarketingTask lt);
+
     /**
      * 查询监控截止日期为当前日期的任务
      */

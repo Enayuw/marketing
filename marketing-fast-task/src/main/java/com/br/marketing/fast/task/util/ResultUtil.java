@@ -8,7 +8,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.entity.RuleField;
 import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.es.bean.Product;
+//import com.br.marketing.es.bean.Product;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.fast.task.FastTaskApplication;
@@ -155,18 +155,18 @@ public class ResultUtil {
     }
 
     private static void writeEs(MarketingHistory mh,JSONObject meal,JSONObject hxJson){
-        List<Product> list = new ArrayList<>();
-
-        for (String product : meal.keySet()) {
-            Product p =new Product();
-            p.setCode(product);
-            p.setVersion(meal.getJSONObject(product).getString("version"));
-            p.setCodeVersion(p.getCode().concat("_").concat(p.getVersion()));
-            p.setFlag(hxJson.get("flag_score")==null?"":hxJson.getString("flag_score"));
-            p.setScore(new Double(hxJson.get(product.toLowerCase())==null?0:hxJson.getDoubleValue(product.toLowerCase())));
-            list.add(p);
-        }
-        mh.setProduct(list);
+//        List<Product> list = new ArrayList<>();
+//
+//        for (String product : meal.keySet()) {
+//            Product p =new Product();
+//            p.setCode(product);
+//            p.setVersion(meal.getJSONObject(product).getString("version"));
+//            p.setCodeVersion(p.getCode().concat("_").concat(p.getVersion()));
+//            p.setFlag(hxJson.get("flag_score")==null?"":hxJson.getString("flag_score"));
+//            p.setScore(new Double(hxJson.get(product.toLowerCase())==null?0:hxJson.getDoubleValue(product.toLowerCase())));
+//            list.add(p);
+//        }
+//        mh.setProduct(list);
         String id = UuidUtils.getUuid();
         MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
         service.insert(mh, id);
