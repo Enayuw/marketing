@@ -121,14 +121,19 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
             for (MarketingRole role : marketingRoles) {
                 role.setStatus(0);
                 role.setUpdateTime(new Date());
+                MarketingUserInfoRoleExample marketingUserInfoRoleExample = new MarketingUserInfoRoleExample();
+                marketingUserInfoRoleExample.createCriteria().andRoleIdEqualTo(role.getId()).andStatusEqualTo(1);
+                List<MarketingUserInfoRole> marketingUserInfoRoles = marketingUserInfoRoleMapper.selectByExample(marketingUserInfoRoleExample);
+                if(marketingUserInfoRoles.size()>0){
+                    return false;
+                }
                 //更新角色表角色的状态--删除
                 marketingRoleMapper.updateByPrimaryKeySelective(role);
                 //更新用户-角色表之间的关联关系
-                deleteUserRoleByRid(role.getId())
-                ;
+                deleteUserRoleByRid(role.getId());
             }
         }
-        return null;
+        return true;
     }
 
     @Override

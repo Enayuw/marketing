@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.br.marketing.common.enums.ServiceResultEnum.DELETE_ROLE_ERROR;
+
 /**
  * -------------------------------
  *
@@ -53,7 +55,12 @@ public class MarketingRoleController {
     @GetMapping("/delete")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> delete(String ids) {
-       return new ApiResult<Boolean>().success( marketingRoleService.deleteByIds(ids));
+        if(marketingRoleService.deleteByIds(ids)){
+            return new ApiResult<Boolean>().success();
+        }else {
+            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.DELETE_ROLE_ERROR);
+        }
+
     }
 
 
