@@ -34,4 +34,6 @@ public interface MarketingUserInfoRoleMapper {
     List<MarketingResource> getResourcesByUid(Integer id);
 
     Set<Integer>  getRoleIds(Integer id);
+
+    List<MarketingUserInfoRole> selectByRoleId(Integer id);
 }

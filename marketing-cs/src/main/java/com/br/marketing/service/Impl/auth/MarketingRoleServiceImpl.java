@@ -121,9 +121,8 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
             for (MarketingRole role : marketingRoles) {
                 role.setStatus(0);
                 role.setUpdateTime(new Date());
-                MarketingUserInfoRoleExample marketingUserInfoRoleExample = new MarketingUserInfoRoleExample();
-                marketingUserInfoRoleExample.createCriteria().andRoleIdEqualTo(role.getId()).andStatusEqualTo(1);
-                List<MarketingUserInfoRole> marketingUserInfoRoles = marketingUserInfoRoleMapper.selectByExample(marketingUserInfoRoleExample);
+
+                List<MarketingUserInfoRole> marketingUserInfoRoles = marketingUserInfoRoleMapper.selectByRoleId(role.getId());
                 if(marketingUserInfoRoles.size()>0){
                     return false;
                 }

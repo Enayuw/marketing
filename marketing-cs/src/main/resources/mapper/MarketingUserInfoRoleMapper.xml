@@ -174,16 +174,16 @@
           and ur.status = 1
     </select>
     <select id="getResourcesByUid" resultType="com.br.marketing.entity.auth.MarketingResource">
-        select   r.id,
-                        r.icon,
-                        r.name,
-                        r.authority,
-                        r.url,
-                        r.type,
-                        r.parent_id as parentId,
-                        r.sort,
-                        r.english_name as englishName,
-                        r.category
+        select r.id,
+               r.icon,
+               r.name,
+               r.authority,
+               r.url,
+               r.type,
+               r.parent_id    as parentId,
+               r.sort,
+               r.english_name as englishName,
+               r.category
 
         from b_marketing_role ro
                  inner join b_marketing_userinfo_role ur on ro.id = ur.role_id
@@ -196,8 +196,19 @@
           and r.status = 1;
     </select>
     <select id="getRoleIds" resultType="java.lang.Integer">
-        select  role_id as roleId from b_marketing_userinfo_role where user_id=#{id} and status=1;
+        select role_id as roleId
+        from b_marketing_userinfo_role
+        where user_id = #{id}
+          and status = 1;
 
+    </select>
+    <select id="selectByRoleId" resultType="com.br.marketing.entity.auth.MarketingUserInfoRole">
+        select a.status, bmu.status, b.status
+        from b_marketing_role a
+                 inner join b_marketing_userinfo_role bmu on a.id = bmu.role_id
+                 inner join b_marketing_userinfo b on bmu.user_id = b.id
+        where role_id = #{id}
+          and b.status = 1;
     </select>
     <update id="updateByExampleSelective" parameterType="map">
         update b_marketing_userinfo_role

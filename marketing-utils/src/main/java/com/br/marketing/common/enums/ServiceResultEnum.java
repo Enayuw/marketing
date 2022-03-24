@@ -31,7 +31,7 @@ public enum ServiceResultEnum {
 
     AUTH_USER_REPEAT("200007", "帐号已存在！！"),
 
-    DELETE_ROLE_ERROR("200008", "当前角色存在用户，禁止删除！"),
+    DELETE_ROLE_ERROR("200008", "当前角色存在用户使用，禁止删除！"),
     //访问成功业务自定义通用状态
     SUCCESS_5("05", "服务开小差了"),
 
