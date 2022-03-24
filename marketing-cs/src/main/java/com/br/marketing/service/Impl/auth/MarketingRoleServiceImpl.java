@@ -158,7 +158,7 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 Date updateStartDate = simpleDateFormat.parse(updateStart+" 00:00:00");
                 Date updateEndDate = simpleDateFormat.parse(updateEnd+" 59:59:59");
-                criteria.andCreateTimeBetween(updateStartDate, updateEndDate);
+                criteria.andUpdateTimeBetween(updateStartDate, updateEndDate);
             }
         } catch (ParseException e) {
             throw new RuntimeException(e);

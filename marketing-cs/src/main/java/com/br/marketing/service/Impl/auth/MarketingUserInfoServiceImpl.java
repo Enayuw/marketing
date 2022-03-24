@@ -92,6 +92,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      * 密码校验
      */
     private boolean pwdError(LoginReqObj reqObj, MarketingUserInfo user) {
+        if(user == null){
+            return true;
+        }
         String secPass = getSecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
         return !secPass.equals(reqObj.getPassword());
     }
