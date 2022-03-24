@@ -37,15 +37,14 @@ public class CaptchaController {
     RestTemplate restTemplate;
     private static String url = "http://k8s.brapp.com/compass-api/api/strategy-distribution/strategy-customizer/distributeList?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
-    private static String url1="http://STRATEGY-DISTRIBUTION/inside/sendEmailTest";
+
 
     @GetMapping("/authTest")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String authTest(HttpSession session) {
-        String result = restTemplate.getForObject(url1, String.class);
+        String result = restTemplate.getForObject(url, String.class);
         return  result;
     }
-
     /**
      * 验证码
      */

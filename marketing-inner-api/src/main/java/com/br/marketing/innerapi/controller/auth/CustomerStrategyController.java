@@ -28,9 +28,9 @@ import java.util.Map;
 public class CustomerStrategyController {
     @Resource
     RestTemplate restTemplate;
-    private static String STRATEGY_DISTRIBUTION_LIST = "http://k8s.brapp.com/compass-api/api/strategy-distribution/strategy-customizer/distributeList?" +
+    private static String STRATEGY_DISTRIBUTION_LIST = "http://STRATEGY-DISTRIBUTION/strategy-customizer/distributeList?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
-    private static String CREATE_VIEW = "http://k8s.brapp.com/compass-api/api/strategy-distribution/strategy-customizer/createView?" +
+    private static String CREATE_VIEW = "http://STRATEGY-DISTRIBUTION/strategy-customizer/createView?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
     @GetMapping("distributeList")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)

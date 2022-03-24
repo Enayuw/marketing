@@ -145,19 +145,19 @@ public class MarketingRoleServiceImpl implements MarketingRoleService {
         MarketingRoleExample marketingRoleExample = new MarketingRoleExample();
         MarketingRoleExample.Criteria criteria = marketingRoleExample.createCriteria().andStatusEqualTo(1);
         if (StringUtils.isNotBlank(key)) {
-            criteria.andNameLike(key);
+            criteria.andNameLike("%"+key+"%");
         }
         try {
             if (StringUtils.isNotBlank(createStart) && StringUtils.isNotBlank(createEnd)) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date createStartDate = simpleDateFormat.parse(createStart);
-                Date createEndDate = simpleDateFormat.parse(createEnd);
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                Date createStartDate = simpleDateFormat.parse(createStart+" 00:00:00");
+                Date createEndDate = simpleDateFormat.parse(createEnd+" 59:59:59");
                 criteria.andCreateTimeBetween(createStartDate, createEndDate);
             }
             if (StringUtils.isNotBlank(updateStart) && StringUtils.isNotBlank(updateEnd)) {
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date updateStartDate = simpleDateFormat.parse(updateStart);
-                Date updateEndDate = simpleDateFormat.parse(updateEnd);
+                Date updateStartDate = simpleDateFormat.parse(updateStart+" 00:00:00");
+                Date updateEndDate = simpleDateFormat.parse(updateEnd+" 59:59:59");
                 criteria.andCreateTimeBetween(updateStartDate, updateEndDate);
             }
         } catch (ParseException e) {
