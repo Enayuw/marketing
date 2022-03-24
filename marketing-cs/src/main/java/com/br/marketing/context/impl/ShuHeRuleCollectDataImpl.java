@@ -1,6 +1,7 @@
 package com.br.marketing.context.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -88,7 +89,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
                 caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
                 caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
-                caseShuheUser.setCell(object.getString("cell"));
+                caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
                 caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
                 caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
                 caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
