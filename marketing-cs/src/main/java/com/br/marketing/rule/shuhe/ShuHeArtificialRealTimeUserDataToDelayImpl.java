@@ -83,7 +83,10 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
-                if (b && iUserType instanceof CuShouJie && !"3710023".equals(transfer.getApiCode())) {
+                if (b && iUserType instanceof CuShouJie
+                        && !"3710023".equals(transfer.getApiCode())
+                        && !"7410785".equals(transfer.getApiCode())
+                ) {
                     systemExceptionService.sendAlarm(String.format(
                             "检测到数禾客户推送转化数据存在异常：该apiCode下不应该出现该场景的数据！" +
                                     "\n场景:%s\nApiCode:%s\n案件编号:%s\n请及时跟进^_^"
