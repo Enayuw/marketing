@@ -109,10 +109,10 @@ public class CuShouJie extends IUserType {
 
     @Override
     public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
-        dataDTO.setUserType("4");
+        dataDTO.setUserType("1");
         dataDTO.setOrgname("shuheshoujie");
         dataDTO.setSource("18");
-        dataDTO.setType("1");
+        dataDTO.setType("4");
     }
 
     /**
