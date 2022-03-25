@@ -5,7 +5,9 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.output.RepQueryBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
@@ -145,5 +147,33 @@ public class RobotaiApiServiceClient {
             return result;
         }
 
+    }
+
+    /**
+     * 黑名单查询接口-宜信
+     * @param blackPhoneQueryDTO
+     * @return RepQueryBlackPhoneVO
+     */
+    public RepQueryBlackPhoneVO  queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO){
+        try{
+            InterfaceLog interfaceLog = new InterfaceLog();
+            interfaceLog.setApiCode(blackPhoneQueryDTO.getReqBlackPhoneDTO().getApiCode());
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
+                    .setInterfaceLog(interfaceLog)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(blackPhoneQueryDTO.getBlackQueryDetailDTOList()).postTransferStr();
+            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+                throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
+            }
+            RepQueryBlackPhoneVO result = JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<RepQueryBlackPhoneVO>(){}.getType());
+            return result;
+        }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
+            RepQueryBlackPhoneVO result = new RepQueryBlackPhoneVO();
+            result.setCode("9999");
+            result.setMessage(ex.getMessage());
+            return result;
+        }
     }
 }
