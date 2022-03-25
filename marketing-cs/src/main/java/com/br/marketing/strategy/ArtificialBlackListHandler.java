@@ -105,6 +105,7 @@ public class ArtificialBlackListHandler extends AbstractExternalInterfaceHandler
             for (Map.Entry<String, Set<String>> entry : entries) {
                 marketingSyncUserMapper.updateSyncUserCaseEffective(entry.getKey(),entry.getValue());
             }
+            return pushBlackListResponseResult.setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用人工黑名单失败 -- {}",JSON.toJSONString(pushBlackListResponseResult));
         return pushBlackListResponseResult.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

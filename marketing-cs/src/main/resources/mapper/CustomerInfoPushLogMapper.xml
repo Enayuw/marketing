@@ -13,8 +13,13 @@
         </if>
     </select>
 
-    <select id="selectRealStatusByMid" resultType="java.lang.String">
-        select real_stauts from b_customer_info_push_log WHERE m_id = #{mId}
+    <select id="selectRealStatusByMid" resultType="com.br.marketing.vo.RulePushLogOfStatusVO">
+        select m_id as mId,real_stauts as realStatus
+        from b_customer_info_push_log
+        WHERE m_id in
+              <foreach collection="mIds" item="mId" open="(" close=")" separator=",">
+                  #{mId}
+              </foreach>
     </select>
 
 </mapper>

@@ -29,7 +29,7 @@ import java.util.List;
 @RestController
 @Configuration
 @RequestMapping("/rule/fastTask")
-@Api(value = "手动跑数任务规则",tags = "手动跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
+@Api(value = "手动跑数任务规则", tags = "手动跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
 public class FastTaskRuleContronller {
 
     private static final Logger log = LoggerFactory.getLogger(FastTaskRuleContronller.class);
@@ -37,7 +37,7 @@ public class FastTaskRuleContronller {
     @Autowired
     FastTaskRuleService fastTaskRuleService;
 
-    @ApiOperation(value = "跑分记录列表",notes = "跑分记录列表")
+    @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
@@ -50,41 +50,36 @@ public class FastTaskRuleContronller {
     })
     @GetMapping("/list")
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
-                                            , @RequestParam(defaultValue = "10") int size
-                                            , @RequestParam(required = false) String search
-                                            , @RequestParam(required = false) Integer status
-                                            , @RequestParam(required = false) String createTimeStart
-                                            , @RequestParam(required = false) String createTimeEnd
-                                            , @RequestParam(required = false) String updateTimeStart
-                                            , @RequestParam(required = false) String updateTimeEnd
-                                            , @RequestParam(required = false) Integer taskStatus
-                                            ){
-        try {
-            PageResultReturn list = fastTaskRuleService.list(current, size,search,status,
-                    createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd,taskStatus);
-            return new ApiResult<PageResultReturn>().success(list);
-        } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.SUCCESS_1);
-        }
+            , @RequestParam(defaultValue = "10") int size
+            , @RequestParam(required = false) String search
+            , @RequestParam(required = false) Integer status
+            , @RequestParam(required = false) String createTimeStart
+            , @RequestParam(required = false) String createTimeEnd
+            , @RequestParam(required = false) String updateTimeStart
+            , @RequestParam(required = false) String updateTimeEnd
+            , @RequestParam(required = false) Integer taskStatus
+    ) {
+        PageResultReturn list = fastTaskRuleService.list(current, size, search, status,
+                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus);
+        return new ApiResult<PageResultReturn>().success(list);
     }
 
 
-    @ApiOperation(value = "生成批量跑分",notes = "生成批量跑分")
+    @ApiOperation(value = "生成批量跑分", notes = "生成批量跑分")
     @PostMapping("/save")
-    public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo){
+    public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo) {
         //获取用户上下文
         try {
             UserDetail user = ThreadContextInfo.getUser();
-            return fastTaskRuleService.save(vo,user);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+            return fastTaskRuleService.save(vo, user);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
 
-    @ApiOperation(value = "修改批量跑分",notes = "修改批量跑分")
+    @ApiOperation(value = "修改批量跑分", notes = "修改批量跑分")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "任务id", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
@@ -92,80 +87,80 @@ public class FastTaskRuleContronller {
     @GetMapping("/update")
     public ApiResult<Boolean> update(@RequestParam(required = false) String id,
                                      @RequestParam(required = false) String ruleName,
-                                     @RequestParam(required = false) String taskTime){
+                                     @RequestParam(required = false) String taskTime) {
         //获取用户上下文
         try {
             UserDetail user = ThreadContextInfo.getUser();
-            return fastTaskRuleService.update(id,ruleName,taskTime,user);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+            return fastTaskRuleService.update(id, ruleName, taskTime, user);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
 
-    @ApiOperation(value = "查看跑分任务",notes = "查看跑分任务")
-    @ApiImplicitParam(name = "id",value = "id",required = true,dataType = "String")
+    @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
+    @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getFastTask")
-    public ApiResult<FastTaskRuleDetailVO> getFastTask(String id){
+    public ApiResult<FastTaskRuleDetailVO> getFastTask(String id) {
         try {
             FastTaskRuleDetailVO vo = fastTaskRuleService.getFastTask(id);
             return new ApiResult<FastTaskRuleDetailVO>().success(vo);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
             return new ApiResult<FastTaskRuleDetailVO>().fail(ServiceResultEnum.FAILED);
         }
     }
 
 
-    @ApiOperation(value = "操作跑分记录状态",notes = "操作跑分记录状态，开启/关闭")
+    @ApiOperation(value = "操作跑分记录状态", notes = "操作跑分记录状态，开启/关闭")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "id",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "status",value = "状态(1-开启;2-禁用)",required = true,dataType = "Integer")
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
-    public ApiResult<Boolean> updateStatusById(String id,Integer status){
+    public ApiResult<Boolean> updateStatusById(String id, Integer status) {
         //查询
         try {
             UserDetail user = ThreadContextInfo.getUser();
-            boolean flag = fastTaskRuleService.updateStatusById(id,status,user);
-            if(flag){
-                return new ApiResult<Boolean>().success(true,"操作成功！");
-            }else {
-                return new ApiResult<Boolean>().success(false,"操作失败！");
+            boolean flag = fastTaskRuleService.updateStatusById(id, status, user);
+            if (flag) {
+                return new ApiResult<Boolean>().success(true, "操作成功！");
+            } else {
+                return new ApiResult<Boolean>().success(false, "操作失败！");
             }
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
-            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
 
-    @ApiOperation(value = "跑分规则下拉列表",notes = "跑分规则下拉列表")
+    @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")
     @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
     @GetMapping("/getScoreRules")
-    public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode){
+    public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
         try {
-            List<ScoreRuleConfig> list= fastTaskRuleService.getScoreRules(apiCode);
+            List<ScoreRuleConfig> list = fastTaskRuleService.getScoreRules(apiCode);
             return new ApiResult<List<ScoreRuleConfig>>().success(list);
         } catch (ParamValidErrorException ex) {
-            log.error(ex.getMessage(),ex);
+            log.error(ex.getMessage(), ex);
             return new ApiResult<List<ScoreRuleConfig>>().fail(ServiceResultEnum.SUCCESS_1);
         }
     }
 
-    @ApiOperation(value = "获取未跑分数据量",notes = "获取未跑分数据量")
+    @ApiOperation(value = "获取未跑分数据量", notes = "获取未跑分数据量")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids",value = "跑分数据所选的数据id，逗号分隔",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "apiCode",value = "apiCode",required = true,dataType = "String")
+            @ApiImplicitParam(name = "ids", value = "跑分数据所选的数据id，逗号分隔", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getNum")
-    public ApiResult<Integer> getNum(String ids,String apiCode){
+    public ApiResult<Integer> getNum(String ids, String apiCode) {
         try {
-            Integer num = fastTaskRuleService.getNum(ids,apiCode);
+            Integer num = fastTaskRuleService.getNum(ids, apiCode);
             return new ApiResult<Integer>().success(num);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
             return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
         }
     }

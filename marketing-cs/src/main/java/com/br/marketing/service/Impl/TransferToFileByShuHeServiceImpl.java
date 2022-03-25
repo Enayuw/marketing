@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -16,6 +18,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -314,16 +317,24 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         creatTimeMap.getOrDefault("taskId", "") + separator +
                         transferSyncUser.getUserType() + separator +
                         transferSyncUser.getCustNum() + separator +
-                        reserveField1Json.getOrDefault("cell", "") + separator +
-                        reserveField1Json.getOrDefault("is_turn", "") + separator +
-                        reserveField1Json.getOrDefault("is_black", "") + separator +
+                        DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
+                                String.valueOf(reserveField1Json.getOrDefault("cell", ""))
+                        ).getBytes(StandardCharsets.UTF_8))
+                        + separator +
+                        reserveField1Json.getOrDefault("is_turn", "").toString() + separator +
+                        reserveField1Json.getOrDefault("is_black", "").toString() + separator +
                         (StringUtils.isEmpty(transferSyncUser.getLoginTime()) ? ""
                                 : transferSyncUser.getLoginTime()) + separator +
-                        reserveField1Json.getOrDefault("clc_usr_lst_app_sta_tim", "") + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_pho_tim", "") + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_idt_tim", "") + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_crd_tim", "") + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_inf_tim", "") + separator +
+                        reserveField1Json.getOrDefault("clc_usr_lst_app_sta_tim", "").toString()
+                        + separator +
+                        reserveField1Json.getOrDefault("clc_usr_iso_pho_tim", "").toString()
+                        + separator +
+                        reserveField1Json.getOrDefault("clc_usr_iso_idt_tim", "").toString()
+                        + separator +
+                        reserveField1Json.getOrDefault("clc_usr_iso_crd_tim", "").toString()
+                        + separator +
+                        reserveField1Json.getOrDefault("clc_usr_iso_inf_tim", "").toString()
+                        + separator +
                         (StringUtils.isEmpty(transferSyncUser.getApplyTime()) ? ""
                                 : transferSyncUser.getApplyTime()) + separator +
                         (StringUtils.isEmpty(transferSyncUser.getAuditTime()) ? ""
@@ -333,8 +344,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         reserveField1Json.getOrDefault("applyLoanTime", "") + separator +
                         (StringUtils.isEmpty(transferSyncUser.getLentTime()) ? ""
                                 : transferSyncUser.getLentTime()) + separator +
-                        (ObjectUtils.isEmpty(transferSyncUser.getInsertTime()) ? ""
-                                : transferSyncUser.getInsertTime()) + "\r\n";
+                        (ObjectUtils.isEmpty(transferSyncUser.getCreateTime()) ? ""
+                                : DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
+                        + "\r\n";
                 writer.write(sb);
                 writer.flush();
             }
