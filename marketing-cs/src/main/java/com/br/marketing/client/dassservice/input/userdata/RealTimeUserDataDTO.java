@@ -1,7 +1,6 @@
 package com.br.marketing.client.dassservice.input.userdata;
 
 import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
 
