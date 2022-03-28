@@ -98,6 +98,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
             caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
             caseShuheUser.setUserType(transfer.getUserType());
+            caseShuheUser.setCustNum(transfer.getCustNum());
             shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
         }
     }
@@ -166,6 +167,8 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             this.caseShuheUser.setClcUsrAdtLmtItr(this.transfer.getAuditAmount());
             this.caseShuheUser.setClcUsrFstLndTimCshBtHl(this.transfer.getLentTime());
             this.caseShuheUser.setUserType(this.transfer.getUserType());
+            this.caseShuheUser.setApiCode(this.transfer.getApiCode());
+            this.caseShuheUser.setCustNum(this.transfer.getCustNum());
         }
     }
 }

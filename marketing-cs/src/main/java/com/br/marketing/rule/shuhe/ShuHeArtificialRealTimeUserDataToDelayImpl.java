@@ -139,7 +139,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                         : transfer.gettCid();
                 if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
                         , transfer.getCreateTime())) {
-                    long setnx = redisChgService.setnx(key, tCid, (int) getKeyExpiration());
+                    long setnx = redisChgService.setnx(key, String.valueOf(System.currentTimeMillis())
+                            , (int) getKeyExpiration());
                     return setnx == 1;
                 }
             }
