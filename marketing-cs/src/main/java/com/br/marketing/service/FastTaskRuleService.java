@@ -2,8 +2,8 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public interface FastTaskRuleService {
      * @param user
      * @return
      */
-    ApiResult<Boolean> save(FastTaskRuleDetailVO vo, UserDetail user);
+    ApiResult<Boolean> save(FastTaskRuleDetailVO vo, MarketingUserDetail user);
 
     /**
      * 查看跑分记录
@@ -47,7 +47,7 @@ public interface FastTaskRuleService {
      * @param user
      * @return
      */
-    boolean updateStatusById(String id, Integer status, UserDetail user);
+    boolean updateStatusById(String id, Integer status, MarketingUserDetail user);
 
     /**
      * 修改跑分记录
@@ -56,7 +56,7 @@ public interface FastTaskRuleService {
      * @param user
      * @return
      */
-    ApiResult<Boolean> update(String id,String ruleName, String taskTime, UserDetail user);
+    ApiResult<Boolean> update(String id,String ruleName, String taskTime, MarketingUserDetail user);
 
     /**
      * 跑分规则下拉列表

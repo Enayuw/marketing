@@ -31,13 +31,17 @@ public class WebConfig extends WebMvcConfigurationSupport {
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionInterceptor)
-                .addPathPatterns("/rule/**","/pushrulefilter/**");
+                .addPathPatterns("/rule/**")
+                .addPathPatterns("/pushrulefilter/**")
+                .addPathPatterns("/user/**")
+                .addPathPatterns("/resource/**")
+                .addPathPatterns("/role/**");
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/rule/**","/pushrulefilter/**");
-//        registry.addInterceptor(sessionInterceptor)
-//                .addPathPatterns("/rule/**");
-//        registry.addInterceptor(authInterceptor)
-//                .addPathPatterns("/rule/**");
+                .addPathPatterns("/rule/**")
+                .addPathPatterns("/pushrulefilter/**")
+                .addPathPatterns("/user/**")
+                .addPathPatterns("/resource/**")
+                .addPathPatterns("/role/**");
         super.addInterceptors(registry);
     }
 }

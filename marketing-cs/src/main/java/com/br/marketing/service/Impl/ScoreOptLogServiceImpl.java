@@ -2,11 +2,11 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.ScoreOptLog;
 import com.br.marketing.entity.ScoreOptLogExample;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.ScoreOptLogMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ScoreOptLogService;
@@ -50,7 +50,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int save(ScoreRuleVO scoreRuleVO, int status, UserDetail userDetail) {
+    public int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail) {
         ScoreOptLog scoreOptLog = new ScoreOptLog();
         scoreOptLog.setApicode(scoreRuleVO.getApiCode());
         scoreOptLog.setCid(scoreRuleVO.getCid());
@@ -58,7 +58,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
         scoreOptLog.setRuleName(scoreRuleVO.getRuleName());
         scoreOptLog.setCreateTime(new Date());
         scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
-        scoreOptLog.setOptUserName(userDetail.getUsername());
+        scoreOptLog.setOptUserName(userDetail.getUserName());
         spliceConditionInfoJsonLog(scoreOptLog, scoreRuleVO.getVdSet());
         String jsonStr = "{\"".concat("strategyId\":\"").concat(scoreRuleVO.getStrategyId())
                 .concat("\",\"").concat("products\":").concat(scoreRuleVO.getStrategyProductShow()).concat("}");
