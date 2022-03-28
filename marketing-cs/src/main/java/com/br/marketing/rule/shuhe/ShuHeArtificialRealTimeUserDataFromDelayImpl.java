@@ -54,11 +54,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
+        MarketingTransferSyncUser transfer = shuHeContext.getTransfer();
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(transfer, shuHeContext));
+        realTimeUserDataDTO.getDassSingleImportAdapDTO().setTransferInfoId(context.getTransferInfoId());
         realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
         return realTimeUserDataDTO;
     }
@@ -93,6 +94,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
                         && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                         , "a", transfer.getUserType());
+                if (bool) {
+                    shuHeContext.setTransfer(dbTransferSyncUser);
+                }
             }
         }
         return bool;
@@ -149,7 +153,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportAdapDTO adapDTO = new DassSingleImportAdapDTO();
         adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, transfer, iUserType));
-        adapDTO.setTransferInfoId(transfer.getId());
         return adapDTO;
     }
 
@@ -189,7 +192,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setExtend(extend.toJSONString());
         dataDTO.setUid(transfer.getCustNum());
-        dataDTO.setAuditTime(transfer.getAuditAmount());
+        dataDTO.setAuditAmount(transfer.getAuditAmount());
         return dataDTO;
     }
 
