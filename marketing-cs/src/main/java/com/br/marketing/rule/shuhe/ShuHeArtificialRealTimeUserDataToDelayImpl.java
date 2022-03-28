@@ -139,7 +139,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                         : transfer.gettCid();
                 if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
                         , transfer.getCreateTime())) {
-                    long setnx = redisChgService.setnx(key, String.valueOf(System.currentTimeMillis())
+                    long setnx = redisChgService.setnx(key, "{\"millis\":\""
+                                    + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
                             , (int) getKeyExpiration());
                     return setnx == 1;
                 }
@@ -165,7 +166,14 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         example.settCid(tCid);
         example.setOrderByClause("create_time asc limit 0,1");
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return transferList.size() > 0 && transferList.get(0).getId().equals(id);
+        boolean bool = transferList.size() > 0 && transferList.get(0).getId().equals(id);
+        if (!bool) {
+            redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
+                    , "{\"millis\":\"" + System.currentTimeMillis()
+                            + "\",\"id\":\"" + transferList.get(0).getId() + "\"}"
+                    , (int) getKeyExpiration());
+        }
+        return bool;
     }
 
 }
