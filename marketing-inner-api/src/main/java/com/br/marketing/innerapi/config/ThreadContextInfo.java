@@ -1,18 +1,19 @@
 package com.br.marketing.innerapi.config;
 
-import com.br.marketing.dto.userinfo.UserDetail;
+
+import com.br.marketing.entity.auth.MarketingUserDetail;
 
 public class ThreadContextInfo {
-    static ThreadLocal<UserDetail> user = new ThreadLocal<UserDetail>();;
+    static ThreadLocal<MarketingUserDetail> user = new ThreadLocal<MarketingUserDetail>();
 
-    public static UserDetail getUser(){
+    public static MarketingUserDetail getUser(){
         if(user !=null){
             return user.get();
         }
             throw new NullPointerException("没有用户上线文信息");
     }
 
-    public static void setUser(UserDetail userDetail){
+    public static void setUser(MarketingUserDetail userDetail){
         user.set(userDetail);
     }
 
