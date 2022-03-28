@@ -181,7 +181,7 @@
         #{clcUsrFrtFqOrdTim,jdbcType=VARCHAR},
         #{clcUsrFstLndTimCshBtHl,jdbcType=VARCHAR}, #{jsonData,jdbcType=VARCHAR}, #{isTransfer,jdbcType=INTEGER},
         #{reserveField1,jdbcType=VARCHAR}, #{reserveField2,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
-        #{saveStatus,jdbcType=INTEGER}, #{errorInfo,jdbcType=LONGVARCHAR})
+        #{saveStatus,jdbcType=INTEGER}, #{errorInfo,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.CaseShuheUser">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
@@ -363,7 +363,7 @@
                 #{saveStatus,jdbcType=INTEGER},
             </if>
             <if test="errorInfo != null">
-                #{errorInfo,jdbcType=LONGVARCHAR},
+                #{errorInfo,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -465,7 +465,7 @@
                 save_status = #{record.saveStatus,jdbcType=INTEGER},
             </if>
             <if test="record.errorInfo != null">
-                error_info = #{record.errorInfo,jdbcType=LONGVARCHAR},
+                error_info = #{record.errorInfo,jdbcType=VARCHAR},
             </if>
         </set>
         <if test="_parameter != null">
@@ -503,7 +503,7 @@
         reserve_field2 = #{record.reserveField2,jdbcType=VARCHAR},
         status = #{record.status,jdbcType=INTEGER},
         save_status = #{record.saveStatus,jdbcType=INTEGER},
-        error_info = #{record.errorInfo,jdbcType=LONGVARCHAR}
+        error_info = #{record.errorInfo,jdbcType=VARCHAR}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -631,7 +631,7 @@
                 save_status = #{saveStatus,jdbcType=INTEGER},
             </if>
             <if test="errorInfo != null">
-                error_info = #{errorInfo,jdbcType=LONGVARCHAR},
+                error_info = #{errorInfo,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
@@ -666,7 +666,7 @@
             reserve_field2                = #{reserveField2,jdbcType=VARCHAR},
             status                        = #{status,jdbcType=INTEGER},
             save_status                   = #{saveStatus,jdbcType=INTEGER},
-            error_info                    = #{errorInfo,jdbcType=LONGVARCHAR}
+            error_info                    = #{errorInfo,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
     <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CaseShuheUser">

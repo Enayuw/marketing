@@ -6,7 +6,6 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -40,6 +39,9 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             if (syncUser == null) {
                 return false;
             }
+            if(transferSyncUser.getApplyDt() == null){
+                return false;
+            }
             Date applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
             Date appletTime = syncUser.getAppletTime();
             if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
@@ -70,6 +72,9 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             if ("4".equals(transferSyncUser.getUserType())) {
                 status = "0";
             } else {
+                if(transferSyncUser.getApplyDt() == null){
+                    return null;
+                }
                 Date applydt = null;
                 try {
                     applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
