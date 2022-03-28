@@ -1,22 +1,16 @@
 package com.br.marketing.strategy;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
-import com.br.marketing.common.annoation.RetryMethod;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.entity.PhoneSaleExtendShuhe;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.PhoneSaleExtendShuheMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
@@ -32,8 +26,8 @@ public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterface
     @Autowired
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
-    @Autowired
-    private DassServiceClient dassServiceClient;
+    @Resource
+    private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
     JSONObject call(List<RealTimeUserDataDTO> transferData, ProcessHandlerContext context) {
@@ -47,28 +41,9 @@ public class ArtificialRealTimeUserDataHandler extends AbstractExternalInterface
             DassSingleImportAdapDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
             dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
-            callDassRealTimeUserData(dassImportAdapDTO, 0);
+            methodRetryHandlerService.callDassRealTimeUserData(dassImportAdapDTO, 0);
         }
         return null;
-    }
-
-    /**
-     * 调用Dass接口
-     * 调用成功，将该批数据记录到数据库中以便数据对比
-     *
-     * @param dassImportAdapDTO
-     * @return
-     */
-    @RetryMethod
-    public Result callDassRealTimeUserData(DassSingleImportAdapDTO dassImportAdapDTO, Integer retry) {
-
-        Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
-        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            saveBizLog(dassImportAdapDTO.getExtendInfo(), handlerEnum().getCode(), dassImportAdapDTO.getTransferInfoId());
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
-        }
-        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
-        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     @Override
