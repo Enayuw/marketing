@@ -159,7 +159,7 @@ public class RobotaiApiServiceClient {
         try {
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                     .setUrl(robotOutboundUrl)
-                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)cahan
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(blackPhoneQueryDTO.getReqBlackPhoneDTO()).postTransferStr();
             if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
