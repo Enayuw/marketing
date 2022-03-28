@@ -16,6 +16,7 @@ import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private RedisChgService redisChgService;
     @Resource
     private PushDataService pushDataService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -116,8 +119,18 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private MarketingTransferSyncUser getDbTransferSyncUser(String custNum, String apiCode, String userType
             , String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        String time = marketingCommonConfig.getMessageQueueExpireTime();
+        long s = 3600L;
+        try {
+            if (StringUtils.hasText(time)) {
+                // 转换成秒
+                s = Long.parseLong(time) / 1000L + 3;
+            }
+        } catch (NumberFormatException e) {
+            log.error(e.getMessage(), e);
+        }
         LocalDateTime localDateTime = createTime.toInstant().atZone(
-                ZoneId.systemDefault()).toLocalDateTime().plusHours(1);
+                ZoneId.systemDefault()).toLocalDateTime().plusSeconds(s);
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeGreaterThanOrEqualTo(createTime)
                 .andCreateTimeLessThanOrEqualTo(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
