@@ -1,6 +1,5 @@
 package com.br.marketing.rule.shuhe;
 
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.origin.MqFact;
