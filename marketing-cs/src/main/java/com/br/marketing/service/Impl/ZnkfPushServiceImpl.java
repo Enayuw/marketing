@@ -148,7 +148,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }else if("促首借".equals(groupType)){
             //促首借的有效期:T+31日
             Integer day = handlerService.getShuHePeriodOfValidityDay(dto.getUserType());
-            isPeriod = iMarketingSyncUserService.isPeriodOfValidity(new Date(), day, dto.getCreateTime());
+            isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), day);
         }
         if (!isPeriod) {
             //不在有效期内
