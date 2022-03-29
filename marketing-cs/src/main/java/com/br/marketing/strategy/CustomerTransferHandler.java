@@ -5,6 +5,8 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleNecessaryData;
+import com.br.marketing.context.impl.CustomerTransferCollectDataImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -54,17 +56,23 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         int pageSize = 500;
         int totalCount = transferList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        String last;
         for (int i = 1; i <= pageCount; i++) {
             List<ConversionData> subList = new ArrayList<>();
             TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
             if (i == pageCount) {
                 subList = transferList.subList((i - 1) * pageSize, totalCount);
+                final RuleNecessaryData ruleNecessaryData = context.getRuleNecessaryData();
+                last = ruleNecessaryData instanceof CustomerTransferCollectDataImpl.CustomerTransferNecessaryData
+                        ? ((CustomerTransferCollectDataImpl.CustomerTransferNecessaryData) ruleNecessaryData).getLast()
+                        : "";
             } else {
                 subList = transferList.subList((i - 1) * pageSize, pageSize * (i));
+                last = "0";
             }
 
             robotOutboundDTO.setApiCode(context.getApiCode());
-            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList));
+            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, last));
             robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
 
             methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO,0);

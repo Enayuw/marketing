@@ -21,4 +21,11 @@ public class TransferJsonDataDTO {
         this.conversionData = conversionData;
         this.method = "conversionData";
     }
+
+    public TransferJsonDataDTO(List<ConversionData> conversionData, String last) {
+        this.accessNumber = UUID.randomUUID().toString();
+        this.conversionData = conversionData;
+        this.method = "conversionData";
+        this.last = last;
+    }
 }
