@@ -11,6 +11,7 @@ public class TransferJsonDataDTO {
     private List<ConversionData> conversionData;
     private String method;
     private String platApiCode;
+    private String last;
 
     public TransferJsonDataDTO() {
     }
