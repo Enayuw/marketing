@@ -14,7 +14,6 @@ import java.util.Date;
  */
 public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSyncAdaptee {
 
-    private static final long serialVersionUID = -6001852261613858955L;
 
     @Override
     public void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId) {
