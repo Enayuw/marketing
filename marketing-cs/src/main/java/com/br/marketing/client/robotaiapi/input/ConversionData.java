@@ -63,4 +63,9 @@ public class ConversionData extends InterfaceParams {
      * 数据id
      */
     private String dataId;
+
+    /**
+     * 转化数据类型 1:实时 2:非实时
+     */
+    private String transformType;
 }
