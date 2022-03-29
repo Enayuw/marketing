@@ -523,8 +523,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
 
     @Override
     public ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData) {
-        long first = System.currentTimeMillis();
         ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+        responseShuheDTO.success();
         ShuheTransferJsonDTO jsonDTO = null;
         try {
             jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
@@ -597,9 +597,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
             }
-            long last = System.currentTimeMillis();
-            log.warn("接收数禾转化数据(apiCode={};custNum={};userType={})共耗时:{}ms"
-                    , apiCode, jsonDTO.getOrderId(), jsonDTO.getBizType(), last - first);
             return responseShuheDTO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -613,7 +610,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
      */
     private void goTransferNew(String apiCode, CaseShuheUser caseShuheUser
             , MarketingTransferSyncUser transferSyncUser, boolean sendToQueueBool) {
-        long first = System.currentTimeMillis();
         this.setCid(transferSyncUser);
         SecureRandom random = new SecureRandom();
         transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
@@ -671,9 +667,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             log.error(e.getMessage(), e);
             alarmMgs(caseShuheUser, e);
         }
-        long last = System.currentTimeMillis();
-        log.warn("数禾转化->标准转化(apiCode={};custNum={};userType={})共耗时:{}ms"
-                , apiCode, caseShuheUser.getCustNum(), caseShuheUser.getUserType(), last - first);
     }
 
 
@@ -688,63 +681,4 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
     private void alarmMgs(CaseShuheUser caseShuheUser) {
         alarmMgs(caseShuheUser, null);
     }
-
-//    private final SoftReference<ThreadLocal<ShuHeProcessHandlerContext>> localSoftReference =
-//            new SoftReference<>(new ThreadLocal<>());
-//
-//    @Override
-//    public void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer) {
-//        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
-//        if (threadLocal != null) {
-//            ShuHeProcessHandlerContext shuContext = threadLocal.get();
-//            if (shuContext != null) {
-//                context.setApiCode(shuContext.getApiCode());
-//                context.setContinueJudgeRule(shuContext.isContinueJudgeRule());
-//                context.setTaskId(shuContext.getTaskId());
-//                context.setMqFact(shuContext.getMqFact());
-//                context.setCaseShuheUser(shuContext.getCaseShuheUser());
-//                context.setiUserType(shuContext.getiUserType());
-//                context.setCreatTime(shuContext.getCreatTime());
-//                context.setTransferInfoId(shuContext.getTransferInfoId());
-//                context.setCustomerMap(shuContext.getCustomerMap());
-//                return;
-//            }
-//            threadLocal.set(context);
-//        }
-//        Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
-//                , transfer.getCustNum(), transfer.getUserType());
-//        context.setCreatTime(creatTime);
-//        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
-//        context.setiUserType(iUserType);
-//        context.setContinueJudgeRule(true);
-//        String reserveField1 = transfer.getReserveField1();
-//        if (org.apache.commons.lang3.StringUtils.isNotEmpty(reserveField1)) {
-//            JSONObject object = JSONObject.parseObject(reserveField1);
-//            CaseShuheUser caseShuheUser = new CaseShuheUser();
-//            caseShuheUser.setIsTurn(object.getString("is_turn"));
-//            caseShuheUser.setIsBlack(object.getString("is_black"));
-//            caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
-//            caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
-//            caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
-//            caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
-//            caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
-//            caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
-//            caseShuheUser.setCell(object.getString("cell"));
-//            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
-//            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
-//            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
-//            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
-//            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
-//            context.setCaseShuheUser(caseShuheUser);
-//            context.setTaskId(object.getString("taskId"));
-//        }
-//    }
-//
-//    @Override
-//    public void removeHandlerContext() {
-//        ThreadLocal<ShuHeProcessHandlerContext> threadLocal = localSoftReference.get();
-//        if (threadLocal != null) {
-//            threadLocal.remove();
-//        }
-//    }
 }

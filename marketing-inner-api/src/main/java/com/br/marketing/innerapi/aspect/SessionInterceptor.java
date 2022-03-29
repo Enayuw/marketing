@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
         HttpSession session = request.getSession();
         if (sessionId != null) {
             session.setAttribute("sessionId", sessionId);
-            UserDetail userDetail = this.getCacheAuthUser(sessionId, request);
+            MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
             if (userDetail == null) {
                 session.invalidate();
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
@@ -62,7 +62,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
         session = null;
     }
 
-    private UserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
+    private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
         if (this.redisService == null) {
             BeanFactory factory = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());
             this.redisService = (RedisAuthService)factory.getBean("redisService");
@@ -74,7 +74,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
             log.warn("【session校验失败】获取到用户信息为空");
             throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
         } else {
-            UserDetail userDetail = (UserDetail) JSON.parseObject(result, UserDetail.class);
+            MarketingUserDetail userDetail = (MarketingUserDetail) JSON.parseObject(result, MarketingUserDetail.class);
             this.redisService.expire(sessionId, "app_session_prefix", 1800);
             return userDetail;
         }

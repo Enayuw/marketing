@@ -7,8 +7,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
@@ -75,7 +75,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void save(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
+    public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO);
         MarketingCustomerExample example = new MarketingCustomerExample();
@@ -130,7 +130,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
     @Override
-    public boolean setStatus(Long rid, Long crId, Integer status, UserDetail userDetail) {
+    public boolean setStatus(Long rid, Long crId, Integer status,  MarketingUserDetail userDetail) {
         ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(rid);
         if (ObjectUtils.isEmpty(rule) || rule.getIsDel() != 1) {
             throw new BusinessException("抱歉小主，规则无效或不存在");
@@ -229,7 +229,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail) {
+    public void modify(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         if (ObjectUtils.isEmpty(userDetail)) {
             throw new BusinessException("素不相识的小主，请登录后重试");
         }
