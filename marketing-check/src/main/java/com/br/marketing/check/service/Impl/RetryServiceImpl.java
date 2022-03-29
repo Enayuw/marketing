@@ -85,8 +85,8 @@ public class RetryServiceImpl {
             if(bean==null){
                 throw new RuntimeException("找不到对应的bean");
             }
-            Method method = bean.getClass().getMethod(retryMethod, paramType);;
-            Result result = (Result) method.invoke(bean, o);
+            Method method ;
+            Result result ;
             if(aopRetry.equals(retryMainLog.getServiceType())){
                 method =  bean.getClass().getMethod(retryMethod, paramType,Integer.class);
                 // 注解的参数值是 常量，无法通过注解优雅实现

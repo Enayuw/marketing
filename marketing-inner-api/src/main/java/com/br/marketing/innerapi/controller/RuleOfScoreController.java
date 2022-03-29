@@ -3,7 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
@@ -87,7 +87,7 @@ public class RuleOfScoreController {
             FieldError fieldError = fieldErrors.get(0);
             return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
         }
-        UserDetail user = ThreadContextInfo.getUser();
+        MarketingUserDetail user = ThreadContextInfo.getUser();
         scoreRuleConfigService.save(scoreRuleVO, user);
         return new ApiResult<>().success();
     }
@@ -108,7 +108,7 @@ public class RuleOfScoreController {
     public ApiResult<?> status(@PathVariable(name = "rid") Long rid
             , @PathVariable(name = "crId") Long crId
             , @PathVariable(name = "status") Integer status) {
-        UserDetail user = ThreadContextInfo.getUser();
+        MarketingUserDetail user = ThreadContextInfo.getUser();
         boolean bool = scoreRuleConfigService.setStatus(rid, crId, status, user);
         if (bool) {
             return new ApiResult<>().success(true);
@@ -148,7 +148,7 @@ public class RuleOfScoreController {
             FieldError fieldError = fieldErrors.get(0);
             return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(), fieldError.getDefaultMessage());
         }
-        UserDetail user = ThreadContextInfo.getUser();
+        MarketingUserDetail user = ThreadContextInfo.getUser();
         scoreRuleConfigService.modify(scoreRuleVO, user);
         return new ApiResult<>().success();
     }

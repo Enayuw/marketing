@@ -2,9 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -59,7 +60,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     }
 
     @Override
-    public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, UserDetail user) {
+    public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user) {
         VariableDic variableDic = new VariableDic();
         variableDic.setFieldName(vo.getFieldName());
         variableDic.setFieldValue(vo.getFieldValue());
