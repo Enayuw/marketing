@@ -95,7 +95,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                     b = Boolean.FALSE;
                 }
                 bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                        && cacheExists(transfer));
+                        && cacheExists(transfer, shuHeContext, day));
             }
         }
         return bool;
@@ -127,7 +127,12 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         return ChronoUnit.SECONDS.between(now, zonedDateTime);
     }
 
-    private boolean cacheExists(MarketingTransferSyncUser transfer) {
+    /**
+     * 检查缓存中是否存在过满足规则的cusNum
+     */
+    private boolean cacheExists(MarketingTransferSyncUser transfer
+            , ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext
+            , Integer day) {
         final String custNum = transfer.getCustNum();
         final String apiCode = transfer.getApiCode();
         final String userType = transfer.getUserType();
@@ -140,37 +145,76 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (ret == 1) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
                         : transfer.gettCid();
-                Long firstId = getDbTransferSyncUser(custNum, apiCode, userType, tCid, createTime);
-                if (transfer.getId().equals(firstId)) {
-                    return true;
+                boolean b = checkDbData(custNum, apiCode, userType, tCid, createTime, transfer.getId(), day, shuHeContext);
+                if (!b) {
+                    // 更新缓存中的值为当天案件编号为首次满足规则的id
+                    redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
+                            , "{\"millis\":\"" + System.currentTimeMillis()
+                                    + "\",\"id\":\"" + shuHeContext.getTransfer().getId() + "\"}"
+                            , (int) getKeyExpiration());
+                    shuHeContext.setTransfer(null);
                 }
-                // 更新缓存中的值为当天案件编号为首次的id
-                redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
-                        , "{\"millis\":\"" + System.currentTimeMillis()
-                                + "\",\"id\":\"" + firstId + "\"}"
-                        , (int) getKeyExpiration());
+                return b;
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            Long firstId = getDbTransferSyncUser(custNum, apiCode, userType, transfer.gettCid(), createTime);
-            return transfer.getId().equals(firstId);
+            return checkDbData(custNum, apiCode, userType, transfer.gettCid(), createTime, transfer.getId(), day, shuHeContext);
         }
         return false;
     }
 
     /**
-     * 查询db获取cusNum当天最早的数据
+     * 查询db获取cusNum当天符合延迟规则的最新的数据集合
      */
-    private Long getDbTransferSyncUser(String custNum, String apiCode, String userType, String tCid, Date createTime) {
+    private List<MarketingTransferSyncUser> getDbTransferSyncUser(String custNum, String apiCode, String userType, String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(
                 LocalDateTime.now().toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
                 , createTime);
         example.settCid(tCid);
-        example.setOrderByClause("create_time asc limit 0,1");
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return transferList.size() > 0 ? transferList.get(0).getId() : null;
+        example.setOrderByClause("create_time DESC limit 0,2000");
+        return marketingTransferSyncUserMapper.selectByExample(example);
+    }
+
+    /**
+     * 检查db获取cusNum当天的数据集合，判断当前cusNum是否是符合延迟规则的最早的cusNum
+     */
+    private boolean checkDbData(String custNum,
+                                String apiCode,
+                                String userType,
+                                String tCid,
+                                Date createTime,
+                                Long id,
+                                Integer day,
+                                ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
+        List<MarketingTransferSyncUser> list = getDbTransferSyncUser(
+                custNum, apiCode, userType, tCid, createTime);
+        if (list.size() == 1 && list.get(0).getId().equals(id)) {
+            return true;
+        }
+        int size = list.size();
+        int mark = 0;
+        for (int i = 0; i < size; i++) {
+            if (list.get(i).getId().equals(id)) {
+                mark = i + 1;
+                break;
+            }
+        }
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        IUserType iUserType = shuHeContext.getIUserType();
+        Date creatTime = shuHeContext.getCreatTime();
+        for (int i = mark; i < size; i++) {
+            MarketingTransferSyncUser transferSyncUser = list.get(i);
+            shuHeContext.setTransfer(transferSyncUser);
+            boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                    , transferSyncUser.getCreateTime(), day, creatTime)
+                    && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime);
+            if (b) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
