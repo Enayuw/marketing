@@ -56,23 +56,23 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         int pageSize = 500;
         int totalCount = transferList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-        String last;
+        final RuleNecessaryData ruleNecessaryData = context.getRuleNecessaryData();
+        String last = ruleNecessaryData instanceof CustomerTransferCollectDataImpl.CustomerTransferNecessaryData
+                ? ((CustomerTransferCollectDataImpl.CustomerTransferNecessaryData) ruleNecessaryData).getLast() : null;
+        String lastRep;
         for (int i = 1; i <= pageCount; i++) {
             List<ConversionData> subList = new ArrayList<>();
             TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
             if (i == pageCount) {
                 subList = transferList.subList((i - 1) * pageSize, totalCount);
-                final RuleNecessaryData ruleNecessaryData = context.getRuleNecessaryData();
-                last = ruleNecessaryData instanceof CustomerTransferCollectDataImpl.CustomerTransferNecessaryData
-                        ? ((CustomerTransferCollectDataImpl.CustomerTransferNecessaryData) ruleNecessaryData).getLast()
-                        : "";
+                lastRep = last;
             } else {
                 subList = transferList.subList((i - 1) * pageSize, pageSize * (i));
-                last = "0";
+                lastRep = last != null ? "0" : null;
             }
 
             robotOutboundDTO.setApiCode(context.getApiCode());
-            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, last));
+            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, lastRep));
             robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
 
             methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO,0);
