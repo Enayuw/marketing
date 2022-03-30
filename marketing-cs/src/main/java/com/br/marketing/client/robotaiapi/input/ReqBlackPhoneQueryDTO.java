@@ -14,7 +14,7 @@ public class ReqBlackPhoneQueryDTO {
 
     private ReqBlackPhoneDTO reqBlackPhoneDTO;
 
-    private List<BlackQueryDetailDTO> blackQueryDetailDTOList;
+    private BlackPhoneDTO<BlackQueryDetailDTO> detailBlackPhoneDTO;
 
 
 }

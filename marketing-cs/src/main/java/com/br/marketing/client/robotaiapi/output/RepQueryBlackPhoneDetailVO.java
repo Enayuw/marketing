@@ -1,7 +1,10 @@
 package com.br.marketing.client.robotaiapi.output;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class RepQueryBlackPhoneDetailVO {
 
     /**
@@ -13,6 +16,7 @@ public class RepQueryBlackPhoneDetailVO {
      */
     private List<ErrorData> errorData;
 
+    @Data
     public static class SuccessData {
 
         /**
@@ -25,6 +29,7 @@ public class RepQueryBlackPhoneDetailVO {
         private String dataId;
     }
 
+    @Data
     public static class ErrorData {
 
         /**

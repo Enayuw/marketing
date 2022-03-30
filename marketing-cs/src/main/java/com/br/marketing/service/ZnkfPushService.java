@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 
@@ -25,4 +26,5 @@ public interface ZnkfPushService {
      */
     Boolean cusNumIsFirstToday(String key);
 
+    ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate);
 }
