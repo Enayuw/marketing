@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;

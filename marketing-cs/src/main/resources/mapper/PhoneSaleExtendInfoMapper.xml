@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapper" >
+    <insert id="saveBatch" parameterType="list">
+        insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
+        user_type, applet_date, applet_time,
+        status, p_status, create_time,
+        update_time, type, dx_type,
+        push_dx_time, transform_type, source_id
+        )values
+         <foreach collection="list" item="data" separator=",">
+             (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR}, #{data.taskId,jdbcType=VARCHAR},
+             #{data.userType,jdbcType=VARCHAR}, #{data.appletDate,jdbcType=VARCHAR}, #{data.appletTime,jdbcType=VARCHAR},
+             #{data.status,jdbcType=VARCHAR}, #{data.pStatus,jdbcType=INTEGER}, #{data.createTime,jdbcType=TIMESTAMP},
+             #{data.updateTime,jdbcType=TIMESTAMP}, #{data.type,jdbcType=VARCHAR}, #{data.dxType,jdbcType=VARCHAR},
+             #{data.pushDxTime,jdbcType=TIMESTAMP}, #{data.transformType,jdbcType=VARCHAR}, #{data.sourceId,jdbcType=BIGINT}
+             )
+            </foreach>
+    </insert>
+
+    <update id="updateBatch">
+        update b_phone_sale_extend_info set p_status = 2 where p_status = 1 and source_id  in
+        <foreach collection="set" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>
