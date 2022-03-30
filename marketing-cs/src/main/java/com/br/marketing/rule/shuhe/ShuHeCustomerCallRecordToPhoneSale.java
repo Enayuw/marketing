@@ -204,7 +204,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     isRemoveFlag = isRemove(bo, clcUsrIsoAtoTim);
                 }
             }else if("促首借".equals(bo.getUserType())){
-                String ordTim = json.getString("clc_usr_frt_fq_ord_tim");
+                String ordTim = json.getString("applyLoanTime");
                 if(StringUtils.isNotEmpty(ordTim)){
                     isRemoveFlag = isRemove(bo,ordTim);
                 }

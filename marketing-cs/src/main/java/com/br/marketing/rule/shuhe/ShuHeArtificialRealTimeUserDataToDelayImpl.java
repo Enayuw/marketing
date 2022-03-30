@@ -4,6 +4,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -14,10 +15,10 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -44,6 +45,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     private RedisChgService redisChgService;
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Resource
+    private SystemExceptionServiceImpl systemExceptionService;
 
     /**
      * apiCoid:userType:cusNum
@@ -64,7 +67,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -76,10 +79,22 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 final Date creatTime = shuHeContext.getCreatTime();
+                Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
-                        , transfer.getCreateTime(), creatTime);
+                        , transfer.getCreateTime(), day, creatTime);
+                if (b && iUserType instanceof CuShouJie
+                        && !"3710023".equals(transfer.getApiCode())
+                        && !"7410785".equals(transfer.getApiCode())
+                ) {
+                    systemExceptionService.sendAlarm(String.format(
+                            "检测到数禾客户推送转化数据存在异常：该apiCode下不应该出现该场景的数据！" +
+                                    "\n场景:%s\nApiCode:%s\n案件编号:%s\n请及时跟进^_^"
+                            , transfer.getUserType(), transfer.getApiCode(), transfer.getCustNum())
+                            , "MARKETING-INNER-API");
+                    b = Boolean.FALSE;
+                }
                 bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                        && cacheExists(transfer));
+                        && cacheExists(transfer, shuHeContext, day));
             }
         }
         return bool;
@@ -111,44 +126,95 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         return ChronoUnit.SECONDS.between(now, zonedDateTime);
     }
 
-    private boolean cacheExists(MarketingTransferSyncUser transfer) {
+    /**
+     * 检查缓存中是否存在过满足规则的cusNum
+     */
+    private boolean cacheExists(MarketingTransferSyncUser transfer
+            , ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext
+            , Integer day) {
         final String custNum = transfer.getCustNum();
         final String apiCode = transfer.getApiCode();
         final String userType = transfer.getUserType();
+        final Date createTime = transfer.getCreateTime();
         String key = String.format(KEY, apiCode, userType, custNum);
         try {
-            boolean exists = redisChgService.exists(key);
-            if (!exists) {
-                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
-                        : transfer.gettCid();
-                if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
-                        , transfer.getCreateTime())) {
-                    long setnx = redisChgService.setnx(key, tCid, (int) getKeyExpiration());
-                    return setnx == 1;
-                }
-            }
+            long ret = redisChgService.setnx(key, "{\"millis\":\""
+                            + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
+                    , (int) getKeyExpiration());
+            return ret == 1;
+//            if (ret == 1) {
+//                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
+//                        : transfer.gettCid();
+//                boolean b = checkDbData(custNum, apiCode, userType, tCid, createTime, transfer.getId(), day, shuHeContext);
+//                if (!b) {
+//                    // 更新缓存中的值为当天案件编号为首次满足规则的id
+//                    redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
+//                            , "{\"millis\":\"" + System.currentTimeMillis()
+//                                    + "\",\"id\":\"" + shuHeContext.getTransfer().getId() + "\"}"
+//                            , (int) getKeyExpiration());
+//                    shuHeContext.setTransfer(null);
+//                }
+//                return b;
+//            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), transfer.gettCid()
-                    , transfer.getCreateTime());
+            return checkDbData(custNum, apiCode, userType, transfer.gettCid(), createTime, transfer.getId(), day, shuHeContext);
         }
-        return false;
+//        return false;
     }
 
     /**
-     * 查询db获取cusNum当天最早的数据
+     * 查询db获取cusNum当天符合延迟规则的最新的数据集合
      */
-    private boolean getDbTransferSyncUser(String custNum, String apiCode, String userType, long id
-            , String tCid, Date createTime) {
+    private List<MarketingTransferSyncUser> getDbTransferSyncUser(String custNum, String apiCode, String userType, String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(
                 LocalDateTime.now().toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
                 , createTime);
         example.settCid(tCid);
-        example.setOrderByClause("create_time asc limit 0,1");
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        return transferList.size() > 0 && transferList.get(0).getId().equals(id);
+        example.setOrderByClause("create_time DESC limit 0,2000");
+        return marketingTransferSyncUserMapper.selectByExample(example);
+    }
+
+    /**
+     * 检查db获取cusNum当天的数据集合，判断当前cusNum是否是符合延迟规则的最早的cusNum
+     */
+    private boolean checkDbData(String custNum,
+                                String apiCode,
+                                String userType,
+                                String tCid,
+                                Date createTime,
+                                Long id,
+                                Integer day,
+                                ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
+        List<MarketingTransferSyncUser> list = getDbTransferSyncUser(
+                custNum, apiCode, userType, tCid, createTime);
+        if (list.size() == 1 && list.get(0).getId().equals(id)) {
+            return true;
+        }
+        int size = list.size();
+        int mark = 0;
+        for (int i = 0; i < size; i++) {
+            if (list.get(i).getId().equals(id)) {
+                mark = i + 1;
+                break;
+            }
+        }
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        IUserType iUserType = shuHeContext.getIUserType();
+        Date creatTime = shuHeContext.getCreatTime();
+        for (int i = mark; i < size; i++) {
+            MarketingTransferSyncUser transferSyncUser = list.get(i);
+            shuHeContext.setTransfer(transferSyncUser);
+            boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                    , transferSyncUser.getCreateTime(), day, creatTime)
+                    && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime);
+            if (b) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

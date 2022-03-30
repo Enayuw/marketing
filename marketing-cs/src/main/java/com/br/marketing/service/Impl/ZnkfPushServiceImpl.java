@@ -14,6 +14,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -59,6 +60,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Resource
     private RabbitMqProducter producter;
+
+    @Resource
+    private DataLoadingHandlerService handlerService;
 
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
@@ -114,7 +118,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      * @return
      */
     @Override
-    public Boolean isSatisfyPushDX(CallRecordBO dto) {
+    public Boolean isSatisfyPushDX(CallRecordBO dto) throws IllegalAccessException {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
         if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
             log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
@@ -142,8 +146,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
                     dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
         }else if("促首借".equals(groupType)){
-            //先返回false，需要加促首借的有效期
-            return false;
+            //促首借的有效期:T+31日
+            Integer day = handlerService.getShuHePeriodOfValidityDay(dto.getUserType());
+            isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), day);
         }
         if (!isPeriod) {
             //不在有效期内

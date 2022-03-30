@@ -3,8 +3,10 @@ package com.br.marketing.adapter.transfer.adaptee;
 import com.br.marketing.adapter.transfer.IToTransferSyncAdaptee;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * 数禾适配者
@@ -14,14 +16,15 @@ import java.util.Date;
  */
 public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSyncAdaptee {
 
-    private static final long serialVersionUID = -6001852261613858955L;
+    private final static String REGEX_DATE_TIME = "^(?:(?!0000)[0-9]{4}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29)\\s+([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$";
+    private final static Pattern COMPILE = Pattern.compile(REGEX_DATE_TIME);
 
     @Override
     public void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId) {
         transferSyncUser.setApiCode(this.getApiCode());
         transferSyncUser.setCustNum(this.getCustNum());
         transferSyncUser.setUserType(this.getUserType());
-        transferSyncUser.setLoginTime(this.getClcUsrFstLogTimAll());
+        transferSyncUser.setLoginTime(addMillisecond(this.getClcUsrFstLogTimAll()));
         String jsonStr = "{" + "\"is_turn\":\"" + this.getIsTurn() + "\"," +
                 "\"is_black\":\"" + this.getIsBlack() + "\"," +
                 "\"clc_usr_lst_app_sta_tim\":\"" + this.getClcUsrLstAppStaTim() + "\"," +
@@ -34,10 +37,23 @@ public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSy
                 "\"cell\":\"" + this.getCell() + "\"" +
                 "}";
         transferSyncUser.setReserveField1(jsonStr);
-        transferSyncUser.setApplyTime(this.getClcUsrIsoAtoTim());
-        transferSyncUser.setAuditTime(this.getClcUsrAdtTimRcnLon());
+        transferSyncUser.setApplyTime(addMillisecond(this.getClcUsrIsoAtoTim()));
+        transferSyncUser.setAuditTime(addMillisecond(this.getClcUsrAdtTimRcnLon()));
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
-        transferSyncUser.setLentTime(this.getClcUsrFstLndTimCshBtHl());
+        transferSyncUser.setLentTime(addMillisecond(this.getClcUsrFstLndTimCshBtHl()));
         transferSyncUser.setCreateTime(new Date());
+    }
+
+    private String addMillisecond(String dateStr) {
+        if (StringUtils.isEmpty(dateStr)) {
+            return dateStr;
+        }
+        try {
+            if (COMPILE.matcher(dateStr).matches()) {
+                return dateStr.concat(":000");
+            }
+        } catch (Exception ignored) {
+        }
+        return dateStr;
     }
 }
