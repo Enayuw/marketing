@@ -4,8 +4,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -80,7 +80,7 @@ public class CustomerController {
     public ApiResult<Boolean> saveOrUpdateCustomer(@RequestBody @Validated MarketingCustomerListVO vo){
         try {
             //获取用户上下文
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             return marketingCustomerService.saveOrUpdateCustomer(vo,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);

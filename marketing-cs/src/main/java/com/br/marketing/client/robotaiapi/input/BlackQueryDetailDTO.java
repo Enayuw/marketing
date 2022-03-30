@@ -32,5 +32,9 @@ public class BlackQueryDetailDTO {
      * 加密方式(见：PhoneEncryptTypeEnum)
      */
     private String encryptType;
+    /**
+     * 拓展字段
+     */
+    private String extraData;
 
 }

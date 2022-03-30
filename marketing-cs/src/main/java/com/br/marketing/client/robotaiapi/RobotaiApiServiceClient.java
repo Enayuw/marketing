@@ -151,24 +151,24 @@ public class RobotaiApiServiceClient {
 
     /**
      * 黑名单查询接口-宜信
+     *
      * @param blackPhoneQueryDTO
      * @return RepQueryBlackPhoneVO
      */
-    public RepQueryBlackPhoneVO  queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO){
-        try{
-            InterfaceLog interfaceLog = new InterfaceLog();
-            interfaceLog.setApiCode(blackPhoneQueryDTO.getReqBlackPhoneDTO().getApiCode());
-            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
-                    .setInterfaceLog(interfaceLog)
+    public RepQueryBlackPhoneVO queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+        try {
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
+                    .setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .setRequestParam(blackPhoneQueryDTO.getBlackQueryDetailDTOList()).postTransferStr();
-            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+                    .setRequestParam(blackPhoneQueryDTO.getReqBlackPhoneDTO()).postTransferStr();
+            if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
             RepQueryBlackPhoneVO result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<RepQueryBlackPhoneVO>(){}.getType());
+                    , new TypeReference<RepQueryBlackPhoneVO>() {
+                    }.getType());
             return result;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             RepQueryBlackPhoneVO result = new RepQueryBlackPhoneVO();
             result.setCode("9999");

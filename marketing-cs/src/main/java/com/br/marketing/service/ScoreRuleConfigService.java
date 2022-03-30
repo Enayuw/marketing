@@ -1,8 +1,8 @@
 package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 
@@ -40,7 +40,7 @@ public interface ScoreRuleConfigService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/2 14:15
      */
-    void save(ScoreRuleVO scoreRuleVO, UserDetail userDetail);
+    void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail);
 
     /**
      * 设置开启状态 1-开启；2-禁用；3-开启中
@@ -51,7 +51,7 @@ public interface ScoreRuleConfigService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 11:14
      */
-    boolean setStatus(Long rid, Long crId, Integer status, UserDetail userDetail);
+    boolean setStatus(Long rid, Long crId, Integer status, MarketingUserDetail userDetail);
 
     /**
      * 获取详情
@@ -74,5 +74,5 @@ public interface ScoreRuleConfigService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 15:15
      */
-    void modify(ScoreRuleVO scoreRuleVO, UserDetail userDetail);
+    void modify(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail);
 }

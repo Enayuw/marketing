@@ -57,20 +57,20 @@ public class RetryAspect {
             String className = jp.getTarget().getClass().getName();
             Method sMethod = ((MethodSignature) jp.getSignature()).getMethod();
             RetryMethod retryMethod = sMethod.getAnnotation(RetryMethod.class);
-            int i = retryMethod.retryNum();
-            retryMainLog.setRetryService(className);
-            retryMainLog.setServiceType(1);
-            retryMainLog.setRetryNum(0);
-            retryMainLog.setRetryStatus(1);
-            retryMainLog.setCreateTime(new Date());
-            retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-            retryMainLog.setRetryMethod(sMethod.getName());
-            retryMainLog.setRetryMaxNum(i);
             try {
                 Object res=  jp.proceed();
                 if(res instanceof Result){
                     Result res1 = (Result) res;
                     if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(res1.getCode())){
+                        int i = retryMethod.retryNum();
+                        retryMainLog.setRetryService(className);
+                        retryMainLog.setServiceType(1);
+                        retryMainLog.setRetryNum(0);
+                        retryMainLog.setRetryStatus(1);
+                        retryMainLog.setCreateTime(new Date());
+                        retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                        retryMainLog.setRetryMethod(sMethod.getName());
+                        retryMainLog.setRetryMaxNum(i);
                         retryMainLogMapper.insertSelective(retryMainLog);
                     }
                 }

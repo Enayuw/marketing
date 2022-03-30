@@ -10,7 +10,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;

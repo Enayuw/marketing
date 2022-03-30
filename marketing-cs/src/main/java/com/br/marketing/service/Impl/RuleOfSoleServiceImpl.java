@@ -7,8 +7,9 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.*;
@@ -198,7 +199,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
 
     @Override
-    public boolean updateStatusById(String id, Integer status,UserDetail userDetail) {
+    public boolean updateStatusById(String id, Integer status, MarketingUserDetail userDetail) {
         SoleRuleConfig config = new SoleRuleConfig();
         config.setId(Long.parseLong(id));
         config.setStatus(status);
@@ -216,8 +217,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             //根据规则id查看其下的匹配商户
             String soleCustomers = getCusBySoleId(Long.parseLong(id));
             soleOptLog.setCustomerInfo(soleCustomers);
-            soleOptLog.setOptUserId(userDetail.getUserId());
-            soleOptLog.setOptUserName(userDetail.getUsername());
+            soleOptLog.setOptUserId(String.valueOf(userDetail.getId()));
+            soleOptLog.setOptUserName(userDetail.getUserName());
             /*soleOptLog.setOptUserId("sjj");
             soleOptLog.setOptUserName("sjj");*/
             soleOptLog.setUpdateTime(new Date());
@@ -267,7 +268,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     @Override
     @Transactional
-    public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, UserDetail userDetail) {
+    public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, MarketingUserDetail userDetail) {
 
         //校验规则是否存在
         boolean flag = getRuleOfSoleOnly(vo);
@@ -332,8 +333,8 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         //根据规则id查看其下的匹配商户
         String soleCustomers = getCusBySoleId(Long.parseLong(vo.getSoleId()));
         soleOptLog.setCustomerInfo(soleCustomers);
-        soleOptLog.setOptUserId(userDetail.getUserId());
-        soleOptLog.setOptUserName(userDetail.getUsername());
+        soleOptLog.setOptUserId(String.valueOf(userDetail.getId()));
+        soleOptLog.setOptUserName(userDetail.getUserName());
        /* soleOptLog.setOptUserId("sjj");
         soleOptLog.setOptUserName("sjj");*/
         soleOptLog.setUpdateTime(new Date());

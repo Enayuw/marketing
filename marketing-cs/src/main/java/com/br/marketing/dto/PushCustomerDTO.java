@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -57,7 +57,7 @@ public class PushCustomerDTO {
     private BigDecimal mPercentage;
 
     @ApiModelProperty(value = "用户信息",hidden = true)
-    private UserDetail userDetail;
+    private MarketingUserDetail userDetail;
 
     public String getApiCode() {
         return apiCode;
@@ -147,11 +147,11 @@ public class PushCustomerDTO {
         this.mPercentage = mPercentage;
     }
 
-    public UserDetail getUserDetail() {
+    public MarketingUserDetail getUserDetail() {
         return userDetail;
     }
 
-    public void setUserDetail(UserDetail userDetail) {
+    public void setUserDetail(MarketingUserDetail userDetail) {
         this.userDetail = userDetail;
     }
 }

@@ -1,8 +1,8 @@
 package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.ScoreOptLog;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.ScoreRuleVO;
 
 import java.util.List;
@@ -37,5 +37,5 @@ public interface ScoreOptLogService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/10 18:03
      */
-    int save(ScoreRuleVO scoreRuleVO, int status, UserDetail userDetail);
+    int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail);
 }
