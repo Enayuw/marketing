@@ -68,4 +68,9 @@ public class ConversionData extends InterfaceParams {
      * 转化数据类型 1:实时 2:非实时
      */
     private String transformType;
+
+    /**
+     * 生效截止时间 格式yyyy-mm-dd HH:mm:ss
+     */
+    private String expireDate;
 }
