@@ -149,6 +149,9 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
         }
 
         private void setCaseShuheUserValue() {
+            if (this.transfer == null) {
+                return;
+            }
             String reserveField1 = this.transfer.getReserveField1();
             if (StringUtils.isNotEmpty(reserveField1)) {
                 JSONObject object = JSONObject.parseObject(reserveField1);
