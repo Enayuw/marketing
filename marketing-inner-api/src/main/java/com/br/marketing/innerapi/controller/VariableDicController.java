@@ -3,7 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.userinfo.UserDetail;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -82,7 +82,7 @@ public class VariableDicController {
     public ApiResult<Boolean> saveOrUpdateVariableDic(@RequestBody @Validated VariableDicListVO vo){
         try {
             //获取用户上下文
-            UserDetail user = ThreadContextInfo.getUser();
+            MarketingUserDetail user = ThreadContextInfo.getUser();
             return variableDicService.saveOrUpdateVariableDic(vo,user);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);

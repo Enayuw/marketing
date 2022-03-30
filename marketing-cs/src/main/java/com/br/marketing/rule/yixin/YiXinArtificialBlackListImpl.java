@@ -55,8 +55,10 @@ public class YiXinArtificialBlackListImpl implements AssembleData<BlackListDTO> 
             if (StringUtils.hasText(reserveField1)){
                 JSONObject json = JSON.parseObject(reserveField1);
                 Date expirationDate = json.getDate("expiration_date");
-                String format = new SimpleDateFormat("yyyy-MM-dd").format(expirationDate);
-                blackListDTO.setExpiration_date(format);
+                if (!StringUtils.isEmpty(expirationDate)){
+                    String format = new SimpleDateFormat("yyyy-MM-dd").format(expirationDate);
+                    blackListDTO.setExpiration_date(format);
+                }
             }
             return blackListDTO;
         } catch (Exception e) {
