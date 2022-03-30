@@ -19,7 +19,6 @@ import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -142,25 +141,26 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             long ret = redisChgService.setnx(key, "{\"millis\":\""
                             + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
                     , (int) getKeyExpiration());
-            if (ret == 1) {
-                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
-                        : transfer.gettCid();
-                boolean b = checkDbData(custNum, apiCode, userType, tCid, createTime, transfer.getId(), day, shuHeContext);
-                if (!b) {
-                    // 更新缓存中的值为当天案件编号为首次满足规则的id
-                    redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
-                            , "{\"millis\":\"" + System.currentTimeMillis()
-                                    + "\",\"id\":\"" + shuHeContext.getTransfer().getId() + "\"}"
-                            , (int) getKeyExpiration());
-                    shuHeContext.setTransfer(null);
-                }
-                return b;
-            }
+            return ret == 1;
+//            if (ret == 1) {
+//                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
+//                        : transfer.gettCid();
+//                boolean b = checkDbData(custNum, apiCode, userType, tCid, createTime, transfer.getId(), day, shuHeContext);
+//                if (!b) {
+//                    // 更新缓存中的值为当天案件编号为首次满足规则的id
+//                    redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
+//                            , "{\"millis\":\"" + System.currentTimeMillis()
+//                                    + "\",\"id\":\"" + shuHeContext.getTransfer().getId() + "\"}"
+//                            , (int) getKeyExpiration());
+//                    shuHeContext.setTransfer(null);
+//                }
+//                return b;
+//            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return checkDbData(custNum, apiCode, userType, transfer.gettCid(), createTime, transfer.getId(), day, shuHeContext);
         }
-        return false;
+//        return false;
     }
 
     /**
