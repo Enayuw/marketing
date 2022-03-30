@@ -131,24 +131,29 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         final String custNum = transfer.getCustNum();
         final String apiCode = transfer.getApiCode();
         final String userType = transfer.getUserType();
+        final Date createTime = transfer.getCreateTime();
         String key = String.format(KEY, apiCode, userType, custNum);
         try {
-            boolean exists = redisChgService.exists(key);
-            if (!exists) {
+            long ret = redisChgService.setnx(key, "{\"millis\":\""
+                            + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
+                    , (int) getKeyExpiration());
+            if (ret == 1) {
                 String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
                         : transfer.gettCid();
-                if (getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), tCid
-                        , transfer.getCreateTime())) {
-                    long setnx = redisChgService.setnx(key, "{\"millis\":\""
-                                    + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
-                            , (int) getKeyExpiration());
-                    return setnx == 1;
+                Long firstId = getDbTransferSyncUser(custNum, apiCode, userType, tCid, createTime);
+                if (transfer.getId().equals(firstId)) {
+                    return true;
                 }
+                // 更新缓存中的值为当天案件编号为首次的id
+                redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
+                        , "{\"millis\":\"" + System.currentTimeMillis()
+                                + "\",\"id\":\"" + firstId + "\"}"
+                        , (int) getKeyExpiration());
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return getDbTransferSyncUser(custNum, apiCode, userType, transfer.getId(), transfer.gettCid()
-                    , transfer.getCreateTime());
+            Long firstId = getDbTransferSyncUser(custNum, apiCode, userType, transfer.gettCid(), createTime);
+            return transfer.getId().equals(firstId);
         }
         return false;
     }
@@ -156,8 +161,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     /**
      * 查询db获取cusNum当天最早的数据
      */
-    private boolean getDbTransferSyncUser(String custNum, String apiCode, String userType, long id
-            , String tCid, Date createTime) {
+    private Long getDbTransferSyncUser(String custNum, String apiCode, String userType, String tCid, Date createTime) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(Date.from(
@@ -166,14 +170,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         example.settCid(tCid);
         example.setOrderByClause("create_time asc limit 0,1");
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        boolean bool = transferList.size() > 0 && transferList.get(0).getId().equals(id);
-        if (!bool) {
-            redisChgService.setex(String.format(KEY, apiCode, userType, custNum)
-                    , "{\"millis\":\"" + System.currentTimeMillis()
-                            + "\",\"id\":\"" + transferList.get(0).getId() + "\"}"
-                    , (int) getKeyExpiration());
-        }
-        return bool;
+        return transferList.size() > 0 ? transferList.get(0).getId() : null;
     }
 
 }
