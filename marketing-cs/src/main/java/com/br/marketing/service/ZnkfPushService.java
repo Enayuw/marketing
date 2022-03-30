@@ -26,5 +26,19 @@ public interface ZnkfPushService {
      */
     Boolean cusNumIsFirstToday(String key);
 
+    /**
+     *智能客服推送宜信黑名单结束标识
+     * @param apiCode，pushDate
+     * @return
+     */
     ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate);
+
+
+    /**
+     *智能客服推送宜信黑名单结束标识
+     * @param apiCode
+     * @param pushDate(yyyy-MM-dd)
+     * @return
+     */
+    Boolean isPushBlackPhoneEnd(String apiCode, String pushDate);
 }

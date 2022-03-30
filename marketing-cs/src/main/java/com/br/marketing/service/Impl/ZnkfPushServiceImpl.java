@@ -28,6 +28,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -179,7 +180,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
         String pushEndDate = "";
         try {
-            pushEndDate = DateUtils.format(DateUtils.parse(pushDate,"yyyy-MM-dd HH:mm:ss");
+            pushEndDate = DateUtils.format(DateUtils.parse(pushDate,"yyyy-MM-dd HH:mm:ss"));
         }catch (ParseException e){
             log.error("格式化日期错误",e);
             return new ApiResult().fail("pushDate 格式化日期错误");
@@ -191,6 +192,18 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         roboAIBlackPhoneMark.setPushEndDate(pushEndDate);
         roboAIBlackPhoneMarkMapper.insertSelective(roboAIBlackPhoneMark);
         return new ApiResult().setCode("00").setMessage("推送成功");
+    }
+
+    @Override
+    public Boolean isPushBlackPhoneEnd(String apiCode, String pushDate) {
+        Boolean isPushEnd = false;
+        RoboAIBlackPhoneMarkExample aiBlackPhoneMarkExample = new RoboAIBlackPhoneMarkExample();
+        aiBlackPhoneMarkExample.createCriteria().andApiCodeEqualTo(apiCode).andPushEndDateEqualTo(pushDate);
+        List<RoboAIBlackPhoneMark> roboAIBlackPhoneMarkList = roboAIBlackPhoneMarkMapper.selectByExample(aiBlackPhoneMarkExample);
+        if (!CollectionUtils.isEmpty(roboAIBlackPhoneMarkList)) {
+            isPushEnd = true;
+        }
+        return isPushEnd;
     }
 
     private String goShDX(CallRecordDTO dto) {
