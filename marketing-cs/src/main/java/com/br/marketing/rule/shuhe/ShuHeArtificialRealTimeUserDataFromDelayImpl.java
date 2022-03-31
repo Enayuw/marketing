@@ -49,7 +49,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     @Override
