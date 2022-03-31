@@ -5,6 +5,9 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.*;
+import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.MomCommonUtil;
@@ -146,34 +149,6 @@ public class RobotaiApiServiceClient {
 
     }
 
-    /**
-     * 黑名单查询接口-宜信结果封装+重试
-     *
-     * @param blackPhoneQueryDTO
-     * @return Map：key：dataId，value：blackFlag
-     */
-    public Map<String, String> queryBlackPhoneMapResult(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
-        //重试次数，默认重试两次
-        int retryCount = blackPhoneQueryDTO.getRetryCount() == null ? RETRY_COUNT : blackPhoneQueryDTO.getRetryCount();
-        RepQueryBlackPhoneVO result = null;
-        Map<String, String> mapResult = new HashMap<>();
-        while (retryCount > 0) {
-            result = queryBlackPhone(blackPhoneQueryDTO);
-            retryCount--;
-            if ("00".equals(result.getCode())) {
-                break;
-            }
-        }
-        if (result.getData() != null) {
-            List<RepQueryBlackPhoneDetailVO.SuccessData> successDataList = result.getData().getSuccessData();
-            if (!CollectionUtils.isEmpty(successDataList)) {
-                mapResult = successDataList.stream().collect(Collectors.toMap(RepQueryBlackPhoneDetailVO.SuccessData::getDataId,
-                        RepQueryBlackPhoneDetailVO.SuccessData::getBlackFlag));
-            }
-        }
-        return mapResult;
-    }
-
 
 
     /**
@@ -182,13 +157,15 @@ public class RobotaiApiServiceClient {
      * @param blackPhoneQueryDTO
      * @return RepQueryBlackPhoneVO
      */
-    public RepQueryBlackPhoneVO queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+    @RetryMethod(retryNowNum = 3)
+    public Result queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+        Result result = new Result();
         try {
             ReqBlackPhoneDTO reqBlackPhoneDTO = new ReqBlackPhoneDTO();
-            BlackPhoneDTO<BlackQueryDetailDTO> blackPhoneDTO= new BlackPhoneDTO<>();
+            BlackPhoneDTO<BlackQueryDetailDTO> blackPhoneDTO = new BlackPhoneDTO<>();
             blackPhoneDTO.setData(blackPhoneQueryDTO.getDetailBlackPhoneDTO());
             blackPhoneDTO.setMethod("queryBlackDataV2");
-            blackPhoneDTO.setAccessNumber(blackPhoneQueryDTO.getApiCode()+UUID.randomUUID().toString());
+            blackPhoneDTO.setAccessNumber(blackPhoneQueryDTO.getApiCode() + UUID.randomUUID().toString());
             reqBlackPhoneDTO.setApiCode(blackPhoneQueryDTO.getApiCode());
             reqBlackPhoneDTO.setJsonData(JSON.toJSONString(blackPhoneDTO));
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
@@ -198,16 +175,25 @@ public class RobotaiApiServiceClient {
             if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
-            RepQueryBlackPhoneVO result = JSON.parseObject(transfer.getResult()
+            RepQueryBlackPhoneVO repQueryBlackPhoneVO = JSON.parseObject(transfer.getResult()
                     , new TypeReference<RepQueryBlackPhoneVO>() {
                     }.getType());
-            return result;
+            if (!"00".equals(repQueryBlackPhoneVO.getCode())) {
+                return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+            Map<String, String> mapData;
+            if (repQueryBlackPhoneVO.getData() != null) {
+                List<RepQueryBlackPhoneDetailVO.SuccessData> successDataList = repQueryBlackPhoneVO.getData().getSuccessData();
+                if (!CollectionUtils.isEmpty(successDataList)) {
+                    mapData = successDataList.stream().collect(Collectors.toMap(RepQueryBlackPhoneDetailVO.SuccessData::getDataId,
+                            RepQueryBlackPhoneDetailVO.SuccessData::getBlackFlag));
+                    return result.setCode(ResultCode.SUCCESS.getValue()).setDate(mapData);
+                }
+            }
+            return result.setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
-            RepQueryBlackPhoneVO result = new RepQueryBlackPhoneVO();
-            result.setCode("9999");
-            result.setMessage(ex.getMessage());
-            return result;
+            return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 
