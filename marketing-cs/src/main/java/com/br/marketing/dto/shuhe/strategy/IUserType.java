@@ -24,8 +24,8 @@ import java.util.Map;
 public abstract class IUserType {
     protected String userType;
     protected final String Y = "Y";
-    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
+    protected final DateTimeFormatter dateTime2Formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public IUserType setUserType(String userType) {
         this.userType = userType;
@@ -203,7 +203,7 @@ public abstract class IUserType {
         } else {
             localDateTimeNew = localDateTime.plusDays(day);
         }
-        return localDateTimeNew.withHour(23).withMinute(59).withSecond(59).format(dateTimeFormatter);
+        return localDateTimeNew.withHour(23).withMinute(59).withSecond(59).format(dateTime2Formatter);
     }
 
     public final boolean isY(String str) {
