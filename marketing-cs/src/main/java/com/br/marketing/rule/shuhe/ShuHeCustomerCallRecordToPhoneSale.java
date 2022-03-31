@@ -48,7 +48,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Autowired
     private PushDataService pushDataService;
 
-    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
