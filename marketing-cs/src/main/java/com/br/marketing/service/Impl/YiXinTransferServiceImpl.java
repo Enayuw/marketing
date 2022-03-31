@@ -1,10 +1,11 @@
 package com.br.marketing.service.Impl;
 
-
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
@@ -14,11 +15,11 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IYiXinTransferService;
 import com.br.marketing.vo.PhoneSaleInfoVO;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -26,12 +27,12 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class YiXinTransferServiceImpl  implements IYiXinTransferService {
+public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
 
     @Autowired
@@ -53,12 +54,12 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
     RedisChgService redisChgService;
 
     @Override
-    public Result actionYiXinToDx(String apiCode,String date) {
+    public Result actionYiXinToDx(String apiCode, String date) {
 
-        if(StringUtils.isBlank(date)){
-            date= LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        if (StringUtils.isBlank(date)) {
+            date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
-        if(StringUtils.isBlank(apiCode)){
+        if (StringUtils.isBlank(apiCode)) {
             apiCode = "3710012";
         }
 
@@ -71,15 +72,15 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
         //region check 1.查询推送记录；2.查询推送记录的状态；3.查询数据处理情况
         Result<TransferActionFront> frontDataRes = getFrontData(apiCode, date, 2);
-        if(!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(frontDataRes.getMessage());
         }
         TransferActionFront frontData = frontDataRes.getData();
-        if(frontData!=null&&new Integer(2).equals(frontData.getStatus())){
+        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
         }
         Result<Date> dateResult = checkPush(apiCode, date);
-        if(!ResultCode.SUCCESS.getValue().equals(dateResult.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(dateResult.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(dateResult.getMessage());
         }
         //todo 差黑名单逻辑
@@ -87,16 +88,17 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
         Boolean mark = Boolean.TRUE;
         Integer page = 0;
-        ConcurrentHashMap custNum = new ConcurrentHashMap();
+        //全局去重custNum集合
+        HashSet custNumALL = new HashSet();
         //
         String _7startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -7));
         String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -60));
         String _endDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -1));
-
-        while (mark){
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        while (mark) {
             Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
-            if(!ResultCode.SUCCESS.equals(delayData.getCode())){
-                mark=Boolean.FALSE;
+            if (!ResultCode.SUCCESS.equals(delayData.getCode())) {
+                mark = Boolean.FALSE;
                 continue;
             }
             page++;
@@ -105,37 +107,95 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
             HashSet<String> custNums = new HashSet();
             List<MarketingTransferSyncUser> dataFilter1 = new ArrayList<>();
             for (MarketingTransferSyncUser datum : data) {
-                if(!(StringUtils.isNotBlank(datum.getReserveField1())
-                        && datum.getReserveField1().contains("\"transformType\":\"1\""))){
-                    if(custNums.add(datum.getCustNum())){
+                if (!(StringUtils.isNotBlank(datum.getReserveField1())
+                        && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
+                    if (custNumALL.add(datum.getCustNum()) && custNums.add(datum.getCustNum())) {
                         dataFilter1.add(datum);
                     }
                 }
             }
+            final String _tApicode = apiCode;
+            threadPool.submit(() -> {
+                PhoneSaleRecordInfoDTO _7recordInfoDTO = new PhoneSaleRecordInfoDTO();
+                _7recordInfoDTO.setCustNums(custNums);
+                _7recordInfoDTO.setApiCode(_tApicode);
+                _7recordInfoDTO.setStartDate(_7startDay);
+                _7recordInfoDTO.setEndDate(_endDay);
+                _7recordInfoDTO.setTransferType("1");
+                List<PhoneSaleInfoVO> _7records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_7recordInfoDTO);
+                Set<String> _7filerCustNumSet = _7records.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
 
-            PhoneSaleRecordInfoDTO _7recordInfoDTO = new PhoneSaleRecordInfoDTO();
-            _7recordInfoDTO.setCustNums(custNums);
-            _7recordInfoDTO.setApiCode(apiCode);
-            _7recordInfoDTO.setStartDate(_7startDay);
-            _7recordInfoDTO.setEndDate(_endDay);
-            _7recordInfoDTO.setTransferType("1");
-            List<PhoneSaleInfoVO> _7records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_7recordInfoDTO);
-            Set<String> _7filerCustNumSet = _7records.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+                PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
+                _60recordInfoDTO.setCustNums(custNums);
+                _60recordInfoDTO.setApiCode(_tApicode);
+                _60recordInfoDTO.setStartDate(_60startDay);
+                _60recordInfoDTO.setEndDate(_endDay);
+                _60recordInfoDTO.setTransferType("0");
+                List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
+                Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
 
-            PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
-            _60recordInfoDTO.setCustNums(custNums);
-            _60recordInfoDTO.setApiCode(apiCode);
-            _60recordInfoDTO.setStartDate(_60startDay);
-            _60recordInfoDTO.setEndDate(_endDay);
-            _60recordInfoDTO.setTransferType("0");
-            List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
-            Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
-
-
+                List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
+                for (MarketingTransferSyncUser transferSyncUser : dataFilter1) {
+                    if (_7filerCustNumSet.contains(transferSyncUser.getCustNum())) {
+                        continue;
+                    }
+                    List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferSyncUser.getCustNum());
+                    if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
+                        phoneSaleInfoVOS.sort((t1, t2) -> {
+                            return t1.getAppletDate().compareTo(t2.getAppletDate());
+                        });
+                        PhoneSaleInfoVO phoneSaleInfoVO = phoneSaleInfoVOS.get(0);
+                        if (phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
+                            if (phoneSaleInfoVOS.size() > 1) {
+                                PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(1);
+                                if (phoneSaleInfoVO1.getType().equals(transferSyncUser.getType())) {
+                                    continue;
+                                } else {
+                                    Date sT = null;
+                                    Date eT = null;
+                                    try {
+                                        sT = DateUtils.parseDate(phoneSaleInfoVO.getAppletDate(), "yyyy-MM-dd");
+                                        eT = DateUtils.parseDate(transferSyncUser.getRequestData(), "yyyy-MM-dd");
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+                                    if (sT == null || eT == null) {
+                                        continue;
+                                    }
+                                    Integer dayByDate = getDayByDate(sT, eT);
+                                    if (dayByDate >= 30) {
+                                        dataFilter2.add(transferSyncUser);
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                            } else {
+                                dataFilter2.add(transferSyncUser);
+                            }
+                        } else {
+                            dataFilter2.add(transferSyncUser);
+                        }
+                    } else {
+                        dataFilter2.add(transferSyncUser);
+                    }
+                }
+                List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
+                for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
+                    List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
+                    ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
+                    dto.setApiCode(_tApicode);
+                    dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
+                    marketingTransferSyncUsers.forEach(k -> {
+                        BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
+                        blackQueryDetailDTO.setDataId(k.getId().toString());
+                        blackQueryDetailDTO.setApiCode(_tApicode);
+                        blackQueryDetailDTO.setCaseNum(k.getCustNum());
+                        blackQueryDetailDTOS.add(blackQueryDetailDTO);
+                    });
+                }
+            });
 
         }
-
-
 
 
         return null;
@@ -143,16 +203,17 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
     /**
      * 获取数据
+     *
      * @param apiCode
      * @param date
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode,String date,Integer pageIndex){
+    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex) {
         String tcId = tableCreateService.getTcId(apiCode);
-        Integer limitStart = pageIndex*5000;
+        Integer limitStart = pageIndex * 5000;
         List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
-        if(transferOrderInsertTime.size()<=0){
+        if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
@@ -160,11 +221,12 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
     /**
      * 校验数据解析是否完成
+     *
      * @param apiCode
      * @param date
      * @return
      */
-    private Result<Date> checkPush(String apiCode,String date){
+    private Result<Date> checkPush(String apiCode, String date) {
 
         Date startDate = null;
         try {
@@ -180,7 +242,7 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
                 .andCreateTimeGreaterThanOrEqualTo(startDate)
                 .andCreateTimeLessThan(endDate);
         List<MarketingTransferInfo> marketingTransferInfos = transferInfoMapper.selectByExample(infoExample);
-        if(marketingTransferInfos.size()<=0){
+        if (marketingTransferInfos.size() <= 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("还未传输last标识数据");
         }
 
@@ -191,7 +253,7 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
                 .andCreateTimeGreaterThanOrEqualTo(startDate)
                 .andCreateTimeLessThan(endDate);
         int statusIngs = transferInfoMapper.countByExample(statusExample);
-        if(statusIngs>=0){
+        if (statusIngs >= 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据还未解析完");
         }
 
@@ -202,12 +264,13 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
     /**
      * 获取推送记录
+     *
      * @param apiCode
      * @param date
      * @param actionType
      * @return
      */
-    private Result<TransferActionFront> getFrontData(String apiCode,String date,Integer actionType){
+    private Result<TransferActionFront> getFrontData(String apiCode, String date, Integer actionType) {
         TransferActionFrontExample frontExample = new TransferActionFrontExample();
         frontExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -217,17 +280,54 @@ public class YiXinTransferServiceImpl  implements IYiXinTransferService {
 
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
 
-        if(transferActionFronts.size()>1){
-            log.error(String.format("该推送日志当前有条 请检查apiCode:%s,data:%s,type:%s",apiCode,date,actionType));
+        if (transferActionFronts.size() > 1) {
+            log.error(String.format("该推送日志当前有条 请检查apiCode:%s,data:%s,type:%s", apiCode, date, actionType));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
-        if(transferActionFronts.size()>0){
+        if (transferActionFronts.size() > 0) {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferActionFronts.get(0));
         }
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
     }
 
+    public static void main(String[] args) {
+        Date date = null;
+        try {
+            date = DateUtils.parseDate("2022-03-31", "yyyy-MM-dd");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Date date1 = null;
+        try {
+            date1 = DateUtils.parseDate("2022-03-01", "yyyy-MM-dd");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Calendar aCalendar = Calendar.getInstance();
 
+        aCalendar.setTime(date);
+
+        int day1 = aCalendar.get(Calendar.DAY_OF_YEAR);
+
+        aCalendar.setTime(date1);
+
+        int day2 = aCalendar.get(Calendar.DAY_OF_YEAR);
+        System.out.println("相差天数" + (day2 - day1));
+    }
+
+    private Integer getDayByDate(Date d1, Date d2) {
+        Calendar aCalendar = Calendar.getInstance();
+
+        aCalendar.setTime(d1);
+
+        int day1 = aCalendar.get(Calendar.DAY_OF_YEAR);
+
+        aCalendar.setTime(d2);
+
+        int day2 = aCalendar.get(Calendar.DAY_OF_YEAR);
+
+        return day2 - day1;
+    }
 }

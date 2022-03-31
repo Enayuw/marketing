@@ -7,5 +7,6 @@ public class PhoneSaleInfoVO {
     private Long id;
     private String custNum;
     private String dxType;
+    private String type;
     private String appletDate;
 }
