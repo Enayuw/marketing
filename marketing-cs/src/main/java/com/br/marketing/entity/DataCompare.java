@@ -38,7 +38,7 @@ public class DataCompare {
 
     public DataCompare(){}
 
-    public DataCompare(String ids, int enumFlag, long infoId){
+    public DataCompare(String ids, Integer enumFlag, Long infoId) {
         this.arguments = ids;
         this.externalInterface = enumFlag;
         this.createTime = new Date();
