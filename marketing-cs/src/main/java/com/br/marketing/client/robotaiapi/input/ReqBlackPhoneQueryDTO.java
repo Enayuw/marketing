@@ -12,9 +12,13 @@ import java.util.List;
 @Data
 public class ReqBlackPhoneQueryDTO {
 
-    private ReqBlackPhoneDTO reqBlackPhoneDTO;
+    private String apiCode;
 
-    private List<BlackQueryDetailDTO> blackQueryDetailDTOList;
+    private List<BlackQueryDetailDTO> detailBlackPhoneDTO;
+    /**
+     * 重试次数
+     */
+    private Integer retryCount;
 
 
 }

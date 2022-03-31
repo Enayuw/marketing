@@ -4,7 +4,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
@@ -54,9 +53,6 @@ public class MarketingTransferDataImpl implements OriginDataService {
 
     @Resource
     MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
 
     @Override

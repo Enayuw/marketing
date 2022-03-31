@@ -3,14 +3,8 @@ package com.br.marketing.client.robotaiapi;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.net.ApiCallerUtil;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
-import com.br.marketing.client.robotaiapi.output.RepQueryBlackPhoneVO;
-import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
-import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.client.robotaiapi.input.*;
+import com.br.marketing.client.robotaiapi.output.*;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.MomCommonUtil;
@@ -22,11 +16,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -50,6 +45,8 @@ public class RobotaiApiServiceClient {
 
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
+
+    public static final int RETRY_COUNT=2;
 
     public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto,String requestId){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
@@ -150,6 +147,36 @@ public class RobotaiApiServiceClient {
     }
 
     /**
+     * 黑名单查询接口-宜信结果封装+重试
+     *
+     * @param blackPhoneQueryDTO
+     * @return Map：key：dataId，value：blackFlag
+     */
+    public Map<String, String> queryBlackPhoneMapResult(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+        //重试次数，默认重试两次
+        int retryCount = blackPhoneQueryDTO.getRetryCount() == null ? RETRY_COUNT : blackPhoneQueryDTO.getRetryCount();
+        RepQueryBlackPhoneVO result = null;
+        Map<String, String> mapResult = new HashMap<>();
+        while (retryCount > 0) {
+            result = queryBlackPhone(blackPhoneQueryDTO);
+            retryCount--;
+            if ("00".equals(result.getCode())) {
+                break;
+            }
+        }
+        if (result.getData() != null) {
+            List<RepQueryBlackPhoneDetailVO.SuccessData> successDataList = result.getData().getSuccessData();
+            if (!CollectionUtils.isEmpty(successDataList)) {
+                mapResult = successDataList.stream().collect(Collectors.toMap(RepQueryBlackPhoneDetailVO.SuccessData::getDataId,
+                        RepQueryBlackPhoneDetailVO.SuccessData::getBlackFlag));
+            }
+        }
+        return mapResult;
+    }
+
+
+
+    /**
      * 黑名单查询接口-宜信
      *
      * @param blackPhoneQueryDTO
@@ -157,10 +184,17 @@ public class RobotaiApiServiceClient {
      */
     public RepQueryBlackPhoneVO queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
         try {
+            ReqBlackPhoneDTO reqBlackPhoneDTO = new ReqBlackPhoneDTO();
+            BlackPhoneDTO<BlackQueryDetailDTO> blackPhoneDTO= new BlackPhoneDTO<>();
+            blackPhoneDTO.setData(blackPhoneQueryDTO.getDetailBlackPhoneDTO());
+            blackPhoneDTO.setMethod("queryBlackDataV2");
+            blackPhoneDTO.setAccessNumber(blackPhoneQueryDTO.getApiCode()+UUID.randomUUID().toString());
+            reqBlackPhoneDTO.setApiCode(blackPhoneQueryDTO.getApiCode());
+            reqBlackPhoneDTO.setJsonData(JSON.toJSONString(blackPhoneDTO));
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                     .setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .setRequestParam(blackPhoneQueryDTO.getReqBlackPhoneDTO()).postTransferStr();
+                    .setRequestParam(reqBlackPhoneDTO).postTransferStr();
             if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
@@ -176,4 +210,5 @@ public class RobotaiApiServiceClient {
             return result;
         }
     }
+
 }

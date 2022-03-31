@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -14,6 +16,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -25,8 +28,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +49,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Autowired
+    private RoboAIBlackPhoneMarkMapperBase roboAIBlackPhoneMarkMapper;
 
     @Autowired
     private IMarketingSyncUserService iMarketingSyncUserService;
@@ -166,6 +174,36 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
         redisChgService.setex(key,"1",seconds);
         return true;
+    }
+
+    @Override
+    public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
+        String pushEndDate = "";
+        try {
+            pushEndDate = DateUtils.format(DateUtils.parse(pushDate,"yyyy-MM-dd HH:mm:ss"));
+        }catch (ParseException e){
+            log.error("格式化日期错误",e);
+            return new ApiResult().fail("pushDate 格式化日期错误");
+        }
+        RoboAIBlackPhoneMark  roboAIBlackPhoneMark= new RoboAIBlackPhoneMark();
+        roboAIBlackPhoneMark.setApiCode(apiCode);
+        roboAIBlackPhoneMark.setPushEndTime(pushDate);
+        roboAIBlackPhoneMark.setCreateTime(new Date());
+        roboAIBlackPhoneMark.setPushEndDate(pushEndDate);
+        roboAIBlackPhoneMarkMapper.insertSelective(roboAIBlackPhoneMark);
+        return new ApiResult().setCode("00").setMessage("推送成功");
+    }
+
+    @Override
+    public Boolean isPushBlackPhoneEnd(String apiCode, String pushDate) {
+        Boolean isPushEnd = false;
+        RoboAIBlackPhoneMarkExample aiBlackPhoneMarkExample = new RoboAIBlackPhoneMarkExample();
+        aiBlackPhoneMarkExample.createCriteria().andApiCodeEqualTo(apiCode).andPushEndDateEqualTo(pushDate);
+        List<RoboAIBlackPhoneMark> roboAIBlackPhoneMarkList = roboAIBlackPhoneMarkMapper.selectByExample(aiBlackPhoneMarkExample);
+        if (!CollectionUtils.isEmpty(roboAIBlackPhoneMarkList)) {
+            isPushEnd = true;
+        }
+        return isPushEnd;
     }
 
     private String goShDX(CallRecordDTO dto) {

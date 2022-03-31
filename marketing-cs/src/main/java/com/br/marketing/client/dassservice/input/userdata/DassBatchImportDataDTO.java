@@ -1,6 +1,6 @@
-package com.br.marketing.context;
+package com.br.marketing.client.dassservice.input.userdata;
 
-import com.br.marketing.origin.MqFact;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import lombok.Data;
 
 /**
@@ -23,34 +23,22 @@ import lombok.Data;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 从接收mq消息到处理过程，所需信息放在处理上下文中
+ * @Description : 批量调电销接口入参
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/3/12 16:26
+ * @Date : Create in 2022/3/29 15:35
  */
+
 @Data
-public class ProcessHandlerContext {
+public class DassBatchImportDataDTO extends DassImportDataDTO {
 
     /**
-     * 客户apiCode
+     * 拨打优先级（枚举值：1、2、3）
      */
-    private String apiCode;
-
+    private String prioritySymbol;
     /**
-     * 转化表id
+     * 筛选项1
      */
-    private Long transferInfoId;
-
-
-    /**
-     * 上下文消息对象
-     */
-    private MqFact mqFact;
-
-    /**
-     *
-     */
-    private RuleNecessaryData ruleNecessaryData;
-
+    private String raiseLimiSuccess;
 
 }

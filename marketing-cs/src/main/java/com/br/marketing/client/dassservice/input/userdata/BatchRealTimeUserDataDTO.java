@@ -1,6 +1,8 @@
-package com.br.marketing.context;
+package com.br.marketing.client.dassservice.input.userdata;
 
-import com.br.marketing.origin.MqFact;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
 
 /**
@@ -23,34 +25,22 @@ import lombok.Data;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 从接收mq消息到处理过程，所需信息放在处理上下文中
+ * @Description :
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/3/12 16:26
+ * @Date : Create in 2022/3/29 15:39
  */
+
 @Data
-public class ProcessHandlerContext {
+public class BatchRealTimeUserDataDTO extends InterfaceParams {
 
     /**
-     * 客户apiCode
+     * 批量电销接口入参
      */
-    private String apiCode;
+    private DassImportDataDTO dassImportDataDTO;
 
     /**
-     * 转化表id
+     * 插入b_phone_sale_extend_info表入参
      */
-    private Long transferInfoId;
-
-
-    /**
-     * 上下文消息对象
-     */
-    private MqFact mqFact;
-
-    /**
-     *
-     */
-    private RuleNecessaryData ruleNecessaryData;
-
-
+    private PhoneSaleExtendInfo phoneSaleExtendInfo;
 }

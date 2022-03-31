@@ -15,9 +15,9 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="dx_type" property="dxType" jdbcType="VARCHAR" />
-    <result column="push_dx_time" property="pushDxTime" jdbcType="VARCHAR" />
     <result column="transform_type" property="transformType" jdbcType="VARCHAR" />
     <result column="source_id" property="sourceId" jdbcType="BIGINT" />
+    <result column="push_dx_time" property="pushDxTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -78,8 +78,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cust_num, task_id, user_type, applet_date, applet_time, status, p_status, 
-    create_time, update_time, type, dx_type, push_dx_time, transform_type, source_id
+    id, api_code, cust_num, task_id, user_type, applet_date, applet_time, status, p_status,
+    create_time, update_time, type, dx_type, transform_type, source_id, push_dx_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample" >
     select
@@ -96,7 +96,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_phone_sale_extend_info
     where id = #{id,jdbcType=BIGINT}
@@ -115,18 +115,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_phone_sale_extend_info (api_code, cust_num, task_id, 
-      user_type, applet_date, applet_time, 
-      status, p_status, create_time, 
-      update_time, type, dx_type, 
-      push_dx_time, transform_type, source_id
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, 
-      #{userType,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, #{appletTime,jdbcType=VARCHAR}, 
-      #{status,jdbcType=VARCHAR}, #{pStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{type,jdbcType=VARCHAR}, #{dxType,jdbcType=VARCHAR}, 
-      #{pushDxTime,jdbcType=VARCHAR}, #{transformType,jdbcType=VARCHAR}, #{sourceId,jdbcType=BIGINT}
-      )
+    insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
+    user_type, applet_date, applet_time,
+    status, p_status, create_time,
+    update_time, type, dx_type,
+    transform_type, source_id, push_dx_time
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR},
+    #{userType,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, #{appletTime,jdbcType=VARCHAR},
+    #{status,jdbcType=VARCHAR}, #{pStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{type,jdbcType=VARCHAR}, #{dxType,jdbcType=VARCHAR},
+    #{transformType,jdbcType=VARCHAR}, #{sourceId,jdbcType=BIGINT}, #{pushDxTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSaleExtendInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -170,14 +170,14 @@
       <if test="dxType != null" >
         dx_type,
       </if>
-      <if test="pushDxTime != null" >
-        push_dx_time,
-      </if>
       <if test="transformType != null" >
         transform_type,
       </if>
       <if test="sourceId != null" >
         source_id,
+      </if>
+      <if test="pushDxTime != null" >
+        push_dx_time,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -217,14 +217,14 @@
       <if test="dxType != null" >
         #{dxType,jdbcType=VARCHAR},
       </if>
-      <if test="pushDxTime != null" >
-        #{pushDxTime,jdbcType=VARCHAR},
-      </if>
       <if test="transformType != null" >
         #{transformType,jdbcType=VARCHAR},
       </if>
       <if test="sourceId != null" >
         #{sourceId,jdbcType=BIGINT},
+      </if>
+      <if test="pushDxTime != null" >
+        #{pushDxTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -276,14 +276,14 @@
       <if test="record.dxType != null" >
         dx_type = #{record.dxType,jdbcType=VARCHAR},
       </if>
-      <if test="record.pushDxTime != null" >
-        push_dx_time = #{record.pushDxTime,jdbcType=VARCHAR},
-      </if>
       <if test="record.transformType != null" >
         transform_type = #{record.transformType,jdbcType=VARCHAR},
       </if>
       <if test="record.sourceId != null" >
         source_id = #{record.sourceId,jdbcType=BIGINT},
+      </if>
+      <if test="record.pushDxTime != null" >
+        push_dx_time = #{record.pushDxTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -293,21 +293,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_phone_sale_extend_info
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cust_num = #{record.custNum,jdbcType=VARCHAR},
-      task_id = #{record.taskId,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      applet_time = #{record.appletTime,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=VARCHAR},
-      p_status = #{record.pStatus,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      type = #{record.type,jdbcType=VARCHAR},
-      dx_type = #{record.dxType,jdbcType=VARCHAR},
-      push_dx_time = #{record.pushDxTime,jdbcType=VARCHAR},
-      transform_type = #{record.transformType,jdbcType=VARCHAR},
-      source_id = #{record.sourceId,jdbcType=BIGINT}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    task_id = #{record.taskId,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    applet_date = #{record.appletDate,jdbcType=VARCHAR},
+    applet_time = #{record.appletTime,jdbcType=VARCHAR},
+    status = #{record.status,jdbcType=VARCHAR},
+    p_status = #{record.pStatus,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    type = #{record.type,jdbcType=VARCHAR},
+    dx_type = #{record.dxType,jdbcType=VARCHAR},
+    transform_type = #{record.transformType,jdbcType=VARCHAR},
+    source_id = #{record.sourceId,jdbcType=BIGINT},
+    push_dx_time = #{record.pushDxTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -351,14 +351,14 @@
       <if test="dxType != null" >
         dx_type = #{dxType,jdbcType=VARCHAR},
       </if>
-      <if test="pushDxTime != null" >
-        push_dx_time = #{pushDxTime,jdbcType=VARCHAR},
-      </if>
       <if test="transformType != null" >
         transform_type = #{transformType,jdbcType=VARCHAR},
       </if>
       <if test="sourceId != null" >
         source_id = #{sourceId,jdbcType=BIGINT},
+      </if>
+      <if test="pushDxTime != null" >
+        push_dx_time = #{pushDxTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -377,9 +377,9 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       type = #{type,jdbcType=VARCHAR},
       dx_type = #{dxType,jdbcType=VARCHAR},
-      push_dx_time = #{pushDxTime,jdbcType=VARCHAR},
       transform_type = #{transformType,jdbcType=VARCHAR},
-      source_id = #{sourceId,jdbcType=BIGINT}
+      source_id = #{sourceId,jdbcType=BIGINT},
+      push_dx_time = #{pushDxTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 
@@ -25,4 +26,19 @@ public interface ZnkfPushService {
      */
     Boolean cusNumIsFirstToday(String key);
 
+    /**
+     *智能客服推送宜信黑名单结束标识
+     * @param apiCode，pushDate
+     * @return
+     */
+    ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate);
+
+
+    /**
+     *智能客服推送宜信黑名单结束标识
+     * @param apiCode
+     * @param pushDate(yyyy-MM-dd)
+     * @return
+     */
+    Boolean isPushBlackPhoneEnd(String apiCode, String pushDate);
 }

@@ -1,6 +1,5 @@
 package com.br.marketing.service.auth;
 
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingRole;
 
