@@ -11,6 +11,7 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferSyncUserService;
@@ -39,6 +40,8 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private ITransferSyncUserService iTransferSyncUserService;
+    @Resource
+    private DataLoadingHandlerService handlerService;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -70,7 +73,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             Integer isDelay = context.getMqFact().getIsDelay();
@@ -82,8 +85,9 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     final IUserType iUserType = shuHeContext.getIUserType();
                     final Date creatTime = shuHeContext.getCreatTime();
                     final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                    Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                     if (iUserType.dataPeriodOfValidity(iMarketingSyncUserService, transfer.getCreateTime()
-                            , creatTime)) {
+                            , day, creatTime)) {
                         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                         transferSyncUser.setId(transfer.getId());
                         transferSyncUser.settCid(transfer.gettCid());
