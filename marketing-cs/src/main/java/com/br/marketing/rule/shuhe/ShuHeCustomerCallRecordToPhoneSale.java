@@ -116,7 +116,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 extendMap.put("is_usr_inf",getValueByCreateTime(json.getString("clc_usr_iso_inf_tim"),time));
                 extendMap.put("is_usr_lst_app_sta_tim",getValueByCreateTime(json.getString("clc_usr_lst_app_sta_tim"),today));
                 dassSingleImportDataDTO.setLoginTime(StringUtils.isNotEmpty(json.getString("clc_usr_lst_app_sta_tim"))?json.getString("clc_usr_lst_app_sta_tim"):"");
-                dassSingleImportDataDTO.setAuditAmount(StringUtils.isNotEmpty(json.getString("clc_usr_adt_lmt_itr"))?json.getString("clc_usr_adt_lmt_itr"):"");
+                dassSingleImportDataDTO.setAuditAmount(StringUtils.isNotEmpty(marketingTransferSyncUser.getAuditAmount())?marketingTransferSyncUser.getAuditAmount():"");
             }
         }else {
             dassSingleImportDataDTO.setLoginTime("");
