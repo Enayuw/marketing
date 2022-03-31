@@ -54,7 +54,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
 
     @Override
     public RuleDataCollectionEnum label() {
-        return null;
+        return RuleDataCollectionEnum.DEFAULT_DATA_COLLECTION;
     }
 
     public Map<String, MarketingSyncUser> customerMarketingSyncUser(List<MarketingTransferSyncUser> transferList, String apiCode){
