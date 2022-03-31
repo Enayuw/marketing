@@ -78,6 +78,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             boolean typeBool = (isDelay == null || isDelay != 1);
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                shuHeContext.setTransfer(transfer);
                 final Date creatTime = shuHeContext.getCreatTime();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
@@ -95,6 +96,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 }
                 bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                         && cacheExists(transfer, shuHeContext, day));
+                shuHeContext.setTransfer(null);
             }
         }
         return bool;

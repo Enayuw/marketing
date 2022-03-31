@@ -92,11 +92,13 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
                 shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
             }
-            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime());
-            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime());
-            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime());
-            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount());
-            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime());
+            String target = ":000";
+            String replacement = "";
+            caseShuheUser.setClcUsrFstLogTimAll(transfer.getLoginTime().replace(target, replacement));
+            caseShuheUser.setClcUsrIsoAtoTim(transfer.getApplyTime().replace(target, replacement));
+            caseShuheUser.setClcUsrAdtTimRcnLon(transfer.getAuditTime().replace(target, replacement));
+            caseShuheUser.setClcUsrAdtLmtItr(transfer.getAuditAmount().replace(target, replacement));
+            caseShuheUser.setClcUsrFstLndTimCshBtHl(transfer.getLentTime().replace(target, replacement));
             caseShuheUser.setUserType(transfer.getUserType());
             caseShuheUser.setCustNum(transfer.getCustNum());
             shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
@@ -164,11 +166,13 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 this.caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
                 this.taskId = object.getString("taskId");
             }
-            this.caseShuheUser.setClcUsrFstLogTimAll(this.transfer.getLoginTime());
-            this.caseShuheUser.setClcUsrIsoAtoTim(this.transfer.getApplyTime());
-            this.caseShuheUser.setClcUsrAdtTimRcnLon(this.transfer.getAuditTime());
-            this.caseShuheUser.setClcUsrAdtLmtItr(this.transfer.getAuditAmount());
-            this.caseShuheUser.setClcUsrFstLndTimCshBtHl(this.transfer.getLentTime());
+            String target = ":000";
+            String replacement = "";
+            this.caseShuheUser.setClcUsrFstLogTimAll(this.transfer.getLoginTime().replace(target, replacement));
+            this.caseShuheUser.setClcUsrIsoAtoTim(this.transfer.getApplyTime().replace(target, replacement));
+            this.caseShuheUser.setClcUsrAdtTimRcnLon(this.transfer.getAuditTime().replace(target, replacement));
+            this.caseShuheUser.setClcUsrAdtLmtItr(this.transfer.getAuditAmount().replace(target, replacement));
+            this.caseShuheUser.setClcUsrFstLndTimCshBtHl(this.transfer.getLentTime().replace(target, replacement));
             this.caseShuheUser.setUserType(this.transfer.getUserType());
             this.caseShuheUser.setApiCode(this.transfer.getApiCode());
             this.caseShuheUser.setCustNum(this.transfer.getCustNum());
