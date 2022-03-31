@@ -16,7 +16,7 @@ public interface ZnkfPushService {
      * @param dto
      * @return
      */
-    Boolean isSatisfyPushDX(CallRecordBO dto);
+    Boolean isSatisfyPushDX(CallRecordBO dto) throws IllegalAccessException;
 
     /**
      * 判断案件编号是否为当天首次传输

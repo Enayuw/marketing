@@ -616,6 +616,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
         transferSyncUser.setInsertTime(localDateTime.format(dateTimeFormatter));
+        transferSyncUser.setRequestData(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        transferSyncUser.setRequestTime(transferSyncUser.getInsertTime());
         int rowSync = 0;
         try {
             rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);

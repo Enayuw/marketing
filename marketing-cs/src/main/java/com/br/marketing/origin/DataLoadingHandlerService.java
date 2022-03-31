@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -85,6 +86,12 @@ public class DataLoadingHandlerService {
     public Integer getShuHePeriodOfValidityDay(String userType) throws IllegalAccessException {
         Assert.notNull(userType, "场景不可为null");
         Map<String, String> shuHePeriodOfValidityDayMap = marketingCommonConfig.getShuHePeriodOfValidityDayMap();
+        if (shuHePeriodOfValidityDayMap == null) {
+            shuHePeriodOfValidityDayMap = new HashMap<>(4);
+            shuHePeriodOfValidityDayMap.put("促首登", "T");
+            shuHePeriodOfValidityDayMap.put("促申完", "T+15");
+            shuHePeriodOfValidityDayMap.put("促首借", "T+31");
+        }
         if (shuHePeriodOfValidityDayMap.containsKey(userType)) {
             Matcher matcher = PATTERN.matcher(shuHePeriodOfValidityDayMap.get(userType));
             if (matcher.find()) {
