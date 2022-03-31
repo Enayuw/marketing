@@ -28,6 +28,7 @@ package com.br.marketing.context;
 public enum RuleDataCollectionEnum {
     HAI_ER_RULE_DATA_COLLECTION(1, "海尔规则所需数据收集"),
     SHU_HE_RULE_DATA_COLLECTION(2, "数禾规则所需数据收集"),
+    DEFAULT_DATA_COLLECTION(-1, "数禾规则所需数据收集"),
     CUSTOMER_TRANSFER_DATA_COLLECTION(3, "客服转化所需数据收集");
 
     RuleDataCollectionEnum(Integer code, String name) {
