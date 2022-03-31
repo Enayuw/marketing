@@ -53,7 +53,7 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         /**
          * 客服标准接口 每500条数据一个批次
          */
-        int pageSize = 5;
+        int pageSize = 500;
         int totalCount = transferList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         final RuleNecessaryData ruleNecessaryData = context.getRuleNecessaryData();
