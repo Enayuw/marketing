@@ -24,7 +24,7 @@ import java.util.Map;
 public abstract class IUserType {
     protected String userType;
     protected final String Y = "Y";
-    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
 
     public IUserType setUserType(String userType) {
