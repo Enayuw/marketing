@@ -15,10 +15,7 @@ public class ReqBlackPhoneQueryDTO {
     private String apiCode;
 
     private List<BlackQueryDetailDTO> detailBlackPhoneDTO;
-    /**
-     * 重试次数
-     */
-    private Integer retryCount;
+
 
 
 }

@@ -85,6 +85,14 @@ public class CuShouJie extends IUserType {
         return this.calculateExpireDate(creatTime, 29);
     }
 
+    /**
+     * 2022/3/23 15:26
+     * is_black=Y（剔除）
+     * 或
+     * is_turn=Y（剔除）
+     * 或
+     * clc_usr_frt_fq_ord_tim日期>=原始数据上传时间
+     */
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
         final String clcUsrFrtFqOrdTim = caseShuheUser.getClcUsrFrtFqOrdTim();
@@ -101,25 +109,24 @@ public class CuShouJie extends IUserType {
 
     @Override
     public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
-        dataDTO.setUserType("4");
+        dataDTO.setUserType("1");
         dataDTO.setOrgname("shuheshoujie");
         dataDTO.setSource("18");
-        dataDTO.setType("1");
+        dataDTO.setType("4");
     }
 
+    /**
+     * 2022/3/23 15:28
+     * 数禾促首借转电销 情况a
+     * clc_usr_lst_app_sta_tim日期值为当天
+     * &clc_usr_frt_fq_ord_tim<原始数据上传时间(小于情况包含该字段为空的情况)
+     * &userType=促首借
+     * &cusNun
+     * &有效期内
+     */
     @Override
     public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
-        if (true) {
-            return false;
-        }
         boolean bool;
-        /* 数禾促首借转电销 情况a
-         * clc_usr_lst_app_sta_tim日期值为当天
-         * &clc_usr_frt_fq_ord_tim<原始数据上传时间(小于情况包含该字段为空的情况)
-         * &userType=促首借
-         * &cusNun
-         * &有效期内
-         */
         if (StringUtils.isEmpty(caseShuheUser.getClcUsrLstAppStaTim())) {
             bool = Boolean.FALSE;
         } else {

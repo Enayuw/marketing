@@ -35,7 +35,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         //正常队列消费&符合规则&数据非当天首次传输-->false
         //正常队列消费&符合规则&数据当天首次传输-->推延迟队列
         boolean flag = Boolean.FALSE;

@@ -32,6 +32,12 @@ public class TransferDataSetImpl implements OriginDataService {
 
     @Override
     public List<Object> collect(MqFact mqFact, ProcessHandlerContext context) {
+        /* 2022/3/31 14:47
+         * message结构：
+         * {"last": 0,"tcId": tcid,"ids": [id,id1],"source": 5,"apiCode": "code"}
+         * eg:
+         * {"last": 0,"tcId": 772,"ids": [607772,607771,607770,607769,607768],"source": 5,"apiCode": "7410430"}
+         */
         final JSONObject jsonObject = JSONObject.parseObject(mqFact.getMessage());
         String last = jsonObject.getString("last");
         final List<Long> ids = JSONObject.parseArray(jsonObject.getString("ids"), Long.class);

@@ -29,7 +29,7 @@ public class BlackQueryDetailDTO {
     private String phone;
 
     /**
-     * 加密方式(见：PhoneEncryptTypeEnum)
+     * 手机号必传加密方式(见：PhoneEncryptTypeEnum)
      */
     private String encryptType;
     /**
