@@ -103,7 +103,7 @@ public class MarketingRealTimeTransferDataImpl implements OriginDataService {
 
     @Override
     public TransferSource source() {
-        return TransferSource.UNIVERSAL_TRANSFER_PROCESS;
+        return TransferSource.REALTIME_TRANSFER_PROCESS;
     }
 
 }

@@ -8,7 +8,9 @@ import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
+import com.br.marketing.context.impl.YiXinRealTimeRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -69,8 +71,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        HaiErRuleCollectDataImpl.HaiErRuleNecessaryData ruleNecessaryData =
-                (HaiErRuleCollectDataImpl.HaiErRuleNecessaryData) context.getRuleNecessaryData();
+        YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
+                (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
         if (!StringUtils.isEmpty(marketingSyncUser)){
@@ -164,21 +166,27 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
+            YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
+                    (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
             Integer transformType = json.getInteger("transformType");
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType())
                     .concat(":").concat(transfer.getCustNum());
+            Map<String, String> blackList = ruleNecessaryData.getBlackList();
+            boolean notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             /*
             满足条件立即推送
+                1、不满足客服黑名单
                 1、当天该案件编号未被推送
                 2、transformType 为1
                 3、立即推送liveType 1,2,3 或者 从延迟队列过来的消息
              */
-            return znkfPushService.cusNumIsFirstToday(key) && 1 == transformType
+            return notBlack && znkfPushService.cusNumIsFirstToday(key) && 1 == transformType
                     && (Arrays.asList(1,2,3).contains(liveType) || 1 == mqFact.getIsDelay());
         }
         return false;

@@ -3,11 +3,9 @@ package com.br.marketing.context.impl;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -37,36 +35,36 @@ import java.util.stream.Collectors;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description :
+ * @Description : 规则收集所需通用方法
  * ---------------------------------
  * @Author : jilong.xu
- * @Date : Create in 2022/3/22 13:51
+ * @Date : Create in 2022/3/31 16:43
  */
+
 @Service
-public class HaiErRuleCollectDataImpl extends CommonMethodHandlerService {
+public class CommonMethodHandlerService implements AbstractRuleCollectDataService {
+
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
-            HaiErRuleNecessaryData haiErRuleNecessaryData = new HaiErRuleNecessaryData();
-            List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(transferList, context.getApiCode());
-            haiErRuleNecessaryData.setCustomerMap(collect);
-            context.setRuleNecessaryData(haiErRuleNecessaryData);
-        }
+
     }
 
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.HAI_ER_RULE_DATA_COLLECTION;
+        return null;
     }
 
-
-    @Data
-    public class HaiErRuleNecessaryData extends RuleNecessaryData {
-        /**
-         * 海尔客服转化所需信息
-         */
-        private Map<String, MarketingSyncUser> customerMap;
+    public Map<String, MarketingSyncUser> customerMarketingSyncUser(List<MarketingTransferSyncUser> transferList, String apiCode){
+        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+        return preUserByTask.stream().collect(
+                Collectors.groupingBy(MarketingSyncUser::getCustNum
+                        , Collectors.collectingAndThen(
+                                Collectors.reducing((v1, v2) ->
+                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                , Optional::get)));
     }
 }
