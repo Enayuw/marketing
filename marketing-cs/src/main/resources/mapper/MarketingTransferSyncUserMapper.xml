@@ -24,4 +24,11 @@
         </if>
         order by create_time desc limit 1;
     </select>
+
+    <select id="getTransferOrderInsertTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${cid}
+        where request_data=#{data}
+        order by insert_time desc limit #{limitStart},5000;
+    </select>
 </mapper>

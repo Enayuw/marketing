@@ -5,16 +5,19 @@ import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class TableCreateServiceImpl {
     private static HashSet tableNameSet;
+
+    private static ConcurrentHashMap<String,String> cidHashMap;
 
     final static String marketingPreUserTable = "b_marketing_sync_";
 
@@ -25,12 +28,13 @@ public class TableCreateServiceImpl {
     @PostConstruct
     void init(){
         tableNameSet = new HashSet<String>();
+        cidHashMap = new ConcurrentHashMap<>();
     }
 
-    @Autowired
+    @Resource
     MarketingUserMapper marketingUserMapper;
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
     /**
@@ -39,6 +43,9 @@ public class TableCreateServiceImpl {
      * @return
      */
     public String getTcId(String apiCode) {
+        if(cidHashMap.containsKey(apiCode)){
+            return cidHashMap.get(apiCode);
+        }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
@@ -46,6 +53,7 @@ public class TableCreateServiceImpl {
             return null;
         }
         String s1 = marketingCustomers.get(0).getCid().replaceFirst("-", "");
+        cidHashMap.put(apiCode,s1);
         return s1;
     }
 

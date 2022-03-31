@@ -79,7 +79,7 @@ public class MethodRetryHandlerService {
      * @param dassExportAdapterDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO, Integer retry){
         List<BlackListDTO> list = dassExportAdapterDTO.getList();
         Result<PushBlackListResponse> pushBlackListResponseResult = dassServiceClient.postBlackList(list);
@@ -109,7 +109,7 @@ public class MethodRetryHandlerService {
      * @param dassImportAdapDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result callDassRealTimeUserData(DassSingleImportAdapDTO dassImportAdapDTO, Integer retry) {
 
         Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
@@ -130,7 +130,7 @@ public class MethodRetryHandlerService {
      * @param parentDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO, Integer retry){
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
         if ("00".equals(reqBlackPhoneVO.getCode()) && CollectionUtils.isEmpty(reqBlackPhoneVO.getData())) {
@@ -152,7 +152,7 @@ public class MethodRetryHandlerService {
      * @param robotOutboundDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry){
         TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
         if (!"9999".equals(transferRobotOutboundVO.getCode())){

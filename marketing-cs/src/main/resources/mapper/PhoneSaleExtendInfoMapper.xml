@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapper" >
+    <select id="getDxRecordByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
+        select id,cust_num as custNum,dx_type as dxType
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
+        </foreach>
+        and p_status = 2
+        and transform_type = #{transferType}
+        <![CDATA[ and applet_date >= #{startDate} ]]>
+        <![CDATA[ and applet_date <= #{endDate} ]]>
+    </select>
 </mapper>

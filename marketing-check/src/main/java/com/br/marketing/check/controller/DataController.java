@@ -18,6 +18,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.RetryTestService;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -103,8 +104,8 @@ public class DataController {
     RetryTestService retryTestService;
 
     @GetMapping("retryAop")
-    public String retryAop(){
-        retryTestService.ret(1,null);
+    public String retryAop(@RequestParam("isRetry") Integer isRetry){
+        retryTestService.ret(isRetry,null);
         return "success";
     }
 

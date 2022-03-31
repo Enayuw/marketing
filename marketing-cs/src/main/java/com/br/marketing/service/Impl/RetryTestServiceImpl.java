@@ -10,8 +10,22 @@ import org.springframework.stereotype.Service;
 public class RetryTestServiceImpl implements RetryTestService {
 
     @Override
-    @RetryMethod
+    @RetryMethod(retryNowNum = 3)
     public Result ret(Integer pa,Integer retry) {
-        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.TRUE);
+        if(pa.equals(1)){
+            System.out.println("调用方法啦-异常立即重试");
+            throw new RuntimeException("错误，需要重试");
+        }
+        //500立即重试
+        if(pa.equals(2)){
+            System.out.println("调用方法啦-500立即重试");
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        if(pa.equals(3)){
+            System.out.println("调用方法啦-code非500不需要重试");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.TRUE);
+        }
+        System.out.println("调用方法啦-正常不需要重试");
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 }
