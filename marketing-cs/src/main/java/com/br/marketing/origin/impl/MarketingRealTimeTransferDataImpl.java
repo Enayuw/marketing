@@ -85,7 +85,7 @@ public class MarketingRealTimeTransferDataImpl implements OriginDataService {
                 String reserveField1 = syncUser.getReserveField1();
                 if (StringUtils.hasText(reserveField1)){
                     JSONObject json = JSON.parseObject(reserveField1);
-                    return 1 == json.getInteger("transformType");
+                    return "1".equals(json.getString("transformType"));
                 }
                 return false;
         };

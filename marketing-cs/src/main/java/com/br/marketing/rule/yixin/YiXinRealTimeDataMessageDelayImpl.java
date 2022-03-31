@@ -64,7 +64,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
             YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
                     (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
-            Integer transformType = json.getInteger("transformType");
+            boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType()).concat(":").concat(transfer.getCustNum());
@@ -78,8 +78,8 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 3、需要静置的liveType 4,6,8
                 4、不是从延迟队列过来的消息
              */
-            return notBlack && znkfPushService.cusNumIsFirstToday(key) && 1 == transformType
-                    && Arrays.asList(4,6,8).contains(liveType) && 1 != mqFact.getIsDelay();
+            return notBlack && znkfPushService.cusNumIsFirstToday(key) && transformType
+                    && Arrays.asList(4,6,8).contains(liveType) && mqFact.getIsDelay() == null;
         }
         return false;
     }

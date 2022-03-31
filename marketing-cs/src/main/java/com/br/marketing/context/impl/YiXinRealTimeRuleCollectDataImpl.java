@@ -6,6 +6,7 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -62,6 +63,12 @@ public class YiXinRealTimeRuleCollectDataImpl extends CommonMethodHandlerService
             context.setRuleNecessaryData(ruleNecessaryData);
         }
     }
+
+    @Override
+    public RuleDataCollectionEnum label() {
+        return RuleDataCollectionEnum.YI_XIN_REALTIME_DATA_COLLECTION;
+    }
+
 
     private Map<String, String> queryBlackData(List<MarketingTransferSyncUser> transferList,String apiCode) {
         HashMap<String, String> map = new HashMap<>();

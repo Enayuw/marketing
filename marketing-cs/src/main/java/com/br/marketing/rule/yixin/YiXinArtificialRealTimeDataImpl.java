@@ -8,8 +8,6 @@ import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.RuleNecessaryData;
-import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
 import com.br.marketing.context.impl.YiXinRealTimeRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -125,10 +123,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         String reserveField1 = syncUser.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
             JSONObject jsonObject = JSON.parseObject(reserveField1);
-            Integer gender = jsonObject.getInteger("gender");
-            if (0 == gender){
+            String gender = jsonObject.getString("gender");
+            if ("0".equals(gender)){
                 batchImportData.setGender("女");
-            }else if (1 == gender){
+            }else if ("1".equals(gender)){
                 batchImportData.setGender("男");
             }
         }
@@ -148,10 +146,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         batchImportData.setAuditAmount(transfer.getAuditAmount());
 
         // 根据custNum取转化接口的rate rate=1 -> activity=2 rate=2 -> activity=4
-        Integer rate = json.getInteger("rate");
-        if (1 == rate){
+        String rate = json.getString("rate");
+        if ("1".equals(rate)){
             batchImportData.setActivity("2");
-        } else if (2 == rate){
+        } else if ("2".equals(rate)){
             batchImportData.setActivity("4");
         }
         // 拨打优先级 无静置为1 静置为2
@@ -172,13 +170,14 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
             YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
                     (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
-            Integer transformType = json.getInteger("transformType");
+            boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType())
                     .concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
             boolean notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+            boolean isDelay = mqFact.getIsDelay() != null && 1 == mqFact.getIsDelay();
             /*
             满足条件立即推送
                 1、不满足客服黑名单
@@ -186,8 +185,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
                 2、transformType 为1
                 3、立即推送liveType 1,2,3 或者 从延迟队列过来的消息
              */
-            return notBlack && znkfPushService.cusNumIsFirstToday(key) && 1 == transformType
-                    && (Arrays.asList(1,2,3).contains(liveType) || 1 == mqFact.getIsDelay());
+            return notBlack && znkfPushService.cusNumIsFirstToday(key) && transformType
+                    && (Arrays.asList(1,2,3).contains(liveType) || isDelay);
         }
         return false;
     }
@@ -204,6 +203,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.HAI_ER_RULE_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.YI_XIN_REALTIME_DATA_COLLECTION.getCode();
     }
 }
