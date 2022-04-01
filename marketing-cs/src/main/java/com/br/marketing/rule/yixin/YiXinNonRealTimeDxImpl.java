@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataD
 import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
@@ -94,15 +95,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setId(transfer.getId());
         // 根据custNum取上传接口最新的gender（0女1男）传男女
         String reserveField1 = syncUser.getReserveField1();
-        if (StringUtils.hasText(reserveField1)){
-            JSONObject jsonObject = JSON.parseObject(reserveField1);
-            Integer gender = jsonObject.getInteger("gender");
-            if (0 == gender){
-                batchImportData.setGender("女");
-            }else if (1 == gender){
-                batchImportData.setGender("男");
-            }
-        }
+        batchImportData.setGender(YiXinUtils.getActivity(json.getString("gender")));
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String phone = AESUtil.aesEncrypty(cell, aesKey);
         String name = StringUtils.hasText(syncUser.getName()) ?
@@ -116,17 +109,12 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
         batchImportData.setSource("6");
-        batchImportData.setType(getDxType(transfer.getType()));
-        batchImportData.setLevel(getLevel(phoneGrade));
+        batchImportData.setType(YiXinUtils.getDxType(transfer.getType()));
+        batchImportData.setLevel(YiXinUtils.getLevel(phoneGrade));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
         // 根据custNum取转化接口的rate rate=1 -> activity=2 rate=2 -> activity=4
-        Integer rate = json.getInteger("rate");
-        if (1 == rate){
-            batchImportData.setActivity("2");
-        } else if (2 == rate){
-            batchImportData.setActivity("4");
-        }
-        batchImportData.setPrioritySymbol(getPrioritySymbol(transfer.getType()));
+        batchImportData.setActivity(YiXinUtils.getActivity(json.getString("rate")));
+        batchImportData.setPrioritySymbol(YiXinUtils.getPrioritySymbol(transfer.getType()));
         batchImportData.setApplyTime(transfer.getApplyDt().replaceAll("\\.d{3}",""));
         JSONObject extend = new JSONObject();
         String raiseLimiSuccess = json.getString("raiseLimiSuccess");
@@ -141,73 +129,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         return batchImportData;
     }
 
-    private String getDxType(String type){
-        switch (type){
-            case "13":
-                return "21";
-            case "12":
-                return "20";
-            case "9":
-                return "17";
-            case "7":
-                return "15";
-            case "17":
-                return "26";
-            case "18":
-                return "27";
-            case "6":
-                return "14";
-            case "8":
-                return "29";
-            case "4":
-                return "12";
-            case "15":
-                return "23";
-            default:
-                return null;
-        }
-    }
 
-    private String getLevel(String grade){
-        switch (grade.toUpperCase()){
-            case "A":
-                return "A级(有明确意向)";
-            case "B":
-                return "B级(可能有意向)";
-            case "C":
-                return "C级(明确拒绝)";
-            case "D":
-                return "D级(用户忙)";
-            case "E":
-                return "E级(拨打失败)";
-            case "F":
-                return "F级(无效客户)";
-            default:
-                return null;
-        }
-    }
-
-    private String getPrioritySymbol(String type){
-        switch (type){
-            case "13":
-            case "9":
-            case "7":
-            case "6":
-            case "8":
-            case "25":
-            case "0":
-                return "1";
-            case "12":
-            case "17":
-            case "15":
-                return "2";
-            case "18":
-            case "4":
-                return "3";
-            default:
-                return null;
-        }
-    }
 
     private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer,MarketingSyncUser syncUser) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
@@ -220,7 +142,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setType(transfer.getType());
-        phoneSaleExtendInfo.setDxType(getDxType(transfer.getType()));
+        phoneSaleExtendInfo.setDxType(YiXinUtils.getDxType(transfer.getType()));
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("0");
         phoneSaleExtendInfo.setSourceId(transfer.getId());

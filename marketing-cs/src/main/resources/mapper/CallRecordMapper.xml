@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CallRecordMapper" >
-    <select id="getCallRecordNewByCustNum" parameterType="java.util.List" resultType="com.br.marketing.entity.CallRecord">
+    <select id="getCallRecordNewByCustNum" resultType="com.br.marketing.entity.CallRecord">
         select
             distinct b.*
         from
@@ -28,5 +28,18 @@
                 #{custNum}
             </foreach>
             and b.cid = #{cid}
+    </select>
+
+    <select id="getLastCallRecordByCustNum"  resultType="com.br.marketing.entity.CallRecord">
+            select *
+            from
+            (select *, rank() over(partition by cust_num order by create_time desc) m
+            from b_call_record bmts
+            where case_num in
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>
+            and cid = #{cid}) a
+            where a.m = 1
     </select>
 </mapper>

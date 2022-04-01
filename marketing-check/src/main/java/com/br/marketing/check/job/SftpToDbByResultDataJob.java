@@ -225,7 +225,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                         , localFile
                                         , baseHeads
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
-                                        , iTxtToDbService::phoneTodbByJuZi);
+                                        , iTxtToDbService::phoneTodbByYiXin
+                                        ,iTxtToDbService::phoneTodbByYiXinAfterAction);
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context

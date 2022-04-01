@@ -274,6 +274,11 @@ public class PhoneSale {
     private String whiteListYc;
 
     /**
+     * 拨打优先级（枚举值：1、2、3）
+     */
+    private String prioritysymbol;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -718,6 +723,14 @@ public class PhoneSale {
 
     public void setWhiteListYc(String whiteListYc) {
         this.whiteListYc = whiteListYc == null ? null : whiteListYc.trim();
+    }
+
+    public String getPrioritysymbol() {
+        return prioritysymbol;
+    }
+
+    public void setPrioritysymbol(String prioritysymbol) {
+        this.prioritysymbol = prioritysymbol == null ? null : prioritysymbol.trim();
     }
 
     public String getExtend() {

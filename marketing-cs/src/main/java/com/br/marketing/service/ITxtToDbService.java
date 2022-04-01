@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.TxtToDbDTO;
+import com.br.marketing.entity.LocalFile;
 
 public interface ITxtToDbService {
     Result TwoSevenToDb(TxtToDbDTO content);
@@ -34,4 +35,6 @@ public interface ITxtToDbService {
     Result phoneTodbByJuZi(TxtToDbDTO content);
 
     Result phoneTodbByYiXin(TxtToDbDTO content);
+
+    void phoneTodbByYiXinAfterAction(LocalFile file);
 }
