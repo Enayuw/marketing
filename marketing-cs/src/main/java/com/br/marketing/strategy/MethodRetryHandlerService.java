@@ -172,8 +172,8 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
-    void saveBizLog(String data, int handlerEnum,long infoId){
-        DataCompare dataCompare = new DataCompare(data,handlerEnum,infoId);
+    void saveBizLog(String data, Integer handlerEnum, Long infoId) {
+        DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);
         dataCompareMapper.insertSelective(dataCompare);
     }
 

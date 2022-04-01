@@ -3,6 +3,7 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.impl.YiXinRealTimeRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
@@ -13,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * code is far away from bug with the animal protecting
@@ -59,20 +61,25 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
+            YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
+                    (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
-            Integer transformType = json.getInteger("transformType");
+            boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType()).concat(":").concat(transfer.getCustNum());
+            Map<String, String> blackList = ruleNecessaryData.getBlackList();
+            boolean notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             /*
             满足条件进入延迟队列
+                1、不满足客服黑名单
                 1、当天该案件编号未被推送
                 2、transformType 为1
                 3、需要静置的liveType 4,6,8
                 4、不是从延迟队列过来的消息
              */
-            return znkfPushService.cusNumIsFirstToday(key) && 1 == transformType
-                    && Arrays.asList(4,6,8).contains(liveType) && 1 != mqFact.getIsDelay();
+            return notBlack && znkfPushService.cusNumIsFirstToday(key) && transformType
+                    && Arrays.asList(4,6,8).contains(liveType) && mqFact.getIsDelay() == null;
         }
         return false;
     }

@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * @Description : 宜信实时数据推客服
@@ -57,7 +56,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
         conversionData.setTransformType("1");
         conversionData.setTaskId(context.getTransferInfoId().toString());
         //生效截止时间
-        LocalDate requestDate = LocalDateTime.parse(transfer.getRequestData(), dateTimeFormatter).toLocalDate();
+        LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
         LocalDate plusDays = requestDate.plusDays(6);
         conversionData.setExpireDate(plusDays + " 23:59:59");
 

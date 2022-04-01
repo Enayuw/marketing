@@ -1,8 +1,9 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * b_robotai_black_phone_mark

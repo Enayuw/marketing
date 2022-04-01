@@ -1,7 +1,7 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import org.apache.ibatis.annotations.Param;
 
