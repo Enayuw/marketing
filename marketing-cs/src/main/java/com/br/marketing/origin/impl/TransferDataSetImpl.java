@@ -39,12 +39,13 @@ public class TransferDataSetImpl implements OriginDataService {
          * {"last": 0,"tcId": 772,"ids": [607772,607771,607770,607769,607768],"apiCode": "7410430"}
          */
         final JSONObject jsonObject = JSONObject.parseObject(mqFact.getMessage());
-        String last = jsonObject.getString("last");
+        final String last = jsonObject.getString("last");
         final List<Long> ids = JSONObject.parseArray(jsonObject.getString("ids"), Long.class);
         final String apiCode = jsonObject.getString("apiCode");
+        CustomerTransferCollectDataImpl.CustomerTransferNecessaryData ruleNecessaryData =
+                (CustomerTransferCollectDataImpl.CustomerTransferNecessaryData) context.getRuleNecessaryData();
         if (CollectionUtils.isEmpty(ids)) {
-            context.setRuleNecessaryData(new CustomerTransferCollectDataImpl.CustomerTransferNecessaryData(
-                    last == null ? "1" : last));
+            ruleNecessaryData.setLast(last == null ? "1" : last);
             context.setApiCode(apiCode == null ? "3710012" : apiCode);
             return Collections.emptyList();
         }
@@ -53,8 +54,7 @@ public class TransferDataSetImpl implements OriginDataService {
         example.createCriteria().andIdIn(ids);
         example.settCid(tcId == null ? "14583" : tcId);
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        context.setRuleNecessaryData(new CustomerTransferCollectDataImpl.CustomerTransferNecessaryData(
-                last == null ? "0" : last));
+        ruleNecessaryData.setLast(last);
         context.setApiCode(apiCode == null ? transferList.size() > 0
                 ? transferList.get(0).getApiCode() : "3710012" : apiCode);
         return new ArrayList<>(transferList);
