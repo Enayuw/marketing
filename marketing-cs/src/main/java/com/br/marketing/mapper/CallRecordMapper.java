@@ -1,6 +1,12 @@
 package com.br.marketing.mapper;
 
 
-public interface CallRecordMapper extends CallRecordMapperBase{
+import com.br.marketing.entity.CallRecord;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+import java.util.Set;
+
+public interface CallRecordMapper extends CallRecordMapperBase{
+    List<CallRecord> getCallRecordNewByCustNum(@Param("custNums") Set<String> custNums,@Param("cid") String cid);
 }

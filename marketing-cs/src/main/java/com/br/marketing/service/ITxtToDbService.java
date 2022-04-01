@@ -32,4 +32,6 @@ public interface ITxtToDbService {
      * @dateTime 2021/12/20 9:30
      */
     Result phoneTodbByJuZi(TxtToDbDTO content);
+
+    Result phoneTodbByYiXin(TxtToDbDTO content);
 }

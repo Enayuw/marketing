@@ -142,8 +142,8 @@ public class DataController {
         reqBlackPhoneDTO.setJsonData(JSON.toJSONString(jsondata));
 //        reqBlackPhoneQueryDTO.setReqBlackPhoneDTO(reqBlackPhoneDTO);
 //        reqBlackPhoneQueryDTO.setBlackQueryDetailDTOList(blackQueryDetailDTOList);
-        RepQueryBlackPhoneVO repQueryBlackPhoneVO = robotaiApiServiceClient.queryBlackPhone(reqBlackPhoneQueryDTO);
-        log.warn(JSON.toJSONString(repQueryBlackPhoneVO));
+//        RepQueryBlackPhoneVO repQueryBlackPhoneVO = robotaiApiServiceClient.queryBlackPhone(reqBlackPhoneQueryDTO);
+//        log.warn(JSON.toJSONString(repQueryBlackPhoneVO));
         return "success";
 
 

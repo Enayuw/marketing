@@ -1,11 +1,21 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.origin.TransferSource;
+import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Sets;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
@@ -13,6 +23,8 @@ import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IYiXinTransferService;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
@@ -53,6 +65,18 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     @Autowired
     RedisChgService redisChgService;
 
+    @Autowired
+    RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Autowired
+    RabbitMqProducter producter;
+
+    @Autowired
+    ZnkfPushService znkfPushService;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public Result actionYiXinToDx(String apiCode, String date) {
 
@@ -83,47 +107,65 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         if (!ResultCode.SUCCESS.getValue().equals(dateResult.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(dateResult.getMessage());
         }
-        //todo 差黑名单逻辑
+        int hour = LocalDateTime.now().getHour();
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCode, date);
+        if (!pushBlackPhoneEnd && hour < 11) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("11点前未接收到黑名单标志不推送");
+        }
         //endregion
-
+        Long frontId = saveFrontData(apiCode, date, 2);
         Boolean mark = Boolean.TRUE;
         Integer page = 0;
         //全局去重custNum集合
         HashSet custNumALL = new HashSet();
-        //
         String _7startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -7));
         String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -60));
         String _endDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -1));
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        String tcId = tableCreateService.getTcId(apiCode);
         while (mark) {
             Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
-            if (!ResultCode.SUCCESS.equals(delayData.getCode())) {
+            if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
             }
             page++;
+
+            //region 获取非实时数据
             List<MarketingTransferSyncUser> data = delayData.getData();
-            List<Long> ids = new ArrayList<>();
             HashSet<String> custNums = new HashSet();
+            //如果返回的数据样本较大，考虑用list在分批查询，暂时先未使用
+//            List<String> custNumsList = new ArrayList<>();
             List<MarketingTransferSyncUser> dataFilter1 = new ArrayList<>();
             for (MarketingTransferSyncUser datum : data) {
                 if (!(StringUtils.isNotBlank(datum.getReserveField1())
                         && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
+                    if (!marketingCommonConfig.getYixinNoRealTimeType().contains(datum.getType())) {
+                        custNumALL.add(datum.getCustNum());
+                        continue;
+                    }
                     if (custNumALL.add(datum.getCustNum()) && custNums.add(datum.getCustNum())) {
                         dataFilter1.add(datum);
+//                        custNumsList.add(datum.getCustNum());
                     }
                 }
             }
+            if(custNums.size()<=0){
+                continue;
+            }
+            //endregion
+
             final String _tApicode = apiCode;
             threadPool.submit(() -> {
+                //region 获取7天数据和60天数据
                 PhoneSaleRecordInfoDTO _7recordInfoDTO = new PhoneSaleRecordInfoDTO();
                 _7recordInfoDTO.setCustNums(custNums);
                 _7recordInfoDTO.setApiCode(_tApicode);
                 _7recordInfoDTO.setStartDate(_7startDay);
                 _7recordInfoDTO.setEndDate(_endDay);
                 _7recordInfoDTO.setTransferType("1");
-                List<PhoneSaleInfoVO> _7records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_7recordInfoDTO);
-                Set<String> _7filerCustNumSet = _7records.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+                List<String> _7records = phoneSaleExtendInfoMapper.getDxRecordCustByTransferType(_7recordInfoDTO);
+                Set<String> _7filerCustNumSet = _7records.stream().collect(Collectors.toSet());
 
                 PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
                 _60recordInfoDTO.setCustNums(custNums);
@@ -133,7 +175,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 _60recordInfoDTO.setTransferType("0");
                 List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
                 Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
+                //endregion
 
+                //region 7天实时和60天非实时筛选
                 List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
                 for (MarketingTransferSyncUser transferSyncUser : dataFilter1) {
                     if (_7filerCustNumSet.contains(transferSyncUser.getCustNum())) {
@@ -179,6 +223,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         dataFilter2.add(transferSyncUser);
                     }
                 }
+                //endregion
+
+                //region 黑名单查询
+                HashMap<String, String> blackData = new HashMap<>();
                 List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
                 for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
                     List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
@@ -192,13 +240,48 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         blackQueryDetailDTO.setCaseNum(k.getCustNum());
                         blackQueryDetailDTOS.add(blackQueryDetailDTO);
                     });
+                    Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        blackData.putAll(result.getData());
+                    }
                 }
-            });
+                //endregion
 
+                //region 推送MQ
+                List<Long> ids = dataFilter2.stream()
+                        .filter(t -> StringUtils.isBlank(blackData.get(t.getId()))
+                                || !blackData.get(t.getId()).equals("Y"))
+                        .map(t -> t.getId()).collect(Collectors.toList());
+                List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
+                for (List<Long> longs : mqIdgroup) {
+                    JSONObject jo = new JSONObject();
+                    jo.put("tcId", tcId);
+                    jo.put("ids", longs);
+                    MqFact mq = new MqFact();
+                    mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                    mq.setIncludeRules(Sets.newHashSet());
+                    mq.setMessage(JSON.toJSONString(jo));
+//                    mq.setIncludeRules();
+                    producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, JSON.toJSONString(mq));
+                }
+                //endregion
+            });
         }
 
-
-        return null;
+        threadPool.shutdown();
+        Boolean threadMark = Boolean.TRUE;
+        while (threadMark) {
+            if (threadPool.isTerminated()) {
+                threadMark = Boolean.FALSE;
+            }
+            try {
+                Thread.sleep(3000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        updateFrontDataStatus(frontId,2);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     /**
@@ -253,7 +336,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 .andCreateTimeGreaterThanOrEqualTo(startDate)
                 .andCreateTimeLessThan(endDate);
         int statusIngs = transferInfoMapper.countByExample(statusExample);
-        if (statusIngs >= 0) {
+        if (statusIngs > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据还未解析完");
         }
 
@@ -292,29 +375,22 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
     }
 
-    public static void main(String[] args) {
-        Date date = null;
-        try {
-            date = DateUtils.parseDate("2022-03-31", "yyyy-MM-dd");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        Date date1 = null;
-        try {
-            date1 = DateUtils.parseDate("2022-03-01", "yyyy-MM-dd");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        Calendar aCalendar = Calendar.getInstance();
+    private Long saveFrontData(String apiCode, String date, Integer actionType){
+        TransferActionFront front = new TransferActionFront();
+        front.setApiCode(apiCode);
+        front.setStatus(1);
+        front.setActionType(actionType);
+        front.setActionData(date);
+        front.setCreateTime(new Date());
+        transferActionFrontMapper.insertSelective(front);
+        return front.getId();
+    }
 
-        aCalendar.setTime(date);
-
-        int day1 = aCalendar.get(Calendar.DAY_OF_YEAR);
-
-        aCalendar.setTime(date1);
-
-        int day2 = aCalendar.get(Calendar.DAY_OF_YEAR);
-        System.out.println("相差天数" + (day2 - day1));
+    private void updateFrontDataStatus(Long id,Integer status){
+        TransferActionFront front = new TransferActionFront();
+        front.setId(id);
+        front.setStatus(status);
+        transferActionFrontMapper.updateByPrimaryKeySelective(front);
     }
 
     private Integer getDayByDate(Date d1, Date d2) {

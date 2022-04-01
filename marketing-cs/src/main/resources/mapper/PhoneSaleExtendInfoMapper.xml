@@ -14,6 +14,19 @@
         <![CDATA[ and applet_date >= #{startDate} ]]>
         <![CDATA[ and applet_date <= #{endDate} ]]>
     </select>
+    <select id="getDxRecordCustByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="java.util.List">
+        select cust_num
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
+        </foreach>
+        and p_status = 2
+        and transform_type = #{transferType}
+        <![CDATA[ and applet_date >= #{startDate} ]]>
+        <![CDATA[ and applet_date <= #{endDate} ]]>
+    </select>
     <insert id="saveBatch" parameterType="list">
         insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
         user_type, applet_date, applet_time,

@@ -977,4 +977,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 ? ResultCode.SUCCESS.getValue()
                 : ResultCode.FAIL.getValue());
     }
+
+    @Override
+    public Result phoneTodbByYiXin(TxtToDbDTO content) {
+        return null;
+    }
 }
