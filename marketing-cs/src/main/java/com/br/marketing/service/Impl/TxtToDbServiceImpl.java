@@ -12,9 +12,11 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonmethod.YiXinUtils;
+import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
@@ -63,6 +65,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
     @Autowired
     DecodeClient decodeClient;
+
+    @Autowired
+    IDxService iDxService;
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -1219,6 +1224,8 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String cid = tableCreateService.getCId(apiCode);
         Boolean actionMark = Boolean.TRUE;
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String _7start = LocalDate.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String _7end = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Long minId = null;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
         while (actionMark){
@@ -1239,8 +1246,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
 
                     //根据custNum获取最新转化数据
-                    Map<String, List<MarketingTransferSyncUser>> lastTransferUserMap = transferSyncUserMapper
-                            .getTransferOrderRequestTimeByCustNum(tcId, custNums, date)
+                    List<MarketingTransferSyncUser> _lastTransferSyncUsers = transferSyncUserMapper
+                            .getTransferOrderRequestTimeByCustNum(tcId, custNums, date);
+                    Map<String, List<MarketingTransferSyncUser>> lastTransferUserMap = _lastTransferSyncUsers
                             .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
 
                     //根据custNum获取最新上传数据
@@ -1250,6 +1258,16 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     //获取最新通话记录
                     Map<String, List<CallRecord>> callrecord = callRecordMapper.getLastCallRecordByCustNum(custNums, cid)
                             .stream().collect(Collectors.groupingBy(CallRecord::getCaseNum));
+
+                    //获取7天实时数据
+                    Set<String> custNumByPhoneDx = iDxService.getCustNumByPhoneDx(custNums, apiCode, _7start, _7end, "1");
+
+                    //获取黑名单
+                    HashMap<String,String> black = new HashMap<>();
+                    Result<Map<String, String>> blackByTransfer = iDxService.getBlackByTransfer(_lastTransferSyncUsers, apiCode);
+                    if(ResultCode.SUCCESS.getValue().equals(blackByTransfer.getCode())){
+                        black.putAll(blackByTransfer.getData());
+                    }
 
                     for (PhoneSale phoneSale : phoneSales) {
                         String uid = phoneSale.getUid();
@@ -1264,6 +1282,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                             continue;
                         }
+                        if(custNumByPhoneDx!=null&&custNumByPhoneDx.contains(uid)){
+                            computeSale.setDataMessage("命中7天内实时数据");
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
                         List<MarketingSyncUser> marketingSyncUsers = syncUser.get(uid);
                         if(marketingSyncUsers==null||marketingSyncUsers.size()<=0){
                             computeSale.setDataMessage("没有命中原始上传数据");
@@ -1274,7 +1298,19 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         MarketingSyncUser _marketingSyncUser = marketingSyncUsers.get(0);
                         String cell = BrCipherMaker.getInstance().decode(_marketingSyncUser.getCell());
                         if(StringUtils.isBlank(cell)){
-                            computeSale.setDataMessage("原始上传数据手机号解密失败");
+                            computeSale.setDataMessage(String.format("原始上传数据手机号解密失败 sync_id:%d",_marketingSyncUser.getId()));
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        MarketingTransferSyncUser _transferSyncUser = new MarketingTransferSyncUser();
+                        List<MarketingTransferSyncUser> transferSyncUsers = lastTransferUserMap.get(uid);
+                        if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
+                            _transferSyncUser = transferSyncUsers.get(0);
+                        }
+                        if(black.containsKey(_transferSyncUser.getId())
+                                &&"Y".equals(black.get(_transferSyncUser.getId()))){
+                            computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                             continue;
@@ -1289,12 +1325,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if(StringUtils.isNotBlank(_marketingSyncUser.getReserveField1())){
                             JSONObject jsonObject = JSON.parseObject(_marketingSyncUser.getReserveField1());
                             gender = YiXinUtils.getGender(jsonObject.getString("gender"));
-                        }
-
-                        MarketingTransferSyncUser _transferSyncUser = new MarketingTransferSyncUser();
-                        List<MarketingTransferSyncUser> transferSyncUsers = lastTransferUserMap.get(uid);
-                        if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
-                            _transferSyncUser = transferSyncUsers.get(0);
                         }
                         if(StringUtils.isNotBlank(_transferSyncUser.getReserveField1())){
                             JSONObject jsonObject = JSON.parseObject(_transferSyncUser.getReserveField1());

@@ -4,6 +4,7 @@ import java.util.Date;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.origin.TransferSource;
+import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Sets;
@@ -76,6 +77,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    IDxService iDxService;
 
     @Override
     public Result actionYiXinToDx(String apiCode, String date) {
@@ -158,15 +162,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             final String _tApicode = apiCode;
             threadPool.submit(() -> {
                 //region 获取7天数据和60天数据
-                PhoneSaleRecordInfoDTO _7recordInfoDTO = new PhoneSaleRecordInfoDTO();
-                _7recordInfoDTO.setCustNums(custNums);
-                _7recordInfoDTO.setApiCode(_tApicode);
-                _7recordInfoDTO.setStartDate(_7startDay);
-                _7recordInfoDTO.setEndDate(_endDay);
-                _7recordInfoDTO.setTransferType("1");
-                List<String> _7records = phoneSaleExtendInfoMapper.getDxRecordCustByTransferType(_7recordInfoDTO);
-                Set<String> _7filerCustNumSet = _7records.stream().collect(Collectors.toSet());
-
+                Set<String> _7filerCustNumSet = iDxService
+                        .getCustNumByPhoneDx(custNums,_tApicode,_7startDay,_endDay,"1");
                 PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
                 _60recordInfoDTO.setCustNums(custNums);
                 _60recordInfoDTO.setApiCode(_tApicode);
@@ -229,18 +226,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 HashMap<String, String> blackData = new HashMap<>();
                 List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
                 for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
-                    List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
-                    ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
-                    dto.setApiCode(_tApicode);
-                    dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
-                    marketingTransferSyncUsers.forEach(k -> {
-                        BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
-                        blackQueryDetailDTO.setDataId(k.getId().toString());
-                        blackQueryDetailDTO.setApiCode(_tApicode);
-                        blackQueryDetailDTO.setCaseNum(k.getCustNum());
-                        blackQueryDetailDTOS.add(blackQueryDetailDTO);
-                    });
-                    Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
+                    Result<Map<String, String>> result = iDxService.getBlackByTransfer(marketingTransferSyncUsers, _tApicode);
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         blackData.putAll(result.getData());
                     }
