@@ -1,49 +1,73 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonmethod.YiXinUtils;
+import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.dto.TxtToDbDTO;
-import com.br.marketing.entity.PhoneSale;
-import com.br.marketing.entity.TwosevenFile;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.TwosevenFileMapper;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ITxtToDbService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class TxtToDbServiceImpl implements ITxtToDbService {
 
-    @Autowired
+    @Resource
     TwosevenFileMapper twosevenFileMapper;
 
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
 
-    @Autowired
+    @Resource
     PhoneSaleMapper phoneSaleMapper;
+
+    @Resource
+    MarketingTransferSyncUserMapper transferSyncUserMapper;
+
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    MarketingSyncUserMapper syncUserMapper;
+
+    @Resource
+    CallRecordMapper callRecordMapper;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
     DecodeClient decodeClient;
+
+    @Autowired
+    IDxService iDxService;
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -976,5 +1000,382 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
                 ? ResultCode.SUCCESS.getValue()
                 : ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public Result phoneTodbByYiXin(TxtToDbDTO dto) {
+        PhoneSale phoneSale = new PhoneSale();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;type不能为空;";
+        phoneSale.setApiCode(dto.getApiCode());
+        phoneSale.setLocalId(dto.getLocalId().toString());
+        phoneSale.setOrgname("yixin");
+        phoneSale.setUserType("A");
+        phoneSale.setSource("6");
+        phoneSale.setStatus(1);
+        try {
+            if (datas.size() != address.size()) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                phoneSaleMapper.insertSelective(phoneSale);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("uid不能为空;", "");
+                        }
+                        phoneSale.setUid(datas.get(i));
+                        break;
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            Result<String> stringResult = decryptMd5Phone(datas.get(i));
+                            phoneSale.setPhoneAes(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
+                            }
+                        }
+                        break;
+                    case "name":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSale.setName(datas.get(i));
+                        }
+                        break;
+                    case "gender":
+                        phoneSale.setGender(datas.get(i));
+                        break;
+                    case "marketscore":
+                        phoneSale.setMarketscore(datas.get(i));
+                        break;
+                    case "riskscore":
+                        phoneSale.setRiskscore(datas.get(i));
+                        break;
+                    case "orgname":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSale.setOrgname(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        phoneSale.setSource(datas.get(i));
+                        break;
+                    case "user_type":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSale.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "product_name":
+                        phoneSale.setProductName(datas.get(i));
+                        break;
+                    case "flag_type":
+                        phoneSale.setFlagType(datas.get(i));
+                        break;
+                    case "type":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("type不能为空;;", "");
+                        }
+                        phoneSale.setType(YiXinUtils.getDxType(datas.get(i)));
+                        break;
+                    case "level":
+                        phoneSale.setLevel(datas.get(i));
+                        break;
+                    case "if_register":
+                        phoneSale.setIfRegister(datas.get(i));
+                        break;
+                    case "register_time":
+                        phoneSale.setRegisterTime(datas.get(i));
+                        break;
+                    case "if_login":
+                        phoneSale.setIfLogin(datas.get(i));
+                        break;
+                    case "login_time":
+                        phoneSale.setLoginTime(datas.get(i));
+                        break;
+                    case "if_apply":
+                        phoneSale.setIfApply(datas.get(i));
+                        break;
+                    case "apply_dt":
+                        phoneSale.setApplyDt(datas.get(i));
+                        break;
+                    case "apply_time":
+                        phoneSale.setApplyTime(datas.get(i));
+                        break;
+                    case "apply_result":
+                        phoneSale.setApplyResult(datas.get(i));
+                        break;
+                    case "pagenode":
+                        phoneSale.setPagenode(datas.get(i));
+                        break;
+                    case "optype":
+                        phoneSale.setOptype(datas.get(i));
+                        break;
+                    case "refuse_time":
+                        phoneSale.setRefuseTime(datas.get(i));
+                        break;
+                    case "audit_time":
+                        phoneSale.setAuditTime(datas.get(i));
+                        break;
+                    case "audit_amount":
+                        phoneSale.setAuditAmount(datas.get(i));
+                        break;
+                    case "if_lent":
+                        phoneSale.setIfLent(datas.get(i));
+                        break;
+                    case "lent_time":
+                        phoneSale.setLentTime(datas.get(i));
+                        break;
+                    case "lent_amount":
+                        phoneSale.setLentAmount(datas.get(i));
+                        break;
+                    case "unlent_amount":
+                        phoneSale.setUnlentAmount(datas.get(i));
+                        break;
+                    case "if_settle":
+                        phoneSale.setIfSettle(datas.get(i));
+                        break;
+                    case "settle_time":
+                        phoneSale.setSettleTime(datas.get(i));
+                        break;
+                    case "activity":
+                        phoneSale.setActivity(datas.get(i));
+                        break;
+                    case "production":
+                        phoneSale.setProduction(datas.get(i));
+                        break;
+                    case "region":
+                        phoneSale.setRegion(datas.get(i));
+                        break;
+                    case "yx_flag_3d":
+                        phoneSale.setYxFlag3d(datas.get(i));
+                        break;
+                    case "yx_flag_7d":
+                        phoneSale.setYxFlag7d(datas.get(i));
+                        break;
+                    case "yx_flag_15d":
+                        phoneSale.setYxFlag15d(datas.get(i));
+                        break;
+                    case "yx_flag_1m":
+                        phoneSale.setYxFlag1m(datas.get(i));
+                        break;
+                    case "person_flag_house":
+                        phoneSale.setPersonFlagHouse(datas.get(i));
+                        break;
+                    case "person_flag_car":
+                        phoneSale.setPersonFlagCar(datas.get(i));
+                        break;
+                    case "person_flag_insur":
+                        phoneSale.setPersonFlagInsur(datas.get(i));
+                        break;
+                    case "white_list_gw":
+                        phoneSale.setWhiteListGw(datas.get(i));
+                        break;
+                    case "white_list_fp":
+                        phoneSale.setWhiteListFp(datas.get(i));
+                        break;
+                    case "white_list_yc":
+                        phoneSale.setWhiteListYc(datas.get(i));
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, datas.get(i));
+                        }
+                        break;
+                }
+                if (jo != null) {
+                    phoneSale.setExtend(jo.toJSONString());
+                }
+            }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            }
+            Date date = new Date();
+            phoneSale.setCreateTime(date);
+            phoneSale.setUpdateTime(date);
+            phoneSaleMapper.insertSelective(phoneSale);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            phoneSale.setStatus(2);
+            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            phoneSaleMapper.insertSelective(phoneSale);
+        }
+        return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
+                ?ResultCode.SUCCESS.getValue()
+                :ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public void phoneTodbByYiXinAfterAction(LocalFile file) {
+        if(file ==null||file.getId()<=0){
+            return;
+        }
+        String apiCode = file.getApiCode();
+        String tcId = tableCreateService.getTcId(apiCode);
+        String cid = tableCreateService.getCId(apiCode);
+        Boolean actionMark = Boolean.TRUE;
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String _7start = LocalDate.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String _7end = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Long minId = null;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        while (actionMark){
+            Result<List<PhoneSale>> dataRes = getPhoneSaleDataByfileWithPage(file.getId(), minId);
+            if(!ResultCode.SUCCESS.getValue().equals(dataRes.getCode())){
+                actionMark = Boolean.FALSE;
+                continue;
+            }
+            List<PhoneSale> datas = dataRes.getData();
+            minId = datas.get(datas.size()-1).getId()+1;
+            List<List<PhoneSale>> partition = Lists.partition(datas, 500);
+            for (List<PhoneSale> phoneSales : partition) {
+                threadPool.submit(()->{
+                    List<String> custNums = phoneSales.stream().map(t -> t.getUid()).distinct().collect(Collectors.toList());
+                    //根据custNum获取当天的数据情况
+                    Map<String, List<MarketingTransferSyncUser>> nowTimetransferUserMap = transferSyncUserMapper
+                            .getTransferOrderInsertTimeByCustNum(tcId, custNums, date)
+                            .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
+
+                    //根据custNum获取最新转化数据
+                    List<MarketingTransferSyncUser> _lastTransferSyncUsers = transferSyncUserMapper
+                            .getTransferOrderRequestTimeByCustNum(tcId, custNums, date);
+                    Map<String, List<MarketingTransferSyncUser>> lastTransferUserMap = _lastTransferSyncUsers
+                            .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
+
+                    //根据custNum获取最新上传数据
+                    Map<String, List<MarketingSyncUser>> syncUser = syncUserMapper.getSyncUserLastByCustNums(apiCode, custNums)
+                            .stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum));
+
+                    //获取最新通话记录
+                    Map<String, List<CallRecord>> callrecord = callRecordMapper.getLastCallRecordByCustNum(custNums, cid)
+                            .stream().collect(Collectors.groupingBy(CallRecord::getCaseNum));
+
+                    //获取7天实时数据
+                    Set<String> custNumByPhoneDx = iDxService.getCustNumByPhoneDx(custNums, apiCode, _7start, _7end, "1");
+
+                    //获取黑名单
+                    HashMap<String,String> black = new HashMap<>();
+                    Result<Map<String, String>> blackByTransfer = iDxService.getBlackByTransfer(_lastTransferSyncUsers, apiCode);
+                    if(ResultCode.SUCCESS.getValue().equals(blackByTransfer.getCode())){
+                        black.putAll(blackByTransfer.getData());
+                    }
+
+                    for (PhoneSale phoneSale : phoneSales) {
+                        String uid = phoneSale.getUid();
+                        PhoneSale computeSale = new PhoneSale();
+                        computeSale.setId(phoneSale.getId());
+                        List<MarketingTransferSyncUser> marketingTransferSyncUsers = nowTimetransferUserMap.get(uid);
+                        if(marketingTransferSyncUsers.size()>0
+                                &&marketingTransferSyncUsers.stream()
+                                .anyMatch(t->marketingCommonConfig.getYixinNoRealTimeType().contains(t.getType()))){
+                            computeSale.setDataMessage("命中当天非实时数据");
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        if(custNumByPhoneDx!=null&&custNumByPhoneDx.contains(uid)){
+                            computeSale.setDataMessage("命中7天内实时数据");
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        List<MarketingSyncUser> marketingSyncUsers = syncUser.get(uid);
+                        if(marketingSyncUsers==null||marketingSyncUsers.size()<=0){
+                            computeSale.setDataMessage("没有命中原始上传数据");
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        MarketingSyncUser _marketingSyncUser = marketingSyncUsers.get(0);
+                        String cell = BrCipherMaker.getInstance().decode(_marketingSyncUser.getCell());
+                        if(StringUtils.isBlank(cell)){
+                            computeSale.setDataMessage(String.format("原始上传数据手机号解密失败 sync_id:%d",_marketingSyncUser.getId()));
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        MarketingTransferSyncUser _transferSyncUser = new MarketingTransferSyncUser();
+                        List<MarketingTransferSyncUser> transferSyncUsers = lastTransferUserMap.get(uid);
+                        if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
+                            _transferSyncUser = transferSyncUsers.get(0);
+                        }
+                        if(black.containsKey(_transferSyncUser.getId())
+                                &&"Y".equals(black.get(_transferSyncUser.getId()))){
+                            computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
+                            computeSale.setStatus(2);
+                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            continue;
+                        }
+                        String name = "";
+                        String gender=null;
+                        String activity = null;
+                        JSONObject extend = new JSONObject();
+                        if(StringUtils.isNotBlank(_marketingSyncUser.getName())){
+                            name = BrCipherMaker.getInstance().decode(_marketingSyncUser.getName());
+                        }
+                        if(StringUtils.isNotBlank(_marketingSyncUser.getReserveField1())){
+                            JSONObject jsonObject = JSON.parseObject(_marketingSyncUser.getReserveField1());
+                            gender = YiXinUtils.getGender(jsonObject.getString("gender"));
+                        }
+                        if(StringUtils.isNotBlank(_transferSyncUser.getReserveField1())){
+                            JSONObject jsonObject = JSON.parseObject(_transferSyncUser.getReserveField1());
+                            activity = YiXinUtils.getActivity(jsonObject.getString("rate"));
+                            String raiseLimiSuccess = jsonObject.getString("raiseLimiSuccess");
+                            String raiseLimiType = jsonObject.getString("raiseLimiType");
+                            if(StringUtils.isNotBlank(raiseLimiSuccess)){
+                                extend.put("raiseLimiSuccess",raiseLimiSuccess);
+                            }
+                            if(StringUtils.isNotBlank(raiseLimiType)){
+                                extend.put("raiseLimiType",raiseLimiType);
+                            }
+                        }
+                        CallRecord _callRecord = new CallRecord();
+                        List<CallRecord> callRecords = callrecord.get(uid);
+                        if(callRecords!=null&&callRecords.size()>0){
+                            _callRecord = callRecords.get(0);
+                        }
+                        computeSale.setPhone(AESUtil.aesEncrypty(cell, aesKey));
+                        computeSale.setPhoneAes(_marketingSyncUser.getCell());
+                        computeSale.setName(name);
+                        computeSale.setNameAes(_marketingSyncUser.getName());
+                        computeSale.setGender(gender);
+                        computeSale.setLevel(YiXinUtils.getLevel(_callRecord.getIntentionGrade()));
+                        computeSale.setAuditAmount(_transferSyncUser.getAuditAmount());
+                        computeSale.setApplyTime(StringUtils.isBlank(_transferSyncUser.getApplyDt())
+                                ?_transferSyncUser.getApplyDt()
+                                :_transferSyncUser.getApplyDt().replaceAll(":\\d{3}",""));
+                        computeSale.setActivity(activity);
+                        computeSale.setPrioritysymbol(YiXinUtils.getPrioritySymbol(phoneSale.getType()));
+                        computeSale.setExtend(JSON.toJSONString(extend));
+                        phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                    }
+                });
+            }
+        }
+    }
+
+    private Result<List<PhoneSale>> getPhoneSaleDataByfileWithPage(Long fileId,Long dataId){
+        PhoneSaleExample saleExample = new PhoneSaleExample();
+        saleExample.setOrderByClause(" id asc limit 5000");
+        PhoneSaleExample.Criteria criteria = saleExample.createCriteria()
+                .andLocalIdEqualTo(fileId.toString())
+                .andStatusEqualTo(1);
+        if(dataId!=null){
+            criteria.andIdGreaterThanOrEqualTo(dataId);
+        }
+        List<PhoneSale> phoneSales = phoneSaleMapper.selectByExample(saleExample);
+        if(phoneSales.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(phoneSales);
     }
 }

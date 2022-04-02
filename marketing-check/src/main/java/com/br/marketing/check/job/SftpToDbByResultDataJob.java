@@ -1,7 +1,4 @@
 package com.br.marketing.check.job;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.*;
@@ -16,6 +13,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
@@ -28,7 +26,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,7 +74,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     SftpToDbService sftpToDbService;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
-    @Autowired
+    @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
     @Resource
     RedisChgService redisChgService;
@@ -89,9 +88,9 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     DeleteService deleteService;
     @Autowired
     IApiToDbService iApiToDbService;
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
-    
+
     @Autowired
     SyncConfigMapper syncConfigMapper;
 
@@ -101,30 +100,25 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     @Autowired
     SftpToDbByCommonService sftpToDbByCommonService;
 
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
 
     @Autowired
     ITxtToDbService iTxtToDbService;
 
-    List<String> xwList;
-    Set<String> juZiList;
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
-    @PostConstruct
-    void init(){
-        xwList = new ArrayList<>();
-        xwList.add("4004666");
-        juZiList = new HashSet<>();
-        juZiList.add("3710037");
-    }
+
     /**
-     *  1、先从customer读取客户
-     *  2、再从sftp配置表读取路径
-     *  3、查找该路径下的success文件
-     *  4、把该文件同名的txt文件进行读取操作
-     *      4.1、从标题读取到扩展字段标志位的位置
-     *      4.2、标志位以前是表的基础字段，标志位以后是表的扩展字段
-     *      4.3、存入读取记录表，存入数据表
+     * 1、先从customer读取客户
+     * 2、再从sftp配置表读取路径
+     * 3、查找该路径下的success文件
+     * 4、把该文件同名的txt文件进行读取操作
+     * 4.1、从标题读取到扩展字段标志位的位置
+     * 4.2、标志位以前是表的基础字段，标志位以后是表的扩展字段
+     * 4.3、存入读取记录表，存入数据表
+     *
      * @param jobExecutionMultipleShardingContext
      */
     @Override
@@ -136,17 +130,17 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(3).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
-        syncConfigs.forEach(t->{
-            if(StringUtils.isNotBlank(t.getTargetPath())){
+        syncConfigs.forEach(t -> {
+            if (StringUtils.isNotBlank(t.getTargetPath())) {
                 Map<String, Set<String>> map = new HashMap<>();
-                SftpClient sftpClient = new SftpClient(sftpHost, sftpPort,sftpUsername,sftpPwd);
+                SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
                 try {
                     sftpClient.connect();
-                    SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient,t);
+                    SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient, t);
                     if (!map.isEmpty()) {
                         log.info("----------获取运营需要推送DASS结果数据-------------");
                         long start = System.currentTimeMillis();
-                        dealDataFile(map, sftpClient,t);
+                        dealDataFile(map, sftpClient, t);
                         long end = System.currentTimeMillis();
                         if (log.isWarnEnabled()) {
                             log.warn(String.format("数据入库时间:%d", end - start));
@@ -164,9 +158,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
-
-
-
         });
     }
 
@@ -178,22 +169,17 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
      * @param sftpClient
      */
     private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient, SyncConfig syncConfig) {
+        HashMap<String, Set<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
+        Set xwList = dxFileCustomize.get("xw");
+        Set juziList = dxFileCustomize.get("juzi");
+        Set yixinList = dxFileCustomize.get("yixin");
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();
             //初始化参数对象
             String apiCode = syncConfig.getApiCode();
-            String s = redisChgService.get(RedisKeyConstant.fileToDbByXw);
-            if(StringUtils.isNotBlank(s)){
-                List xws = Splitter.on(",").splitToList(s);
-                xwList.addAll(xws);
-            }
-            String juZiCodes = redisChgService.get(RedisKeyConstant.fileToDbByJuZi);
-            if (StringUtils.isNotBlank(juZiCodes)) {
-                juZiList.addAll(Splitter.on(",").splitToList(juZiCodes));
-            }
             for (String fileName : fileNames) {
-                if(fileName.endsWith(".txt")){
+                if (fileName.endsWith(".txt")) {
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
                     context.setSftpZipFilePath(srcPath);
@@ -202,7 +188,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
                         context.setLocalTxtFilePath(path.concat("sftp_dianxiao_data/").concat(apiCode).concat("/"));
-                        if(!sftpToDbByDXService.dowloadFile(context)){
+                        if (!sftpToDbByDXService.dowloadFile(context)) {
                             continue;
                         }
                         LocalFile localFile = new LocalFile();
@@ -217,22 +203,30 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
 
                         try {
                             String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                            sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
-                            sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
-                            if(xwList.contains(apiCode)){
-                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid","phone","name"));
+                            sftpClient.rename(srcPath + successFile, srcPath + successFile + "_" + yyyyMMddHHmmss + ".bak");
+                            sftpClient.rename(srcPath + fileName, srcPath + fileName + "_" + yyyyMMddHHmmss + ".bak");
+                            if (xwList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByXW);
-                            } else if (juZiList.contains(apiCode)) {
+                            } else if (juziList.contains(apiCode)) {
                                 ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("测试编号", "md5手机号", "客群类型"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByJuZi);
+                            } else if (yixinList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("uid", "type"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
+                                        , iTxtToDbService::phoneTodbByYiXin
+                                        ,iTxtToDbService::phoneTodbByYiXinAfterAction);
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context

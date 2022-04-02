@@ -12,9 +12,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * 非实时转化数据推送客服
  *
@@ -23,10 +20,6 @@ import java.util.List;
  */
 @Service
 public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<ConversionData> {
-
-    private final List<String> TYPE_LIST = Arrays.asList("4", "5", "6", "7", "8", "11", "12", "14", "15", "17", "18", "19");
-    private final List<String> CID_LIST = Arrays.asList("14583", "-772", "-793", "-773");
-    private final List<String> API_CODE_LIST = Arrays.asList("3710012", "7412003", "7410787", "7492629", "7492630");
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -48,10 +41,11 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        return CID_LIST.contains(transfer.getCid())
-                && API_CODE_LIST.contains(transfer.getApiCode())
-                && TYPE_LIST.contains(transfer.getType());
+        // 该标识只为调度任务查询数据使用，非数据ID
+        if (context.getTransferInfoId() == null) {
+            context.setTransferInfoId(-1L);
+        }
+        return true;
     }
 
     @Override

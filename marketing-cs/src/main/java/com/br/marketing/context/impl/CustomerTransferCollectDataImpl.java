@@ -21,7 +21,7 @@ public class CustomerTransferCollectDataImpl implements AbstractRuleCollectDataS
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        context.setRuleNecessaryData(new CustomerTransferNecessaryData("0"));
+        context.setRuleNecessaryData(new CustomerTransferNecessaryData());
     }
 
     @Override

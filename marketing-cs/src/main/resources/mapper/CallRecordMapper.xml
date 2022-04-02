@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CallRecordMapper" >
+    <select id="getCallRecordNewByCustNum" resultType="com.br.marketing.entity.CallRecord">
+        select
+            distinct b.*
+        from
+            (
+                select
+                    cust_num,
+                    max(create_time)
+                from
+                    b_call_record a
+                where
+                    a.case_num in
+                <foreach collection="custNums" open="(" separator="," close=")" item="custNum">
+                    #{custNum}
+                </foreach>
+                    and cid = #{cid}
+                group by
+                    cust_num) as a
+                left join b_call_record b on
+                    a.cust_num = b.cust_num
+                    and a.create_time = b.create_time
+        where
+            b.case_num in
+            <foreach collection="custNums" open="(" separator="," close=")" item="custNum">
+                #{custNum}
+            </foreach>
+            and b.cid = #{cid}
+    </select>
 
+    <select id="getLastCallRecordByCustNum"  resultType="com.br.marketing.entity.CallRecord">
+            select *
+            from
+            (select *, rank() over(partition by cust_num order by create_time desc) m
+            from b_call_record bmts
+            where case_num in
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>
+            and cid = #{cid}) a
+            where a.m = 1
+    </select>
 </mapper>

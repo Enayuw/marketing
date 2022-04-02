@@ -17,7 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TableCreateServiceImpl {
     private static HashSet tableNameSet;
 
-    private static ConcurrentHashMap<String,String> cidHashMap;
+    private static ConcurrentHashMap<String,String> _tcidHashMap;
+
+    private static ConcurrentHashMap<String,String> _cidHashMap;
 
     final static String marketingPreUserTable = "b_marketing_sync_";
 
@@ -28,7 +30,8 @@ public class TableCreateServiceImpl {
     @PostConstruct
     void init(){
         tableNameSet = new HashSet<String>();
-        cidHashMap = new ConcurrentHashMap<>();
+        _tcidHashMap = new ConcurrentHashMap<>();
+        _cidHashMap = new ConcurrentHashMap<>();
     }
 
     @Resource
@@ -43,8 +46,8 @@ public class TableCreateServiceImpl {
      * @return
      */
     public String getTcId(String apiCode) {
-        if(cidHashMap.containsKey(apiCode)){
-            return cidHashMap.get(apiCode);
+        if(_tcidHashMap.containsKey(apiCode)){
+            return _tcidHashMap.get(apiCode);
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
@@ -53,7 +56,7 @@ public class TableCreateServiceImpl {
             return null;
         }
         String s1 = marketingCustomers.get(0).getCid().replaceFirst("-", "");
-        cidHashMap.put(apiCode,s1);
+        _tcidHashMap.put(apiCode,s1);
         return s1;
     }
 
@@ -64,12 +67,16 @@ public class TableCreateServiceImpl {
      * @dateTime 2022/2/16 17:42
      */
     public String getCId(String apiCode) {
+        if(_cidHashMap.containsKey(apiCode)){
+            return _cidHashMap.get(apiCode);
+        }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         if (marketingCustomers.size() == 0) {
             return null;
         }
+        _cidHashMap.put(apiCode, marketingCustomers.get(0).getCid());
         return marketingCustomers.get(0).getCid();
     }
 

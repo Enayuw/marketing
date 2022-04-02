@@ -30,7 +30,8 @@ public enum RuleDataCollectionEnum {
     SHU_HE_RULE_DATA_COLLECTION(2, "数禾规则所需数据收集"),
     DEFAULT_DATA_COLLECTION(-1, "通用规则收集"),
     CUSTOMER_TRANSFER_DATA_COLLECTION(3, "客服转化所需数据收集"),
-    YI_XIN_REALTIME_DATA_COLLECTION(4, "宜信实时推电销所需数据收集");
+    YI_XIN_REALTIME_DATA_COLLECTION(4, "宜信实时推电销所需数据收集"),
+    YIXIN_NOREAL_DX_RULE_DATA_COLLECTION(5,"宜信非实时推电销所需数据收集");
 
     RuleDataCollectionEnum(Integer code, String name) {
         this.code = code;

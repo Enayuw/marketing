@@ -56,6 +56,7 @@
     <result column="white_list_gw" property="whiteListGw" jdbcType="VARCHAR" />
     <result column="white_list_fp" property="whiteListFp" jdbcType="VARCHAR" />
     <result column="white_list_yc" property="whiteListYc" jdbcType="VARCHAR" />
+    <result column="prioritySymbol" property="prioritysymbol" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -126,7 +127,7 @@
     if_lent, lent_time, lent_amount, unlent_amount, if_settle, settle_time, activity, 
     production, region, yx_flag_3d, yx_flag_7d, yx_flag_15d, yx_flag_1m, person_flag_house, 
     person_flag_car, person_flag_insur, white_list_gw, white_list_fp, white_list_yc, 
-    extend, create_time, update_time
+    prioritySymbol, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExample" >
     select
@@ -179,8 +180,9 @@
       region, yx_flag_3d, yx_flag_7d, 
       yx_flag_15d, yx_flag_1m, person_flag_house, 
       person_flag_car, person_flag_insur, white_list_gw, 
-      white_list_fp, white_list_yc, extend, 
-      create_time, update_time)
+      white_list_fp, white_list_yc, prioritySymbol, 
+      extend, create_time, update_time
+      )
     values (#{apiCid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{syncLogId,jdbcType=VARCHAR}, 
       #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
       #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{phoneAes,jdbcType=VARCHAR}, 
@@ -198,8 +200,9 @@
       #{region,jdbcType=VARCHAR}, #{yxFlag3d,jdbcType=VARCHAR}, #{yxFlag7d,jdbcType=VARCHAR}, 
       #{yxFlag15d,jdbcType=VARCHAR}, #{yxFlag1m,jdbcType=VARCHAR}, #{personFlagHouse,jdbcType=VARCHAR}, 
       #{personFlagCar,jdbcType=VARCHAR}, #{personFlagInsur,jdbcType=VARCHAR}, #{whiteListGw,jdbcType=VARCHAR}, 
-      #{whiteListFp,jdbcType=VARCHAR}, #{whiteListYc,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{whiteListFp,jdbcType=VARCHAR}, #{whiteListYc,jdbcType=VARCHAR}, #{prioritysymbol,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSale" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -365,6 +368,9 @@
       </if>
       <if test="whiteListYc != null" >
         white_list_yc,
+      </if>
+      <if test="prioritysymbol != null" >
+        prioritySymbol,
       </if>
       <if test="extend != null" >
         extend,
@@ -535,6 +541,9 @@
       </if>
       <if test="whiteListYc != null" >
         #{whiteListYc,jdbcType=VARCHAR},
+      </if>
+      <if test="prioritysymbol != null" >
+        #{prioritysymbol,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -718,6 +727,9 @@
       <if test="record.whiteListYc != null" >
         white_list_yc = #{record.whiteListYc,jdbcType=VARCHAR},
       </if>
+      <if test="record.prioritysymbol != null" >
+        prioritySymbol = #{record.prioritysymbol,jdbcType=VARCHAR},
+      </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
@@ -788,6 +800,7 @@
       white_list_gw = #{record.whiteListGw,jdbcType=VARCHAR},
       white_list_fp = #{record.whiteListFp,jdbcType=VARCHAR},
       white_list_yc = #{record.whiteListYc,jdbcType=VARCHAR},
+      prioritySymbol = #{record.prioritysymbol,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -957,6 +970,9 @@
       <if test="whiteListYc != null" >
         white_list_yc = #{whiteListYc,jdbcType=VARCHAR},
       </if>
+      <if test="prioritysymbol != null" >
+        prioritySymbol = #{prioritysymbol,jdbcType=VARCHAR},
+      </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
@@ -1024,6 +1040,7 @@
       white_list_gw = #{whiteListGw,jdbcType=VARCHAR},
       white_list_fp = #{whiteListFp,jdbcType=VARCHAR},
       white_list_yc = #{whiteListYc,jdbcType=VARCHAR},
+      prioritySymbol = #{prioritysymbol,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

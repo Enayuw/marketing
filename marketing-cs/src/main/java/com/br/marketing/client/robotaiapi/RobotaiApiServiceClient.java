@@ -161,7 +161,7 @@ public class RobotaiApiServiceClient {
      * @return RepQueryBlackPhoneVO
      */
     @RetryMethod(retryNowNum = 3)
-    public Result queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+    public Result<Map<String,String>> queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
         Result result = new Result();
         try {
             ReqBlackPhoneDTO reqBlackPhoneDTO = new ReqBlackPhoneDTO();

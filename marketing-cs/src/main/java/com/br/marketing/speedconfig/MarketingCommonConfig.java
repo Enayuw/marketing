@@ -5,10 +5,7 @@ import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -99,5 +96,20 @@ public class MarketingCommonConfig {
      * 消息队列过期时间
      */
     private String messageQueueExpireTime;
+
+    /**
+     * 宜信非实时typelist
+     */
+    private List<String> yixinNoRealTimeType;
+
+    /**
+     * 宜信非实时推客服typelist
+     */
+    private List<String> yixinNoRealTimePushRobotAIType;
+
+    /**
+     * 电销文件定制化处理
+     */
+    private HashMap<String, Set<String>> dxFileCustomize;
 
 }

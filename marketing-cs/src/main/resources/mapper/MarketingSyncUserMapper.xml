@@ -184,4 +184,16 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="getSyncUserLastByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from
+        (select *, rank() over(partition by cust_num order by applet_time desc) m
+        from b_marketing_${apiCode} bmts
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>) a
+        where a.m = 1
+    </select>
 </mapper>

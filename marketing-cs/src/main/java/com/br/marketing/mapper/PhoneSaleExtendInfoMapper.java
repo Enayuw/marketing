@@ -13,6 +13,8 @@ import java.util.Set;
 public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBase{
 
     List<PhoneSaleInfoVO> getDxRecordByTransferType(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
+
+    List<String> getDxRecordCustByTransferType(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
     /**
      * 批量插入
      * @param list
