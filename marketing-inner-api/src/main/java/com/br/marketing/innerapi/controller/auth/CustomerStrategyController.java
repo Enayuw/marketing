@@ -30,8 +30,7 @@ public class CustomerStrategyController {
     RestTemplate restTemplate;
     private static String STRATEGY_DISTRIBUTION_LIST = "http://STRATEGY-DISTRIBUTION/strategy-customizer/distributeList?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
-    private static String CREATE_VIEW = "http://STRATEGY-DISTRIBUTION/strategy-customizer/createView?" +
-            "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
+    private static String CREATE_VIEW = "http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0";
     @GetMapping("distributeList")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public JSONObject distributeList(String apiCode,String strategyCategory,String distributeType,String strategyType) {
@@ -39,11 +38,11 @@ public class CustomerStrategyController {
         String result = restTemplate.getForObject(STRATEGY_DISTRIBUTION_LIST, String.class, urlVariables);
         return (JSONObject) JSONObject.parse(result);
     }
+    //productChineseName、productName、secondTypeName、spreadStatus、version、versions
     @GetMapping("createView")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public JSONObject createView(String apiCode,String strategyCategory,String distributeType,String strategyType) {
-        Map<String, Object> urlVariables = getStringObjectMap(apiCode, strategyCategory, distributeType, strategyType);
-        String result = restTemplate.getForObject(CREATE_VIEW, String.class, urlVariables);
+    public JSONObject createView() {
+        String result = restTemplate.getForObject(CREATE_VIEW, String.class);
         return (JSONObject) JSONObject.parse(result);
     }
     private Map<String, Object> getStringObjectMap(String apiCode, String strategyCategory, String distributeType, String strategyType) {
