@@ -6,4 +6,8 @@ import java.util.Set;
 
 public interface IYiXinTransferService {
     Result actionYiXinToDx(String apiCode,String data);
+
+
+    Result actionYiXinToRobotAI(String apiCode,String date);
+
 }

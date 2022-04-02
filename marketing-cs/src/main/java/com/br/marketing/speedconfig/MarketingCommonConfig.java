@@ -103,6 +103,11 @@ public class MarketingCommonConfig {
     private List<String> yixinNoRealTimeType;
 
     /**
+     * 宜信非实时推客服typelist
+     */
+    private List<String> yixinNoRealTimePushRobotAIType;
+
+    /**
      * 电销文件定制化处理
      */
     private HashMap<String, Set<String>> dxFileCustomize;
