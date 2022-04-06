@@ -1,5 +1,6 @@
 package com.br.marketing.context.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -7,6 +8,7 @@ import com.br.marketing.context.RuleNecessaryData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -21,7 +23,13 @@ public class CustomerTransferCollectDataImpl implements AbstractRuleCollectDataS
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        context.setRuleNecessaryData(new CustomerTransferNecessaryData());
+        CustomerTransferNecessaryData customerTransferNecessaryData = new CustomerTransferNecessaryData();
+        JSONObject jsonObject = JSONObject.parseObject(context.getMqFact().getMessage());
+        String last = jsonObject.getString("last");
+        customerTransferNecessaryData.setLast(last == null
+                && CollectionUtils.isEmpty(JSONObject.parseArray(jsonObject.getString("ids"), Long.class))
+                ? "1" : last);
+        context.setRuleNecessaryData(customerTransferNecessaryData);
     }
 
     @Override
