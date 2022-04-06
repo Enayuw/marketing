@@ -526,10 +526,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             paramMessage.put("ids", subList);
             paramMessage.put("last", last);
             MqFact mqFact = new MqFact();
+            mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
             mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
             mqFact.setMessage(JSONObject.toJSONString(paramMessage));
             producter.sendToUniversalTransferQueue(mqFact);
-            log.warn("宜信非实时数据推客服，发送消息，page：{}",i);
+            log.warn("宜信非实时数据推客服，发送消息，page：{}", i);
         }
     }
 }
