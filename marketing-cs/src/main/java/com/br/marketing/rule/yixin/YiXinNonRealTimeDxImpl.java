@@ -9,6 +9,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.YiXinNoRealTimeDxRuleCollectDataImpl;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -44,21 +45,21 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
-        if(marketingSyncUser == null){
+        if (marketingSyncUser == null) {
             return null;
         }
         List<String> grades = callRecordMap.get(transfer.getCustNum());
-        String grade = (grades!=null&&grades.size()>0)?grades.get(0):"";
+        String grade = (grades != null && grades.size() > 0) ? grades.get(0) : "";
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
-            batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer,marketingSyncUser,grade));
-            batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer,marketingSyncUser));
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser, grade));
+        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer, marketingSyncUser));
         return batchRealTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        if(context.getRuleNecessaryData()==null
-                ||context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData){
+        if (context.getRuleNecessaryData() == null
+                || !(context.getRuleNecessaryData() instanceof YiXinNoRealTimeDxRuleCollectDataImpl.YiXinNoRealTimeDxContextRuleNecessaryData)) {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
@@ -80,13 +81,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
     }
 
     private DassBatchImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
-            , MarketingSyncUser syncUser,String phoneGrade) {
-        JSONObject json = JSON.parseObject(transfer.getReserveField1());
+            , MarketingSyncUser syncUser, String phoneGrade) {
         DassBatchImportDataDTO batchImportData = new DassBatchImportDataDTO();
         batchImportData.setId(transfer.getId());
-        // 根据custNum取上传接口最新的gender（0女1男）传男女
-        String reserveField1 = syncUser.getReserveField1();
-        batchImportData.setGender(YiXinUtils.getActivity(json.getString("gender")));
+
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String phone = AESUtil.aesEncrypty(cell, aesKey);
         String name = StringUtils.hasText(syncUser.getName()) ?
@@ -103,26 +101,29 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setType(YiXinUtils.getDxType(transfer.getType()));
         batchImportData.setLevel(YiXinUtils.getLevel(phoneGrade));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
-        // 根据custNum取转化接口的rate rate=1 -> activity=2 rate=2 -> activity=4
-        batchImportData.setActivity(YiXinUtils.getActivity(json.getString("rate")));
         batchImportData.setPrioritySymbol(YiXinUtils.getPrioritySymbol(transfer.getType()));
-        batchImportData.setApplyTime(transfer.getApplyDt().replaceAll("\\.d{3}",""));
-        JSONObject extend = new JSONObject();
-        String raiseLimiSuccess = json.getString("raiseLimiSuccess");
-        String raiseLimiType = json.getString("raiseLimiType");
-        if(StringUtils.isEmpty(raiseLimiType)){
-            extend.put("raiseLimiType",raiseLimiType);
+        batchImportData.setApplyTime(StringUtils.isEmpty(transfer.getApplyDt())?"":transfer.getApplyDt().replaceAll("\\.d{3}", ""));
+
+        JSONObject json = JSON.parseObject(transfer.getReserveField1());
+        if (json != null) {
+            batchImportData.setGender(YiXinUtils.getActivity(json.getString("gender")));
+            batchImportData.setActivity(YiXinUtils.getActivity(json.getString("rate")));
+            JSONObject extend = new JSONObject();
+            String raiseLimiSuccess = json.getString("raiseLimiSuccess");
+            String raiseLimiType = json.getString("raiseLimiType");
+            if (StringUtils.isEmpty(raiseLimiType)) {
+                extend.put("raiseLimiType", raiseLimiType);
+            }
+            if (StringUtils.isEmpty(raiseLimiSuccess)) {
+                extend.put("raiseLimiSuccess", raiseLimiSuccess);
+            }
+            batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);
         }
-        if(StringUtils.isEmpty(raiseLimiSuccess)){
-            extend.put("raiseLimiSuccess",raiseLimiSuccess);
-        }
-        batchImportData.setExtend(extend.keySet().size()>0?JSON.toJSONString(extend):null);
         return batchImportData;
     }
 
 
-
-    private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer,MarketingSyncUser syncUser) {
+    private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, MarketingSyncUser syncUser) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());

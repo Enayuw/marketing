@@ -46,12 +46,18 @@ public class TransferDataSetImpl implements OriginDataService {
         }
         final String tcId = jsonObject.getString("tcId");
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andIdIn(ids);
         example.settCid(tcId == null ? "14583" : tcId);
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        context.setApiCode(apiCode == null ? transferList.size() > 0
-                ? transferList.get(0).getApiCode() : "3710012" : apiCode);
-        return new ArrayList<>(transferList);
+        List<Object> list = new ArrayList<>();
+        int size = ids.size();
+        int pageSize = 2000;
+        int pageCount = size % pageSize == 0 ? size / pageSize : size / pageSize + 1;
+        for (int i = 1; i <= pageCount; i++) {
+            example.createCriteria().andIdIn(ids.subList((i - 1) * pageSize, i == pageCount ? size : pageSize * i));
+            list.addAll(marketingTransferSyncUserMapper.selectByExample(example));
+        }
+        context.setApiCode(apiCode == null ? list.size() > 0
+                ? ((MarketingTransferSyncUser) list.get(0)).getApiCode() : "3710012" : apiCode);
+        return list;
     }
 
     @Override

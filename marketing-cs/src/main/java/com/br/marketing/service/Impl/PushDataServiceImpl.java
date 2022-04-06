@@ -60,22 +60,22 @@ public class PushDataServiceImpl implements PushDataService {
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
-    @Autowired
+    @Resource
     PhoneSaleMapper phoneSaleMapper;
 
-    @Autowired
+    @Resource
     TwosevenFileMapper twosevenFileMapper;
 
     @Autowired
     DassServiceClient dassServiceClient;
 
-    @Autowired
+    @Resource
     RetryMainLogMapper retryMainLogMapper;
 
     @Autowired
     RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
 
     @Resource
@@ -108,16 +108,16 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MarketingApiService marketingApiService;
 
-    @Autowired
+    @Resource
     HaierDataMapper haierDataMapper;
 
-    @Autowired
+    @Resource
     HaierReqMapper haierReqMapper;
 
     @Autowired
     HaierServiceClient haierServiceClient;
 
-    @Autowired
+    @Resource
     PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
 
     @Autowired
@@ -153,7 +153,7 @@ public class PushDataServiceImpl implements PushDataService {
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 DassImportAdapDTO dto = new DassImportAdapDTO();
-                dto.setLocalId(id);
+                dto.setInterfaceExtendInfo(id.toString());
                 dto.setList(phoneSales);
                 minId = phoneSale.getId();
                 threadPool.submit(() -> {
@@ -408,7 +408,7 @@ public class PushDataServiceImpl implements PushDataService {
                     HaierReqDTO haierReqDTO = new HaierReqDTO();
                     haierReqDTO.setIds(ids);
                     haierReqDTO.setFormData(formData);
-                    if(datas.size()>0) {
+                    if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
                         } catch (Exception e) {
@@ -780,7 +780,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status,String userType) {
+    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status, String userType) {
         //a/b状态一天只能推一条,apicode+casenum+usertype下
         String key = RedisKeyConstant.shuhePushDxSingleMutex.concat(":")
                 .concat(apiCode).concat(":")
@@ -790,7 +790,7 @@ public class PushDataServiceImpl implements PushDataService {
             return false;
         }
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
-        redisChgService.setex(key,status,seconds);
+        redisChgService.setex(key, status, seconds);
         return true;
     }
 

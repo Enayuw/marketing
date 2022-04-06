@@ -248,9 +248,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     JSONObject jo = new JSONObject();
                     jo.put("tcId", tcId);
                     jo.put("ids", longs);
+                    HashSet<String> rule = new HashSet<>();
+                    rule.add("YiXin_NonRealTime_Dx");
                     MqFact mq = new MqFact();
                     mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
-                    mq.setIncludeRules(Sets.newHashSet());
+                    mq.setIncludeRules(rule);
                     mq.setMessage(JSON.toJSONString(jo));
 //                    mq.setIncludeRules();
                     producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, JSON.toJSONString(mq));
@@ -333,11 +335,14 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         }
         custNumFilterType.clear();
         custNumResult.clear();
-        if (ids.size() <= 500) {
+        log.warn("宜信非实时数据推送客服数据量 totalNum={}",ids.size());
+        if (ids.size() <= 5) {
             log.error("宜信非实时数据量小于500,请检查");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("宜信非实时数据量小于500");
         }
+        long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);
+        log.warn("apiCode=【{}】宜信非实时数据推送客服结束,耗时={}ms",apiCode,System.currentTimeMillis() - time);
         updateFrontDataStatus(frontId,2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -470,7 +475,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      */
     private void pushRobotAIMessage(String apiCode, List<Long> ids) {
         String tcId = tableCreateService.getTcId(apiCode);
-        int pageSize = 500;
+        int pageSize = 5;
         int totalCount = ids.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         String last = "0";
@@ -518,9 +523,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             paramMessage.put("ids", subList);
             paramMessage.put("last", last);
             MqFact mqFact = new MqFact();
+            mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
             mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
             mqFact.setMessage(JSONObject.toJSONString(paramMessage));
             producter.sendToUniversalTransferQueue(mqFact);
+            log.warn("宜信非实时数据推客服，发送消息，page：{}", i);
         }
     }
 }
