@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.YiXinNoRealTimeDxRuleCollectDataImpl;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -59,7 +58,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         if (context.getRuleNecessaryData() == null
-                || !(context.getRuleNecessaryData() instanceof YiXinNoRealTimeDxRuleCollectDataImpl.YiXinNoRealTimeDxContextRuleNecessaryData)) {
+                || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
