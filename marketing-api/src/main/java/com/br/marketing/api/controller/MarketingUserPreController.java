@@ -121,14 +121,17 @@ public class MarketingUserPreController {
      * 查询客户信息接口
      *
      * @param cid
+     * @param apiCode
      * @param custNum
      * @return
      */
     @ApiOperation(value = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
-    public Result queryCustInfo(@RequestParam("cid") String cid, @RequestParam("custNum") String custNum) {
+    public Result queryCustInfo(@RequestParam("cid") String cid,
+                                @RequestParam("apiCode") String apiCode,
+                                @RequestParam("custNum") String custNum) {
         try {
-            return pushRuleService.queryCustInfo(cid, custNum);
+            return pushRuleService.queryCustInfo(cid, apiCode, custNum);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
