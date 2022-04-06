@@ -1495,10 +1495,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        if (StringUtils.isNotBlank(cid)) {
-            customerExample.createCriteria().andCidEqualTo(cid);
-        } else if (StringUtils.isNotBlank(apiCode)) {
+        if (StringUtils.isNotBlank(apiCode)) {
             customerExample.createCriteria().andApiCodeEqualTo(apiCode);
+        } else if (StringUtils.isNotBlank(cid)) {
+            customerExample.createCriteria().andCidEqualTo(cid);
         }
         List<MarketingCustomer> cList = marketingCustomerMapper.selectByExample(customerExample);
         if (cList != null && !cList.isEmpty()) {
