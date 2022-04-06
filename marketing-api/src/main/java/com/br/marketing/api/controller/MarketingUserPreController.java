@@ -127,9 +127,9 @@ public class MarketingUserPreController {
      */
     @ApiOperation(value = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
-    public Result queryCustInfo(@RequestParam("cid") String cid,
-                                @RequestParam("apiCode") String apiCode,
-                                @RequestParam("custNum") String custNum) {
+    public Result queryCustInfo(@RequestParam(required = false) String cid,
+                                @RequestParam(required = false) String apiCode,
+                                @RequestParam(required = true) String custNum) {
         try {
             return pushRuleService.queryCustInfo(cid, apiCode, custNum);
         } catch (ParamValidErrorException ex) {
