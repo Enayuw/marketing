@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class DassImportAdapDTO {
-    Long localId;
+    String  interfaceExtendInfo;
     /**
      * 批量人工推
      */

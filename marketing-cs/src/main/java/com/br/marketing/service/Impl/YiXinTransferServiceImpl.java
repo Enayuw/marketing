@@ -251,9 +251,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     JSONObject jo = new JSONObject();
                     jo.put("tcId", tcId);
                     jo.put("ids", longs);
+                    HashSet<String> rule = new HashSet<>();
+                    rule.add("YiXin_NonRealTime_Dx");
                     MqFact mq = new MqFact();
                     mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
-                    mq.setIncludeRules(Sets.newHashSet());
+                    mq.setIncludeRules(rule);
                     mq.setMessage(JSON.toJSONString(jo));
 //                    mq.setIncludeRules();
                     producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, JSON.toJSONString(mq));

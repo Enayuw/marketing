@@ -51,7 +51,7 @@ public class YiXinNoRealTimeDxRuleCollectDataImpl implements AbstractRuleCollect
                                     , Optional::get)));
             contextData.setCustomerMap(collect);
             String cId = tableCreateService.getCId(context.getApiCode());
-            List<CallRecord> callRecordNewByCustNum = callRecordMapper.getCallRecordNewByCustNum(set, cId);
+            List<CallRecord> callRecordNewByCustNum = callRecordMapper.getLastCallRecordByCustNum(set, cId);
             Map<String, List<String>> collect1 = callRecordNewByCustNum.stream().collect(Collectors.groupingBy(CallRecord::getCaseNum
                     , Collectors.mapping(CallRecord::getIntentionGrade, Collectors.toList())));
             contextData.setCallRecordMap(collect1);
