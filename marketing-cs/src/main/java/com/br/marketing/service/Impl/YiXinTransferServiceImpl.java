@@ -3,6 +3,15 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.origin.TransferSource;
+import com.br.marketing.service.IDxService;
+import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.collect.Sets;
+
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
@@ -491,8 +500,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 while(true) {
                     DataCompareExample dataCompareExample = new DataCompareExample();
                     dataCompareExample.createCriteria().andCreateTimeBetween(nowDayStartTime, newDay).andTransferInfoIdEqualTo(-1L)
-                            .andExternalInterfaceEqualTo(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                            .andExternalInterfaceEqualTo(InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode());
                     int dateCount = dataCompareMapper.countByExample(dataCompareExample);
+                    log.warn("宜信非实时数据推客服最后一条消息，dateCount：{}", dateCount);
                     if (dateCount == i - 1) {
                         break;
                     }
