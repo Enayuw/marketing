@@ -8,16 +8,17 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
+import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -46,20 +47,33 @@ import java.util.Map;
  */
 
 @Service
-public class YiXinRealTimeRuleCollectDataImpl extends CommonMethodHandlerService{
+public class YiXinRuleCollectDataImpl extends CommonMethodHandlerService{
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private CallRecordMapper callRecordMapper;
+
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
-            YiXinRealTimeRuleNecessaryData ruleNecessaryData = new YiXinRealTimeRuleNecessaryData();
+            YiXinRuleNecessaryData ruleNecessaryData = new YiXinRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(transferList, context.getApiCode());
+            Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(set, context.getApiCode());
             Map<String,String> blackList = queryBlackData(transferList,context.getApiCode());
             ruleNecessaryData.setCustomerMap(collect);
             ruleNecessaryData.setBlackList(blackList);
+
+            String cId = tableCreateService.getCId(context.getApiCode());
+            List<CallRecord> callRecordNewByCustNum = callRecordMapper.getCallRecordNewByCustNum(set, cId);
+            Map<String, List<String>> callRecords = callRecordNewByCustNum.stream().collect(Collectors.groupingBy(CallRecord::getCaseNum
+                    , Collectors.mapping(CallRecord::getIntentionGrade, Collectors.toList())));
+            ruleNecessaryData.setCallRecordMap(callRecords);
             context.setRuleNecessaryData(ruleNecessaryData);
         }
     }
@@ -75,7 +89,7 @@ public class YiXinRealTimeRuleCollectDataImpl extends CommonMethodHandlerService
         /**
          * 黑名单查询接口 每1000条数据一个批次
          */
-        int pageSize = 1000;
+        int pageSize = 500;
         int totalCount = transferList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         for (int i = 1; i <= pageCount; i++) {
@@ -107,7 +121,7 @@ public class YiXinRealTimeRuleCollectDataImpl extends CommonMethodHandlerService
 
 
     @Data
-    public class YiXinRealTimeRuleNecessaryData extends RuleNecessaryData {
+    public class YiXinRuleNecessaryData extends RuleNecessaryData {
         /**
          * 宜信实时推电销所需信息
          */
@@ -117,5 +131,10 @@ public class YiXinRealTimeRuleCollectDataImpl extends CommonMethodHandlerService
          * 宜信实时推电销黑名单
          */
         private Map<String,String> blackList;
+
+        /**
+         * 通话明细信息
+         */
+        private Map<String, List<String>> callRecordMap;
     }
 }

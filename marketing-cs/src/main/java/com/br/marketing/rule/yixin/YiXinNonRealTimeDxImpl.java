@@ -3,34 +3,25 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
-import com.br.marketing.context.impl.YiXinNoRealTimeDxRuleCollectDataImpl;
+import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 非实时转化数据推送客服
@@ -47,8 +38,8 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        YiXinNoRealTimeDxRuleCollectDataImpl.YiXinNoRealTimeDxContextRuleNecessaryData ruleNecessaryData =
-                (YiXinNoRealTimeDxRuleCollectDataImpl.YiXinNoRealTimeDxContextRuleNecessaryData) context.getRuleNecessaryData();
+        YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+                (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -67,7 +58,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         if(context.getRuleNecessaryData()==null
-                ||context.getRuleNecessaryData() instanceof YiXinNoRealTimeDxRuleCollectDataImpl.YiXinNoRealTimeDxContextRuleNecessaryData){
+                ||context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData){
             return Boolean.FALSE;
         }
         return Boolean.TRUE;

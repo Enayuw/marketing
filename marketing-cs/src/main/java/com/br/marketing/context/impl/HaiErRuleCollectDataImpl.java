@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -44,7 +46,8 @@ public class HaiErRuleCollectDataImpl extends CommonMethodHandlerService {
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             HaiErRuleNecessaryData haiErRuleNecessaryData = new HaiErRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(transferList, context.getApiCode());
+            Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(set, context.getApiCode());
             haiErRuleNecessaryData.setCustomerMap(collect);
             context.setRuleNecessaryData(haiErRuleNecessaryData);
         }

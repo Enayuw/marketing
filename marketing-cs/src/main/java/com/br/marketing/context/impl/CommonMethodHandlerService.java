@@ -4,7 +4,6 @@ import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import org.springframework.stereotype.Service;
 
@@ -57,8 +56,8 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
         return RuleDataCollectionEnum.DEFAULT_DATA_COLLECTION;
     }
 
-    public Map<String, MarketingSyncUser> customerMarketingSyncUser(List<MarketingTransferSyncUser> transferList, String apiCode){
-        Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+    public Map<String, MarketingSyncUser> customerMarketingSyncUser(Set<String> set, String apiCode){
+
         List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
         return preUserByTask.stream().collect(
                 Collectors.groupingBy(MarketingSyncUser::getCustNum

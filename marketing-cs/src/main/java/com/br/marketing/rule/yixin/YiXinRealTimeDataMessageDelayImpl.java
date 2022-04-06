@@ -3,7 +3,7 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.impl.YiXinRealTimeRuleCollectDataImpl;
+import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
@@ -61,8 +61,8 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
-            YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
-                    (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
+            YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+                    (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");

@@ -5,7 +5,10 @@ import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -111,5 +114,10 @@ public class MarketingCommonConfig {
      * 电销文件定制化处理
      */
     private HashMap<String, List<String>> dxFileCustomize;
+
+    /**
+     * 宜信apicode
+     */
+    private List<String> yiXinApiCode;
 
 }

@@ -8,7 +8,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.YiXinRealTimeRuleCollectDataImpl;
+import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -69,8 +69,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
-                (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
+        YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+                (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
         if (!StringUtils.isEmpty(marketingSyncUser)){
@@ -167,8 +167,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
-            YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData ruleNecessaryData =
-                    (YiXinRealTimeRuleCollectDataImpl.YiXinRealTimeRuleNecessaryData) context.getRuleNecessaryData();
+            YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+                    (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");

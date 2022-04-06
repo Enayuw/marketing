@@ -34,7 +34,6 @@ public enum TransferSource {
     ORIGIN_DATA_UPLOAD_PROCESS(3, "原始数据上传流程"),
     ARTIFICIAL_DIAL_PROCESS(4, "人工拨打流程"),
     TRANSFER_DATA_SET_PROCESS(5, "转化数据集合流程"),
-    REALTIME_TRANSFER_PROCESS(6, "通用转化流程"),
     ;
 
 

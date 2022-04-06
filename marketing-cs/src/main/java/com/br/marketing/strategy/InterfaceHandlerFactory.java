@@ -8,7 +8,6 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -50,10 +49,6 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class InterfaceHandlerFactory implements ApplicationContextAware {
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
 
     /**
      * 从应用上下文中处理封装获取三方接口 map <具体的接口枚举值,接口对象>

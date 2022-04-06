@@ -10,9 +10,7 @@ import com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -160,7 +158,7 @@ public class DataLoadingHandlerService {
         } catch (ExecutionException e) {
             log.error("获取客户规则失败", e);
         }
-        return null;
+        return new HashSet<>();
     }
 
 }
