@@ -169,10 +169,10 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
      * @param sftpClient
      */
     private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient, SyncConfig syncConfig) {
-        HashMap<String, Set<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
-        Set xwList = dxFileCustomize.get("xw");
-        Set juziList = dxFileCustomize.get("juzi");
-        Set yixinList = dxFileCustomize.get("yixin");
+        HashMap<String, List<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
+        List xwList = dxFileCustomize.get("xw");
+        List juziList = dxFileCustomize.get("juzi");
+        List yixinList = dxFileCustomize.get("yixin");
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();

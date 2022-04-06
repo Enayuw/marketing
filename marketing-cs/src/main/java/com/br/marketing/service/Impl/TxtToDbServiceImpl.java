@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1078,7 +1079,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         break;
                     case "type":
                         if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("type不能为空;;", "");
+                            error = error.replace("type不能为空;", "");
                         }
                         phoneSale.setType(YiXinUtils.getDxType(datas.get(i)));
                         break;
@@ -1215,10 +1216,11 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     }
 
     @Override
-    public void phoneTodbByYiXinAfterAction(LocalFile file) {
+    public Result<Integer> phoneTodbByYiXinAfterAction(LocalFile file) {
         if(file ==null||file.getId()<=0){
-            return;
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
+        AtomicInteger errorNum = new AtomicInteger();
         String apiCode = file.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
         String cid = tableCreateService.getCId(apiCode);
@@ -1239,6 +1241,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             List<List<PhoneSale>> partition = Lists.partition(datas, 500);
             for (List<PhoneSale> phoneSales : partition) {
                 threadPool.submit(()->{
+                    try{
                     List<String> custNums = phoneSales.stream().map(t -> t.getUid()).distinct().collect(Collectors.toList());
                     //根据custNum获取当天的数据情况
                     Map<String, List<MarketingTransferSyncUser>> nowTimetransferUserMap = transferSyncUserMapper
@@ -1274,18 +1277,21 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         PhoneSale computeSale = new PhoneSale();
                         computeSale.setId(phoneSale.getId());
                         List<MarketingTransferSyncUser> marketingTransferSyncUsers = nowTimetransferUserMap.get(uid);
-                        if(marketingTransferSyncUsers.size()>0
+                        if(marketingTransferSyncUsers!=null
+                        &&marketingTransferSyncUsers.size()>0
                                 &&marketingTransferSyncUsers.stream()
                                 .anyMatch(t->marketingCommonConfig.getYixinNoRealTimeType().contains(t.getType()))){
                             computeSale.setDataMessage("命中当天非实时数据");
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            errorNum.getAndIncrement();
                             continue;
                         }
                         if(custNumByPhoneDx!=null&&custNumByPhoneDx.contains(uid)){
                             computeSale.setDataMessage("命中7天内实时数据");
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            errorNum.getAndIncrement();
                             continue;
                         }
                         List<MarketingSyncUser> marketingSyncUsers = syncUser.get(uid);
@@ -1293,6 +1299,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             computeSale.setDataMessage("没有命中原始上传数据");
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            errorNum.getAndIncrement();
                             continue;
                         }
                         MarketingSyncUser _marketingSyncUser = marketingSyncUsers.get(0);
@@ -1301,6 +1308,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             computeSale.setDataMessage(String.format("原始上传数据手机号解密失败 sync_id:%d",_marketingSyncUser.getId()));
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            errorNum.getAndIncrement();
                             continue;
                         }
                         MarketingTransferSyncUser _transferSyncUser = new MarketingTransferSyncUser();
@@ -1313,6 +1321,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            errorNum.getAndIncrement();
                             continue;
                         }
                         String name = "";
@@ -1358,9 +1367,24 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         computeSale.setExtend(JSON.toJSONString(extend));
                         phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                     }
+                    }catch (Exception ex){
+                        log.error(ex.getMessage(),ex);
+                    }
                 });
             }
         }
+        threadPool.shutdown();
+        while (true){
+            if(threadPool.isTerminated()){
+                break;
+            }
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(errorNum.get());
     }
 
     private Result<List<PhoneSale>> getPhoneSaleDataByfileWithPage(Long fileId,Long dataId){

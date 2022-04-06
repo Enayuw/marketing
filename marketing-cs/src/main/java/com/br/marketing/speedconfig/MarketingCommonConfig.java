@@ -105,6 +105,6 @@ public class MarketingCommonConfig {
     /**
      * 电销文件定制化处理
      */
-    private HashMap<String, Set<String>> dxFileCustomize;
+    private HashMap<String, List<String>> dxFileCustomize;
 
 }

@@ -39,7 +39,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param date
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferOrderInsertTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("data") String date);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
 
     /**
      * 获取指定custNum的最新数据
@@ -48,5 +48,5 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param date
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("data") String date);
+    List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
 }

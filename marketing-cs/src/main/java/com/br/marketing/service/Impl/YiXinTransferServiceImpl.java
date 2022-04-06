@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
@@ -154,7 +155,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     }
                 }
             }
-            if(custNums.size()<=0){
+            if (custNums.size() <= 0) {
                 continue;
             }
             //endregion
@@ -163,7 +164,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             threadPool.submit(() -> {
                 //region 获取7天数据和60天数据
                 Set<String> _7filerCustNumSet = iDxService
-                        .getCustNumByPhoneDx(custNums,_tApicode,_7startDay,_endDay,"1");
+                        .getCustNumByPhoneDx(custNums, _tApicode, _7startDay, _endDay, "1");
                 PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
                 _60recordInfoDTO.setCustNums(custNums);
                 _60recordInfoDTO.setApiCode(_tApicode);
@@ -266,7 +267,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 e.printStackTrace();
             }
         }
-        updateFrontDataStatus(frontId,2);
+        updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -361,7 +362,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
     }
 
-    private Long saveFrontData(String apiCode, String date, Integer actionType){
+    private Long saveFrontData(String apiCode, String date, Integer actionType) {
         TransferActionFront front = new TransferActionFront();
         front.setApiCode(apiCode);
         front.setStatus(1);
@@ -372,7 +373,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         return front.getId();
     }
 
-    private void updateFrontDataStatus(Long id,Integer status){
+    private void updateFrontDataStatus(Long id, Integer status) {
         TransferActionFront front = new TransferActionFront();
         front.setId(id);
         front.setStatus(status);

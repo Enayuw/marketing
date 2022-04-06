@@ -31,15 +31,17 @@
     </select>
 
     <select id="getLastCallRecordByCustNum"  resultType="com.br.marketing.entity.CallRecord">
-            select *
-            from
-            (select *, rank() over(partition by cust_num order by create_time desc) m
-            from b_call_record bmts
-            where case_num in
-            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-                #{custNum}
-            </foreach>
-            and cid = #{cid}) a
-            where a.m = 1
+        select b.* from
+        (
+        select case_num,max(create_time) as create_time
+        from b_call_record a
+        where case_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and cid = #{cid}
+        group by case_num
+        ) as a
+        left join b_call_record b on a.case_num = b.case_num and a.create_time = b.create_time
     </select>
 </mapper>

@@ -36,5 +36,5 @@ public interface ITxtToDbService {
 
     Result phoneTodbByYiXin(TxtToDbDTO content);
 
-    void phoneTodbByYiXinAfterAction(LocalFile file);
+    Result<Integer> phoneTodbByYiXinAfterAction(LocalFile file);
 }
