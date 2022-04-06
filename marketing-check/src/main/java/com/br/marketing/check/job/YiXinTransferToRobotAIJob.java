@@ -1,6 +1,8 @@
 package com.br.marketing.check.job;
 
 
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IYiXinTransferService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -27,6 +29,7 @@ public class YiXinTransferToRobotAIJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String jobParameter = context.getJobParameter();
+        Result result = new Result();
         if (StringUtils.isNotBlank(jobParameter)) {
             String apiCode, data = null;
             List<String> params = Splitter.on(",").splitToList(jobParameter);
@@ -34,9 +37,10 @@ public class YiXinTransferToRobotAIJob extends AbstractSimpleElasticJob {
             if (params.size() > 1) {
                 data = params.get(1);
             }
-            iYiXinTransferService.actionYiXinToRobotAI(apiCode, data);
+            result = iYiXinTransferService.actionYiXinToRobotAI(apiCode, data);
         } else {
-            iYiXinTransferService.actionYiXinToRobotAI(null, null);
+            result = iYiXinTransferService.actionYiXinToRobotAI(null, null);
         }
+        log.warn("宜信非实时数据推送客服 result={}", JSON.toJSONString(result));
     }
 }
