@@ -46,6 +46,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
+        log.error("实时数据推客服,id={}",transfer.getId());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -88,7 +89,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
                         requestDate = DateUtils.parse(transfer.getRequestTime(), "yyyy-MM-dd HH:mm:ss");
                     } catch (ParseException e) {
                         e.printStackTrace();
-                        log.warn("日期转换出错！(YiXinRealtimeTransferToCustomer)");
+                        log.warn("日期转换出错！(YiXinRealtimeTransferToCustomer),请确认id={}的RequestTime的数据格式！",transfer.getId());
                     }
                     Boolean isPeriod = iMarketingSyncUserService.isPeriodOfValidity(new Date(), 6, requestDate);
                     if (!isPeriod) {
