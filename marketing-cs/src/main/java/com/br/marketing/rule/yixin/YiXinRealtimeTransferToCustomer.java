@@ -110,7 +110,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
 
     @Override
     public String label() {
-        return "YiXin_RealtimeTransferData_Customer";
+        return "YiXin_RealtimeData_CustomerTransfer";
     }
 
     @Override

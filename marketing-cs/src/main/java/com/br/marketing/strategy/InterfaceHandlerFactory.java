@@ -3,6 +3,7 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.rule.AssembleData;
@@ -76,6 +77,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
      * 应用上下文中获取所有实现AbstractRuleCollectDataService数据来源处理类
      */
     private static Map<Integer, AbstractRuleCollectDataService> ruleDataCollectionMap = new HashMap<>();
+
+    @Resource
+    private DataLoadingHandlerService dataLoadingHandlerService;
 
 
     @Override
@@ -153,24 +157,21 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 2、根据不同数据来源 匹配出要执行的规则
          * 获取 apiCode获取所需的规则匹配方法
          */
-        List<AssembleData> list = new ArrayList<>();
-        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
-        String rulePrefix = customerRuleMapping.get(context.getApiCode());
-        if (StringUtils.isEmpty(rulePrefix)){
+        Set<String> customerRules = dataLoadingHandlerService.customerRules(context.getApiCode());
+        if (!CollectionUtils.isEmpty(mqFact.getIncludeRules())){
+            customerRules.retainAll(mqFact.getIncludeRules());
+        }
+        if (CollectionUtils.isEmpty(customerRules)){
             log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
             return new HashMap<>();
-        }
-        Collection<AssembleData> values = assembleDataMap.values();
-        for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(rulePrefix)){
-                list.add(assembleData);
-            }
         }
 
         /**
          * 规则排序
          */
-        List<AssembleData> assembleDataList = list.stream().sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
+        Collection<AssembleData> values = assembleDataMap.values();
+        List<AssembleData> assembleDataList = values.stream().filter(data->customerRules.contains(data.label()))
+                .sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
         /**
          * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
          */

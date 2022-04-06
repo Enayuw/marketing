@@ -1,17 +1,28 @@
 package com.br.marketing.origin;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +52,7 @@ import java.util.regex.Pattern;
  * @Date : Create in 2022/3/18 10:36
  */
 
-@Service
+@Component
 @Slf4j
 public class DataLoadingHandlerService {
 
@@ -52,6 +63,9 @@ public class DataLoadingHandlerService {
 
     @Resource
     RedisChgService redisChgService;
+
+    @Resource
+    private CustomerRuleMapper customerRuleMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -103,4 +117,50 @@ public class DataLoadingHandlerService {
         }
         throw new IllegalAccessException("未知的场景类:" + userType);
     }
+
+
+    /**
+     * 客户规则缓存
+     */
+    private static LoadingCache<String, Set<String>> ruleCache = null;
+
+
+    @PostConstruct
+    private void init(){
+        ruleCache = CacheBuilder.newBuilder()
+                .maximumSize(100)
+                .expireAfterWrite(60, TimeUnit.MINUTES)
+                .recordStats()
+                .build(new CacheLoader<String, Set<String>>() {
+                    @Override
+                    public Set<String> load(String key) {
+                        return customerRuleMapper.customerRuleLabels(key);
+                    }
+                });
+    }
+
+    /**
+     * 获取客户规则
+     */
+    public static void invalidateAll() {
+        if (ruleCache != null) {
+            log.warn("客户规则清理...");
+            ruleCache.invalidateAll();
+        }
+    }
+
+    /**
+     *
+     * @param apiCode
+     * @return
+     */
+    public Set<String> customerRules(String apiCode){
+        try {
+            return ruleCache.get(apiCode);
+        } catch (ExecutionException e) {
+            log.error("获取客户规则失败", e);
+        }
+        return null;
+    }
+
 }

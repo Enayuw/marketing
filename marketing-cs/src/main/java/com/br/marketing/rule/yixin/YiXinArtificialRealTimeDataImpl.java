@@ -193,7 +193,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
     @Override
     public String label() {
-        return "YiXin_RealTimeData_ArtificialRealTimeUserData";
+        return "YiXin_RealTimeData_ArtificialBatchRealTimeData";
     }
 
     @Override

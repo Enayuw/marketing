@@ -2,6 +2,7 @@ package com.br.marketing.speedconfig;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -47,7 +50,22 @@ public class SpeedConfig implements ISpeedAppendPipeline {
     }
 
     @Override
-    public void reloadSpeedItem(String s, String s1, String s2, ApplicationContext applicationContext) throws Exception {
+    public void reloadSpeedItem(String event, String key, String value, ApplicationContext context) throws Exception {
+        log.warn("配置中心item -- {} --{} 变动通知",key,value);
+        AgentItem item = JSON.parseObject(value, AgentItem.class);
+        String message = item.getMessage();
+        switch (key) {
+            case "marketing_broadcast_notice_item": {
+                // {"message":"customer_rule_mapping","update_time":"2022-04-01 14:53:01"}
+                if ("customer_rule_mapping".equals(message)) {
+                    DataLoadingHandlerService.invalidateAll();
+                }
+                break;
+            }
+            default: {
+                log.warn("append item reload speed file info {}:{}", key, value);
+            }
+        }
 
     }
 

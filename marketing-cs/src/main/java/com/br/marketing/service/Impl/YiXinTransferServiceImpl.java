@@ -4,6 +4,9 @@ import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ZnkfPushService;
@@ -12,19 +15,10 @@ import com.google.common.collect.Sets;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingTransferInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IYiXinTransferService;
@@ -32,7 +26,10 @@ import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.joda.time.DateTime;
+import org.joda.time.Hours;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -81,6 +78,16 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Autowired
     IDxService iDxService;
+    @Resource
+    private DataCompareMapper dataCompareMapper;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
 
     @Override
     public Result actionYiXinToDx(String apiCode, String date) {
@@ -272,6 +279,73 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     }
 
     /**
+     * 推送非实时数据到客服
+     */
+    @Override
+    public Result actionYiXinToRobotAI(String apiCode, String date) {
+        if (StringUtils.isBlank(date)) {
+            date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
+        if (StringUtils.isBlank(apiCode)) {
+            apiCode = "3710012";
+        }
+        //region check 1.查询推送记录；2.查询推送记录的状态；3.查询数据处理情况
+        Result<TransferActionFront> frontDataRes = getFrontData(apiCode, date, 1);
+        if (!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(frontDataRes.getMessage());
+        }
+        TransferActionFront frontData = frontDataRes.getData();
+        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
+        }
+        Result<Date> dateResult = checkPush(apiCode, date);
+        if (!ResultCode.SUCCESS.getValue().equals(dateResult.getCode())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(dateResult.getMessage());
+        }
+        Long frontId = saveFrontData(apiCode, date, 1);
+        Boolean mark = Boolean.TRUE;
+        Integer page = 0;
+        //过滤type的Set
+        HashSet custNumFilterType = new HashSet();
+        //去重后的Set
+        HashSet custNumResult = new HashSet();
+        List<Long> ids = new ArrayList<>();
+        while (mark) {
+            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
+            if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+            //获取非实时数据
+            List<MarketingTransferSyncUser> data = delayData.getData();
+            for (MarketingTransferSyncUser datum : data) {
+                if (!(StringUtils.isNotBlank(datum.getReserveField1())
+                        && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
+                    //不在推客服的type中，过滤
+                    if (!marketingCommonConfig.getYixinNoRealTimePushRobotAIType().contains(datum.getType())) {
+                        custNumFilterType.add(datum.getCustNum());
+                        continue;
+                    }
+                    //过滤掉 同一custNum的其他insertTime列，custNumResult
+                    if (custNumFilterType.add(datum.getCustNum()) && custNumResult.add(datum.getCustNum())) {
+                        ids.add(datum.getId());
+                    }
+                }
+            }
+        }
+        custNumFilterType.clear();
+        custNumResult.clear();
+        if (ids.size() <= 500) {
+            log.error("宜信非实时数据量小于500,请检查");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("宜信非实时数据量小于500");
+        }
+        pushRobotAIMessage(apiCode, ids);
+        updateFrontDataStatus(frontId,2);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
      * 获取数据
      *
      * @param apiCode
@@ -392,5 +466,64 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         int day2 = aCalendar.get(Calendar.DAY_OF_YEAR);
 
         return day2 - day1;
+    }
+
+    /**
+     * 推送非实时数据到通用mq
+     */
+    private void pushRobotAIMessage(String apiCode, List<Long> ids) {
+        String tcId = tableCreateService.getTcId(apiCode);
+        int pageSize = 500;
+        int totalCount = ids.size();
+        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        String last = "0";
+        for (int i = 1; i <= pageCount; i++) {
+            List<Long> subList;
+            if (i == pageCount) {
+                subList = ids.subList((i - 1) * pageSize, totalCount);
+                last = "1";
+                //最后一次查询
+                Date nowDayStartTime = DateHelper.getNowDayStartTime();
+                Date newDay = DateHelper.addDays(nowDayStartTime, 1);
+                DateTime beginDate = DateTime.now();
+                while(true) {
+                    DataCompareExample dataCompareExample = new DataCompareExample();
+                    dataCompareExample.createCriteria().andCreateTimeBetween(nowDayStartTime, newDay).andTransferInfoIdEqualTo(-1L)
+                            .andExternalInterfaceEqualTo(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                    int dateCount = dataCompareMapper.countByExample(dataCompareExample);
+                    if (dateCount == i - 1) {
+                        break;
+                    }
+                    try {
+                        Thread.sleep(10000L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    DateTime endDate = DateTime.now();
+                    if (Hours.hoursBetween(endDate, beginDate).getHours() > 1) {
+                        log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},",apiCode,(i-1)+"-"+dateCount);
+                        StringBuilder content = new StringBuilder();
+                        content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                                .append("非实时总量：".concat(String.valueOf(dateCount)).concat("\r\n"))
+                                .append("已发送批次量：".concat(String.valueOf(i-1)).concat("\r\n"))
+                                .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
+                                .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
+                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", appName, secretKey,
+                                Constants.sendCodeMap.get("pushToCustomer"));
+                    }
+                }
+            } else {
+                subList = ids.subList((i - 1) * pageSize, pageSize * (i));
+            }
+            JSONObject paramMessage = new JSONObject();
+            paramMessage.put("apicode", apiCode);
+            paramMessage.put("cid", tcId);
+            paramMessage.put("ids", subList);
+            paramMessage.put("last", last);
+            MqFact mqFact = new MqFact();
+            mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+            mqFact.setMessage(JSONObject.toJSONString(paramMessage));
+            producter.sendToUniversalTransferQueue(mqFact);
+        }
     }
 }
