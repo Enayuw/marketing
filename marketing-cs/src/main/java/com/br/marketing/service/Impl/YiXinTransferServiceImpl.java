@@ -338,11 +338,14 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         }
         custNumFilterType.clear();
         custNumResult.clear();
-        if (ids.size() <= 500) {
+        log.warn("宜信非实时数据推送客服数据量 totalNum={}",ids.size());
+        if (ids.size() <= 5) {
             log.error("宜信非实时数据量小于500,请检查");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("宜信非实时数据量小于500");
         }
+        long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);
+        log.warn("apiCode=【{}】宜信非实时数据推送客服结束,耗时={}ms",apiCode,System.currentTimeMillis() - time);
         updateFrontDataStatus(frontId,2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -475,7 +478,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      */
     private void pushRobotAIMessage(String apiCode, List<Long> ids) {
         String tcId = tableCreateService.getTcId(apiCode);
-        int pageSize = 500;
+        int pageSize = 5;
         int totalCount = ids.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         String last = "0";
