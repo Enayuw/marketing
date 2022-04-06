@@ -76,7 +76,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.YIXIN_NOREAL_DX_RULE_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 
     private DassBatchImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
