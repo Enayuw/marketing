@@ -70,7 +70,7 @@ public class YiXinRuleCollectDataImpl extends CommonMethodHandlerService{
             ruleNecessaryData.setBlackList(blackList);
 
             String cId = tableCreateService.getCId(context.getApiCode());
-            List<CallRecord> callRecordNewByCustNum = callRecordMapper.getCallRecordNewByCustNum(set, cId);
+            List<CallRecord> callRecordNewByCustNum = callRecordMapper.getLastCallRecordByCustNum(set, cId);
             Map<String, List<String>> callRecords = callRecordNewByCustNum.stream().collect(Collectors.groupingBy(CallRecord::getCaseNum
                     , Collectors.mapping(CallRecord::getIntentionGrade, Collectors.toList())));
             ruleNecessaryData.setCallRecordMap(callRecords);
