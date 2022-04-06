@@ -39,6 +39,8 @@ public class TransferDataSetImpl implements OriginDataService {
          */
         final JSONObject jsonObject = JSONObject.parseObject(mqFact.getMessage());
         final List<Long> ids = JSONObject.parseArray(jsonObject.getString("ids"), Long.class);
+        String last = jsonObject.getString("last");
+        context.setLast(last);
         final String apiCode = jsonObject.getString("apiCode");
         if (CollectionUtils.isEmpty(ids)) {
             context.setApiCode(apiCode == null ? "3710012" : apiCode);
