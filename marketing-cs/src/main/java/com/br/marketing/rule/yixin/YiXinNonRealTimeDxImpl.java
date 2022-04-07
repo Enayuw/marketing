@@ -57,6 +57,15 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        String reserveField1 = transfer.getReserveField1();
+        if(!StringUtils.isEmpty(reserveField1)){
+            JSONObject json = JSON.parseObject(reserveField1);
+            boolean transformType = "1".equals(json.getString("transformType"));
+            if(transformType){
+                return Boolean.FALSE;
+            }
+        }
         if (context.getRuleNecessaryData() == null
                 || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {
             return Boolean.FALSE;
