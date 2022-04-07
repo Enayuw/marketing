@@ -80,7 +80,7 @@ public class YiXinRuleCollectDataImpl extends CommonMethodHandlerService{
 
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.YI_XIN_REALTIME_DATA_COLLECTION;
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION;
     }
 
 

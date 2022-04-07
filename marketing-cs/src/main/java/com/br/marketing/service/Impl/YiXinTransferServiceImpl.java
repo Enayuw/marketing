@@ -18,6 +18,7 @@ import com.br.marketing.service.IDxService;
 import com.br.marketing.service.IYiXinTransferService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -491,8 +492,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 while(true) {
                     DataCompareExample dataCompareExample = new DataCompareExample();
                     dataCompareExample.createCriteria().andCreateTimeBetween(nowDayStartTime, newDay).andTransferInfoIdEqualTo(-1L)
-                            .andExternalInterfaceEqualTo(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                            .andExternalInterfaceEqualTo(InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode());
                     int dateCount = dataCompareMapper.countByExample(dataCompareExample);
+                    log.warn("宜信非实时数据推客服最后一条消息，dateCount：{}", dateCount);
                     if (dateCount == i - 1) {
                         break;
                     }
@@ -502,7 +504,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         e.printStackTrace();
                     }
                     DateTime endDate = DateTime.now();
-                    if (Hours.hoursBetween(endDate, beginDate).getHours() > 1) {
+                    if (Hours.hoursBetween(beginDate, endDate).getHours() > 1) {
                         log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},",apiCode,(i-1)+"-"+dateCount);
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))

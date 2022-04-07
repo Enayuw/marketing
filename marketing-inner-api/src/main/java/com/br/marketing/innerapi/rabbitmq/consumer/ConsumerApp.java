@@ -127,7 +127,7 @@ public class ConsumerApp {
     public void consumerUniversalTransfer(Channel channel, Message message) {
         MqFact o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), MqFact.class);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, null);
+        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
     }
 
 }
