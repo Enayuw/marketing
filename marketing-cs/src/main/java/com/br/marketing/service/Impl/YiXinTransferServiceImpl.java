@@ -520,7 +520,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 subList = ids.subList((i - 1) * pageSize, pageSize * (i));
             }
             JSONObject paramMessage = new JSONObject();
-            paramMessage.put("apicode", apiCode);
+            paramMessage.put("apiCode", apiCode);
             paramMessage.put("cid", tcId);
             paramMessage.put("ids", subList);
             paramMessage.put("last", last);
