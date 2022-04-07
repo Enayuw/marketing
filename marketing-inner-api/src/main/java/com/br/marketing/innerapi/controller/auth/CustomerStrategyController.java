@@ -44,7 +44,7 @@ public class CustomerStrategyController {
     //productChineseName、productName、secondTypeName、spreadStatus、version、versions
     @GetMapping("createView")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ApiResult<List<Map<String, Object>>> createView() {
+    public ApiResult<Map<String, Object>> createView() {
         String result = restTemplate.getForObject(productUrl, String.class);
         JSONObject jsonObject = (JSONObject) JSONObject.parse(result);
         JSONArray datArray = jsonObject.getJSONArray("data");
@@ -81,7 +81,9 @@ public class CustomerStrategyController {
             productMap.put("versions",versionList);
             resultList.add(productMap);
         }
-        return new ApiResult<List<Map<String, Object>>>().success(resultList);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("data",resultList);
+        return new ApiResult<Map<String, Object>>().success(resultMap);
     }
     private Map<String, Object> getStringObjectMap(String apiCode, String strategyCategory, String distributeType, String strategyType) {
         Map<String, Object> urlVariables = new HashMap<>();
