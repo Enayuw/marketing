@@ -10,7 +10,10 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.util.Set;
 
 /**
  * 非实时转化数据推送客服
@@ -43,11 +46,8 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         // 该标识只为调度任务查询数据使用，非数据ID
         context.setTransferInfoId(-1L);
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        String reserveField1 = transfer.getReserveField1();
-        String transformType = "transformType";
-        return !StringUtils.isEmpty(reserveField1) && reserveField1.contains(transformType)
-                && !"1".equals(JSON.parseObject(reserveField1).getString(transformType));
+        final Set<String> includeRules = context.getMqFact().getIncludeRules();
+        return !CollectionUtils.isEmpty(includeRules) && includeRules.contains(label());
     }
 
     @Override
