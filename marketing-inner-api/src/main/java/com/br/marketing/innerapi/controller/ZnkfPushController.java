@@ -38,7 +38,7 @@ public class ZnkfPushController {
 
     @ApiOperation(value = "客服推送营销黑名单结束标识接口")
     @PostMapping("/znkfPushBlackPhoneMark")
-    public ApiResult znkfPushBlackPhoneMark(@RequestParam("apiCode")String apiCode, @RequestParam("pushDate") String pushDate) {
+    public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
         try {
             return znkfPushService.znkfPushBlackPhoneMark(apiCode,pushDate);
         }catch (Exception ex){
