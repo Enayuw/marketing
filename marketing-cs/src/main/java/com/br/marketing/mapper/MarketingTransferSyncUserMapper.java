@@ -4,6 +4,8 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
     /**
      * 根据cust_num获取最新数据
@@ -27,4 +29,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
+
+    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
 }
