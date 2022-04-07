@@ -68,7 +68,7 @@ public class CustomerStrategyController {
             String version = datArray.getJSONObject(i).getString("version");
             productMap.put("productChineseName", productionChineseName);
             productMap.put("productName", productName);
-            productMap.put("spreadStatus", spreadStatus);
+            productMap.put("spreadStatus", Integer.valueOf(spreadStatus));
             productMap.put("versions", version);
             productMap.put("version", "");
             for (int j = 0; j < productTypeData.size(); j++) {
@@ -86,13 +86,16 @@ public class CustomerStrategyController {
         }
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (String productSetName : productSet) {
-            List<String> versionList = new ArrayList<>();
+            List<Map<String, Object>> versionList = new ArrayList<>();
             Map<String, Object> productMap = new HashMap<>();
             for (Map<String, Object> stringObjectMap : dataList) {
                 Object productName = stringObjectMap.get("productName");
-                String version = stringObjectMap.get("versions").toString();
                 if (productName.equals(productSetName)) {
-                    versionList.add(version);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("spreadStatus",stringObjectMap.get("spreadStatus"));
+                    String version = stringObjectMap.get("versions").toString();
+                    map.put("version",version);
+                    versionList.add(map);
                     productMap = stringObjectMap;
                 }
             }
