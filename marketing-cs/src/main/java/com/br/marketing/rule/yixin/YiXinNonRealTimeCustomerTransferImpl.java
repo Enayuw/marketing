@@ -45,7 +45,11 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
         if (context.getTransferInfoId() == null) {
             context.setTransferInfoId(-1L);
         }
-        return true;
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        String reserveField1 = transfer.getReserveField1();
+        String transformType = "transformType";
+        return !StringUtils.isEmpty(reserveField1) && reserveField1.contains(transformType)
+                && !"1".equals(JSON.parseObject(reserveField1).getString(transformType));
     }
 
     @Override
