@@ -31,7 +31,7 @@ public class InterfaceHandlerService {
 
     public Result<Boolean> handleDataDirection(MqFact mqFact){
 
-        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
 
         try {
             /**
@@ -52,11 +52,11 @@ public class InterfaceHandlerService {
             for (Integer enumFlag : set) {
                 interfaceHandlerFactory.handler(enumFlag,map.get(enumFlag), processHandlerContext);
             }
-
+            result.setDate(true);
 
         } catch (Exception e) {
             log.error("通用转化逻辑处理数据 mq:{} 失败 -- ",mqFact,e);
-            result.setCode(ResultCode.FAIL.getValue());
+            result.setDate(false);
         }
         return result;
     }
