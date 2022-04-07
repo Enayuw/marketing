@@ -5,13 +5,10 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.RuleNecessaryData;
-import com.br.marketing.context.impl.CustomerTransferCollectDataImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,12 +53,10 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
         int pageSize = 500;
         int totalCount = transferList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-        final RuleNecessaryData ruleNecessaryData = context.getRuleNecessaryData();
-        String last = ruleNecessaryData instanceof CustomerTransferCollectDataImpl.CustomerTransferNecessaryData
-                ? ((CustomerTransferCollectDataImpl.CustomerTransferNecessaryData) ruleNecessaryData).getLast() : null;
+        String last = context.getLast();
         String lastRep;
         for (int i = 1; i <= pageCount; i++) {
-            List<ConversionData> subList = new ArrayList<>();
+            List<ConversionData> subList;
             TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
             if (i == pageCount) {
                 subList = transferList.subList((i - 1) * pageSize, totalCount);
@@ -75,13 +70,13 @@ public class CustomerTransferHandler extends AbstractExternalInterfaceHandler<Co
             robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, lastRep));
             robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
 
-            methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO,0);
+            methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, 0);
         }
         return null;
     }
 
     @Override
-    public InterfaceHandlerEnum handlerEnum () {
-            return InterfaceHandlerEnum.CUSTOMER_TRANSFER;
-        }
+    public InterfaceHandlerEnum handlerEnum() {
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER;
+    }
 }

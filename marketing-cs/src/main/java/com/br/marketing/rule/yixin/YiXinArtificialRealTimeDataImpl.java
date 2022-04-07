@@ -203,6 +203,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.YI_XIN_REALTIME_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 }
