@@ -46,7 +46,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
-        log.error("实时数据推客服,id={}",transfer.getId());
+        log.warn("实时数据推客服,id={}",transfer.getId());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
