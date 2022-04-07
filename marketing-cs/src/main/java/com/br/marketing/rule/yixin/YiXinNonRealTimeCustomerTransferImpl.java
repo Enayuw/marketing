@@ -42,9 +42,7 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         // 该标识只为调度任务查询数据使用，非数据ID
-        if (context.getTransferInfoId() == null) {
-            context.setTransferInfoId(-1L);
-        }
+        context.setTransferInfoId(-1L);
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String reserveField1 = transfer.getReserveField1();
         String transformType = "transformType";
