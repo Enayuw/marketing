@@ -99,7 +99,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
         phoneSaleExtendInfo.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        phoneSaleExtendInfo.setStatus("a");
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setType(String.valueOf(liveType));
