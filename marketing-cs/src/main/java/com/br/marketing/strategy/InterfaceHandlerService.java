@@ -52,11 +52,11 @@ public class InterfaceHandlerService {
             for (Integer enumFlag : set) {
                 interfaceHandlerFactory.handler(enumFlag,map.get(enumFlag), processHandlerContext);
             }
-            result.setDate(true);
+            result.setDate(false);
 
         } catch (Exception e) {
             log.error("通用转化逻辑处理数据 mq:{} 失败 -- ",mqFact,e);
-            result.setDate(false);
+            result.setDate(true);
         }
         return result;
     }
