@@ -70,6 +70,7 @@ public class CustomerStrategyController {
             productMap.put("productName", productName);
             productMap.put("spreadStatus", spreadStatus);
             productMap.put("versions", version);
+            productMap.put("version", "");
             for (int j = 0; j < productTypeData.size(); j++) {
                 JSONObject jsonObject1 = productTypeData.getJSONObject(j);
                 String typeCode = jsonObject1.getString("typeCode");
