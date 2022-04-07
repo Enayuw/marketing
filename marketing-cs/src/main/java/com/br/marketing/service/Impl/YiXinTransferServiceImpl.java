@@ -504,7 +504,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         e.printStackTrace();
                     }
                     DateTime endDate = DateTime.now();
-                    if (Hours.hoursBetween(endDate, beginDate).getHours() > 1) {
+                    if (Hours.hoursBetween(beginDate, endDate).getHours() > 1) {
                         log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},",apiCode,(i-1)+"-"+dateCount);
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
