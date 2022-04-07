@@ -1491,7 +1491,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum) {
         Result<MarketingSyncUser> result = new Result<>();
         //校验
-        if ((StringUtils.isBlank(cid) || StringUtils.isBlank(apiCode)) && StringUtils.isBlank(custNum)) {
+        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || StringUtils.isBlank(custNum)) {
             return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
