@@ -521,7 +521,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             }
             JSONObject paramMessage = new JSONObject();
             paramMessage.put("apiCode", apiCode);
-            paramMessage.put("cid", tcId);
+            paramMessage.put("tcId", tcId);
             paramMessage.put("ids", subList);
             paramMessage.put("last", last);
             MqFact mqFact = new MqFact();
