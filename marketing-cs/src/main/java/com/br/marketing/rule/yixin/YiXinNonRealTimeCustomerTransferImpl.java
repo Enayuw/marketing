@@ -44,10 +44,13 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        // 该标识只为调度任务查询数据使用，非数据ID
-        context.setTransferInfoId(-1L);
         final Set<String> includeRules = context.getMqFact().getIncludeRules();
-        return !CollectionUtils.isEmpty(includeRules) && includeRules.contains(label());
+        if (!CollectionUtils.isEmpty(includeRules) && includeRules.contains(label())) {
+            // 该标识只为调度任务查询数据使用，非数据ID
+            context.setTransferInfoId(-1L);
+            return true;
+        }
+        return false;
     }
 
     @Override
