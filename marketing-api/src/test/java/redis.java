@@ -1,42 +1,21 @@
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.text.DecimalFormat;
-import java.util.Date;
-
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.entity.*;
-import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.BrCipherMaker;
-import com.br.marketing.mapper.*;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.rule.AssembleData;
-import com.br.marketing.rule.AssembleDataWithSyncUser;
-import com.br.marketing.rule.yixin.YiXinCustomerTransferImpl;
-import com.br.marketing.vo.CustGroupTempVO;
-
-import java.util.*;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.api.MarketingApiApplication;
+import com.br.marketing.client.DecodeClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.RedisService;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.entity.*;
+import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.es.util.BrCipherMaker;
+import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
@@ -49,6 +28,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.concurrent.*;
 
 
@@ -495,7 +476,17 @@ public class redis {
 //            //输出true
 //            System.out.println(bloomFilter.contains("10086"));
     }
+    @Resource
+    DecodeClient decodeClient;
 
+
+    @Test
+    public void testCellMd5() {
+
+        String name = decodeClient.query("1622dc9b6b57a5faf337b87b13fc1200","cell" ,"md5","");
+        System.out.println(name);
+
+    }
 /*@Resource
     DecodeClient decodeClient;
 

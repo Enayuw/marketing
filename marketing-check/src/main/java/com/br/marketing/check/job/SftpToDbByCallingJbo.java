@@ -73,6 +73,11 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
             processData(sftpClient, map, customerCalling);
 
         }
+        try {
+            sftpClient.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private List<CustomerCalling> getCustomerCallings() {

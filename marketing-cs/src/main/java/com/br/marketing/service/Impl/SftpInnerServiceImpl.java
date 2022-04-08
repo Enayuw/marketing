@@ -61,6 +61,16 @@ public class SftpInnerServiceImpl {
         } catch (Exception e) {
             log.error(String.format("推送转化文件到内部sftp错误 文件id：%d,错误：%s",transferFileTask.getId(),e.getMessage()),e);
             return new Result().setCode(ResultCode.FAIL.getValue());
+        }finally {
+            try {
+                sftpClient.disconnect();
+            } catch (Exception e) {
+                try {
+                    sftpClient.disconnect();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
