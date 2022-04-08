@@ -1,11 +1,15 @@
 package com.br.marketing.innerapi.rabbitmq.consumer;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.IceClient;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.strategy.InterfaceHandlerService;
+import com.br.marketing.strategy.UserCenterHandler;
+import com.br.usernew.ResponseDto;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +40,9 @@ public class ConsumerApp {
 
     @Resource
     private InterfaceHandlerService interfaceHandlerService;
+
+    @Resource
+    private UserCenterHandler userCenterHandler;
 
 
     /**
@@ -129,5 +136,17 @@ public class ConsumerApp {
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, null);
     }
+    /**
+     * 延迟消费 获取推送客服中心数据状态
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = "delivery-znyy.notice.queue", containerFactory = "secondaryContainerFactory")
+    public void deliveryUserInfo(Channel channel, Message message,String msg) {
+        String s = new String(message.getBody(), StandardCharsets.UTF_8);
 
+        consumerService.consumerRun(channel, message,  userCenterHandler::handleDataUserCenter, s, null);
+        log.info("{}",message);
+    }
 }
