@@ -125,6 +125,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinRealTimeData(fw, apiCode, date, transferFileTask);
         } catch (Exception ex) {
+            log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
