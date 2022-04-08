@@ -157,14 +157,15 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         custNumFilterType.add(marketingTransferSyncUser.getCustNum());
                         continue;
                     }
-                    //过滤掉 同一custNum的其他insertTime列，custNumResult
+                    //过滤掉 同一custNum的其他insertTime数据，custNumResult
                     if (custNumFilterType.add(marketingTransferSyncUser.getCustNum()) && custNumResult.add(marketingTransferSyncUser.getCustNum())) {
                         dataFilter.add(marketingTransferSyncUser);
                     }
 
                 }
             }
-            if (custNumResult.size() <= 0) {
+            if (dataFilter.size() <= 0) {
+                log.warn("宜信实时数据提取-该批次无liveType为4的数据,apiCode = {}", apiCode);
                 continue;
             }
             Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
