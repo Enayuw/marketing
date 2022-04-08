@@ -131,7 +131,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     }
 
     private void writeYiXinRealTimeData(Writer fw, String apiCode, String date, TransferFileTask transferFileTask) throws IOException {
-        Long start=System.currentTimeMillis();
+        Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
@@ -186,7 +186,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
 
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append(custNum);
+                sb.append(custNum.concat(","));
                 sb.append(cell.concat(","));
                 sb.append(liveType.concat(","));
                 sb.append(transferFilterData.getInsertTime());
