@@ -2,14 +2,15 @@ package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -46,7 +47,7 @@ import java.util.Map;
 public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Resource
-    private ZnkfPushService znkfPushService;
+    private RedisChgService redisChgService;
 
     private final static String CUSTOMER_NUMBER_IS_FIRST = "customer:realtime:first";
     @Override
@@ -69,7 +70,10 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
             MqFact mqFact = context.getMqFact();
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType()).concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
-            boolean notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+            boolean notBlack = true;
+            if (!CollectionUtils.isEmpty(blackList)){
+                notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+            }
             /*
             满足条件进入延迟队列
                 1、不满足客服黑名单
@@ -78,7 +82,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 3、需要静置的liveType 4,6,8
                 4、不是从延迟队列过来的消息
              */
-            return notBlack && znkfPushService.cusNumIsFirstToday(key) && transformType
+            return notBlack && !redisChgService.exists(key) && transformType
                     && Arrays.asList(4,6,8).contains(liveType) && mqFact.getIsDelay() == null;
         }
         return false;

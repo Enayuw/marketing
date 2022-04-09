@@ -18,6 +18,7 @@ import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -175,17 +176,20 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType())
                     .concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
-            boolean notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+            boolean notBlack = true;
+            if (!CollectionUtils.isEmpty(blackList)){
+                notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+            }
             boolean isDelay = mqFact.getIsDelay() != null && 1 == mqFact.getIsDelay();
             /*
             满足条件立即推送
                 1、不满足客服黑名单
-                1、当天该案件编号未被推送
                 2、transformType 为1
                 3、立即推送liveType 1,2,3 或者 从延迟队列过来的消息
+                4、当天该案件编号未被推送
              */
-            return notBlack && znkfPushService.cusNumIsFirstToday(key) && transformType
-                    && (Arrays.asList(1,2,3).contains(liveType) || isDelay);
+            return notBlack  && transformType
+                    && (Arrays.asList(1,2,3).contains(liveType) || isDelay) && znkfPushService.cusNumIsFirstToday(key);
         }
         return false;
     }
