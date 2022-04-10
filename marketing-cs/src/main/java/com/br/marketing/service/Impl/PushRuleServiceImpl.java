@@ -1483,24 +1483,29 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 查询客户信息接口
      *
      * @param cid
+     * @param apiCode
      * @param custNum
      * @return
      */
     @Override
-    public Result<MarketingSyncUser> queryCustInfo(String cid, String custNum) {
+    public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum) {
         Result<MarketingSyncUser> result = new Result<>();
         //校验
-        if (StringUtils.isBlank(cid) && StringUtils.isBlank(custNum)) {
+        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || StringUtils.isBlank(custNum)) {
             return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andCidEqualTo(cid);
+        if (StringUtils.isNotBlank(apiCode)) {
+            customerExample.createCriteria().andApiCodeEqualTo(apiCode);
+        } else if (StringUtils.isNotBlank(cid)) {
+            customerExample.createCriteria().andCidEqualTo(cid);
+        }
         List<MarketingCustomer> cList = marketingCustomerMapper.selectByExample(customerExample);
         if (cList != null && !cList.isEmpty()) {
             for (MarketingCustomer customer : cList) {
-                String apiCode = customer.getApiCode();
-                if (StringUtils.isNotBlank(apiCode)) {
-                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum);
+                String ac = customer.getApiCode();
+                if (StringUtils.isNotBlank(ac)) {
+                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
                     if (vo != null) {
                         return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
                     }
