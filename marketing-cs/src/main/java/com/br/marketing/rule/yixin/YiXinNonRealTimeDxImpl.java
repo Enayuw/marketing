@@ -118,7 +118,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
             try {
                 JSONObject syncUserJson = JSON.parseObject(syncUser.getReserveField1());
                 if (syncUserJson != null) {
-                    batchImportData.setGender(YiXinUtils.getActivity(syncUserJson.getString("gender")));
+                    batchImportData.setGender(YiXinUtils.getGender(syncUserJson.getString("gender")));
                 }
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
@@ -132,10 +132,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
                     JSONObject extend = new JSONObject();
                     String raiseLimiSuccess = json.getString("raiseLimiSuccess");
                     String raiseLimiType = json.getString("raiseLimiType");
-                    if (StringUtils.isEmpty(raiseLimiType)) {
+                    if (!StringUtils.isEmpty(raiseLimiType)) {
                         extend.put("raiseLimiType", raiseLimiType);
                     }
-                    if (StringUtils.isEmpty(raiseLimiSuccess)) {
+                    if (!StringUtils.isEmpty(raiseLimiSuccess)) {
                         extend.put("raiseLimiSuccess", raiseLimiSuccess);
                     }
                     batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);

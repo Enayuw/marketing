@@ -14,7 +14,7 @@
         <![CDATA[ and applet_date >= #{startDate} ]]>
         <![CDATA[ and applet_date <= #{endDate} ]]>
     </select>
-    <select id="getDxRecordCustByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="java.util.List">
+    <select id="getDxRecordCustByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="java.lang.String">
         select cust_num
         from b_phone_sale_extend_info
         where api_code = #{apiCode}

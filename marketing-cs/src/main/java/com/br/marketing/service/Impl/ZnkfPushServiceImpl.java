@@ -24,6 +24,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Resource
     private DataLoadingHandlerService handlerService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
@@ -185,18 +189,23 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
         String pushEndDate = "";
         try {
-            pushEndDate = DateUtils.format(DateUtils.parse(pushDate,"yyyy-MM-dd HH:mm:ss"));
-        }catch (ParseException e){
-            log.error("格式化日期错误",e);
+            pushEndDate = DateUtils.format(DateUtils.parse(pushDate, "yyyy-MM-dd HH:mm:ss"));
+        } catch (ParseException e) {
+            log.error("格式化日期错误", e);
             return new ApiResult().fail("pushDate 格式化日期错误");
         }
-        RoboAIBlackPhoneMark  roboAIBlackPhoneMark= new RoboAIBlackPhoneMark();
-        roboAIBlackPhoneMark.setApiCode(apiCode);
-        roboAIBlackPhoneMark.setPushEndTime(pushDate);
-        roboAIBlackPhoneMark.setCreateTime(new Date());
-        roboAIBlackPhoneMark.setPushEndDate(pushEndDate);
-        roboAIBlackPhoneMarkMapper.insertSelective(roboAIBlackPhoneMark);
-        return new ApiResult().setCode("00").setMessage("推送成功");
+        List<String> yiXinApiCode = marketingCommonConfig.getYiXinApiCode();
+        if (!CollectionUtils.isEmpty(yiXinApiCode) && yiXinApiCode.contains(apiCode)) {
+            RoboAIBlackPhoneMark roboAIBlackPhoneMark = new RoboAIBlackPhoneMark();
+            roboAIBlackPhoneMark.setApiCode(apiCode);
+            roboAIBlackPhoneMark.setPushEndTime(pushDate);
+            roboAIBlackPhoneMark.setCreateTime(new Date());
+            roboAIBlackPhoneMark.setPushEndDate(pushEndDate);
+            roboAIBlackPhoneMarkMapper.insertSelective(roboAIBlackPhoneMark);
+            return new ApiResult().setCode("00").setMessage("推送成功");
+        } else {
+            return new ApiResult().fail("非宜信的apiCode，请检查配置中心");
+        }
     }
 
     @Override
