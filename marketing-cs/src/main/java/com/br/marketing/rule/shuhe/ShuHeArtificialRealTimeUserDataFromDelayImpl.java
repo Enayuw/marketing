@@ -49,7 +49,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
 
     @Override
@@ -153,7 +153,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         LocalDate localDate = localDateTime.toLocalDate();
         phoneSaleExtendInfo.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
-        phoneSaleExtendInfo.setAppletTime(localDateTime.format(DATE_TIME_FORMATTER));
+        phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setStatus("a");
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());

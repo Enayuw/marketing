@@ -91,6 +91,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                         transferSyncUser.setId(transfer.getId());
                         transferSyncUser.settCid(transfer.gettCid());
+                        shuHeContext.setTransfer(transfer);
                         if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
                             transferSyncUser.setIfTransform("2");
                             ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
@@ -105,6 +106,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
                         }
+                        shuHeContext.setTransfer(null);
                     }
                 }
             }
