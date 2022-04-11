@@ -15,6 +15,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -30,6 +31,7 @@ import java.util.Map;
  * @dateTime 2022/3/29 14:45
  */
 @Service
+@Slf4j
 public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDataDTO> {
 
 
@@ -59,10 +61,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String reserveField1 = transfer.getReserveField1();
-        if(!StringUtils.isEmpty(reserveField1)){
+        if (!StringUtils.isEmpty(reserveField1)) {
             JSONObject json = JSON.parseObject(reserveField1);
             boolean transformType = "1".equals(json.getString("transformType"));
-            if(transformType){
+            if (transformType) {
                 return Boolean.FALSE;
             }
         }
@@ -110,22 +112,37 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setLevel(YiXinUtils.getLevel(phoneGrade));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
         batchImportData.setPrioritySymbol(YiXinUtils.getPrioritySymbol(transfer.getType()));
-        batchImportData.setApplyTime(StringUtils.isEmpty(transfer.getApplyDt())?"":transfer.getApplyDt().replaceAll("\\.d{3}", ""));
+        batchImportData.setApplyTime(StringUtils.isEmpty(transfer.getApplyDt()) ? "" : transfer.getApplyDt().replaceAll("\\.d{3}", ""));
 
-        JSONObject json = JSON.parseObject(transfer.getReserveField1());
-        if (json != null) {
-            batchImportData.setGender(YiXinUtils.getActivity(json.getString("gender")));
-            batchImportData.setActivity(YiXinUtils.getActivity(json.getString("rate")));
-            JSONObject extend = new JSONObject();
-            String raiseLimiSuccess = json.getString("raiseLimiSuccess");
-            String raiseLimiType = json.getString("raiseLimiType");
-            if (StringUtils.isEmpty(raiseLimiType)) {
-                extend.put("raiseLimiType", raiseLimiType);
+        if (!StringUtils.isEmpty(syncUser.getReserveField1())) {
+            try {
+                JSONObject syncUserJson = JSON.parseObject(syncUser.getReserveField1());
+                if (syncUserJson != null) {
+                    batchImportData.setGender(YiXinUtils.getActivity(syncUserJson.getString("gender")));
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
             }
-            if (StringUtils.isEmpty(raiseLimiSuccess)) {
-                extend.put("raiseLimiSuccess", raiseLimiSuccess);
+        }
+        if (!StringUtils.isEmpty(transfer.getReserveField1())) {
+            try {
+                JSONObject json = JSON.parseObject(transfer.getReserveField1());
+                if (json != null) {
+                    batchImportData.setActivity(YiXinUtils.getActivity(json.getString("rate")));
+                    JSONObject extend = new JSONObject();
+                    String raiseLimiSuccess = json.getString("raiseLimiSuccess");
+                    String raiseLimiType = json.getString("raiseLimiType");
+                    if (StringUtils.isEmpty(raiseLimiType)) {
+                        extend.put("raiseLimiType", raiseLimiType);
+                    }
+                    if (StringUtils.isEmpty(raiseLimiSuccess)) {
+                        extend.put("raiseLimiSuccess", raiseLimiSuccess);
+                    }
+                    batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
             }
-            batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);
         }
         return batchImportData;
     }

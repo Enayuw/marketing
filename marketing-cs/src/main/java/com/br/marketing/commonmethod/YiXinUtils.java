@@ -6,7 +6,7 @@ public class YiXinUtils {
             case "13":
                 return "21";
             case "12":
-                return "20";
+                return "30";
             case "9":
                 return "17";
             case "7":
