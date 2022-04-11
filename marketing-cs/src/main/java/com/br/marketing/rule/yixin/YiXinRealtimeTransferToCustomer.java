@@ -39,14 +39,14 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
     @Autowired
     private IMarketingSyncUserService iMarketingSyncUserService;
 
-    final static String realtimeTransferCusNumIsOnly = "realtime:transfer:customer";
+    final static String realtimeTransferCusNumIsOnly = "yixin:transfer:realtime:toCustomer";
 
     static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
-        log.warn("实时数据推客服,id={}",transfer.getId());
+        log.warn("实时数据推客服,id={},apicode={},custNum={}",transfer.getId(),transfer.getApiCode(),transfer.getCustNum());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
