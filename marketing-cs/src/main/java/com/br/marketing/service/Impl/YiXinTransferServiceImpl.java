@@ -128,9 +128,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         Integer page = 0;
         //全局去重custNum集合
         HashSet custNumALL = new HashSet();
+        String _nowDay = date;
         String _7startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -7));
         String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -60));
         String _endDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -1));
+
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         String tcId = tableCreateService.getTcId(apiCode);
         while (mark) {
@@ -168,7 +170,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             final String _tApicode = apiCode;
             threadPool.submit(() -> {
                 try {
-                    //region 获取7天数据和60天数据
+                    //region 获取7天实时和60天非实时 推送记录
                     Set<String> _7filerCustNumSet = iDxService
                             .getCustNumByPhoneDx(custNums, _tApicode, _7startDay, _endDay, "1");
                     PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
@@ -181,10 +183,18 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
                     //endregion
 
-                    //region 7天实时和60天非实时筛选
+                    //region 获取当天非实时 推送记录
+                    Set<String> _nowfilerCustNumSet = iDxService
+                            .getCustNumByPhoneDx(custNums, _tApicode, _nowDay, _nowDay, "2");
+                    //endregion
+
+                    //region 7天实时和当天非实时和60天非实时筛选
                     List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
                     for (MarketingTransferSyncUser transferSyncUser : dataFilter1) {
                         if (_7filerCustNumSet.contains(transferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        if (_nowfilerCustNumSet.contains(transferSyncUser.getCustNum())) {
                             continue;
                         }
                         List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferSyncUser.getCustNum());
