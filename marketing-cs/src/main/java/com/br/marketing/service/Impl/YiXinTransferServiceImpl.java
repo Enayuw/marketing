@@ -167,54 +167,58 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
             final String _tApicode = apiCode;
             threadPool.submit(() -> {
-                //region 获取7天数据和60天数据
-                Set<String> _7filerCustNumSet = iDxService
-                        .getCustNumByPhoneDx(custNums, _tApicode, _7startDay, _endDay, "1");
-                PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
-                _60recordInfoDTO.setCustNums(custNums);
-                _60recordInfoDTO.setApiCode(_tApicode);
-                _60recordInfoDTO.setStartDate(_60startDay);
-                _60recordInfoDTO.setEndDate(_endDay);
-                _60recordInfoDTO.setTransferType("0");
-                List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
-                Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
-                //endregion
+                try {
+                    //region 获取7天数据和60天数据
+                    Set<String> _7filerCustNumSet = iDxService
+                            .getCustNumByPhoneDx(custNums, _tApicode, _7startDay, _endDay, "1");
+                    PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
+                    _60recordInfoDTO.setCustNums(custNums);
+                    _60recordInfoDTO.setApiCode(_tApicode);
+                    _60recordInfoDTO.setStartDate(_60startDay);
+                    _60recordInfoDTO.setEndDate(_endDay);
+                    _60recordInfoDTO.setTransferType("0");
+                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
+                    Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
+                    //endregion
 
-                //region 7天实时和60天非实时筛选
-                List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
-                for (MarketingTransferSyncUser transferSyncUser : dataFilter1) {
-                    if (_7filerCustNumSet.contains(transferSyncUser.getCustNum())) {
-                        continue;
-                    }
-                    List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferSyncUser.getCustNum());
-                    if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
-                        phoneSaleInfoVOS.sort((t1, t2) -> {
-                            return t1.getAppletDate().compareTo(t2.getAppletDate());
-                        });
-                        PhoneSaleInfoVO phoneSaleInfoVO = phoneSaleInfoVOS.get(0);
-                        if (phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
-                            if (phoneSaleInfoVOS.size() > 1) {
-                                PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(1);
-                                if (phoneSaleInfoVO1.getType().equals(transferSyncUser.getType())) {
-                                    continue;
-                                } else {
-                                    Date sT = null;
-                                    Date eT = null;
-                                    try {
-                                        sT = DateUtils.parseDate(phoneSaleInfoVO.getAppletDate(), "yyyy-MM-dd");
-                                        eT = DateUtils.parseDate(transferSyncUser.getRequestData(), "yyyy-MM-dd");
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
-                                    if (sT == null || eT == null) {
+                    //region 7天实时和60天非实时筛选
+                    List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
+                    for (MarketingTransferSyncUser transferSyncUser : dataFilter1) {
+                        if (_7filerCustNumSet.contains(transferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferSyncUser.getCustNum());
+                        if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
+                            phoneSaleInfoVOS.sort((t1, t2) -> {
+                                return t1.getAppletDate().compareTo(t2.getAppletDate());
+                            });
+                            PhoneSaleInfoVO phoneSaleInfoVO = phoneSaleInfoVOS.get(0);
+                            if (phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
+                                if (phoneSaleInfoVOS.size() > 1) {
+                                    PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(1);
+                                    if (phoneSaleInfoVO1.getType().equals(transferSyncUser.getType())) {
                                         continue;
-                                    }
-                                    Integer dayByDate = getDayByDate(sT, eT);
-                                    if (dayByDate >= 30) {
-                                        dataFilter2.add(transferSyncUser);
                                     } else {
-                                        continue;
+                                        Date sT = null;
+                                        Date eT = null;
+                                        try {
+                                            sT = DateUtils.parseDate(phoneSaleInfoVO.getAppletDate(), "yyyy-MM-dd");
+                                            eT = DateUtils.parseDate(transferSyncUser.getRequestData(), "yyyy-MM-dd");
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+                                        if (sT == null || eT == null) {
+                                            continue;
+                                        }
+                                        Integer dayByDate = getDayByDate(sT, eT);
+                                        if (dayByDate >= 30) {
+                                            dataFilter2.add(transferSyncUser);
+                                        } else {
+                                            continue;
+                                        }
                                     }
+                                } else {
+                                    dataFilter2.add(transferSyncUser);
                                 }
                             } else {
                                 dataFilter2.add(transferSyncUser);
@@ -222,50 +226,50 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         } else {
                             dataFilter2.add(transferSyncUser);
                         }
-                    } else {
-                        dataFilter2.add(transferSyncUser);
                     }
-                }
-                //endregion
+                    //endregion
 
-                //region 黑名单查询
-                HashMap<String, String> blackData = new HashMap<>();
-                List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
-                for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
-                    Result<Map<String, String>> result = iDxService.getBlackByTransfer(marketingTransferSyncUsers, _tApicode);
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        blackData.putAll(result.getData());
+                    //region 黑名单查询
+                    HashMap<String, String> blackData = new HashMap<>();
+                    List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
+                    for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
+                        Result<Map<String, String>> result = iDxService.getBlackByTransfer(marketingTransferSyncUsers, _tApicode);
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            blackData.putAll(result.getData());
+                        }
                     }
-                }
-                if(log.isInfoEnabled()){
-                    log.info(String.format("黑名单查询：%s",JSON.toJSONString(blackData)));
-                }
-                //endregion
+                    if (log.isInfoEnabled()) {
+                        log.info(String.format("黑名单查询：%s", JSON.toJSONString(blackData)));
+                    }
+                    //endregion
 
-                //region 推送MQ
-                List<Long> ids = dataFilter2.stream()
-                        .filter(t -> StringUtils.isBlank(blackData.get(t.getId()))
-                                || !blackData.get(t.getId()).equals("Y"))
-                        .map(t -> t.getId()).collect(Collectors.toList());
-                List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
-                for (List<Long> longs : mqIdgroup) {
-                    JSONObject jo = new JSONObject();
-                    jo.put("tcId", tcId);
-                    jo.put("ids", longs);
-                    HashSet<String> rule = new HashSet<>();
-                    rule.add("YiXin_NonRealTime_Dx");
-                    MqFact mq = new MqFact();
-                    mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
-                    mq.setIncludeRules(rule);
-                    mq.setMessage(JSON.toJSONString(jo));
+                    //region 推送MQ
+                    List<Long> ids = dataFilter2.stream()
+                            .filter(t -> StringUtils.isBlank(blackData.get(t.getId()))
+                                    || !blackData.get(t.getId()).equals("Y"))
+                            .map(t -> t.getId()).collect(Collectors.toList());
+                    List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
+                    for (List<Long> longs : mqIdgroup) {
+                        JSONObject jo = new JSONObject();
+                        jo.put("tcId", tcId);
+                        jo.put("ids", longs);
+                        HashSet<String> rule = new HashSet<>();
+                        rule.add("YiXin_NonRealTime_Dx");
+                        MqFact mq = new MqFact();
+                        mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                        mq.setIncludeRules(rule);
+                        mq.setMessage(JSON.toJSONString(jo));
 //                    mq.setIncludeRules();
-                    String mqStr = JSON.toJSONString(mq);
-                    producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
-                    if(log.isInfoEnabled()){
-                        log.info(String.format("推送非实时电销：%s",mqStr));
+                        String mqStr = JSON.toJSONString(mq);
+                        producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
+                        if (log.isInfoEnabled()) {
+                            log.info(String.format("推送非实时电销：%s", mqStr));
+                        }
                     }
+                    //endregion
+                } catch (Exception ex) {
+                    log.error(ex.getMessage(), ex);
                 }
-                //endregion
             });
         }
 
@@ -343,11 +347,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         }
         custNumFilterType.clear();
         custNumResult.clear();
-        log.warn("宜信非实时数据推送客服数据量 totalNum={}",ids.size());
+        log.warn("宜信非实时数据推送客服数据量 totalNum={}", ids.size());
         long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);
-        log.warn("apiCode=【{}】宜信非实时数据推送客服结束,耗时={}ms",apiCode,System.currentTimeMillis() - time);
-        updateFrontDataStatus(frontId,2);
+        log.warn("apiCode=【{}】宜信非实时数据推送客服结束,耗时={}ms", apiCode, System.currentTimeMillis() - time);
+        updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
