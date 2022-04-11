@@ -532,7 +532,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     }
 
     private void sendUniversalTransferMq(String apiCode, String tcId, List<Long> subList, String last) {
-        sendUniversalTransferMq(apiCode, tcId, subList, last);
         JSONObject paramMessage = new JSONObject();
         paramMessage.put("apiCode", apiCode);
         paramMessage.put("tcId", tcId);
