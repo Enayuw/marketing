@@ -237,6 +237,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         blackData.putAll(result.getData());
                     }
                 }
+                if(log.isInfoEnabled()){
+                    log.info(String.format("黑名单查询：%s",JSON.toJSONString(blackData)));
+                }
                 //endregion
 
                 //region 推送MQ
@@ -256,7 +259,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     mq.setIncludeRules(rule);
                     mq.setMessage(JSON.toJSONString(jo));
 //                    mq.setIncludeRules();
-                    producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, JSON.toJSONString(mq));
+                    String mqStr = JSON.toJSONString(mq);
+                    producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
+                    if(log.isInfoEnabled()){
+                        log.info(String.format("推送非实时电销：%s",mqStr));
+                    }
                 }
                 //endregion
             });
