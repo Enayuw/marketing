@@ -185,7 +185,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                     //region 获取当天非实时 推送记录
                     Set<String> _nowfilerCustNumSet = iDxService
-                            .getCustNumByPhoneDx(custNums, _tApicode, _nowDay, _nowDay, "2");
+                            .getCustNumByPhoneDx(custNums, _tApicode, _nowDay, _nowDay, "0");
                     //endregion
 
                     //region 7天实时和当天非实时和60天非实时筛选
