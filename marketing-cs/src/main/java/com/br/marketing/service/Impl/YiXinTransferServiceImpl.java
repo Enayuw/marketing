@@ -337,10 +337,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         custNumFilterType.clear();
         custNumResult.clear();
         log.warn("宜信非实时数据推送客服数据量 totalNum={}",ids.size());
-        if (ids.size() <= 5) {
-            log.error("宜信非实时数据量小于500,请检查");
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("宜信非实时数据量小于500");
-        }
         long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);
         log.warn("apiCode=【{}】宜信非实时数据推送客服结束,耗时={}ms",apiCode,System.currentTimeMillis() - time);
@@ -476,7 +472,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      */
     private void pushRobotAIMessage(String apiCode, List<Long> ids) {
         String tcId = tableCreateService.getTcId(apiCode);
-        int pageSize = 5;
+        //小于等于500，直接发送last为1
+        if (ids.size() <= 500) {
+            sendUniversalTransferMq(apiCode, tcId, ids, "1");
+            return;
+        }
+        int pageSize = 500;
         int totalCount = ids.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         String last = "0";
@@ -489,7 +490,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 Date nowDayStartTime = DateHelper.getNowDayStartTime();
                 Date newDay = DateHelper.addDays(nowDayStartTime, 1);
                 DateTime beginDate = DateTime.now();
-                while(true) {
+                while (true) {
                     DataCompareExample dataCompareExample = new DataCompareExample();
                     dataCompareExample.createCriteria().andCreateTimeBetween(nowDayStartTime, newDay).andTransferInfoIdEqualTo(-1L)
                             .andExternalInterfaceEqualTo(InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode());
@@ -504,12 +505,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         e.printStackTrace();
                     }
                     DateTime endDate = DateTime.now();
-                    if (Hours.hoursBetween(beginDate, endDate).getHours() > 1) {
-                        log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},",apiCode,(i-1)+"-"+dateCount);
+                    if (Hours.hoursBetween(beginDate, endDate).getHours() >= 1) {
+                        log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},", apiCode, (i - 1) + "-" + dateCount);
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
                                 .append("非实时总量：".concat(String.valueOf(dateCount)).concat("\r\n"))
-                                .append("已发送批次量：".concat(String.valueOf(i-1)).concat("\r\n"))
+                                .append("已发送批次量：".concat(String.valueOf(i - 1)).concat("\r\n"))
                                 .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
                         alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", appName, secretKey,
@@ -519,17 +520,22 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             } else {
                 subList = ids.subList((i - 1) * pageSize, pageSize * (i));
             }
-            JSONObject paramMessage = new JSONObject();
-            paramMessage.put("apiCode", apiCode);
-            paramMessage.put("tcId", tcId);
-            paramMessage.put("ids", subList);
-            paramMessage.put("last", last);
-            MqFact mqFact = new MqFact();
-            mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
-            mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
-            mqFact.setMessage(JSONObject.toJSONString(paramMessage));
-            producter.sendToUniversalTransferQueue(mqFact);
-            log.warn("宜信非实时数据推客服，发送消息，page：{}", i);
+            sendUniversalTransferMq(apiCode, tcId, subList, last);
         }
+    }
+
+    private void sendUniversalTransferMq(String apiCode, String tcId, List<Long> subList, String last) {
+        sendUniversalTransferMq(apiCode, tcId, subList, last);
+        JSONObject paramMessage = new JSONObject();
+        paramMessage.put("apiCode", apiCode);
+        paramMessage.put("tcId", tcId);
+        paramMessage.put("ids", subList);
+        paramMessage.put("last", last);
+        MqFact mqFact = new MqFact();
+        mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
+        mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+        mqFact.setMessage(JSONObject.toJSONString(paramMessage));
+        producter.sendToUniversalTransferQueue(mqFact);
+        log.warn("宜信非实时数据推客服，发送消息，mqFact：{}", mqFact);
     }
 }
