@@ -37,7 +37,7 @@ public interface IPushShuheTransferDataService {
     default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
         try {
             alarmClient.sendAlarm(error, title, appName, secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+                    Constants.sendCodeMap.get("ladderCommonly"));
         } catch (Exception ignored) {
 
         }
