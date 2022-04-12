@@ -2,6 +2,7 @@ package com.br.marketing.speedconfig;
 
 
 import com.br.speed.client.common.annotations.SpeedFile;
+import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
@@ -99,5 +100,14 @@ public class MarketingCommonConfig {
      * 消息队列过期时间
      */
     private String messageQueueExpireTime;
+    /**
+     * 宜信实时转化数据提取apiCode集合
+     */
+    private List<String> yinXinTransferRealTimeApiCodes;
+
+    /**
+     * 宜信实时转化数据执行时间
+     */
+    private String yinXinTransferRealTimeExecuteTime;
 
 }

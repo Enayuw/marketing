@@ -114,10 +114,11 @@ public interface PushRuleService {
      * 查询客户信息接口
      *
      * @param cid
+     * @param apiCode
      * @param custNum
      * @return
      */
-    Result<MarketingSyncUser> queryCustInfo(String cid, String custNum);
+    Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum);
 
 
     /**
