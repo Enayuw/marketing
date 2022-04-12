@@ -7,13 +7,17 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.PhoneSaleInfoVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -50,6 +55,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     final static String EXECUTE_TIME = " 20:00:00";
     final static String EXECUTE_TIME_NO_REALTIME = " 12:00:00";
@@ -439,6 +447,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         HashSet custNumFilterType = new HashSet();
         //去重后的Set
         HashSet custNumResult = new HashSet();
+        int totalSize = 0;
         while (mark) {
             Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, date, page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
@@ -462,10 +471,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
             }
-            if (dataFilter.size() <= 0) {
-                log.warn("宜信非实时数据提取-该批次无type为7、8、15的数据,apiCode = {}", apiCode);
-                continue;
-            }
+
             Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
             Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
@@ -474,8 +480,42 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                     Collectors.reducing((v1, v2) ->
                                             v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                     , Optional::get)));
+            //过滤 该type符合转电销type且60天没有变化的数据（推电销type无变化且推电销次数<=2）
+            List<MarketingTransferSyncUser> resultFilter = new ArrayList<>();
+            String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(new Date(), -60));
+            String endDay = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            PhoneSaleRecordInfoDTO recordInfoDTO = new PhoneSaleRecordInfoDTO();
+            recordInfoDTO.setCustNums(set);
+            recordInfoDTO.setApiCode(apiCode);
+            recordInfoDTO.setStartDate(_60startDay);
+            recordInfoDTO.setEndDate(endDay);
+            recordInfoDTO.setTransferType("0");
+            List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(recordInfoDTO);
+            Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
+            for(MarketingTransferSyncUser transferFilterData : dataFilter){
+                List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferFilterData.getCustNum());
+                if(phoneSaleInfoVOS.size()>2){
+                    continue;
+                }
+                if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size()>0){
+                    PhoneSaleInfoVO vo = phoneSaleInfoVOS.get(0);
+                    if (vo.getType().equals(transferFilterData.getType())){
+                        if(phoneSaleInfoVOS.size()>1){
+                            PhoneSaleInfoVO vo1 = phoneSaleInfoVOS.get(1);
+                            if (vo1.getType().equals(transferFilterData.getType())){
+                                resultFilter.add(transferFilterData);
+                            }
+                        }
+                    }
+                }
+            }
 
-            for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+            if (resultFilter.size() <= 0) {
+                log.warn("宜信非实时数据提取-该批次无符合hist的数据,apiCode = {}", apiCode);
+                continue;
+            }
+
+            for (MarketingTransferSyncUser transferFilterData : resultFilter) {
                 String custNum = transferFilterData.getCustNum();
                 String type = transferFilterData.getType();
                 String cell = "";
@@ -492,9 +532,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 fw.append(sb.toString());
             }
             dataFilter.clear();
+            totalSize = resultFilter.size();
+            resultFilter.clear();
             data.clear();
         }
-        int totalSize = custNumResult.size();
         custNumResult.clear();
         custNumFilterType.clear();
         TransferFileTask updatetask = new TransferFileTask();
