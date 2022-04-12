@@ -255,8 +255,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                     //region 推送MQ
                     List<Long> ids = dataFilter2.stream()
-                            .filter(t -> StringUtils.isBlank(blackData.get(t.getId()))
-                                    || !blackData.get(t.getId()).equals("Y"))
+                            .filter(t -> StringUtils.isBlank(blackData.get(t.getId().toString()))
+                                    || !blackData.get(t.getId().toString()).equals("Y"))
                             .map(t -> t.getId()).collect(Collectors.toList());
                     List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
                     for (List<Long> longs : mqIdgroup) {
