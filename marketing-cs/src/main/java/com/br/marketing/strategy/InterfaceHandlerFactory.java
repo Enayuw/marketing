@@ -154,10 +154,15 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 获取 apiCode获取所需的规则匹配方法
          */
         Set<String> customerRules = dataLoadingHandlerService.customerRules(context.getApiCode());
+        Set<String> execRules = new HashSet<>();
         if (!CollectionUtils.isEmpty(mqFact.getIncludeRules())){
-            customerRules.retainAll(mqFact.getIncludeRules());
+            execRules.addAll(mqFact.getIncludeRules());
+            execRules.retainAll(customerRules);
+        }else {
+            execRules.addAll(customerRules);
         }
-        if (CollectionUtils.isEmpty(customerRules)){
+
+        if (CollectionUtils.isEmpty(execRules)){
             log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
             return new HashMap<>();
         }
@@ -166,7 +171,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 规则排序
          */
         Collection<AssembleData> values = assembleDataMap.values();
-        List<AssembleData> assembleDataList = values.stream().filter(data->customerRules.contains(data.label()))
+        List<AssembleData> assembleDataList = values.stream().filter(data->execRules.contains(data.label()))
                 .sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
         /**
          * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
