@@ -12,7 +12,6 @@ import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -175,17 +174,18 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
             if (!CollectionUtils.isEmpty(blackList)){
                 notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             }
+            Integer isDelay = context.getMqFact().getIsDelay();
+            boolean flag = isDelay != null && isDelay == 1 ;
             /*
             满足条件立即推送
                 1、不满足客服黑名单
                 2、transformType 为1
-                3、立即推送liveType 1,2,3
+                3、立即推送liveType 1,2,3或者 从延迟队列过来的消息
                 4、当天该案件编号未被推送
-
-                5、或者 从延迟队列过来的消息
              */
+
             return notBlack  && transformType
-                    && Arrays.asList(1,2,3).contains(liveType)  && znkfPushService.cusNumIsFirstToday(key);
+                    && (Arrays.asList(1,2,3).contains(liveType) || flag)  && znkfPushService.cusNumIsFirstToday(key);
         }
         return false;
     }

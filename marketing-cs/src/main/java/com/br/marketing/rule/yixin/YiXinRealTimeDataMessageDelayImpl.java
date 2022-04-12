@@ -7,7 +7,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.stereotype.Service;
@@ -16,9 +15,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * code is far away from bug with the animal protecting
@@ -55,19 +52,9 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
     private final static String CUSTOMER_NUMBER_IS_FIRST = "customer:realtime:first";
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
-        Set<String> set = new HashSet<>();
-        set.add("YiXin_RealTimeData_ArtificialSingleDelayRealTimeData");
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("apiCode",context.getApiCode());
-        jsonObject.put("transferInfoId",context.getTransferInfoId());
-
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(transfer.getId());
-        mqFact.setIsDelay(1);
-        mqFact.setIncludeRules(set);
-        mqFact.setMessage(jsonObject.toJSONString());
-        mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_SINGLE_PROCESS.getCode());
         return mqFact;
     }
 
@@ -109,7 +96,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.MESSAGE_DELAY.getCode();
+        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY.getCode();
     }
 
     @Override

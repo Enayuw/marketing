@@ -59,6 +59,9 @@ public class TransferDataSetImpl implements OriginDataService {
         }
         context.setApiCode(apiCode == null ? list.size() > 0
                 ? ((MarketingTransferSyncUser) list.get(0)).getApiCode() : "3710012" : apiCode);
+        if (mqFact.getSourceId() != null){
+            context.setTransferInfoId(mqFact.getSourceId());
+        }
         return list;
     }
 
