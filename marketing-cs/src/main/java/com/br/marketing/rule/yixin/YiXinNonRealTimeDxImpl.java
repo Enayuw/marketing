@@ -112,7 +112,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setLevel(YiXinUtils.getLevel(phoneGrade));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
         batchImportData.setPrioritySymbol(YiXinUtils.getPrioritySymbol(transfer.getType()));
-        batchImportData.setApplyTime(StringUtils.isEmpty(transfer.getApplyDt()) ? "" : transfer.getApplyDt().replaceAll("\\.d{3}", ""));
+        batchImportData.setApplyTime(StringUtils.isEmpty(transfer.getApplyDt()) ? "" : transfer.getApplyDt().replaceAll(":\\d{3}", ""));
 
         if (!StringUtils.isEmpty(syncUser.getReserveField1())) {
             try {
