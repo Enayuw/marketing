@@ -138,7 +138,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         // 根据custNum取上传接口最新的cell转aes加密
         batchImportData.setPhone(phone);
         batchImportData.setUid(transfer.getCustNum());
-        batchImportData.setUserType("6");
+        batchImportData.setUserType("A");
+        batchImportData.setSource("6");
         batchImportData.setType(String.format("%03d", liveType));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
 
