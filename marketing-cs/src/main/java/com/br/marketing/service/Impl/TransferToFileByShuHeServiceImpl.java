@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -98,12 +99,19 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             ",loginTime,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
             ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,insertime";
 
+    private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
+            ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
+            ",clc_usr_adt_lmt_lv0,createtime";
+
     static {
         FILE_NAME_PART = new HashMap<>(4);
         FILE_NAME_PART.put("促首登", "%s_cushoudeng_%s%s");
         FILE_NAME_PART.put("促申完", "%s_cushenwan_%s%s");
         FILE_NAME_PART.put("促首借", "%s_cushoujie_%s%s");
+        FILE_NAME_PART.put("促复借", "%s_cufujie_%s%s");
     }
+
+    private LocalDateTime appointTime;
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
@@ -112,13 +120,31 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         result.setDate(transferFileTaskList);
         result.setCode(ResultCode.SUCCESS.getValue());
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferExtractJobStartTime();
-        LocalTime startTime = LocalTime.parse(StringUtils.isEmpty(shuHeTransferJobStartTime)
-                ? "06:00:00" : shuHeTransferJobStartTime);
-//        long until = startTime.until(LocalTime.now(), ChronoUnit.HOURS);
-//        if (until < 0 || until > 1) {
-//            log.warn("未到数禾转化数据提取任务执行阈值（阈值为0或1时任务执行）当前值为:{}", until);
-//            return result;
-//        }
+        LocalTime startTime;
+        if (StringUtils.isEmpty(shuHeTransferJobStartTime)) {
+            startTime = LocalTime.parse("06:00:00");
+            appointTime = null;
+        } else {
+            String t = "T";
+            if (shuHeTransferJobStartTime.contains(t)) {
+                final String[] ts = shuHeTransferJobStartTime.split(t);
+                int length = ts.length;
+                if (length == 2) {
+                    startTime = LocalTime.parse(ts[1]);
+                    appointTime = StringUtils.isEmpty(ts[0]) ? LocalDateTime.now()
+                            : LocalDate.parse(ts[0]).atStartOfDay();
+                } else if (length > 0) {
+                    startTime = LocalTime.parse(ts[length - 1]);
+                    appointTime = LocalDateTime.now();
+                } else {
+                    startTime = LocalTime.parse("06:00:00");
+                    appointTime = LocalDateTime.now();
+                }
+            } else {
+                startTime = LocalTime.parse(shuHeTransferJobStartTime);
+                appointTime = null;
+            }
+        }
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
         Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
@@ -219,8 +245,20 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String apiCode = transferFileTask.getApiCode();
         String userType = transferFileTask.getBatchNumber();
         LocalDateTime first;
+        LocalDateTime last;
+        String fileNameDefault = FILE_NAME_PART.getOrDefault(userType
+                , "%s_".concat(userType).concat("_%s%s"));
+        String fileName;
         // 前一天
-        LocalDateTime last = LocalDateTime.now().minusDays(1);
+        if (appointTime != null) {
+            last = appointTime;
+            fileName = String.format(fileNameDefault, apiCode
+                    , appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_").concat(dateYyyyMmDdStr)
+                    , EXTENSION);
+        } else {
+            last = LocalDateTime.now().minusDays(1);
+            fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
+        }
         Boolean bool = marketingCommonConfig.getShuHeTransferExtractIfUseQuasiTotalQuantity();
         if (bool != null && bool) {
             // 准全量时间开始时间
@@ -243,9 +281,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 .andUserTypeEqualTo(userType);
         example.settCid(setCid(apiCode));
         List<MarketingTransferSyncUser> list = null;
-        String fileNameDefault = FILE_NAME_PART.getOrDefault(userType
-                , "%s_".concat(userType).concat("_%s%s"));
-        String fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
         String fileDirectory = path.concat(apiCode).concat(File.separator)
                 .concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
@@ -262,7 +297,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String separator = ",";
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filePtah, false), StandardCharsets.UTF_8))) {
-            writer.write(TABLE_HEADER.concat("\r\n"));
+            if ("促复借".equals(userType)) {
+                writer.write(TABLE_HEADER_CUFUJIE.concat("\r\n"));
+            } else {
+                writer.write(TABLE_HEADER.concat("\r\n"));
+            }
             writer.flush();
             while (list == null || list.size() == pageSize) {
                 example.setOrderByClause(String.format("id ASC LIMIT %s,%s", (page * pageSize), pageSize));
@@ -310,46 +349,102 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                     Date.from(LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant())
                     , transferFileTask.getFileType(), (Date) creatTime);
             if (periodOfValidity) {
-                transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
                 String reserveField1 = transferSyncUser.getReserveField1();
+                if (StringUtils.isEmpty(reserveField1)) {
+                    continue;
+                }
+                transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
                 JSONObject reserveField1Json = JSONObject.parseObject(reserveField1);
-                String sb = transferSyncUser.getApiCode() + separator +
-                        creatTimeMap.getOrDefault("taskId", "") + separator +
-                        transferSyncUser.getUserType() + separator +
-                        transferSyncUser.getCustNum() + separator +
-                        DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                                String.valueOf(reserveField1Json.getOrDefault("cell", ""))
-                        ).getBytes(StandardCharsets.UTF_8))
-                        + separator +
-                        reserveField1Json.getOrDefault("is_turn", "").toString() + separator +
-                        reserveField1Json.getOrDefault("is_black", "").toString() + separator +
-                        (StringUtils.isEmpty(transferSyncUser.getLoginTime()) ? ""
-                                : transferSyncUser.getLoginTime()) + separator +
-                        reserveField1Json.getOrDefault("clc_usr_lst_app_sta_tim", "").toString()
-                        + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_pho_tim", "").toString()
-                        + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_idt_tim", "").toString()
-                        + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_crd_tim", "").toString()
-                        + separator +
-                        reserveField1Json.getOrDefault("clc_usr_iso_inf_tim", "").toString()
-                        + separator +
-                        (StringUtils.isEmpty(transferSyncUser.getApplyTime()) ? ""
-                                : transferSyncUser.getApplyTime()) + separator +
-                        (StringUtils.isEmpty(transferSyncUser.getAuditTime()) ? ""
-                                : transferSyncUser.getAuditTime()) + separator +
-                        (StringUtils.isEmpty(transferSyncUser.getAuditAmount()) ? ""
-                                : transferSyncUser.getAuditAmount()) + separator +
-                        reserveField1Json.getOrDefault("applyLoanTime", "") + separator +
-                        (StringUtils.isEmpty(transferSyncUser.getLentTime()) ? ""
-                                : transferSyncUser.getLentTime()) + separator +
-                        (ObjectUtils.isEmpty(transferSyncUser.getCreateTime()) ? ""
-                                : DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
-                        + "\r\n";
+                String sb;
+                if ("促复借".equals(transferSyncUser.getUserType())) {
+                    sb = tableCuFuJie(transferSyncUser, separator, creatTimeMap, reserveField1Json);
+                } else {
+                    sb = table(transferSyncUser, separator, creatTimeMap, reserveField1Json);
+                }
                 writer.write(sb);
                 writer.flush();
             }
         }
+    }
+
+    private String tableCuFuJie(MarketingTransferSyncUser transfer, String separator
+            , Map<String, Object> creatTimeMap, JSONObject json) {
+        String defaultValue = "";
+        return transfer.getApiCode()
+                + separator +
+                creatTimeMap.getOrDefault("taskId", defaultValue)
+                + separator +
+                transfer.getUserType()
+                + separator +
+                transfer.getCustNum()
+                + separator +
+                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                + separator +
+                getOrDefault(json, "is_turn")
+                + separator +
+                getOrDefault(json, "is_black")
+                + separator +
+                getOrDefault(json, "clc_usr_lst_app_sta_tim")
+                + separator +
+                getOrDefault(json, "clc_usr_lst_non_dcp_trs_tim")
+                + separator +
+                getOrDefault(json, "off_usr_lst_ord_tim_all")
+                + separator +
+                getOrDefault(json, "clc_usr_avl_lmt_lv0")
+                + separator +
+                getOrDefault(json, "clc_usr_adt_lmt_lv0")
+                + separator +
+                (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
+                        : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
+                + "\r\n";
+    }
+
+    private String table(MarketingTransferSyncUser transfer, String separator
+            , Map<String, Object> creatTimeMap, JSONObject json) {
+        String defaultValue = "";
+        return transfer.getApiCode()
+                + separator +
+                creatTimeMap.getOrDefault("taskId", defaultValue)
+                + separator +
+                transfer.getUserType()
+                + separator +
+                transfer.getCustNum()
+                + separator +
+                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                + separator +
+                getOrDefault(json, "is_turn")
+                + separator +
+                getOrDefault(json, "is_black")
+                + separator +
+                (StringUtils.isEmpty(transfer.getLoginTime()) ? defaultValue : transfer.getLoginTime())
+                + separator +
+                getOrDefault(json, "clc_usr_lst_app_sta_tim")
+                + separator +
+                getOrDefault(json, "clc_usr_iso_pho_tim")
+                + separator +
+                getOrDefault(json, "clc_usr_iso_idt_tim")
+                + separator +
+                getOrDefault(json, "clc_usr_iso_crd_tim")
+                + separator +
+                getOrDefault(json, "clc_usr_iso_inf_tim")
+                + separator +
+                (StringUtils.isEmpty(transfer.getApplyTime()) ? defaultValue : transfer.getApplyTime())
+                + separator +
+                (StringUtils.isEmpty(transfer.getAuditTime()) ? defaultValue : transfer.getAuditTime())
+                + separator +
+                (StringUtils.isEmpty(transfer.getAuditAmount()) ? defaultValue : transfer.getAuditAmount())
+                + separator +
+                getOrDefault(json, "applyLoanTime") + separator +
+                (StringUtils.isEmpty(transfer.getLentTime()) ? defaultValue : transfer.getLentTime())
+                + separator +
+                (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
+                        : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
+                + "\r\n";
+    }
+
+    private String getOrDefault(JSONObject reserveField1Json, String key) {
+        return reserveField1Json.getOrDefault(key, "").toString();
     }
 }
