@@ -231,7 +231,27 @@ public class RabbitMqConfig {
         return primaryRabbitTemplate;
     }
 
-
+    @Bean(name = "secondaryContainerFactory")
+    public SimpleRabbitListenerContainerFactory secondaryContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return containerFactory(configurer, connectionFactory);
+    }
+    @Bean(name = "secondaryConnectionFactory")
+    public ConnectionFactory secondaryConnectionFactory(
+            @Value("${spring.rabbitmq.secondary.addresses}") String addresses,
+            @Value("${spring.rabbitmq.secondary.username}") String username,
+            @Value("${spring.rabbitmq.secondary.password}") String password,
+            @Value("${spring.rabbitmq.secondary.virtual-host}") String virtualHost) {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+        connectionFactory.setAddresses(addresses);
+        connectionFactory.setPassword(password);
+        connectionFactory.setUsername(username);
+        connectionFactory.setVirtualHost(virtualHost);
+        connectionFactory.setPublisherConfirms(true);
+        connectionFactory.setPublisherReturns(true);
+        return connectionFactory;
+    }
     /**
      * factory：
      * 可设置的信息：
