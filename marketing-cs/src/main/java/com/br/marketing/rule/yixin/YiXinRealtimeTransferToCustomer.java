@@ -56,6 +56,7 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
         conversionData.setInversionDate(transfer.getTransformTime());
         conversionData.setTransformType("1");
         conversionData.setTaskId(context.getTransferInfoId().toString());
+        conversionData.setEffectiveDate(transfer.getRequestTime());
         //生效截止时间
         LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
         LocalDate plusDays = requestDate.plusDays(6);

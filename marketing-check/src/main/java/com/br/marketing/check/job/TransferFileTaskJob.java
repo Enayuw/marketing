@@ -15,6 +15,7 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -61,6 +62,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
+    @Resource
+    private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -101,10 +105,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
         if (customer.getShortName().contains("萨摩耶")) {
             return transferToFileBySamoyeServiveImpl;
-        }else if (customer.getShortName().contains("哈罗")) {
+        } else if (customer.getShortName().contains("哈罗")) {
             return transferToFileByHaluoServiceImpl;
         } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().contains(customer.getApiCode())) {
             return transferToFileByShuHeService;
+        } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByYiXinRealTimeService;
         } else {
             return null;
         }

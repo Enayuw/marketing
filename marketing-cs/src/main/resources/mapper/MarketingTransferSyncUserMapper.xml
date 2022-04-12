@@ -31,7 +31,7 @@
         where request_data=#{data}
         order by insert_time desc limit #{limitStart},5000;
     </select>
-    
+
     <select id="getTransferOrderInsertTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.* from
         (
@@ -62,4 +62,5 @@
         ) as a
         left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num and a.request_time = b.request_time
     </select>
+
 </mapper>

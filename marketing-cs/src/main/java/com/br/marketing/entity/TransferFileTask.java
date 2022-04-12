@@ -34,6 +34,11 @@ public class TransferFileTask {
     private String filePath;
 
     /**
+     * 文件子级目录
+     */
+    private String fileChildDir;
+
+    /**
      * 任务状态 1-正常,2-文件生成成功，3-文件传输至内部sftp，4-文件传输给客户
      */
     private Integer status;
@@ -157,5 +162,13 @@ public class TransferFileTask {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getFileChildDir() {
+        return fileChildDir;
+    }
+
+    public void setFileChildDir(String fileChildDir) {
+        this.fileChildDir = fileChildDir;
     }
 }
