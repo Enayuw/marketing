@@ -110,4 +110,8 @@ public class MarketingCommonConfig {
      */
     private String yinXinTransferRealTimeExecuteTime;
 
+    /**
+     * 宜信非实时转化数据执行时间
+     */
+    private String yinXinTransferNoRealTimeExecuteTime;
 }
