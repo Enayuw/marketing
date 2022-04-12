@@ -15,6 +15,7 @@ import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -55,6 +56,7 @@ import java.util.Map;
  * @Date : Create in 2022/3/28 15:29
  */
 @Service
+@Slf4j
 public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTimeUserDataDTO> {
 
     @Value("${api.dass.aesKey:00}")
@@ -167,15 +169,14 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
             JSONObject json = JSON.parseObject(reserveField1);
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
-            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType())
-                    .concat(":").concat(transfer.getCustNum());
+            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
             boolean notBlack = true;
             if (!CollectionUtils.isEmpty(blackList)){
                 notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             }
             Integer isDelay = context.getMqFact().getIsDelay();
-            boolean flag = isDelay != null && isDelay == 1 ;
+            boolean messageDelay = isDelay != null && isDelay == 1 ;
             /*
             满足条件立即推送
                 1、不满足客服黑名单
@@ -183,9 +184,21 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
                 3、立即推送liveType 1,2,3或者 从延迟队列过来的消息
                 4、当天该案件编号未被推送
              */
+            if (!notBlack){
+                log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+            boolean flag = transformType && (Arrays.asList(1,2,3).contains(liveType) || messageDelay);
+            if (!flag){
+                log.warn("id:{} cust_num:{}不满足立即推送条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+            if (!znkfPushService.cusNumIsFirstToday(key)){
+                log.warn("id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
 
-            return notBlack  && transformType
-                    && (Arrays.asList(1,2,3).contains(liveType) || flag)  && znkfPushService.cusNumIsFirstToday(key);
+            return  true;
         }
         return false;
     }

@@ -136,6 +136,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
                 }
             }
         }
+        log.warn("数据组装结果 -- {}", JSON.toJSONString(map));
         return map;
 
     }

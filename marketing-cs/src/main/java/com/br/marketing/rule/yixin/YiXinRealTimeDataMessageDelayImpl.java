@@ -4,11 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -44,6 +47,7 @@ import java.util.Map;
  */
 
 @Service
+@Slf4j
 public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Resource
@@ -69,7 +73,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
-            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType()).concat(":").concat(transfer.getCustNum());
+            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
             boolean notBlack = true;
             if (!CollectionUtils.isEmpty(blackList)){
@@ -83,8 +87,21 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 3、需要静置的liveType 4,6,8
                 4、不是从延迟队列过来的消息
              */
-            return notBlack && !redisChgService.exists(key) && transformType
-                    && Arrays.asList(4,6,8).contains(liveType) && mqFact.getIsDelay() == null;
+            if (!notBlack){
+                log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+            if (redisChgService.exists(key)){
+                log.warn("id:{} key:{}不满足当天该案件编号未被推送", transfer.getId(), key);
+                return false;
+            }
+            boolean flag = transformType && Arrays.asList(4, 6, 8).contains(liveType) && mqFact.getIsDelay() == null;
+            if (!flag){
+                log.warn("id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+
+            return  true;
         }
         return false;
     }
@@ -101,6 +118,6 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 }
