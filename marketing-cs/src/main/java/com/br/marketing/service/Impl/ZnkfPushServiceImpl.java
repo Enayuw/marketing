@@ -111,11 +111,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 return "success";
             }else {
                 callRecordMapper.insertSelective(callRecord);
-                //推mq
-                final MqFact mqFact = new MqFact();
-                mqFact.setSourceId(callRecord.getId());
-                mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                producter.sendToUniversalTransferQueue(mqFact);
+                if("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode())){
+                    //推mq
+                    final MqFact mqFact = new MqFact();
+                    mqFact.setSourceId(callRecord.getId());
+                    mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    producter.sendToUniversalTransferQueue(mqFact);
+                }
+
             }
         }catch (Exception ex){
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId(),ex);

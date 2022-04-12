@@ -4,21 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * code is far away from bug with the animal protecting
@@ -47,6 +47,7 @@ import java.util.Set;
  */
 
 @Service
+@Slf4j
 public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Resource
@@ -55,19 +56,9 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
     private final static String CUSTOMER_NUMBER_IS_FIRST = "customer:realtime:first";
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
-        Set<String> set = new HashSet<>();
-        set.add("YiXin_RealTimeData_ArtificialSingleDelayRealTimeData");
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("apiCode",context.getApiCode());
-        jsonObject.put("transferInfoId",context.getTransferInfoId());
-
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(transfer.getId());
-        mqFact.setIsDelay(1);
-        mqFact.setIncludeRules(set);
-        mqFact.setMessage(jsonObject.toJSONString());
-        mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_SINGLE_PROCESS.getCode());
         return mqFact;
     }
 
@@ -82,7 +73,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             MqFact mqFact = context.getMqFact();
-            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getUserType()).concat(":").concat(transfer.getCustNum());
+            String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
             boolean notBlack = true;
             if (!CollectionUtils.isEmpty(blackList)){
@@ -96,8 +87,21 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 3、需要静置的liveType 4,6,8
                 4、不是从延迟队列过来的消息
              */
-            return notBlack && !redisChgService.exists(key) && transformType
-                    && Arrays.asList(4,6,8).contains(liveType) && mqFact.getIsDelay() == null;
+            if (!notBlack){
+                log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+            if (redisChgService.exists(key)){
+                log.warn("id:{} key:{}不满足当天该案件编号未被推送", transfer.getId(), key);
+                return false;
+            }
+            boolean flag = transformType && Arrays.asList(4, 6, 8).contains(liveType) && mqFact.getIsDelay() == null;
+            if (!flag){
+                log.warn("id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+
+            return  true;
         }
         return false;
     }
@@ -109,11 +113,11 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.MESSAGE_DELAY.getCode();
+        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY.getCode();
     }
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 }

@@ -70,6 +70,11 @@ public class ConversionData extends InterfaceParams {
     private String transformType;
 
     /**
+     * 生效开始时间 格式yyyy-mm-dd HH:mm:ss
+     */
+    private String effectiveDate;
+
+    /**
      * 生效截止时间 格式yyyy-mm-dd HH:mm:ss
      */
     private String expireDate;
