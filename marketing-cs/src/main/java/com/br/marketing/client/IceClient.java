@@ -51,7 +51,7 @@ public class IceClient {
     /**
      * 从用户中心查取商户信息
      */
-    private static final String BASE_COLUMNS = "API_CODE,REMARK,COMP_NAME,COMP_SHORT_NAME";
+    private static final String BASE_COLUMNS = "API_CODE,REMARK,COMP_NAME,COMP_SHORT_NAME,COMP_ID";
     private static final String BASE = "base";
 
     @Value("${otherConfig.userCenter.appName:00}")

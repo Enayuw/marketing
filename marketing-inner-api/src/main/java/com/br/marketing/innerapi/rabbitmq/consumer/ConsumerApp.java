@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -143,10 +144,10 @@ public class ConsumerApp {
      * @param message 消息体
      */
     @RabbitListener(queues = "delivery-znyy.notice.queue", containerFactory = "secondaryContainerFactory")
-    public void deliveryUserInfo(Channel channel, Message message,String msg) {
-        String s = new String(message.getBody(), StandardCharsets.UTF_8);
+    public void deliveryUserInfo(Channel channel, Message message) {
+        String mes = new String(message.getBody(), StandardCharsets.UTF_8);
+        log.warn("交付下发用户信息：{}",mes);
+        consumerService.consumerRun(channel, message,  userCenterHandler::handleDataUserCenter, mes, null);
 
-        consumerService.consumerRun(channel, message,  userCenterHandler::handleDataUserCenter, s, null);
-        log.info("{}",message);
     }
 }
