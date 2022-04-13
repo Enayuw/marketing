@@ -111,7 +111,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 return "success";
             }else {
                 callRecordMapper.insertSelective(callRecord);
-                if("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode())){
+                if("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode()) || "7410785".equals(callRecord.getApiCode())){
                     //推mq
                     final MqFact mqFact = new MqFact();
                     mqFact.setSourceId(callRecord.getId());
