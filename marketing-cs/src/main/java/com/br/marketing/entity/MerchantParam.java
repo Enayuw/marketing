@@ -151,4 +151,5 @@ public class MerchantParam {
     @JSONField(name = "file_encryption_key")
     private String fileEncryptionKey;
 
+
 }

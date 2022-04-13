@@ -44,41 +44,44 @@ public class UserCenterHandler {
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));
                 marketingCustomer.setName(companyJSONObj.getString("COMP_NAME"));
+                marketingCustomer.setShortName(companyJSONObj.getString("COMP_SHORT_NAME"));
             }
             marketingCustomer.setAccountStatus(merchantParam.getAccountSstatus());
             marketingCustomer.setAccountType(merchantParam.getAccountType());
             marketingCustomer.setApiCode(merchantParam.getApiCode());
+
+            marketingCustomer.setCallMethod(merchantParam.getCallMethod());
+            marketingCustomer.setCreateTime(new Date());
+            marketingCustomer.setUpdateTime(new Date());
+            marketingCustomer.setIsCharging(merchantParam.getIsCharging());
+            marketingCustomer.setIsCheck(merchantParam.getIsCheck());
+            marketingCustomer.setRequestCode(merchantParam.getRequestCode());
+            marketingCustomer.setResponseCode(merchantParam.getResponseCode());
+            marketingCustomer.setAccountStatus(merchantParam.getAccountSstatus());
+            marketingCustomer.setStatus(Byte.valueOf(merchantParam.getAccountSstatus()));
+            marketingCustomer.setStartTime(merchantParam.getStartTime());
+            marketingCustomer.setEndTime(merchantParam.getEndTime());
+            marketingCustomer.setTransport(merchantParam.getTransport());
+            //String mealJson = merchantParam.getMealJson();
+            //marketingCustomer.setMealJson(merchantParam.getMealJson().toString());
+            marketingCustomer.setEncryptionKey(merchantParam.getEncryptionKey());
+            marketingCustomer.setDecryptKey(merchantParam.getDecryptKey());
+            marketingCustomer.setSnVer(merchantParam.getSnVer());
+            marketingCustomer.setFileEncryptionMethods(merchantParam.getFileEncryptionMethods());
+            marketingCustomer.setFileEncryptionAlgorithm(merchantParam.getFileEncryptionAlgorithm());
+            marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
+            marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
+            marketingCustomer.setMessage(merchantParam.getRemarks());
             if("add".equals(operateType)){
                 marketingCustomerMapper.insertSelective(marketingCustomer);
             }else {
                 MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-                marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
+                marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
                 marketingCustomerMapper.updateByExampleSelective(marketingCustomer,marketingCustomerExample);
             }
-            //marketingCustomer.setCallMethod(merchantParam.getCallMethod());
-            //marketingCustomer.setCreateTime(new Date());
-            //marketingCustomer.setUpdateTime(new Date());
-            //marketingCustomer.setIsCharging(merchantParam.getIsCharging());
-            //marketingCustomer.setIsCheck(merchantParam.getIsCheck());
-            //marketingCustomer.setRequestCode(merchantParam.getRequestCode());
-            //marketingCustomer.setResponseCode(merchantParam.getResponseCode());
-            //marketingCustomer.setAccountStatus(merchantParam.getAccountSstatus());
-            //marketingCustomer.setStartTime(merchantParam.getStartTime());
-            //marketingCustomer.setEndTime(merchantParam.getEndTime());
-            //marketingCustomer.setTransport(merchantParam.getTransport());
-            ////String mealJson = merchantParam.getMealJson();
-            ////marketingCustomer.setMealJson(merchantParam.getMealJson().toString());
-            //marketingCustomer.setEncryptionKey(merchantParam.getEncryptionKey());
-            //marketingCustomer.setDecryptKey(merchantParam.getDecryptKey());
-            //marketingCustomer.setSnVer(merchantParam.getSnVer());
-            //marketingCustomer.setFileEncryptionMethods(merchantParam.getFileEncryptionMethods());
-            //marketingCustomer.setFileEncryptionAlgorithm(merchantParam.getFileEncryptionAlgorithm());
-            //marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
-            //marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
-            //marketingCustomer.setMessage(merchantParam.getRemarks());
 
         } catch (Exception e) {
-            log.error("同步商中心信息:{} 失败 -- ",mes,e);
+            log.error("同步商户中心信息:{} 失败 -- ",mes,e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
