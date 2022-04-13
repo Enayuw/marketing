@@ -34,7 +34,7 @@ public class UserCenterHandler {
     MarketingCustomerMapper marketingCustomerMapper;
 
     public Result<Boolean> handleDataUserCenter(String mes) {
-        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         try {
             JSONObject jsonObject = JSON.parseObject(mes);
