@@ -21,7 +21,7 @@ public class CuFuJie extends IUserType {
     }
 
     @Override
-    protected void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
+    void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
 
     }
 

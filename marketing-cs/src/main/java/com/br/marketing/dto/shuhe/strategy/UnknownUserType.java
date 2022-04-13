@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class UnknownUserType extends IUserType {
     @Override
-    public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
+    void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
     }
 
     @Override
