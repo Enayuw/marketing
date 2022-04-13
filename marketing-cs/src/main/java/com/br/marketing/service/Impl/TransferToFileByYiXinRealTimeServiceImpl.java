@@ -81,10 +81,13 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             resultList.addAll(data);
         }
         //非实时数据提取
-        Result<List<TransferFileTask>> listResultNoRealTime = buildTransferTaskNoRealTime(apiCode);
-        if (ResultCode.SUCCESS.getValue().equals(listResultNoRealTime.getCode()) && listResultNoRealTime.getData().size() > 0){
-            List<TransferFileTask> data = listResultNoRealTime.getData();
-            resultList.addAll(data);
+        Boolean flag = StringUtils.isNotEmpty(marketingCommonConfig.getIsOpenYinXinTransferNoRealTimeExtract())?marketingCommonConfig.getIsOpenYinXinTransferNoRealTimeExtract():false;
+        if(flag){
+            Result<List<TransferFileTask>> listResultNoRealTime = buildTransferTaskNoRealTime(apiCode);
+            if (ResultCode.SUCCESS.getValue().equals(listResultNoRealTime.getCode()) && listResultNoRealTime.getData().size() > 0){
+                List<TransferFileTask> data = listResultNoRealTime.getData();
+                resultList.addAll(data);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
