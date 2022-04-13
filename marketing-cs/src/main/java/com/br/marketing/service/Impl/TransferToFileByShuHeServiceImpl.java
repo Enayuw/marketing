@@ -32,6 +32,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -126,6 +127,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             appointTime = null;
         } else {
             String t = "T";
+            // 处理指定日期提取数据, 添加T时为需要以指定日期获取数据
+            // 格式：2022-04-02T06:00:00
             if (shuHeTransferJobStartTime.contains(t)) {
                 final String[] ts = shuHeTransferJobStartTime.split(t);
                 int length = ts.length;
@@ -249,13 +252,14 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String fileNameDefault = FILE_NAME_PART.getOrDefault(userType
                 , "%s_".concat(userType).concat("_%s%s"));
         String fileName;
-        // 前一天
         if (appointTime != null) {
+            // 指定日期
             last = appointTime;
             fileName = String.format(fileNameDefault, apiCode
                     , appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_").concat(dateYyyyMmDdStr)
                     , EXTENSION);
         } else {
+            // 前一天
             last = LocalDateTime.now().minusDays(1);
             fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
         }
@@ -271,8 +275,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             // 前一天
             first = last;
         }
-        Date firstDateTime = Date.from(first.withHour(0).withMinute(0).withSecond(0).withNano(0)
-                .atZone(ZoneId.systemDefault()).toInstant());
+        Date firstDateTime = Date.from(first.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         Date lastDateTime = Date.from(last.withHour(23).withMinute(59).withSecond(59).withNano(0)
                 .atZone(ZoneId.systemDefault()).toInstant());
         // 生成检索条件
@@ -295,9 +298,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         int page = 0;
         int pageSize = 2000;
         String separator = ",";
+        String defaultValue = "";
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filePtah, false), StandardCharsets.UTF_8))) {
-            if ("促复借".equals(userType)) {
+            final boolean booLType = "促复借".equals(userType);
+            if (booLType) {
                 writer.write(TABLE_HEADER_CUFUJIE.concat("\r\n"));
             } else {
                 writer.write(TABLE_HEADER.concat("\r\n"));
@@ -310,7 +315,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 if (list.size() < 1) {
                     break;
                 }
-                writerFile(apiCode, userType, list, transferFileTask, separator, writer);
+                writerFile(apiCode, userType, list, transferFileTask, writer
+                        , booLType ? ((transfer, creatTimeMap) ->
+                                tableCuFuJie(transfer, creatTimeMap, separator, defaultValue))
+                                : ((transfer, creatTimeMap) ->
+                                table(transfer, creatTimeMap, separator, defaultValue)));
             }
             transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
                     .concat("_") + transferFileTask.getContextId());
@@ -331,7 +340,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
      * 写入文件
      */
     private void writerFile(String apiCode, String userType, List<MarketingTransferSyncUser> list,
-                            TransferFileTask transferFileTask, String separator, BufferedWriter writer)
+                            TransferFileTask transferFileTask, BufferedWriter writer
+            , BiFunction<MarketingTransferSyncUser, Map<String, Object>, String> f)
             throws IOException {
         // 获取custNum最新创建时间
         Map<String, Map<String, Object>> custNumMap = getSyncUserLatestUploadTime(list
@@ -349,27 +359,27 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                     Date.from(LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant())
                     , transferFileTask.getFileType(), (Date) creatTime);
             if (periodOfValidity) {
-                String reserveField1 = transferSyncUser.getReserveField1();
-                if (StringUtils.isEmpty(reserveField1)) {
-                    continue;
-                }
                 transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
-                JSONObject reserveField1Json = JSONObject.parseObject(reserveField1);
-                String sb;
-                if ("促复借".equals(transferSyncUser.getUserType())) {
-                    sb = tableCuFuJie(transferSyncUser, separator, creatTimeMap, reserveField1Json);
-                } else {
-                    sb = table(transferSyncUser, separator, creatTimeMap, reserveField1Json);
-                }
+                String sb = f.apply(transferSyncUser, creatTimeMap);
                 writer.write(sb);
                 writer.flush();
             }
         }
     }
 
-    private String tableCuFuJie(MarketingTransferSyncUser transfer, String separator
-            , Map<String, Object> creatTimeMap, JSONObject json) {
-        String defaultValue = "";
+    /**
+     * 反序列化扩展字段
+     */
+    private JSONObject getReserveField(String reserveField) {
+        return StringUtils.isEmpty(reserveField) ? new JSONObject() : JSONObject.parseObject(reserveField);
+    }
+
+    /**
+     * 生成促复借数据
+     */
+    private String tableCuFuJie(MarketingTransferSyncUser transfer
+            , Map<String, Object> creatTimeMap, String separator, String defaultValue) {
+        JSONObject json = getReserveField(transfer.getReserveField1());
         return transfer.getApiCode()
                 + separator +
                 creatTimeMap.getOrDefault("taskId", defaultValue)
@@ -400,9 +410,13 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + "\r\n";
     }
 
-    private String table(MarketingTransferSyncUser transfer, String separator
-            , Map<String, Object> creatTimeMap, JSONObject json) {
-        String defaultValue = "";
+
+    /**
+     * 生成数据
+     */
+    private String table(MarketingTransferSyncUser transfer
+            , Map<String, Object> creatTimeMap, String separator, String defaultValue) {
+        JSONObject json = getReserveField(transfer.getReserveField1());
         return transfer.getApiCode()
                 + separator +
                 creatTimeMap.getOrDefault("taskId", defaultValue)
@@ -444,6 +458,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + "\r\n";
     }
 
+    /**
+     * 添加默认值
+     */
     private String getOrDefault(JSONObject reserveField1Json, String key) {
         return reserveField1Json.getOrDefault(key, "").toString();
     }
