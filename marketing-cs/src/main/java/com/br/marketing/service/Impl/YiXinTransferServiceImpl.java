@@ -180,17 +180,28 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     List<PhoneSaleInfoVO> dxRecordLastOne = phoneSaleExtendInfoMapper.getDxRecordLastOne(_60recordInfoDTO);
 //                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
                     Map<String, PhoneSaleInfoVO> _dxRecordLastOneCustNumsMap = new HashMap<>();
-                    List<HashMap<String,String>> _dxRecordLastConditionList = new ArrayList<>();
-                    for (PhoneSaleInfoVO phoneSaleInfoVO : dxRecordLastOne) {
-                        _dxRecordLastOneCustNumsMap.put(phoneSaleInfoVO.getCustNum(),phoneSaleInfoVO);
-                        HashMap _dxRecordLastCondition = new HashMap<String,String>();
-                        _dxRecordLastCondition.put("custNum",phoneSaleInfoVO.getCustNum());
-                        _dxRecordLastCondition.put("appletDate",phoneSaleInfoVO.getAppletDate());
-                        _dxRecordLastConditionList.add(_dxRecordLastCondition);
+                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwo = new HashMap<>();
+
+                    List<List<PhoneSaleInfoVO>> onwPart = Lists.partition(dxRecordLastOne, 200);
+                    for (List<PhoneSaleInfoVO> phoneSaleInfoVOS : onwPart) {
+                        List<HashMap<String,String>> _dxRecordLastConditionList = new ArrayList<>();
+                        PhoneSaleRecordInfoDTO _60recordInfoDTOpart = new PhoneSaleRecordInfoDTO();
+                        _60recordInfoDTOpart.setCustNums(custNums);
+                        _60recordInfoDTOpart.setApiCode(_tApicode);
+                        _60recordInfoDTOpart.setTransferType("0");
+                        for (PhoneSaleInfoVO phoneSaleInfoVO : phoneSaleInfoVOS) {
+                            _dxRecordLastOneCustNumsMap.put(phoneSaleInfoVO.getCustNum(),phoneSaleInfoVO);
+                            HashMap _dxRecordLastCondition = new HashMap<String,String>();
+                            _dxRecordLastCondition.put("custNum",phoneSaleInfoVO.getCustNum());
+                            _dxRecordLastCondition.put("appletDate",phoneSaleInfoVO.getAppletDate());
+                            _dxRecordLastConditionList.add(_dxRecordLastCondition);
+                        }
+                        _60recordInfoDTOpart.setCustNumAndApplets(_dxRecordLastConditionList);
+                        List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTOpart);
+                        if(dxRecordLastTwo !=null && dxRecordLastTwo.size()>0){
+                            _dxRecordLastTwo.putAll(dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum)));
+                        }
                     }
-                    _60recordInfoDTO.setCustNumAndApplets(_dxRecordLastConditionList);
-                    List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTO);
-                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwo = dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
                     //endregion
 
                     //region 获取当天非实时 推送记录
@@ -370,7 +381,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      */
     private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex) {
         String tcId = tableCreateService.getTcId(apiCode);
-        Integer limitStart = pageIndex * 5000;
+        Integer limitStart = pageIndex * 2000;
         List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
