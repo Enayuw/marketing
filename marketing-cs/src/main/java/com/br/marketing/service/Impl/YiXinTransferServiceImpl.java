@@ -177,9 +177,20 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     _60recordInfoDTO.setCustNums(custNums);
                     _60recordInfoDTO.setApiCode(_tApicode);
                     _60recordInfoDTO.setTransferType("0");
-                    List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTO);
+                    List<PhoneSaleInfoVO> dxRecordLastOne = phoneSaleExtendInfoMapper.getDxRecordLastOne(_60recordInfoDTO);
 //                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
-                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwoCustNumsMap = dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
+                    Map<String, PhoneSaleInfoVO> _dxRecordLastOneCustNumsMap = new HashMap<>();
+                    List<HashMap<String,String>> _dxRecordLastConditionList = new ArrayList<>();
+                    for (PhoneSaleInfoVO phoneSaleInfoVO : dxRecordLastOne) {
+                        _dxRecordLastOneCustNumsMap.put(phoneSaleInfoVO.getCustNum(),phoneSaleInfoVO);
+                        HashMap _dxRecordLastCondition = new HashMap<String,String>();
+                        _dxRecordLastCondition.put("custNum",phoneSaleInfoVO.getCustNum());
+                        _dxRecordLastCondition.put("appletDate",phoneSaleInfoVO.getAppletDate());
+                        _dxRecordLastConditionList.add(_dxRecordLastCondition);
+                    }
+                    _60recordInfoDTO.setCustNumAndApplets(_dxRecordLastConditionList);
+                    List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTO);
+                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwo = dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
                     //endregion
 
                     //region 获取当天非实时 推送记录
@@ -196,36 +207,27 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         if (_nowfilerCustNumSet.contains(transferSyncUser.getCustNum())) {
                             continue;
                         }
-                        List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwoCustNumsMap.get(transferSyncUser.getCustNum());
-                        if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
-                            phoneSaleInfoVOS.sort((t1, t2) -> {
-                                return t1.getAppletDate().compareTo(t2.getAppletDate());
-                            });
-                            PhoneSaleInfoVO phoneSaleInfoVO = phoneSaleInfoVOS.get(0);
-                            long count = phoneSaleInfoVOS.stream().map(t -> t.getType()).distinct().count();
-                            int size = phoneSaleInfoVOS.size();
+                        PhoneSaleInfoVO phoneSaleInfoVO = _dxRecordLastOneCustNumsMap.get(transferSyncUser.getCustNum());
+                        if (phoneSaleInfoVO != null ) {
                             //type不同就可以推送
                             if(!phoneSaleInfoVO.getType().equals(transferSyncUser.getType())){
                                 dataFilter2.add(transferSyncUser);
                                 continue;
                             }
-
-                            //历史推送的type值大于2 或者历史只推送过一次
-                            if(count>1||size==1){
-                                long distanceDays = DateHelper
-                                        .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData());
-                                if(distanceDays>=30 && distanceDays<=60){
-                                    dataFilter2.add(transferSyncUser);
-                                    continue;
-                                }else{
+                            List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwo.get(transferSyncUser.getCustNum());
+                            if(phoneSaleInfoVOS.size()>0){
+                                PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(0);
+                                if(phoneSaleInfoVO.getType().equals(phoneSaleInfoVO1.getType())){
                                     continue;
                                 }
                             }
 
-                            //历史推送的type值是相同的
-//                            if(size>1){
-//                                continue;
-//                            }
+                            long distanceDays = DateHelper
+                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData());
+                            if(distanceDays>=30 && distanceDays<=60){
+                                dataFilter2.add(transferSyncUser);
+                                continue;
+                            }
                         } else {
                             dataFilter2.add(transferSyncUser);
                         }
