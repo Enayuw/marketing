@@ -22,7 +22,7 @@
             select
             a.cust_num as custNum,
             a.applet_date,
-            ,a.dx_type as dxType,a.`type`,
+            a.dx_type as dxType,a.`type`,
             count(*) as rowNo
             from
             b_phone_sale_extend_info a
