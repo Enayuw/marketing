@@ -1314,7 +1314,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
                             _transferSyncUser = transferSyncUsers.get(0);
                         }
-                        if(black.containsKey(_transferSyncUser.getId().toString())
+                        if(_transferSyncUser.getId()!=null&&black.containsKey(_transferSyncUser.getId().toString())
                                 &&"Y".equals(black.get(_transferSyncUser.getId().toString()))){
                             computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
                             computeSale.setStatus(2);
