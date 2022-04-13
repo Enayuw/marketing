@@ -1015,7 +1015,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         phoneSale.setLocalId(dto.getLocalId().toString());
         phoneSale.setOrgname("yixin");
         phoneSale.setUserType("A");
-        phoneSale.setSource("6");
+        phoneSale.setSource("16");
         phoneSale.setStatus(1);
         try {
             if (datas.size() != address.size()) {
@@ -1243,12 +1243,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     List<String> custNums = phoneSales.stream().map(t -> t.getUid()).distinct().collect(Collectors.toList());
                     //根据custNum获取当天的数据情况
                     Map<String, List<MarketingTransferSyncUser>> nowTimetransferUserMap = transferSyncUserMapper
-                            .getTransferOrderInsertTimeByCustNum(tcId, custNums, date)
+                            .getTransferOrderInsertTimeByCustNum(tcId, custNums, null)
                             .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
 
                     //根据custNum获取最新转化数据
                     List<MarketingTransferSyncUser> _lastTransferSyncUsers = transferSyncUserMapper
-                            .getTransferOrderRequestTimeByCustNum(tcId, custNums, date);
+                            .getTransferOrderRequestTimeByCustNum(tcId, custNums, null);
                     Map<String, List<MarketingTransferSyncUser>> lastTransferUserMap = _lastTransferSyncUsers
                             .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
 
@@ -1314,8 +1314,8 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
                             _transferSyncUser = transferSyncUsers.get(0);
                         }
-                        if(black.containsKey(_transferSyncUser.getId())
-                                &&"Y".equals(black.get(_transferSyncUser.getId()))){
+                        if(black.containsKey(_transferSyncUser.getId().toString())
+                                &&"Y".equals(black.get(_transferSyncUser.getId().toString()))){
                             computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);

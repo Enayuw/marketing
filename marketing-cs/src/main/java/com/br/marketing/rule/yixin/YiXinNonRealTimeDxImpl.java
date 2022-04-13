@@ -13,6 +13,7 @@ import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +73,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
                 || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {
             return Boolean.FALSE;
         }
+        if(!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())){
+            return Boolean.FALSE;
+        }
         return Boolean.TRUE;
     }
 
@@ -107,7 +111,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setPhone(phone);
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
-        batchImportData.setSource("6");
+        batchImportData.setSource("16");
         batchImportData.setType(YiXinUtils.getDxType(transfer.getType()));
         batchImportData.setLevel(YiXinUtils.getLevel(phoneGrade));
         batchImportData.setAuditAmount(transfer.getAuditAmount());

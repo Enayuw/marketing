@@ -41,7 +41,9 @@
             <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
                 #{custNum}
             </foreach>
-            and request_data = #{date}
+            <if test="date != null and date!=''">
+              and request_data = #{date}
+            </if>
             and (IFNULL(reserve_field1,'') ='' or reserve_field1 not like '%"transform":"1"%')
             group by cust_num
         ) as a
@@ -57,7 +59,9 @@
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
-        and request_data = #{date}
+        <if test="date != null and date!=''">
+            and request_data = #{date}
+        </if>
         group by cust_num
         ) as a
         left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num and a.request_time = b.request_time

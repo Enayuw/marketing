@@ -139,7 +139,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         batchImportData.setPhone(phone);
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
-        batchImportData.setSource("6");
+        batchImportData.setSource("16");
         batchImportData.setType(String.format("%03d", liveType));
         batchImportData.setAuditAmount(transfer.getAuditAmount());
 
