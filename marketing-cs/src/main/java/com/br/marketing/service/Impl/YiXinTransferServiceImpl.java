@@ -176,11 +176,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
                     _60recordInfoDTO.setCustNums(custNums);
                     _60recordInfoDTO.setApiCode(_tApicode);
-                    _60recordInfoDTO.setStartDate(_60startDay);
-                    _60recordInfoDTO.setEndDate(_endDay);
                     _60recordInfoDTO.setTransferType("0");
-                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
-                    Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
+                    List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTO);
+//                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
+                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwoCustNumsMap = dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
                     //endregion
 
                     //region 获取当天非实时 推送记录
@@ -197,42 +196,36 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         if (_nowfilerCustNumSet.contains(transferSyncUser.getCustNum())) {
                             continue;
                         }
-                        List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferSyncUser.getCustNum());
+                        List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwoCustNumsMap.get(transferSyncUser.getCustNum());
                         if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
                             phoneSaleInfoVOS.sort((t1, t2) -> {
                                 return t1.getAppletDate().compareTo(t2.getAppletDate());
                             });
                             PhoneSaleInfoVO phoneSaleInfoVO = phoneSaleInfoVOS.get(0);
-                            if (phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
-                                if (phoneSaleInfoVOS.size() > 1) {
-                                    PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(1);
-                                    if (phoneSaleInfoVO1.getType().equals(transferSyncUser.getType())) {
-                                        continue;
-                                    } else {
-                                        Date sT = null;
-                                        Date eT = null;
-                                        try {
-                                            sT = DateUtils.parseDate(phoneSaleInfoVO.getAppletDate(), "yyyy-MM-dd");
-                                            eT = DateUtils.parseDate(transferSyncUser.getRequestData(), "yyyy-MM-dd");
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
-                                        if (sT == null || eT == null) {
-                                            continue;
-                                        }
-                                        Integer dayByDate = getDayByDate(sT, eT);
-                                        if (dayByDate >= 30) {
-                                            dataFilter2.add(transferSyncUser);
-                                        } else {
-                                            continue;
-                                        }
-                                    }
-                                } else {
-                                    dataFilter2.add(transferSyncUser);
-                                }
-                            } else {
+                            long count = phoneSaleInfoVOS.stream().map(t -> t.getType()).distinct().count();
+                            int size = phoneSaleInfoVOS.size();
+                            //type不同就可以推送
+                            if(!phoneSaleInfoVO.getType().equals(transferSyncUser.getType())){
                                 dataFilter2.add(transferSyncUser);
+                                continue;
                             }
+
+                            //历史推送的type值大于2 或者历史只推送过一次
+                            if(count>1||size==1){
+                                long distanceDays = DateHelper
+                                        .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData());
+                                if(distanceDays>=30 && distanceDays<=60){
+                                    dataFilter2.add(transferSyncUser);
+                                    continue;
+                                }else{
+                                    continue;
+                                }
+                            }
+
+                            //历史推送的type值是相同的
+//                            if(size>1){
+//                                continue;
+//                            }
                         } else {
                             dataFilter2.add(transferSyncUser);
                         }

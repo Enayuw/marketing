@@ -14,6 +14,8 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
 
     List<PhoneSaleInfoVO> getDxRecordByTransferType(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
 
+    List<PhoneSaleInfoVO> getDxRecordLastTwo(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
+
     List<String> getDxRecordCustByTransferType(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
     /**
      * 批量插入

@@ -14,6 +14,44 @@
         <![CDATA[ and applet_date >= #{startDate} ]]>
         <![CDATA[ and applet_date <= #{endDate} ]]>
     </select>
+    <select id="getDxRecordLastTwo" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
+        select
+        *
+        from
+        (
+            select
+            a.cust_num as custNum,
+            a.applet_date,
+            ,a.dx_type as dxType,a.`type`,
+            count(*) as rowNo
+            from
+            b_phone_sale_extend_info a
+            left join b_phone_sale_extend_info b on
+            a.cust_num = b.cust_num
+            <![CDATA[ and a.applet_date <= b.applet_date ]]>
+            where
+            a.api_code = #{apiCode}
+            and a.transform_type = #{transferType}
+            and a.cust_num in
+            <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+                #{custNum}
+            </foreach>
+            and b.api_code = #{apiCode}
+            and b.transform_type = #{transferType}
+            and b.cust_num in
+            <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+                #{custNum}
+            </foreach>
+            group by
+            a.cust_num,
+            a.applet_date
+            order by
+            a.cust_num,
+            a.applet_date desc
+        ) as tt
+        where
+        tt.rowNo in(1,2)
+    </select>
     <select id="getDxRecordCustByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="java.lang.String">
         select cust_num
         from b_phone_sale_extend_info
