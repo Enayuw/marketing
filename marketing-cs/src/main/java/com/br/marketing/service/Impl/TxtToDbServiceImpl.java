@@ -1265,7 +1265,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
                     //获取黑名单
                     HashMap<String,String> black = new HashMap<>();
-                    Result<Map<String, String>> blackByTransfer = iDxService.getBlackByTransfer(_lastTransferSyncUsers, apiCode);
+                    Result<Map<String, String>> blackByTransfer = iDxService.getBlackByDXfile(phoneSales, apiCode);
                     if(ResultCode.SUCCESS.getValue().equals(blackByTransfer.getCode())){
                         black.putAll(blackByTransfer.getData());
                     }
@@ -1314,9 +1314,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if(transferSyncUsers!=null&&transferSyncUsers.size()>0){
                             _transferSyncUser = transferSyncUsers.get(0);
                         }
-                        if(_transferSyncUser.getId()!=null&&black.containsKey(_transferSyncUser.getId().toString())
-                                &&"Y".equals(black.get(_transferSyncUser.getId().toString()))){
-                            computeSale.setDataMessage(String.format("该数据属于黑名单 transfer_id:%d",_transferSyncUser.getId()));
+                        if(black.containsKey(phoneSale.getId().toString())
+                                &&"Y".equals(black.get(phoneSale.getId().toString()))){
+                            computeSale.setDataMessage(String.format("该数据属于黑名单 phone_sale_id:%d",phoneSale.getId()));
                             computeSale.setStatus(2);
                             phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                             errorNum.getAndIncrement();
