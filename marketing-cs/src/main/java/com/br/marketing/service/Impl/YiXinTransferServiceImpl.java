@@ -226,7 +226,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 continue;
                             }
                             List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwo.get(transferSyncUser.getCustNum());
-                            if(phoneSaleInfoVOS.size()>0){
+                            if(phoneSaleInfoVOS!=null&&phoneSaleInfoVOS.size()>0){
                                 PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(0);
                                 if(phoneSaleInfoVO.getType().equals(phoneSaleInfoVO1.getType())){
                                     continue;
