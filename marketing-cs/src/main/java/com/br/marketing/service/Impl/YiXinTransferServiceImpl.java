@@ -234,7 +234,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                             }
 
                             long distanceDays = DateHelper
-                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData());
+                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData())+1;
                             if(distanceDays>=30 && distanceDays<=60){
                                 dataFilter2.add(transferSyncUser);
                                 continue;
