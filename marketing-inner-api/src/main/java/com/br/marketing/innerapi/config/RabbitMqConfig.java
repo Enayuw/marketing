@@ -235,19 +235,31 @@ public class RabbitMqConfig {
     public SimpleRabbitListenerContainerFactory secondaryContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
-        return containerFactory(configurer, connectionFactory);
+        return containerFactory(configurer, connectionFactory,null);
     }
     @Bean(name = "secondaryConnectionFactory")
     public ConnectionFactory secondaryConnectionFactory(
-            @Value("${spring.rabbitmq.secondary.addresses}") String addresses,
-            @Value("${spring.rabbitmq.secondary.username}") String username,
-            @Value("${spring.rabbitmq.secondary.password}") String password,
-            @Value("${spring.rabbitmq.secondary.virtual-host}") String virtualHost) {
+            @Value("${spring.rabbitmq.zw.addresses}") String zwAddresses,
+            @Value("${spring.rabbitmq.zw.username}") String zwUsername,
+            @Value("${spring.rabbitmq.zw.password}") String zwPassword,
+            @Value("${spring.rabbitmq.yz.addresses:11}") String yzAddresses,
+            @Value("${spring.rabbitmq.yz.username:11}") String yzUsername,
+            @Value("${spring.rabbitmq.yz.password:11}") String yzPassword
+            ) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setAddresses(addresses);
-        connectionFactory.setPassword(password);
-        connectionFactory.setUsername(username);
-        connectionFactory.setVirtualHost(virtualHost);
+        String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
+        log.warn("clusterConfig:{},enumName:{}", clusterConfig, enumName);
+        if (StringUtils.isNotBlank(clusterConfig) && enumName.equals(clusterConfig)) {
+            connectionFactory.setAddresses(yzAddresses);
+            connectionFactory.setUsername(yzUsername);
+            connectionFactory.setPassword(yzPassword);
+            connectionFactory.setVirtualHost("common");
+        } else {
+            connectionFactory.setAddresses(zwAddresses);
+            connectionFactory.setUsername(zwUsername);
+            connectionFactory.setPassword(zwPassword);
+            connectionFactory.setVirtualHost("common");
+        }
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
         return connectionFactory;
