@@ -54,8 +54,10 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     public PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<MarketingCustomerListVO> list = marketingCustomerMapper.getCustomerList(cid,apiCode);
-            return PageResultReturn.setPageResult(list, page, pageSize);
+            MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+            marketingCustomerExample.createCriteria().andApiCodeLike(apiCode).andCidLike(cid);
+            List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+            return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

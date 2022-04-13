@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import java.util.Date;
 
 /**
  * 用户信息列表返回
@@ -115,5 +116,123 @@ public class MarketingCustomerListVO {
      */
     @ApiModelProperty(value = "更新时间")
     private String updateTime;
+
+    /**
+     * 是否需要校验请求key值（0:不需要,1:需要,2:不需要(通用强校验),3:需要(通用强校验),4:不需要(通用弱校验),5:需要(通用弱校验)）
+     */
+    @ApiModelProperty(value = "是否需要校验请求key值（0:不需要,1:需要,2:不需要(通用强校验),3:需要(通用强校验),4:不需要(通用弱校验),5:需要(通用弱校验)")
+    private Integer isCheck;
+
+    /**
+     * 是否计费（不计：0，计费：1）
+     */
+    @ApiModelProperty(value = "是否计费（不计：0，计费：1）")
+    private Integer isCharging;
+
+    /**
+     * 请求处理编码
+     */
+    @ApiModelProperty(value = "请求处理编码")
+    private String requestCode;
+
+    /**
+     * 响应处理编码
+     */
+    @ApiModelProperty(value = "响应处理编码")
+    private String responseCode;
+
+    /**
+     * 账号类型 0 测试 1 正式
+     */
+    @ApiModelProperty(value = "账号类型 0 测试 1 正式")
+    private Integer accountType;
+
+    /**
+     * 账号状态：0禁用 1启用)
+     */
+    @ApiModelProperty(value = "账号状态：0禁用 1启用)")
+    private String accountStatus;
+
+    /**
+     * 开始时间
+     */
+    @ApiModelProperty(value = "开始时间")
+    private String startTime;
+
+    /**
+     * 结束时间
+     */
+    @ApiModelProperty(value = "结束时间")
+    private String endTime;
+
+    /**
+     * 0:API 1:WEB 2:SFTP
+     */
+    @ApiModelProperty(value = "0:API 1:WEB 2:SFTP")
+    private Integer transport;
+
+    /**
+     *
+     */
+    private Date officialTime;
+
+    /**
+     *
+     */
+    private String modifyUser;
+
+    /**
+     * 加密key
+     */
+    @ApiModelProperty(value = "加密key")
+    private String encryptionKey;
+
+    /**
+     * 解密key
+     */
+    @ApiModelProperty(value = "解密key")
+    private String decryptKey;
+
+    /**
+     * 流水号：全部默认v2
+     */
+    @ApiModelProperty(value = "流水号：全部默认v2")
+    private String snVer;
+
+    /**
+     * 调用方式：1动态监控 2风险扫描与动态监控 3一次性查询 4定期全量监控
+     */
+    @ApiModelProperty(value = "调用方式：1动态监控 2风险扫描与动态监控 3一次性查询 4定期全量监控")
+    private String callMethod;
+
+    /**
+     * 文件加密方式 0 不加密 1 流加密 2 压缩加密
+     */
+    @ApiModelProperty(value = "文件加密方式 0 不加密 1 流加密 2 压缩加密")
+    private String fileEncryptionMethods;
+
+    /**
+     * 文件加密算法 0 AES-128-CBC 1 AES-256-CBC
+     */
+    @ApiModelProperty(value = "文件加密算法 0 AES-128-CBC 1 AES-256-CBC")
+    private String fileEncryptionAlgorithm;
+
+    /**
+     * 文件加密key
+     */
+    @ApiModelProperty(value = "文件加密key")
+    private String fileEncryptionKey;
+
+    /**
+     * 创建人
+     */
+    @ApiModelProperty(value = "创建人")
+    private String createUser;
+
+    /**
+     * 是否输出数据产品 0 否 1 是
+     */
+    @ApiModelProperty(value = "是否输出数据产品 0 否 1 是")
+    private Integer isOutputDataProduct;
 
 }
