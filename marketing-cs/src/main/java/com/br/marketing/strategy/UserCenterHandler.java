@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import java.util.List;
 @Slf4j
 public class UserCenterHandler {
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
     public Result<Boolean> handleDataUserCenter(String mes) {
@@ -51,7 +52,7 @@ public class UserCenterHandler {
                 marketingCustomer.setAccountType(merchantParam.getAccountType());
                 marketingCustomer.setApiCode(merchantParam.getApiCode());
                 marketingCustomer.setCallMethod(merchantParam.getCallMethod());
-                marketingCustomer.setCreateTime(new Date());
+
                 marketingCustomer.setUpdateTime(new Date());
                 marketingCustomer.setIsCharging(merchantParam.getIsCharging());
                 marketingCustomer.setIsCheck(merchantParam.getIsCheck());
@@ -74,9 +75,10 @@ public class UserCenterHandler {
                 marketingCustomer.setMessage(merchantParam.getRemarks());
                 if ("add".equals(operateType)) {
                     MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-                    marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid();
+                    marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
                     List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
                     if(marketingCustomers.size()==0){
+                        marketingCustomer.setCreateTime(new Date());
                         marketingCustomerMapper.insertSelective(marketingCustomer);
                     }
                 } else {
@@ -86,7 +88,6 @@ public class UserCenterHandler {
                 }
             }else {
                 log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam,companyMsg );
-                result.setCode(ResultCode.SUCCESS.getValue());
             }
         } catch (Exception e) {
             log.error("同步商户中心信息:{} 失败 -- ", mes, e);
