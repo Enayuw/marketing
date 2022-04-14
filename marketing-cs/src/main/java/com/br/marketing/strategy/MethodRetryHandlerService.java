@@ -184,7 +184,7 @@ public class MethodRetryHandlerService {
      * @param dassImportAdapDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result callDassRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, int retry) {
         Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
