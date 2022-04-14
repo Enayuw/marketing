@@ -17,6 +17,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -50,11 +51,19 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         if (marketingSyncUser == null) {
             return null;
         }
+        String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+        if(StringUtils.isEmpty(cell)){
+            return null;
+        }
+        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        MarketingSyncUser syncUser = new MarketingSyncUser();
+        BeanUtils.copyProperties(marketingSyncUser,syncUser);
+        syncUser.setCell(phone);
         List<String> grades = callRecordMap.get(transfer.getCustNum());
         String grade = (grades != null && grades.size() > 0) ? grades.get(0) : "";
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
-        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser, grade));
-        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer, marketingSyncUser));
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, syncUser, grade));
+        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer, syncUser));
         return batchRealTimeUserDataDTO;
     }
 
@@ -99,8 +108,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         DassBatchImportDataDTO batchImportData = new DassBatchImportDataDTO();
         batchImportData.setId(transfer.getId());
 
-        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
+
         String name = StringUtils.hasText(syncUser.getName()) ?
                 BrCipherMaker.getInstance().decode(syncUser.getName())
                 : "";
@@ -108,7 +116,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setName(name);
         batchImportData.setOrgname("yixin");
         // 根据custNum取上传接口最新的cell转aes加密
-        batchImportData.setPhone(phone);
+        batchImportData.setPhone(syncUser.getCell());
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
         batchImportData.setSource("16");
