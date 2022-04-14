@@ -61,11 +61,12 @@ public class YiQianBaoService {
             String code = response.get("httpcode");
             if ("200".equals(code)) {
                 JSONObject jsonResult = JSONObject.parseObject(response.get("content"));
+                if (!"000000".equals(jsonResult.getString("respCode"))) {
+                    log.error(String.format("调用壹钱包返回状态码异常：%s", response.get("content")));
+                    return new Result().setCode(ResultCode.FAIL.getValue());
+                }
                 ResponseYqbDTO content = JSON.parseObject(RSAUtil.decrypt(jsonResult.getString("bizContent"), brPrivateKey), new TypeReference<ResponseYqbDTO>() {
                 }.getType());
-                if (!"000000".equals(content.getRespCode())) {
-                    log.error(String.format("调用壹钱包返回状态码异常：%s", response.get("content")));
-                }
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
             } else {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());

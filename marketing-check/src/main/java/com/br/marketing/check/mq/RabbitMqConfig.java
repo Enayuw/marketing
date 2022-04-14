@@ -107,6 +107,15 @@ public class RabbitMqConfig {
 //    }
 //endregion
 
+    @Bean(name = MQConstants.MARKETING_PUSH_YIQIANBAO_MARKETINGDATA)
+    public Queue pushYiQianBao() {
+        return new Queue(MQConstants.MARKETING_PUSH_YIQIANBAO_MARKETINGDATA, true, false, false);
+    }
+    @Bean(name = MQConstants.ROUTING_KEY_MARKETINGDATA_PUSH_YIQIANBAO)
+    public Binding bindingYiQianBao() {
+        return BindingBuilder.bind(pushYiQianBao()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETINGDATA_PUSH_YIQIANBAO);
+    }
+
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);

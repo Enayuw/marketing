@@ -7,13 +7,7 @@ import java.util.List;
 @Data
 public class ResponseYqbDTO {
 
-
-    private String respCode;
-
-    private String respMsg;
-
     private List<YqbResult> resultList;
-
 
     @Data
     class YqbResult {

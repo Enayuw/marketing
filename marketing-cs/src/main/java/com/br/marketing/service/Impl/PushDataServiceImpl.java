@@ -794,6 +794,12 @@ public class PushDataServiceImpl implements PushDataService {
         return true;
     }
 
+    @Override
+    public Result pushYiQianBaoMarketingData(Long localid) {
+        //TODO 调壹钱包接口
+        return null;
+    }
+
     private Result addShuHeLock(String apiCode, String custNum, String status) {
         String key = RedisKeyConstant.shuhePushDx.concat(":")
                 .concat(apiCode).concat(":")
