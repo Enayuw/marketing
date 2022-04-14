@@ -51,13 +51,13 @@ public class ZnkfPushController {
 
     @ApiOperation(value = "壹钱包营销数据推送接口")
     @PostMapping("/yiqianbaoApiTest")
-    public String yiqianbaoApiTest() {
+    public String yiqianbaoApiTest(String phone,String outerApplyNo) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();
         YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
         userInfo.setDataTime(DateUtils.format(new Date(), "yyyyMMddHHmmss"));
         userInfo.setMarketFlag("Y");
-        userInfo.setOuterApplyNo("1234");
-        userInfo.setPhoneMd5("a3ea925d30a7df1a9d0550e5b7d0284b");
+        userInfo.setOuterApplyNo(outerApplyNo);
+        userInfo.setPhoneMd5(phone);
         yqbDetailVo.setUserInfoList(Lists.newArrayList(userInfo));
         Result<ResponseYqbDTO> result = yiQianBaoService.pushMarketingData(yqbDetailVo);
         log.warn("调用壹钱包接口result={}", JSON.toJSONString(result));
