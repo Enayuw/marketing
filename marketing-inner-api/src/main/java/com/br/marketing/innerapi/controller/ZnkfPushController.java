@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.client.yiqianbao.output.ResponseYqbDTO;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 /**
  * 智能客服推送接口
@@ -52,7 +54,7 @@ public class ZnkfPushController {
     public String yiqianbaoApiTest() {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();
         YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
-        userInfo.setDataTime("2022-04-13 10:04:13");
+        userInfo.setDataTime(DateUtils.format(new Date(), "yyyyMMddHHmmss"));
         userInfo.setMarketFlag("Y");
         userInfo.setOuterApplyNo("1234");
         userInfo.setPhoneMd5("a3ea925d30a7df1a9d0550e5b7d0284b");

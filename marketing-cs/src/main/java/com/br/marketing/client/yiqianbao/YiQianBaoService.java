@@ -46,8 +46,11 @@ public class YiQianBaoService {
 
     public Result<ResponseYqbDTO> pushMarketingData(YqbDetailVo yqbDetailVo) {
         try {
+            JSONObject jsonParam = new JSONObject();
+            jsonParam.put("userInfoList",yqbDetailVo.getUserInfoList());
+            log.warn("壹钱包明文参数 para={}",JSON.toJSONString(jsonParam));
             RequestYqbDTO requestYqbDTO = new RequestYqbDTO();
-            requestYqbDTO.setBizContent(RSAUtil.encrypt(JSON.toJSONString(yqbDetailVo.getUserInfoList()), yqbPubKey));
+            requestYqbDTO.setBizContent(RSAUtil.encrypt(JSON.toJSONString(jsonParam), yqbPubKey));
             requestYqbDTO.setReqSeqNo(UUID.randomUUID().toString());
             requestYqbDTO.setSign(getRequestSign(requestYqbDTO, salt));
             HashMap<String, String> response = httpProxyClient.sendByCode(requestYqbDTO
