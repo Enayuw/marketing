@@ -44,6 +44,7 @@
     <result column="file_encryption_key" property="fileEncryptionKey" jdbcType="VARCHAR" />
     <result column="create_user" property="createUser" jdbcType="VARCHAR" />
     <result column="is_output_data_product" property="isOutputDataProduct" jdbcType="TINYINT" />
+    <result column="apply_loan_type" property="applyLoanType" jdbcType="INTEGER" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingCustomer" extends="BaseResultMap" >
     <result column="meal_json" property="mealJson" jdbcType="LONGVARCHAR" />
@@ -107,13 +108,13 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, message, type, thread_num, task_time, finish_date, push_customer, 
-    check_black_list, check_redis_number, save_log, sort, status, extend_config_info, 
-    push_thread_num, push_type, push_url, name, short_name, create_time, update_time, 
-    is_check, is_charging, request_code, response_code, account_type, account_status, 
-    start_time, end_time, transport, official_time, modify_user, encryption_key, decrypt_key, 
-    sn_ver, call_method, file_encryption_methods, file_encryption_algorithm, file_encryption_key, 
-    create_user, is_output_data_product
+    id, cid, api_code, message, type, thread_num, task_time, finish_date, push_customer,
+    check_black_list, check_redis_number, save_log, sort, status, extend_config_info,
+    push_thread_num, push_type, push_url, name, short_name, create_time, update_time,
+    is_check, is_charging, request_code, response_code, account_type, account_status,
+    start_time, end_time, transport, official_time, modify_user, encryption_key, decrypt_key,
+    sn_ver, call_method, file_encryption_methods, file_encryption_algorithm, file_encryption_key,
+    create_user, is_output_data_product, apply_loan_type
   </sql>
   <sql id="Blob_Column_List" >
     meal_json
@@ -184,7 +185,7 @@
     decrypt_key, sn_ver, call_method,
     file_encryption_methods, file_encryption_algorithm,
     file_encryption_key, create_user, is_output_data_product,
-    meal_json)
+    apply_loan_type, meal_json)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR},
     #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT},
     #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT},
@@ -199,7 +200,7 @@
     #{decryptKey,jdbcType=VARCHAR}, #{snVer,jdbcType=VARCHAR}, #{callMethod,jdbcType=INTEGER},
     #{fileEncryptionMethods,jdbcType=INTEGER}, #{fileEncryptionAlgorithm,jdbcType=INTEGER},
     #{fileEncryptionKey,jdbcType=VARCHAR}, #{createUser,jdbcType=VARCHAR}, #{isOutputDataProduct,jdbcType=TINYINT},
-    #{mealJson,jdbcType=LONGVARCHAR})
+    #{applyLoanType,jdbcType=INTEGER}, #{mealJson,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -330,6 +331,9 @@
       <if test="isOutputDataProduct != null" >
         is_output_data_product,
       </if>
+      <if test="applyLoanType != null" >
+        apply_loan_type,
+      </if>
       <if test="mealJson != null" >
         meal_json,
       </if>
@@ -457,6 +461,9 @@
       </if>
       <if test="isOutputDataProduct != null" >
         #{isOutputDataProduct,jdbcType=TINYINT},
+      </if>
+      <if test="applyLoanType != null" >
+        #{applyLoanType,jdbcType=INTEGER},
       </if>
       <if test="mealJson != null" >
         #{mealJson,jdbcType=LONGVARCHAR},
@@ -598,6 +605,9 @@
       <if test="record.isOutputDataProduct != null" >
         is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
       </if>
+      <if test="record.applyLoanType != null" >
+        apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
+      </if>
       <if test="record.mealJson != null" >
         meal_json = #{record.mealJson,jdbcType=LONGVARCHAR},
       </if>
@@ -650,6 +660,7 @@
     file_encryption_key = #{record.fileEncryptionKey,jdbcType=VARCHAR},
     create_user = #{record.createUser,jdbcType=VARCHAR},
     is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
+    apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
     meal_json = #{record.mealJson,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -698,7 +709,8 @@
     file_encryption_algorithm = #{record.fileEncryptionAlgorithm,jdbcType=INTEGER},
     file_encryption_key = #{record.fileEncryptionKey,jdbcType=VARCHAR},
     create_user = #{record.createUser,jdbcType=VARCHAR},
-    is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT}
+    is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
+    apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -829,6 +841,9 @@
       <if test="isOutputDataProduct != null" >
         is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
       </if>
+      <if test="applyLoanType != null" >
+        apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
+      </if>
       <if test="mealJson != null" >
         meal_json = #{mealJson,jdbcType=LONGVARCHAR},
       </if>
@@ -878,6 +893,7 @@
         file_encryption_key = #{fileEncryptionKey,jdbcType=VARCHAR},
         create_user = #{createUser,jdbcType=VARCHAR},
         is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
+        apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
         meal_json = #{mealJson,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -923,7 +939,8 @@
         file_encryption_algorithm = #{fileEncryptionAlgorithm,jdbcType=INTEGER},
         file_encryption_key = #{fileEncryptionKey,jdbcType=VARCHAR},
         create_user = #{createUser,jdbcType=VARCHAR},
-        is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT}
+        is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
+        apply_loan_type = #{applyLoanType,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

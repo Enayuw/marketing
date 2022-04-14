@@ -2794,6 +2794,66 @@ public class MarketingCustomerExample {
             addCriterion("is_output_data_product not between", value1, value2, "isOutputDataProduct");
             return (Criteria) this;
         }
+
+        public Criteria andApplyLoanTypeIsNull() {
+            addCriterion("apply_loan_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeIsNotNull() {
+            addCriterion("apply_loan_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeEqualTo(Integer value) {
+            addCriterion("apply_loan_type =", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeNotEqualTo(Integer value) {
+            addCriterion("apply_loan_type <>", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeGreaterThan(Integer value) {
+            addCriterion("apply_loan_type >", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("apply_loan_type >=", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeLessThan(Integer value) {
+            addCriterion("apply_loan_type <", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("apply_loan_type <=", value, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeIn(List<Integer> values) {
+            addCriterion("apply_loan_type in", values, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeNotIn(List<Integer> values) {
+            addCriterion("apply_loan_type not in", values, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeBetween(Integer value1, Integer value2) {
+            addCriterion("apply_loan_type between", value1, value2, "applyLoanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andApplyLoanTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("apply_loan_type not between", value1, value2, "applyLoanType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

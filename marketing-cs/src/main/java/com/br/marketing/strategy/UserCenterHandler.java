@@ -48,6 +48,7 @@ public class UserCenterHandler {
                 marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));
                 marketingCustomer.setName(companyJSONObj.getString("COMP_NAME"));
                 marketingCustomer.setShortName(companyJSONObj.getString("COMP_SHORT_NAME"));
+                marketingCustomer.setApplyLoanType(companyJSONObj.getString("APPLY_LOAN_TYPE"));
                 marketingCustomer.setAccountStatus(merchantParam.getAccountStatus());
                 marketingCustomer.setAccountType(merchantParam.getAccountType());
                 marketingCustomer.setApiCode(merchantParam.getApiCode());

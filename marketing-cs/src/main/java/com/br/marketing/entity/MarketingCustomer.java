@@ -146,12 +146,12 @@ public class MarketingCustomer {
     /**
      * 开始时间
      */
-    private String startTime;
+    private Date startTime;
 
     /**
      * 结束时间
      */
-    private String endTime;
+    private Date endTime;
 
     /**
      * 0:API 1:WEB 2:SFTP
@@ -217,6 +217,17 @@ public class MarketingCustomer {
      * 无id关联的产品json
      */
     private String mealJson;
+
+    private String applyLoanType;
+
+
+    public String getApplyLoanType() {
+        return applyLoanType;
+    }
+
+    public void setApplyLoanType(String applyLoanType) {
+        this.applyLoanType = applyLoanType;
+    }
 
     public Long getId() {
         return id;
@@ -442,19 +453,19 @@ public class MarketingCustomer {
         this.accountStatus = accountStatus;
     }
 
-    public String getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
-    public String getEndTime() {
+    public Date getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
 
