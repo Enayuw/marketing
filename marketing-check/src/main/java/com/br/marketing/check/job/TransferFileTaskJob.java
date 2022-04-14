@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -33,10 +32,10 @@ import java.util.List;
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper customerMapper;
-
-    @Autowired
+    
+    @Resource
     TransferFileTaskMapper transferFileTaskMapper;
 
     /*萨摩耶的实现*/
@@ -53,7 +52,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Autowired
     RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     RetryMainLogMapper retryMainLogMapper;
 
     @Resource
@@ -100,8 +99,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         }
                     }
                 }
-            }catch (Exception ex){
-                log.error(String.format("客户转化文件提取报错：%s,报错信息：%s",marketingCustomer.getApiCode(),ex.getMessage()),ex);
+            } catch (Exception ex) {
+                log.error(String.format("客户转化文件提取报错：%s,报错信息：%s", marketingCustomer.getApiCode(), ex.getMessage()), ex);
             }
         }
     }
