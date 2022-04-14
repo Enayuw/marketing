@@ -124,6 +124,23 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 延迟队列-通用转化错误重试延迟队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY)
+    public Queue universalTransferErrorDelayQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
+        // x-message-ttl  声明队列的TTL 5分钟静置时间
+        args.put("x-message-ttl", 300000);
+        return QueueBuilder.durable(MQConstants.MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY).withArguments(args).build();
+    }
+
+    /**
      * 绑定死信交换机- 延迟队列通过死信交换机推送到延迟队列
      *
      * @return
@@ -145,6 +162,18 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(universalTransferDelayQueue())
                 .to(gateExchange())
                 .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY);
+    }
+
+    /**
+     * 绑定交换机- 发送消息到延迟队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding universalTransferQueueErrorDelayBinding() {
+        return BindingBuilder.bind(universalTransferErrorDelayQueue())
+                .to(gateExchange())
+                .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
     }
 
     /**

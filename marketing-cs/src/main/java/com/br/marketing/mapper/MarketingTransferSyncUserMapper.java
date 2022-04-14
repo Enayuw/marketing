@@ -31,4 +31,22 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
 
     List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
+
+    /**
+     * 获取指定日期，指定custNum的非延时数据
+     * @param cid
+     * @param custNums
+     * @param date
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferOrderInsertTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
+
+    /**
+     * 获取指定custNum的最新数据
+     * @param cid
+     * @param custNums
+     * @param date
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
 }

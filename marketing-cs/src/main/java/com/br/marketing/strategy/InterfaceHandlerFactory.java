@@ -3,11 +3,11 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -50,10 +50,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class InterfaceHandlerFactory implements ApplicationContextAware {
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-
     /**
      * 从应用上下文中处理封装获取三方接口 map <具体的接口枚举值,接口对象>
      *     {1:ArtificialBlackListHandler,4:CustomerTransferHandler}
@@ -76,6 +72,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
      * 应用上下文中获取所有实现AbstractRuleCollectDataService数据来源处理类
      */
     private static Map<Integer, AbstractRuleCollectDataService> ruleDataCollectionMap = new HashMap<>();
+
+    @Resource
+    private DataLoadingHandlerService dataLoadingHandlerService;
 
 
     @Override
@@ -153,24 +152,26 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          * 2、根据不同数据来源 匹配出要执行的规则
          * 获取 apiCode获取所需的规则匹配方法
          */
-        List<AssembleData> list = new ArrayList<>();
-        HashMap<String, String> customerRuleMapping = marketingCommonConfig.getCustomerRuleMapping();
-        String rulePrefix = customerRuleMapping.get(context.getApiCode());
-        if (StringUtils.isEmpty(rulePrefix)){
+        Set<String> customerRules = dataLoadingHandlerService.customerRules(context.getApiCode());
+        Set<String> execRules = new HashSet<>();
+        if (!CollectionUtils.isEmpty(mqFact.getIncludeRules())){
+            execRules.addAll(mqFact.getIncludeRules());
+            execRules.retainAll(customerRules);
+        }else {
+            execRules.addAll(customerRules);
+        }
+
+        if (CollectionUtils.isEmpty(execRules)){
             log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
             return new HashMap<>();
-        }
-        Collection<AssembleData> values = assembleDataMap.values();
-        for (AssembleData assembleData : values) {
-            if (assembleData.label().startsWith(rulePrefix)){
-                list.add(assembleData);
-            }
         }
 
         /**
          * 规则排序
          */
-        List<AssembleData> assembleDataList = list.stream().sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
+        Collection<AssembleData> values = assembleDataMap.values();
+        List<AssembleData> assembleDataList = values.stream().filter(data->execRules.contains(data.label()))
+                .sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
         /**
          * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
          */

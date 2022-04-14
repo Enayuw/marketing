@@ -1,4 +1,125 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapper" >
+    <select id="getDxRecordByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
+        select id,cust_num as custNum,dx_type as dxType,`type`
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
+        </foreach>
+        and p_status = 2
+        and transform_type = #{transferType}
+        <![CDATA[ and applet_date >= #{startDate} ]]>
+        <![CDATA[ and applet_date <= #{endDate} ]]>
+    </select>
+
+    <select id="getDxRecordLastOne" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
+        select b.cust_num as custNum,b.dx_type as dxType,b.`type`,b.applet_date from
+        (
+        select cust_num,max(applet_date) as applet_date
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+          and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and p_status = 2
+        and transform_type = #{transferType}
+        group by cust_num
+        ) as a
+        left join b_phone_sale_extend_info b on a.cust_num = b.cust_num and a.applet_date = b.applet_date
+        where b.api_code = #{apiCode} and b.p_status = 2 and b.transform_type = #{transferType}
+    </select>
+
+    <select id="getDxRecordLastTwo" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
+        select b.cust_num as custNum,b.dx_type as dxType,b.`type`,b.applet_date from
+        (
+        select cust_num,max(applet_date) as applet_date
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode} and p_status = 2
+        and transform_type = #{transferType} and
+        <foreach collection="custNumAndApplets" item="custNumAndApplet" open="(" separator="or" close=")">
+            <![CDATA[ (cust_num = #{custNumAndApplet.custNum} and applet_date < #{custNumAndApplet.appletDate})]]>
+        </foreach>
+        group by cust_num
+        ) as a
+        left join b_phone_sale_extend_info b on a.cust_num = b.cust_num and a.applet_date = b.applet_date
+        where b.api_code = #{apiCode} and b.p_status = 2 and b.transform_type = #{transferType}
+    </select>
+<!--    <select id="getDxRecordLastTwo" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">-->
+<!--        select-->
+<!--        *-->
+<!--        from-->
+<!--        (-->
+<!--            select-->
+<!--            a.cust_num as custNum,-->
+<!--            a.applet_date,-->
+<!--            a.dx_type as dxType,a.`type`,-->
+<!--            count(*) as rowNo-->
+<!--            from-->
+<!--            b_phone_sale_extend_info a-->
+<!--            left join b_phone_sale_extend_info b on-->
+<!--            a.cust_num = b.cust_num-->
+<!--            <![CDATA[ and a.applet_date <= b.applet_date ]]>-->
+<!--            where-->
+<!--            a.api_code = #{apiCode}-->
+<!--            and a.transform_type = #{transferType}-->
+<!--            and a.cust_num in-->
+<!--            <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">-->
+<!--                #{custNum}-->
+<!--            </foreach>-->
+<!--            and b.api_code = #{apiCode}-->
+<!--            and b.transform_type = #{transferType}-->
+<!--            and b.cust_num in-->
+<!--            <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">-->
+<!--                #{custNum}-->
+<!--            </foreach>-->
+<!--            group by-->
+<!--            a.cust_num,-->
+<!--            a.applet_date-->
+<!--            order by-->
+<!--            a.cust_num,-->
+<!--            a.applet_date desc-->
+<!--        ) as tt-->
+<!--        where-->
+<!--        tt.rowNo in(1,2)-->
+<!--    </select>-->
+    <select id="getDxRecordCustByTransferType" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="java.lang.String">
+        select cust_num
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
+        </foreach>
+        and p_status = 2
+        and transform_type = #{transferType}
+        <![CDATA[ and applet_date >= #{startDate} ]]>
+        <![CDATA[ and applet_date <= #{endDate} ]]>
+    </select>
+    <insert id="saveBatch" parameterType="list">
+        insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
+        user_type, applet_date, applet_time,
+        status, p_status, create_time,
+        update_time, type, dx_type,
+        push_dx_time, transform_type, source_id
+        )values
+         <foreach collection="list" item="data" separator=",">
+             (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR}, #{data.taskId,jdbcType=VARCHAR},
+             #{data.userType,jdbcType=VARCHAR}, #{data.appletDate,jdbcType=VARCHAR}, #{data.appletTime,jdbcType=VARCHAR},
+             #{data.status,jdbcType=VARCHAR}, #{data.pStatus,jdbcType=INTEGER}, #{data.createTime,jdbcType=TIMESTAMP},
+             #{data.updateTime,jdbcType=TIMESTAMP}, #{data.type,jdbcType=VARCHAR}, #{data.dxType,jdbcType=VARCHAR},
+             #{data.pushDxTime,jdbcType=TIMESTAMP}, #{data.transformType,jdbcType=VARCHAR}, #{data.sourceId,jdbcType=BIGINT}
+             )
+            </foreach>
+    </insert>
+
+    <update id="updateBatch">
+        update b_phone_sale_extend_info set p_status = 2 where p_status = 1 and source_id  in
+        <foreach collection="set" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

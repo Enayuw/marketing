@@ -7,7 +7,6 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * -------------------------------

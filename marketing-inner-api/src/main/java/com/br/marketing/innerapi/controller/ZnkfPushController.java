@@ -1,5 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
 import io.swagger.annotations.Api;
@@ -7,10 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 智能客服推送接口
@@ -30,6 +29,18 @@ public class ZnkfPushController {
     public String znkfPushCallBack(@RequestBody CallRecordDTO dto) {
         try {
             return znkfPushService.znkfPushCallBack(dto);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            throw ex;
+        }
+    }
+
+
+    @ApiOperation(value = "客服推送营销黑名单结束标识接口")
+    @PostMapping("/znkfPushBlackPhoneMark")
+    public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
+        try {
+            return znkfPushService.znkfPushBlackPhoneMark(apiCode,pushDate);
         }catch (Exception ex){
             log.error(ex.getMessage());
             throw ex;

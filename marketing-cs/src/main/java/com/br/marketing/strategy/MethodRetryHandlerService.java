@@ -3,6 +3,8 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
+import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
@@ -20,6 +22,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.DataCompare;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -74,12 +77,15 @@ public class MethodRetryHandlerService {
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
     /**
      * 全局重试任务执行类
      * @param dassExportAdapterDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO, Integer retry){
         List<BlackListDTO> list = dassExportAdapterDTO.getList();
         Result<PushBlackListResponse> pushBlackListResponseResult = dassServiceClient.postBlackList(list);
@@ -109,7 +115,7 @@ public class MethodRetryHandlerService {
      * @param dassImportAdapDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result callDassRealTimeUserData(DassSingleImportAdapDTO dassImportAdapDTO, Integer retry) {
 
         Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
@@ -130,7 +136,7 @@ public class MethodRetryHandlerService {
      * @param parentDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO, Integer retry){
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
         if ("00".equals(reqBlackPhoneVO.getCode()) && CollectionUtils.isEmpty(reqBlackPhoneVO.getData())) {
@@ -152,7 +158,7 @@ public class MethodRetryHandlerService {
      * @param robotOutboundDTO
      * @return
      */
-    @RetryMethod
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry){
         TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
         if (!"9999".equals(transferRobotOutboundVO.getCode())){
@@ -166,8 +172,29 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
-    void saveBizLog(String data, int handlerEnum,long infoId){
-        DataCompare dataCompare = new DataCompare(data,handlerEnum,infoId);
+    void saveBizLog(String data, Integer handlerEnum, Long infoId) {
+        DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);
         dataCompareMapper.insertSelective(dataCompare);
+    }
+
+
+    /**
+     * 调用电销批量接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param dassImportAdapDTO
+     * @return
+     */
+    @RetryMethod
+    public Result callDassRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, int retry) {
+        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassImportAdapDTO.getList().stream().map(DassImportDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",",set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
+                    dassImportAdapDTO.getTransferInfoId());
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 }

@@ -1,0 +1,128 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+         url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         username: u_pd_marketing
+         password: qTODziGYQsq11aw8Js2V
+         type: com.alibaba.druid.pool.DruidDataSource
+         driver-class-name: com.mysql.jdbc.Driver
+         filters: stat
+         maxActive: 300
+         initialSize: 1
+         maxWait: 60000
+         minIdle: 1
+         timeBetweenEvictionRunsMillis: 60000
+         minEvictableIdleTimeMillis: 300000
+         validationQuery: select 'x'
+         testWhileIdle: true
+         testOnBorrow: false
+         testOnReturn: false
+         poolPreparedStatements: true
+         maxOpenPreparedStatements: 20
+    config:
+      sharding:
+        props:
+          sql.show: false
+        tables:
+          b_marketing_user:
+            table-strategy:
+              inline:
+                sharding-column: api_code
+                algorithm-expression: b_marketing_user_${api_code}
+logging:
+    level:
+        com.br.off.mapper: info
+    file: ./logs/core.log
+    root: INFO
+otherConfig:
+  huaXiangInterface:
+        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+        sanxiang_url: http://zh-service/v1/getData
+        haina_url: http://HAINA-SERVICE/query
+  alarm:
+        secretKey: b58783d4b67f942166f2ffad298080e4
+        appName: marketing
+        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+        outsideAppName: marketing-out
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 7357430aa11febfe81d45945c02706b3
+  warning:
+        pageSize: 5000
+        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+        path: /opt/data/inloan/download/marketing/
+        sftpHost: brsftp.brapp.com
+        sftpPort: 9999
+        sftpUser: BRmarketing
+        sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: a938d0e974746651a11ddcdbcea31404
+  proxy:
+    proxy_host_zw: 192.168.22.169
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+
+api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  dass:
+    baseUrl: http://daas.huiyunai.com
+    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
+    postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
+    postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
+    aesKey: MgoTm8GxuxTUc6y5
+    SecretKey: MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKm7vv0ZdB36H8sGL2YZWAPM3sQ+tMbfoPp71KncNzOzMMqd9KiK9tPrfeoApo+xXBZFvid8f+1BxiyU7/bHrxiIFvawfzTt0PTj/gYcM9k0gMMUmomGNir9PMzV2WWBDpvSLUSoWX56yk3LhUB4rHXrj5pUIpO0pEr5b9cPQbZBAgMBAAECgYEAkSXIkdBuiCQZhBjp97m8lqNf7RpipZ8fnpS+q/NyEXgvRVYGnwsXQOqlZrLfvQnC4hkKH+JL06znt8A15SemB0NizbDmFvtsi+tQQm9qK8jvMkdo6zVeXlNjJ2kDVu98WFDK3EEukWTQXiYTdX6paKiFQnWQwV/EKlb/Bi3lfEECQQDclPdFCptoKDv52HEqs4UbsGY/yO4ZbZXTPst1w0EKjhFIn9jcoFPBoO3o4URPM8ENeBZv8bpU0djGO2nCfAGFAkEAxPymAEbUmtHH893JILrfo65O85K5MmGNR/NSdn4uBjD9E0R1cWB3SHlfDUv9+r0GtuQasLSp3cvJI5OY2sdgjQJBALmurHfx9eA3/kTTbnADrokgdPI8sjG1jenFcoAvXREFhoccB/GxBNB6J8th1Z7Wcixkan7RfYjpHRHB8cVFngECQFy0tn8s1oPiNKMtfql7qSKENz3kkGoIhRAWkHmZmplpVsFJl6f7CUg/bp94Yxgs+8r5ASKmc8chUBEBNo/IA0UCQQCt75iTugjsjbZUvoYHwZ9A7Bf7vfG7sOI3cismFzARUpSUPN6dEht4X4Z2AdC9HXXS+Mb3vFaCIK+h3WDZeZJt
+    isProxy: 1
+  twoSeven:
+    baseUrl: http://8.129.19.178:8888
+    zhuangku: ${api.twoSeven.baseUrl}/zhuangku
+    isProxy: 1
+  haier:
+    apiCode: "2a43ad9e9b6a247ef9613761dcb191d7"
+    apiKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCTMUmWLeOWOvpr7FzXNOXFShZfh5MM8tz7K57bWFzj4vNRwenafTgX+nOacO2QDH4yvNFS1bwzw0sc0BvWscrbCFf80g81lmBBnxVZJkHID/RKj35gw/SjPg2hSReQwTGL3m7lYhYruMFZDIEZ0O2xKNroiPIj+f/FbJAkJ6ezaQIDAQAB"
+    host: "inmarketsystem.haiercash.com" # 生产
+    baseUlr: http://${api.haier.host:60.209.94.196:8088}/
+    custData:
+      receive:
+        url: ${api.haier.baseUlr}app/marketControl/custData/receive
+        info:
+          url: ${api.haier.custData.receive.url}/info
+  marketing:
+    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+  halo:
+    openUrl: https://open.hellobike.com/openapi
+    appKey: brgroup-pnPnzgxf
+    secret: 9c07d3b9923d4269bb8da6a6963fcd27
+    method: hello.finance.loan.marketing.callback
+    isProxy: true
+spring:
+  rabbitmq:
+    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+    username: strategy_distribute
+    password: Rz453hoEjUb37j8v
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow
+innerSftp:
+  uploadpath: /UploadFiles/marketing/
+#elastic-job配置
+SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+NAMESPACE: marketing-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/

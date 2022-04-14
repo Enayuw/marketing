@@ -2,8 +2,9 @@ package com.br.marketing.mapper.auth;
 
 import com.br.marketing.entity.auth.MarketingResource;
 import com.br.marketing.entity.auth.MarketingResourceExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface MarketingResourceMapper {
     int countByExample(MarketingResourceExample example);

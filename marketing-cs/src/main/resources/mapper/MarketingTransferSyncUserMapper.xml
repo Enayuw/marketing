@@ -27,9 +27,44 @@
 
     <select id="getTransferOrderInsertTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
-            b_marketing_transfer_sync_${cid}
+        b_marketing_transfer_sync_${cid}
         where request_data=#{data}
-        order by insert_time desc limit #{limitStart},5000;
+        order by cust_num,insert_time,id desc limit #{limitStart},2000;
+    </select>
+
+    <select id="getTransferOrderInsertTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.* from
+        (
+            select cust_num,max(insert_time) as insert_time
+            from b_marketing_transfer_sync_${cid} a
+            where cust_num in
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>
+            <if test="date != null and date!=''">
+              and request_data = #{date}
+            </if>
+            and (IFNULL(reserve_field1,'') ='' or reserve_field1 not like '%"transform":"1"%')
+            group by cust_num
+        ) as a
+        left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num and a.insert_time = b.insert_time
+    </select>
+
+    <select id="getTransferOrderRequestTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.* from
+        (
+        select cust_num,max(request_time) as request_time
+        from b_marketing_transfer_sync_${cid} a
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        <if test="date != null and date!=''">
+            and request_data = #{date}
+        </if>
+        group by cust_num
+        ) as a
+        left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num and a.request_time = b.request_time
     </select>
 
 </mapper>

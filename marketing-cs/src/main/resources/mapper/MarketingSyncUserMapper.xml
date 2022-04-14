@@ -184,4 +184,18 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="getSyncUserLastByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select b.* from
+        (
+        select cust_num,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode} a
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        group by cust_num
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
+    </select>
 </mapper>

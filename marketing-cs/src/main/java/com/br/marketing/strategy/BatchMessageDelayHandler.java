@@ -1,0 +1,93 @@
+package com.br.marketing.strategy;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.TransferSource;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * code is far away from bug with the animal protecting
+ * ┏┓　　　┏┓
+ * ┏┛┻━━━┛┻┓
+ * ┃　　　　　　　┃
+ * ┃　　　━　　　┃
+ * ┃　┳┛　┗┳　┃
+ * ┃　　　　　　　┃
+ * ┃　　　┻　　　┃
+ * ┃　　　　　　　┃
+ * ┗━┓　　　┏━┛
+ * 　　┃　　　┃神兽保佑
+ * 　　┃　　　┃代码无BUG！
+ * 　　┃　　　┗━━━┓
+ * 　　┃　　　　　　　┣┓
+ * 　　┃　　　　　　　┏┛
+ * 　　┗┓┓┏━┳┓┏┛
+ * 　　　┃┫┫　┃┫┫
+ * 　　　┗┻┛　┗┻┛
+ *
+ * @Description : 消息延迟处理类
+ * ---------------------------------
+ * @Author : jilong.xu
+ * @Date : Create in 2022/3/14 10:56
+ */
+
+@Service
+public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    //消息过期时间 1h
+    private static final String EXPIRE_TIME = "3600000";
+
+    @Resource
+    private RabbitMqProducter producer;
+
+    @Resource
+    private DataLoadingHandlerService handlerService;
+
+    @Override
+    JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
+        String expireTime = StringUtils.hasText(marketingCommonConfig.getMessageQueueExpireTime())
+                ?marketingCommonConfig.getMessageQueueExpireTime():EXPIRE_TIME;
+
+        /**
+         * eg:{"last": 0,"tcId": 772,"ids": [607772,607771,607770,607769,607768],"apiCode": "7410430"}
+         */
+
+        Set<String> set = new HashSet<>();
+        set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("apiCode",context.getApiCode());
+        jsonObject.put("ids",mqFacts.stream().map(MqFact::getSourceId).collect(Collectors.toSet()));
+        jsonObject.put("tcId",handlerService.getTcIdFromRedis(context.getApiCode()));
+
+        MqFact mqFact = new MqFact();
+        mqFact.setSourceId(context.getTransferInfoId());
+        mqFact.setIsDelay(1);
+        mqFact.setIncludeRules(set);
+        mqFact.setMessage(jsonObject.toJSONString());
+        mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+        String message = JSON.toJSONString(mqFact);
+        producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
+        return null;
+    }
+
+    @Override
+    InterfaceHandlerEnum handlerEnum() {
+        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY;
+    }
+}
