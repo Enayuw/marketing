@@ -74,20 +74,18 @@ public abstract class IUserType {
      * 赋值 其他字段
      */
     final void setTotalField(Map<String, String> dataItem, CaseShuheUser caseUser) {
-        if (this instanceof CuShouDeng) {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        } else if (this instanceof CuShenWan) {
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        } else if (this instanceof CuShouJie) {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-        } else {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        }
+        String defaultValue = "";
+        caseUser.setClcUsrLstAppStaTim(dataItem.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue));
+        caseUser.setClcUsrIsoPhoTim(dataItem.getOrDefault("clc_usr_iso_pho_tim", defaultValue));
+        caseUser.setClcUsrIsoIdtTim(dataItem.getOrDefault("clc_usr_iso_idt_tim", defaultValue));
+        caseUser.setClcUsrIsoCrdTim(dataItem.getOrDefault("clc_usr_iso_crd_tim", defaultValue));
+        caseUser.setClcUsrIsoInfTim(dataItem.getOrDefault("clc_usr_iso_inf_tim", defaultValue));
+        caseUser.setClcUsrIsoAtoTim(dataItem.getOrDefault("clc_usr_iso_ato_tim", defaultValue));
+        caseUser.setClcUsrAdtTimRcnLon(dataItem.getOrDefault("clc_usr_adt_tim_rcn_lon", defaultValue));
+        caseUser.setClcUsrFstLogTimAll(dataItem.getOrDefault("clc_usr_fst_log_tim_all", defaultValue));
+        caseUser.setClcUsrAdtLmtItr(dataItem.getOrDefault("clc_usr_adt_lmt_itr", defaultValue));
+        caseUser.setClcUsrFrtFqOrdTim(dataItem.getOrDefault("clc_usr_frt_fq_ord_tim", defaultValue));
+        caseUser.setClcUsrFstLndTimCshBtHl(dataItem.getOrDefault("clc_usr_fst_lnd_tim_csh_bt_hl", defaultValue));
     }
 
     /**
