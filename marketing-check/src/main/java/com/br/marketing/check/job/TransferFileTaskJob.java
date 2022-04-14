@@ -71,33 +71,37 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
-            ITransferToFileService serviceImpl = getServiceImpl(marketingCustomer);
-            if (serviceImpl == null) {
-                continue;
-            }
-            Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
-            if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
-                List<TransferFileTask> data = listResult.getData();
-                for (TransferFileTask datum : data) {
-                    Result result = serviceImpl.actionTransferToFile(datum);
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        Result res = sftpInnerService.pushInnerSftp(datum);
-                        if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
-                            RetryMainLog retryMainLog = new RetryMainLog();
-                            retryMainLog.setRetryType(1);
-                            retryMainLog.setRetryParam(JSON.toJSONString(datum));
-                            retryMainLog.setRetryParamType(datum.getClass().getName());
-                            retryMainLog.setRetryService("sftpInnerServiceImpl");
-                            retryMainLog.setRetryMethod("pushInnerSftp");
-                            retryMainLog.setRetryNum(0);
-                            retryMainLog.setRetryMaxNum(3);
-                            retryMainLog.setRetryStatus(1);
-                            retryMainLog.setCreateTime(new Date());
-                            retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                            retryMainLogMapper.insertSelective(retryMainLog);
+            try {
+                ITransferToFileService serviceImpl = getServiceImpl(marketingCustomer);
+                if (serviceImpl == null) {
+                    continue;
+                }
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
+                if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
+                    List<TransferFileTask> data = listResult.getData();
+                    for (TransferFileTask datum : data) {
+                        Result result = serviceImpl.actionTransferToFile(datum);
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            Result res = sftpInnerService.pushInnerSftp(datum);
+                            if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
+                                RetryMainLog retryMainLog = new RetryMainLog();
+                                retryMainLog.setRetryType(1);
+                                retryMainLog.setRetryParam(JSON.toJSONString(datum));
+                                retryMainLog.setRetryParamType(datum.getClass().getName());
+                                retryMainLog.setRetryService("sftpInnerServiceImpl");
+                                retryMainLog.setRetryMethod("pushInnerSftp");
+                                retryMainLog.setRetryNum(0);
+                                retryMainLog.setRetryMaxNum(3);
+                                retryMainLog.setRetryStatus(1);
+                                retryMainLog.setCreateTime(new Date());
+                                retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                                retryMainLogMapper.insertSelective(retryMainLog);
+                            }
                         }
                     }
                 }
+            }catch (Exception ex){
+                log.error(String.format("客户转化文件提取报错：%s,报错信息：%s",marketingCustomer.getApiCode(),ex.getMessage()),ex);
             }
         }
     }
