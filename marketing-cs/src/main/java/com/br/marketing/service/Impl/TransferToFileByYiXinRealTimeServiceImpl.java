@@ -713,7 +713,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      * @return
      */
     private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String tcId, String date, Integer pageIndex) {
-        Integer limitStart = pageIndex * 5000;
+        Integer limitStart = pageIndex * 2000;
         List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
