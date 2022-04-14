@@ -564,6 +564,5 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         mqFact.setMessage(JSONObject.toJSONString(paramMessage));
         producter.sendToUniversalTransferQueue(mqFact);
-        log.warn("宜信非实时数据推客服，发送消息，mqFact：{}", mqFact);
     }
 }
