@@ -105,7 +105,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             ",clc_usr_adt_lmt_lv0,createtime";
 
     static {
-        FILE_NAME_PART = new HashMap<>(4);
+        FILE_NAME_PART = new HashMap<>(8);
         FILE_NAME_PART.put("促首登", "%s_cushoudeng_%s%s");
         FILE_NAME_PART.put("促申完", "%s_cushenwan_%s%s");
         FILE_NAME_PART.put("促首借", "%s_cushoujie_%s%s");
@@ -121,10 +121,15 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         result.setDate(transferFileTaskList);
         result.setCode(ResultCode.SUCCESS.getValue());
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferExtractJobStartTime();
+        String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
+        Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
         LocalTime startTime;
+        String finalDateYyyyMmDdStr;
         if (StringUtils.isEmpty(shuHeTransferJobStartTime)) {
             startTime = LocalTime.parse("06:00:00");
             appointTime = null;
+            finalDateYyyyMmDdStr = dateYyyyMmDdStr;
         } else {
             String t = "T";
             // 处理指定日期提取数据, 添加T时为需要以指定日期获取数据
@@ -143,22 +148,22 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                     startTime = LocalTime.parse("06:00:00");
                     appointTime = LocalDateTime.now();
                 }
+                finalDateYyyyMmDdStr = appointTime.format(DateTimeFormatter
+                        .BASIC_ISO_DATE).concat("_").concat(dateYyyyMmDdStr);
             } else {
                 startTime = LocalTime.parse(shuHeTransferJobStartTime);
                 appointTime = null;
+                finalDateYyyyMmDdStr = dateYyyyMmDdStr;
             }
         }
-        String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
-        Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
-        List<String> stringList = userTypes.parallelStream().map(s -> String.format(FILE_NAME_PART.getOrDefault(s
-                , "%s_".concat(s).concat("_%s%s")), apiCode, dateYyyyMmDdStr, EXTENSION)).collect(Collectors.toList());
         TransferFileTaskExample taskExample = new TransferFileTaskExample();
+        List<String> stringList = userTypes.parallelStream().map(s ->
+                getFileName(s, apiCode, finalDateYyyyMmDdStr, EXTENSION)).collect(Collectors.toList());
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
                 .andFileNameIn(stringList);
-        List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, transferFileTasks.size());
-        if (LocalTime.now().isAfter(startTime) && transferFileTasks.size() < 1) {
+        int count = transferFileTaskMapper.countByExample(taskExample);
+        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, count);
+        if (LocalTime.now().isAfter(startTime) && count < 1) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
@@ -175,7 +180,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStatus(1);
                 transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
+                transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
                 transferFileTaskList.add(transferFileTask);
             });
         }
@@ -241,6 +246,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         }));
     }
 
+    private String getFileName(String userType, String apiCode, String dateYyyyMmDdStr, String extension) {
+        return String.format(FILE_NAME_PART.getOrDefault(userType, "%s_".concat(userType).concat("_%s%s")), apiCode
+                , dateYyyyMmDdStr, extension);
+    }
+
     @Override
     public Result<Object> actionTransferToFile(TransferFileTask transferFileTask) {
         Result<Object> result = new Result<>();
@@ -249,19 +259,16 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String userType = transferFileTask.getBatchNumber();
         LocalDateTime first;
         LocalDateTime last;
-        String fileNameDefault = FILE_NAME_PART.getOrDefault(userType
-                , "%s_".concat(userType).concat("_%s%s"));
         String fileName;
         if (appointTime != null) {
             // 指定日期
             last = appointTime;
-            fileName = String.format(fileNameDefault, apiCode
-                    , appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_").concat(dateYyyyMmDdStr)
-                    , EXTENSION);
+            fileName = getFileName(userType, apiCode, appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_")
+                    .concat(dateYyyyMmDdStr), EXTENSION);
         } else {
             // 前一天
             last = LocalDateTime.now().minusDays(1);
-            fileName = String.format(fileNameDefault, apiCode, dateYyyyMmDdStr, EXTENSION);
+            fileName = getFileName(userType, apiCode, dateYyyyMmDdStr, EXTENSION);
         }
         Boolean bool = marketingCommonConfig.getShuHeTransferExtractIfUseQuasiTotalQuantity();
         if (bool != null && bool) {
@@ -320,8 +327,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 }
                 writerFile(apiCode, userType, list, transferFileTask, writer, f);
             }
-            transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
-                    .concat("_") + transferFileTask.getContextId());
+            transferFileTask.setBatchNumber(getFileName(userType, apiCode, dateYyyyMmDdStr
+                    , "_" + transferFileTask.getContextId()));
             transferFileTask.setStatus(2);
             transferFileTaskMapper.insertSelective(transferFileTask);
         } catch (IOException e) {
