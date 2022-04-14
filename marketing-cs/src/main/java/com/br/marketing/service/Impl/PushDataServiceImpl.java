@@ -8,6 +8,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -148,13 +149,14 @@ public class PushDataServiceImpl implements PushDataService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
-            List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
+            List<DassBatchImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 DassImportAdapDTO dto = new DassImportAdapDTO();
                 dto.setInterfaceExtendInfo(id.toString());
-                dto.setList(phoneSales);
+                List<DassImportDataDTO> collect = phoneSales.stream().map(t -> (DassImportDataDTO) t).collect(Collectors.toList());
+                dto.setList(collect);
                 minId = phoneSale.getId();
                 threadPool.submit(() -> {
                     Result result = dassServiceClient.postHermesUserData(dto);

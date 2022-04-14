@@ -168,6 +168,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             //endregion
 
             final String _tApicode = apiCode;
+            String pushUid = UUID.randomUUID().toString();
             threadPool.submit(() -> {
                 try {
                     //region 获取7天实时和60天非实时 推送记录
@@ -235,7 +236,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                             long distanceDays = DateHelper
                                     .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData())+1;
-                            if(distanceDays>=30 && distanceDays<=60){
+                            if(distanceDays>30 && distanceDays<=60){
                                 dataFilter2.add(transferSyncUser);
                                 continue;
                             }
@@ -255,7 +256,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         }
                     }
                     if (log.isInfoEnabled()) {
-                        log.info(String.format("黑名单查询：%s", JSON.toJSONString(blackData)));
+                        log.info(String.format("黑名单查询 pushUid：%s,黑名单数据：%s",pushUid, JSON.toJSONString(blackData)));
                     }
                     //endregion
 
@@ -278,8 +279,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 //                    mq.setIncludeRules();
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
-                        if (log.isInfoEnabled()) {
-                            log.info(String.format("推送非实时电销：%s", mqStr));
+                        if (log.isWarnEnabled()) {
+                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s",pushUid, mqStr));
                         }
                     }
                     //endregion
@@ -304,6 +305,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
+
 
     /**
      * 推送非实时数据到客服
