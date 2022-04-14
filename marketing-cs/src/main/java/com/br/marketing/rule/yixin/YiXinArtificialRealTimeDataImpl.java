@@ -16,6 +16,7 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -69,17 +70,16 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
-        if (!StringUtils.isEmpty(marketingSyncUser)){
-            batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer,marketingSyncUser));
-            batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer,marketingSyncUser));
-        }
+        BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer,marketingSyncUser));
+        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer,marketingSyncUser));
         return batchRealTimeUserDataDTO;
+
     }
 
     private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, MarketingSyncUser marketingSyncUser) {
@@ -177,7 +177,19 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
                 notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             }
             Integer isDelay = context.getMqFact().getIsDelay();
+            Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
+            MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
             boolean messageDelay = isDelay != null && isDelay == 1 ;
+            if (marketingSyncUser == null) {
+                log.warn("上传表记录不存在 --{} ", transfer.getCustNum());
+                return false;
+            }else{
+                String decode = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+                if (StringUtils.isEmpty(decode)){
+                    log.warn("手机号解密失败 --{} ", transfer.getCustNum());
+                    return false;
+                }
+            }
             /*
             满足条件立即推送
                 1、不满足客服黑名单
