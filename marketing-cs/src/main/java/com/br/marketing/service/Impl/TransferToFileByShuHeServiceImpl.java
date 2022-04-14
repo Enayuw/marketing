@@ -302,10 +302,13 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filePtah, false), StandardCharsets.UTF_8))) {
             final boolean booLType = "促复借".equals(userType);
+            BiFunction<MarketingTransferSyncUser, Map<String, Object>, String> f;
             if (booLType) {
                 writer.write(TABLE_HEADER_CUFUJIE.concat("\r\n"));
+                f = (transfer, creatTimeMap) -> tableCuFuJie(transfer, creatTimeMap, separator, defaultValue);
             } else {
                 writer.write(TABLE_HEADER.concat("\r\n"));
+                f = (transfer, creatTimeMap) -> table(transfer, creatTimeMap, separator, defaultValue);
             }
             writer.flush();
             while (list == null || list.size() == pageSize) {
@@ -315,11 +318,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 if (list.size() < 1) {
                     break;
                 }
-                writerFile(apiCode, userType, list, transferFileTask, writer
-                        , booLType ? ((transfer, creatTimeMap) ->
-                                tableCuFuJie(transfer, creatTimeMap, separator, defaultValue))
-                                : ((transfer, creatTimeMap) ->
-                                table(transfer, creatTimeMap, separator, defaultValue)));
+                writerFile(apiCode, userType, list, transferFileTask, writer, f);
             }
             transferFileTask.setBatchNumber(String.format(fileNameDefault, apiCode, "", dateYyyyMmDdStr)
                     .concat("_") + transferFileTask.getContextId());
