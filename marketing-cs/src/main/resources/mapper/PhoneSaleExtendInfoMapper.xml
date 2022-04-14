@@ -20,7 +20,8 @@
         (
         select cust_num,max(applet_date) as applet_date
         from b_phone_sale_extend_info
-        where cust_num in
+        where api_code = #{apiCode}
+          and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
@@ -29,7 +30,7 @@
         group by cust_num
         ) as a
         left join b_phone_sale_extend_info b on a.cust_num = b.cust_num and a.applet_date = b.applet_date
-        where b.p_status = 2 and b.transform_type = #{transferType}
+        where b.api_code = #{apiCode} and b.p_status = 2 and b.transform_type = #{transferType}
     </select>
 
     <select id="getDxRecordLastTwo" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
@@ -37,7 +38,7 @@
         (
         select cust_num,max(applet_date) as applet_date
         from b_phone_sale_extend_info
-        where p_status = 2
+        where api_code = #{apiCode} and p_status = 2
         and transform_type = #{transferType} and
         <foreach collection="custNumAndApplets" item="custNumAndApplet" open="(" separator="or" close=")">
             <![CDATA[ (cust_num = #{custNumAndApplet.custNum} and applet_date < #{custNumAndApplet.appletDate})]]>
@@ -45,7 +46,7 @@
         group by cust_num
         ) as a
         left join b_phone_sale_extend_info b on a.cust_num = b.cust_num and a.applet_date = b.applet_date
-        where b.p_status = 2 and b.transform_type = #{transferType}
+        where b.api_code = #{apiCode} and b.p_status = 2 and b.transform_type = #{transferType}
     </select>
 <!--    <select id="getDxRecordLastTwo" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">-->
 <!--        select-->

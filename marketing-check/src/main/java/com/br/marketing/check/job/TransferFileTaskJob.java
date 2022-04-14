@@ -32,7 +32,7 @@ import java.util.List;
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
-    @Resource
+    @Autowired
     MarketingCustomerMapper customerMapper;
     
     @Resource

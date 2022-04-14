@@ -135,7 +135,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         String tcId = tableCreateService.getTcId(apiCode);
+        Integer threadvalue = 0;
         while (mark) {
+            threadvalue++;
+            final Integer _threadValue = threadvalue;
             Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
             if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
@@ -169,6 +172,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
             final String _tApicode = apiCode;
             String pushUid = UUID.randomUUID().toString();
+
             threadPool.submit(() -> {
                 try {
                     //region 获取7天实时和60天非实时 推送记录
@@ -250,6 +254,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     HashMap<String, String> blackData = new HashMap<>();
                     List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
                     for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
+                        //todo 上线删除
+                        if(log.isWarnEnabled()){
+                            List<Long> collect = marketingTransferSyncUsers.stream().map(t -> t.getId()).collect(Collectors.toList());
+                            log.warn(String.format("黑名单查询 pushUid：%s,线程数：%d,黑名单数据：%s",pushUid,_threadValue, JSON.toJSONString(collect)));
+                        }
                         Result<Map<String, String>> result = iDxService.getBlackByTransfer(marketingTransferSyncUsers, _tApicode);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             blackData.putAll(result.getData());
