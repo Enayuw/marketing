@@ -51,16 +51,22 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode) {
+    public PageResultReturn getCustomerList(int page, int pageSize, String name, String apiCode,String accountType,String accountStatus) {
         PageHelper.startPage(page, pageSize);
         try {
             MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
             MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
             if(apiCode!=null){
-                criteria.andApiCodeLike(apiCode);
+                criteria.andApiCodeEqualTo(apiCode);
             }
-            if(cid!=null){
-                criteria.andCidLike(cid);
+            if(name!=null){
+                criteria.andNameLike("%"+name+"%");
+            }
+            if(accountType!=null){
+                criteria.andAccountTypeEqualTo(Byte.valueOf(accountType));
+            }
+            if(accountStatus!=null){
+                criteria.andAccountStatusEqualTo(Byte.valueOf(accountStatus));
             }
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
             return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);

@@ -71,7 +71,7 @@ public class MerchantParam {
      * 账号状态：0禁用 1启用
      */
     @JSONField(name = "account_status")
-    private String accountSstatus;
+    private String accountStatus;
 
     /**
      * 测试开始时间
