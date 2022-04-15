@@ -367,7 +367,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 continue;
             }
             Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(
-                    Date.from(LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant())
+                    Date.from(appointTime == null
+                            ? LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant()
+                            : appointTime.atZone(ZoneId.systemDefault()).toInstant())
                     , transferFileTask.getFileType(), (Date) creatTime);
             if (periodOfValidity) {
                 transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
