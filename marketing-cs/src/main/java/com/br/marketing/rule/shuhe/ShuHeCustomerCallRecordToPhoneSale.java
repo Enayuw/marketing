@@ -53,7 +53,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        log.warn("符合情况b推电销规则，callrecord数据id为{}",dto.getId());
+        log.warn("符合推电销规则，callrecord数据id为{}",dto.getId());
         Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -83,7 +83,19 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         String s = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
         dassSingleImportDataDTO.setPhone(s);//b_marketing_sync_{apicode}的cell，明文
         dassSingleImportDataDTO.setName("1");
+        dassSingleImportDataDTO.setPrioritySymbol("2");
+        Map extendMap = new HashMap();
+        extendMap.put("face_recognitiion","0");
+        extendMap.put("is_usr_idt","0");
+        extendMap.put("is_bindcard","0");
+        extendMap.put("is_usr_inf","0");
+        extendMap.put("is_usr_lst_app_sta_tim","0");
+        extendMap.put("typeSign","2");
         if("促申完".equals(dto.getUserType())){
+            if("B".equals(dto.getDetail().getIntentionGrade())){
+                dassSingleImportDataDTO.setPrioritySymbol("3");
+                extendMap.put("typeSign","3");
+            }
             dassSingleImportDataDTO.setOrgname("shuheshenwan");
             dassSingleImportDataDTO.setSource("16");
             dassSingleImportDataDTO.setUserType("2");
@@ -94,15 +106,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
         }
-        dassSingleImportDataDTO.setPrioritySymbol("2");
         dassSingleImportDataDTO.setUid(dto.getCaseNum());
-        Map extendMap = new HashMap();
-        extendMap.put("face_recognitiion","0");
-        extendMap.put("is_usr_idt","0");
-        extendMap.put("is_bindcard","0");
-        extendMap.put("is_usr_inf","0");
-        extendMap.put("is_usr_lst_app_sta_tim","0");
-        extendMap.put("typeSign","2");
         if(marketingTransferSyncUser!=null){
             if(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
                 JSONObject json = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
