@@ -26,10 +26,23 @@
     </select>
 
     <select id="getTransferOrderInsertTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select * from
-            b_marketing_transfer_sync_${cid}
-        where request_data=#{data}
-        order by insert_time desc limit #{limitStart},5000;
+        select *
+        from b_marketing_transfer_sync_${cid}
+        where request_data = #{data}
+        order by insert_time desc limit #{limitStart}, 5000;
+    </select>
+
+    <select id="findShuHeTransferList" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t1.* from b_marketing_transfer_sync_${tCid} t1 , (select id from b_marketing_transfer_sync_${tCid} where
+        <choose>
+            <when test="sqlPart != null and sqlPart.trim() neq ''">
+                ${sqlPart}
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        ) t2 where t1.id = t2.id
     </select>
 
 </mapper>

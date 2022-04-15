@@ -7,7 +7,6 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -286,10 +285,17 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         Date lastDateTime = Date.from(last.withHour(23).withMinute(59).withSecond(59).withNano(0)
                 .atZone(ZoneId.systemDefault()).toInstant());
         // 生成检索条件
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andCreateTimeBetween(firstDateTime, lastDateTime).andApiCodeEqualTo(apiCode)
-                .andUserTypeEqualTo(userType);
-        example.settCid(setCid(apiCode));
+        final String tCid = setCid(apiCode);
+        int pageSize = 2000;
+        String pattern = "yyyy-MM-dd HH:mm:ss";
+        String sqlPart = String.format("(api_code = '%s'\n" +
+                        " AND user_type = '%s'\n" +
+                        " AND create_time BETWEEN '%s'\n" +
+                        " AND '%s')\n" +
+                        " ORDER BY\n" +
+                        " id ASC\n" +
+                        " LIMIT %s, %s", apiCode, userType, DateUtils.format(firstDateTime, pattern)
+                , DateUtils.format(lastDateTime, pattern), "%s", pageSize);
         List<MarketingTransferSyncUser> list = null;
         String fileDirectory = path.concat(apiCode).concat(File.separator)
                 .concat(dateYyyyMmDdStr).concat(File.separator);
@@ -303,7 +309,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         transferFileTask.setFilePath(fileDirectory);
         transferFileTask.setFileName(fileName);
         int page = 0;
-        int pageSize = 2000;
         String separator = ",";
         String defaultValue = "";
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
@@ -319,9 +324,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             }
             writer.flush();
             while (list == null || list.size() == pageSize) {
-                example.setOrderByClause(String.format("id ASC LIMIT %s,%s", (page * pageSize), pageSize));
+                list = marketingTransferSyncUserMapper.findShuHeTransferList(tCid
+                        , String.format(sqlPart, (page * pageSize)));
                 page++;
-                list = marketingTransferSyncUserMapper.selectByExample(example);
                 if (list.size() < 1) {
                     break;
                 }

@@ -23,6 +23,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     /**
      * 根据cust_num获取1小时内最新数据
+     *
      * @param cid
      * @param caseNum
      * @param timeAddHour
@@ -30,5 +31,16 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
 
-    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 数禾转化数据提取，按场景
+     *
+     * @param tCid    cid
+     * @param sqlPart sql片段
+     * @return {@link MarketingTransferSyncUser}
+     * @author Guo Zeqiang
+     * @dateTime 2022/4/15 11:43
+     */
+    List<MarketingTransferSyncUser> findShuHeTransferList(@Param("tCid") String tCid, @Param("sqlPart") String sqlPart);
 }
