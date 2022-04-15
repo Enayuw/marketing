@@ -43,14 +43,11 @@ public class YiQianBaoService {
     @Autowired
     HttpProxyClient httpProxyClient;
 
-
     public Result<ResponseYqbDTO> pushMarketingData(YqbDetailVo yqbDetailVo) {
         try {
-            JSONObject jsonParam = new JSONObject();
-            jsonParam.put("userInfoList",yqbDetailVo.getUserInfoList());
-            log.warn("壹钱包明文参数 para={}",JSON.toJSONString(jsonParam));
+            log.warn("壹钱包明文参数 para={}", JSON.toJSONString(yqbDetailVo));
             RequestYqbDTO requestYqbDTO = new RequestYqbDTO();
-            requestYqbDTO.setBizContent(RSAUtil.encrypt(JSON.toJSONString(jsonParam), yqbPubKey));
+            requestYqbDTO.setBizContent(RSAUtil.encrypt(JSON.toJSONString(yqbDetailVo), yqbPubKey));
             requestYqbDTO.setReqSeqNo(UUID.randomUUID().toString());
             requestYqbDTO.setSign(getRequestSign(requestYqbDTO, salt));
             HashMap<String, String> response = httpProxyClient.sendByCode(requestYqbDTO
@@ -83,6 +80,5 @@ public class YiQianBaoService {
         return SignUtil.getSign(plainContent, salt);
 
     }
-
 
 }
