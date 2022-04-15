@@ -360,6 +360,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(2);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(result)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -437,6 +439,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(3);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(dae)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -547,6 +551,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(4);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(hist)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -698,6 +704,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(1);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信实时数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
