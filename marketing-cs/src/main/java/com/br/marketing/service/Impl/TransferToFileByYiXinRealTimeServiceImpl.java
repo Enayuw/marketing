@@ -101,7 +101,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             execute = " " + marketingCommonConfig.getYinXinTransferNoRealTimeExecuteTime();
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
-        if (true) {
+        if (now.after(executeTime)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             //非实时数据提取规（type=19）fileType=2
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
