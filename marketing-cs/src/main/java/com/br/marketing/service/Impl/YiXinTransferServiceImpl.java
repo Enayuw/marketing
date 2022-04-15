@@ -29,6 +29,7 @@ import org.joda.time.Hours;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -88,6 +89,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
 
     @Override
+    @Transactional
     public Result actionYiXinToDx(String apiCode, String date) {
 
         if (StringUtils.isBlank(date)) {
