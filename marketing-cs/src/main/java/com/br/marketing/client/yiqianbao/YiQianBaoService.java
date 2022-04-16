@@ -10,8 +10,11 @@ import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.client.yiqianbao.output.ResponseYqbDTO;
 import com.br.marketing.client.yiqianbao.utils.RSAUtil;
 import com.br.marketing.client.yiqianbao.utils.SignUtil;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -43,6 +48,8 @@ public class YiQianBaoService {
     @Autowired
     HttpProxyClient httpProxyClient;
 
+    public static final List<String> RESULT_CODE = Lists.newArrayList("000000", "465001", "465002", "465003", "465004", "465005", "465999");
+
     public Result<ResponseYqbDTO> pushMarketingData(YqbDetailVo yqbDetailVo) {
         try {
             log.warn("壹钱包明文参数 para={}", JSON.toJSONString(yqbDetailVo));
@@ -58,6 +65,9 @@ public class YiQianBaoService {
             String code = response.get("httpcode");
             if ("200".equals(code)) {
                 JSONObject jsonResult = JSONObject.parseObject(response.get("content"));
+                if (!RESULT_CODE.contains(jsonResult.getString("respCode"))) {
+                    return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                }
                 if (!"000000".equals(jsonResult.getString("respCode"))) {
                     log.error(String.format("调用壹钱包返回状态码异常：%s", response.get("content")));
                     return new Result().setCode(ResultCode.FAIL.getValue());
@@ -70,7 +80,7 @@ public class YiQianBaoService {
             }
         } catch (Exception ex) {
             log.error(String.format("调用壹钱包接口异常：%s", ex.getMessage()), ex);
-            return new Result().setCode(ResultCode.FAIL.getValue());
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 
