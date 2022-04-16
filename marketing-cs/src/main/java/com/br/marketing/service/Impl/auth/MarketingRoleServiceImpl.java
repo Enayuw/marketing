@@ -1,15 +1,12 @@
 package com.br.marketing.service.Impl.auth;
 
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.auth.*;
 import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingRoleResourceMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingRoleService;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

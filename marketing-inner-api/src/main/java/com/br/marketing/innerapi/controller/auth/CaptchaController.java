@@ -52,7 +52,7 @@ public class CaptchaController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<JSONObject> captcha(HttpSession session) {
         //定义图形验证码的长、宽、验证码字符数、干扰元素个数
-        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(206, 41, 4, 20);
+        CircleCaptcha captcha = CaptchaUtil.createCircleCaptcha(206, 41, 4, 0);
         String code = captcha.getCode();
         String image = captcha.getImageBase64();
         JSONObject jsonObject = new JSONObject();

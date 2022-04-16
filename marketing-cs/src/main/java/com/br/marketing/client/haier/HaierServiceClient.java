@@ -78,14 +78,14 @@ public class HaierServiceClient {
     public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData, int retr) throws Exception {
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
-        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
+//        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
         PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
-        log.warn("&&发送内容：[{}]", pushDTO);
+//        log.warn("&&发送内容：[{}]", pushDTO);
         final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
-            log.warn("%%应答内容：[{}]", respStr);
+//            log.warn("%%应答内容：[{}]", respStr);
             if (StringUtils.isEmpty(respStr)) {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
                 return result;

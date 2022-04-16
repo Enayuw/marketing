@@ -11,6 +11,7 @@ public class TransferJsonDataDTO {
     private List<ConversionData> conversionData;
     private String method;
     private String platApiCode;
+    private String last;
 
     public TransferJsonDataDTO() {
     }
@@ -19,5 +20,12 @@ public class TransferJsonDataDTO {
         this.accessNumber = UUID.randomUUID().toString();
         this.conversionData = conversionData;
         this.method = "conversionData";
+    }
+
+    public TransferJsonDataDTO(List<ConversionData> conversionData, String last) {
+        this.accessNumber = UUID.randomUUID().toString();
+        this.conversionData = conversionData;
+        this.method = "conversionData";
+        this.last = last;
     }
 }

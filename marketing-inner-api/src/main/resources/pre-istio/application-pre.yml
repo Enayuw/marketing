@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-        url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+        url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
         password: M6teKbFVl1odfOCkC1JA
         type: com.alibaba.druid.pool.DruidDataSource
@@ -37,14 +37,14 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-flow-default
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-flow-default
     listener:
       retry:
         enabled: true
@@ -118,9 +118,12 @@ api:
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
         apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true'}"
+  productManagement:
+    url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-job
+NAMESPACE: marketing-job-default
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3

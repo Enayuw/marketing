@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.TxtToDbDTO;
+import com.br.marketing.entity.LocalFile;
 
 public interface ITxtToDbService {
     Result TwoSevenToDb(TxtToDbDTO content);
@@ -32,4 +33,8 @@ public interface ITxtToDbService {
      * @dateTime 2021/12/20 9:30
      */
     Result phoneTodbByJuZi(TxtToDbDTO content);
+
+    Result phoneTodbByYiXin(TxtToDbDTO content);
+
+    Result<Integer> phoneTodbByYiXinAfterAction(LocalFile file);
 }

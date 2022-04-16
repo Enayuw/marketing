@@ -3,18 +3,26 @@ package com.br.marketing.check.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.*;
+import com.br.marketing.client.robotaiapi.output.RepQueryBlackPhoneVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.RetryTestService;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -37,6 +45,9 @@ public class DataController {
 
     @Autowired
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @GetMapping("testApiToDb")
     public String testApiToDb(@RequestParam("apiCode") String apiCode){
@@ -93,8 +104,8 @@ public class DataController {
     RetryTestService retryTestService;
 
     @GetMapping("retryAop")
-    public String retryAop(){
-        retryTestService.ret(1,null);
+    public String retryAop(@RequestParam("isRetry") Integer isRetry){
+        retryTestService.ret(isRetry,null);
         return "success";
     }
 
@@ -112,6 +123,30 @@ public class DataController {
         Result result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
         log.warn("调用人工实时推送用户返回 -- {}", JSON.toJSONString(result));
         return "success";
+    }
+
+    @GetMapping("getRobotBlackPhoneTest")
+    public String getRobotBlackPhoneTest() {
+        ReqBlackPhoneQueryDTO reqBlackPhoneQueryDTO = new ReqBlackPhoneQueryDTO();
+        BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
+        blackQueryDetailDTO.setDataId("223412376");
+        blackQueryDetailDTO.setApiCode("7410785");
+        blackQueryDetailDTO.setPhone("CQ1WBAVUAVΒ4cCDQg");
+        blackQueryDetailDTO.setEncryptType(PhoneEncryptTypeEnum.LOG_TYPE.getEncryptType());
+        List blackQueryDetailDTOList = Lists.newArrayList(blackQueryDetailDTO);
+        BlackPhoneDTO<BlackQueryDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("queryBlackDataV2");
+        jsondata.setData(blackQueryDetailDTOList);
+        ReqBlackPhoneDTO reqBlackPhoneDTO = new ReqBlackPhoneDTO();
+        reqBlackPhoneDTO.setApiCode("7410785");
+        reqBlackPhoneDTO.setJsonData(JSON.toJSONString(jsondata));
+//        reqBlackPhoneQueryDTO.setReqBlackPhoneDTO(reqBlackPhoneDTO);
+//        reqBlackPhoneQueryDTO.setBlackQueryDetailDTOList(blackQueryDetailDTOList);
+//        RepQueryBlackPhoneVO repQueryBlackPhoneVO = robotaiApiServiceClient.queryBlackPhone(reqBlackPhoneQueryDTO);
+//        log.warn(JSON.toJSONString(repQueryBlackPhoneVO));
+        return "success";
+
+
     }
 
 

@@ -65,7 +65,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
 
     @Override
     public String label() {
-        return "ShuHe_CallRecordData_PhoneSale";
+        return "ShuHe_CallRecordData_MessageDelay";
     }
 
     @Override

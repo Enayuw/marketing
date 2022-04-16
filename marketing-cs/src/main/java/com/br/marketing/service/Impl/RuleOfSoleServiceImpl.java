@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;

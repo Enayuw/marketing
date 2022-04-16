@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -14,6 +16,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -21,13 +24,16 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -47,6 +53,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Autowired
+    private RoboAIBlackPhoneMarkMapperBase roboAIBlackPhoneMarkMapper;
+
+    @Autowired
     private IMarketingSyncUserService iMarketingSyncUserService;
 
     @Autowired
@@ -63,6 +72,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Resource
     private DataLoadingHandlerService handlerService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
@@ -99,11 +111,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 return "success";
             }else {
                 callRecordMapper.insertSelective(callRecord);
-                //推mq
-                final MqFact mqFact = new MqFact();
-                mqFact.setSourceId(callRecord.getId());
-                mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                producter.sendToUniversalTransferQueue(mqFact);
+                if("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode()) || "7410785".equals(callRecord.getApiCode())){
+                    //推mq
+                    final MqFact mqFact = new MqFact();
+                    mqFact.setSourceId(callRecord.getId());
+                    mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    producter.sendToUniversalTransferQueue(mqFact);
+                }
+
             }
         }catch (Exception ex){
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId(),ex);
@@ -171,6 +186,41 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
         redisChgService.setex(key,"1",seconds);
         return true;
+    }
+
+    @Override
+    public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
+        String pushEndDate = "";
+        try {
+            pushEndDate = DateUtils.format(DateUtils.parse(pushDate, "yyyy-MM-dd HH:mm:ss"));
+        } catch (ParseException e) {
+            log.error("格式化日期错误", e);
+            return new ApiResult().fail("pushDate 格式化日期错误");
+        }
+        List<String> yiXinApiCode = marketingCommonConfig.getYiXinApiCode();
+        if (!CollectionUtils.isEmpty(yiXinApiCode) && yiXinApiCode.contains(apiCode)) {
+            RoboAIBlackPhoneMark roboAIBlackPhoneMark = new RoboAIBlackPhoneMark();
+            roboAIBlackPhoneMark.setApiCode(apiCode);
+            roboAIBlackPhoneMark.setPushEndTime(pushDate);
+            roboAIBlackPhoneMark.setCreateTime(new Date());
+            roboAIBlackPhoneMark.setPushEndDate(pushEndDate);
+            roboAIBlackPhoneMarkMapper.insertSelective(roboAIBlackPhoneMark);
+            return new ApiResult().setCode("00").setMessage("推送成功");
+        } else {
+            return new ApiResult().fail("非宜信的apiCode，请检查配置中心");
+        }
+    }
+
+    @Override
+    public Boolean isPushBlackPhoneEnd(String apiCode, String pushDate) {
+        Boolean isPushEnd = false;
+        RoboAIBlackPhoneMarkExample aiBlackPhoneMarkExample = new RoboAIBlackPhoneMarkExample();
+        aiBlackPhoneMarkExample.createCriteria().andApiCodeEqualTo(apiCode).andPushEndDateEqualTo(pushDate);
+        List<RoboAIBlackPhoneMark> roboAIBlackPhoneMarkList = roboAIBlackPhoneMarkMapper.selectByExample(aiBlackPhoneMarkExample);
+        if (!CollectionUtils.isEmpty(roboAIBlackPhoneMarkList)) {
+            isPushEnd = true;
+        }
+        return isPushEnd;
     }
 
     private String goShDX(CallRecordDTO dto) {

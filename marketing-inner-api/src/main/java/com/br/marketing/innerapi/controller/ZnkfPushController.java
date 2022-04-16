@@ -1,26 +1,15 @@
 package com.br.marketing.innerapi.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.br.common.util.DateUtils;
-import com.br.marketing.client.yiqianbao.YiQianBaoService;
-import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
-import com.br.marketing.client.yiqianbao.output.ResponseYqbDTO;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
-import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.Resource;
-import java.util.Date;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 智能客服推送接口
@@ -35,9 +24,6 @@ public class ZnkfPushController {
     @Autowired
     private ZnkfPushService znkfPushService;
 
-    @Resource
-    YiQianBaoService yiQianBaoService;
-
     @ApiOperation(value = "客服推送营销数据 回调接口")
     @PostMapping("/znkfPushCallBack")
     public String znkfPushCallBack(@RequestBody CallRecordDTO dto) {
@@ -49,19 +35,16 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "壹钱包营销数据推送接口")
-    @PostMapping("/yiqianbaoApiTest")
-    public String yiqianbaoApiTest(String phone,String outerApplyNo,String marketFlag) {
-        YqbDetailVo yqbDetailVo = new YqbDetailVo();
-        YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
-        userInfo.setDataTime(DateUtils.format(new Date(), "yyyyMMddHHmmss"));
-        userInfo.setMarketFlag(marketFlag);
-        userInfo.setOuterApplyNo(outerApplyNo);
-        userInfo.setPhoneMd5(phone);
-        yqbDetailVo.setUserInfoList(Lists.newArrayList(userInfo));
-        Result<ResponseYqbDTO> result = yiQianBaoService.pushMarketingData(yqbDetailVo);
-        log.warn("调用壹钱包接口result={}", JSON.toJSONString(result));
-        return "success";
+
+    @ApiOperation(value = "客服推送营销黑名单结束标识接口")
+    @PostMapping("/znkfPushBlackPhoneMark")
+    public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
+        try {
+            return znkfPushService.znkfPushBlackPhoneMark(apiCode,pushDate);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            throw ex;
+        }
     }
 
 

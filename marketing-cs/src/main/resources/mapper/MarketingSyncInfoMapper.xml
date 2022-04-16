@@ -219,4 +219,12 @@
         </choose>
     </select>
 
+    <select id="getTaskIdByCustNumNotLikeUpload" resultType="java.lang.String">
+        select cus_batch
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+            and cus_batch not like concat("%", "_upload")
+        order by create_time desc limit 1
+    </select>
+
 </mapper>
