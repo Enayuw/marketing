@@ -824,7 +824,7 @@ public class PushDataServiceImpl implements PushDataService {
                 updatePushStatus(pushList);
             });
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
