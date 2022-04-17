@@ -116,6 +116,9 @@ api:
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
         apiCodeMap: "{'3710012':'true','7410846':'true','7410787':'true','7410784':'true'}"
+  productManagement:
+    url: http://production.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production.100credit.com/api/getProductionTypes.do
 #elastic-job配置
 SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
 NAMESPACE: marketing-job
