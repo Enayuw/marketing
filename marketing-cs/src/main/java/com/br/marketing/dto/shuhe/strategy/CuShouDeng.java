@@ -18,8 +18,14 @@ import java.util.Map;
  * @dateTime 2022/2/10 17:33
  */
 public class CuShouDeng extends IUserType {
+
+    public CuShouDeng(String... api2Codes) {
+        super(api2Codes);
+        super.apiCodes.add("3710004");
+    }
+
     @Override
-    public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
+    void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
         caseUser.setClcUsrFstLogTimAll(dataItem.getOrDefault("clc_usr_fst_log_tim_all", ""));
     }
 

@@ -8,12 +8,21 @@ import java.util.Date;
 import java.util.Map;
 
 /**
+ * 促复借 场景
+ *
  * @author Guo Zeqiang
- * @dateTime 2022/2/11 14:09
+ * @dateTime 2022/4/12 15:14
  */
-public class UnknownUserType extends IUserType {
+public class CuFuJie extends IUserType {
+
+    public CuFuJie(String... api2Codes) {
+        super(api2Codes);
+        super.apiCodes.add("3710043");
+    }
+
     @Override
     void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
+
     }
 
     @Override
@@ -22,8 +31,7 @@ public class UnknownUserType extends IUserType {
     }
 
     @Override
-    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser
-            , IMarketingSyncUserService iMarketingSyncUserService, Date creatTime) {
+    public boolean dataPeriodOfValidity(CaseShuheUser caseShuheUser, IMarketingSyncUserService iMarketingSyncUserService, Date creatTime) {
         return false;
     }
 
@@ -33,23 +41,23 @@ public class UnknownUserType extends IUserType {
     }
 
     @Override
-    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
-            , Date tCreatTime, Date creatTime) {
+    public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService, Date tCreatTime, Date creatTime) {
         return false;
     }
 
     @Override
     public String getBlackExpireDate(Date creatTime) {
-        return "";
+        return null;
     }
 
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
-        return true;
+        return false;
     }
 
     @Override
     public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
+
     }
 
     @Override
