@@ -3865,6 +3865,76 @@ public class PhoneSaleExample {
             return (Criteria) this;
         }
 
+        public Criteria andPrioritysymbolIsNull() {
+            addCriterion("prioritySymbol is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolIsNotNull() {
+            addCriterion("prioritySymbol is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolEqualTo(String value) {
+            addCriterion("prioritySymbol =", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolNotEqualTo(String value) {
+            addCriterion("prioritySymbol <>", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolGreaterThan(String value) {
+            addCriterion("prioritySymbol >", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolGreaterThanOrEqualTo(String value) {
+            addCriterion("prioritySymbol >=", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolLessThan(String value) {
+            addCriterion("prioritySymbol <", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolLessThanOrEqualTo(String value) {
+            addCriterion("prioritySymbol <=", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolLike(String value) {
+            addCriterion("prioritySymbol like", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolNotLike(String value) {
+            addCriterion("prioritySymbol not like", value, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolIn(List<String> values) {
+            addCriterion("prioritySymbol in", values, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolNotIn(List<String> values) {
+            addCriterion("prioritySymbol not in", values, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolBetween(String value1, String value2) {
+            addCriterion("prioritySymbol between", value1, value2, "prioritysymbol");
+            return (Criteria) this;
+        }
+
+        public Criteria andPrioritysymbolNotBetween(String value1, String value2) {
+            addCriterion("prioritySymbol not between", value1, value2, "prioritysymbol");
+            return (Criteria) this;
+        }
+
         public Criteria andExtendIsNull() {
             addCriterion("extend is null");
             return (Criteria) this;

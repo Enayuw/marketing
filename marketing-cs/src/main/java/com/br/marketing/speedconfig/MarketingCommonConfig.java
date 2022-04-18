@@ -2,7 +2,6 @@ package com.br.marketing.speedconfig;
 
 
 import com.br.speed.client.common.annotations.SpeedFile;
-import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
@@ -109,5 +108,35 @@ public class MarketingCommonConfig {
      * 宜信实时转化数据执行时间
      */
     private String yinXinTransferRealTimeExecuteTime;
+
+    /**
+     * 宜信非实时转化数据执行时间
+     */
+    private String yinXinTransferNoRealTimeExecuteTime;
+
+    /**
+     * 是否开启宜信非实时数据提取
+     */
+    private Boolean isOpenYinXinTransferNoRealTimeExtract;
+
+    /**
+     * 宜信非实时typelist
+     */
+    private List<String> yixinNoRealTimeType;
+
+    /**
+     * 宜信非实时推客服typelist
+     */
+    private List<String> yixinNoRealTimePushRobotAIType;
+
+    /**
+     * 电销文件定制化处理
+     */
+    private HashMap<String, List<String>> dxFileCustomize;
+
+    /**
+     * 宜信apicode
+     */
+    private List<String> yiXinApiCode;
 
 }

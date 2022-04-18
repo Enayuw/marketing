@@ -1,0 +1,73 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+         url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         username: u_pd_marketing
+         password: M6teKbFVl1odfOCkC1JA
+         type: com.alibaba.druid.pool.DruidDataSource
+         driver-class-name: com.mysql.jdbc.Driver
+         filters: stat
+         maxActive: 300
+         initialSize: 1
+         maxWait: 60000
+         minIdle: 1
+         timeBetweenEvictionRunsMillis: 60000
+         minEvictableIdleTimeMillis: 300000
+         validationQuery: select 'x'
+         testWhileIdle: true
+         testOnBorrow: false
+         testOnReturn: false
+         poolPreparedStatements: true
+         maxOpenPreparedStatements: 20
+  config:
+        sharding:
+          props:
+            sql.show: true
+logging:
+    level:
+        com.br.off.mapper: info
+    file: ./logs/core.log
+    root: INFO
+otherConfig:
+  huaXiangInterface:
+        getReport: http://batch-hxapi.100credit.cn/batch-hxapi/v1/get_report
+  sanxiangzhiliInterface:
+        sanxiang_url: http://zh-service/v1/getData
+        haina_url: http://HAINA-SERVICE/query
+  alarm:
+        secretKey: a9c57e4138807a9e18b439cd9dab275b
+        appName: marketing
+        outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+        outsideAppName: marketing-out
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  warning:
+        pageSize: 1000
+        apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
+        path: /opt/data/inloan/download/marketing
+        ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
+  mom:
+      appSecretKey: d42726322ba9bda57b74043be21aa2c4
+spring:
+  rabbitmq:
+    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+    username: strategy_distribute
+    password: strategy_distribute
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow
+
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-job-default
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+
+# 用来测试配置文件是否加载正确
+myenv: pre

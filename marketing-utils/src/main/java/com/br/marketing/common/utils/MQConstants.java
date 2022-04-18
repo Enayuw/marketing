@@ -37,7 +37,10 @@ public class MQConstants {
 
     //通用转化处理队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
+    //通用转化业务静置队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing_Universal_Transfer_Receive_Delay";
+    //通用转化错误重试延迟队列
+    public static final String MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing_Universal_Transfer_Error_Delay";
 
     /**
      * routingkey
@@ -61,7 +64,9 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing.queue.push.transfer.haier";
     //通用转化处理队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
-    //通用转化处理延迟队列
+    //通用转化业务静置处理延迟队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing.Universal.Transfer.Receive.Delay";
+    //通用转化错误重试延迟队列
+    public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing.Universal.Transfer.Error.Delay";
 
 }

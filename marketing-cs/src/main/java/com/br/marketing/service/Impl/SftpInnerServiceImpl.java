@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,8 @@ public class SftpInnerServiceImpl {
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
-            String uploadPath = upLoadPath.concat(apiCode).concat("/transferOutPut/").concat(endDate);
+            String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? transferFileTask.getFileChildDir()+"/" : "";
+            String uploadPath = upLoadPath.concat(apiCode).concat("/transferOutPut/").concat(childDir).concat(endDate);
             String fileAllPath = transferFileTask.getFilePath().concat(transferFileTask.getFileName());
             String successAllPath = fileAllPath.concat(".success");
             String successFileName = transferFileTask.getFileName().concat(".success");

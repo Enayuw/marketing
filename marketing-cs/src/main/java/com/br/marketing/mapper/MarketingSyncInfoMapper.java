@@ -136,4 +136,11 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     @MapKey("custNum,creatTime,taskId")
     List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode
             , @Param("custNums") Set<String> custNums, @Param("userType") String userType);
+    /**
+     * 获取cust_num notLike upload的最新数据的taskId
+     * @param apiCode
+     * @param custNum
+     * @return
+     */
+    String getTaskIdByCustNumNotLikeUpload(@Param("apiCode")String apiCode, @Param("custNum")String custNum);
 }
