@@ -397,7 +397,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 //实时数据transformType非1
                 if ((StringUtils.isEmpty(reserveField1.getString("transformType"))) || (!"1".equals(reserveField1.getString("transformType")))) {
-                    if (!"4".equals(marketingTransferSyncUser.getType()) || !"15".equals(marketingTransferSyncUser.getType())) {
+                    if (!"4".equals(marketingTransferSyncUser.getType()) && !"15".equals(marketingTransferSyncUser.getType())) {
                         custNumFilterType.add(marketingTransferSyncUser.getCustNum());
                         continue;
                     }
@@ -477,7 +477,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 //实时数据transformType非1
                 if ((StringUtils.isEmpty(reserveField1.getString("transformType"))) || (!"1".equals(reserveField1.getString("transformType")))) {
-                    if (!"7".equals(marketingTransferSyncUser.getType()) || !"8".equals(marketingTransferSyncUser.getType()) || !"15".equals(marketingTransferSyncUser.getType())) {
+                    if (!"7".equals(marketingTransferSyncUser.getType()) && !"8".equals(marketingTransferSyncUser.getType()) && !"15".equals(marketingTransferSyncUser.getType())) {
                         custNumFilterType.add(marketingTransferSyncUser.getCustNum());
                         continue;
                     }
