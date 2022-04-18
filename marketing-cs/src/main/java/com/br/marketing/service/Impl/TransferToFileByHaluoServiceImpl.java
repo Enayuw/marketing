@@ -176,6 +176,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
                 String marketingSyncKey = phoneSaleExtendHaluo.getTaskId().concat("_").concat(phoneSaleExtendHaluo.getCustNum());
                 String cell = "";
                 String groupType = "";
+                String taskId = phoneSaleExtendHaluo.getTaskId();
                 if (!CollectionUtils.isEmpty(marketingSyncMap.get(marketingSyncKey))) {
                     cell = marketingSyncMap.get(marketingSyncKey).get(CELL);
                     groupType = marketingSyncMap.get(marketingSyncKey).get(GROUP_TYPE);
@@ -184,7 +185,12 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
                 sb.append(phoneSaleExtendHaluo.getCustNum().concat(","));
                 sb.append(cell.concat(","));
                 sb.append(groupType.concat(","));
-                sb.append(phoneSaleExtendHaluo.getTaskId().concat(","));
+                if (taskId.endsWith("upload")) {
+                    String taskIdBySyncInfo = marketingSyncInfoMapper.getTaskIdByCustNumNotLikeUpload(apiCode, phoneSaleExtendHaluo.getCustNum());
+                    sb.append((StringUtils.isNotEmpty(taskIdBySyncInfo) ? taskIdBySyncInfo : "").concat(","));
+                } else {
+                    sb.append(taskId.concat(","));
+                }
                 sb.append(DateUtils.format(phoneSaleExtendHaluo.getCreateTime(), DateHelper.LINE_DATE_COLON_TIME_FORMAT).concat(","));
                 sb.append(phoneSaleExtendHaluo.getStatus().concat(","));
                 sb.append(phoneSaleExtendHaluo.getAppletTime());

@@ -8,6 +8,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -60,22 +61,22 @@ public class PushDataServiceImpl implements PushDataService {
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
-    @Autowired
+    @Resource
     PhoneSaleMapper phoneSaleMapper;
 
-    @Autowired
+    @Resource
     TwosevenFileMapper twosevenFileMapper;
 
     @Autowired
     DassServiceClient dassServiceClient;
 
-    @Autowired
+    @Resource
     RetryMainLogMapper retryMainLogMapper;
 
     @Autowired
     RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
 
     @Resource
@@ -108,16 +109,16 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MarketingApiService marketingApiService;
 
-    @Autowired
+    @Resource
     HaierDataMapper haierDataMapper;
 
-    @Autowired
+    @Resource
     HaierReqMapper haierReqMapper;
 
     @Autowired
     HaierServiceClient haierServiceClient;
 
-    @Autowired
+    @Resource
     PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
 
     @Autowired
@@ -148,13 +149,14 @@ public class PushDataServiceImpl implements PushDataService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
-            List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
+            List<DassBatchImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 DassImportAdapDTO dto = new DassImportAdapDTO();
-                dto.setLocalId(id);
-                dto.setList(phoneSales);
+                dto.setInterfaceExtendInfo(id.toString());
+                List<DassImportDataDTO> collect = phoneSales.stream().map(t -> (DassImportDataDTO) t).collect(Collectors.toList());
+                dto.setList(collect);
                 minId = phoneSale.getId();
                 threadPool.submit(() -> {
                     Result result = dassServiceClient.postHermesUserData(dto);
@@ -408,7 +410,7 @@ public class PushDataServiceImpl implements PushDataService {
                     HaierReqDTO haierReqDTO = new HaierReqDTO();
                     haierReqDTO.setIds(ids);
                     haierReqDTO.setFormData(formData);
-                    if(datas.size()>0) {
+                    if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
                         } catch (Exception e) {
@@ -780,7 +782,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status,String userType) {
+    public Boolean pushShDXSingleMutex(String apiCode, String custNum, String status, String userType) {
         //a/b状态一天只能推一条,apicode+casenum+usertype下
         String key = RedisKeyConstant.shuhePushDxSingleMutex.concat(":")
                 .concat(apiCode).concat(":")
@@ -790,7 +792,7 @@ public class PushDataServiceImpl implements PushDataService {
             return false;
         }
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
-        redisChgService.setex(key,status,seconds);
+        redisChgService.setex(key, status, seconds);
         return true;
     }
 

@@ -49,7 +49,13 @@ public class ProcessHandlerContext {
 
     /**
      *
-     */private RuleNecessaryData ruleNecessaryData;
+     */
+    private RuleNecessaryData ruleNecessaryData;
+
+    /**
+     * 0:非最后一次，1:最后一次
+     */
+    private String last;
 
 
 }

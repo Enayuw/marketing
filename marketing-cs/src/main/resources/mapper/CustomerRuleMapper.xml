@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CustomerRuleMapper" >
+
+    <select id="customerRuleLabels" parameterType="string" resultType="string">
+        select
+            rule.rule_label
+        from b_marketing_customer_rule rule
+        left join b_marketing_customer_rule_mapping mapping on rule.id = mapping.rule_id
+        where mapping.api_code = #{apiCode} and mapping.is_delete = 0
+    </select>
 </mapper>
