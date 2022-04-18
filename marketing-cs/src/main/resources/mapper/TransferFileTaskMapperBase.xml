@@ -14,6 +14,7 @@
     <result column="context_id" property="contextId" jdbcType="BIGINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="file_child_dir" property="fileChildDir" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_type, batch_number, file_name, file_path, status, task_number, 
-    start_date, context_id, create_time, update_time
+    id, api_code, file_type, batch_number, file_name, file_path, status, task_number,
+    start_date, context_id, create_time, update_time, file_child_dir
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TransferFileTaskExample" >
     select
@@ -92,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_transfer_file_task
     where id = #{id,jdbcType=BIGINT}
@@ -111,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_transfer_file_task (api_code, file_type, batch_number, 
-      file_name, file_path, status, 
-      task_number, start_date, context_id, 
-      create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{batchNumber,jdbcType=VARCHAR}, 
-      #{fileName,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{taskNumber,jdbcType=INTEGER}, #{startDate,jdbcType=VARCHAR}, #{contextId,jdbcType=BIGINT}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_transfer_file_task (api_code, file_type, batch_number,
+    file_name, file_path, status,
+    task_number, start_date, context_id,
+    create_time, update_time, file_child_dir
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{batchNumber,jdbcType=VARCHAR},
+    #{fileName,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
+    #{taskNumber,jdbcType=INTEGER}, #{startDate,jdbcType=VARCHAR}, #{contextId,jdbcType=BIGINT},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{fileChildDir,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TransferFileTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -159,6 +162,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="fileChildDir != null" >
+        file_child_dir,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -193,6 +199,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="fileChildDir != null" >
+        #{fileChildDir,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -241,6 +250,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.fileChildDir != null" >
+        file_child_dir = #{record.fileChildDir,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -249,17 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_transfer_file_task
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_type = #{record.fileType,jdbcType=INTEGER},
-      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
-      file_name = #{record.fileName,jdbcType=VARCHAR},
-      file_path = #{record.filePath,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=INTEGER},
-      task_number = #{record.taskNumber,jdbcType=INTEGER},
-      start_date = #{record.startDate,jdbcType=VARCHAR},
-      context_id = #{record.contextId,jdbcType=BIGINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    file_type = #{record.fileType,jdbcType=INTEGER},
+    batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+    file_name = #{record.fileName,jdbcType=VARCHAR},
+    file_path = #{record.filePath,jdbcType=VARCHAR},
+    status = #{record.status,jdbcType=INTEGER},
+    task_number = #{record.taskNumber,jdbcType=INTEGER},
+    start_date = #{record.startDate,jdbcType=VARCHAR},
+    context_id = #{record.contextId,jdbcType=BIGINT},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    file_child_dir = #{record.fileChildDir,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -300,6 +313,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="fileChildDir != null" >
+        file_child_dir = #{fileChildDir,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -315,7 +331,8 @@
       start_date = #{startDate,jdbcType=VARCHAR},
       context_id = #{contextId,jdbcType=BIGINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      file_child_dir = #{fileChildDir,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -874,6 +874,76 @@ public class TransferFileTaskExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andFileChildDirIsNull() {
+            addCriterion("file_child_dir is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirIsNotNull() {
+            addCriterion("file_child_dir is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirEqualTo(String value) {
+            addCriterion("file_child_dir =", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirNotEqualTo(String value) {
+            addCriterion("file_child_dir <>", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirGreaterThan(String value) {
+            addCriterion("file_child_dir >", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirGreaterThanOrEqualTo(String value) {
+            addCriterion("file_child_dir >=", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirLessThan(String value) {
+            addCriterion("file_child_dir <", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirLessThanOrEqualTo(String value) {
+            addCriterion("file_child_dir <=", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirLike(String value) {
+            addCriterion("file_child_dir like", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirNotLike(String value) {
+            addCriterion("file_child_dir not like", value, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirIn(List<String> values) {
+            addCriterion("file_child_dir in", values, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirNotIn(List<String> values) {
+            addCriterion("file_child_dir not in", values, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirBetween(String value1, String value2) {
+            addCriterion("file_child_dir between", value1, value2, "fileChildDir");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileChildDirNotBetween(String value1, String value2) {
+            addCriterion("file_child_dir not between", value1, value2, "fileChildDir");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
