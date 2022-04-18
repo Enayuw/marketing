@@ -1,5 +1,6 @@
 package com.br.marketing.adapter.transfer;
 
+import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
 /**
@@ -16,6 +17,8 @@ public abstract class TransferSyncTarget {
      * 适配为转化数据
      */
     abstract MarketingTransferSyncUser transferSyncUserRequest(String taskId);
+
+    abstract MarketingTransferSyncUser transferSyncUserRequest(String taskId, ShuheTransferJsonDTO jsonDTO);
 
     protected final MarketingTransferSyncUser newTransferSyncUser() {
         return new MarketingTransferSyncUser();
