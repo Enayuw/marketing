@@ -19,8 +19,13 @@ import java.util.Map;
  */
 public class CuShenWan extends IUserType {
 
+    public CuShenWan(String... api2Codes) {
+        super(api2Codes);
+        super.apiCodes.add("3710004");
+    }
+
     @Override
-    public void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
+    void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
         String defaultValue = "";
         caseUser.setClcUsrLstAppStaTim(dataItem.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue));
         caseUser.setClcUsrIsoPhoTim(dataItem.getOrDefault("clc_usr_iso_pho_tim", defaultValue));

@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 场景策略
@@ -26,10 +25,19 @@ public abstract class IUserType {
     protected final String Y = "Y";
     protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
     protected final DateTimeFormatter dateTime2Formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    List<String> apiCodes = new ArrayList<>(Collections.singletonList("7410785"));
 
     public IUserType setUserType(String userType) {
         this.userType = userType;
         return this;
+    }
+
+    IUserType(List<String> apiCodes) {
+        this.apiCodes = apiCodes;
+    }
+
+    IUserType(String... api2Codes) {
+        Collections.addAll(apiCodes, api2Codes);
     }
 
     /**
@@ -39,13 +47,13 @@ public abstract class IUserType {
      * @author Guo Zeqiang
      * @dateTime 2022/2/10 17:30
      */
-    protected abstract void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser);
+    abstract void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser);
 
     /**
      * 2022/2/11 14:03
      * 初始pojo
      */
-    protected final CaseShuheUser initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
+    final CaseShuheUser initCaseUser(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
         CaseShuheUser caseUser = new CaseShuheUserAdaptee();
         caseUser.setApiCode(apiCode);
         final Map<String, String> dataItem = jsonDTO.getDataItem();
@@ -65,21 +73,19 @@ public abstract class IUserType {
     /**
      * 赋值 其他字段
      */
-    protected final void setTotalField(Map<String, String> dataItem, CaseShuheUser caseUser) {
-        if (this instanceof CuShouDeng) {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        } else if (this instanceof CuShenWan) {
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        } else if (this instanceof CuShouJie) {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-        } else {
-            new CuShenWan().getCaseUser(dataItem, caseUser);
-            new CuShouDeng().getCaseUser(dataItem, caseUser);
-            new CuShouJie().getCaseUser(dataItem, caseUser);
-        }
+    final void setTotalField(Map<String, String> dataItem, CaseShuheUser caseUser) {
+        String defaultValue = "";
+        caseUser.setClcUsrLstAppStaTim(dataItem.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue));
+        caseUser.setClcUsrIsoPhoTim(dataItem.getOrDefault("clc_usr_iso_pho_tim", defaultValue));
+        caseUser.setClcUsrIsoIdtTim(dataItem.getOrDefault("clc_usr_iso_idt_tim", defaultValue));
+        caseUser.setClcUsrIsoCrdTim(dataItem.getOrDefault("clc_usr_iso_crd_tim", defaultValue));
+        caseUser.setClcUsrIsoInfTim(dataItem.getOrDefault("clc_usr_iso_inf_tim", defaultValue));
+        caseUser.setClcUsrIsoAtoTim(dataItem.getOrDefault("clc_usr_iso_ato_tim", defaultValue));
+        caseUser.setClcUsrAdtTimRcnLon(dataItem.getOrDefault("clc_usr_adt_tim_rcn_lon", defaultValue));
+        caseUser.setClcUsrFstLogTimAll(dataItem.getOrDefault("clc_usr_fst_log_tim_all", defaultValue));
+        caseUser.setClcUsrAdtLmtItr(dataItem.getOrDefault("clc_usr_adt_lmt_itr", defaultValue));
+        caseUser.setClcUsrFrtFqOrdTim(dataItem.getOrDefault("clc_usr_frt_fq_ord_tim", defaultValue));
+        caseUser.setClcUsrFstLndTimCshBtHl(dataItem.getOrDefault("clc_usr_fst_lnd_tim_csh_bt_hl", defaultValue));
     }
 
     /**
@@ -192,7 +198,7 @@ public abstract class IUserType {
     /**
      * 计算失效日期
      */
-    protected final String calculateExpireDate(Date date, int day) {
+    final String calculateExpireDate(Date date, int day) {
         if (date == null) {
             return "";
         }
@@ -225,4 +231,8 @@ public abstract class IUserType {
      * true 满足推电销
      */
     public abstract boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime);
+
+    public List<String> getApiCodes() {
+        return apiCodes;
+    }
 }
