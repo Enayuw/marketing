@@ -82,7 +82,6 @@ public class YiQianBaoService {
                 }
                 ResponseYqbDTO content = JSON.parseObject(RSAUtil.decrypt(jsonResult.getString("bizContent"), brPrivateKey), new TypeReference<ResponseYqbDTO>() {
                 }.getType());
-                log.warn("壹钱包调用返回 response={}", JSON.toJSONString(content));
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
             } else {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
