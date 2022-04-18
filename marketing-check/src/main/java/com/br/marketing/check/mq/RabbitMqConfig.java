@@ -107,13 +107,13 @@ public class RabbitMqConfig {
 //    }
 //endregion
 
-    @Bean(name = MQConstants.MARKETING_PUSH_YIQIANBAO_MARKETINGDATA)
-    public Queue pushYiQianBao() {
-        return new Queue(MQConstants.MARKETING_PUSH_YIQIANBAO_MARKETINGDATA, true, false, false);
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE)
+    public Queue pushSftpToDb() {
+        return new Queue(MQConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE, true, false, false);
     }
-    @Bean(name = MQConstants.ROUTING_KEY_MARKETINGDATA_PUSH_YIQIANBAO)
+    @Bean(name = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_RECEIVE)
     public Binding bindingYiQianBao() {
-        return BindingBuilder.bind(pushYiQianBao()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETINGDATA_PUSH_YIQIANBAO);
+        return BindingBuilder.bind(pushSftpToDb()).to(gateExchange()).with(MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_RECEIVE);
     }
 
     @Bean

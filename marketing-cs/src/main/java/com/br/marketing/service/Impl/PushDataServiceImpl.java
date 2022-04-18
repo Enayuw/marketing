@@ -805,26 +805,29 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Result pushYiQianBaoMarketingData(Long id) {
+    public Result pushSftpToDbData(Long id) {
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
-        Boolean actionMark = true;
-        Long minId = null;
-        while (actionMark) {
-            List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id,minId);
-            if (dataList.size() <= 0) {
-                actionMark = false;
-                continue;
+        //壹钱包推送营销数据
+        if ("yiqianbao".equals(localFile.getFileType())) {
+            Boolean actionMark = true;
+            Long minId = null;
+            while (actionMark) {
+                List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id, minId);
+                if (dataList.size() <= 0) {
+                    actionMark = false;
+                    continue;
+                }
+                minId = dataList.get(dataList.size() - 1).getId();
+                List<List<YiqianbaoData>> dataPartList = Lists.partition(dataList, 50);
+                dataPartList.forEach(pushList -> {
+                    YqbDetailVo yqbDetailVo = getRequestTransfer(pushList);
+                    yiQianBaoService.pushMarketingData(yqbDetailVo);
+                    updatePushStatus(pushList);
+                });
             }
-            minId = dataList.get(dataList.size() - 1).getId();
-            List<List<YiqianbaoData>> dataPartList =  Lists.partition(dataList,50);
-            dataPartList.forEach(pushList->{
-                YqbDetailVo yqbDetailVo = getRequestTransfer(pushList);
-                yiQianBaoService.pushMarketingData(yqbDetailVo);
-                updatePushStatus(pushList);
-            });
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }

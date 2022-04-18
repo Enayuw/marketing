@@ -40,5 +40,5 @@ public interface PushDataService {
      * @param localid
      * @return
      */
-    Result<Boolean> pushYiQianBaoMarketingData(Long localid);
+    Result<Boolean> pushSftpToDbData(Long localid);
 }

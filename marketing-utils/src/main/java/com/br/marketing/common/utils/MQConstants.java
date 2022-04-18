@@ -33,7 +33,7 @@ public class MQConstants {
     public static final String MARKETING_PUSH_BLACK = "Marketing_Push_Black";
     public static final String MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
     public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
-    public static final String MARKETING_PUSH_YIQIANBAO_MARKETINGDATA = "Marketing_Push_YiQianBao_MarketingData";
+    public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
 
 
     //通用转化处理队列
@@ -67,8 +67,8 @@ public class MQConstants {
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
     //通用转化业务静置处理延迟队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing.Universal.Transfer.Receive.Delay";
-    //营销数据推送壹钱包队列
-    public static final String ROUTING_KEY_MARKETINGDATA_PUSH_YIQIANBAO = "Marketing.Push.YiQianBao.MarketingData";
+    //通用sftpToDb数据处理队列
+    public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing.Universal.SftpToDb.Receive";
     //通用转化错误重试延迟队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing.Universal.Transfer.Error.Delay";
 

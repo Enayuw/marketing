@@ -93,15 +93,15 @@ public class ConsumerApp {
 //        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
 //    }。
     /**
-     * 消费推送壹钱包营销数据
+     * 消费sftpToDb数据
      *
      * @param channel
      * @param message
      */
-    @RabbitListener(queues = MQConstants.MARKETING_PUSH_YIQIANBAO_MARKETINGDATA, containerFactory = "containerFactory")
+    @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE, containerFactory = "containerFactory")
     public void consumerPushYiQianBao(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushYiQianBaoMarketingData, o, "");
+        consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
     }
 }
