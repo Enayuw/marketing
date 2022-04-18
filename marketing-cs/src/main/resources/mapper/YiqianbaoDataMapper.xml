@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.YiqianbaoDataMapper">
+    <select id="getPushData" resultType="com.br.marketing.entity.YiqianbaoData">
+        select
+        *
+        from b_yiqianbao_data
+        where local_id = #{localId}
+        and status =1
+        <if test="dataId != null and dataId>0">
+            and id > #{dataId}
+        </if>
+        order by id asc limit 2000;
+    </select>
+</mapper>
