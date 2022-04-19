@@ -91,5 +91,17 @@ public class ConsumerApp {
 //        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
 //        }.getType());
 //        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
-//    }
+//    }。
+    /**
+     * 消费sftpToDb数据
+     *
+     * @param channel
+     * @param message
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE, containerFactory = "containerFactory")
+    public void consumerPushYiQianBao(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
+    }
 }

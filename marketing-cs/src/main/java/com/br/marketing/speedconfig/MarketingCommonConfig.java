@@ -139,4 +139,9 @@ public class MarketingCommonConfig {
      */
     private List<String> yiXinApiCode;
 
+    /**
+     * 壹钱包加密公钥
+     */
+    private String yiQianBaoPubKey;
+
 }
