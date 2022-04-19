@@ -91,8 +91,10 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         extendMap.put("is_usr_inf","0");
         extendMap.put("is_usr_lst_app_sta_tim","0");
         extendMap.put("typeSign","2");
+        phoneSaleExtendInfo.setStatus("b");
         if("促申完".equals(dto.getUserType())){
             if("B".equals(dto.getDetail().getIntentionGrade())){
+                phoneSaleExtendInfo.setStatus("c");
                 dassSingleImportDataDTO.setPrioritySymbol("3");
                 extendMap.put("typeSign","3");
             }
@@ -130,7 +132,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
         phoneSaleExtendInfo.setAppletDate(dfDay.format(day));
         phoneSaleExtendInfo.setAppletTime(dfSecond.format(day));
-        phoneSaleExtendInfo.setStatus("b");
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setTaskId(dto.getTaskId().toString());
         phoneSaleExtendInfo.setUserType(dto.getUserType());
