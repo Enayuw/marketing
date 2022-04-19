@@ -503,13 +503,12 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                     , Optional::get)));
             //过滤 该type符合转电销type且60天没有变化的数据（推电销type无变化且推电销次数<=2）
             List<MarketingTransferSyncUser> resultFilter = new ArrayList<>();
-            String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(new Date(), -60));
+            String _60beforeDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(new Date(), -60));
             String endDay = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             PhoneSaleRecordInfoDTO recordInfoDTO = new PhoneSaleRecordInfoDTO();
             recordInfoDTO.setCustNums(set);
             recordInfoDTO.setApiCode(apiCode);
-            recordInfoDTO.setStartDate(_60startDay);
-            recordInfoDTO.setEndDate(endDay);
+            recordInfoDTO.setEndDate(_60beforeDay);
             recordInfoDTO.setTransferType("0");
             List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(recordInfoDTO);
             Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
