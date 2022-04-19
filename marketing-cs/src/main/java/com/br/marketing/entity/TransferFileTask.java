@@ -169,6 +169,6 @@ public class TransferFileTask {
     }
 
     public void setFileChildDir(String fileChildDir) {
-        this.fileChildDir = fileChildDir;
+        this.fileChildDir = fileChildDir == null ? null : fileChildDir.trim();
     }
 }

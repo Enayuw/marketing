@@ -11,8 +11,12 @@
         </foreach>
         and p_status = 2
         and transform_type = #{transferType}
-        <![CDATA[ and applet_date >= #{startDate} ]]>
-        <![CDATA[ and applet_date <= #{endDate} ]]>
+        <if test="startDate !=null and startDate !=''">
+            <![CDATA[ and applet_date >= #{startDate} ]]>
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            <![CDATA[ and applet_date <= #{endDate} ]]>
+        </if>
     </select>
 
     <select id="getDxRecordLastOne" parameterType="com.br.marketing.dto.PhoneSaleRecordInfoDTO" resultType="com.br.marketing.vo.PhoneSaleInfoVO">
