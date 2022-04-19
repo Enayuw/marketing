@@ -526,6 +526,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                             if (vo1.getType().equals(transferFilterData.getType())){
                                 resultFilter.add(transferFilterData);
                             }
+                        }else {
+                            resultFilter.add(transferFilterData);
                         }
                     }
                 }
