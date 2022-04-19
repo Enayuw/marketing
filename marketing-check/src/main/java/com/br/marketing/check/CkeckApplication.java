@@ -7,6 +7,7 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
