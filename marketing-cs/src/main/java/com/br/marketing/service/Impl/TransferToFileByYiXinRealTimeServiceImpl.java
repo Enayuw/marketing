@@ -515,7 +515,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
             for(MarketingTransferSyncUser transferFilterData : dataFilter){
                 List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferFilterData.getCustNum());
-                if(phoneSaleInfoVOS.size()>2){
+                if(phoneSaleInfoVOS != null && phoneSaleInfoVOS.size()>2){
                     continue;
                 }
                 if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size()>0){
