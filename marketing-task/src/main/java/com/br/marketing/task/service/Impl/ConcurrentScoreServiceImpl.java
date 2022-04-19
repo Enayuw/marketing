@@ -443,7 +443,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             StringBuilder addTaskContent = new StringBuilder();
             addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
             sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
-            core(blt, descPath, true, productJson, warrningExecutor, blf.getId().toString(), customer);
+            core(blt, blf.getFilePath(), true, productJson, warrningExecutor, blf.getId().toString(), customer);
         }
 
     }
@@ -752,6 +752,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             if (straHisFiles.size() > 0) {
                 StraHisFile file = straHisFiles.get(0);
                 blf.setId(file.getId());
+                blf.setFilePath(file.getFilePath());
                 task.setFileId(file.getId());
                 return true;
             }
