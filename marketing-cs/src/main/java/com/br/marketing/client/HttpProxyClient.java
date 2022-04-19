@@ -214,7 +214,7 @@ public class HttpProxyClient {
 			interfaceLog.setExpire(String.valueOf(end-start));
 			int statusCode = response.getStatusLine().getStatusCode();
 			res.put("httpcode",String.valueOf(statusCode));
-			String result = EntityUtils.toString(response.getEntity());
+			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
 			res.put("content",result);
 			interfaceLog.setExpire(String.valueOf(end-start));
 			interfaceLog.setResult(result);

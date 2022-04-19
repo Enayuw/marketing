@@ -1,5 +1,6 @@
 package com.br.marketing.adapter.transfer;
 
+import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
 /**
@@ -13,4 +14,6 @@ public interface IToTransferSyncAdaptee {
      * 适配
      */
     void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId);
+
+    void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId, ShuheTransferJsonDTO jsonDTO);
 }

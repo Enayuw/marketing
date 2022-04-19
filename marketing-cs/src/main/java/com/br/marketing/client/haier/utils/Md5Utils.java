@@ -1,5 +1,8 @@
 package com.br.marketing.client.haier.utils;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
+
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,4 +52,14 @@ public class Md5Utils {
 
 		return messageDigest;
 	}
+
+	/**
+	 * 生成32位小写MD5字符串(建议使用guava实现)
+	 * @param key 待加密字符串
+	 * @return MD5加密串
+	 */
+	public static String stringToMD5(String key) {
+		return Hashing.md5().newHasher().putString(key, Charsets.UTF_8).hash().toString();
+	}
+
 }
