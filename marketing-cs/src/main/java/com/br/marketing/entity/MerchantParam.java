@@ -91,7 +91,7 @@ public class MerchantParam {
      * 数据交互方式(0:API 1:SFTP)
      */
     @JSONField(name = "transport")
-    private Integer transport;
+    private String transport;
 
     /**
      * 是否返回数据详情(1 返回，0 不返回)

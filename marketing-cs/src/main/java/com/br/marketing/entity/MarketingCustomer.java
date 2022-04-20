@@ -156,7 +156,7 @@ public class MarketingCustomer {
     /**
      * 0:API 1:WEB 2:SFTP
      */
-    private Integer transport;
+    private String transport;
 
     /**
      *
@@ -469,11 +469,11 @@ public class MarketingCustomer {
         this.endTime = endTime;
     }
 
-    public Integer getTransport() {
+    public String getTransport() {
         return transport;
     }
 
-    public void setTransport(Integer transport) {
+    public void setTransport(String transport) {
         this.transport = transport ;
     }
 
