@@ -51,120 +51,129 @@ public class PushFinishServiceImpl implements PushFinishService {
 
     @Override
     public void pushFinish(String apiCode) {
-      Integer num=loanFileMapper.queryBlfBySignStatus(apiCode);
+        Integer num = loanFileMapper.queryBlfBySignStatus(apiCode);
 
         SyncConfig config = new SyncConfig();
         config.setApiCode(apiCode);
         config.setType(2);
         config.setDataType(1);
         config = loanSyncConfigMapper.queryConfigByConditaion(config);
-        SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
-        if(num!=null&&num>0){
+        SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
+        if (num != null && num > 0) {
             signFileAlarm(apiCode);
-      }else{
-            if(config.getCheckSuccess()==1){
-                pushSuccess(apiCode,sftpClient);
-            }else if(config.getCheckFinish()==1){
-                pushFinish(apiCode,sftpClient);
+        } else {
+            if (config.getCheckSuccess() == 1) {
+                pushSuccess(apiCode, sftpClient);
+            } else if (config.getCheckFinish() == 1) {
+                pushFinish(apiCode, sftpClient);
             }
+        }
+        try {
+            sftpClient.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     /**
-     *结果文件2个小时还未回传到客户sftp，触发报警
+     * 结果文件2个小时还未回传到客户sftp，触发报警
+     *
      * @param apiCode 客户编号
      */
-    private void ftpToSftpCheck(String apiCode){
+    private void ftpToSftpCheck(String apiCode) {
         String s = redisChgService.get(Constants.FTP_TO_SFTP_CHECK_TIME);
-        int i=1;
-        if(StringUtils.isNotEmpty(s)){
-            i=Integer.parseInt(s);
+        int i = 1;
+        if (StringUtils.isNotEmpty(s)) {
+            i = Integer.parseInt(s);
         }
         final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1,
                 new BasicThreadFactory.
                         Builder().namingPattern("ftpToSftpCheck-schedule-pool-%d").daemon(true).build());
-        FtpToSftpCheckTask ftpToSftpCheckTask = new FtpToSftpCheckTask(apiCode, businessAlarmServiceImpl,executorService);
-        executorService.schedule(ftpToSftpCheckTask, 3600000*i,  TimeUnit.MILLISECONDS);
+        FtpToSftpCheckTask ftpToSftpCheckTask = new FtpToSftpCheckTask(apiCode, businessAlarmServiceImpl, executorService);
+        executorService.schedule(ftpToSftpCheckTask, 3600000 * i, TimeUnit.MILLISECONDS);
     }
 
     /**
      * finish标识文件未上传报警
+     *
      * @param apiCode 客户编号
      */
-    private void signFileAlarm(String apiCode){
+    private void signFileAlarm(String apiCode) {
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1,
                 new BasicThreadFactory.
                         Builder().namingPattern("signFileAlarm-schedule-pool-%d").daemon(true).build());
-        SftpSignFileCheckTask signFileCheckTask = new SftpSignFileCheckTask(apiCode,systemExceptionServiceImpl,
-                businessAlarmServiceImpl,sftpHost,sftpPort,sftpUsername,sftpPwd,executor);
-        executor.scheduleWithFixedDelay(signFileCheckTask,1000,1800000, TimeUnit.MILLISECONDS);
+        SftpSignFileCheckTask signFileCheckTask = new SftpSignFileCheckTask(apiCode, systemExceptionServiceImpl,
+                businessAlarmServiceImpl, sftpHost, sftpPort, sftpUsername, sftpPwd, executor);
+        executor.scheduleWithFixedDelay(signFileCheckTask, 1000, 1800000, TimeUnit.MILLISECONDS);
     }
-    private void pushFinish(String apiCode,SftpClient sftpClient){
+
+    private void pushFinish(String apiCode, SftpClient sftpClient) {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
-        String finishPath=path+"/result/"+apiCode+"/";
-        File dir=new File(finishPath);
-        if(!dir.exists()){
+        String finishPath = path + "/result/" + apiCode + "/";
+        File dir = new File(finishPath);
+        if (!dir.exists()) {
             boolean mkdirs = dir.mkdirs();
-            if(!mkdirs){
-                log.error("创建目录失败{}",finishPath);
+            if (!mkdirs) {
+                log.error("创建目录失败{}", finishPath);
             }
         }
-        String finishFileName=apiCode+"_ReturnCompleted_"+dateAddYyMmDd+".finish";
-        File finishFile=new File(finishPath+finishFileName);
-        log.warn("exists:{},path:{}",finishFile.exists(),finishFile.getAbsolutePath());
+        String finishFileName = apiCode + "_ReturnCompleted_" + dateAddYyMmDd + ".finish";
+        File finishFile = new File(finishPath + finishFileName);
+        log.warn("exists:{},path:{}", finishFile.exists(), finishFile.getAbsolutePath());
 
         try {
-            boolean newFile=true;
-            if(!finishFile.exists()){
-                newFile= finishFile.createNewFile();
+            boolean newFile = true;
+            if (!finishFile.exists()) {
+                newFile = finishFile.createNewFile();
             }
-            log.warn("exists:{},path:{}",finishFile.exists(),finishFile.getAbsolutePath());
-            if(newFile){
+            log.warn("exists:{},path:{}", finishFile.exists(), finishFile.getAbsolutePath());
+            if (newFile) {
                 sftpClient.connect();
-                sftpClient.uploadFile("/UploadFiles/marketing/"+apiCode+"/output/"+dateAddYyMmDd+"/",finishFileName,finishPath+finishFileName);
-                boolean existFile = sftpClient.isExistFile("/UploadFiles/marketing/"+apiCode+"/output/"+dateAddYyMmDd+"/" + finishFileName);
-                if(existFile){
+                sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/output/" + dateAddYyMmDd + "/", finishFileName, finishPath + finishFileName);
+                boolean existFile = sftpClient.isExistFile("/UploadFiles/marketing/" + apiCode + "/output/" + dateAddYyMmDd + "/" + finishFileName);
+                if (existFile) {
                     ftpToSftpCheck(apiCode);
-                }else{
+                } else {
                     signFileAlarm(apiCode);
                 }
-            }else{
+            } else {
                 log.error("创建finish文件失败");
             }
         } catch (Exception e) {
-            log.error("创建finish文件失败",e);
-        }finally {
+            log.error("创建finish文件失败", e);
+        } finally {
             try {
                 sftpClient.disconnect();
             } catch (Exception e) {
-                log.error("Exception",e);
+                log.error("Exception", e);
             }
         }
     }
-    private void pushSuccess(String apiCode,SftpClient sftpClient){
+
+    private void pushSuccess(String apiCode, SftpClient sftpClient) {
         List<LoanFile> loanFiles = loanFileMapper.queryUploadFile(apiCode);
-        String remotePath="/UploadFiles/marketing/"+apiCode+"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
+        String remotePath = "/UploadFiles/marketing/" + apiCode + "/output/" + DateHelper.getDateAddYyMmDd(0) + "/";
         try {
             sftpClient.connect();
             for (LoanFile loanFile : loanFiles) {
                 String zipFileName = loanFile.getZipFileName();
                 String filePath = loanFile.getFilePath();
-                File file = new File(filePath+"/"+zipFileName);
-                if(file.exists()){
-                    String successFileName=zipFileName+".success";
-                    File successFile=new File(path+"/sftp_data/"+apiCode+"/"+successFileName);
-                    boolean newFile=true;
-                    if(!successFile.exists()){
-                        newFile= successFile.createNewFile();
+                File file = new File(filePath + "/" + zipFileName);
+                if (file.exists()) {
+                    String successFileName = zipFileName + ".success";
+                    File successFile = new File(path + "/sftp_data/" + apiCode + "/" + successFileName);
+                    boolean newFile = true;
+                    if (!successFile.exists()) {
+                        newFile = successFile.createNewFile();
                     }
-                    if(newFile){
-                        log.warn("push success to sftp :{}",successFileName);
-                        sftpClient.uploadFile(remotePath, successFileName, path+"/sftp_data/"+apiCode+"/"+successFileName);
+                    if (newFile) {
+                        log.warn("push success to sftp :{}", successFileName);
+                        sftpClient.uploadFile(remotePath, successFileName, path + "/sftp_data/" + apiCode + "/" + successFileName);
                     }
                 }
             }
         } catch (Exception e) {
-            log.error("push success to sftp 异常，{}",e);
+            log.error("push success to sftp 异常，{}", e);
         }
 
     }

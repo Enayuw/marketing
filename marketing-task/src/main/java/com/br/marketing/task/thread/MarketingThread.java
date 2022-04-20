@@ -35,7 +35,7 @@ public class MarketingThread implements Callable<String> {
     private List<MarketingUser> list;
     private String apiCode;
     private String strategyId;
-    private int currentPage;
+    private long currentPage;
     private String path;
     private String strategyStr;
     private RedisService redisService;
@@ -60,7 +60,7 @@ public class MarketingThread implements Callable<String> {
     private List<String> flagProductList;
 
     public MarketingThread(List<MarketingUser> list, Map<String, String> param
-            , int currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask
+            , long currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, StrategyProductDetailVO fieldInfo) {
         this.list = list;
         this.apiCode = param.get("apiCode");

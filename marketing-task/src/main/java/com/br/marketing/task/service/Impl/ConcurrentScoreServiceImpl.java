@@ -102,14 +102,14 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
     RedisChgService redisChgService;
     @Resource
     MarketingStrategyProductMapper marketingStrategyProductMapper;
-    @Autowired
+    @Resource
     ApicodeScoreProductMapper apicodeScoreProductMapper;
     @Resource
     MarketingTaskExtendService marketingTaskExtendService;
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
 
-    @Autowired
+    @Resource
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     @Autowired
@@ -118,7 +118,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
 
-    @Autowired
+    @Resource
     FastFileRelationMapper fastFileRelationMapper;
 
     private final static String RedisEsOpen = "es:open";
@@ -316,11 +316,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
         marketingTask.setIndexCount(indexCount);
         String separator = marketingSepService.querySepByApiCode(apiCode);
         String baseHeadInfo = getBaseHeadInfo(marketingTask.getId(), separator);
-        Map<String, String> paramMap = new HashedMap();
-        paramMap.put("apiCode", apiCode);
-        paramMap.put("batchNumber", batchNumber);
-        LoanFile file = loanFileMapper.selectFileComplete(paramMap);
-
+        StraHisFile file = straHisFileMapper.selectByPrimaryKey(task.getFileId());
         String productJson = "";
         if (marketingTask.getTaskType().compareTo(new Integer(0)) == 0) {
             productJson = strategyCS.strategyIdCheck(marketingTask.getApiCode(), marketingTask.getStrategyId());
@@ -336,7 +332,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
         String s = dateAddYyMmDd + num.toString();
         String row = null;
-        int currentPage = Integer.parseInt(s);
+        long currentPage = Long.parseLong(s);
         try (FileReader read = new FileReader(errorFile);
              BufferedReader br = new BufferedReader(read);) {
             List<MarketingUser> list = new ArrayList<>();
@@ -359,8 +355,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             String s1 = split[6];
 
 
-            String descPath = path + "/" + s1 + "/" + marketingTask.getApiCode() + "/" + marketingTask.getBatchNumber() + "/" +
-                    new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String descPath = file.getFilePath();
             log.info("{},list:{}", errorFile, list.size());
             Map<String, String> param = new HashMap<>();
             param.put("apiCode", marketingTask.getApiCode());
@@ -517,7 +512,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
             }
             if (minId != null && minId > 0L) {
                 Long begin = minId - 1;
-                int currentPage = 1;
+                long currentPage = 1L;
                 long start = System.currentTimeMillis();
                 Integer actNum = 0;
                 Boolean threadpoolStatus = Boolean.TRUE;
@@ -527,10 +522,10 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
                     begin = list.get(list.size() - 1).getId();
                     boolean b = list.size() > 0
                             && blt.getIndex().equals(currentPage % blt.getIndexCount());
-                    if(b){
+                    if (b) {
                         actNum += list.size();
                     }
-                    if (b&&!getCoreDataStatus(fileId, currentPage)) {
+                    if (b && !getCoreDataStatus(fileId, currentPage)) {
                         Map<String, String> param = new HashMap<>();
                         param.put("apiCode", blt.getApiCode());
                         param.put("strategyId", blt.getStrategyId());
@@ -583,7 +578,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
      * @param page
      * @return false-为暂未跑完；true-已经跑完；
      */
-    boolean getCoreDataStatus(String fileId, Integer page) {
+    boolean getCoreDataStatus(String fileId, Long page) {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
         String s = redisChgService.get(key);
         if (StringUtils.isBlank(s)) {
