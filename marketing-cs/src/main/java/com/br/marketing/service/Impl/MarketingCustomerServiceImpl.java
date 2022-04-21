@@ -68,6 +68,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             if(accountStatus!=null){
                 criteria.andAccountStatusEqualTo(Byte.valueOf(accountStatus));
             }
+            marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
             return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);
         } catch (Exception e) {
@@ -144,7 +145,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Override
     public ApiResult<Boolean> apiCodeOnly(String id,String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo((byte) 1);
+        example.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
         if (select != null && select.size()>0){
             if(StringUtils.isEmpty(id)){
