@@ -7,6 +7,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.entity.CalledInterfaceLog;
 import com.br.marketing.mapper.CalledInterfaceLogMapper;
@@ -71,11 +72,16 @@ public class ErrorControllerAspect {
             return new ApiResult<>().fail(ServiceResultEnum.SUCCESS_1.getCode(),ex.getMessage());
         }catch (Throwable e) {
             try {
-                Result obj = new Result();
-                obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                ApiResult<Object> obj = new ApiResult<>();
+                obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue().toString());
                 final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(),methodSignature.getName(), jp.getArgs(), e,null);
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, null);
                 obj.setMessage("发生内部错误");
+                if (e instanceof BusinessException) {
+                    BusinessException exception = (BusinessException) e;
+                    obj.setCode(exception.getCode());
+                    obj.setMessage(exception.getMessage());
+                }
                 return obj;
             } catch (Exception ee) {
                 log.error("异常结果生成异常", ee);
