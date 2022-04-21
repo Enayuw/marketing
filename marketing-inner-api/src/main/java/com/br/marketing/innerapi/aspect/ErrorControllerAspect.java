@@ -80,7 +80,7 @@ public class ErrorControllerAspect {
                 if (e instanceof BusinessException) {
                     BusinessException exception = (BusinessException) e;
                     obj.setCode(exception.getCode());
-                    obj.setMessage(exception.getMessage());
+                    obj.setMessage(exception.getMsg());
                 }
                 return obj;
             } catch (Exception ee) {
