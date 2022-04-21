@@ -29,6 +29,8 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -678,5 +680,19 @@ public class redis {
 
     }
 
-
+    @Test
+    public void testHisFile() {
+        StraHisFileExample hisFileExample = new StraHisFileExample();
+        try {
+            hisFileExample.createCriteria()
+                    .andApiCodeEqualTo("7410437")
+                    .andBatchNumberEqualTo("7410437_20220412181100_3806")
+                    .andCreateTimeGreaterThanOrEqualTo(new SimpleDateFormat("yyyy-MM-dd").parse("2022-04-18"));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(hisFileExample);
+        StraHisFile file = straHisFiles.get(0);
+        System.out.println(file);
+    }
 }

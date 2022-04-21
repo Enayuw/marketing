@@ -81,11 +81,11 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         SyncConfig syncConfigNew = new SyncConfig();
 
         //判重
-        boolean only = sftpOnly(null, apiCode, dataType!=null?dataType:syncConfig.getDataType(),
+       /* boolean only = sftpOnly(null, apiCode, dataType!=null?dataType:syncConfig.getDataType(),
                 type!=null?type:syncConfig.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
-        }
+        }*/
 
         try {
             ConvertUtils.register(new DateConverter(null), java.util.Date.class);
@@ -124,10 +124,10 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public ApiResult<Boolean> editSftp(SyncConfigEditVO vo) {
         SyncConfig select = syncConfigMapper.selectByPrimaryKey(vo.getId());
         //判重
-        boolean only = sftpOnly(vo.getId().toString(), vo.getApiCode(), select.getDataType(), select.getType());
+      /*  boolean only = sftpOnly(vo.getId().toString(), vo.getApiCode(), select.getDataType(), select.getType());
         if(!only){
             return new ApiResult<Boolean>().success(ServiceResultEnum.SUCCESS_4);
-        }
+        }*/
 
         SyncConfig syncConfig = new SyncConfig();
 

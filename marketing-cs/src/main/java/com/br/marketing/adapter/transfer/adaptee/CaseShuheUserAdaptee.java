@@ -1,11 +1,14 @@
 package com.br.marketing.adapter.transfer.adaptee;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.adapter.transfer.IToTransferSyncAdaptee;
+import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -37,6 +40,24 @@ public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSy
                 "\"cell\":\"" + this.getCell() + "\"" +
                 "}";
         transferSyncUser.setReserveField1(jsonStr);
+        transferSyncUser.setApplyTime(addMillisecond(this.getClcUsrIsoAtoTim()));
+        transferSyncUser.setAuditTime(addMillisecond(this.getClcUsrAdtTimRcnLon()));
+        transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
+        transferSyncUser.setLentTime(addMillisecond(this.getClcUsrFstLndTimCshBtHl()));
+        transferSyncUser.setCreateTime(new Date());
+    }
+
+    @Override
+    public void adapteeRequest(MarketingTransferSyncUser transferSyncUser, String taskId, ShuheTransferJsonDTO jsonDTO) {
+        transferSyncUser.setApiCode(this.getApiCode());
+        transferSyncUser.setCustNum(this.getCustNum());
+        transferSyncUser.setUserType(this.getUserType());
+        transferSyncUser.setLoginTime(addMillisecond(this.getClcUsrFstLogTimAll()));
+        final Map<String, String> dataItem = jsonDTO.getDataItem();
+        dataItem.put("taskId", taskId);
+        dataItem.put("applyLoanTime", this.getClcUsrFrtFqOrdTim());
+        dataItem.put("cell", this.getCell());
+        transferSyncUser.setReserveField1(JSONObject.toJSONString(dataItem));
         transferSyncUser.setApplyTime(addMillisecond(this.getClcUsrIsoAtoTim()));
         transferSyncUser.setAuditTime(addMillisecond(this.getClcUsrAdtTimRcnLon()));
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());

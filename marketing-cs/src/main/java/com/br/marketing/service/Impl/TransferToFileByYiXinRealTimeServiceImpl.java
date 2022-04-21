@@ -314,33 +314,42 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
 
             for (MarketingTransferSyncUser transferFilterData : dataFilter) {
-                String applyLoan = JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
-                String raiseLimit = JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimit");
-                String raiseLimitTime = JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitTime");
-                String raiseLimitResult = JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitResult");
-                String loantResult = JSON.parseObject(transferFilterData.getReserveField1()).getString("loantResult");
-                String raiseLimiType = JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiType");
-                String raiseLimiSuccess = JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiSuccess");
-                String rate = JSON.parseObject(transferFilterData.getReserveField1()).getString("rate");
-
+                String applyLoan = "";
+                String raiseLimit = "";
+                String raiseLimitTime = "";
+                String raiseLimitResult = "";
+                String loantResult = "";
+                String raiseLimiType = "";
+                String raiseLimiSuccess = "";
+                String rate = "";
+                if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())){
+                    applyLoan = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan"):"";
+                    raiseLimit = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimit"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimit"):"";
+                    raiseLimitTime = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitTime"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitTime"):"";
+                    raiseLimitResult = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitResult"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimitResult"):"";
+                    loantResult = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("loantResult"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("loantResult"):"";
+                    raiseLimiType = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiType"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiType"):"";
+                    raiseLimiSuccess = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiSuccess"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("raiseLimiSuccess"):"";
+                    rate = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("rate"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("rate"):"";
+                }
                 StringBuilder sb = new StringBuilder();
-                sb.append(transferFilterData.getCustNum().concat(","));
-                sb.append(transferFilterData.getIfRegister().concat(","));
-                sb.append(transferFilterData.getRegisterTime().concat(","));
-                sb.append(transferFilterData.getIfApply().concat(","));
-                sb.append(transferFilterData.getApplyDt().concat(","));
-                sb.append(transferFilterData.getApplyResult().concat(","));
-                sb.append(transferFilterData.getAuditAmount().concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getIfRegister())?transferFilterData.getIfRegister():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getRegisterTime())?transferFilterData.getRegisterTime():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getIfApply())?transferFilterData.getIfApply():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyDt())?transferFilterData.getApplyDt():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyResult())?transferFilterData.getApplyResult():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getAuditAmount())?transferFilterData.getAuditAmount():"").concat(","));
                 sb.append(applyLoan.concat(","));
-                sb.append(transferFilterData.getIfLent().concat(","));
-                sb.append(transferFilterData.getLentTime().concat(","));
-                sb.append(transferFilterData.getLentAmount().concat(","));
-                sb.append(transferFilterData.getUserType().concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLent())?transferFilterData.getIfLent():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getUserType())?transferFilterData.getUserType():"").concat(","));
                 sb.append(raiseLimit.concat(","));
                 sb.append(raiseLimitTime.concat(","));
                 sb.append(raiseLimitResult.concat(","));
-                sb.append(transferFilterData.getInsertTime().concat(","));
-                sb.append(transferFilterData.getType().concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getInsertTime())?transferFilterData.getInsertTime():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getType())?transferFilterData.getType():"").concat(","));
                 sb.append(loantResult.concat(","));
                 sb.append(raiseLimiType.concat(","));
                 sb.append(raiseLimiSuccess.concat(","));
@@ -360,6 +369,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(2);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(result)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -386,7 +397,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 //实时数据transformType非1
                 if ((StringUtils.isEmpty(reserveField1.getString("transformType"))) || (!"1".equals(reserveField1.getString("transformType")))) {
-                    if (!"4".equals(marketingTransferSyncUser.getType()) || !"15".equals(marketingTransferSyncUser.getType())) {
+                    if (!"4".equals(marketingTransferSyncUser.getType()) && !"15".equals(marketingTransferSyncUser.getType())) {
                         custNumFilterType.add(marketingTransferSyncUser.getCustNum());
                         continue;
                     }
@@ -437,6 +448,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(3);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(dae)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -464,7 +477,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 //实时数据transformType非1
                 if ((StringUtils.isEmpty(reserveField1.getString("transformType"))) || (!"1".equals(reserveField1.getString("transformType")))) {
-                    if (!"7".equals(marketingTransferSyncUser.getType()) || !"8".equals(marketingTransferSyncUser.getType()) || !"15".equals(marketingTransferSyncUser.getType())) {
+                    if (!"7".equals(marketingTransferSyncUser.getType()) && !"8".equals(marketingTransferSyncUser.getType()) && !"15".equals(marketingTransferSyncUser.getType())) {
                         custNumFilterType.add(marketingTransferSyncUser.getCustNum());
                         continue;
                     }
@@ -473,6 +486,11 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         dataFilter.add(marketingTransferSyncUser);
                     }
                 }
+            }
+
+            if (dataFilter.size() <= 0) {
+                log.warn("宜信非实时数据提取-该批次无符合hist的数据,apiCode = {}", apiCode);
+                continue;
             }
 
             Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
@@ -485,19 +503,18 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                     , Optional::get)));
             //过滤 该type符合转电销type且60天没有变化的数据（推电销type无变化且推电销次数<=2）
             List<MarketingTransferSyncUser> resultFilter = new ArrayList<>();
-            String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(new Date(), -60));
+            String _60beforeDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(new Date(), -60));
             String endDay = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             PhoneSaleRecordInfoDTO recordInfoDTO = new PhoneSaleRecordInfoDTO();
             recordInfoDTO.setCustNums(set);
             recordInfoDTO.setApiCode(apiCode);
-            recordInfoDTO.setStartDate(_60startDay);
-            recordInfoDTO.setEndDate(endDay);
+            recordInfoDTO.setEndDate(_60beforeDay);
             recordInfoDTO.setTransferType("0");
             List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(recordInfoDTO);
             Map<String, List<PhoneSaleInfoVO>> _60filterCustNumsMap = _60records.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum));
             for(MarketingTransferSyncUser transferFilterData : dataFilter){
                 List<PhoneSaleInfoVO> phoneSaleInfoVOS = _60filterCustNumsMap.get(transferFilterData.getCustNum());
-                if(phoneSaleInfoVOS.size()>2){
+                if(phoneSaleInfoVOS != null && phoneSaleInfoVOS.size()>2){
                     continue;
                 }
                 if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size()>0){
@@ -508,6 +525,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                             if (vo1.getType().equals(transferFilterData.getType())){
                                 resultFilter.add(transferFilterData);
                             }
+                        }else {
+                            resultFilter.add(transferFilterData);
                         }
                     }
                 }
@@ -547,6 +566,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(4);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(hist)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
@@ -698,6 +719,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
         updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(1);
+        updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信实时数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }

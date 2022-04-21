@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -21,6 +22,8 @@ import com.br.marketing.client.twosevenservice.TwoSevenService;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
+import com.br.marketing.client.yiqianbao.YiQianBaoService;
+import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -124,7 +127,12 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     RabbitMqProducter producter;
 
-    MarketingSyncUserMapper marketingSyncUserMapper;
+    @Autowired
+    YiqianbaoDataMapper yiqianbaoDataMapper;
+
+    @Autowired
+    YiQianBaoService yiQianBaoService;
+
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -794,6 +802,60 @@ public class PushDataServiceImpl implements PushDataService {
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
         redisChgService.setex(key, status, seconds);
         return true;
+    }
+
+    @Override
+    public Result pushSftpToDbData(Long id) {
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+        //壹钱包推送营销数据
+        if ("yiqianbao".equals(localFile.getFileType())) {
+            Boolean actionMark = true;
+            Long minId = null;
+            while (actionMark) {
+                List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id, minId);
+                if (dataList.size() <= 0) {
+                    actionMark = false;
+                    continue;
+                }
+                minId = dataList.get(dataList.size() - 1).getId();
+                List<List<YiqianbaoData>> dataPartList = Lists.partition(dataList, 50);
+                dataPartList.forEach(pushList -> {
+                    YqbDetailVo yqbDetailVo = getRequestTransfer(pushList);
+                    yiQianBaoService.pushMarketingData(yqbDetailVo);
+                    updatePushStatus(pushList);
+                });
+            }
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
+        YqbDetailVo yqbDetailVo = new YqbDetailVo();
+        List<YqbDetailVo.UserInfo> userInfoList = new ArrayList<>();
+        pushList.forEach(pushMarketingData ->{
+            YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
+            userInfo.setPhoneMd5(pushMarketingData.getPhoneMd5());
+            userInfo.setDataTime(DateUtils.format(pushMarketingData.getCreateTime(), "yyyyMMddHHmmss"));
+            userInfo.setOuterApplyNo(pushMarketingData.getId().toString());
+            userInfo.setMarketFlag(pushMarketingData.getMarketFlag());
+            userInfoList.add(userInfo);
+        });
+        yqbDetailVo.setUserInfoList(userInfoList);
+        return yqbDetailVo;
+    }
+
+    void updatePushStatus(List<YiqianbaoData> list) {
+        if (list.size() > 0) {
+            List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
+            YiqianbaoDataExample updateExample = new YiqianbaoDataExample();
+            updateExample.createCriteria().andIdIn(ids);
+            YiqianbaoData record = new YiqianbaoData();
+            record.setPushStatus(2);
+            yiqianbaoDataMapper.updateByExampleSelective(record, updateExample);
+        }
     }
 
     private Result addShuHeLock(String apiCode, String custNum, String status) {
