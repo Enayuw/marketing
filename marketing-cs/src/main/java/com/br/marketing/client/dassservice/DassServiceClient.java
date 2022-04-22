@@ -21,6 +21,7 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,8 +78,6 @@ public class DassServiceClient {
     private String postBlackList;
 
     private final static int size = 1000;
-
-    private final static List<String> EXTENDKEYLIST = Lists.newArrayList("is_usr_lst_app_sta_tim","face_recognitiion","is_usr_idt","is_bindcard","is_usr_inf","typeSign");
 
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
@@ -274,16 +273,15 @@ public class DassServiceClient {
 
     private String extendSort(String extend) {
         JSONObject jsonParam = JSON.parseObject(extend);
-        JSONObject jsonSortParam = new JSONObject(new LinkedHashMap());
-        JSONObject jsonOtherParam = new JSONObject(new LinkedHashMap());
-        jsonParam.keySet().forEach(paramKey -> {
-            if (EXTENDKEYLIST.contains(paramKey)) {
-                jsonSortParam.put(paramKey, jsonParam.get(paramKey));
-            } else {
-                jsonOtherParam.put(paramKey, jsonParam.get(paramKey));
-            }
-        });
-        jsonSortParam.putAll(jsonOtherParam);
+        HashMap sortMap = Maps.newLinkedHashMap();
+        sortMap.put("is_usr_lst_app_sta_tim","");
+        sortMap.put("face_recognitiion","");
+        sortMap.put("is_usr_idt","");
+        sortMap.put("is_bindcard","");
+        sortMap.put("is_usr_inf","");
+        sortMap.put("typeSign","");
+        JSONObject jsonSortParam = new JSONObject(sortMap);
+        jsonSortParam.putAll(jsonParam);
         return jsonSortParam.toJSONString();
     }
 
