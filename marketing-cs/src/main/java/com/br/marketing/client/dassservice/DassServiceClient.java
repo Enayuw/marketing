@@ -8,6 +8,8 @@ import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
@@ -49,6 +51,9 @@ public class DassServiceClient {
     @Value("${api.dass.postRealTimeUserData:call/postRealtimeUserData}")
     private String postRealTimeUserDataUrl;
 
+    @Value("${api.dass.postTransferData:00}")
+    private String postTransferData;
+
     @Value("${api.dass.isProxy:0}")
     private String isProxy;
 
@@ -73,9 +78,12 @@ public class DassServiceClient {
 
     private final static int size = 1000;
 
+    private final static List<String> EXTENDKEYLIST = Lists.newArrayList("is_usr_lst_app_sta_tim","face_recognitiion","is_usr_idt","is_bindcard","is_usr_inf","typeSign");
+
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
         List<DassImportDataDTO> dtos = dto.getList();
+        dtos.forEach(dassImportDataDTO -> dassImportDataDTO.setExtend(extendSort(dassImportDataDTO.getExtend())));
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
         sortList.add(String.valueOf(l));
@@ -145,7 +153,6 @@ public class DassServiceClient {
         return result;
     }
 
-
     /**
      * 2022/3/1 15:00
      * 黑名单数据推送
@@ -211,6 +218,7 @@ public class DassServiceClient {
         DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
         String phoneAesEncrypt = AESUtil.aesEncrypty(dassSingleImportDataDTO.getPhone(), ascKey);
         dassSingleImportDataDTO.setPhone(phoneAesEncrypt);
+        dassSingleImportDataDTO.setExtend(extendSort(dassSingleImportDataDTO.getExtend()));
         List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dassSingleImportDataDTO);
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
@@ -249,6 +257,79 @@ public class DassServiceClient {
         requestParam.put("sign", sign);
         requestParam.put("data", dassSingleImportAdapDTOList);
         HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postRealTimeUserDataUrl, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dto.getExtendInfo());
+        final String httpCode = hashMap.getOrDefault("httpcode", "5000");
+        if (httpCode.equals("200")) {
+            final String respStr = hashMap.getOrDefault("content", "");
+            log.warn("%%应答内容：[{}]", respStr);
+            if (org.springframework.util.StringUtils.isEmpty(respStr)) {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
+            }
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+        } else {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
+        }
+        return result;
+    }
+
+    private String extendSort(String extend) {
+        JSONObject jsonParam = JSON.parseObject(extend);
+        JSONObject jsonSortParam = new JSONObject(new LinkedHashMap());
+        JSONObject jsonOtherParam = new JSONObject(new LinkedHashMap());
+        jsonParam.keySet().forEach(paramKey -> {
+            if (EXTENDKEYLIST.contains(paramKey)) {
+                jsonSortParam.put(paramKey, jsonParam.get(paramKey));
+            } else {
+                jsonOtherParam.put(paramKey, jsonParam.get(paramKey));
+            }
+        });
+        jsonSortParam.putAll(jsonOtherParam);
+        return jsonSortParam.toJSONString();
+    }
+
+    /**
+     * 推送转化数据
+     */
+    public Result postTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO) {
+        Result result = new Result();
+        List<DassTransferDataDTO> dassTransferDataDTOList = dassTransferDataAdapDTO.getDassTransferDataDTOList();
+        long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+        List sortList = new ArrayList();
+        sortList.add(String.valueOf(l));
+        dassTransferDataDTOList.forEach(t -> {
+            BeanMap beanMap = BeanMap.create(t);
+            for (Object k : beanMap.keySet()) {
+                if (String.valueOf(k).equals("id")) {
+                    continue;
+                }
+                Object o = beanMap.get(k);
+                if (String.valueOf(k).equals("phone")) {
+                    sortList.add(AESUtil.decrypt(String.valueOf(o), ascKey));
+                    continue;
+                }
+                if (o == null) {
+                    continue;
+                } else if (o instanceof String) {
+                    if (StringUtils.isBlank(String.valueOf(o))) {
+                        continue;
+                    }
+                } else if (o instanceof List) {
+                    List o1 = (List) o;
+                    if (CollectionUtils.isEmpty(o1)) {
+                        continue;
+                    }
+                }
+                sortList.add(String.valueOf(o));
+            }
+        });
+        Collections.sort(sortList);
+        String param = Joiner.on("").join(sortList);
+        String sign = DigestUtils.md5DigestAsHex(String.format(secretKey + "%s", param).getBytes());
+        HashMap requestParam = new HashMap();
+        requestParam.put("ts", l);
+        requestParam.put("sign", sign);
+        requestParam.put("data", dassTransferDataDTOList);
+        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postTransferData, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dassTransferDataAdapDTO.getTransferInfoId().toString());
         final String httpCode = hashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = hashMap.getOrDefault("content", "");
