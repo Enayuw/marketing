@@ -9,6 +9,7 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Description : 拍拍贷电销转化接口
@@ -48,11 +50,15 @@ public class PPDArtificialTransferImpl implements AssembleData<DassAssembleTrans
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
-        boolean a = ppdCustomerType.get("lend").contains(context.getApiCode()) && "Y".equals(transfer.getIfLent());
-        boolean b = ppdCustomerType.get("transform").contains(context.getApiCode())
-                && Arrays.asList("-1", "1").contains(transfer.getIfTransform());
-        return a || b;
+        Set<String> includeRules = context.getMqFact().getIncludeRules();
+        if (!CollectionUtils.isEmpty(includeRules) && includeRules.contains(label())) {
+            HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
+            boolean a = ppdCustomerType.get("lend").contains(context.getApiCode()) && "Y".equals(transfer.getIfLent());
+            boolean b = ppdCustomerType.get("transform").contains(context.getApiCode())
+                    && Arrays.asList("-1", "1").contains(transfer.getIfTransform());
+            return a || b;
+        }
+        return false;
     }
 
     @Override
