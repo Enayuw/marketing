@@ -458,7 +458,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      * @param actionType
      * @return
      */
-    private Result<TransferActionFront> getFrontData(String apiCode, String date, Integer actionType) {
+    public Result<TransferActionFront> getFrontData(String apiCode, String date, Integer actionType) {
         TransferActionFrontExample frontExample = new TransferActionFrontExample();
         frontExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -480,7 +480,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
     }
 
-    private Long saveFrontData(String apiCode, String date, Integer actionType) {
+    public Long saveFrontData(String apiCode, String date, Integer actionType) {
         TransferActionFront front = new TransferActionFront();
         front.setApiCode(apiCode);
         front.setStatus(1);
@@ -491,7 +491,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         return front.getId();
     }
 
-    private void updateFrontDataStatus(Long id, Integer status) {
+    public void updateFrontDataStatus(Long id, Integer status) {
         TransferActionFront front = new TransferActionFront();
         front.setId(id);
         front.setStatus(status);

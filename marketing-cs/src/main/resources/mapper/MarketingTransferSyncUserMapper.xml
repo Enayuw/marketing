@@ -80,4 +80,19 @@
         ) t2 where t1.id = t2.id
     </select>
 
+    <select id="getTransferByApiCodeAndCreateTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
+            order by id asc limit 2000;
+        </where>
+    </select>
+
 </mapper>
