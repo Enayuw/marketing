@@ -8,6 +8,7 @@
         bftr.api_code as apiCode,
         bftr.task_time as taskTime,
         bmc.cid ,bmc.short_name as cName,
+        shf.zipFile_name as fileName,
         case
         when shf.status is null then 0
         when shf.status=2 then 2
