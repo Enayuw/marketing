@@ -16,10 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Description : 拍拍贷电销转化接口
@@ -42,6 +39,7 @@ public class PPDArtificialTransferImpl implements AssembleData<DassAssembleTrans
         dassTransferDataDTO.setIfTransform("1");
         dassTransferDataDTO.setUid(transfer.getCustNum());
         dassTransferDataDTO.setOrgName("ppdai");
+        dassTransferDataDTO.setId(transfer.getId());
         transferDataDTO.setDassTransferDataDTO(dassTransferDataDTO);
         transferDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendPPD(transfer));
         return transferDataDTO;
@@ -88,6 +86,7 @@ public class PPDArtificialTransferImpl implements AssembleData<DassAssembleTrans
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setPStatus(1);
+        phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
         return phoneSaleExtendInfo;

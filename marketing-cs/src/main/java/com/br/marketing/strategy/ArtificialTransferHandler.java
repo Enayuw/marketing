@@ -70,8 +70,6 @@ public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<
                 subList = transferData.subList((i - 1) * pageSize, pageSize * (i));
             }
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
-            dassTransferDataAdapDTO.setTransferInfoId(context.getTransferInfoId());
-
             List<DassTransferDataDTO> dataDTOS = subList.stream().map(batchData->batchData.getDassTransferDataDTO()).collect(Collectors.toList());
             List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
             dassTransferDataAdapDTO.setDassTransferDataDTOList(dataDTOS);

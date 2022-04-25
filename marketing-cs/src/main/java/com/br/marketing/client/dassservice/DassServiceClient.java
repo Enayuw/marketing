@@ -327,7 +327,7 @@ public class DassServiceClient {
         requestParam.put("ts", l);
         requestParam.put("sign", sign);
         requestParam.put("data", dassTransferDataDTOList);
-        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postTransferData, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dassTransferDataAdapDTO.getTransferInfoId().toString());
+        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postTransferData, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
         final String httpCode = hashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = hashMap.getOrDefault("content", "");
