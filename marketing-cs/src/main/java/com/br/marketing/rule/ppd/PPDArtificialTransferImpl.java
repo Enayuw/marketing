@@ -41,7 +41,7 @@ public class PPDArtificialTransferImpl implements AssembleData<DassAssembleTrans
         dassTransferDataDTO.setApiCode(context.getApiCode());
         dassTransferDataDTO.setIfTransform("1");
         dassTransferDataDTO.setUid(transfer.getCustNum());
-        dassTransferDataDTO.setOrgName("ppd");
+        dassTransferDataDTO.setOrgName("ppdai");
         transferDataDTO.setDassTransferDataDTO(dassTransferDataDTO);
         transferDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendPPD(transfer));
         return transferDataDTO;
