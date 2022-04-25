@@ -6,6 +6,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
+import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * Created by Bairong on 2019/10/30.
  */
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.br.marketing"})

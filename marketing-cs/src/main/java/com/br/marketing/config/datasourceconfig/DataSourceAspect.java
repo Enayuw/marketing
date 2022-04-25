@@ -6,67 +6,46 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
 @Aspect
+@Order(-1000)
 public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
-    static  final String marketing_write="marketing";
-    static final String marketing_read="marketing_read";
+    static final String marketingTikiv = "marketingTikiv";
+    static final String marketingTiFlash = "marketingTiFlash";
 
     /**
-     * 切换数据源slave
+     * 切换tikv数据源
      */
-    @Before("accountreadPointcut()")
-    public void accountSlaveInterceptor() {
-
-//        if(optContext.getOptBizModule().getTimeSensitiveLevel()>90)
-//        {
-//            logger.debug("高时效性业务，Read使用主库");
-//            logger.debug("切换到数据源{}..............................", "master");
-//            DbContextHolder.setDbType(marketing_write);
-//        }else {
-            logger.debug("切换到数据源{}..............................", "slave");
-            DbContextHolder.setDbType(marketing_read);
-//        }
-
+    @Before("tiKvOfMarketing()")
+    public void tiKvOfMarketingInterceptor() {
+        logger.info("切换到数据源{}.......................", "tikv");
+        DbContextHolder.setDbType(marketingTikiv);
     }
 
     /**
      * 切换数据源master
      */
-    @Before("accountwritePointcut()")
-    public void accountMasterInterceptor() {
-        logger.debug("切换到数据源{}.......................", "master");
-        DbContextHolder.setDbType(marketing_write);
+    @Before("tiflashOfMarketing()")
+    public void tiflashOfMarketingInterceptor() {
+        logger.info("切换到数据源{}.......................", "tiflash");
+        DbContextHolder.setDbType(marketingTiFlash);
     }
 
-    @After("releasePointcut()")
-    public void afterInterceptor(){
-        logger.debug("释放数据源{}.......................", "");
+    @After("tiKvOfMarketing()")
+    public void afterInterceptor() {
+        logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
         DbContextHolder.clearDbType();
     }
 
-    @Pointcut(value ="execution(* com.br.marketing.mapper.*.select*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.get*(..)) ||"+
-            "execution(* com.br.marketing.mapper.*.count*(..))")
-    private void accountreadPointcut() {
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTikvMarketing)||execution(* com.br.marketing.mapper.*.*tikv_(..))")
+    public void tiKvOfMarketing() {
     }
 
-    @Pointcut(value = "execution(* com.br.marketing.mapper.*.insert*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.update*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.delete*(..))")
-    private void accountwritePointcut() {
-    }
-    
-    @Pointcut(value = "execution(* com.br.marketing.mapper.*.insert*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.update*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.delete*(..)) ||"+
-            "execution(* com.br.marketing.mapper.*.select*(..)) || " +
-            "execution(* com.br.marketing.mapper.*.count*(..)) ||"+
-            "execution(* com.br.marketing.mapper.*.get*(..))"
-    )
-    private void releasePointcut() {
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTiFlashMarketing)||execution(* com.br.marketing.mapper.*.*tiflash_(..))")
+    public void tiflashOfMarketing() {
     }
 }

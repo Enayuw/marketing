@@ -137,4 +137,34 @@
             </if>
         </where>
     </sql>
+
+    <select id="selectCustomerBytestPartion" resultType="com.br.marketing.entity.MarketingCustomer">
+        select *
+        from (
+                 select *, rank() over(partition by api_code order by id desc) as num
+                 from b_marketing_customer
+                 where status = 1
+             ) as a
+        where a.num = 1
+    </select>
+
+    <select id="selectCustomerBytestPartiontifh_" resultType="com.br.marketing.entity.MarketingCustomer">
+        select *
+        from (
+                 select *, rank() over(partition by api_code order by id desc) as num
+                 from b_marketing_customer
+                 where status = 1
+             ) as a
+        where a.num = 1
+    </select>
+
+    <select id="selectCustomerBytestPartiontikv_" resultType="com.br.marketing.entity.MarketingCustomer">
+        select *
+        from (
+                 select *, rank() over(partition by api_code order by id desc) as num
+                 from b_marketing_customer
+                 where status = 1
+             ) as a
+        where a.num = 1
+    </select>
 </mapper>

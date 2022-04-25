@@ -1,120 +1,80 @@
 package com.br.marketing.config.datasourceconfig;
 
 
-import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.google.common.base.Preconditions;
+import io.shardingsphere.shardingjdbc.api.ShardingDataSourceFactory;
+import io.shardingsphere.shardingjdbc.spring.boot.util.PropertyUtil;
+import io.shardingsphere.shardingjdbc.util.DataSourceUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.util.*;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @Slf4j
+@EnableConfigurationProperties({ShardingRuleConfigurationProperties.class})
 public class DataSourceConfig {
 
-    private static final String DATASOURCE_TYPE_DEFAULT = "com.alibaba.druid.pool.DruidDataSource";
+    static String prefix = "datasource.";
+
+    @Autowired
+    private ShardingRuleConfigurationProperties shardingProperties;
 
     @Autowired
     Environment environment;
 
-    @Autowired
-    DataSourceConfigProperty dataSourceConfigProperty;
-    /**
-     * 读取prop 对 Druid 的数据源设置
-     */
-    @Component
-    @ConfigurationProperties(prefix="datasource.druid")
-    protected class DruidDataSourceConfigure{
-        private Properties configure;
-
-        public Properties getConfigure() {
-            return configure;
-        }
-
-        public void setConfigure(Properties configure) {
-            this.configure = configure;
-        }
-    }
-
-    //默认数据源
-    DataSource defaultDatSource=null;
-
-    @PostConstruct
-    void init(){
-        defaultDatSource = buildDataSource(dataSourceConfigProperty.getMarketingWrite());
-    }
-
-    @Autowired
-    private DruidDataSourceConfigure druidConfigure;
-
     @Primary
     @Bean
-    public DynamicDataSource dynamicDataSource(
-            Environment env
-    ) {
+    public DynamicDataSource dynamicDataSource() {
+        String defaultName = environment.getProperty(prefix.concat("database.defaultSource"));
         Map<Object, Object> targetDataSources = new HashMap<>();
-        try
-        {
-            targetDataSources.put(dataSourceConfigProperty.getMarketingWrite().getName(),defaultDatSource);
-        }catch (Exception e) {
-            log.info("初始化数据库配置失败", e);
+        try {
+            targetDataSources = buildSource();
+        } catch (Exception e) {
+            log.error("初始化数据库配置失败", e);
         }
         log.info("初始化数据源");
         DynamicDataSource bean = new DynamicDataSource();
         bean.setTargetDataSources(targetDataSources);
-        bean.setDefaultTargetDataSource(defaultDatSource);
+        bean.setDefaultTargetDataSource(targetDataSources.get(defaultName));
         return bean;
     }
 
 
-    /**
-     * 创建数据源
-     */
-    public DataSource buildDataSource(DataSourceConfigProperty.SourceEntity sourceEntity) {
-        try {
-            String type = sourceEntity.getType();
-            if (type == null) {
-                // 默认DataSource
-                type = DATASOURCE_TYPE_DEFAULT;
+    public HashMap<Object, Object> buildSource() throws ReflectiveOperationException, SQLException {
+        HashMap dataSourceMap = new HashMap();
+        String prefixName = prefix.concat("database.");
+        String _nameOfBootDbs = environment.getProperty(prefixName + "names");
+        for (String _nameOfBootDb : _nameOfBootDbs.split(",")) {
+            Map<String, Object> dataSourceProps = PropertyUtil.handle(environment, prefixName + _nameOfBootDb, Map.class);
+            Preconditions.checkState(!dataSourceProps.isEmpty(), "Wrong datasource properties!");
+            DataSource dataSource = DataSourceUtil.getDataSource(dataSourceProps.get("type").toString(), dataSourceProps);
+            if (dataSourceProps.get("isSharding") != null && dataSourceProps.get("isSharding").toString().equals("true")) {
+                HashMap _dataSourceMap = new HashMap();
+                _dataSourceMap.put(_nameOfBootDb, dataSource);
+                dataSourceMap.put(_nameOfBootDb, shardingSourceExtra(_dataSourceMap));
+            } else {
+                dataSourceMap.put(_nameOfBootDb, dataSource);
             }
-            Map<String,Object> configMap=new Hashtable<>();
-            configMap.put("url",sourceEntity.getUrl());
-            configMap.put("username",sourceEntity.getUsername());
-            configMap.put("password",sourceEntity.getPassword());
-            configMap.put("type",type);
-            configMap.put("driverClassName",sourceEntity.getDriverClassName());
-            if(druidConfigure!=null) {
-                Properties druidP = druidConfigure.getConfigure();
-                if (druidP != null) {
-                    //返回的属性键值对实体
-                    Set<Map.Entry<Object, Object>> entrySet = druidP.entrySet();
-                    for (Map.Entry<Object, Object> entry : entrySet) {
-                        configMap.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
-                    }
-                }
-            }
-            return DruidDataSourceFactory.createDataSource(configMap);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            log.error("buildDataSource:",e);
+
         }
-        catch (Exception e){
-            log.error("buildDataSource:",e);
-        }
-        return null;
+        return dataSourceMap;
     }
 
+    public DataSource shardingSourceExtra(Map<String, DataSource> dataSourceMap) throws SQLException {
+        return ShardingDataSourceFactory.createDataSource(dataSourceMap
+                , shardingProperties.getShardingRuleConfiguration()
+                , shardingProperties.getConfigMap()
+                , shardingProperties.getProps());
+    }
 
-//    @Bean
-//    BatchConfigurer configurer() {
-//        return new DefaultBatchConfigurer(defaultDatSource);
-//    }
 
 }
