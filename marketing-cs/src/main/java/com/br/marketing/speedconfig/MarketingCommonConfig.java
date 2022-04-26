@@ -143,5 +143,9 @@ public class MarketingCommonConfig {
      * 壹钱包加密公钥
      */
     private String yiQianBaoPubKey;
+    /**
+     * ppd客服类型
+     */
+    private HashMap<String, List<String>> ppdCustomerType;
 
 }

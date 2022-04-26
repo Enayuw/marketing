@@ -61,4 +61,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @dateTime 2022/4/15 11:43
      */
     List<MarketingTransferSyncUser> findShuHeTransferList(@Param("tCid") String tCid, @Param("sqlPart") String sqlPart);
+
+    /**
+     * 根据apiCode,create_time获取数据
+     *
+     * @param startDate
+     * @param endDate
+     * @param apiCode
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferByApiCodeAndCreateTime(@Param("apiCode") String apiCode, @Param("tCid") String tcId, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("minId") Long minId);
 }
