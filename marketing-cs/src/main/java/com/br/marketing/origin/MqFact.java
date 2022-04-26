@@ -65,6 +65,6 @@ public class MqFact extends InterfaceParams {
      * 延迟时间；单位小时
      * eg:1或0.5
      */
-    private Float delayTime;
+    private float delayTime;
 
 }
