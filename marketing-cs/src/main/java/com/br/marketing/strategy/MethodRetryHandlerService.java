@@ -6,6 +6,8 @@ import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
@@ -196,5 +198,26 @@ public class MethodRetryHandlerService {
         }
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 调用电销转化接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param dassTransferDataAdapDTO
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassTransferDataAdapDTO.getDassTransferDataDTOList().stream().map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",",set), InterfaceHandlerEnum.ARTIFICIAL_TRANSFER.getCode(),
+                    dassTransferDataAdapDTO.getTransferInfoId());
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+
+
     }
 }
