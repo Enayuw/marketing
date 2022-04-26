@@ -52,13 +52,19 @@ public class MqFact extends InterfaceParams {
     private Set<String> includeRules;
 
     /**
-     *  mq中消息内容
+     * mq中消息内容
      */
     private String message;
 
     /**
-     *  是否为延迟队列的消息 1:是
+     * 是否为延迟队列的消息 1:是
      */
     private Integer isDelay;
+
+    /**
+     * 延迟时间；单位小时
+     * eg:1或0.5
+     */
+    private Float delayTime;
 
 }
