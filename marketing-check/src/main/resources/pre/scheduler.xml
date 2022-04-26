@@ -84,7 +84,7 @@
     />
     <job:simple id="SftpToDbByResultDataJob"
                 class="com.br.marketing.check.job.SftpToDbByResultDataJob"
-                cron="0 0/30 * * * ? "
+                cron="0 2/30 * * * ? "
                 description="sftp运营结果文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -98,7 +98,7 @@
     />
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
-                cron="0 0/30 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="77转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -168,7 +168,7 @@
     />
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
-                cron="0 0/10 * * * ? "
+                cron="0 4/40 * * * ? "
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

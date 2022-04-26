@@ -32,6 +32,8 @@ public class SyncReportController {
     @Resource
     private MarketingSyncReportService marketingSyncReportService;
 
+    @Resource
+    private MarketingSyncReportService syncReportService;
 
     @GetMapping("/getReportList")
     @ApiOperation(value = "客户上传数据统计报表列表", notes = "客户上传数据统计报表列表", httpMethod = "GET")
@@ -77,6 +79,20 @@ public class SyncReportController {
             return new ApiResult<Map>().success(map);
         }
         return new ApiResult<Map>().fail(ServiceResultEnum.FAILED);
+    }
+
+    @GetMapping("/triggerTaskUploadSyncReportJob")
+    @ApiOperation(value = "手动执行上传数据统计报表任务", notes = "手动执行上传数据统计报表任务", httpMethod = "GET")
+    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)",paramType = "query", dataType = "string")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String uploadDate) {
+        try {
+            syncReportService.syncReportProcess(uploadDate);
+            return new ApiResult<Boolean>().success(Boolean.TRUE);
+        }catch (Exception e){
+            log.warn("手动执行上传数据统计报表任务异常");
+            return new ApiResult<Boolean>().fail("手动执行上传数据统计报表任务异常,请稍后再试！");
+        }
     }
 
 }

@@ -62,6 +62,12 @@ public class FastTaskRuleListVO {
     private String taskTime;
 
     /**
+     * 跑分文件名
+     */
+    @ApiModelProperty(value = "跑分文件名")
+    private String fileName;
+
+    /**
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")

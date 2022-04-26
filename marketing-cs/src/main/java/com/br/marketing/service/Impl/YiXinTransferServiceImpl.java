@@ -89,7 +89,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
 
     @Override
-    @Transactional
     public Result actionYiXinToDx(String apiCode, String date) {
 
         if (StringUtils.isBlank(date)) {

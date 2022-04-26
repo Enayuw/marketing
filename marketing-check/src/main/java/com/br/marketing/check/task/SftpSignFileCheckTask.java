@@ -80,7 +80,9 @@ public class SftpSignFileCheckTask implements Runnable {
                 executorService1.schedule(ftpToSftpCheckTask, 3600000,  TimeUnit.MILLISECONDS);
                 executorService.shutdown();
             }
-
+            if(connect){
+                sftpClient.disconnect();
+            }
         }catch (Exception e){
             log.error("SignFileCheckTask error {}",e);
         }
