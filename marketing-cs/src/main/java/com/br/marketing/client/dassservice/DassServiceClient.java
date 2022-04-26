@@ -272,6 +272,9 @@ public class DassServiceClient {
     }
 
     private String extendSort(String extend) {
+        if(StringUtils.isEmpty(extend)){
+            return null;
+        }
         JSONObject jsonParam = JSON.parseObject(extend);
         HashMap sortMap = Maps.newLinkedHashMap();
         sortMap.put("is_usr_lst_app_sta_tim","");
