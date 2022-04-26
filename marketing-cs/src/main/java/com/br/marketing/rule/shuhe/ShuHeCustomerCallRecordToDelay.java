@@ -47,7 +47,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
                 return false;
             }
             if(!pushDXSatisfy){
-                log.warn("callrecord数据id为{}不符合推电销b规则",bo.getId());
+                log.warn("callrecord数据id为{}不符合推电销规则",bo.getId());
                 return false;
             }
             String key = cusNumIsFirst.concat(":").concat(bo.getUserType()).concat(":").concat(bo.getCaseNum());

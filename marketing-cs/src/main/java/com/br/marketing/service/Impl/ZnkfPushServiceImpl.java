@@ -145,25 +145,28 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         String groupType = map.get("groupType").toString();
         boolean intentionGrade = false;
-        if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
-            intentionGrade = true;
-        }
-        if(!intentionGrade){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的A！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
-            return false;
-        }
         if(!"促申完".equals(groupType) && !"促首借".equals(groupType)){
             log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
             return false;
         }
         Boolean isPeriod = false;
         if("促申完".equals(groupType)){
+            if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade()) || "B".equals(dto.getDetail().getIntentionGrade())){
+                intentionGrade = true;
+            }
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
                     dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
         }else if("促首借".equals(groupType)){
+            if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
+                intentionGrade = true;
+            }
             //促首借的有效期:T+31日
             Integer day = handlerService.getShuHePeriodOfValidityDay(dto.getUserType());
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), day);
+        }
+        if(!intentionGrade){
+            log.info("拨打记录数据不符合intentionGrade推送条件,id={}",dto.getId());
+            return false;
         }
         if (!isPeriod) {
             //不在有效期内
