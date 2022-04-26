@@ -285,6 +285,13 @@ public class DassServiceClient {
         sortMap.put("typeSign","");
         JSONObject jsonSortParam = new JSONObject(sortMap);
         jsonSortParam.putAll(jsonParam);
+        Iterator<Map.Entry<String, Object>> iterator  = jsonSortParam.entrySet().iterator();
+        while(iterator .hasNext()){
+            Map.Entry entry = iterator.next();
+            if(StringUtils.isEmpty(entry.getValue())){
+                iterator.remove();
+            }
+        }
         return jsonSortParam.toJSONString();
     }
 
