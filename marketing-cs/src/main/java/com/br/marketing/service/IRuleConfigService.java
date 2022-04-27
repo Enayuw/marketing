@@ -30,4 +30,6 @@ public interface IRuleConfigService {
     Result<List<FastTaskRule>> getFastTaskRule(String apiCode);
 
     Result checkFastTaskRule(FastTaskRule rule);
+
+    Result<List<CustomerScoreRuleVO>> getScoreConfigNow();
 }

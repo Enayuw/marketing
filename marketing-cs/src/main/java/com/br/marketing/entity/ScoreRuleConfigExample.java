@@ -1404,6 +1404,76 @@ public class ScoreRuleConfigExample {
             addCriterion("strategy_product_show not between", value1, value2, "strategyProductShow");
             return (Criteria) this;
         }
+
+        public Criteria andConditionTypeIsNull() {
+            addCriterion("condition_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeIsNotNull() {
+            addCriterion("condition_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeEqualTo(String value) {
+            addCriterion("condition_type =", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotEqualTo(String value) {
+            addCriterion("condition_type <>", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeGreaterThan(String value) {
+            addCriterion("condition_type >", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("condition_type >=", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeLessThan(String value) {
+            addCriterion("condition_type <", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeLessThanOrEqualTo(String value) {
+            addCriterion("condition_type <=", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeLike(String value) {
+            addCriterion("condition_type like", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotLike(String value) {
+            addCriterion("condition_type not like", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeIn(List<String> values) {
+            addCriterion("condition_type in", values, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotIn(List<String> values) {
+            addCriterion("condition_type not in", values, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeBetween(String value1, String value2) {
+            addCriterion("condition_type between", value1, value2, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotBetween(String value1, String value2) {
+            addCriterion("condition_type not between", value1, value2, "conditionType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

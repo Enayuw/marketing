@@ -22,6 +22,7 @@
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="strategy_product_show" property="strategyProductShow" jdbcType="VARCHAR" />
+    <result column="condition_type" property="conditionType" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -84,7 +85,8 @@
   <sql id="Base_Column_List" >
     id, rule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
     strategy_id, product_info, base_info, rule_type, is_del, create_time, exec_type, 
-    cycle_day, cycle_end_day, push_type, task_type, status, update_time, strategy_product_show
+    cycle_day, cycle_end_day, push_type, task_type, status, update_time, strategy_product_show, 
+    condition_type
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" >
     select
@@ -126,14 +128,14 @@
       is_del, create_time, exec_type, 
       cycle_day, cycle_end_day, push_type, 
       task_type, status, update_time, 
-      strategy_product_show)
+      strategy_product_show, condition_type)
     values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
       #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{productInfo,jdbcType=VARCHAR}, #{baseInfo,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, 
       #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{execType,jdbcType=INTEGER}, 
       #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
       #{taskType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{strategyProductShow,jdbcType=VARCHAR})
+      #{strategyProductShow,jdbcType=VARCHAR}, #{conditionType,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -198,6 +200,9 @@
       <if test="strategyProductShow != null" >
         strategy_product_show,
       </if>
+      <if test="conditionType != null" >
+        condition_type,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
@@ -256,6 +261,9 @@
       </if>
       <if test="strategyProductShow != null" >
         #{strategyProductShow,jdbcType=VARCHAR},
+      </if>
+      <if test="conditionType != null" >
+        #{conditionType,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -328,6 +336,9 @@
       <if test="record.strategyProductShow != null" >
         strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR},
       </if>
+      <if test="record.conditionType != null" >
+        condition_type = #{record.conditionType,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -354,7 +365,8 @@
       task_type = #{record.taskType,jdbcType=INTEGER},
       status = #{record.status,jdbcType=INTEGER},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR}
+      strategy_product_show = #{record.strategyProductShow,jdbcType=VARCHAR},
+      condition_type = #{record.conditionType,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -419,6 +431,9 @@
       <if test="strategyProductShow != null" >
         strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR},
       </if>
+      <if test="conditionType != null" >
+        condition_type = #{conditionType,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -442,7 +457,8 @@
       task_type = #{taskType,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR}
+      strategy_product_show = #{strategyProductShow,jdbcType=VARCHAR},
+      condition_type = #{conditionType,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

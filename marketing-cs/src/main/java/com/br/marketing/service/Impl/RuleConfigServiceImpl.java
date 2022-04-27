@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IRuleConfigService;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,4 +171,23 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
     }
+
+    @Override
+    public Result<List<CustomerScoreRuleVO>> getScoreConfigNow() {
+        String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+        ScoreRuleConfigExample ruleConfigExample = new ScoreRuleConfigExample();
+        ruleConfigExample.createCriteria()
+                .andStartTimeLessThanOrEqualTo(nowTime)
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andStatusEqualTo(Constants.STATUS_START);
+        ruleConfigExample.setOrderByClause(" start_time asc ");
+        List<ScoreRuleConfig> scoreRuleConfigs = scoreRuleConfigMapper.selectByExample(ruleConfigExample);
+        if(scoreRuleConfigs.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }else{
+//            scoreRuleConfigs.stream().map(t->t.get)
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate();
+        }
+    }
+
 }

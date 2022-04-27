@@ -84,7 +84,7 @@ public class ScoreRuleConfig {
     private Integer pushType;
 
     /**
-     * 跑分类型  0 正常跑分 1 不跑分
+     * 跑分类型  0 有策略跑分 1 无策略不跑分 2 数据产品跑分
      */
     private Integer taskType;
 
@@ -102,6 +102,11 @@ public class ScoreRuleConfig {
      * 策略产品展示信息，后期有可能维护成需要配置的产品
      */
     private String strategyProductShow;
+
+    /**
+     * 跑分范围类型 1-当天数据范围；2-手动选择数据范围
+     */
+    private String conditionType;
 
     public Long getId() {
         return id;
@@ -261,5 +266,13 @@ public class ScoreRuleConfig {
 
     public void setStrategyProductShow(String strategyProductShow) {
         this.strategyProductShow = strategyProductShow == null ? null : strategyProductShow.trim();
+    }
+
+    public String getConditionType() {
+        return conditionType;
+    }
+
+    public void setConditionType(String conditionType) {
+        this.conditionType = conditionType == null ? null : conditionType.trim();
     }
 }
