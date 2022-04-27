@@ -103,6 +103,7 @@ public class DataLoadingHandlerService {
             shuHePeriodOfValidityDayMap.put("促首登", "T");
             shuHePeriodOfValidityDayMap.put("促申完", "T+15");
             shuHePeriodOfValidityDayMap.put("促首借", "T+31");
+            shuHePeriodOfValidityDayMap.put("促复借", "T");
         }
         if (shuHePeriodOfValidityDayMap.containsKey(userType)) {
             Matcher matcher = PATTERN.matcher(shuHePeriodOfValidityDayMap.get(userType));
