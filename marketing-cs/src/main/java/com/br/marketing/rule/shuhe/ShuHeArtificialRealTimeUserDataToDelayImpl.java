@@ -4,6 +4,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
@@ -55,6 +56,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MqFact mqFact = context.getMqFact();
         MqFact mqFactNew = new MqFact();
         mqFactNew.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
@@ -63,6 +66,11 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
+        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+            mqFactNew.setDelayTime(0.5F);
+        } else {
+            mqFactNew.setDelayTime(1F);
+        }
         return mqFactNew;
     }
 
