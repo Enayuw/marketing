@@ -90,7 +90,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
                 caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
                 caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
-                shuHeRuleNecessaryData.setJsonObject(object);
+                caseShuheUser.setJsonObject(object);
                 shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
             }
             caseShuheUser.setClcUsrFstLogTimAll(replace000(transfer.getLoginTime()));
@@ -139,12 +139,6 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
          */
         private boolean continueJudgeRule;
 
-        /**
-         * 扩展字段 json对象
-         * reserveField1
-         */
-        private JSONObject jsonObject;
-
         private Map<String, MarketingSyncUser> customerMap;
 
         private MarketingTransferSyncUser transfer;
@@ -171,7 +165,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                 this.caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
                 this.caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
                 this.taskId = object.getString("taskId");
-                this.jsonObject = object;
+                this.caseShuheUser.setJsonObject(object);
             }
             this.caseShuheUser.setClcUsrFstLogTimAll(replace000(this.transfer.getLoginTime()));
             this.caseShuheUser.setClcUsrIsoAtoTim(replace000(this.transfer.getApplyTime()));
