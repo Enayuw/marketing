@@ -147,5 +147,4 @@ public class MarketingCommonConfig {
      * ppd客服类型
      */
     private HashMap<String, List<String>> ppdCustomerType;
-
 }
