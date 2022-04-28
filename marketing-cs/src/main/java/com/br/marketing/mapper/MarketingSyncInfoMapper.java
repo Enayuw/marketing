@@ -43,6 +43,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    Long getMinIdByRuleScoreWithDate(@Param("apiCode") String apiCode
+            , @Param("sTimeStr") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
     Long getMaxIdByRuleScore(@Param("apiCode") String apiCode
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);

@@ -31,5 +31,12 @@ public interface IRuleConfigService {
 
     Result checkFastTaskRule(FastTaskRule rule);
 
+    /**
+     * 获取当天的跑分规则
+     * @return
+     */
     Result<List<CustomerScoreRuleVO>> getScoreConfigNow();
+
+
+    Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ruleIds);
 }

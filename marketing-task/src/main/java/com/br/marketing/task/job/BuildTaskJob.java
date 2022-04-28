@@ -19,6 +19,7 @@ public class BuildTaskJob  extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         //region
+
         //endregion
     }
 }

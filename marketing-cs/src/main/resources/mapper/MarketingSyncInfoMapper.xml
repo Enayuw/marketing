@@ -89,6 +89,15 @@
         and is_repeat in (1,2)
         and (${whereStr})
     </select>
+
+    <select id="getMinIdByRuleScoreWithDate" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{sDate}
+            <![CDATA[ and applet_time < #{eTimeStr} ]]>
+            and is_repeat in (1,2)
+            and (${whereStr})
+    </select>
     
     <select id="getMaxIdByRuleScore" resultType="java.lang.Long">
         select max(id)
