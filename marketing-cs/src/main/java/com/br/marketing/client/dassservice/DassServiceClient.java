@@ -155,9 +155,6 @@ public class DassServiceClient {
             log.error(ex.getMessage(), ex);
         }
         interfaceLogMapper.insertSelective(interfaceLog);
-        if(marketingCommonConfig.getIsDxError() != null&&marketingCommonConfig.getIsDxError()){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("手动报错");
-        }
         return result;
     }
 
