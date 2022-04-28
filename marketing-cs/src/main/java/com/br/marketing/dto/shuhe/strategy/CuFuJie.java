@@ -45,7 +45,6 @@ public class CuFuJie extends IUserType {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         String clcUsrLstNonDcpTrsTim = jsonObject.getString("clc_usr_lst_non_dcp_trs_tim");
         String offUsrLstOrdTimAll = jsonObject.getString("off_usr_lst_ord_tim_all");
-        Integer clcUsrAvlLmtLv0 = jsonObject.getInteger("clc_usr_avl_lmt_lv0");
         LocalDate appletDate = creatTime.toInstant().atZone(
                 ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
         if (!StringUtils.isEmpty(clcUsrLstNonDcpTrsTim) && !StringUtils.isEmpty(offUsrLstOrdTimAll)){
@@ -53,8 +52,12 @@ public class CuFuJie extends IUserType {
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
             ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) &&(ordTimAll.isBefore(appletDate) || ordTimAll.isEqual(appletDate));
         }
-        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(clcUsrAvlLmtLv0)){
+        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(jsonObject.getInteger("clc_usr_avl_lmt_lv0"))){
+            Integer clcUsrAvlLmtLv0 = jsonObject.getInteger("clc_usr_avl_lmt_lv0");
             Integer max = marketingCommonConfig.getClcUsrAvlLmtLv0();
+            if(max == null){
+                max=100;
+            }
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
             ifTransfer2 = (ordTimAll.isAfter(appletDate) || ordTimAll.isEqual(appletDate)) && (clcUsrAvlLmtLv0 < max);
         }
