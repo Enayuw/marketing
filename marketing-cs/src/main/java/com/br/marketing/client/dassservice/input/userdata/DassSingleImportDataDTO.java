@@ -1,7 +1,6 @@
 package com.br.marketing.client.dassservice.input.userdata;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
