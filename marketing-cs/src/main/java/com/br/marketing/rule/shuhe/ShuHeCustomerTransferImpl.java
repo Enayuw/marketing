@@ -22,6 +22,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Map;
 
@@ -36,6 +40,7 @@ import java.util.Map;
 public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private final static String HAS_TRANS_FER = "1";
     private final static String NO_HAS_TRANSFER = "0";
+    static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
@@ -69,6 +74,17 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+
+        //促复借新增推送字段
+        if("促复借".equals(transfer.getUserType())){
+            conversionData.setInversionDate(transfer.getTransformTime());
+            conversionData.setEffectiveDate(transfer.getRequestTime());
+            //生效截止时间
+            LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
+            LocalDate plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
+            conversionData.setExpireDate(plusDays + " 23:59:59");
+        }
+
         return conversionData;
     }
 
