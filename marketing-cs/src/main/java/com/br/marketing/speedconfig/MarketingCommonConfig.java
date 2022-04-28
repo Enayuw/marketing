@@ -148,4 +148,8 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, List<String>> ppdCustomerType;
 
+    /**
+     * 是否让电销接口返回false
+     */
+    private Boolean isDxError;
 }
