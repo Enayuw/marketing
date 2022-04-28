@@ -5,8 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.customizedassert.AssertResult;
-import com.br.marketing.entity.MarketingSyncInfoExample;
-import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.service.IApiToDbService;
@@ -27,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -50,6 +50,7 @@ public class TaskServiceImpl implements ITaskService {
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
+
 
     static String warnTemp = "apiCode：%s,数据id：%s,错误信息：%s";
 
@@ -172,6 +173,141 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     private void buildScoreTaskOfSelect(CustomerScoreRuleVO vo){
+
+    }
+
+    private StraHisFile saveTask(String apiCode, String batchNumber, FastTaskRule rule, CustomerScoreRuleVO ruleVO, BaseHeadConfigVO baseHeadConfigVO,String taskStart, String taskEnd,Integer preNum) {
+
+        //region 处理task
+        MarketingTask task = new MarketingTask();
+        task.setApiCode(apiCode);
+        task.setBatchNumber(batchNumber);
+        task.setMonitorStatus(1);
+        task.setStatus(1);
+        task.setTaskNumber(preNum);
+        if (rule != null) {
+            LocalDate startDate = LocalDate.parse(rule.getTaskTime(), ymd);
+            String closeDate = startDate.plusDays(1).format(ymd);
+            task.setTaskType(rule.getTaskType());
+            task.setStrategyId(rule.getStrategyId());
+            task.setProductInfo(rule.getProductInfo());
+            task.setFileName(String.format("%s_%s", rule.getId().toString(), rule.getRuleNumber()));
+            task.setCusBatch(rule.getId().toString());
+            task.setStartDate(rule.getTaskTime());
+            task.setCloseDate(closeDate);
+            task.setMonitorType(1);
+        }
+        if (ruleVO != null) {
+            task.setTaskType(ruleVO.getTaskType());
+            task.setStrategyId(ruleVO.getStrategyId());
+            task.setProductInfo(ruleVO.getProductInfo());
+            task.setFileName(String.format("%s_%s", ruleVO.getId().toString(), ruleVO.getRuleNameShort()));
+            task.setCusBatch(ruleVO.getId().toString());
+            task.setMonitorType(ruleVO.getExecType());
+            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
+                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
+                if (task1 != null) {
+                    task.setStartDate(task1.getStartDate());
+                    task.setCloseDate(task1.getCloseDate());
+                } else {
+                    task.setStartDate(taskStart);
+                    task.setCloseDate(ruleVO.getCycleEndDay());
+                }
+                task.setCycleDay(ruleVO.getCycleDay().toString());
+            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
+                task.setMonitorType(4);
+                task.setStartDate(taskStart);
+                task.setCloseDate(ruleVO.getCycleEndDay());
+                task.setCycleDay(ruleVO.getCycleDay().toString());
+            } else {
+                task.setStartDate(taskStart);
+                task.setCloseDate(taskEnd);
+            }
+        }
+        task.setContextId(iApiToDbService.getTaskContextId());
+        marketingTaskMapper.insertTask(task);
+
+        //endregion
+
+        //region 不定时不定量跑分关系表
+        FastFileRelation relation = null;
+        if (rule != null) {
+            relation = new FastFileRelation();
+            relation.setFastTaskId(rule.getId());
+            relation.setTaskId(task.getId());
+            relation.setCreateTime(new Date());
+            fastFileRelationMapper.insertSelective(relation);
+        }
+        //endregion
+
+        //region跑分扩展表
+        MarketingTaskExtend taskExtend = new MarketingTaskExtend();
+        taskExtend.setApiCode(apiCode);
+        taskExtend.setTaskId(Long.valueOf(task.getId()));
+        taskExtend.setCreateTime(new Date());
+        taskExtend.setExtendShowTitle(baseHeadConfigVO != null ? JSON.toJSONString(baseHeadConfigVO) : null);
+        if (rule != null) {
+            taskExtend.setCusTaskId(rule.getId().toString());
+            taskExtend.setRuleId(rule.getId());
+            taskExtend.setGroupType(rule.getRuleNumber());
+            taskExtend.setStrategyProductJson(rule.getProductField());
+            taskExtend.setUploadTime(rule.getTaskTime());
+        }
+        if (ruleVO != null) {
+            taskExtend.setCusTaskId(ruleVO.getId().toString());
+            taskExtend.setRuleId(ruleVO.getId());
+            taskExtend.setGroupType(ruleVO.getRuleNameShort());
+            taskExtend.setStrategyProductJson(ruleVO.getStrategyProductJson());
+            taskExtend.setUploadTime(taskStart);
+        }
+        marketingTaskExtendMapper.insertSelective(taskExtend);
+        //endregion
+
+        //region 跑分编号表
+        TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
+        updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
+        TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
+        updateBatchnumber.setStatus(2);
+        taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
+        //endregion
+
+        //region 跑分记录表
+        if (isToFile) {
+            StraHisFile blf = new StraHisFile();
+            blf.setApiCode(task.getApiCode());
+            blf.setBatchNumber(task.getBatchNumber());
+            blf.setFilePath(filePath.substring(0, filePath.lastIndexOf("/")));
+            blf.setCreateTime(new Date());
+            blf.setUpdateTime(new Date());
+            blf.setStatus(3);
+            if (1 == task.getMonitorType()) {
+                blf.setType(2);
+            } else if (4 == task.getMonitorType()) {
+                blf.setType(1);
+            }
+            blf.setIndexNum(1);
+            straHisFileMapper.insertSelective(blf);
+
+            TaskStatusDistribute statusDistribute = new TaskStatusDistribute();
+            statusDistribute.setFileId(blf.getId());
+            statusDistribute.setApiCode(task.getApiCode());
+            statusDistribute.setBatchNumber(task.getBatchNumber());
+            statusDistribute.setDistributeIndex(0);
+            statusDistribute.setActualNum(task.getActualNumber().longValue());
+            Date date = new Date();
+            statusDistribute.setCreateTime(date);
+            statusDistribute.setUpdateTime(date);
+            taskStatusDistributeMapper.insertSelective(statusDistribute);
+
+            if (relation != null) {
+                FastFileRelation update = new FastFileRelation();
+                update.setFileId(blf.getId());
+                update.setId(relation.getId());
+                fastFileRelationMapper.updateByPrimaryKeySelective(update);
+            }
+            return blf;
+        }
+        //endregion
 
     }
 }
