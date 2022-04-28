@@ -59,7 +59,10 @@ public class CaseShuheUserAdaptee extends CaseShuheUser implements IToTransferSy
         dataItem.put("cell", this.getCell());
         transferSyncUser.setReserveField1(JSONObject.toJSONString(dataItem));
         transferSyncUser.setApplyTime(addMillisecond(this.getClcUsrIsoAtoTim()));
-        transferSyncUser.setAuditTime(addMillisecond(this.getClcUsrAdtTimRcnLon()));
+        // 2022年4月26日17:43:30  AuditTime 优先使用clc_usr_lst_adt_apy_tim_hvy字段的值
+        String auditTime = dataItem.getOrDefault("clc_usr_lst_adt_apy_tim_hvy", null);
+        transferSyncUser.setAuditTime(addMillisecond(StringUtils.isEmpty(auditTime)
+                ? this.getClcUsrAdtTimRcnLon() : auditTime));
         transferSyncUser.setAuditAmount(this.getClcUsrAdtLmtItr());
         transferSyncUser.setLentTime(addMillisecond(this.getClcUsrFstLndTimCshBtHl()));
         transferSyncUser.setCreateTime(new Date());

@@ -11,21 +11,25 @@ import com.br.marketing.entity.CaseShuheUser;
  */
 public class UserTypeContext {
 
-    private IUserType iUserType;
+    private final ThreadLocal<IUserType> iUserType = new ThreadLocal<>();
     private volatile static UserTypeContext USER_TYPE_STRATEGY_CONTEXT;
 
     private UserTypeContext() {
     }
 
     private UserTypeContext(IUserType iUserType) {
-        this.iUserType = iUserType;
+        this.iUserType.set(iUserType);
     }
 
     public CaseShuheUser execute(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
-        final CaseShuheUser caseUser = this.iUserType.initCaseUser(jsonDTO, apiCode, jsonData);
-        this.iUserType.setTotalField(jsonDTO.getDataItem(), caseUser);
-//        this.iUserType.getCaseUser(jsonDTO.getDataItem(), caseUser);
+        final CaseShuheUser caseUser = iUserType.get().initCaseUser(jsonDTO, apiCode, jsonData);
+        iUserType.get().setTotalField(jsonDTO.getDataItem(), caseUser);
+        removeIUserType();
         return caseUser;
+    }
+
+    public void removeIUserType() {
+        iUserType.remove();
     }
 
     public static UserTypeContext newInstance(IUserType iUserType) {
@@ -33,10 +37,13 @@ public class UserTypeContext {
             synchronized (UserTypeContext.class) {
                 if (USER_TYPE_STRATEGY_CONTEXT == null) {
                     USER_TYPE_STRATEGY_CONTEXT = new UserTypeContext(iUserType);
+                } else {
+                    USER_TYPE_STRATEGY_CONTEXT.iUserType.set(iUserType);
                 }
             }
+        } else {
+            USER_TYPE_STRATEGY_CONTEXT.iUserType.set(iUserType);
         }
-        USER_TYPE_STRATEGY_CONTEXT.iUserType = iUserType;
         return USER_TYPE_STRATEGY_CONTEXT;
     }
 
