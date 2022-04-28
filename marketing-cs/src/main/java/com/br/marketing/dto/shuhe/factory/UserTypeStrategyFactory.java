@@ -19,6 +19,7 @@ public class UserTypeStrategyFactory {
         USER_TYPE_CACHE.put("促首登", new CuShouDeng());
         USER_TYPE_CACHE.put("促申完", new CuShenWan());
         USER_TYPE_CACHE.put("促首借", new CuShouJie());
+        USER_TYPE_CACHE.put("促复借", new CuFuJie());
     }
 
     public Set<String> getUserTypes() {
