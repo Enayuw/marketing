@@ -4,6 +4,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuShouDeng;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
@@ -70,10 +71,13 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
-            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                     (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
             final IUserType iUserType = shuHeContext.getIUserType();
+            if (iUserType instanceof CuShouDeng) {
+                return false;
+            }
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             final Integer isDelay = context.getMqFact().getIsDelay();
             boolean typeBool = (isDelay == null || isDelay != 1);
             if (typeBool) {
