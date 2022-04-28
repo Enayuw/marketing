@@ -3,8 +3,8 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -103,9 +103,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 
-    private DassBatchImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
+    private DassImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
             , MarketingSyncUser syncUser, String phoneGrade) {
-        DassBatchImportDataDTO batchImportData = new DassBatchImportDataDTO();
+        DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(transfer.getId());
 
 

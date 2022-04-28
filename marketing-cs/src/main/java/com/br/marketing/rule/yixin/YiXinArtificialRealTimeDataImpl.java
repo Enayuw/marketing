@@ -3,8 +3,8 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -16,7 +16,6 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -108,11 +107,11 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         return phoneSaleExtendInfo;
     }
 
-    private DassBatchImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer,MarketingSyncUser syncUser) {
+    private DassImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer, MarketingSyncUser syncUser) {
         JSONObject json = JSON.parseObject(transfer.getReserveField1());
         Integer liveType = json.getInteger("liveType");
 
-        DassBatchImportDataDTO batchImportData = new DassBatchImportDataDTO();
+        DassImportDataDTO batchImportData = new DassImportDataDTO();
 
         batchImportData.setId(transfer.getId());
 

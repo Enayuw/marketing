@@ -1,12 +1,5 @@
 package com.br.marketing.commonmethod;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
-import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
