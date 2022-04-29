@@ -13,6 +13,7 @@ import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,8 @@ public class ShuHeArtificialTransferImpl implements AssembleData<DassAssembleTra
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
@@ -66,7 +69,7 @@ public class ShuHeArtificialTransferImpl implements AssembleData<DassAssembleTra
                 boolean isPeriod = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
                 if (isPeriod) {
-                    bool = iUserType.ifTransfer(caseShuheUser, creatTime);
+                    bool = ((CuFuJie) iUserType).ifTransfer(caseShuheUser, creatTime, marketingCommonConfig);
                 }
             }
         }
