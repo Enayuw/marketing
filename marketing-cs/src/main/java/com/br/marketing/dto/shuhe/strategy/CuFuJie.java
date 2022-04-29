@@ -5,6 +5,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/4/12 15:14
  */
+@Component
 public class CuFuJie extends IUserType {
 
     @Resource
