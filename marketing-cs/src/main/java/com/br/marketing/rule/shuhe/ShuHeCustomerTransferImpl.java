@@ -7,6 +7,7 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -15,6 +16,7 @@ import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +49,8 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private ITransferSyncUserService iTransferSyncUserService;
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -114,7 +118,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
-                        } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                        } else if(iUserType instanceof CuFuJie  && ((CuFuJie)iUserType).ifTransfer(caseShuheUser, creatTime,marketingCommonConfig)){
+                            // 转化
+                            transferSyncUser.setIfTransform("1");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
+                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
+                            shuHeContext.setContinueJudgeRule(false);
+                            bool = Boolean.TRUE;
+                        }else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
                             ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");

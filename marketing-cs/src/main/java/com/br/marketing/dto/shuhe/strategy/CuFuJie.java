@@ -21,11 +21,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/4/12 15:14
  */
-@Component
 public class CuFuJie extends IUserType {
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     public CuFuJie(String... api2Codes) {
         super(api2Codes);
@@ -39,6 +35,10 @@ public class CuFuJie extends IUserType {
 
     @Override
     public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
+        return false;
+    }
+
+    public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime, MarketingCommonConfig marketingCommonConfig) {
         boolean ifTransfer1 = Boolean.FALSE;
         boolean ifTransfer2 = Boolean.FALSE;
         if (creatTime == null) {
