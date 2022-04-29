@@ -77,31 +77,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
             shuHeRuleNecessaryData.setIUserType(iUserType);
             shuHeRuleNecessaryData.setContinueJudgeRule(true);
-            CaseShuheUser caseShuheUser = new CaseShuheUser();
-            String reserveField1 = transfer.getReserveField1();
-            if (StringUtils.isNotEmpty(reserveField1)) {
-                JSONObject object = JSONObject.parseObject(reserveField1);
-                caseShuheUser.setIsTurn(object.getString("is_turn"));
-                caseShuheUser.setIsBlack(object.getString("is_black"));
-                caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
-                caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
-                caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
-                caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
-                caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
-                caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
-                caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
-                caseShuheUser.setJsonObject(object);
-                shuHeRuleNecessaryData.setTaskId(object.getString("taskId"));
-            }
-            caseShuheUser.setClcUsrFstLogTimAll(replace000(transfer.getLoginTime()));
-            caseShuheUser.setClcUsrIsoAtoTim(replace000(transfer.getApplyTime()));
-            caseShuheUser.setClcUsrAdtTimRcnLon(replace000(transfer.getAuditTime()));
-            caseShuheUser.setClcUsrAdtLmtItr(replace000(transfer.getAuditAmount()));
-            caseShuheUser.setClcUsrFstLndTimCshBtHl(replace000(transfer.getLentTime()));
-            caseShuheUser.setUserType(transfer.getUserType());
-            caseShuheUser.setCustNum(transfer.getCustNum());
-            caseShuheUser.setReserveField1(reserveField1);
-            shuHeRuleNecessaryData.setCaseShuheUser(caseShuheUser);
+            caseShuheUserAdapter(transfer, shuHeRuleNecessaryData);
         }
     }
 
@@ -145,37 +121,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
         public void setTransfer(MarketingTransferSyncUser transfer) {
             this.transfer = transfer;
-            setCaseShuheUserValue();
-        }
-
-        private void setCaseShuheUserValue() {
-            if (this.transfer == null) {
-                return;
-            }
-            String reserveField1 = this.transfer.getReserveField1();
-            if (StringUtils.isNotEmpty(reserveField1)) {
-                JSONObject object = JSONObject.parseObject(reserveField1);
-                this.caseShuheUser.setIsTurn(object.getString("is_turn"));
-                this.caseShuheUser.setIsBlack(object.getString("is_black"));
-                this.caseShuheUser.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
-                this.caseShuheUser.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
-                this.caseShuheUser.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
-                this.caseShuheUser.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
-                this.caseShuheUser.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
-                this.caseShuheUser.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
-                this.caseShuheUser.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
-                this.taskId = object.getString("taskId");
-                this.caseShuheUser.setJsonObject(object);
-            }
-            this.caseShuheUser.setClcUsrFstLogTimAll(replace000(this.transfer.getLoginTime()));
-            this.caseShuheUser.setClcUsrIsoAtoTim(replace000(this.transfer.getApplyTime()));
-            this.caseShuheUser.setClcUsrAdtTimRcnLon(replace000(this.transfer.getAuditTime()));
-            this.caseShuheUser.setClcUsrAdtLmtItr(replace000(this.transfer.getAuditAmount()));
-            this.caseShuheUser.setClcUsrFstLndTimCshBtHl(replace000(this.transfer.getLentTime()));
-            this.caseShuheUser.setUserType(this.transfer.getUserType());
-            this.caseShuheUser.setApiCode(this.transfer.getApiCode());
-            this.caseShuheUser.setCustNum(this.transfer.getCustNum());
-            this.caseShuheUser.setReserveField1(reserveField1);
+            caseShuheUserAdapter(transfer, this);
         }
     }
 
@@ -186,5 +132,40 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
         }
         String target = ":000";
         return dateStr.replace(target, replacement);
+    }
+
+    /**
+     * 解析json
+     */
+    private static void caseShuheUserAdapter(MarketingTransferSyncUser transfer, ShuHeRuleNecessaryData data) {
+        if (transfer == null) {
+            return;
+        }
+        CaseShuheUser user = new CaseShuheUser();
+        String reserveField1 = transfer.getReserveField1();
+        if (StringUtils.isNotEmpty(reserveField1)) {
+            JSONObject object = JSONObject.parseObject(reserveField1);
+            user.setIsTurn(object.getString("is_turn"));
+            user.setIsBlack(object.getString("is_black"));
+            user.setClcUsrLstAppStaTim(object.getString("clc_usr_lst_app_sta_tim"));
+            user.setClcUsrIsoPhoTim(object.getString("clc_usr_iso_pho_tim"));
+            user.setClcUsrIsoIdtTim(object.getString("clc_usr_iso_idt_tim"));
+            user.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
+            user.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
+            user.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
+            user.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
+            user.setJsonObject(object);
+            data.setTaskId(object.getString("taskId"));
+        }
+        user.setClcUsrFstLogTimAll(replace000(transfer.getLoginTime()));
+        user.setClcUsrIsoAtoTim(replace000(transfer.getApplyTime()));
+        user.setClcUsrAdtTimRcnLon(replace000(transfer.getAuditTime()));
+        user.setClcUsrAdtLmtItr(replace000(transfer.getAuditAmount()));
+        user.setClcUsrFstLndTimCshBtHl(replace000(transfer.getLentTime()));
+        user.setUserType(transfer.getUserType());
+        user.setApiCode(transfer.getApiCode());
+        user.setCustNum(transfer.getCustNum());
+        user.setReserveField1(reserveField1);
+        data.setCaseShuheUser(user);
     }
 }
