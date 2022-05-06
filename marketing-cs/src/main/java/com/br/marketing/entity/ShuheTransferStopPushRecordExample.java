@@ -825,73 +825,73 @@ public class ShuheTransferStopPushRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andSituationIsNull() {
-            addCriterion("situation is null");
+        public Criteria andStatusIsNull() {
+            addCriterion("status is null");
             return (Criteria) this;
         }
 
-        public Criteria andSituationIsNotNull() {
-            addCriterion("situation is not null");
+        public Criteria andStatusIsNotNull() {
+            addCriterion("status is not null");
             return (Criteria) this;
         }
 
-        public Criteria andSituationEqualTo(String value) {
-            addCriterion("situation =", value, "situation");
+        public Criteria andStatusEqualTo(String value) {
+            addCriterion("status =", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationNotEqualTo(String value) {
-            addCriterion("situation <>", value, "situation");
+        public Criteria andStatusNotEqualTo(String value) {
+            addCriterion("status <>", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationGreaterThan(String value) {
-            addCriterion("situation >", value, "situation");
+        public Criteria andStatusGreaterThan(String value) {
+            addCriterion("status >", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationGreaterThanOrEqualTo(String value) {
-            addCriterion("situation >=", value, "situation");
+        public Criteria andStatusGreaterThanOrEqualTo(String value) {
+            addCriterion("status >=", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationLessThan(String value) {
-            addCriterion("situation <", value, "situation");
+        public Criteria andStatusLessThan(String value) {
+            addCriterion("status <", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationLessThanOrEqualTo(String value) {
-            addCriterion("situation <=", value, "situation");
+        public Criteria andStatusLessThanOrEqualTo(String value) {
+            addCriterion("status <=", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationLike(String value) {
-            addCriterion("situation like", value, "situation");
+        public Criteria andStatusLike(String value) {
+            addCriterion("status like", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationNotLike(String value) {
-            addCriterion("situation not like", value, "situation");
+        public Criteria andStatusNotLike(String value) {
+            addCriterion("status not like", value, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationIn(List<String> values) {
-            addCriterion("situation in", values, "situation");
+        public Criteria andStatusIn(List<String> values) {
+            addCriterion("status in", values, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationNotIn(List<String> values) {
-            addCriterion("situation not in", values, "situation");
+        public Criteria andStatusNotIn(List<String> values) {
+            addCriterion("status not in", values, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationBetween(String value1, String value2) {
-            addCriterion("situation between", value1, value2, "situation");
+        public Criteria andStatusBetween(String value1, String value2) {
+            addCriterion("status between", value1, value2, "status");
             return (Criteria) this;
         }
 
-        public Criteria andSituationNotBetween(String value1, String value2) {
-            addCriterion("situation not between", value1, value2, "situation");
+        public Criteria andStatusNotBetween(String value1, String value2) {
+            addCriterion("status not between", value1, value2, "status");
             return (Criteria) this;
         }
     }

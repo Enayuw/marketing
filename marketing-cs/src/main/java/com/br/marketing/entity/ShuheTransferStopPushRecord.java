@@ -61,7 +61,7 @@ public class ShuheTransferStopPushRecord {
     /**
      * 情况
      */
-    private String situation;
+    private String status;
 
     public Long getId() {
         return id;
@@ -151,11 +151,11 @@ public class ShuheTransferStopPushRecord {
         this.channel = channel;
     }
 
-    public String getSituation() {
-        return situation;
+    public String getStatus() {
+        return status;
     }
 
-    public void setSituation(String situation) {
-        this.situation = situation == null ? null : situation.trim();
+    public void setStatus(String status) {
+        this.status = status == null ? null : status.trim();
     }
 }
