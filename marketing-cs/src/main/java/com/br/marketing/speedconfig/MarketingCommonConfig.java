@@ -148,4 +148,14 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, List<String>> ppdCustomerType;
 
+    /**
+     * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
+     */
+    private HashMap<String, List<String>> shuHePushDXSituationMap;
+
+    /**
+     * 数禾用户可用额度区间;大于:>、小于:<、等于:==、不等于:!=、大于等于:>=、小于等于:<=;eg:[">=","1","<=","100"]
+     */
+    private List<String> shuHeUserAvailableQuotaRange;
+
 }
