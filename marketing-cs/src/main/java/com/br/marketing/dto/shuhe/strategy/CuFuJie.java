@@ -81,51 +81,36 @@ public class CuFuJie extends IUserType {
     }
 
     public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime
-            , MarketingCommonConfig marketingCommonConfig, String... situations) {
-        HashMap<String, List<String>> situationMap = marketingCommonConfig.getShuHePushDXSituationMap();
-        List<String> situation;
-        List<String> strings = Arrays.asList(situations);
-        if (CollectionUtils.isEmpty(situationMap)
-                || CollectionUtils.isEmpty(situationMap.getOrDefault("促复借", null))) {
-            situation = strings;
+            , MarketingCommonConfig marketingCommonConfig) {
+        HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
+        List<String> status;
+        if (CollectionUtils.isEmpty(statusMap)
+                || CollectionUtils.isEmpty(statusMap.getOrDefault("促复借", null))) {
+            status = Arrays.asList("a", "b");
         } else {
-            situation = situationMap.get("促复借");
+            status = statusMap.get("促复借");
         }
         JSONObject jsonObject = caseShuheUser.getJsonObject();
-        if (strings.contains("a") || strings.contains("b")) {
-            if (situation.contains("a")) {
-                // 情况a
-                String a = situationA(caseShuheUser, creatTime);
-                if (a != null) {
-                    caseShuheUser.setReserveField2(a);
-                    jsonObject.put("prioritySymbol", "1");
-                    jsonObject.put("typeSign", "1");
-                    return true;
-                }
-            }
-            if (situation.contains("b")) {
-                // 情况b
-                String b = situationB(caseShuheUser, creatTime, marketingCommonConfig);
-                if (b != null) {
-                    caseShuheUser.setReserveField2(b);
-                    jsonObject.put("prioritySymbol", "2");
-                    jsonObject.put("typeSign", "2");
-                    return true;
-                }
-            }
-        } else if (strings.contains("c")) {
-            if (situation.contains("c")) {
-                // 情况b
-                String b = situationB(caseShuheUser, creatTime, marketingCommonConfig);
-                if (b != null) {
-                    caseShuheUser.setReserveField2(b);
-                    jsonObject.put("prioritySymbol", "2");
-                    jsonObject.put("typeSign", "2");
-                    return true;
-                }
+        if (status.contains("a")) {
+            // 情况a
+            String a = statusA(caseShuheUser, creatTime);
+            if (a != null) {
+                caseShuheUser.setReserveField2(a);
+                jsonObject.put("prioritySymbol", "1");
+                jsonObject.put("typeSign", "1");
+                return true;
             }
         }
-
+        if (status.contains("b")) {
+            // 情况b
+            String b = statusB(caseShuheUser, creatTime, marketingCommonConfig);
+            if (b != null) {
+                caseShuheUser.setReserveField2(b);
+                jsonObject.put("prioritySymbol", "2");
+                jsonObject.put("typeSign", "2");
+                return true;
+            }
+        }
         return false;
     }
 
@@ -145,7 +130,7 @@ public class CuFuJie extends IUserType {
      * &
      * 剔除已转化数据
      */
-    private String situationA(CaseShuheUser caseShuheUser, Date creatTime) {
+    private String statusA(CaseShuheUser caseShuheUser, Date creatTime) {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         String defaultValue = "";
         String clcUsrLstAppStaTim = (String) jsonObject.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue);
@@ -200,7 +185,7 @@ public class CuFuJie extends IUserType {
      * &T日拨打情况
      * 需追加判断T日至推送时间止，是否ai拨打过，已拨打过7天内该案件编号停止推送，若未拨打过T日正常推送
      */
-    private String situationB(CaseShuheUser caseShuheUser, Date creatTime
+    private String statusB(CaseShuheUser caseShuheUser, Date creatTime
             , MarketingCommonConfig marketingCommonConfig) {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         String defaultValue = "";
@@ -255,36 +240,6 @@ public class CuFuJie extends IUserType {
         return null;
     }
 
-    /**
-     * 规则
-     * clc_usr_lst_app_sta_tim>=上传接口该案件编号创建时间
-     * &
-     * clc_usr_lst_non_dcp_trs_tim>=上传接口该案件编号创建时间（创建时间非空）
-     * &
-     * off_usr_lst_ord_tim_all>=上传接口该案件编号创建时间（创建时间非空）
-     * &
-     * clc_usr_avl_lmt_lv0>=100(该字段考虑做成配置，后期会调整为区间值)
-     * &
-     * userType=促复借
-     * &
-     * cusNun
-     * &
-     * 有效期内
-     * &
-     * 剔除D20220424数禾促复借转化数据推送-3710043-337（营销→客服）已转化数据
-     * &T日拨打情况
-     * 需追加判断T日至推送时间止，是否ai拨打过，已拨打过7天内该案件编号停止推送，若未拨打过T日正常推送
-     */
-    private String situationC(CaseShuheUser caseShuheUser, Date creatTime) {
-        JSONObject jsonObject = caseShuheUser.getJsonObject();
-        String defaultValue = "";
-        String intentionGrade = (String) jsonObject.getOrDefault("intentionGrade", defaultValue);
-        if (StringUtils.isBlank(intentionGrade)) {
-            return null;
-        }
-
-        return null;
-    }
 
     /**
      * 相比于
