@@ -1,5 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -67,7 +68,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFactNew.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         mqFactNew.setIsDelay(1);
         mqFactNew.setSourceId(mqFact.getSourceId());
-        mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
         if (shuHeContext.getIUserType() instanceof CuFuJie) {
@@ -75,6 +75,12 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         } else {
             mqFactNew.setDelayTime(1F);
         }
+        JSONObject jsonObject = new JSONObject();
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        jsonObject.put("status", caseShuheUser.getReserveField1());
+        jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
+        jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
+        mqFact.setMessage(jsonObject.toJSONString());
         return mqFactNew;
     }
 
