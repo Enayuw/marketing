@@ -13,8 +13,10 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -22,15 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 消费延迟队列，推电销
@@ -48,12 +48,17 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Autowired
     private PushDataService pushDataService;
 
+    @Resource
+    private ShuHeArtificialRealTimeUserDataFromDelayImpl shuHeArtificialRealTimeUserDataFromDelay;
+
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        log.warn("符合推电销规则，callrecord数据id为{}",dto.getId());
+        log.warn("符合推电销规则，callrecord数据id为{}", dto.getId());
         Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -102,11 +107,26 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setSource("16");
             dassSingleImportDataDTO.setUserType("2");
             dassSingleImportDataDTO.setType("2");
-        }else if("促首借".equals(dto.getUserType())){
+        }else if ("促首借".equals(dto.getUserType())) {
             dassSingleImportDataDTO.setOrgname("shuheshoujie");
             dassSingleImportDataDTO.setSource("18");
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
+        } else if ("复促借".equals(dto.getUserType())) {
+            dassSingleImportDataDTO.setOrgname("shuhefujie");
+            dassSingleImportDataDTO.setSource("16");
+            dassSingleImportDataDTO.setUserType("1");
+            dassSingleImportDataDTO.setType("4");
+            extendMap.put("typeSign", "3");
+            dassSingleImportDataDTO.setPrioritySymbol("3");
+            String name = marketingSyncUser.getName();
+            if (StringUtils.isNotBlank(name)) {
+                try {
+                    dassSingleImportDataDTO.setName(BrCipherMaker.getInstance().decode(name));
+                } catch (Exception ignored) {
+                }
+            }
+            phoneSaleExtendInfo.setStatus("c");
         }
         dassSingleImportDataDTO.setUid(dto.getCaseNum());
         if(marketingTransferSyncUser!=null){
@@ -208,10 +228,22 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 if(StringUtils.isNotEmpty(clcUsrIsoAtoTim)){
                     isRemoveFlag = isRemove(bo, clcUsrIsoAtoTim);
                 }
-            }else if("促首借".equals(bo.getUserType())){
+            }else if ("促首借".equals(bo.getUserType())) {
                 String ordTim = json.getString("applyLoanTime");
-                if(StringUtils.isNotEmpty(ordTim)){
-                    isRemoveFlag = isRemove(bo,ordTim);
+                if (StringUtils.isNotEmpty(ordTim)) {
+                    isRemoveFlag = isRemove(bo, ordTim);
+                }
+            } else if ("复促借".equals(bo.getUserType())) {
+                if (!shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest)) {
+                    PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+                    Date date = new Date();
+                    LocalDateTime dateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().minusDays(7);
+                    example.createCriteria().andStatusIn(Arrays.asList("a", "b"))
+                            .andApiCodeEqualTo(newest.getApiCode()).andUserTypeEqualTo(bo.getUserType())
+                            .andCustNumEqualTo(newest.getCustNum()).andCreateTimeBetween(
+                            Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()), date);
+                    int count = phoneSaleExtendInfoMapper.countByExample(example);
+                    isRemoveFlag = count > 0;
                 }
             }
             if(isTurn || isBlack || isRemoveFlag){

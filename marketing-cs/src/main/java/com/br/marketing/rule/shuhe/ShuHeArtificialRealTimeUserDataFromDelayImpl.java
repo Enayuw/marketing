@@ -1,25 +1,32 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.ShuheTransferStopPushRecordMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.IDxService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -27,8 +34,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 数禾转化推送人工电销 业务
@@ -48,9 +58,21 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private PushDataService pushDataService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private IDxService iDxService;
+    @Resource
+    private CallRecordMapper callRecordMapper;
+    @Resource
+    private ShuheTransferStopPushRecordMapper shuheTransferStopPushRecordMapper;
+    @Resource
+    private RedisChgService redisChgService;
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
+    /**
+     * apiCoid:cusNum:情况
+     */
+    public final static String KEY = "marketing:api:transfer:shuhe:%s:%s:%s";
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -80,9 +102,33 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 shuHeContext.setTransfer(dbTransferSyncUser);
                 CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 IUserType iUserType = shuHeContext.getIUserType();
-                bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
-                        && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
-                        , "a", transfer.getUserType());
+                if (iUserType instanceof CuFuJie) {
+                    String message = context.getMqFact().getMessage();
+                    JSONObject jsonObject = JSONObject.parseObject(message);
+                    String status = jsonObject.get("status").toString();
+                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
+                    if (boolIfGiveUp || queryBlackFlag(transfer)) {
+                        return false;
+                    }
+                    switch (status) {
+                        case "a":
+                            bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                    , "a", transfer.getUserType());
+                            break;
+                        case "b":
+                            if (queryCallRecord(transfer)) {
+                                bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                        , "b", transfer.getUserType());
+                            }
+                            break;
+                        default:
+                    }
+
+                } else {
+                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
+                            && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                            , "a", transfer.getUserType());
+                }
             }
         }
         return bool;
@@ -135,10 +181,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      */
     private DassSingleImportAdapDTO getDassSingleImportAdap(
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
-        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportAdapDTO adapDTO = new DassSingleImportAdapDTO();
-        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, iUserType));
+        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(shuHeContext));
         return adapDTO;
     }
 
@@ -155,13 +199,18 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setStatus("a");
+        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+            phoneSaleExtendInfo.setStatus(shuHeContext.getCaseShuheUser().getReserveField1());
+        }
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
         phoneSaleExtendInfo.setTaskId(shuHeContext.getTaskId());
         return phoneSaleExtendInfo;
     }
 
-    private DassSingleImportDataDTO getDassSingleImportData(CaseShuheUser caseShuheUser, IUserType iUserType) {
+    private DassSingleImportDataDTO getDassSingleImportData(ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportDataDTO dataDTO = new DassSingleImportDataDTO();
         dataDTO.setPrioritySymbol("1");
         JSONObject extend = new JSONObject();
@@ -178,6 +227,19 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setExtend(extend.toJSONString());
         dataDTO.setUid(caseShuheUser.getCustNum());
         dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
+        if (iUserType instanceof CuFuJie) {
+            JSONObject jsonObject = caseShuheUser.getJsonObject();
+            extend.put("clc_usr_avl_lmt_lv0", jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", ""));
+            extend.put("typeSign", jsonObject.getOrDefault("typeSign", ""));
+            dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
+            String name = shuHeContext.getCustomerMap().get(caseShuheUser.getCustNum()).getName();
+            if (!StringUtils.isEmpty(name)) {
+                try {
+                    dataDTO.setName(BrCipherMaker.getInstance().decode(name));
+                } catch (Exception ignored) {
+                }
+            }
+        }
         return dataDTO;
     }
 
@@ -192,5 +254,66 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         LocalDate localDate = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER)
                 .atZone(ZoneId.systemDefault()).toLocalDate();
         return LocalDate.now().isEqual(localDate) ? "1" : value;
+    }
+
+    /**
+     * 查询黑名单
+     */
+    public boolean queryBlackFlag(MarketingTransferSyncUser transfer) {
+        Result<Map<String, String>> result = iDxService.getBlackByTransfer(
+                Collections.singletonList(transfer), transfer.getApiCode());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
+            return "Y".equals(blackFlag);
+        }
+        return false;
+    }
+
+    /**
+     * 查询拨打记录
+     */
+    private boolean queryCallRecord(MarketingTransferSyncUser transfer) {
+        String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
+        boolean exists = redisChgService.exists(key);
+        if (exists) {
+            return false;
+        }
+        ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
+        recordExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                .andCaseNumEqualTo(transfer.getCustNum()).andUserTypeEqualTo(transfer.getUserType())
+                .andFailureTimeGreaterThanOrEqualTo(new Date());
+        List<ShuheTransferStopPushRecord> list = shuheTransferStopPushRecordMapper.selectByExample(recordExample);
+        if (CollectionUtils.isEmpty(list)) {
+            CallRecordExample example = new CallRecordExample();
+            example.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                    .andCaseNumEqualTo(transfer.getCustNum())
+                    .andCreateTimeBetween(
+                            Date.from(LocalDateTime.now().toLocalDate().atStartOfDay()
+                                    .atZone(ZoneId.systemDefault()).toInstant()),
+                            Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+            example.setOrderByClause("create_time desc limit 0,5000");
+            List<CallRecord> callRecords = callRecordMapper.selectByExample(example);
+            List<CallRecord> collect = callRecords.stream().parallel().filter(c ->
+                    c.getUserProperties().contains(transfer.getUserType())
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(collect)) {
+                return true;
+            }
+            ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
+            LocalDateTime localDateTime = LocalDateTime.now();
+            record.setCreateTime(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+            record.setFailureTime(Date.from(localDateTime.plusDays(7).atZone(ZoneId.systemDefault()).toInstant()));
+            record.setCaseNum(transfer.getCustNum());
+            record.setDay("7");
+            record.setUserType(transfer.getUserType());
+            record.setTransferSyncCidId(transfer.getId().toString());
+            record.setApiCode(transfer.getApiCode());
+            record.setStatus("b");
+            record.setCallRecordId(Joiner.on(",").join(collect));
+            shuheTransferStopPushRecordMapper.insert(record);
+            redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
+        }
+        return false;
     }
 }
