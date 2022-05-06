@@ -12,6 +12,9 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
+import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
+import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -76,6 +79,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
     @Value("${otherConfig.alarm.appName:00}")
@@ -135,29 +141,33 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Override
     public Boolean isSatisfyPushDX(CallRecordBO dto) throws IllegalAccessException {
         Map map = (Map) JSONObject.parse(dto.getDetail().getUserProperties());
-        if(StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))){
-            log.warn("caseNum={}的数据groupType缺失！",dto.getCaseNum());
+        if (StringUtils.isEmpty(map) || StringUtils.isEmpty(map.get("groupType"))) {
+            log.warn("caseNum={}的数据groupType缺失！", dto.getCaseNum());
             return false;
         }
-        if(StringUtils.isEmpty(dto.getDetail().getIntentionGrade())){
-            log.warn("caseNum={}的数据intentionGrade缺失！",dto.getCaseNum());
+        if (StringUtils.isEmpty(dto.getDetail().getIntentionGrade())) {
+            log.warn("caseNum={}的数据intentionGrade缺失！", dto.getCaseNum());
             return false;
         }
         String groupType = map.get("groupType").toString();
+        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
+        if (iUserType instanceof CuFuJie) {
+            return cuFuJie(dto, groupType, iUserType);
+        }
         boolean intentionGrade = false;
-        if(!"促申完".equals(groupType) && !"促首借".equals(groupType)){
-            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (!"促申完".equals(groupType) && !"促首借".equals(groupType)) {
+            log.info("taskId={},caseNum={},sessionId={}的数据不符合情况b的促申完/促首借场景！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return false;
         }
         Boolean isPeriod = false;
-        if("促申完".equals(groupType)){
-            if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade()) || "B".equals(dto.getDetail().getIntentionGrade())){
+        if ("促申完".equals(groupType)) {
+            if ("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade()) || "B".equals(dto.getDetail().getIntentionGrade())) {
                 intentionGrade = true;
             }
             isPeriod = iMarketingSyncUserService.isPeriodOfValidity(
                     dto.getApiCode(), dto.getCaseNum(), groupType, new Date(), 14);
-        }else if("促首借".equals(groupType)){
-            if("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())){
+        } else if ("促首借".equals(groupType)) {
+            if ("A类".equals(dto.getDetail().getIntentionGrade()) || "A".equals(dto.getDetail().getIntentionGrade())) {
                 intentionGrade = true;
             }
             //促首借的有效期:T+31日
@@ -291,22 +301,73 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     private String paramOfValidity(CallRecordDTO dto) {
         //taskid、caseNum、CID、apicode，sessionId；
-        if(StringUtils.isEmpty(dto.getDetail().getSessionId())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (StringUtils.isEmpty(dto.getDetail().getSessionId())) {
+            log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param sessionId!";
         }
-        if(StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据apicode或者cid缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (StringUtils.isEmpty(dto.getApiCode()) || StringUtils.isEmpty(dto.getCid())) {
+            log.warn("taskId={},caseNum={},sessionId={}的数据apicode或者cid缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param apicode or cid！";
         }
-        if(StringUtils.isEmpty(dto.getCaseNum())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据caseNum缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (StringUtils.isEmpty(dto.getCaseNum())) {
+            log.warn("taskId={},caseNum={},sessionId={}的数据caseNum缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param caseNum!";
         }
-        if(StringUtils.isEmpty(dto.getTaskId())){
-            log.warn("taskId={},caseNum={},sessionId={}的数据taskId缺失！",dto.getTaskId(),dto.getCaseNum(),dto.getDetail().getSessionId());
+        if (StringUtils.isEmpty(dto.getTaskId())) {
+            log.warn("taskId={},caseNum={},sessionId={}的数据taskId缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param taskId!";
         }
         return "true";
+    }
+
+    private boolean cuFuJie(CallRecordBO dto, String groupType, IUserType iUserType) throws IllegalAccessException {
+        if (StringUtils.isNotBlank(dto.getCaseNum())
+                && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())
+                && dto.getDetail().getIntentionGrade().contains("A")) {
+            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+            Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(dto.getApiCode()
+                    , dto.getCaseNum(), groupType);
+            Integer day = handlerService.getShuHePeriodOfValidityDay(groupType);
+            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType
+                    , creatTime, day);
+            if (periodOfValidity) {
+                return false;
+            }
+            String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:".concat(dto.getApiCode()));
+            String tcId;
+            if (StringUtils.isEmpty(cId)) {
+                tcId = tableCreateService.getTcId(dto.getApiCode());
+            } else {
+                tcId = cId.replaceFirst("-", "");
+            }
+            example.settCid(tcId);
+            example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
+                    .andCustNumEqualTo(dto.getCaseNum()).andUserTypeEqualTo(groupType);
+            example.setOrderByClause("create_time desc limit 0,1");
+            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.selectByExample(example);
+            if (CollectionUtils.isEmpty(list)) {
+                return false;
+            }
+            MarketingTransferSyncUser transferSyncUser = list.get(0);
+            CaseShuheUser user = caseShuheUserAdapter(transferSyncUser);
+            return ((CuFuJie) iUserType).ifTransfer(user, creatTime);
+        }
+        return false;
+    }
+
+    private CaseShuheUser caseShuheUserAdapter(MarketingTransferSyncUser transfer) {
+        CaseShuheUser user = new CaseShuheUser();
+        String reserveField1 = transfer.getReserveField1();
+        if (StringUtils.isNotEmpty(reserveField1)) {
+            JSONObject object = JSONObject.parseObject(reserveField1);
+            user.setIsTurn(object.getString("is_turn"));
+            user.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
+            user.setJsonObject(object);
+        }
+        user.setUserType(transfer.getUserType());
+        user.setApiCode(transfer.getApiCode());
+        user.setCustNum(transfer.getCustNum());
+        user.setReserveField1(reserveField1);
+        return user;
     }
 }
