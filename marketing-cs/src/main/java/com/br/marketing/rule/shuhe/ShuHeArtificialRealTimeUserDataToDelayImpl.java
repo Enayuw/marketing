@@ -4,8 +4,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
-import com.br.marketing.dto.shuhe.strategy.CuShouDeng;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
+import com.br.marketing.dto.shuhe.strategy.CuShouDeng;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
@@ -18,6 +18,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     private DataLoadingHandlerService handlerService;
     @Resource
     private SystemExceptionServiceImpl systemExceptionService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * apiCoid:userType:cusNum
@@ -95,9 +98,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
-                if (b && iUserType instanceof CuShouJie
-                        && !"3710023".equals(transfer.getApiCode())
-                        && !"7410785".equals(transfer.getApiCode())
+                if (b && iUserType instanceof CuShouJie && !(iUserType.getApiCodes().contains(transfer.getApiCode()))
                 ) {
                     systemExceptionService.sendAlarm(String.format(
                             "检测到数禾客户推送转化数据存在异常：该apiCode下不应该出现该场景的数据！" +
@@ -106,8 +107,14 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                             , "MARKETING-INNER-API");
                     b = Boolean.FALSE;
                 }
-                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                        && cacheExists(transfer, shuHeContext, day));
+                if (iUserType instanceof CuFuJie) {
+                    bool = (b && ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
+                            , marketingCommonConfig)
+                            && cacheExists(transfer, shuHeContext, day));
+                } else {
+                    bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
+                            && cacheExists(transfer, shuHeContext, day));
+                }
                 shuHeContext.setTransfer(null);
             }
         }

@@ -1,11 +1,20 @@
 package com.br.marketing.dto.shuhe.strategy;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Date;
-import java.util.Map;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 促复借 场景
@@ -19,6 +28,8 @@ public class CuFuJie extends IUserType {
         super(api2Codes);
         super.apiCodes.add("3710043");
     }
+
+    private final static Pattern NONNEGATIVE_FLOATING_NUMBER_REGEX = Pattern.compile("(\\d+)(\\.\\d+)?");
 
     @Override
     void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
@@ -52,16 +63,306 @@ public class CuFuJie extends IUserType {
 
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
-        return false;
+        return isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
     }
 
     @Override
     public void getPrivateInfo(DassSingleImportDataDTO dataDTO) {
+        dataDTO.setOrgname("shuhefujie");
+        dataDTO.setSource("16");
+        dataDTO.setUserType("1");
+        dataDTO.setType("4");
 
     }
 
     @Override
     public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime) {
         return false;
+    }
+
+    public boolean isSatisfyPhoneSale(CaseShuheUser caseShuheUser, Date creatTime
+            , MarketingCommonConfig marketingCommonConfig, String... situations) {
+        HashMap<String, List<String>> situationMap = marketingCommonConfig.getShuHePushDXSituationMap();
+        List<String> situation;
+        List<String> strings = Arrays.asList(situations);
+        if (CollectionUtils.isEmpty(situationMap)
+                || CollectionUtils.isEmpty(situationMap.getOrDefault("促复借", null))) {
+            situation = strings;
+        } else {
+            situation = situationMap.get("促复借");
+        }
+        JSONObject jsonObject = caseShuheUser.getJsonObject();
+        if (strings.contains("a") || strings.contains("b")) {
+            if (situation.contains("a")) {
+                // 情况a
+                String a = situationA(caseShuheUser, creatTime);
+                if (a != null) {
+                    caseShuheUser.setReserveField2(a);
+                    jsonObject.put("prioritySymbol", "1");
+                    jsonObject.put("typeSign", "1");
+                    return true;
+                }
+            }
+            if (situation.contains("b")) {
+                // 情况b
+                String b = situationB(caseShuheUser, creatTime, marketingCommonConfig);
+                if (b != null) {
+                    caseShuheUser.setReserveField2(b);
+                    jsonObject.put("prioritySymbol", "2");
+                    jsonObject.put("typeSign", "2");
+                    return true;
+                }
+            }
+        } else if (strings.contains("c")) {
+            if (situation.contains("c")) {
+                // 情况b
+                String b = situationB(caseShuheUser, creatTime, marketingCommonConfig);
+                if (b != null) {
+                    caseShuheUser.setReserveField2(b);
+                    jsonObject.put("prioritySymbol", "2");
+                    jsonObject.put("typeSign", "2");
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 规则
+     * clc_usr_lst_app_sta_tim>=上传接口该案件编号创建时间
+     * &
+     * clc_usr_lst_non_dcp_trs_tim（非空）<=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * off_usr_lst_ord_tim_all（非空）<=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * userType=促复借
+     * &
+     * cusNun
+     * &
+     * 有效期内
+     * &
+     * 剔除已转化数据
+     */
+    private String situationA(CaseShuheUser caseShuheUser, Date creatTime) {
+        JSONObject jsonObject = caseShuheUser.getJsonObject();
+        String defaultValue = "";
+        String clcUsrLstAppStaTim = (String) jsonObject.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue);
+        if (creatTime == null || StringUtils.isBlank(clcUsrLstAppStaTim)) {
+            return null;
+        }
+        LocalDateTime appStaTim = LocalDateTime.parse(clcUsrLstAppStaTim, dateTimeFormatter);
+        LocalDateTime localCreatTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (appStaTim.isAfter(localCreatTime) || appStaTim.isEqual(localCreatTime)) {
+            String clcUsrLstNonDcpTrsTim = (String) jsonObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim"
+                    , defaultValue);
+            if (StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
+                return null;
+            }
+            LocalDateTime nonDcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter);
+            if (nonDcpTrsTim.isBefore(localCreatTime) || nonDcpTrsTim.isEqual(localCreatTime)) {
+                String offUsrLstOrdTimAll = (String) jsonObject.getOrDefault("off_usr_lst_ord_tim_all"
+                        , defaultValue);
+                if (StringUtils.isBlank(offUsrLstOrdTimAll)) {
+                    return null;
+                }
+                LocalDateTime ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter);
+                if (ordTimAll.isBefore(localCreatTime) || ordTimAll.isEqual(localCreatTime)) {
+                    if (this.ifTransfer(caseShuheUser, creatTime)) {
+                        return null;
+                    }
+                    return "a";
+                }
+            }
+
+        }
+        return null;
+    }
+
+    /**
+     * 规则
+     * clc_usr_lst_app_sta_tim>=上传接口该案件编号创建时间
+     * &
+     * clc_usr_lst_non_dcp_trs_tim>=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * off_usr_lst_ord_tim_all>=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * clc_usr_avl_lmt_lv0>=100(该字段考虑做成配置，后期会调整为区间值)
+     * &
+     * userType=促复借
+     * &
+     * cusNun
+     * &
+     * 有效期内
+     * &
+     * 剔除D20220424数禾促复借转化数据推送-3710043-337（营销→客服）已转化数据
+     * &T日拨打情况
+     * 需追加判断T日至推送时间止，是否ai拨打过，已拨打过7天内该案件编号停止推送，若未拨打过T日正常推送
+     */
+    private String situationB(CaseShuheUser caseShuheUser, Date creatTime
+            , MarketingCommonConfig marketingCommonConfig) {
+        JSONObject jsonObject = caseShuheUser.getJsonObject();
+        String defaultValue = "";
+        String clcUsrLstAppStaTim = (String) jsonObject.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue);
+        if (creatTime == null || StringUtils.isBlank(clcUsrLstAppStaTim)) {
+            return null;
+        }
+        LocalDateTime appStaTim = LocalDateTime.parse(clcUsrLstAppStaTim, dateTimeFormatter);
+        LocalDateTime localCreatTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (appStaTim.isAfter(localCreatTime) || appStaTim.isEqual(localCreatTime)) {
+            String clcUsrLstNonDcpTrsTim = (String) jsonObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim"
+                    , defaultValue);
+            if (StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
+                return null;
+            }
+            LocalDateTime nonDcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter);
+            if (nonDcpTrsTim.isAfter(localCreatTime) || nonDcpTrsTim.isEqual(localCreatTime)) {
+                String offUsrLstOrdTimAll = (String) jsonObject.getOrDefault("off_usr_lst_ord_tim_all"
+                        , defaultValue);
+                if (StringUtils.isBlank(offUsrLstOrdTimAll)) {
+                    return null;
+                }
+                LocalDateTime ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter);
+                if (ordTimAll.isAfter(localCreatTime) || ordTimAll.isEqual(localCreatTime)) {
+                    String clcUsrAvlLmtLv0 = (String) jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", defaultValue);
+                    if (StringUtils.isBlank(clcUsrAvlLmtLv0)) {
+                        return null;
+                    }
+                    Matcher matcher = NONNEGATIVE_FLOATING_NUMBER_REGEX.matcher(clcUsrAvlLmtLv0);
+                    List<String> list = new ArrayList<>();
+                    while (matcher.find()) {
+                        list.add(matcher.group());
+                    }
+                    boolean compareTo;
+                    List<String> range = marketingCommonConfig.getShuHeUserAvailableQuotaRange();
+                    int size = list.size();
+                    if (size > 1) {
+                        compareTo = compareTo(list.get(0), list.get(1), range);
+                    } else if (size == 1) {
+                        compareTo = compareTo(list.get(0), null, range);
+                    } else {
+                        compareTo = Boolean.FALSE;
+                    }
+                    if (!compareTo || this.ifTransfer(caseShuheUser, creatTime)) {
+                        return null;
+                    }
+                    return "b";
+                }
+            }
+
+        }
+        return null;
+    }
+
+    /**
+     * 规则
+     * clc_usr_lst_app_sta_tim>=上传接口该案件编号创建时间
+     * &
+     * clc_usr_lst_non_dcp_trs_tim>=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * off_usr_lst_ord_tim_all>=上传接口该案件编号创建时间（创建时间非空）
+     * &
+     * clc_usr_avl_lmt_lv0>=100(该字段考虑做成配置，后期会调整为区间值)
+     * &
+     * userType=促复借
+     * &
+     * cusNun
+     * &
+     * 有效期内
+     * &
+     * 剔除D20220424数禾促复借转化数据推送-3710043-337（营销→客服）已转化数据
+     * &T日拨打情况
+     * 需追加判断T日至推送时间止，是否ai拨打过，已拨打过7天内该案件编号停止推送，若未拨打过T日正常推送
+     */
+    private String situationC(CaseShuheUser caseShuheUser, Date creatTime) {
+        JSONObject jsonObject = caseShuheUser.getJsonObject();
+        String defaultValue = "";
+        String intentionGrade = (String) jsonObject.getOrDefault("intentionGrade", defaultValue);
+        if (StringUtils.isBlank(intentionGrade)) {
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * 相比于
+     *
+     * @param v11   比较数值1, 此值为必填参数，为空时默认返回{@code false}
+     * @param v12   比较数值2
+     * @param range {@link List}自定义范围 eg: new ArrayList<>(Arrays.asList(">=", "10", "<=", "50"))
+     */
+    public boolean compareTo(@NotNull String v11, String v12, List<String> range) {
+        if (StringUtils.isBlank(v11) || CollectionUtils.isEmpty(range)) {
+            return false;
+        }
+        int size = range.size();
+        int l = 2;
+        if (size % l != 0) {
+            return false;
+        }
+        int len = size / l;
+        Boolean bool1 = null;
+        Boolean bool2 = null;
+        switch (len) {
+            case 2:
+                if (StringUtils.isNotBlank(v12)) {
+                    String v22 = range.get(3);
+                    if (StringUtils.isNotBlank(v22)) {
+                        String sign2 = range.get(2);
+                        bool2 = compare(v12, v22, sign2);
+                    }
+                } else {
+                    String v22 = range.get(3);
+                    if (StringUtils.isNotBlank(v22)) {
+                        String sign2 = range.get(2);
+                        bool2 = compare(v11, v22, sign2);
+                    }
+                }
+            case 1:
+                if (StringUtils.isNotBlank(v11)) {
+                    String v21 = range.get(1);
+                    if (StringUtils.isNotBlank(v21)) {
+                        String sign1 = range.get(0);
+                        bool1 = compare(v11, v21, sign1);
+                    }
+                }
+                break;
+            default:
+
+        }
+        return (bool1 != null && bool2 != null) ? bool1 && bool2 : bool1 != null
+                ? bool1 : bool2 != null ? bool2 : false;
+    }
+
+
+    /**
+     * 比较数值
+     */
+    private boolean compare(String v1, String v2, String sign) {
+        final int i = new BigDecimal(v1).compareTo(new BigDecimal(v2));
+        switch (sign) {
+            // 大于
+            case ">":
+                return i > 0;
+            // 小于
+            case "<":
+                return i < 0;
+            // 等于
+            case "==":
+                return i == 0;
+            // 不等于
+            case "!=":
+                return i != 0;
+            // 大于等于
+            case ">=":
+                return i > -1;
+            // 小于等于
+            case "<=":
+                return i < 1;
+            default:
+                return false;
+        }
     }
 }
