@@ -154,7 +154,7 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> shuHePushDXStatusMap;
 
     /**
-     * 数禾用户可用额度区间;大于:>、小于:<、等于:==、不等于:!=、大于等于:>=、小于等于:<=;eg:[">=","1","<=","100"]
+     * # 数禾用户可用额度区间;大于:&gt;、小于:&lt;、等于:&eq;、不等于:&nq;、大于等于:&ge;、小于等于:&le;;eg:["&ge;","1","&le;","100"]
      */
     private List<String> shuHeUserAvailableQuotaRange;
 

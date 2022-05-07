@@ -300,22 +300,22 @@ public class CuFuJie extends IUserType {
         final int i = new BigDecimal(v1).compareTo(new BigDecimal(v2));
         switch (sign) {
             // 大于
-            case ">":
+            case "&gt;":
                 return i > 0;
             // 小于
-            case "<":
+            case "&lt;":
                 return i < 0;
             // 等于
-            case "==":
+            case "&eq;":
                 return i == 0;
             // 不等于
-            case "!=":
+            case "&nq;":
                 return i != 0;
             // 大于等于
-            case ">=":
+            case "&ge;":
                 return i > -1;
             // 小于等于
-            case "<=":
+            case "&le;":
                 return i < 1;
             default:
                 return false;

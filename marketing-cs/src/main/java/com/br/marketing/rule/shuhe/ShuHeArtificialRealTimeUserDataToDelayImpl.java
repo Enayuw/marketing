@@ -117,7 +117,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                             , marketingCommonConfig)
                             && cacheExists(transfer, shuHeContext, day));
                     shuHeContext.setCaseShuheUser(caseShuheUser);
-                    log.warn("复促借是否满足推送延迟条件{}", bool);
+                    log.warn("复促借情况{}是否满足推送延迟条件{},其中有效期状态：{},\n数据{}", caseShuheUser.getReserveField2(), bool, b, caseShuheUser.toString());
                 } else {
                     bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                             && cacheExists(transfer, shuHeContext, day));
