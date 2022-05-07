@@ -72,15 +72,15 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
         mqFact.setIsDelay(0);
         if (shuHeContext.getIUserType() instanceof CuFuJie) {
             mqFactNew.setDelayTime(0.5F);
+            JSONObject jsonObject = new JSONObject();
+            CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+            jsonObject.put("status", caseShuheUser.getReserveField2());
+            jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
+            jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
+            mqFact.setMessage(jsonObject.toJSONString());
         } else {
             mqFactNew.setDelayTime(1F);
         }
-        JSONObject jsonObject = new JSONObject();
-        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        jsonObject.put("status", caseShuheUser.getReserveField1());
-        jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
-        jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
-        mqFact.setMessage(jsonObject.toJSONString());
         return mqFactNew;
     }
 
