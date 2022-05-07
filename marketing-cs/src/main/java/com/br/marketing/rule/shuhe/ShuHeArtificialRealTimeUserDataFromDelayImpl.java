@@ -273,7 +273,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
             return "Y".equals(blackFlag);
         }
-        return false;
+        return true;
     }
 
     /**
