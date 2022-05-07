@@ -78,8 +78,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
             jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
             mqFactNew.setMessage(jsonObject.toJSONString());
-        } else {
-            mqFactNew.setDelayTime(1F);
         }
         return mqFactNew;
     }
