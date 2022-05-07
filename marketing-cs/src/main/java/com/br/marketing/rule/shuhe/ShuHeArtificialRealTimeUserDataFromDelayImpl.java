@@ -106,6 +106,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String message = context.getMqFact().getMessage();
                     JSONObject jsonObject = JSONObject.parseObject(message);
                     String status = jsonObject.get("status").toString();
+                    caseShuheUser.setReserveField2(status);
                     boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
                     if (boolIfGiveUp || queryBlackFlag(transfer)) {
                         return false;
@@ -123,7 +124,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                             break;
                         default:
                     }
-
+                    shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
                     bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
                             && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
@@ -200,7 +201,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setStatus("a");
         if (shuHeContext.getIUserType() instanceof CuFuJie) {
-            phoneSaleExtendInfo.setStatus(shuHeContext.getCaseShuheUser().getReserveField1());
+            phoneSaleExtendInfo.setStatus(shuHeContext.getCaseShuheUser().getReserveField2());
         }
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
@@ -262,6 +263,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     public boolean queryBlackFlag(MarketingTransferSyncUser transfer) {
         Result<Map<String, String>> result = iDxService.getBlackByTransfer(
                 Collections.singletonList(transfer), transfer.getApiCode());
+        log.warn("#查询黑名单:{}", result.toString());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
             return "Y".equals(blackFlag);
