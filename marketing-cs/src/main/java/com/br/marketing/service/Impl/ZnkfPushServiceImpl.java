@@ -359,7 +359,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(list)) {
                 log.warn("#促复借 c情况未查询到转化数据:{}", dto.getCaseNum());
-                return false;
+                return true;
             }
             MarketingTransferSyncUser transferSyncUser = list.get(0);
             CaseShuheUser user = caseShuheUserAdapter(transferSyncUser);
