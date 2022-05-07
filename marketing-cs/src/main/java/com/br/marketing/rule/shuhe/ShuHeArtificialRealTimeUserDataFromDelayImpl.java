@@ -82,7 +82,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(shuHeContext));
         realTimeUserDataDTO.getDassSingleImportAdapDTO().setTransferInfoId(context.getTransferInfoId());
-        realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
+        PhoneSaleExtendInfo phoneSaleExtendShuhe = getPhoneSaleExtendShuhe(transfer, shuHeContext);
+        phoneSaleExtendShuhe.setSourceId(context.getMqFact().getSourceId());
+        realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendShuhe);
         return realTimeUserDataDTO;
     }
 
@@ -109,17 +111,20 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     caseShuheUser.setReserveField2(status);
                     boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
                     if (boolIfGiveUp || queryBlackFlag(transfer)) {
+                        log.warn("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
                         return false;
                     }
                     switch (status) {
                         case "a":
                             bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                     , "a", transfer.getUserType());
+                            log.warn("促复借a情况：一天只推送一次判断结果：{}", bool);
                             break;
                         case "b":
                             if (queryCallRecord(transfer)) {
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "b", transfer.getUserType());
+                                log.warn("促复借b情况：一天只推送一次判断结果：{}", bool);
                             }
                             break;
                         default:
@@ -263,7 +268,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     public boolean queryBlackFlag(MarketingTransferSyncUser transfer) {
         Result<Map<String, String>> result = iDxService.getBlackByTransfer(
                 Collections.singletonList(transfer), transfer.getApiCode());
-        log.warn("#查询黑名单:{}", result.toString());
+        log.warn("#促复借 查询黑名单结果:{}\n{}", result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
             return "Y".equals(blackFlag);
@@ -278,6 +283,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
         boolean exists = redisChgService.exists(key);
         if (exists) {
+            log.warn("#促复借 查询拨打记录结果是否已经存在缓存中:{}", exists);
             return false;
         }
         ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
@@ -300,6 +306,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                             && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(collect)) {
+                log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", collect);
                 return true;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
@@ -315,6 +322,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setCallRecordId(Joiner.on(",").join(collect));
             shuheTransferStopPushRecordMapper.insert(record);
             redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
+            log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record.toString());
         }
         return false;
     }

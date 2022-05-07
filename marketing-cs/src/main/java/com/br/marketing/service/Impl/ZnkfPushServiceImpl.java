@@ -150,7 +150,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         String groupType = map.get("groupType").toString();
         IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
         if (iUserType instanceof CuFuJie) {
-            return cuFuJie(dto, groupType, iUserType);
+            final boolean b = cuFuJie(dto, groupType, iUserType);
+            log.warn("#促复借 c情况是否推送到延迟队列:{}", b);
+            return b;
         }
         boolean intentionGrade = false;
         if (!"促申完".equals(groupType) && !"促首借".equals(groupType)) {
@@ -330,6 +332,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if (status.contains("c") && StringUtils.isNotBlank(dto.getCaseNum())
                 && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())
                 && dto.getDetail().getIntentionGrade().contains("A")) {
+            log.warn("#促复借 c情况满足intentionGrade=(\"A\"):");
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(dto.getApiCode()
                     , dto.getCaseNum(), groupType);
@@ -356,6 +359,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
             MarketingTransferSyncUser transferSyncUser = list.get(0);
             CaseShuheUser user = caseShuheUserAdapter(transferSyncUser);
+            log.warn("#促复借 c情况对应的转化数据:{}", user);
             return ((CuFuJie) iUserType).ifTransfer(user, creatTime);
         }
         return false;

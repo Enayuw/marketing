@@ -158,4 +158,22 @@ public class ShuheTransferStopPushRecord {
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
     }
+
+    @Override
+    public String toString() {
+        return "ShuheTransferStopPushRecord{" +
+                "id=" + id +
+                ", apiCode='" + apiCode + '\'' +
+                ", caseNum='" + caseNum + '\'' +
+                ", userType='" + userType + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", failureTime=" + failureTime +
+                ", callRecordId='" + callRecordId + '\'' +
+                ", transferSyncCidId='" + transferSyncCidId + '\'' +
+                ", day='" + day + '\'' +
+                ", channel=" + channel +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

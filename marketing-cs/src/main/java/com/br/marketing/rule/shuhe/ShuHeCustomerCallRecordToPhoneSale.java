@@ -243,6 +243,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                             .andCustNumEqualTo(newest.getCustNum()).andCreateTimeBetween(
                             Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()), date);
                     int count = phoneSaleExtendInfoMapper.countByExample(example);
+                    log.warn("#促复借 c情况是否当天推送过a或b情况:{}", count);
                     isRemoveFlag = count > 0;
                 }
             }

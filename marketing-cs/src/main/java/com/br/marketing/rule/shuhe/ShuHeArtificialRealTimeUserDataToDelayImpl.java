@@ -78,6 +78,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
             jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
             mqFactNew.setMessage(jsonObject.toJSONString());
+            log.warn("复促借推送到延迟队列的信息：{}", mqFactNew);
         }
         return mqFactNew;
     }
@@ -116,6 +117,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                             , marketingCommonConfig)
                             && cacheExists(transfer, shuHeContext, day));
                     shuHeContext.setCaseShuheUser(caseShuheUser);
+                    log.warn("复促借是否满足推送延迟条件{}", bool);
                 } else {
                     bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                             && cacheExists(transfer, shuHeContext, day));
