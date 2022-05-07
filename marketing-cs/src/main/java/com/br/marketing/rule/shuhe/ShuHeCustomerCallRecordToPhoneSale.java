@@ -112,7 +112,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setSource("18");
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
-        } else if ("复促借".equals(dto.getUserType())) {
+        } else if ("促复借".equals(dto.getUserType())) {
             dassSingleImportDataDTO.setOrgname("shuhefujie");
             dassSingleImportDataDTO.setSource("16");
             dassSingleImportDataDTO.setUserType("1");
@@ -233,7 +233,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 if (StringUtils.isNotEmpty(ordTim)) {
                     isRemoveFlag = isRemove(bo, ordTim);
                 }
-            } else if ("复促借".equals(bo.getUserType())) {
+            } else if ("促复借".equals(bo.getUserType())) {
                 if (!shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest)) {
                     PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
                     Date date = new Date();
