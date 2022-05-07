@@ -200,7 +200,7 @@ public class RabbitMqConfig {
      */
     @Bean
     public Binding universalTransferQueueDelayHalfHourBinding() {
-        return BindingBuilder.bind(universalTransferDelayQueue())
+        return BindingBuilder.bind(universalTransferDelayHalfHourQueue())
                 .to(gateExchange())
                 .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR);
     }
