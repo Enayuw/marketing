@@ -38,9 +38,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -321,7 +319,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     private boolean cuFuJie(CallRecordBO dto, String groupType, IUserType iUserType) throws IllegalAccessException {
-        if (StringUtils.isNotBlank(dto.getCaseNum())
+        HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
+        List<String> status;
+        if (CollectionUtils.isEmpty(statusMap)
+                || CollectionUtils.isEmpty(statusMap.getOrDefault("促复借", null))) {
+            status = Collections.singletonList("c");
+        } else {
+            status = statusMap.get("促复借");
+        }
+        if (status.contains("c") && StringUtils.isNotBlank(dto.getCaseNum())
                 && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())
                 && dto.getDetail().getIntentionGrade().contains("A")) {
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
