@@ -339,7 +339,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             Integer day = handlerService.getShuHePeriodOfValidityDay(groupType);
             Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType
                     , creatTime, day);
-            if (periodOfValidity) {
+            log.warn("#促复借 c情况满足有效期:");
+            if (!periodOfValidity) {
                 return false;
             }
             String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:".concat(dto.getApiCode()));
