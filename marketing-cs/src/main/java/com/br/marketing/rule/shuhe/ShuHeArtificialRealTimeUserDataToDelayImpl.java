@@ -117,6 +117,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                     bool = (b && ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
                             , marketingCommonConfig)
                             && cacheExists(transfer, shuHeContext, day));
+                    shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
                     bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                             && cacheExists(transfer, shuHeContext, day));

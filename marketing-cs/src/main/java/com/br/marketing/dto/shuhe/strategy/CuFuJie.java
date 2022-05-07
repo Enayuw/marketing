@@ -111,6 +111,7 @@ public class CuFuJie extends IUserType {
                 return true;
             }
         }
+        caseShuheUser.setJsonObject(jsonObject);
         return false;
     }
 
