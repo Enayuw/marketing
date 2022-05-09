@@ -5,26 +5,18 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * 促复借 场景
@@ -142,7 +134,7 @@ public class CuFuJie extends IUserType {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         if (status.contains("a")) {
             // 情况a
-            String a = statusA(caseShuheUser, creatTime);
+            String a = statusA(caseShuheUser, creatTime, marketingCommonConfig);
             if (a != null) {
                 caseShuheUser.setReserveField2(a);
                 jsonObject.put("prioritySymbol", "1");
@@ -180,11 +172,11 @@ public class CuFuJie extends IUserType {
      * &
      * 剔除已转化数据
      */
-    private String statusA(CaseShuheUser caseShuheUser, Date creatTime) {
+    private String statusA(CaseShuheUser caseShuheUser, Date creatTime, MarketingCommonConfig marketingCommonConfig) {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         String defaultValue = "";
         String clcUsrLstAppStaTim = (String) jsonObject.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue);
-        if (creatTime == null || StringUtils.isBlank(clcUsrLstAppStaTim)) {
+        if (creatTime == null || org.apache.commons.lang3.StringUtils.isBlank(clcUsrLstAppStaTim)) {
             return null;
         }
         LocalDateTime appStaTim = LocalDateTime.parse(clcUsrLstAppStaTim, dateTimeFormatter);
@@ -194,7 +186,7 @@ public class CuFuJie extends IUserType {
         if (appStaTim.isAfter(localCreatTime)) {
             String clcUsrLstNonDcpTrsTim = (String) jsonObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim"
                     , defaultValue);
-            if (StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
+            if (org.apache.commons.lang3.StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
                 return null;
             }
             LocalDateTime nonDcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter);
@@ -203,12 +195,12 @@ public class CuFuJie extends IUserType {
             if (nonDcpTrsTim.isBefore(localCreatTime)) {
                 String offUsrLstOrdTimAll = (String) jsonObject.getOrDefault("off_usr_lst_ord_tim_all"
                         , defaultValue);
-                if (StringUtils.isBlank(offUsrLstOrdTimAll)) {
+                if (org.apache.commons.lang3.StringUtils.isBlank(offUsrLstOrdTimAll)) {
                     return null;
                 }
                 LocalDateTime ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter);
                 if (ordTimAll.isBefore(localCreatTime) || ordTimAll.isEqual(localCreatTime)) {
-                    if (this.ifTransfer(caseShuheUser, creatTime)) {
+                    if (this.ifTransfer(caseShuheUser, creatTime, marketingCommonConfig)) {
                         return null;
                     }
                     return "a";
@@ -244,7 +236,7 @@ public class CuFuJie extends IUserType {
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         String defaultValue = "";
         String clcUsrLstAppStaTim = (String) jsonObject.getOrDefault("clc_usr_lst_app_sta_tim", defaultValue);
-        if (creatTime == null || StringUtils.isBlank(clcUsrLstAppStaTim)) {
+        if (creatTime == null || org.apache.commons.lang3.StringUtils.isBlank(clcUsrLstAppStaTim)) {
             return null;
         }
         LocalDateTime appStaTim = LocalDateTime.parse(clcUsrLstAppStaTim, dateTimeFormatter);
@@ -252,20 +244,20 @@ public class CuFuJie extends IUserType {
         if (appStaTim.isAfter(localCreatTime) || appStaTim.isEqual(localCreatTime)) {
             String clcUsrLstNonDcpTrsTim = (String) jsonObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim"
                     , defaultValue);
-            if (StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
+            if (org.apache.commons.lang3.StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
                 return null;
             }
             LocalDateTime nonDcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter);
             if (nonDcpTrsTim.isAfter(localCreatTime) || nonDcpTrsTim.isEqual(localCreatTime)) {
                 String offUsrLstOrdTimAll = (String) jsonObject.getOrDefault("off_usr_lst_ord_tim_all"
                         , defaultValue);
-                if (StringUtils.isBlank(offUsrLstOrdTimAll)) {
+                if (org.apache.commons.lang3.StringUtils.isBlank(offUsrLstOrdTimAll)) {
                     return null;
                 }
                 LocalDateTime ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter);
                 if (ordTimAll.isAfter(localCreatTime) || ordTimAll.isEqual(localCreatTime)) {
                     String clcUsrAvlLmtLv0 = (String) jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", defaultValue);
-                    if (StringUtils.isBlank(clcUsrAvlLmtLv0)) {
+                    if (org.apache.commons.lang3.StringUtils.isBlank(clcUsrAvlLmtLv0)) {
                         return null;
                     }
                     Matcher matcher = NONNEGATIVE_FLOATING_NUMBER_REGEX.matcher(clcUsrAvlLmtLv0);
@@ -283,7 +275,7 @@ public class CuFuJie extends IUserType {
                     } else {
                         compareTo = Boolean.FALSE;
                     }
-                    if (!compareTo || this.ifTransfer(caseShuheUser, creatTime)) {
+                    if (!compareTo || this.ifTransfer(caseShuheUser, creatTime, marketingCommonConfig)) {
                         return null;
                     }
                     return "b";
@@ -303,7 +295,7 @@ public class CuFuJie extends IUserType {
      * @param range {@link List}自定义范围 eg: new ArrayList<>(Arrays.asList(">=", "10", "<=", "50"))
      */
     public boolean compareTo(@NotNull String v11, String v12, List<String> range) {
-        if (StringUtils.isBlank(v11) || CollectionUtils.isEmpty(range)) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(v11) || CollectionUtils.isEmpty(range)) {
             return false;
         }
         int size = range.size();
@@ -316,23 +308,23 @@ public class CuFuJie extends IUserType {
         Boolean bool2 = null;
         switch (len) {
             case 2:
-                if (StringUtils.isNotBlank(v12)) {
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(v12)) {
                     String v22 = range.get(3);
-                    if (StringUtils.isNotBlank(v22)) {
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(v22)) {
                         String sign2 = range.get(2);
                         bool2 = compare(v12, v22, sign2);
                     }
                 } else {
                     String v22 = range.get(3);
-                    if (StringUtils.isNotBlank(v22)) {
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(v22)) {
                         String sign2 = range.get(2);
                         bool2 = compare(v11, v22, sign2);
                     }
                 }
             case 1:
-                if (StringUtils.isNotBlank(v11)) {
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(v11)) {
                     String v21 = range.get(1);
-                    if (StringUtils.isNotBlank(v21)) {
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(v21)) {
                         String sign1 = range.get(0);
                         bool1 = compare(v11, v21, sign1);
                     }
