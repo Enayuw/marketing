@@ -41,6 +41,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -372,7 +373,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      * 2022/5/9 17:22
      * 查询有效期内是否存在已转化的数据
      */
-    private boolean periodOfValidityTransform(CallRecordBO dto, int day, Date creatTime) {
+    private boolean periodOfValidityTransform(CallRecordBO dto, Integer day, Date creatTime) {
         String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:".concat(dto.getApiCode()));
         String tcId;
         if (StringUtils.isEmpty(cId)) {
@@ -383,8 +384,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if (ObjectUtils.isEmpty(creatTime)) {
             creatTime = new Date();
         }
-        LocalDateTime dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-                .minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime dateTime;
+        if (day == null) {
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                    .with(TemporalAdjusters.lastDayOfMonth()).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        } else {
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                    .plusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
         LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().withHour(23)
                 .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
