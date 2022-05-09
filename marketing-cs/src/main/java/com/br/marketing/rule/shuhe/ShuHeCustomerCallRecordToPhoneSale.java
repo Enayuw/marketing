@@ -118,6 +118,11 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
             extendMap.put("typeSign", "3");
+            if (marketingTransferSyncUser != null) {
+                String reserveField1 = marketingTransferSyncUser.getReserveField1();
+                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                extendMap.put("clc_usr_avl_lmt_lv0", jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", ""));
+            }
             dassSingleImportDataDTO.setPrioritySymbol("3");
             String name = marketingSyncUser.getName();
             if (StringUtils.isNotBlank(name)) {
