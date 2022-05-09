@@ -9,7 +9,6 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -157,7 +156,7 @@ public class PushDataServiceImpl implements PushDataService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
-            List<DassBatchImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
+            List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);

@@ -19,6 +19,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -32,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -70,14 +72,18 @@ public class DassServiceClient {
     @Autowired
     HttpProxyClient httpProxyClient;
 
-    @Autowired
+    @Resource
     InterfaceLogMapper interfaceLogMapper;
+
     private DassImportDataDTO t;
 
     @Value("${api.dass.postBlackList:call/postBlackList}")
     private String postBlackList;
 
     private final static int size = 1000;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
