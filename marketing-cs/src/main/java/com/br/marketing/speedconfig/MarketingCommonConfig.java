@@ -147,4 +147,10 @@ public class MarketingCommonConfig {
      * ppd客服类型
      */
     private HashMap<String, List<String>> ppdCustomerType;
+
+    /**
+     * 促复借可用额度
+     */
+    private Double clcUsrAvlLmtLv0;
+
 }

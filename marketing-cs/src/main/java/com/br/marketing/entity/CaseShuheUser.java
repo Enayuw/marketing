@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.Date;
 
 public class CaseShuheUser {
@@ -152,6 +154,12 @@ public class CaseShuheUser {
      * 异常信息
      */
     private String errorInfo;
+
+    /**
+     * 扩展字段 json对象,不会持久化到db
+     * reserveField1
+     */
+    private JSONObject jsonObject;
 
     public Long getId() {
         return id;
@@ -391,5 +399,13 @@ public class CaseShuheUser {
 
     public void setErrorInfo(String errorInfo) {
         this.errorInfo = errorInfo == null ? null : errorInfo.trim();
+    }
+
+    public JSONObject getJsonObject() {
+        return jsonObject;
+    }
+
+    public void setJsonObject(JSONObject jsonObject) {
+        this.jsonObject = jsonObject;
     }
 }

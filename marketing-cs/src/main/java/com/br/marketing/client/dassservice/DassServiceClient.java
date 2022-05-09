@@ -307,6 +307,11 @@ public class DassServiceClient {
     public Result postTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO) {
         Result result = new Result();
         List<DassTransferDataDTO> dassTransferDataDTOList = dassTransferDataAdapDTO.getDassTransferDataDTOList();
+        dassTransferDataDTOList.forEach(dassTransferDataDTO -> {
+            if (StringUtils.isNotEmpty(dassTransferDataDTO.getPhone())) {
+                dassTransferDataDTO.setPhone(AESUtil.aesEncrypty(dassTransferDataDTO.getPhone(), ascKey));
+            }
+        });
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         List sortList = new ArrayList();
         sortList.add(String.valueOf(l));

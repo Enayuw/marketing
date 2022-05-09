@@ -7,6 +7,7 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -15,6 +16,7 @@ import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Map;
 
@@ -36,12 +42,15 @@ import java.util.Map;
 public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private final static String HAS_TRANS_FER = "1";
     private final static String NO_HAS_TRANSFER = "0";
+    static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private ITransferSyncUserService iTransferSyncUserService;
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -69,6 +78,17 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+
+        //促复借新增推送字段
+        if("促复借".equals(transfer.getUserType())){
+            conversionData.setInversionDate(transfer.getTransformTime());
+            conversionData.setEffectiveDate(transfer.getRequestTime());
+            //生效截止时间
+            LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
+            LocalDate plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
+            conversionData.setExpireDate(plusDays + " 23:59:59");
+        }
+
         return conversionData;
     }
 
@@ -98,7 +118,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
-                        } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                        } else if(iUserType instanceof CuFuJie  && ((CuFuJie)iUserType).ifTransfer(caseShuheUser, creatTime,marketingCommonConfig)){
+                            // 转化
+                            transferSyncUser.setIfTransform("1");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
+                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
+                            shuHeContext.setContinueJudgeRule(false);
+                            bool = Boolean.TRUE;
+                        }else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
                             ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");

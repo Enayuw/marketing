@@ -64,13 +64,11 @@ public class ZnkfPushController {
         try {
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
             List<DassTransferDataDTO> dassTransferDataDTOList = new ArrayList<>();
-            for(int i = 0;i<500;i++) {
-                DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
-                dassTransferDataDTO.setIfTransform("1");
-                dassTransferDataDTO.setUid(String.valueOf(i));
-                dassTransferDataDTO.setOrgName("ppd");
-                dassTransferDataDTOList.add(dassTransferDataDTO);
-            }
+            DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
+            dassTransferDataDTO.setIfTransform("1");
+            dassTransferDataDTO.setUid("2312432");
+            dassTransferDataDTO.setOrgName("ppd");
+            dassTransferDataDTOList.add(dassTransferDataDTO);
             dassTransferDataAdapDTO.setDassTransferDataDTOList(dassTransferDataDTOList);
             dassTransferDataAdapDTO.setTransferInfoId(234L);
             Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
