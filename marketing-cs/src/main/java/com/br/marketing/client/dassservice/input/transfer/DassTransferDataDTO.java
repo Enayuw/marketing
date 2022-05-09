@@ -155,4 +155,8 @@ public class DassTransferDataDTO {
      * 营销中台编号
      */
     private String apiCode;
+    /**
+     * 转化规则类型
+     */
+    private String transformStatus;
 }

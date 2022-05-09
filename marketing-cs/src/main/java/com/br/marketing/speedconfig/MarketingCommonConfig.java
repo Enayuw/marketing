@@ -149,6 +149,12 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> ppdCustomerType;
 
     /**
+     * 促复借可用额度
+     */
+    private Double clcUsrAvlLmtLv0;
+
+
+    /**
      * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
      */
     private HashMap<String, List<String>> shuHePushDXStatusMap;
