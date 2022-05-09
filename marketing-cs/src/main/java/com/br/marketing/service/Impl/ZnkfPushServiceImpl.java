@@ -34,10 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -335,7 +338,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())
                 && dto.getDetail().getIntentionGrade().contains("A")) {
             log.warn("#促复借 c情况满足intentionGrade=(\"A\"):");
-            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(dto.getApiCode()
                     , dto.getCaseNum(), groupType);
             Integer day = handlerService.getShuHePeriodOfValidityDay(groupType);
@@ -345,26 +347,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (!periodOfValidity) {
                 return false;
             }
-            String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:".concat(dto.getApiCode()));
-            String tcId;
-            if (StringUtils.isEmpty(cId)) {
-                tcId = tableCreateService.getTcId(dto.getApiCode());
-            } else {
-                tcId = cId.replaceFirst("-", "");
-            }
-            example.settCid(tcId);
-            example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
-                    .andCustNumEqualTo(dto.getCaseNum()).andUserTypeEqualTo(groupType);
-            example.setOrderByClause("create_time desc limit 0,1");
-            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.selectByExample(example);
-            if (CollectionUtils.isEmpty(list)) {
-                log.warn("#促复借 c情况未查询到转化数据:{}", dto.getCaseNum());
-                return true;
-            }
-            MarketingTransferSyncUser transferSyncUser = list.get(0);
-            CaseShuheUser user = caseShuheUserAdapter(transferSyncUser);
-            log.warn("#促复借 c情况对应的转化数据:{}", user);
-            return ((CuFuJie) iUserType).ifTransfer(user, creatTime);
+            return periodOfValidityTransform(dto, day, creatTime);
         }
         return false;
     }
@@ -383,5 +366,37 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         user.setCustNum(transfer.getCustNum());
         user.setReserveField1(reserveField1);
         return user;
+    }
+
+    /**
+     * 2022/5/9 17:22
+     * 查询有效期内是否存在已转化的数据
+     */
+    private boolean periodOfValidityTransform(CallRecordBO dto, int day, Date creatTime) {
+        String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:".concat(dto.getApiCode()));
+        String tcId;
+        if (StringUtils.isEmpty(cId)) {
+            tcId = tableCreateService.getTcId(dto.getApiCode());
+        } else {
+            tcId = cId.replaceFirst("-", "");
+        }
+        if (ObjectUtils.isEmpty(creatTime)) {
+            creatTime = new Date();
+        }
+        LocalDateTime dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().withHour(23)
+                .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
+                .andCustNumEqualTo(dto.getCaseNum())
+                .andUserTypeEqualTo(dto.getUserType()).andCreateTimeBetween(
+                Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
+                , Date.from(time.atZone(ZoneId.systemDefault()).toInstant()))
+                .andTransformTimeEqualTo("1");
+        int count = marketingTransferSyncUserMapper.countByExample(example);
+        log.warn("情况{}，查询到db里已转化数据量：{},", "c", count);
+        return count < 0;
     }
 }

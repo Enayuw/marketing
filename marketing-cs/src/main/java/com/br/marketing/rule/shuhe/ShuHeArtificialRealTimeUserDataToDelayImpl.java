@@ -2,6 +2,7 @@ package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
@@ -19,10 +20,12 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -53,6 +56,8 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     private SystemExceptionServiceImpl systemExceptionService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     /**
      * apiCoid:userType:cusNum
@@ -99,7 +104,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 shuHeContext.setTransfer(transfer);
-                final Date creatTime = shuHeContext.getCreatTime();
+                Date creatTime = shuHeContext.getCreatTime();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
@@ -113,9 +118,14 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                     b = Boolean.FALSE;
                 }
                 if (iUserType instanceof CuFuJie) {
-                    bool = (b && ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
-                            , marketingCommonConfig)
-                            && cacheExists(transfer, shuHeContext, day));
+                    if (b) {
+                        boolean phoneSale = ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
+                                , marketingCommonConfig);
+                        if (phoneSale) {
+                            bool = periodOfValidityTransform(caseShuheUser, day, creatTime)
+                                    && cacheExists(transfer, shuHeContext, day);
+                        }
+                    }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
                     log.warn("复促借情况{}是否满足推送延迟条件{},其中有效期状态：{},\n数据{}", caseShuheUser.getReserveField2(), bool, b, caseShuheUser.toString());
                 } else {
@@ -243,6 +253,39 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             }
         }
         return true;
+    }
+
+    /**
+     * 2022/5/9 17:22
+     * 查询有效期内是否存在已转化的数据
+     */
+    private boolean periodOfValidityTransform(CaseShuheUser caseShuheUser, int day, Date creatTime) {
+        String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:"
+                .concat(caseShuheUser.getApiCode()));
+        String tcId;
+        if (StringUtils.isEmpty(cId)) {
+            tcId = tableCreateService.getTcId(caseShuheUser.getApiCode());
+        } else {
+            tcId = cId.replaceFirst("-", "");
+        }
+        if (ObjectUtils.isEmpty(creatTime)) {
+            creatTime = new Date();
+        }
+        LocalDateTime dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().withHour(23)
+                .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(caseShuheUser.getApiCode())
+                .andCustNumEqualTo(caseShuheUser.getCustNum())
+                .andUserTypeEqualTo(caseShuheUser.getUserType()).andCreateTimeBetween(
+                Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
+                , Date.from(time.atZone(ZoneId.systemDefault()).toInstant()))
+                .andTransformTimeEqualTo("1");
+        int count = marketingTransferSyncUserMapper.countByExample(example);
+        log.warn("情况{}，查询到db里已转化数据量：{},", caseShuheUser.getReserveField2(), count);
+        return count < 1;
     }
 
 }

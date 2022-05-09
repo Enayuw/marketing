@@ -235,8 +235,14 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         if (iUserType instanceof CuFuJie) {
             JSONObject jsonObject = caseShuheUser.getJsonObject();
-            extend.put("clc_usr_avl_lmt_lv0", jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", ""));
-            extend.put("typeSign", jsonObject.getOrDefault("typeSign", ""));
+            String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(lv0)) {
+                extend.put("clc_usr_avl_lmt_lv0", lv0);
+            }
+            String typeSign = jsonObject.getOrDefault("typeSign", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(typeSign)) {
+                extend.put("typeSign", typeSign);
+            }
             dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
             String name = shuHeContext.getCustomerMap().get(caseShuheUser.getCustNum()).getName();
             if (!StringUtils.isEmpty(name)) {
