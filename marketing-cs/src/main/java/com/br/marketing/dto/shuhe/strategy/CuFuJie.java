@@ -5,6 +5,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +22,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/4/12 15:14
  */
+@Slf4j
 public class CuFuJie extends IUserType {
 
     public CuFuJie(String... api2Codes) {
@@ -54,11 +56,21 @@ public class CuFuJie extends IUserType {
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
             ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) &&(ordTimAll.isBefore(appletDate) || ordTimAll.isEqual(appletDate));
         }
-        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(jsonObject.getInteger("clc_usr_avl_lmt_lv0"))){
-            Integer clcUsrAvlLmtLv0 = jsonObject.getInteger("clc_usr_avl_lmt_lv0");
-            Integer max = marketingCommonConfig.getClcUsrAvlLmtLv0();
+        if(ifTransfer1){
+            return ifTransfer1;
+        }
+        Double clcUsrAvlLmtLv0;
+        try {
+            clcUsrAvlLmtLv0 = jsonObject.getDouble("clc_usr_avl_lmt_lv0");
+        }catch (Exception e){
+            log.error("数禾促复借转化数据推送,clc_usr_avl_lmt_lv0字段客户传入数据格式非double类型！apicode={},传入的clc_usr_avl_lmt_lv0值={}"
+                    ,caseShuheUser.getApiCode(),jsonObject.getString("clc_usr_avl_lmt_lv0"));
+            return false;
+        }
+        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(clcUsrAvlLmtLv0)){
+            Double max = marketingCommonConfig.getClcUsrAvlLmtLv0();
             if(max == null){
-                max=100;
+                max=100.0;
             }
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
             ifTransfer2 = (ordTimAll.isAfter(appletDate) || ordTimAll.isEqual(appletDate)) && (clcUsrAvlLmtLv0 < max);

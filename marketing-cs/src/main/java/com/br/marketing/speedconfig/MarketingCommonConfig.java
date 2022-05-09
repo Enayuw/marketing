@@ -151,6 +151,6 @@ public class MarketingCommonConfig {
     /**
      * 促复借可用额度
      */
-    private Integer clcUsrAvlLmtLv0;
+    private Double clcUsrAvlLmtLv0;
 
 }
