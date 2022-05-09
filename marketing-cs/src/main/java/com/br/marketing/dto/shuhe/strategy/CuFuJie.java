@@ -140,14 +140,18 @@ public class CuFuJie extends IUserType {
         }
         LocalDateTime appStaTim = LocalDateTime.parse(clcUsrLstAppStaTim, dateTimeFormatter);
         LocalDateTime localCreatTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        if (appStaTim.isAfter(localCreatTime) || appStaTim.isEqual(localCreatTime)) {
+        // 2022-5-9 14:51:08 需求变更，去掉等于的条件
+//        if (appStaTim.isAfter(localCreatTime) || appStaTim.isEqual(localCreatTime)) {
+        if (appStaTim.isAfter(localCreatTime)) {
             String clcUsrLstNonDcpTrsTim = (String) jsonObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim"
                     , defaultValue);
             if (StringUtils.isBlank(clcUsrLstNonDcpTrsTim)) {
                 return null;
             }
             LocalDateTime nonDcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter);
-            if (nonDcpTrsTim.isBefore(localCreatTime) || nonDcpTrsTim.isEqual(localCreatTime)) {
+            // 2022-5-9 14:51:08 需求变更，去掉等于的条件
+//            if (nonDcpTrsTim.isBefore(localCreatTime) || nonDcpTrsTim.isEqual(localCreatTime)) {
+            if (nonDcpTrsTim.isBefore(localCreatTime)) {
                 String offUsrLstOrdTimAll = (String) jsonObject.getOrDefault("off_usr_lst_ord_tim_all"
                         , defaultValue);
                 if (StringUtils.isBlank(offUsrLstOrdTimAll)) {
