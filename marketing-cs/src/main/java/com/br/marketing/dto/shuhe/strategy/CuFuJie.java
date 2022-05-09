@@ -54,7 +54,7 @@ public class CuFuJie extends IUserType {
         if (!StringUtils.isEmpty(clcUsrLstNonDcpTrsTim) && !StringUtils.isEmpty(offUsrLstOrdTimAll)){
             LocalDate dcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter).toLocalDate();
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
-            ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) &&(ordTimAll.isBefore(appletDate) || ordTimAll.isEqual(appletDate));
+            ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) &&(ordTimAll.isBefore(appletDate));
         }
         if(ifTransfer1){
             return ifTransfer1;
