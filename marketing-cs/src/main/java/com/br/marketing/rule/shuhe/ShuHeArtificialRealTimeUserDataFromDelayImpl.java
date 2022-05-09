@@ -231,7 +231,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setLoginTime(caseShuheUser.getClcUsrLstAppStaTim());
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
-        dataDTO.setExtend(extend.toJSONString());
         dataDTO.setUid(caseShuheUser.getCustNum());
         dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         if (iUserType instanceof CuFuJie) {
@@ -247,6 +246,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 }
             }
         }
+        dataDTO.setExtend(extend.toJSONString());
         return dataDTO;
     }
 
