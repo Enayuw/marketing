@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.PhoneSaleMapper" >
-    <select id="getPushDassData" resultType="com.br.marketing.client.dassservice.input.userdata.DassBatchImportDataDTO">
+    <select id="getPushDassData" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
         select
         *
         from b_phone_sale
