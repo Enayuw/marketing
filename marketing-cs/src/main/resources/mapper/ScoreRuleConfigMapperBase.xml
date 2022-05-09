@@ -198,6 +198,15 @@
       <if test="strategyProductShow != null" >
         strategy_product_show,
       </if>
+      <if test="parentId != null" >
+        parent_id,
+      </if>
+      <if test="dataType != null" >
+        data_type,
+      </if>
+      <if test="startTime != null" >
+        start_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
@@ -256,6 +265,15 @@
       </if>
       <if test="strategyProductShow != null" >
         #{strategyProductShow,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null" >
+        #{parentId,jdbcType=INTEGER},
+      </if>
+      <if test="dataType != null" >
+        #{dataType,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null" >
+        #{startTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>

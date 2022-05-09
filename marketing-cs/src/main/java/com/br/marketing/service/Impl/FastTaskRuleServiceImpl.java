@@ -86,6 +86,7 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     @Transactional
+    @Deprecated
     public ApiResult<Boolean> save(FastTaskRuleDetailVO vo, MarketingUserDetail userDetail) {
         String[] split = vo.getRuleIds().split(",");
         Integer i = 1;

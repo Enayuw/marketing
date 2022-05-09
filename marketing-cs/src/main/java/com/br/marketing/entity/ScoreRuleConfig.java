@@ -34,6 +34,11 @@ public class ScoreRuleConfig {
     private String conditionInfo;
 
     /**
+     * 规则信息
+     */
+    private String conditionType;
+
+    /**
      * 策略
      */
     private String strategyId;
@@ -97,6 +102,26 @@ public class ScoreRuleConfig {
      * 修改时间
      */
     private Date updateTime;
+
+    private Long parentId;
+
+
+
+    public String getConditionType() {
+        return conditionType;
+    }
+
+    public void setConditionType(String conditionType) {
+        this.conditionType = conditionType;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
 
     /**
      * 策略产品展示信息，后期有可能维护成需要配置的产品

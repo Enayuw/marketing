@@ -1,6 +1,8 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
@@ -32,6 +34,16 @@ public interface ScoreRuleConfigService {
      * @dateTime 2021/8/31 14:38
      */
     PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute);
+
+    /**
+     * 保存规则
+     *
+     * @param scoreRuleVO 规则数据
+     * @author zeqiang.guo@brgroup.com
+     * @dateTime 2021/9/2 14:15
+     */
+    ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO scoreRuleConfigDTO, MarketingUserDetail userDetail);
+
 
     /**
      * 保存规则

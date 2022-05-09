@@ -4,9 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
@@ -72,7 +74,22 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         return null;
     }
-
+    @Override
+    @Transactional
+    public ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO vo, MarketingUserDetail userDetail) {
+        String[] split = vo.getRuleIds().split(",");
+        for(String s : split){
+            ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
+            scoreRuleConfig.setRuleName(vo.getRuleName());
+            scoreRuleConfig.setParentId(scoreRuleConfig.getId());
+            scoreRuleConfig.setConditionType("2");
+            scoreRuleConfig.setRuleNameShort(createNo());
+            scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
+            scoreRuleConfig.setStartTime(vo.getTaskTime());
+            scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
+        }
+        return new ApiResult<Boolean>().success(true);
+    }
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
