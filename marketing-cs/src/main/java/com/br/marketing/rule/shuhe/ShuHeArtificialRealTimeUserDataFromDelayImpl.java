@@ -108,6 +108,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String message = context.getMqFact().getMessage();
                     JSONObject jsonObject = JSONObject.parseObject(message);
                     String status = jsonObject.get("status").toString();
+                    caseShuheUser.getJsonObject().putAll(jsonObject);
                     caseShuheUser.setReserveField2(status);
                     boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
                     if (boolIfGiveUp || queryBlackFlag(transfer)) {
