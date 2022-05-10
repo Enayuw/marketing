@@ -290,7 +290,7 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 .andUserTypeEqualTo(caseShuheUser.getUserType()).andCreateTimeBetween(
                 Date.from(time.atZone(ZoneId.systemDefault()).toInstant())
                 , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
-                .andTransformTimeEqualTo("1");
+                .andIfTransformEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
         log.warn("情况{}，查询到db里已转化数据量：{},", caseShuheUser.getReserveField2(), count);
         return count < 1;
