@@ -6,6 +6,10 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
+import com.br.marketing.client.robotaiapi.input.PhoneEncryptTypeEnum;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -34,7 +38,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +70,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private ShuheTransferStopPushRecordMapper shuheTransferStopPushRecordMapper;
     @Resource
     private RedisChgService redisChgService;
+
+    @Resource
+    private RobotaiApiServiceClient robotaiApiServiceClient;
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
@@ -111,7 +118,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     caseShuheUser.getJsonObject().putAll(jsonObject);
                     caseShuheUser.setReserveField2(status);
                     boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
-                    if (boolIfGiveUp || queryBlackFlag(transfer)) {
+                    String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
+                            , new MarketingSyncUser()).getCell();
+                    if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
                         log.warn("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
                         return false;
                     }
@@ -272,10 +281,29 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     /**
      * 查询黑名单
      */
-    public boolean queryBlackFlag(MarketingTransferSyncUser transfer) {
-        Result<Map<String, String>> result = iDxService.getBlackByTransfer(
-                Collections.singletonList(transfer), transfer.getApiCode());
-        log.warn("#促复借 查询黑名单结果:{}\n{}", result.getCode(), result.getData());
+    public boolean queryBlackFlag(MarketingTransferSyncUser transfer, String phone) {
+        List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
+        ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
+        dto.setApiCode(transfer.getApiCode());
+        dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
+        BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
+        blackQueryDetailDTO.setDataId(transfer.getId().toString());
+        blackQueryDetailDTO.setApiCode(transfer.getApiCode());
+        blackQueryDetailDTO.setCaseNum(transfer.getCustNum());
+        if (StringUtils.isEmpty(phone)) {
+            String reserveField1 = transfer.getReserveField1();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
+                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                phone = jsonObject.getOrDefault("cell", "").toString();
+            }
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(phone)) {
+            blackQueryDetailDTO.setPhone(phone);
+            blackQueryDetailDTO.setEncryptType(PhoneEncryptTypeEnum.LOG_TYPE.getEncryptType());
+        }
+        blackQueryDetailDTOS.add(blackQueryDetailDTO);
+        Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
+        log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
             return "Y".equals(blackFlag);
@@ -329,7 +357,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setCallRecordId(Joiner.on(",").join(collect));
             shuheTransferStopPushRecordMapper.insert(record);
             redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
-            log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record.toString());
+            log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
         }
         return false;
     }

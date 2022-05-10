@@ -23,6 +23,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -244,7 +245,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     isRemoveFlag = isRemove(bo, ordTim);
                 }
             } else if ("促复借".equals(bo.getUserType())) {
-                if (!shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest)) {
+                MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+                if (!shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                        ? null : user.getCell())) {
                     isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType());
                 }
             }
