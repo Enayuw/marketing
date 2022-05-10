@@ -386,21 +386,22 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         LocalDateTime dateTime;
         if (day == null) {
-            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-                    .with(TemporalAdjusters.lastDayOfMonth()).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().with(
+                    TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59).atZone(
+                    ZoneId.systemDefault()).toLocalDateTime();
         } else {
-            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-                    .plusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusDays(day).withHour(23)
+                    .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
-        LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().withHour(23)
-                .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.settCid(tcId);
         example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
                 .andCustNumEqualTo(dto.getCaseNum())
                 .andUserTypeEqualTo(dto.getUserType()).andCreateTimeBetween(
-                Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
-                , Date.from(time.atZone(ZoneId.systemDefault()).toInstant()))
+                Date.from(time.atZone(ZoneId.systemDefault()).toInstant())
+                , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
                 .andTransformTimeEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
         log.warn("情况{}，查询到db里已转化数据量：{},", "c", count);
