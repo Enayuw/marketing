@@ -405,6 +405,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 .andIfTransformEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
         log.warn("情况{}，查询到db里已转化数据量：{},", "c", count);
-        return count < 0;
+        return count < 1;
     }
 }
