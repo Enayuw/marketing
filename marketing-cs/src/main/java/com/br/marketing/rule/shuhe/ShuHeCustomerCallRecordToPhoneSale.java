@@ -256,7 +256,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             }
             return isTurn || isBlack || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
-            return phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType());
+            return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType());
         }
         return false;
     }
