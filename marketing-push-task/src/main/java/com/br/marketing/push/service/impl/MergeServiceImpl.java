@@ -356,12 +356,12 @@ public class MergeServiceImpl implements MergeService {
     .append(",")
      */
     private void  initHead(StringBuilder head,String sep,String baseHeadInfo,String dataInfo,Integer taskType){
-        if(taskType.compareTo(new Integer(1))==0){
-            if(StringUtils.isNotBlank(baseHeadInfo.trim())){
-                head.append(baseHeadInfo).append(sep);
-            }
-            return;
-        }
+//        if(taskType.compareTo(new Integer(1))==0){
+//            if(StringUtils.isNotBlank(baseHeadInfo.trim())){
+//                head.append(baseHeadInfo).append(sep);
+//            }
+//            return;
+//        }
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(StringUtils.isNotBlank(baseHeadInfo.trim())){
