@@ -1,5 +1,6 @@
 package com.br.marketing.push.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
@@ -164,10 +165,19 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             initHead(head,separator,baseHeadInfo,dataInfo,taskType);
-            TaskStatusDistributeExample taskStatusDistributeExample = new TaskStatusDistributeExample();
-            taskStatusDistributeExample.createCriteria().andFileIdEqualTo(blf.getId());
-            List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(taskStatusDistributeExample);
-            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,blf.getIndexNum(),taskStatusDistributes);
+            Integer fileNum = 30000000;
+            if(StringUtils.isNotBlank(customer.getExtendConfigInfo())){
+                try {
+                    JSONObject extendJb = JSON.parseObject(customer.getExtendConfigInfo());
+                    Integer fileNum1 = extendJb.getInteger("fileNum");
+                    if(fileNum1!=null){
+                        fileNum = fileNum1;
+                    }
+                }catch (Exception ex){
+                    log.error(ex.getMessage(),ex);
+                }
+            }
+            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,fileNum);
             zipFile=filePathAndName.replace(".txt",".zip");
             Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
             blf.setExpectedNum(total);
