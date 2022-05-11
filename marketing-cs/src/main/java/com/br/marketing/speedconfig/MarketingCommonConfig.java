@@ -139,4 +139,15 @@ public class MarketingCommonConfig {
      */
     private List<String> yiXinApiCode;
 
+    /**
+     * key:业务sql名称
+     * value:0-shardingjdbc;1:tiflash;2:tikv
+     */
+    private HashMap<String,Integer> sqlType;
+
+    /**
+     * 跑分资源数量
+     */
+    private Integer taskResourceMaxNum;
+
 }

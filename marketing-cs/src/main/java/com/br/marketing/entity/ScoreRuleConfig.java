@@ -19,7 +19,7 @@ public class ScoreRuleConfig {
     private String ruleNameShort;
 
     /**
-     * 跑分时间 格式HH:mm 
+     * 跑分时间 格式HH:mm/yyyy-MM-dd HH:mm
      */
     private String startTime;
 
@@ -107,6 +107,21 @@ public class ScoreRuleConfig {
      * 跑分范围类型 1-当天数据范围；2-手动选择数据范围
      */
     private String conditionType;
+
+    /**
+     * 1-全量；2-未跑分
+     */
+    private Integer dataType;
+
+    /**
+     * 父规则
+     */
+    private Long parentId;
+
+    /**
+     * 开始日期
+     */
+    private String startDate;
 
     public Long getId() {
         return id;
@@ -274,5 +289,29 @@ public class ScoreRuleConfig {
 
     public void setConditionType(String conditionType) {
         this.conditionType = conditionType == null ? null : conditionType.trim();
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate == null ? null : startDate.trim();
     }
 }

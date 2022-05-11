@@ -13,6 +13,7 @@
     <result column="upload_time" property="uploadTime" jdbcType="VARCHAR" />
     <result column="extend_show_title" property="extendShowTitle" jdbcType="VARCHAR" />
     <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
+    <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,7 +75,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time, 
-    extend_show_title, strategy_product_json
+    extend_show_title, strategy_product_json, data_condition
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
@@ -113,11 +114,11 @@
     insert into b_marketing_task_extend (api_code, task_id, cus_task_id, 
       rule_id, group_type, is_del, 
       create_time, upload_time, extend_show_title, 
-      strategy_product_json)
+      strategy_product_json, data_condition)
     values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
       #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR}, 
-      #{strategyProductJson,jdbcType=VARCHAR})
+      #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -155,6 +156,9 @@
       <if test="strategyProductJson != null" >
         strategy_product_json,
       </if>
+      <if test="dataCondition != null" >
+        data_condition,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -186,6 +190,9 @@
       </if>
       <if test="strategyProductJson != null" >
         #{strategyProductJson,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCondition != null" >
+        #{dataCondition,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -231,6 +238,9 @@
       <if test="record.strategyProductJson != null" >
         strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       </if>
+      <if test="record.dataCondition != null" >
+        data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -248,7 +258,8 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       upload_time = #{record.uploadTime,jdbcType=VARCHAR},
       extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
-      strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR}
+      strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
+      data_condition = #{record.dataCondition,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -286,6 +297,9 @@
       <if test="strategyProductJson != null" >
         strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
       </if>
+      <if test="dataCondition != null" >
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -300,7 +314,8 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       upload_time = #{uploadTime,jdbcType=VARCHAR},
       extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
-      strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR}
+      strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
+      data_condition = #{dataCondition,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

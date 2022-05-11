@@ -824,6 +824,76 @@ public class MarketingTaskExtendExample {
             addCriterion("strategy_product_json not between", value1, value2, "strategyProductJson");
             return (Criteria) this;
         }
+
+        public Criteria andDataConditionIsNull() {
+            addCriterion("data_condition is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionIsNotNull() {
+            addCriterion("data_condition is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionEqualTo(String value) {
+            addCriterion("data_condition =", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionNotEqualTo(String value) {
+            addCriterion("data_condition <>", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionGreaterThan(String value) {
+            addCriterion("data_condition >", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionGreaterThanOrEqualTo(String value) {
+            addCriterion("data_condition >=", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionLessThan(String value) {
+            addCriterion("data_condition <", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionLessThanOrEqualTo(String value) {
+            addCriterion("data_condition <=", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionLike(String value) {
+            addCriterion("data_condition like", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionNotLike(String value) {
+            addCriterion("data_condition not like", value, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionIn(List<String> values) {
+            addCriterion("data_condition in", values, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionNotIn(List<String> values) {
+            addCriterion("data_condition not in", values, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionBetween(String value1, String value2) {
+            addCriterion("data_condition between", value1, value2, "dataCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataConditionNotBetween(String value1, String value2) {
+            addCriterion("data_condition not between", value1, value2, "dataCondition");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

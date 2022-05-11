@@ -1,6 +1,9 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExtend;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
@@ -75,4 +78,10 @@ public interface ScoreRuleConfigService {
      * @dateTime 2021/9/3 15:15
      */
     void modify(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail);
+
+    Result<Boolean> isSelectRuleByTask(Long taskId);
+
+    Result<Boolean> isSelectRuleByRule(Long scoreId);
+
+    Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date);
 }

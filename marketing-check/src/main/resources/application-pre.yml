@@ -50,16 +50,6 @@ datasource:
       transaction-query-timeout: 6000 # 事务超时时间
       filters: stat,wall,log4j2
       connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-#      web-stat-filter:
-#        enabled: true
-#        url-pattern: "/*"
-#        exclusions: "*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*"
-#      stat-view-servlet:
-#        url-pattern: "/druid/*"
-#        allow:
-#        deny:
-#        reset-enable: false
-#        login-username: admin
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource

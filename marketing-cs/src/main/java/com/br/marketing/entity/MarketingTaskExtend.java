@@ -58,6 +58,11 @@ public class MarketingTaskExtend {
      */
     private String strategyProductJson;
 
+    /**
+     * 数据条件
+     */
+    private String dataCondition;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +149,13 @@ public class MarketingTaskExtend {
 
     public void setStrategyProductJson(String strategyProductJson) {
         this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
+    }
+
+    public String getDataCondition() {
+        return dataCondition;
+    }
+
+    public void setDataCondition(String dataCondition) {
+        this.dataCondition = dataCondition == null ? null : dataCondition.trim();
     }
 }

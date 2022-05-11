@@ -206,4 +206,5 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     MarketingTask selectCycleTopByApiCode(String apiCode);
 
+    List<MarketingTask> getScoreTasks(@Param("date") String date,@Param("taskId") Long taskId);
 }

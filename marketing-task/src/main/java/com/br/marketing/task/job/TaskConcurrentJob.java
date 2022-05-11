@@ -75,6 +75,9 @@ public class TaskConcurrentJob extends AbstractSimpleElasticJob {
                     Constants.sendCodeMap.get("uploadSuccess"));
             return;
         }
+
+
+
         customers.forEach(customer -> {
 
             if(observedScoreThreadService.isInterrupt()){
