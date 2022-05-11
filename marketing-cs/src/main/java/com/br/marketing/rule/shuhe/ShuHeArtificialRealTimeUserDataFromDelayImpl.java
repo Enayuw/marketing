@@ -346,7 +346,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setCreateTime(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
             record.setFailureTime(Date.from(localDateTime.plusDays(6).atZone(ZoneId.systemDefault()).toInstant()));
             record.setCaseNum(transfer.getCustNum());
-            record.setDay("7");
+            record.setDay("6");
             record.setUserType(transfer.getUserType());
             record.setTransferSyncCidId(transfer.getId().toString());
             record.setApiCode(transfer.getApiCode());
