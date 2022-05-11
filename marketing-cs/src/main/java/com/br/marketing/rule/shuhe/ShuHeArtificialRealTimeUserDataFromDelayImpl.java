@@ -38,10 +38,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -336,12 +333,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                             Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
             example.setOrderByClause("create_time desc limit 0,5000");
             List<CallRecord> callRecords = callRecordMapper.selectByExample(example);
-            List<CallRecord> collect = callRecords.stream().parallel().filter(c ->
+            List<CallRecord> collect = callRecords.parallelStream().filter(c ->
                     c.getUserProperties().contains(transfer.getUserType())
                             && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(collect)) {
-                log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", collect);
+                log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
                 return true;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
@@ -354,7 +351,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setTransferSyncCidId(transfer.getId().toString());
             record.setApiCode(transfer.getApiCode());
             record.setStatus("b");
-            record.setCallRecordId(Joiner.on(",").join(collect));
+            record.setChannel(0);
+            List<Long> ids = collect.parallelStream().map(CallRecord::getId).collect(Collectors.toList());
+            record.setCallRecordId(Joiner.on(",").join(ids));
             shuheTransferStopPushRecordMapper.insert(record);
             redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
             log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
