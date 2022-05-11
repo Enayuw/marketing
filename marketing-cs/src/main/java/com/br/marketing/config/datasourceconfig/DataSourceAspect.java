@@ -6,6 +6,8 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +37,7 @@ public class DataSourceAspect {
         DbContextHolder.setDbType(marketingTiFlash);
     }
 
-    @After("tiKvOfMarketing()")
+    @After("tiKvOfMarketing()||tiflashOfMarketing()")
     public void afterInterceptor() {
         logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
         DbContextHolder.clearDbType();
