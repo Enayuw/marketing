@@ -66,8 +66,10 @@ public class FastTaskRuleContronller {
     }
 
 
+
     @ApiOperation(value = "生成批量跑分", notes = "生成批量跑分")
     @PostMapping("/save")
+    @Deprecated
     public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo) {
         //获取用户上下文
         try {
