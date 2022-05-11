@@ -246,8 +246,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 }
             } else if ("促复借".equals(bo.getUserType())) {
                 MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
-                if (!shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
-                        ? null : user.getCell())) {
+                isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                        ? null : user.getCell());
+                if (!isRemoveFlag) {
                     isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType());
                 }
             }
@@ -256,6 +257,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             }
             return isTurn || isBlack || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
+            MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+            newest = new MarketingTransferSyncUser();
+            newest.setCustNum(bo.getCaseNum());
+            newest.setApiCode(bo.getApiCode());
+            newest.setUserType(bo.getUserType());
+            if (shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                    ? null : user.getCell())) {
+                return true;
+            }
             return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType());
         }
         return false;

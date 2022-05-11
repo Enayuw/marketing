@@ -284,7 +284,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dto.setApiCode(transfer.getApiCode());
         dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
         BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
-        blackQueryDetailDTO.setDataId(transfer.getId().toString());
+        String dataId = StringUtils.isEmpty(transfer.getId()) ? null : transfer.getId().toString();
+        blackQueryDetailDTO.setDataId(dataId);
         blackQueryDetailDTO.setApiCode(transfer.getApiCode());
         blackQueryDetailDTO.setCaseNum(transfer.getCustNum());
         if (StringUtils.isEmpty(phone)) {
@@ -302,7 +303,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
         log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            String blackFlag = result.getData().getOrDefault(transfer.getId().toString(), "");
+            String blackFlag = result.getData().getOrDefault(dataId, "");
             return "Y".equals(blackFlag);
         }
         return true;
