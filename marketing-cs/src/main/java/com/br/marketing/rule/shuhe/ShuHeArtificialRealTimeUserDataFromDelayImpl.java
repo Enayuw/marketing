@@ -352,6 +352,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setApiCode(transfer.getApiCode());
             record.setStatus("b");
             record.setChannel(0);
+            record.setUpdateTime(record.getCreateTime());
             List<Long> ids = collect.parallelStream().map(CallRecord::getId).collect(Collectors.toList());
             record.setCallRecordId(Joiner.on(",").join(ids));
             shuheTransferStopPushRecordMapper.insert(record);
