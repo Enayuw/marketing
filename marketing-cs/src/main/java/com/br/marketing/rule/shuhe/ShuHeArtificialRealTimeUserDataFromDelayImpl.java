@@ -20,10 +20,10 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.ShuheTransferStopPushRecordMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IDxService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -31,6 +31,7 @@ import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -60,13 +61,13 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private IDxService iDxService;
-    @Resource
     private CallRecordMapper callRecordMapper;
     @Resource
     private ShuheTransferStopPushRecordMapper shuheTransferStopPushRecordMapper;
     @Resource
     private RedisChgService redisChgService;
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
@@ -123,16 +124,29 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     }
                     switch (status) {
                         case "a":
-                            bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
-                                    , "a", transfer.getUserType());
+                            if (!queryStopPushRecord(transfer)) {
+                                bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                        , "a", transfer.getUserType());
+                            }
                             log.warn("促复借a情况：一天只推送一次判断结果：{}", bool);
                             break;
                         case "b":
-                            if (queryCallRecord(transfer)) {
+                            // 查询是不是首次命中b
+                            if (!phoneSaleExtendInfo(transfer.getCustNum(), transfer.getApiCode(), transfer.getUserType())) {
+                                log.warn("促复借b情况，非首次");
+                                // 判断是不是在停止推送时间内
+                                if (queryStopPushRecord(transfer)) {
+                                    bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                            , "b", transfer.getUserType());
+                                    log.warn("促复借b情况，不查询拨打记录：一天只推送一次判断结果：{}", bool);
+                                    break;
+                                }
+                            }
+                            if (!queryCallRecord(transfer)) {
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "b", transfer.getUserType());
-                                log.warn("促复借b情况：一天只推送一次判断结果：{}", bool);
                             }
+                            log.warn("促复借b情况，查询拨打记录：一天只推送一次判断结果：{}", bool);
                             break;
                         default:
                     }
@@ -277,12 +291,14 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     /**
      * 查询黑名单
+     * true 命中黑名单
+     * false 没有命中黑名单
      */
     public boolean queryBlackFlag(MarketingTransferSyncUser transfer, String phone) {
-        List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
+        List<BlackQueryDetailDTO> blackQueryList = new ArrayList<>();
         ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
         dto.setApiCode(transfer.getApiCode());
-        dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
+        dto.setDetailBlackPhoneDTO(blackQueryList);
         BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
         String dataId = StringUtils.isEmpty(transfer.getId()) ? null : transfer.getId().toString();
         blackQueryDetailDTO.setDataId(dataId);
@@ -299,7 +315,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             blackQueryDetailDTO.setPhone(phone);
             blackQueryDetailDTO.setEncryptType(PhoneEncryptTypeEnum.LOG_TYPE.getEncryptType());
         }
-        blackQueryDetailDTOS.add(blackQueryDetailDTO);
+        blackQueryList.add(blackQueryDetailDTO);
         Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
         log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -311,20 +327,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     /**
      * 查询拨打记录
+     * true 存在拨打记录
+     * false 不存在拨打记录
      */
     private boolean queryCallRecord(MarketingTransferSyncUser transfer) {
-        String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
-        boolean exists = redisChgService.exists(key);
-        if (exists) {
-            log.warn("#促复借 查询拨打记录结果是否已经存在缓存中:{}", exists);
-            return false;
-        }
-        ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
-        recordExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
-                .andCaseNumEqualTo(transfer.getCustNum()).andUserTypeEqualTo(transfer.getUserType())
-                .andFailureTimeGreaterThanOrEqualTo(new Date());
-        List<ShuheTransferStopPushRecord> list = shuheTransferStopPushRecordMapper.selectByExample(recordExample);
-        if (CollectionUtils.isEmpty(list)) {
+        if (!queryStopPushRecord(transfer)) {
             CallRecordExample example = new CallRecordExample();
             example.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
                     .andCaseNumEqualTo(transfer.getCustNum())
@@ -340,14 +347,14 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(collect)) {
                 log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
-                return true;
+                return false;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
             LocalDateTime localDateTime = LocalDateTime.now();
             record.setCreateTime(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
             record.setFailureTime(Date.from(localDateTime.plusDays(6).atZone(ZoneId.systemDefault()).toInstant()));
             record.setCaseNum(transfer.getCustNum());
-            record.setDay("6");
+            record.setDay("7");
             record.setUserType(transfer.getUserType());
             record.setTransferSyncCidId(transfer.getId().toString());
             record.setApiCode(transfer.getApiCode());
@@ -357,9 +364,46 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             List<Long> ids = collect.parallelStream().map(CallRecord::getId).collect(Collectors.toList());
             record.setCallRecordId(Joiner.on(",").join(ids));
             shuheTransferStopPushRecordMapper.insert(record);
+            String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
             redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
             log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
         }
-        return false;
+        return true;
+    }
+
+    /**
+     * 2022/5/11 15:14
+     * 查询暂停推送记录 true 有记录, false 无记录
+     */
+    public boolean queryStopPushRecord(MarketingTransferSyncUser transfer) {
+        String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
+        boolean exists = redisChgService.exists(key);
+        if (exists) {
+            log.warn("#促复借 查询拨打记录结果是否已经存在缓存中:{}", exists);
+            return true;
+        }
+        ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
+        recordExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                .andCaseNumEqualTo(transfer.getCustNum()).andUserTypeEqualTo(transfer.getUserType())
+                .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
+                        ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
+        int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
+        return count > 0;
+    }
+
+    /**
+     * 2022/5/9 18:20
+     * 是否首次命中b情况
+     * true 首次
+     * false 非首次
+     */
+    private boolean phoneSaleExtendInfo(String custNum, String apiCode, String userType) {
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        example.createCriteria().andStatusEqualTo("b")
+                .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                .andCustNumEqualTo(custNum);
+        int count = phoneSaleExtendInfoMapper.countByExample(example);
+        log.warn("#促复借 首次b情况:{}", count);
+        return count < 1;
     }
 }

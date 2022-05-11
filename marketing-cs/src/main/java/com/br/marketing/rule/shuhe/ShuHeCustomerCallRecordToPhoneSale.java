@@ -245,11 +245,19 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     isRemoveFlag = isRemove(bo, ordTim);
                 }
             } else if ("促复借".equals(bo.getUserType())) {
-                MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
-                isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
-                        ? null : user.getCell());
-                if (!isRemoveFlag) {
-                    isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType());
+                if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
+                    isRemoveFlag = true;
+                    log.warn("#促复借c情况存在转化数据,查询存在b情况且在停止推送时间内:{}", isRemoveFlag);
+                } else {
+                    MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+                    isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                            ? null : user.getCell());
+                    log.warn("#促复借c情况存在转化数据,命中黑名单情况：{}", isRemoveFlag);
+                    if (!isRemoveFlag) {
+                        isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType()
+                                , newest.getCreateTime());
+                        log.warn("#促复借c情况存在转化数据,查询到推送过a或b情况：{}", isRemoveFlag);
+                    }
                 }
             }
             if (isTurn || isBlack || isRemoveFlag) {
@@ -257,16 +265,22 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             }
             return isTurn || isBlack || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
-            MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
             newest = new MarketingTransferSyncUser();
             newest.setCustNum(bo.getCaseNum());
             newest.setApiCode(bo.getApiCode());
             newest.setUserType(bo.getUserType());
-            if (shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
-                    ? null : user.getCell())) {
+            newest.setId(0L);
+            if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
+                log.warn("#促复借c情况存在不存在转化数据,查询存在b情况且在停止推送时间内");
                 return true;
             }
-            return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType());
+            MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+            if (shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                    ? null : user.getCell())) {
+                log.warn("#促复借c情况存在不存在转化数据,命中黑名单");
+                return true;
+            }
+            return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType(), new Date());
         }
         return false;
     }
@@ -284,11 +298,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     /**
      * 2022/5/9 18:20
      * 是否存a或b
+     * true 存在
+     * false 不存在
      */
-    private boolean phoneSaleExtendInfo(String custNum, String apiCode, String userType) {
+    private boolean phoneSaleExtendInfo(String custNum, String apiCode, String userType, Date date) {
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        Date date = new Date();
-        LocalDateTime dateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().minusDays(7);
+        if (ObjectUtils.isEmpty(date)) {
+            date = new Date();
+        }
+        LocalDateTime dateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().minusDays(6);
         example.createCriteria().andStatusIn(Arrays.asList("a", "b"))
                 .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(
