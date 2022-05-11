@@ -404,7 +404,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
                 .andIfTransformEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
-        log.warn("情况{}，查询到db里已转化数据量：{},", "c", count);
+        log.warn("情况{}，查询到db里已转化(命中已转化)数据量：{},", "c", count);
         return count < 1;
     }
 }

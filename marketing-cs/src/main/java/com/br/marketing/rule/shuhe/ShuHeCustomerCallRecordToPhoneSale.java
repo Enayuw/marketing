@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -254,8 +255,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                             ? null : user.getCell());
                     log.warn("#促复借c情况存在转化数据,命中黑名单情况：{}", isRemoveFlag);
                     if (!isRemoveFlag) {
-                        isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), bo.getUserType()
-                                , newest.getCreateTime());
+                        isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), newest.getUserType()
+                                , bo.getCreateTime());
                         log.warn("#促复借c情况存在转化数据,查询到推送过a或b情况：{}", isRemoveFlag);
                     }
                 }
@@ -280,7 +281,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 log.warn("#促复借c情况存在不存在转化数据,命中黑名单");
                 return true;
             }
-            return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType(), new Date());
+            return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType(), bo.getCreateTime());
         }
         return false;
     }
@@ -306,13 +307,14 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         if (ObjectUtils.isEmpty(date)) {
             date = new Date();
         }
-        LocalDateTime dateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().minusDays(6);
+        ZonedDateTime dateTime = date.toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate().minusDays(6).atStartOfDay().atZone(ZoneId.systemDefault());
         example.createCriteria().andStatusIn(Arrays.asList("a", "b"))
                 .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(
-                Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()), date);
+                Date.from(dateTime.toInstant()), date);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
-        log.warn("#促复借 c情况是否当天推送过a或b情况:{}", count);
+        log.warn("#促复借c情况是否7内天推送过a或b情况:{}", count);
         return count > 0;
     }
 

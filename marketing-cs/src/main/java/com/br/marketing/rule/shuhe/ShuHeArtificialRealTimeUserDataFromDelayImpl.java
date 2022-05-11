@@ -38,7 +38,9 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -350,9 +352,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 return false;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
-            LocalDateTime localDateTime = LocalDateTime.now();
-            record.setCreateTime(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-            record.setFailureTime(Date.from(localDateTime.plusDays(6).atZone(ZoneId.systemDefault()).toInstant()));
+            ZonedDateTime createTime = LocalDateTime.now().atZone(ZoneId.systemDefault());
+            record.setCreateTime(Date.from(createTime.toInstant()));
+            ZonedDateTime failureTime = createTime.plusDays(6)
+                    .withHour(23).withMinute(59).withSecond(59);
+            record.setFailureTime(Date.from(failureTime.toInstant()));
             record.setCaseNum(transfer.getCustNum());
             record.setDay("7");
             record.setUserType(transfer.getUserType());
@@ -365,7 +369,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             record.setCallRecordId(Joiner.on(",").join(ids));
             shuheTransferStopPushRecordMapper.insert(record);
             String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
-            redisChgService.setex(key, "7", 7 * 24 * 60 * 60);
+            redisChgService.setex(key, "7", (int) ChronoUnit.SECONDS.between(createTime, failureTime));
             log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
         }
         return true;
