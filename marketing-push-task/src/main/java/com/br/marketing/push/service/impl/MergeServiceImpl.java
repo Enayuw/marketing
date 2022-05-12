@@ -177,9 +177,12 @@ public class MergeServiceImpl implements MergeService {
                     log.error(ex.getMessage(),ex);
                 }
             }
-            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,fileNum);
-            zipFile=filePathAndName.replace(".txt",".zip");
-            Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
+            List<String> paths = FileUtil.mergeAll(head.toString(), filePathAndName, targetPath.toString(), separator, fileNum);
+            zipFile = filePathAndName.replace(".txt", ".zip");
+            Integer total = 0;
+            for (String path1 : paths) {
+                total +=MyFileUtil.getTotalLines(new File(path1))-1;
+            }
             blf.setExpectedNum(total);
 
             Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
@@ -188,15 +191,15 @@ public class MergeServiceImpl implements MergeService {
             }
             if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
             &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
-                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
-
-                //统计文件上传fastdfs
-                uploadFastDfs(countFileNameList,blf,fileName);
-
-                countFileNameList.add(filePathAndName);
-                ZipUtil.compress(zipFile,countFileNameList);
+//                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
+//
+//                //统计文件上传fastdfs
+//                uploadFastDfs(countFileNameList,blf,fileName);
+//
+//                countFileNameList.add(filePathAndName);
+//                ZipUtil.compress(zipFile,countFileNameList);
             }else {
-                ZipUtil.compress(filePathAndName,zipFile);
+                ZipUtil.compress(zipFile,paths);
             }
 
         }catch (Exception e){

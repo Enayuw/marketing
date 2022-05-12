@@ -1,4 +1,5 @@
 
+import com.br.marketing.common.validators.user.UserValidator;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -15,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -32,6 +34,18 @@ public class MyTest {
         System.out.println(days);
     }
 
+    @Test
+    public void checkName(){
+        UserValidator userValidator = new UserValidator(2);
+        boolean b = userValidator.validateName("迪拉帢尔·帕塔尔·土尔根");
+        boolean b1 = userValidator.validateId("650102199402022617");
+        System.out.println(b);
+        System.out.println(b1);
+
+        Pattern NAME = Pattern.compile("^(?=[\\u4dae\\u00b7\\u2022\\u2027\\uff65\\u4e00-\\u9fa5]{2,25}$)([\\u4dae\\u4e00-\\u9fa5]{2,15}|([\\u4e00-\\u9fa5]+[\\u00b7\\u2022\\u2027\\uff65][\\u4e00-\\u9fa5]+))$");
+        boolean matches = NAME.matcher("迪拉帢尔·帕塔尔·土尔根").matches();
+        System.out.println(matches);
+    }
 
     @Test
     public void haluoBydxTimeFormat(){

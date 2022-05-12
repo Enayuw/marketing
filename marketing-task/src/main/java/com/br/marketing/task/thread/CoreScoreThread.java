@@ -89,6 +89,8 @@ public class CoreScoreThread implements Callable<String> {
     public String call() {
 
         log.warn("start-----------------");
+        Long fileId = marketingTask.getFileId();
+
         if (list.size() == 0) {
             log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
             return null;
@@ -181,7 +183,7 @@ public class CoreScoreThread implements Callable<String> {
                 for (MarketingSyncUser lu : errorList) {
                     errorFw.append(JSON.toJSONString(lu)+"\n");
                 }
-                String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + fileId;
+                String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + this.fileId;
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();

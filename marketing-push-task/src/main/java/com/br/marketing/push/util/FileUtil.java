@@ -209,16 +209,21 @@ public class FileUtil {
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
+        List<String> res = new ArrayList<>();
+        res.add(pathName);
         File file1 = new File(pathName);
-        try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(file1), StandardCharsets.UTF_8));) {
-
+        List<BufferedWriter> fws = new ArrayList<>();
+        try {
+            fws.add(new BufferedWriter(
+                    new OutputStreamWriter(
+                            new FileOutputStream(file1), StandardCharsets.UTF_8)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
             int rownum = 1;
+            Integer fileIndex = 0;
             String headstring = head.substring(0, head.length() - 1);
-            if (destPath.indexOf("error") == -1) {
-                fw.append(headstring + "\r\n");
-            }
             int i = countStr(headstring, sep);
             String path = destPath.concat("/");
             File writeName = new File(path);
@@ -228,7 +233,23 @@ public class FileUtil {
                 br = new BufferedReader(read);
                 String row;
                 while ((row = br.readLine()) != null) {
+                    if(rownum>fileNum){
+                        fileIndex++;
+                        String fileAddPath = pathName.replace(".txt", "-" + fileIndex).concat(".txt");
+                        res.add(fileAddPath);
+                        File file = new File(fileAddPath);
+                        BufferedWriter bufferedWriter = new BufferedWriter(
+                                new OutputStreamWriter(
+                                        new FileOutputStream(file), StandardCharsets.UTF_8));
+                        fws.add(bufferedWriter);
+                        rownum=1;
+                    }
+                    BufferedWriter fw = fws.get(fileIndex);
+                    if(rownum == 1){
+                        fw.append(headstring + "\r\n");
+                    }
                     mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
+                    rownum++;
                 }
                 br.close();
                 read.close();
@@ -246,6 +267,11 @@ public class FileUtil {
                     Thread.sleep(3000);
                 } catch (Exception e) {
                     log.error("sleep ", e);
+                }
+            }
+            for (BufferedWriter fw : fws) {
+                if(fw!=null){
+                    fw.close();
                 }
             }
             log.warn("rownum=" + rownum);
@@ -268,8 +294,18 @@ public class FileUtil {
                     log.error("IOException ", e);
                 }
             }
+            for (BufferedWriter fw : fws) {
+                try {
+                    if(fw!=null){
+                        fw.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         log.warn("合并文件结束--耗时：{}", System.currentTimeMillis() - l);
+        return res;
     }
 
     /**
