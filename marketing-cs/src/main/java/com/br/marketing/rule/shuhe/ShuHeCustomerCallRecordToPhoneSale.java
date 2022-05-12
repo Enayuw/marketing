@@ -246,10 +246,15 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     isRemoveFlag = isRemove(bo, ordTim);
                 }
             } else if ("促复借".equals(bo.getUserType())) {
+                Date createTime = newest.getCreateTime();
+                Date createTimeB = bo.getCreateTime();
+                newest.setCreateTime(createTimeB);
                 if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
+                    newest.setCreateTime(createTime);
                     isRemoveFlag = true;
                     log.warn("#促复借c情况存在转化数据,查询存在b情况且在停止推送时间内:{}", isRemoveFlag);
                 } else {
+                    newest.setCreateTime(createTime);
                     MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
                     isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
                             ? null : user.getCell());
