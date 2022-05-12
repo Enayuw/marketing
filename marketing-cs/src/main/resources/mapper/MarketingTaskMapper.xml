@@ -572,4 +572,68 @@
         and status = 1
         order by priority desc,start_time asc
     </select>
+    <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select bmt.id,shf.id as `hisFileId`, bsrc.rule_name as `ruleName`,bsrc.rule_name_short as `ruleNumber`,bmc.cid,bmc.short_name as `cName`,bmt.status,bmt.priority,bmt.actual_number,
+        bsrc.condition_info as `conditionInfo`,
+        case
+        when shf.status is null then 0
+        when shf.status=2 then 2
+        when shf.status=0 then 3
+        when shf.status=1 then 1
+        when shf.status=3 then 1
+        else '-' end as taskStatus,
+        DATE_FORMAT(bmt.start_time,'%Y-%m-%d %H:%i:%s') as createTime
+        from b_marketing_task bmt
+
+        left join stra_his_file shf on shf.batch_number = bmt.batch_number
+
+        left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+
+        left join  b_marketing_customer bmc  on bmc.api_code = bmt.api_code
+
+        where bsrc.is_del = 1
+        <if test="status !=null">
+            and bmt.status = #{status}
+        </if>
+        <if test="search !=null and search!=''">
+            and (bsrc.rule_name like concat("%", #{search},"%")
+            or bsrc.rule_number like concat("%", #{search},"%")
+            or bmt.api_code like concat("%", #{search},"%")
+            or bmc.cid like concat("%", #{search},"%"))
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
+        </if>
+        <if test="updateTimeStart !=null and updateTimeStart!=''">
+            <![CDATA[  and bmt.update_time >=#{updateTimeStart} ]]>
+        </if>
+        <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+            <![CDATA[  and bmt.update_time <#{updateTimeEnd} ]]>
+        </if>
+        <if test="taskStatus==0 ">
+            and shf.status is null and btm.status=1
+        </if>
+        <if test="taskStatus==2 ">
+            and shf.status = 2 and bftr.status=1
+        </if>
+        <if test="taskStatus==1 ">
+            and shf.status in(0,1,3) and bftr.status=1
+        </if>
+        <if test="id !=null">
+            and bmt.id = #{id}
+        </if>
+        order by bmt.update_time desc,bmt.create_time desc,bmt.id desc
+    </select>
+    <select id="selectByPriority" resultType="java.lang.Integer">
+        select count(*) from b_marketing_task where status = 1 and priority = #{priority}
+    </select>
+    <select id="selectHisFileById" resultType="java.lang.String">
+        select status from stra_his_file where id =#{hisFileId}
+    </select>
+
 </mapper>
