@@ -387,11 +387,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         LocalDateTime dateTime;
         if (day == null) {
             dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().with(
-                    TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59).atZone(
+                    TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59).withNano(0).atZone(
                     ZoneId.systemDefault()).toLocalDateTime();
         } else {
             dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusDays(day).withHour(23)
-                    .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    .withMinute(59).withSecond(59).withNano(0).atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
         LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
                 .atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
