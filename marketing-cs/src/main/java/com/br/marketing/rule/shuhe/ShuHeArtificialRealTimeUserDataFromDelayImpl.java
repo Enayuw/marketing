@@ -389,7 +389,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
         recordExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
                 .andCaseNumEqualTo(transfer.getCustNum()).andUserTypeEqualTo(transfer.getUserType())
-                .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
+                .andFailureTimeGreaterThan(ObjectUtils.isEmpty(transfer.getCreateTime())
                         ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
         int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
         return count > 0;
