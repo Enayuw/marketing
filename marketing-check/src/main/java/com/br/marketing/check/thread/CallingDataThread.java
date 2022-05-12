@@ -3,8 +3,11 @@ package com.br.marketing.check.thread;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.halo.HaluoApiServiceClient;
+import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
 import com.br.marketing.client.halo.send.HaloApiParam;
 import com.br.marketing.client.halo.send.HaloApiSend;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
@@ -14,6 +17,7 @@ import com.br.marketing.vo.HaloCallingDataVo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -34,41 +38,29 @@ public class CallingDataThread implements Callable<String> {
 
     private final CustomerCalling customerCalling;
 
-    private final HttpProxyClient httpProxyClient;
-
     private final CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
     private final CustomerCallingDataStatusMapper customerCallingDataStatusMapper;
 
-    private final String haloOpenUrl;
-
-    private final String haloAppKey;
-
     private final String haloMethod;
 
-    private final String haloSecret;
+    private final HaluoApiServiceClient haluoApiServiceClient;
 
-    private final boolean isProxy;
 
     public CallingDataThread(List<HaloCallingDataVo> haloCallingDataVoList,
                              CustomerCallingDialogMapper customerCallingDialogMapper,
                              CustomerCalling customerCalling,
-                             HttpProxyClient httpProxyClient,
+                             HaluoApiServiceClient haluoApiServiceClient,
                              CustomerCallingPushLogMapper customerCallingPushLogMapper,
                              CustomerCallingDataStatusMapper customerCallingDataStatusMapper,
-                             String haloOpenUrl, String haloAppKey, String haloSecret,
-                             String method, boolean isProxy) {
+                             String method) {
         this.haloCallingDataVoList = haloCallingDataVoList;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
-        this.httpProxyClient = httpProxyClient;
+        this.haluoApiServiceClient = haluoApiServiceClient;
         this.customerCallingPushLogMapper = customerCallingPushLogMapper;
         this.customerCallingDataStatusMapper = customerCallingDataStatusMapper;
-        this.haloOpenUrl = haloOpenUrl;
-        this.haloAppKey = haloAppKey;
-        this.haloSecret = haloSecret;
         this.haloMethod = method;
-        this.isProxy = isProxy;
     }
 
     @Override
@@ -107,15 +99,11 @@ public class CallingDataThread implements Callable<String> {
     }
 
     private String sendRequest(JSONObject param) {
-        HaloApiParam haloApiParam = new HaloApiParam();
-        haloApiParam.httpProxyClient(httpProxyClient);
-        haloApiParam.openUrl(haloOpenUrl);
-        haloApiParam.appKey(haloAppKey);
-        haloApiParam.secret(haloSecret);
-        haloApiParam.method(haloMethod);
-        haloApiParam.param(param);
-        haloApiParam.isProxy(isProxy);
-        return HaloApiSend.post(haloApiParam);
+        ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
+        reqHaluoApiDTO.setData(param.toJSONString());
+        reqHaluoApiDTO.setMethod(haloMethod);
+        Result result = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
+        return (String)result.getData();
     }
 
     private void savePushLog(String requestId, JSONObject param, String result) {

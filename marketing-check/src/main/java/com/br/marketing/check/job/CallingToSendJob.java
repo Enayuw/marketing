@@ -2,6 +2,7 @@ package com.br.marketing.check.job;
 
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.halo.HaluoApiServiceClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
@@ -18,6 +19,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -60,10 +62,10 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     CustomerCallingDataStatusMapper customerCallingDataStatusMapper;
 
     @Resource
-    HttpProxyClient httpProxyClient;
+    CustomerCallingPushLogMapper customerCallingPushLogMapper;
 
     @Resource
-    CustomerCallingPushLogMapper customerCallingPushLogMapper;
+    HaluoApiServiceClient haluoApiServiceClient;
 
 
     @Override
@@ -106,14 +108,10 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                                 customerCallingDialogLists,
                                 customerCallingDialogMapper,
                                 customerCalling,
-                                httpProxyClient,
+                                haluoApiServiceClient,
                                 customerCallingPushLogMapper,
                                 customerCallingDataStatusMapper,
-                                haloOpenUrl,
-                                haloAppKey,
-                                haloSecret,
-                                method,
-                                isProxy)));
+                                method)));
             }
         }
     }
