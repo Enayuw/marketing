@@ -355,7 +355,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             ZonedDateTime createTime = LocalDateTime.now().atZone(ZoneId.systemDefault());
             record.setCreateTime(Date.from(createTime.toInstant()));
             ZonedDateTime failureTime = createTime.plusDays(6)
-                    .withHour(23).withMinute(59).withSecond(59);
+                    .withHour(23).withMinute(59).withSecond(59).withNano(0);
             record.setFailureTime(Date.from(failureTime.toInstant()));
             record.setCaseNum(transfer.getCustNum());
             record.setDay("7");
