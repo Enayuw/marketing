@@ -1,5 +1,6 @@
 package com.br.marketing.check.thread;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
@@ -89,6 +90,7 @@ public class CallingDataThread implements Callable<String> {
         haloCallingDataVoList.forEach(haloCallingDataVo -> dataItems.add(JSONObject.parse(toJson(haloCallingDataVo))));
         param.put("dataItems", dataItems);
         String result = sendRequest(param);
+        log.warn("接口返回result={}", result);
         afterSendDoWork(requestId, result);
         savePushLog(requestId, param, result);
     }
@@ -115,10 +117,12 @@ public class CallingDataThread implements Callable<String> {
         reqHaluoApiDTO.setData(param.toJSONString());
         reqHaluoApiDTO.setMethod(haloMethod);
         Result result = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
+        log.warn("哈啰接口返回result={}", JSON.toJSONString(result));
         return (String)result.getData();
     }
 
     private void savePushLog(String requestId, JSONObject param, String result) {
+        log.warn("哈啰日志保存result={}",result);
         JSONArray dataItems = param.getJSONArray("dataItems");
         Map<String, Object> map = new HashMap<>();
         map.put("requestId", requestId);
