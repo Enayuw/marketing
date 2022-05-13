@@ -125,8 +125,8 @@ public class TaskServiceImpl implements ITaskService {
             eTimeStr = validTime.minusDays(1L).format(ymdhms);
 
         }
-        taskStart = LocalDate.now().minusDays(1L).format(ymd);
-        taskEnd = LocalDate.now().format(ymd);
+        taskStart = LocalDate.now().format(ymd);
+        taskEnd = LocalDate.now().plusDays(1L).format(ymd);
         String sDate = LocalDateTime.parse(sTimeStr,ymdhms).format(ymd);
         try {
             sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
