@@ -329,11 +329,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private boolean cuFuJie(CallRecordBO dto, String groupType, IUserType iUserType) throws IllegalAccessException {
         HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
         List<String> status;
-        if (CollectionUtils.isEmpty(statusMap)
-                || CollectionUtils.isEmpty(statusMap.getOrDefault("促复借", null))) {
+        if (statusMap == null
+                || (status = statusMap.getOrDefault(groupType, null)) == null) {
             status = Collections.singletonList("c");
-        } else {
-            status = statusMap.get("促复借");
         }
         if (status.contains("c") && StringUtils.isNotBlank(dto.getCaseNum())
                 && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())

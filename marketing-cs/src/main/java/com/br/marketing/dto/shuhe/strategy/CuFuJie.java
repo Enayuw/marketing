@@ -6,7 +6,6 @@ import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
@@ -55,26 +54,26 @@ public class CuFuJie extends IUserType {
         String offUsrLstOrdTimAll = jsonObject.getString("off_usr_lst_ord_tim_all");
         LocalDate appletDate = creatTime.toInstant().atZone(
                 ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
-        if (!StringUtils.isEmpty(clcUsrLstNonDcpTrsTim) && !StringUtils.isEmpty(offUsrLstOrdTimAll)){
+        if (!StringUtils.isEmpty(clcUsrLstNonDcpTrsTim) && !StringUtils.isEmpty(offUsrLstOrdTimAll)) {
             LocalDate dcpTrsTim = LocalDateTime.parse(clcUsrLstNonDcpTrsTim, dateTimeFormatter).toLocalDate();
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
-            ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) &&(ordTimAll.isBefore(appletDate));
+            ifTransfer1 = (dcpTrsTim.isAfter(appletDate) || dcpTrsTim.isEqual(appletDate)) && (ordTimAll.isBefore(appletDate));
         }
-        if(ifTransfer1){
+        if (ifTransfer1) {
             return ifTransfer1;
         }
         Double clcUsrAvlLmtLv0;
         try {
             clcUsrAvlLmtLv0 = jsonObject.getDouble("clc_usr_avl_lmt_lv0");
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("数禾促复借转化数据推送,clc_usr_avl_lmt_lv0字段客户传入数据格式非double类型！apicode={},传入的clc_usr_avl_lmt_lv0值={}"
-                    ,caseShuheUser.getApiCode(),jsonObject.getString("clc_usr_avl_lmt_lv0"));
+                    , caseShuheUser.getApiCode(), jsonObject.getString("clc_usr_avl_lmt_lv0"));
             return false;
         }
-        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(clcUsrAvlLmtLv0)){
+        if (!StringUtils.isEmpty(offUsrLstOrdTimAll) && !StringUtils.isEmpty(clcUsrAvlLmtLv0)) {
             Double max = marketingCommonConfig.getClcUsrAvlLmtLv0();
-            if(max == null){
-                max=100.0;
+            if (max == null) {
+                max = 100.0;
             }
             LocalDate ordTimAll = LocalDateTime.parse(offUsrLstOrdTimAll, dateTimeFormatter).toLocalDate();
             ifTransfer2 = (ordTimAll.isAfter(appletDate) || ordTimAll.isEqual(appletDate)) && (clcUsrAvlLmtLv0 < max);
@@ -125,11 +124,9 @@ public class CuFuJie extends IUserType {
             , MarketingCommonConfig marketingCommonConfig) {
         HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
         List<String> status;
-        if (CollectionUtils.isEmpty(statusMap)
-                || CollectionUtils.isEmpty(statusMap.getOrDefault("促复借", null))) {
+        if (statusMap == null
+                || (status = statusMap.getOrDefault(caseShuheUser.getUserType(), null)) == null) {
             status = Arrays.asList("a", "b");
-        } else {
-            status = statusMap.get("促复借");
         }
         JSONObject jsonObject = caseShuheUser.getJsonObject();
         if (status.contains("a")) {
@@ -295,7 +292,10 @@ public class CuFuJie extends IUserType {
      * @param range {@link List}自定义范围 eg: new ArrayList<>(Arrays.asList(">=", "10", "<=", "50"))
      */
     public boolean compareTo(@NotNull String v11, String v12, List<String> range) {
-        if (org.apache.commons.lang3.StringUtils.isBlank(v11) || CollectionUtils.isEmpty(range)) {
+        if (range == null) {
+            range = Arrays.asList("&ge;", "100");
+        }
+        if (org.apache.commons.lang3.StringUtils.isBlank(v11) || range.isEmpty()) {
             return false;
         }
         int size = range.size();
