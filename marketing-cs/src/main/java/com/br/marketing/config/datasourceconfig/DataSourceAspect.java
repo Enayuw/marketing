@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Aspect
 @Order(-1000)
-@ConditionalOnProperty(name = "datasource.database",matchIfMissing = false)
+@ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
 public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
     static final String marketingTikiv = "marketingTikiv";

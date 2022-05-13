@@ -35,7 +35,7 @@ public class DataSourceConfig {
 
     @Primary
     @Bean
-    @ConditionalOnProperty(name = "datasource.database",matchIfMissing = false)
+    @ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
     public DynamicDataSource dynamicDataSource() {
         String defaultName = environment.getProperty(prefix.concat("database.defaultSource"));
         Map<Object, Object> targetDataSources = new HashMap<>();
