@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
  * @Date : Create in 2022/3/22 13:51
  */
 @Service
+@Slf4j
 public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService {
 
     @Resource
@@ -58,6 +60,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
             context.setRuleNecessaryData(shuHeRuleNecessaryData);
@@ -79,6 +82,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             shuHeRuleNecessaryData.setContinueJudgeRule(true);
             caseShuheUserAdapter(transfer, shuHeRuleNecessaryData);
         }
+        log.warn("@@转化数据加载上下文耗时:{}ms", System.currentTimeMillis() - l);
     }
 
     @Override
