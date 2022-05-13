@@ -10,6 +10,7 @@ import com.br.marketing.client.*;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
@@ -53,6 +54,7 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingTask marketingTask;
     private List<String> noflagproductlist;
     private List<String> flagProductList;
+    private MarketingTaskService marketingTaskService;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
@@ -76,6 +78,7 @@ public class CoreScoreThread implements Callable<String> {
         this.marketingTask = marketingTask;
         this.noflagproductlist = noflagproductlist;
         this.flagProductList = flagProductList;
+        this.marketingTaskService = Scheduler.ac.getBean(MarketingTaskService.class);
         BaseHeadConfigVO o = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
         }.getType());
         StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
@@ -89,13 +92,12 @@ public class CoreScoreThread implements Callable<String> {
     public String call() {
 
         log.warn("start-----------------");
-        Long fileId = marketingTask.getFileId();
 
         if (list.size() == 0) {
             log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
             return null;
         }
-
+        marketingTaskService.addTaskPercent(marketingTask.getFileId(),Long.valueOf(list.size()));
         boolean check = this.checkRedisNumber();
         log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
 

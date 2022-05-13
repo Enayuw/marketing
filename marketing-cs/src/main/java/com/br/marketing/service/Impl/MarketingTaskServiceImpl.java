@@ -23,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,13 +40,13 @@ import java.util.*;
 @Slf4j
 public class MarketingTaskServiceImpl implements MarketingTaskService {
 
-    @Autowired
+    @Resource
     MarketingTaskMapper marketingTaskMapper;
 
     @Autowired
     private RedisChgService redisChgService;
 
-    @Autowired
+    @Resource
     private ScoreRuleConfigMapper scoreRuleConfigMapper;
 
     @Override
@@ -137,5 +138,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.error("date:{} is error", date, e);
         }
         return time;
+    }
+
+    @Override
+    public void addTaskPercent(Long fileId,Long number) {
+        String key = RedisKeyConstant.taskScoreNum.concat(":").concat(fileId.toString());
+        redisChgService.incrBy(key,number);
     }
 }

@@ -47,7 +47,7 @@ public interface ScoreRuleConfigService {
      */
     ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO scoreRuleConfigDTO, MarketingUserDetail userDetail);
 
-
+    Result<List<Long>> saveFromCallBack(ScoreRuleConfigDTO scoreRuleConfigDTO);
     /**
      * 保存规则
      *

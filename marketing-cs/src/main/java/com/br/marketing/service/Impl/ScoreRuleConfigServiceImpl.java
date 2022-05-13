@@ -99,6 +99,44 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         return new ApiResult<Boolean>().success(true);
     }
+
+    @Override
+    public Result<List<Long>> saveFromCallBack(ScoreRuleConfigDTO vo) {
+
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(vo.getApiCode()).andStatusEqualTo(new Byte("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if(marketingCustomers.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode不存在客户信息");
+        }
+        MarketingCustomer customer = marketingCustomers.get(0);
+        List<Long> res = new ArrayList<>();
+        String[] split = vo.getRuleIds().split(",");
+        for(String s : split){
+            ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
+            scoreRuleConfig.setRuleName(vo.getRuleName());
+            scoreRuleConfig.setParentId(scoreRuleConfig.getId());
+            scoreRuleConfig.setConditionType("2");
+            scoreRuleConfig.setRuleNameShort(createNo());
+            scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
+            scoreRuleConfig.setStartTime(vo.getTaskTime().substring(11));
+            scoreRuleConfig.setId(null);
+            scoreRuleConfig.setCreateTime(new Date());
+            scoreRuleConfig.setStatus(1);
+            scoreRuleConfig.setStartDate(vo.getTaskTime().substring(0, 10));
+            scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
+
+            CustomerRule customerRule = new CustomerRule();
+            customerRule.setCustomerId(customer.getId());
+            customerRule.setRuleId(scoreRuleConfig.getId());
+            customerRuleMapper.insertSelective(customerRule);
+
+            res.add(scoreRuleConfig.getId());
+        }
+        return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+    }
+
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
