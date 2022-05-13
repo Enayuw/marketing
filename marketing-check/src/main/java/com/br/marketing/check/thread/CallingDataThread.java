@@ -116,9 +116,8 @@ public class CallingDataThread implements Callable<String> {
         ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
         reqHaluoApiDTO.setData(param.toJSONString());
         reqHaluoApiDTO.setMethod(haloMethod);
-        Result result = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
-        log.warn("哈啰接口返回result={}", JSON.toJSONString(result));
-        return (String)result.getData();
+        Result<String> result = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
+        return result.getData();
     }
 
     private void savePushLog(String requestId, JSONObject param, String result) {

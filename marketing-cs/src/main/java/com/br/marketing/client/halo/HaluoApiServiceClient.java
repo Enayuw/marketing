@@ -65,9 +65,9 @@ public class HaluoApiServiceClient {
             JSONObject jsonData = JSONObject.parseObject(jsonResult.getString("data"));
             //重试
             if (!jsonData.getBoolean("success")) {
-                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(jsonResult);
+                return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(jsonResult.toJSONString());
             }
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(jsonResult);
+            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(jsonResult.toJSONString());
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
