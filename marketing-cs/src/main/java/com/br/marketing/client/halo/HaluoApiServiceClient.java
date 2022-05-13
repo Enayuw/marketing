@@ -20,16 +20,16 @@ import java.util.Map;
 @Service
 @Slf4j
 public class HaluoApiServiceClient {
-    @Value("${api.halo.openUrl}")
+    @Value("${api.halo.openUrl:00}")
     private String haloOpenUrl;
 
-    @Value("${api.halo.appKey}")
+    @Value("${api.halo.appKey:00}")
     private String haloAppKey;
 
-    @Value("${api.halo.secret}")
+    @Value("${api.halo.secret:00}")
     private String haloSecret;
 
-    @Value("${api.halo.isProxy}")
+    @Value("${api.halo.isProxy:false}")
     private boolean isProxy;
 
     @Autowired
@@ -43,6 +43,7 @@ public class HaluoApiServiceClient {
      */
     @RetryMethod(retryNowNum = 3)
     public Result<String> postHaluoOpenApi(ReqHaluoApiDTO reqHaluoApiDTO) {
+        log.warn("调用哈啰openApi接口开始");
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Map paramsMap = new HashMap();
         paramsMap.put(PublicParamsConstants.APPKEY, haloAppKey);
