@@ -59,6 +59,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         CallRecordBO dto = (CallRecordBO) transmitFact;
         log.warn("符合推电销规则，callrecord数据id为{}", dto.getId());
         Date day = dto.getCreateTime();
@@ -171,6 +172,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         realTimeUserDataDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);
         realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        log.warn("4.2、拨打数据推送电销封装数据耗时:{}ms", System.currentTimeMillis() - l);
         return realTimeUserDataDTO;
     }
 
@@ -178,11 +180,13 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         //延迟队列消费&剔除-->false
         //延迟队列消费&不剔除-->推电销
+        long l = System.currentTimeMillis();
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
             flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
         }
+        log.warn("4.1、拨打数据推送电销判断规则据耗时:{}ms", System.currentTimeMillis() - l);
         return flag;
     }
 

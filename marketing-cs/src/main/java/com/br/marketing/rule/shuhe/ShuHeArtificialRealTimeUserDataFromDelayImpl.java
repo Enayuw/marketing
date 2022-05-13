@@ -83,6 +83,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MarketingTransferSyncUser transfer = shuHeContext.getTransfer();
@@ -92,11 +93,13 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         PhoneSaleExtendInfo phoneSaleExtendShuhe = getPhoneSaleExtendShuhe(transfer, shuHeContext);
         phoneSaleExtendShuhe.setSourceId(context.getMqFact().getSourceId());
         realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendShuhe);
+        log.warn("2.2、转化数据推送电销封装数据耗时:{}ms", System.currentTimeMillis() - l);
         return realTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -160,6 +163,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 }
             }
         }
+        log.warn("2.1、转化数据推送电销判断规则据耗时:{}ms", System.currentTimeMillis() - l);
         return bool;
     }
 
@@ -297,6 +301,19 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      * false 没有命中黑名单
      */
     public boolean queryBlackFlag(MarketingTransferSyncUser transfer, String phone) {
+        if (StringUtils.isEmpty(phone)) {
+            String reserveField1 = transfer.getReserveField1();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
+                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                phone = jsonObject.getOrDefault("cell", "").toString();
+            }
+        }
+        String key = String.format(KEY, transfer.getApiCode(), transfer.getUserType()
+                , transfer.getCustNum()).concat(":" + phone);
+        if (redisChgService.exists(key)) {
+            log.warn("#促复借 ###@命中黑名单缓存");
+            return true;
+        }
         List<BlackQueryDetailDTO> blackQueryList = new ArrayList<>();
         ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
         dto.setApiCode(transfer.getApiCode());
@@ -306,13 +323,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         blackQueryDetailDTO.setDataId(dataId);
         blackQueryDetailDTO.setApiCode(transfer.getApiCode());
         blackQueryDetailDTO.setCaseNum(transfer.getCustNum());
-        if (StringUtils.isEmpty(phone)) {
-            String reserveField1 = transfer.getReserveField1();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
-                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-                phone = jsonObject.getOrDefault("cell", "").toString();
-            }
-        }
         if (org.apache.commons.lang3.StringUtils.isNotBlank(phone)) {
             blackQueryDetailDTO.setPhone(phone);
             blackQueryDetailDTO.setEncryptType(PhoneEncryptTypeEnum.LOG_TYPE.getEncryptType());
@@ -322,7 +332,13 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(dataId, "");
-            return "Y".equals(blackFlag);
+            if ("Y".equals(blackFlag)) {
+                redisChgService.setex(key, dataId, 3600 * 12);
+                log.warn("#促复借 ###命中黑名单");
+                return true;
+            }
+            log.warn("#促复借 &&&未命中黑名单");
+            return false;
         }
         return true;
     }
@@ -380,10 +396,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      * 查询暂停推送记录 true 有记录, false 无记录
      */
     public boolean queryStopPushRecord(MarketingTransferSyncUser transfer) {
+        long l = System.currentTimeMillis();
         String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
         boolean exists = redisChgService.exists(key);
         if (exists) {
-            log.warn("#促复借 查询拨打记录结果是否已经存在缓存中:{}", exists);
+            log.warn("#促复借 查询暂停推送记录是否已经存在缓存中:{}", exists);
             return true;
         }
         ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
@@ -392,6 +409,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
                         ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
         int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
+        log.warn("#促复借 查询暂停推送记录:{},查询耗时：{}ms", count, System.currentTimeMillis() - l);
         return count > 0;
     }
 
