@@ -17,7 +17,7 @@ import javax.annotation.Resource;
  */
 @Component
 @Slf4j
-public class TaskStopJob extends AbstractSimpleElasticJob {
+public class TaskActionJob extends AbstractSimpleElasticJob {
 
     @Autowired
     ObservedScoreThreadServiceImpl observedScoreThreadService;
@@ -28,7 +28,7 @@ public class TaskStopJob extends AbstractSimpleElasticJob {
         if(StringUtils.isNotBlank(jobParameter)){
             if(jobParameter.equals("1")){
                 observedScoreThreadService.setInterrupt(1);
-            }else{
+            }else if(jobParameter.equals("0")){
                 observedScoreThreadService.stopThread();
             }
         }

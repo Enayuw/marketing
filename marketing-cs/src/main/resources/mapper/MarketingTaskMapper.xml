@@ -569,6 +569,9 @@
           <if test="taskId!=null and taskId>0">
               and id = #{taskId}
           </if>
+          <if test="hm !=null and hm!=''">
+              <![CDATA[ and start_time<=#{hm}  ]]>
+          </if>
         and status = 1
         order by priority desc,start_time asc
     </select>

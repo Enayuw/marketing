@@ -319,10 +319,13 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("目前跑分资源已经占满");
         }
         String nowDay = LocalDate.now().format(ymd);
+        String hm = null;
         if (StringUtils.isNotBlank(date)) {
             nowDay = date;
+        }else{
+            hm= LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
         }
-        List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId);
+        List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId,hm);
 
         for (MarketingTask scoreTask : scoreTasks) {
             Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);

@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 
 @Component
 @Slf4j
-public class TaskJob extends AbstractSimpleElasticJob {
+public class TaskScoreStartJob extends AbstractSimpleElasticJob {
     @Resource
     CustomerMapper customerMapper;
 
