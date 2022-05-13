@@ -1,9 +1,13 @@
 package com.br.marketing.check.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.thread.CallingDataThread;
-import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.halo.HaluoApiServiceClient;
+import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.CustomerCalling;
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingDialogExample;
@@ -19,12 +23,12 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -37,20 +41,16 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class CallingToSendJob extends AbstractSimpleElasticJob {
-    @Value("${api.halo.openUrl}")
-    private String haloOpenUrl;
-
-    @Value("${api.halo.appKey}")
-    private String haloAppKey;
-
-    @Value("${api.halo.secret}")
-    private String haloSecret;
 
     @Value("${api.halo.method}")
     private String method;
 
-    @Value("${api.halo.isProxy}")
-    private boolean isProxy;
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
 
     @Resource
     CustomerCallingMapper customerCallingMapper;
@@ -81,6 +81,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             if (tableColumns != null) {
                 doThreadSubmit(customerCalling, tableColumns);
             }
+
         }
     }
 
@@ -95,23 +96,73 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         cusMap.put("columns", tableColumns);
         cusMap.put("apiCode", customerCalling.getApiCode());
         cusMap.put("sendStatus", 0);
+        // 查询需要发送的数据
+        int haloCallingCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
+        if (haloCallingCount <= 0) {
+            return;
+        }
+        CountDownLatch countDownLatch = new CountDownLatch(haloCallingCount);
         boolean index = true;
+        String taskId = null;
         while (index) {
             cusMap.put("pageSize",2000);
             List<HaloCallingDataVo> haloCallingDataVoList = customerCallingDialogMapper.getInfoByColumns(cusMap);
             index = haloCallingDataVoList.size() != 0;
             if (index) {
+                if (taskId == null) {
+                    taskId = haloCallingDataVoList.get(0).getTaskId();
+                }
                 updateSendStatus(haloCallingDataVoList);
                 List<List<HaloCallingDataVo>> partitions = Lists.partition(haloCallingDataVoList, 20);
                 partitions.forEach((customerCallingDialogLists) -> pushExecutor.submit(
                         new CallingDataThread(
                                 customerCallingDialogLists,
+                                countDownLatch,
                                 customerCallingDialogMapper,
                                 customerCalling,
                                 haluoApiServiceClient,
                                 customerCallingPushLogMapper,
                                 customerCallingDataStatusMapper,
                                 method)));
+            }
+        }
+        // 等待线程执行完毕
+        try {
+            countDownLatch.await();
+            log.warn("线程执行完毕");
+        } catch (InterruptedException e) {
+            log.error("countDownLatch 线程执行异常", e);
+        }
+
+        callbackEnd(haloCallingCount, customerCalling.getApiCode(), taskId);
+    }
+
+    public void callbackEnd(int haloCallingCount,String apiCode,String taskId) {
+        Map<String, Object> cusMap = new HashMap<>(16);
+        cusMap.put("sendStatus", 2);
+        cusMap.put("apiCode", apiCode);
+        cusMap.put("taskId", taskId);
+        int haloCallingDealCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
+        if (haloCallingDealCount  ==  haloCallingCount) {
+            JSONObject param = new JSONObject();
+            param.put("openSerialNo", apiCode + "_callbackEnd_" + UUID.randomUUID());
+            param.put("batchNo", taskId);
+
+            ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
+            reqHaluoApiDTO.setData(param.toJSONString());
+            reqHaluoApiDTO.setMethod("hello.finance.loan.marketing.callback.end");
+            Result<String> stringResult = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
+            log.warn("哈罗数据 批次:{}, 总量: {}, 处理成功: {}，处理结果: {}", taskId, haloCallingCount, haloCallingDealCount, stringResult);
+        } else {
+            try {
+                StringBuilder content = new StringBuilder();
+                content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                        .append("taskId：".concat(taskId).concat("\r\n"))
+                        .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
+                alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
+                        Constants.sendCodeMap.get("uploadSuccess"));
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
             }
         }
     }

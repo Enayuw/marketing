@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +47,11 @@ public class CallingDataThread implements Callable<String> {
 
     private final HaluoApiServiceClient haluoApiServiceClient;
 
+    private CountDownLatch countDownLatch;
+
 
     public CallingDataThread(List<HaloCallingDataVo> haloCallingDataVoList,
+                             CountDownLatch countDownLatch,
                              CustomerCallingDialogMapper customerCallingDialogMapper,
                              CustomerCalling customerCalling,
                              HaluoApiServiceClient haluoApiServiceClient,
@@ -55,6 +59,7 @@ public class CallingDataThread implements Callable<String> {
                              CustomerCallingDataStatusMapper customerCallingDataStatusMapper,
                              String method) {
         this.haloCallingDataVoList = haloCallingDataVoList;
+        this.countDownLatch = countDownLatch;
         this.customerCallingDialogMapper = customerCallingDialogMapper;
         this.customerCalling = customerCalling;
         this.haluoApiServiceClient = haluoApiServiceClient;
@@ -64,10 +69,17 @@ public class CallingDataThread implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
-        String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
-        sendPostRequest(requestId);
-        return "success";
+    public String call() {
+        try {
+            String requestId = customerCalling.getApiCode() + "_" + UUID.randomUUID();
+            sendPostRequest(requestId);
+            return "success";
+        } catch (Exception e) {
+            log.error("程序处理异常", e);
+            throw new RuntimeException(e);
+        } finally {
+            countDownLatch.countDown();
+        }
     }
 
     private void sendPostRequest(String requestId) {

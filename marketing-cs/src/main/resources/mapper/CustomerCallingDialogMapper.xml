@@ -693,6 +693,23 @@
           and status = '1'
         order by id desc limit #{pageSize};
     </select>
+
+
+    <select id="getHaloCallingCount" resultType="int">
+        select count(1)
+        from b_marketing_customer_calling_dialog
+        <where>
+            api_code = #{apiCode} and status = '1'
+            <if test="taskId != null">
+                and task_id = #{taskId}
+            </if>
+            <if test="sendStatus != null">
+                and send_status = #{sendStatus}
+            </if>
+        </where>
+
+    </select>
+
     <select id="getRequestId" resultType="java.util.Map">
         select b.request_id         as requestId,
                a.push_url           as pushUrl,
