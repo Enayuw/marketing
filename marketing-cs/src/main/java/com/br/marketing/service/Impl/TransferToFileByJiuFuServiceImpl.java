@@ -58,6 +58,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
 
     final static String JIUFU_TRANSFER_FILE = "jiufu_zhuanhua_";
 
+    final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
+
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
@@ -75,8 +77,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("玖富转化数据提取-开始执行,apiCode ={}", apiCode);
-                //Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                Long transferFileContextId = 888L;
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
@@ -100,8 +101,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         log.warn("玖富转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        //判断是否本月为1日
-        LocalDate localDate = LocalDate.now();
+        //判断执行日期是否为本月为1日
+        LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
         LocalDate startDate;
         LocalDate endDate;
         if(localDate.getDayOfMonth()==1){
