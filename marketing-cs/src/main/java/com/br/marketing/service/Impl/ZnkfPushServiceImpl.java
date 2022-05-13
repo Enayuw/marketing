@@ -340,8 +340,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(dto.getApiCode()
                     , dto.getCaseNum(), groupType);
             Integer day = handlerService.getShuHePeriodOfValidityDay(groupType);
-            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(dto.getApiCode(), dto.getCaseNum(), groupType
-                    , creatTime, day);
+            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(dto.getCreateTime(), day, creatTime);
             log.warn("#促复借 c情况有效期验证:{}", periodOfValidity);
             if (!periodOfValidity) {
                 return false;
