@@ -14,6 +14,7 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -63,6 +64,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
+
+    @Resource
+    private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -114,7 +118,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;
-        } else {
+        } if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByJiuFuService;
+        }else {
             return null;
         }
     }

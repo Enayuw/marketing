@@ -153,4 +153,14 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+    /**
+     * 玖富转化数据提取apiCode集合
+     */
+    private List<String> JiuFuTransferApiCodes;
+
+    /**
+     * 玖富转化数据提取执行时间
+     */
+    private String JiuFuTransferExecuteTime;
+
 }
