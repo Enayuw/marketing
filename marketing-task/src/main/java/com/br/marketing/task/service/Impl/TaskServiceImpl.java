@@ -369,7 +369,7 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreTask);
         }
 
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
     /**
