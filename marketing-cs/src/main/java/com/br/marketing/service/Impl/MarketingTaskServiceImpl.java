@@ -73,6 +73,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     public ApiResult<Boolean> editPriority(String id, Integer priority) {
         MarketingTask marketingTask = new MarketingTask();
         marketingTask.setPriority(priority);
+        marketingTask.setId(Long.valueOf(id));
         Integer exist = marketingTaskMapper.selectByPriority(priority);
         if (exist > 0) {
             throw new AppException(CodeEnum.TASK_PRIORITY_EXIST);
