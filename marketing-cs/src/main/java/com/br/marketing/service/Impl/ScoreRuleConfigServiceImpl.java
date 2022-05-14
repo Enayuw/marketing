@@ -86,16 +86,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Transactional
     public ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO vo, MarketingUserDetail userDetail) {
         String[] split = vo.getRuleIds().split(",");
+        MarketingCustomer marketingCustomer = new MarketingCustomer();
+        marketingCustomer.setId(Long.valueOf(userDetail.getId()));
         for(String s : split){
-            ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
-            scoreRuleConfig.setRuleName(vo.getRuleName());
-            scoreRuleConfig.setParentId(scoreRuleConfig.getId());
-            scoreRuleConfig.setConditionType("2");
-            scoreRuleConfig.setRuleNameShort(createNo());
-            scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
-            scoreRuleConfig.setStartTime(vo.getTaskTime());
-            scoreRuleConfig.setId(null);
-            int i = scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
+            initScoreRuleConfig(vo,s,marketingCustomer);
         }
         return new ApiResult<Boolean>().success(true);
     }
@@ -113,27 +107,29 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         List<Long> res = new ArrayList<>();
         String[] split = vo.getRuleIds().split(",");
         for(String s : split){
-            ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(s));
-            scoreRuleConfig.setRuleName(vo.getRuleName());
-            scoreRuleConfig.setParentId(scoreRuleConfig.getId());
-            scoreRuleConfig.setConditionType("2");
-            scoreRuleConfig.setRuleNameShort(createNo());
-            scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
-            scoreRuleConfig.setStartTime(vo.getTaskTime().substring(11));
-            scoreRuleConfig.setId(null);
-            scoreRuleConfig.setCreateTime(new Date());
-            scoreRuleConfig.setStatus(1);
-            scoreRuleConfig.setStartDate(vo.getTaskTime().substring(0, 10));
-            scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
-
-            CustomerRule customerRule = new CustomerRule();
-            customerRule.setCustomerId(customer.getId());
-            customerRule.setRuleId(scoreRuleConfig.getId());
-            customerRuleMapper.insertSelective(customerRule);
-
-            res.add(scoreRuleConfig.getId());
+            res.add(initScoreRuleConfig(vo,s,customer).getId());
         }
         return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+    }
+    private ScoreRuleConfig initScoreRuleConfig(ScoreRuleConfigDTO vo,String ruleId,MarketingCustomer customer){
+        ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(ruleId));
+        scoreRuleConfig.setRuleName(vo.getRuleName());
+        scoreRuleConfig.setParentId(scoreRuleConfig.getId());
+        scoreRuleConfig.setConditionType("2");
+        scoreRuleConfig.setRuleNameShort(createNo());
+        scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
+        scoreRuleConfig.setStartTime(vo.getTaskTime().substring(11));
+        scoreRuleConfig.setId(null);
+        scoreRuleConfig.setCreateTime(new Date());
+        scoreRuleConfig.setStatus(1);
+        scoreRuleConfig.setStartDate(vo.getTaskTime().substring(0, 10));
+        int i = scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
+
+        CustomerRule customerRule = new CustomerRule();
+        customerRule.setCustomerId(customer.getId());
+        customerRule.setRuleId(scoreRuleConfig.getId());
+        customerRuleMapper.insertSelective(customerRule);
+        return scoreRuleConfig;
     }
 
 

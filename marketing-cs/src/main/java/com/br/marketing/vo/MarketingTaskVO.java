@@ -87,4 +87,9 @@ public class MarketingTaskVO {
     private Integer actualNumber;
 
     private String conditionInfo;
+
+    /**
+     * 排序
+     */
+    private Integer priority;
 }

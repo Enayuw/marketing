@@ -576,7 +576,7 @@
         order by priority desc,start_time asc
     </select>
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
-        select bmt.id,shf.id as `hisFileId`, bsrc.rule_name as `ruleName`,bsrc.rule_name_short as `ruleNumber`,bmc.cid,bmc.short_name as `cName`,bmt.status,bmt.priority,bmt.actual_number,
+        select bmt.id,shf.id as `hisFileId`,bm,t bsrc.rule_name as `ruleName`,bsrc.rule_name_short as `ruleNumber`,bmc.cid,bmc.short_name as `cName`,bmt.status,bmt.priority,bmt.actual_number,
         bsrc.condition_info as `conditionInfo`,
         case
         when shf.status is null then 0
@@ -585,7 +585,7 @@
         when shf.status=1 then 1
         when shf.status=3 then 1
         else '-' end as taskStatus,
-        DATE_FORMAT(bmt.start_time,'%Y-%m-%d %H:%i:%s') as createTime
+        DATE_FORMAT(bmt.start_time,'%Y-%m-%d %H:%i:%s') as startTime
         from b_marketing_task bmt
 
         left join stra_his_file shf on shf.batch_number = bmt.batch_number
