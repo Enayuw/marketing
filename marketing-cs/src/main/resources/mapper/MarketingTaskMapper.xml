@@ -576,17 +576,32 @@
         order by priority desc,start_time asc
     </select>
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
-        select bmt.id,shf.id as `hisFileId`,bm,t bsrc.rule_name as `ruleName`,bsrc.rule_name_short as `ruleNumber`,bmc.cid,bmc.short_name as `cName`,bmt.status,bmt.priority,bmt.actual_number,
-        bsrc.condition_info as `conditionInfo`,
+        select bmt.id,
+        shf.id                                            as `hisFileId`,
+        bmt.api_code                                      as `apiCode`,
+        bsrc.rule_name                                    as `ruleName`,
+        bsrc.rule_name_short                              as `ruleNumber`,
+        bmc.cid,
+        bmc.short_name                                    as `cName`,
+        bmt.status,
+        bmt.priority,
+        bmt.actual_number,
+        bsrc.condition_info                               as `conditionInfo`,
+        shf.zipFile_name                                  as `fileName`,
+        bsrc.condition_type  as `conditionType`,
+        bsrc.exec_type  as `execType`,
+
         case
         when shf.status is null then 0
-        when shf.status=2 then 2
-        when shf.status=0 then 3
-        when shf.status=1 then 1
-        when shf.status=3 then 1
-        else '-' end as taskStatus,
-        DATE_FORMAT(bmt.start_time,'%Y-%m-%d %H:%i:%s') as startTime
+        when shf.status = 2 then 2
+        when shf.status = 0 then 3
+        when shf.status = 1 then 1
+        when shf.status = 3 then 1
+        else '-' end                                  as taskStatus,
+        DATE_FORMAT(bmt.start_time, '%Y-%m-%d %H:%i:%s')  as startTime,
+        DATE_FORMAT(bmt.create_time, '%Y-%m-%d %H:%i:%s') as creatTime
         from b_marketing_task bmt
+
 
         left join stra_his_file shf on shf.batch_number = bmt.batch_number
 

@@ -92,4 +92,24 @@ public class MarketingTaskVO {
      * 排序
      */
     private Integer priority;
+
+    /**
+     * 跑分文件名
+     */
+    private String fileName;
+
+    /**
+     * 周期类型 任务执行策略 1-一次性全量；2-周期性全量
+     */
+    @ApiModelProperty(value = "周期类型")
+    private String execType;
+
+    @ApiModelProperty(value = "跑分范围类型 1-当天数据范围；2-手动选择数据范围")
+    private String conditionType;
+    /**
+     * 创建时间
+     */
+    @ApiModelProperty(value = "跑分时间")
+    private String startTime;
+
 }
