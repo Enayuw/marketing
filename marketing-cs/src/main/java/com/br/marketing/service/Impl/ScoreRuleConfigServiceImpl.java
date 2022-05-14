@@ -95,7 +95,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
             scoreRuleConfig.setStartTime(vo.getTaskTime());
             scoreRuleConfig.setId(null);
-            scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
+            int i = scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
         }
         return new ApiResult<Boolean>().success(true);
     }
