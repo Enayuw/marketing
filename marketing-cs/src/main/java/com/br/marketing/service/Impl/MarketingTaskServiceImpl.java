@@ -87,6 +87,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         try {
             MarketingTask marketingTask = new MarketingTask();
             marketingTask.setStatus(status);
+            marketingTask.setId(Long.valueOf(id));
             marketingTaskMapper.updateByPrimaryKeySelective(marketingTask);
             return true;
         } catch (Exception e) {
