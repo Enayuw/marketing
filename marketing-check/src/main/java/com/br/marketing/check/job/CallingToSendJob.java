@@ -73,7 +73,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         this.process(getCustomerCallings());
     }
 
-    public void process(List<CustomerCalling> customerCallings) {
+    private void process(List<CustomerCalling> customerCallings) {
         log.warn("1用户信息：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
             String tableColumns = getTableColumns(customerCalling);
@@ -202,7 +202,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     }
 
 
-    public List<CustomerCalling> getCustomerCallings() {
+    private List<CustomerCalling> getCustomerCallings() {
         CustomerCallingExample customerCallingExample = new CustomerCallingExample();
         customerCallingExample.createCriteria().andStatusEqualTo((byte) 1);
         return customerCallingMapper.selectByExample(customerCallingExample);
