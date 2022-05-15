@@ -79,7 +79,9 @@ public class CallingDataThread implements Callable<String> {
             log.error("程序处理异常", e);
             throw new RuntimeException(e);
         } finally {
-            countDownLatch.countDown();
+            for (int i = 0; i < haloCallingDataVoList.size(); i++) {
+                countDownLatch.countDown();
+            }
         }
     }
 
