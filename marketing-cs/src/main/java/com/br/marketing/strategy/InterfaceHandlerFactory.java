@@ -165,7 +165,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
             log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
             return new HashMap<>();
         }
-
+        log.warn("转化数据apiCode={}，使用规则rules={}", context.getApiCode(), execRules);
         /**
          * 规则排序
          */
