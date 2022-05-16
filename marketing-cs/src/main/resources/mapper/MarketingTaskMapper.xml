@@ -590,7 +590,7 @@
         bmt.task_number                                   as `taskNumber`,
         bsrc.condition_info                               as `conditionInfo`,
         shf.zipFile_name                                  as `fileName`,
-        bsrc.condition_type                               as `conditionType`,
+        bmte.condition_type                               as `conditionType`,
         bmte.condition_info_show                          as `conditionInfoShow`,
         bsrc.exec_type                                    as `execType`,
 
