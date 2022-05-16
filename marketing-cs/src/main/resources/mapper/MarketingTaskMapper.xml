@@ -587,7 +587,7 @@
         bmc.short_name                                    as `cName`,
         bmt.status,
         bmt.priority,
-        bmt.actual_number,
+        bmt.task_number                                   as `taskNumber`,
         bsrc.condition_info                               as `conditionInfo`,
         shf.zipFile_name                                  as `fileName`,
         bsrc.condition_type                               as `conditionType`,

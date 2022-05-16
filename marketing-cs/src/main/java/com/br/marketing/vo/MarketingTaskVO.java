@@ -88,8 +88,8 @@ public class MarketingTaskVO {
 
     @ApiModelProperty(value = "周期跑分结束时间")
     private String closeDate;
-    @ApiModelProperty(value = "去重后的数据量")
-    private Integer actualNumber;
+    @ApiModelProperty(value = "数据量")
+    private Integer taskNumber;
 
     private String conditionInfo;
 
