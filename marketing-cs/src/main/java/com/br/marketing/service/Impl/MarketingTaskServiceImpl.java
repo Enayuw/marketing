@@ -305,11 +305,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         StringBuilder showStr = new StringBuilder();
         Integer count = 0;
-        for (String datum : transferWhereRes.getData()) {
+        for (int i = 0; i < transferWhereRes.getData().size(); i++) {
+            String datum = transferWhereRes.getData().get(i);
             String s = whereSqlToShow(datum);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
             count += integer;
-            showStr.append(s).append(integer).append(",");
+            showStr.append(s).append(integer);
+            if(i<transferWhereRes.getData().size()-1){
+                showStr.append(",");
+            }
         }
         vo.setConditionInfo(transferData);
         Long aLong = saveTask(apiCode, number, vo, taskStart, count,0,showStr.toString());
@@ -330,11 +334,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         Integer count = 0;
         StringBuilder showStr = new StringBuilder();
-        for (String whereStr : data) {
+        for (int i = 0; i < data.size(); i++) {
+            String whereStr = data.get(i);
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
             count += integer;
-            showStr.append(s).append(integer).append(",");
+            showStr.append(s).append(integer);
+            if(i<data.size()-1){
+                showStr.append(",");
+            }
         }
 
         String number = "";
