@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -39,7 +40,11 @@ public class ShuHeCustomerBlackListNewImpl implements AssembleData<BlackDetailDT
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
-        blackDetailDTO.setExpireDate(json.getString("clc_usr_max_dx_rrt_end"));
+        Date expirationDate = json.getDate("clc_usr_max_dx_rrt_end");
+        if (!StringUtils.isEmpty(expirationDate)){
+            String format = new SimpleDateFormat("yyyy-MM-dd 23:59:59").format(expirationDate);
+            blackDetailDTO.setExpireDate(format);
+        }
         blackDetailDTO.setPhone(caseShuheUser.getCell());
         return blackDetailDTO;
     }
