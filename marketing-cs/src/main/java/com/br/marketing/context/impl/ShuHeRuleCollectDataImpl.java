@@ -60,7 +60,6 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-        long l = System.currentTimeMillis();
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             ShuHeRuleNecessaryData shuHeRuleNecessaryData = new ShuHeRuleNecessaryData();
             context.setRuleNecessaryData(shuHeRuleNecessaryData);
@@ -82,7 +81,6 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             shuHeRuleNecessaryData.setContinueJudgeRule(true);
             caseShuheUserAdapter(transfer, shuHeRuleNecessaryData);
         }
-        log.warn("@@转化数据加载上下文耗时:{}ms", System.currentTimeMillis() - l);
     }
 
     @Override
