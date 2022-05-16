@@ -83,6 +83,11 @@ public class MarketingTaskVO {
     @ApiModelProperty(value = "修改时间")
     private String updateTime;
 
+    @ApiModelProperty(value = "周期跑分开始时间")
+    private String startDate;
+
+    @ApiModelProperty(value = "周期跑分结束时间")
+    private String closeDate;
     @ApiModelProperty(value = "去重后的数据量")
     private Integer actualNumber;
 
@@ -111,5 +116,8 @@ public class MarketingTaskVO {
      */
     @ApiModelProperty(value = "跑分时间")
     private String startTime;
+
+    @ApiModelProperty(value = "数据范围展示")
+    private String conditionInfoShow;
 
 }

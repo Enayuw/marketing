@@ -579,6 +579,7 @@
         select bmt.id,
         shf.id                                            as `hisFileId`,
         bmt.api_code                                      as `apiCode`,
+        bsrc.id                                           as `ruleId`,
         bsrc.rule_name                                    as `ruleName`,
         bsrc.rule_name_short                              as `ruleNumber`,
         bmc.cid,
@@ -589,6 +590,7 @@
         bsrc.condition_info                               as `conditionInfo`,
         shf.zipFile_name                                  as `fileName`,
         bsrc.condition_type  as `conditionType`,
+        bmte.condition_info_show as `conditionInfoShow`,
         bsrc.exec_type  as `execType`,
 
         case
@@ -598,8 +600,11 @@
         when shf.status = 1 then 1
         when shf.status = 3 then 1
         else '-' end                                  as taskStatus,
-        DATE_FORMAT(bmt.start_time, '%Y-%m-%d %H:%i:%s')  as startTime,
-        DATE_FORMAT(bmt.create_time, '%Y-%m-%d %H:%i:%s') as creatTime
+        DATE_FORMAT(bmt.start_date, '%Y-%m-%d')  as startDate,
+        DATE_FORMAT(bmt.close_date, '%Y-%m-%d')  as closeDate,
+        DATE_FORMAT(bmt.start_time, '%H:%i:%s')  as startTime,
+        DATE_FORMAT(bmt.create_time, '%Y-%m-%d %H:%i:%s') as creatTime,
+        DATE_FORMAT(bmt.update_time, '%Y-%m-%d %H:%i:%s') as updateTime
         from b_marketing_task bmt
 
 
