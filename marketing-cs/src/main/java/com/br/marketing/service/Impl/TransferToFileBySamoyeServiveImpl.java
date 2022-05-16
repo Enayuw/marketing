@@ -64,7 +64,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     private String path;
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
 
         List<TransferFileTask> resultList = new ArrayList<>();
         String yyyyMMdd = LocalDate.now().format(yyyyMMddDF);
@@ -168,7 +168,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
         String startDate = LocalDate.parse(recordDate, yyyyMMddDF).minusDays(1L).format(ymdDfBy_);

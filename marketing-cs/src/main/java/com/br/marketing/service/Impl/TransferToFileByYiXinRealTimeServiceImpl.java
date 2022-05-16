@@ -72,7 +72,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
         //实时数据提取
         Result<List<TransferFileTask>> listResultRealTime = buildTransferTaskRealTime(apiCode);
@@ -174,7 +174,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask){
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter){
         if(1==transferFileTask.getFileType()){
             return actionTransferToFileRealTime(transferFileTask);
         }else if(2==transferFileTask.getFileType()){

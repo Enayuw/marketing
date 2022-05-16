@@ -117,11 +117,11 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void transferFileTest(){
-        Result<List<TransferFileTask>> listResult = transferToFileByJiuFuService.buildTransferTask("7412002","2022-05-01");
+        Result<List<TransferFileTask>> listResult = transferToFileByJiuFuService.buildTransferTask("7412002");
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){
-                Result result = transferToFileByJiuFuService.actionTransferToFile(datum);
+                Result result = transferToFileByJiuFuService.actionTransferToFile(datum,"");
                 System.out.println(result.getCode());
             }
         }

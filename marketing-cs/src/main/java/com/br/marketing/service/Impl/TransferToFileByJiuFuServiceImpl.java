@@ -62,32 +62,19 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
     final static String JIUFU_TRANSFER_FILE = "jiufu_zhuanhua_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
-    final static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-    final static DateFormat df_short = new SimpleDateFormat("yyyyMMdd");
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        Date  date = new Date();
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        if(StringUtils.isNotBlank(jobParameter)){
-            try {
-                String startDate = jobParameter.split(",")[0];
-                date = df.parse(startDate);
-                yyyyMMdd = df_short.format(date);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                log.warn("玖富转化数据提取逻辑-自定义参数格式解析错误！");
-            }
-        }
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
         if (StringUtils.isNotEmpty(marketingCommonConfig.getJiuFuTransferExecuteTime())) {
             execute = " " + marketingCommonConfig.getJiuFuTransferExecuteTime();
         }
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(date, execute);
+        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         if (now.after(executeTime)) {
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
@@ -113,22 +100,10 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         log.warn("玖富转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        //判断执行日期是否为本月为1日
-        LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
-        LocalDate startDate;
-        LocalDate endDate;
-        if(localDate.getDayOfMonth()==1){
-            LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
-            startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
-            endDate = lastMonth.with(TemporalAdjusters.lastDayOfMonth()); // 获取当前月的最后一天
-        }else {
-            startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
-            endDate = localDate;
-        }
         String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
@@ -145,6 +120,19 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                         new FileOutputStream(file), "UTF-8"));) {
             fw.append("requestId,orgName,custNum,source,userType,ifLogin,loginTime,ifApply,applyDt,applyResult,auditAmount,lentTime,lentAmount,insertTime,applyLoan,applyLoanTime,cell");
             fw.append("\r\n");
+            //判断执行日期是否为本月为1日
+            recordDate = StringUtils.isEmpty(jobParameter) ? recordDate : jobParameter.split(",")[0];
+            LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
+            LocalDate startDate;
+            LocalDate endDate;
+            if(localDate.getDayOfMonth()==1){
+                LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
+                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
+                endDate = lastMonth.with(TemporalAdjusters.lastDayOfMonth()); // 获取当前月的最后一天
+            }else {
+                startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
+                endDate = localDate;
+            }
             writeJiuFuTransferToFile(fw, apiCode, startDate.toString(), endDate.toString(),transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());

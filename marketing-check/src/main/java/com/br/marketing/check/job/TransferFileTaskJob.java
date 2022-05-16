@@ -81,11 +81,11 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (serviceImpl == null) {
                     continue;
                 }
-                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(),jobParameter);
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        Result result = serviceImpl.actionTransferToFile(datum);
+                        Result result = serviceImpl.actionTransferToFile(datum,jobParameter);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
                             if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {

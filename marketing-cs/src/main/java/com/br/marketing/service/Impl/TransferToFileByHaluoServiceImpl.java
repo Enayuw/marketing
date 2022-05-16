@@ -73,7 +73,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
 
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, EXECUTE_TIME);
@@ -111,7 +111,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
         Date now = new Date();
         String recordDate = transferFileTask.getStartDate();
