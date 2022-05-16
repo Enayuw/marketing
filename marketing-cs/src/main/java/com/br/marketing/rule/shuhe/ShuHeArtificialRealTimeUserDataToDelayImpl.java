@@ -67,7 +67,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
-        long l = System.currentTimeMillis();
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MqFact mqFact = context.getMqFact();
@@ -87,13 +86,11 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             mqFactNew.setMessage(jsonObject.toJSONString());
             log.warn("复促借推送到延迟队列的信息：{}", mqFactNew);
         }
-        log.warn("1.2、转化数据推送到延迟队列耗时:{}ms", System.currentTimeMillis() - l);
         return mqFactNew;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
-        long l = System.currentTimeMillis();
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
@@ -139,7 +136,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 shuHeContext.setTransfer(null);
             }
         }
-        log.warn("1.1、转化数据推送延迟队列判断规则耗时:{}ms", System.currentTimeMillis() - l);
         return bool;
     }
 
