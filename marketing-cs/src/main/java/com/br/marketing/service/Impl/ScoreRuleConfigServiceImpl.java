@@ -511,23 +511,25 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     public Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date) {
-        Result<Boolean> dataType = isSelectRuleByTask(taskExtend.getTaskId());
-        if(!ResultCode.SUCCESS.getValue().equals(dataType.getCode())){
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(dataType.getMessage());
-        }
-        if(dataType.getData()){
-            Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
-            return listResult;
-        }else{
-            Result<String> stringResult = soleStrategyService.analysisCondition(taskExtend.getDataCondition());
-            if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
-                ArrayList<String> strings = new ArrayList<>();
-                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime()).concat(":00")));
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
-            }
-            else{
-                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(stringResult.getMessage());
-            }
-        }
+        Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
+        return listResult;
+//        Result<Boolean> dataType = isSelectRuleByTask(taskExtend.getTaskId());
+//        if(!ResultCode.SUCCESS.getValue().equals(dataType.getCode())){
+//            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(dataType.getMessage());
+//        }
+//        if(dataType.getData()){
+//            Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
+//            return listResult;
+//        }else{
+//            Result<String> stringResult = soleStrategyService.analysisCondition(taskExtend.getDataCondition());
+//            if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+//                ArrayList<String> strings = new ArrayList<>();
+//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime()).concat(":00")));
+//                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
+//            }
+//            else{
+//                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(stringResult.getMessage());
+//            }
+//        }
     }
 }
