@@ -120,4 +120,6 @@ public class MarketingTaskVO {
     @ApiModelProperty(value = "数据范围展示")
     private String conditionInfoShow;
 
+    private String batchNumber;
+
 }
