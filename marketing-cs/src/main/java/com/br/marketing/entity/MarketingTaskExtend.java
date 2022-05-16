@@ -63,6 +63,11 @@ public class MarketingTaskExtend {
      */
     private String dataCondition;
 
+    /**
+     * 数据条件类型1-自动；2-手动
+     */
+    private Integer conditionType;
+
     public Long getId() {
         return id;
     }
@@ -157,5 +162,13 @@ public class MarketingTaskExtend {
 
     public void setDataCondition(String dataCondition) {
         this.dataCondition = dataCondition == null ? null : dataCondition.trim();
+    }
+
+    public Integer getConditionType() {
+        return conditionType;
+    }
+
+    public void setConditionType(Integer conditionType) {
+        this.conditionType = conditionType;
     }
 }

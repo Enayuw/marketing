@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -23,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -153,5 +151,11 @@ public class MarketingTaskController {
             log.error(ex.getMessage(), ex);
             return new ApiResult<List<ScoreRuleConfig>>().fail(ServiceResultEnum.SUCCESS_1);
         }
+    }
+
+    @ApiOperation(value = "生成跑分任务")
+    @PostMapping("/saveTask")
+    public ApiResult<List<Long>> saveTask(@RequestBody TaskSelectSaveDTO dto){
+        return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelect(dto),1);
     }
 }

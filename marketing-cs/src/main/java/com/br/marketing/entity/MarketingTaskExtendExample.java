@@ -894,6 +894,66 @@ public class MarketingTaskExtendExample {
             addCriterion("data_condition not between", value1, value2, "dataCondition");
             return (Criteria) this;
         }
+
+        public Criteria andConditionTypeIsNull() {
+            addCriterion("condition_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeIsNotNull() {
+            addCriterion("condition_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeEqualTo(Integer value) {
+            addCriterion("condition_type =", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotEqualTo(Integer value) {
+            addCriterion("condition_type <>", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeGreaterThan(Integer value) {
+            addCriterion("condition_type >", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("condition_type >=", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeLessThan(Integer value) {
+            addCriterion("condition_type <", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("condition_type <=", value, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeIn(List<Integer> values) {
+            addCriterion("condition_type in", values, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotIn(List<Integer> values) {
+            addCriterion("condition_type not in", values, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeBetween(Integer value1, Integer value2) {
+            addCriterion("condition_type between", value1, value2, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("condition_type not between", value1, value2, "conditionType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

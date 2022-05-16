@@ -1,11 +1,15 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
 import com.br.marketing.vo.MarketingTaskVO;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -45,4 +49,10 @@ public interface MarketingTaskService {
     List<ScoreRuleConfig> getScoreRules(String apiCode);
 
     void addTaskPercent(Long fileId,Long number);
+
+    Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
+
+    Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo);
+
+    Result<List<Long>> saveTaskSelect(@Validated TaskSelectSaveDTO dto);
 }
