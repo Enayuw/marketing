@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -473,6 +475,51 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             }
         });
         return new Result<List<String>>().setCode(ResultCode.SUCCESS.getValue()).setDate(dblist);
+    }
+
+    @Override
+    public Result<String> analysisTransferConditions(String conditionStr, String date, String time) {
+        List<String> res = new ArrayList<>();
+        if (StringUtils.isBlank(conditionStr)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不能传空");
+        }
+        RuleConditionVo conditionVo = new RuleConditionVo();
+        try {
+            conditionVo = JSON.parseObject(conditionStr, new TypeReference<RuleConditionVo>() {
+            }.getType());
+        }catch (Exception ex){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则有误");
+        }
+        if(!conditionVo.getLogicalOperation().equals("or")){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不支持转化");
+        }
+        JSONArray resObj = new JSONArray();
+        conditionVo.getOperationFactor().forEach(t->{
+            JSONObject simpleCondition = new JSONObject();
+            JSONArray simpleConditionDetail = new JSONArray();
+            JSONObject jsonDate = new JSONObject();
+            JSONObject jsonTime = new JSONObject();
+            JSONObject jsonOr = new JSONObject();
+            simpleConditionDetail.add(jsonDate);
+            simpleConditionDetail.add(jsonTime);
+            simpleConditionDetail.add(jsonOr);
+            simpleCondition.put("logicalOperation","and");
+            simpleCondition.put("operationFactor",simpleConditionDetail);
+
+            jsonDate.put("fieldName","appletDate");
+            jsonDate.put("fieldValue",date);
+            jsonDate.put("operation","=");
+
+            jsonTime.put("fieldName","appletTime");
+            jsonTime.put("fieldValue",time);
+            jsonTime.put("operation","<=");
+
+            jsonOr.put("fieldName",t.getFieldName());
+            jsonOr.put("fieldValue",t.getFieldValue());
+            jsonOr.put("operation",t.getOperation());
+
+            resObj.add(simpleCondition);});
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resObj));
     }
 
     private String analysisFactor(RuleConditionFactorVo vo){

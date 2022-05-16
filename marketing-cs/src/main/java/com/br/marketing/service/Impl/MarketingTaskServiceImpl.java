@@ -24,6 +24,7 @@ import com.br.marketing.vo.FastTaskRuleDetailVO;
 import com.br.marketing.vo.FastTaskRuleListVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Splitter;
 import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -95,6 +96,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     CustomerRuleMapper customerRuleMapper;
+
+    static final String judgmentRegex = "<=|>=|=|>|<";
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -287,11 +290,29 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         //endregion
 
-        String whereSql = soleStrategyService.analysisSimpleConditionPlus(conditionRes.getData(),sDate, eTimeStr);
+        //跑分条件转化
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), sDate, eTimeStr);
 
-        Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereSql);
+        if(!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+        }
 
-        Long aLong = saveTask(apiCode, number, vo, taskStart, integer,0);
+        String transferData = conditionTransferRes.getData();
+        //获取查询sql条件
+        Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
+        if(!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
+        }
+        StringBuilder showStr = new StringBuilder();
+        Integer count = 0;
+        for (String datum : transferWhereRes.getData()) {
+            String s = whereSqlToShow(datum);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+            count += integer;
+            showStr.append(s).append(integer).append(",");
+        }
+        vo.setConditionInfo(transferData);
+        Long aLong = saveTask(apiCode, number, vo, taskStart, count,0,showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
     }
@@ -308,10 +329,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         List<String> data = listResult.getData();
 
         Integer count = 0;
-
+        StringBuilder showStr = new StringBuilder();
         for (String whereStr : data) {
+            String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
             count += integer;
+            showStr.append(s).append(integer).append(",");
         }
 
         String number = "";
@@ -320,12 +343,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode,time);
         }
-        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count,1);
-
-//        ScoreRuleConfig ruleConfig = new ScoreRuleConfig();
-//        ruleConfig.setId(vo.getId());
-//        ruleConfig.setStatus(2);
-//        scoreRuleConfigMapper.updateByPrimaryKeySelective(ruleConfig);
+        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count,1,showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
 
@@ -365,7 +383,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             simpleConditionDetail.add(jsonUserType);
 
             simpleCondition.put("logicalOperation","and");
-            simpleCondition.put("simpleCondition",simpleConditionDetail);
+            simpleCondition.put("operationFactor",simpleConditionDetail);
 
             jsonDate.put("fieldName","appletDate");
             jsonDate.put("fieldValue",t.getAppletDate());
@@ -380,7 +398,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return JSON.toJSONString(resObj);
     }
 
-    private Long saveTask(String apiCode, String batchNumber, CustomerScoreRuleVO ruleVO, String taskStart, Integer preNum,Integer conditionType) {
+    private Long saveTask(String apiCode, String batchNumber
+            , CustomerScoreRuleVO ruleVO, String taskStart
+            , Integer preNum,Integer conditionType,String showDataStr) {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
@@ -437,6 +457,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setStrategyProductJson(ruleVO.getStrategyProductJson());
         taskExtend.setDataCondition(ruleVO.getConditionInfo());
         taskExtend.setConditionType(conditionType);
+        taskExtend.setConditionInfoShow(showDataStr);
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
 
@@ -456,4 +477,17 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         String batchNumber = String.format("%s_%s_%d", apiCode, time, i);
         return batchNumber;
     }
+
+    private String whereSqlToShow(String whereSql){
+        StringBuilder str = new StringBuilder();
+        String[] andStrs = whereSql.split("and|or");
+        for (String andStr : andStrs) {
+            if(StringUtils.isNotBlank(andStr)){
+                String[] split = andStr.split(judgmentRegex);
+                str.append(split[1]).append(" ");
+            }
+        }
+        return str.toString();
+    }
+
 }

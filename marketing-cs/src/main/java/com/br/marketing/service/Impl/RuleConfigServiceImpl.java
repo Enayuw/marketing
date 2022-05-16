@@ -200,7 +200,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }
         List<ScoreRuleConfig> scoreRuleConfigs = scoreRuleConfigMapper.selectByExample(ruleConfigExample);
         if (scoreRuleConfigs.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不存在");
         }
         ArrayList<CustomerScoreRuleVO> customerScoreRuleVOS = new ArrayList<>();
         List<Long> ruleIds = scoreRuleConfigs.stream().map(t -> t.getId()).collect(Collectors.toList());
