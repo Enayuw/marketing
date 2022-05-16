@@ -590,9 +590,9 @@
         bmt.actual_number,
         bsrc.condition_info                               as `conditionInfo`,
         shf.zipFile_name                                  as `fileName`,
-        bsrc.condition_type  as `conditionType`,
-        bmte.condition_info_show as `conditionInfoShow`,
-        bsrc.exec_type  as `execType`,
+        bsrc.condition_type                               as `conditionType`,
+        bmte.condition_info_show                          as `conditionInfoShow`,
+        bsrc.exec_type                                    as `execType`,
 
         case
         when shf.status is null then 0
@@ -600,14 +600,14 @@
         when shf.status = 0 then 3
         when shf.status = 1 then 1
         when shf.status = 3 then 1
-        else '-' end                                  as taskStatus,
-        DATE_FORMAT(bmt.start_date, '%Y-%m-%d')  as startDate,
-        DATE_FORMAT(bmt.close_date, '%Y-%m-%d')  as closeDate,
-        DATE_FORMAT(bmt.start_time, '%H:%i:%s')  as startTime,
-        DATE_FORMAT(bmt.create_time, '%Y-%m-%d %H:%i:%s') as createTime,
-        DATE_FORMAT(bmt.update_time, '%Y-%m-%d %H:%i:%s') as updateTime
-        from b_marketing_task bmt
+        else '-' end                                as taskStatus,
+        bmt.start_date                              as startDate,
+        bmt.close_date                              as closeDate,
+        bmt.start_time                              as startTime,
+        bmt.create_time                             as createTime,
+        bmt.update_time                             as updateTime
 
+        from b_marketing_task bmt
 
         left join stra_his_file shf on shf.batch_number = bmt.batch_number
 
