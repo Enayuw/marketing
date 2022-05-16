@@ -25,12 +25,17 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         CallRecordBO bo = (CallRecordBO) transmitFact;
-        log.warn("符合推延迟队列规则，获取的拨打记录数据id为{}",bo.getId());
+        log.warn("符合推延迟队列规则，获取的拨打记录数据id为{}", bo.getId());
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(bo.getId());
         mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
         mqFact.setIsDelay(1);
+        if ("促复借".equals(bo.getUserType())) {
+            mqFact.setDelayTime(0.5F);
+        }
+        log.warn("3.2、拨打数据推送到延迟队列耗时:{}ms", System.currentTimeMillis() - l);
         return mqFact;
     }
 
@@ -38,6 +43,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         //正常队列消费&符合规则&数据非当天首次传输-->false
         //正常队列消费&符合规则&数据当天首次传输-->推延迟队列
+        long l = System.currentTimeMillis();
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
@@ -60,6 +66,7 @@ public class ShuHeCustomerCallRecordToDelay implements AssembleData<MqFact> {
                 flag = true;
             }
         }
+        log.warn("3.1、拨打数据推送延迟队列判断规则耗时:{}ms", System.currentTimeMillis() - l);
         return flag;
     }
 

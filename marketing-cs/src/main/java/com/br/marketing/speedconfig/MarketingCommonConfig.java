@@ -153,4 +153,15 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+
+    /**
+     * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
+     */
+    private HashMap<String, List<String>> shuHePushDXStatusMap;
+
+    /**
+     * # 数禾用户可用额度区间;大于:&gt;、小于:&lt;、等于:&eq;、不等于:&nq;、大于等于:&ge;、小于等于:&le;;eg:["&ge;","1","&le;","100"]
+     */
+    private List<String> shuHeUserAvailableQuotaRange;
+
 }

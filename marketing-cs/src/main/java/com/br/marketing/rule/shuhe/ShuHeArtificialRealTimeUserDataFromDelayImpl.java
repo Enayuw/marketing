@@ -1,34 +1,48 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
+import com.br.marketing.client.robotaiapi.input.PhoneEncryptTypeEnum;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.ShuheTransferStopPushRecordMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 数禾转化推送人工电销 业务
@@ -48,24 +62,44 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private PushDataService pushDataService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private CallRecordMapper callRecordMapper;
+    @Resource
+    private ShuheTransferStopPushRecordMapper shuheTransferStopPushRecordMapper;
+    @Resource
+    private RedisChgService redisChgService;
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    private RobotaiApiServiceClient robotaiApiServiceClient;
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
+    /**
+     * apiCoid:cusNum:情况
+     */
+    public final static String KEY = "marketing:api:transfer:shuhe:%s:%s:%s";
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MarketingTransferSyncUser transfer = shuHeContext.getTransfer();
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         realTimeUserDataDTO.setDassSingleImportAdapDTO(getDassSingleImportAdap(shuHeContext));
         realTimeUserDataDTO.getDassSingleImportAdapDTO().setTransferInfoId(context.getTransferInfoId());
-        realTimeUserDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer, shuHeContext));
+        PhoneSaleExtendInfo phoneSaleExtendShuhe = getPhoneSaleExtendShuhe(transfer, shuHeContext);
+        phoneSaleExtendShuhe.setSourceId(context.getMqFact().getSourceId());
+        realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendShuhe);
+        log.warn("2.2、转化数据推送电销封装数据耗时:{}ms", System.currentTimeMillis() - l);
         return realTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        long l = System.currentTimeMillis();
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -80,11 +114,56 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 shuHeContext.setTransfer(dbTransferSyncUser);
                 CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 IUserType iUserType = shuHeContext.getIUserType();
-                bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
-                        && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
-                        , "a", transfer.getUserType());
+                if (iUserType instanceof CuFuJie) {
+                    String message = context.getMqFact().getMessage();
+                    JSONObject jsonObject = JSONObject.parseObject(message);
+                    String status = jsonObject.get("status").toString();
+                    caseShuheUser.getJsonObject().putAll(jsonObject);
+                    caseShuheUser.setReserveField2(status);
+                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
+                    String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
+                            , new MarketingSyncUser()).getCell();
+                    if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
+                        log.warn("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
+                        return false;
+                    }
+                    switch (status) {
+                        case "a":
+                            if (!queryStopPushRecord(transfer)) {
+                                bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                        , "a", transfer.getUserType());
+                            }
+                            log.warn("促复借a情况：一天只推送一次判断结果：{}", bool);
+                            break;
+                        case "b":
+                            // 查询是不是首次命中b
+                            if (!phoneSaleExtendInfo(transfer.getCustNum(), transfer.getApiCode(), transfer.getUserType())) {
+                                log.warn("促复借b情况，非首次");
+                                // 判断是不是在停止推送时间内
+                                if (queryStopPushRecord(transfer)) {
+                                    bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                            , "b", transfer.getUserType());
+                                    log.warn("促复借b情况，不查询拨打记录：一天只推送一次判断结果：{}", bool);
+                                    break;
+                                }
+                            }
+                            if (!queryCallRecord(transfer)) {
+                                bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                                        , "b", transfer.getUserType());
+                            }
+                            log.warn("促复借b情况，查询拨打记录：一天只推送一次判断结果：{}", bool);
+                            break;
+                        default:
+                    }
+                    shuHeContext.setCaseShuheUser(caseShuheUser);
+                } else {
+                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
+                            && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
+                            , "a", transfer.getUserType());
+                }
             }
         }
+        log.warn("2.1、转化数据推送电销判断规则据耗时:{}ms", System.currentTimeMillis() - l);
         return bool;
     }
 
@@ -135,10 +214,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      */
     private DassSingleImportAdapDTO getDassSingleImportAdap(
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
-        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportAdapDTO adapDTO = new DassSingleImportAdapDTO();
-        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(caseShuheUser, iUserType));
+        adapDTO.setDassSingleImportDataDTO(getDassSingleImportData(shuHeContext));
         return adapDTO;
     }
 
@@ -155,13 +232,18 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setStatus("a");
+        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+            phoneSaleExtendInfo.setStatus(shuHeContext.getCaseShuheUser().getReserveField2());
+        }
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
         phoneSaleExtendInfo.setTaskId(shuHeContext.getTaskId());
         return phoneSaleExtendInfo;
     }
 
-    private DassSingleImportDataDTO getDassSingleImportData(CaseShuheUser caseShuheUser, IUserType iUserType) {
+    private DassSingleImportDataDTO getDassSingleImportData(ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        IUserType iUserType = shuHeContext.getIUserType();
         DassSingleImportDataDTO dataDTO = new DassSingleImportDataDTO();
         dataDTO.setPrioritySymbol("1");
         JSONObject extend = new JSONObject();
@@ -175,9 +257,28 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setLoginTime(caseShuheUser.getClcUsrLstAppStaTim());
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
-        dataDTO.setExtend(extend.toJSONString());
         dataDTO.setUid(caseShuheUser.getCustNum());
         dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
+        if (iUserType instanceof CuFuJie) {
+            JSONObject jsonObject = caseShuheUser.getJsonObject();
+            String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(lv0)) {
+                extend.put("clc_usr_avl_lmt_lv0", lv0);
+            }
+            String typeSign = jsonObject.getOrDefault("typeSign", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(typeSign)) {
+                extend.put("typeSign", typeSign);
+            }
+            dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
+            String name = shuHeContext.getCustomerMap().get(caseShuheUser.getCustNum()).getName();
+            if (!StringUtils.isEmpty(name)) {
+                try {
+                    dataDTO.setName(BrCipherMaker.getInstance().decode(name));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        dataDTO.setExtend(extend.toJSONString());
         return dataDTO;
     }
 
@@ -192,5 +293,139 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         LocalDate localDate = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER)
                 .atZone(ZoneId.systemDefault()).toLocalDate();
         return LocalDate.now().isEqual(localDate) ? "1" : value;
+    }
+
+    /**
+     * 查询黑名单
+     * true 命中黑名单
+     * false 没有命中黑名单
+     */
+    public boolean queryBlackFlag(MarketingTransferSyncUser transfer, String phone) {
+        if (StringUtils.isEmpty(phone)) {
+            String reserveField1 = transfer.getReserveField1();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
+                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                phone = jsonObject.getOrDefault("cell", "").toString();
+            }
+        }
+        String key = String.format(KEY, transfer.getApiCode(), transfer.getUserType()
+                , transfer.getCustNum()).concat(":" + phone);
+        if (redisChgService.exists(key)) {
+            log.warn("#促复借 ###@命中黑名单缓存");
+            return true;
+        }
+        List<BlackQueryDetailDTO> blackQueryList = new ArrayList<>();
+        ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
+        dto.setApiCode(transfer.getApiCode());
+        dto.setDetailBlackPhoneDTO(blackQueryList);
+        BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
+        String dataId = StringUtils.isEmpty(transfer.getId()) ? null : transfer.getId().toString();
+        blackQueryDetailDTO.setDataId(dataId);
+        blackQueryDetailDTO.setApiCode(transfer.getApiCode());
+        blackQueryDetailDTO.setCaseNum(transfer.getCustNum());
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(phone)) {
+            blackQueryDetailDTO.setPhone(phone);
+            blackQueryDetailDTO.setEncryptType(PhoneEncryptTypeEnum.LOG_TYPE.getEncryptType());
+        }
+        blackQueryList.add(blackQueryDetailDTO);
+        Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
+        log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            String blackFlag = result.getData().getOrDefault(dataId, "");
+            if ("Y".equals(blackFlag)) {
+                redisChgService.setex(key, dataId, 3600 * 12);
+                log.warn("#促复借 ###命中黑名单");
+                return true;
+            }
+            log.warn("#促复借 &&&未命中黑名单");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 查询拨打记录
+     * true 存在拨打记录
+     * false 不存在拨打记录
+     */
+    private boolean queryCallRecord(MarketingTransferSyncUser transfer) {
+        if (!queryStopPushRecord(transfer)) {
+            CallRecordExample example = new CallRecordExample();
+            example.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                    .andCaseNumEqualTo(transfer.getCustNum())
+                    .andCreateTimeBetween(
+                            Date.from(LocalDateTime.now().toLocalDate().atStartOfDay()
+                                    .atZone(ZoneId.systemDefault()).toInstant()),
+                            Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+            example.setOrderByClause("create_time desc limit 0,5000");
+            List<CallRecord> callRecords = callRecordMapper.selectByExample(example);
+            List<CallRecord> collect = callRecords.parallelStream().filter(c ->
+                    c.getUserProperties().contains(transfer.getUserType())
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(collect)) {
+                log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
+                return false;
+            }
+            ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
+            ZonedDateTime createTime = LocalDateTime.now().atZone(ZoneId.systemDefault());
+            record.setCreateTime(Date.from(createTime.toInstant()));
+            ZonedDateTime failureTime = createTime.plusDays(6)
+                    .withHour(23).withMinute(59).withSecond(59).withNano(0);
+            record.setFailureTime(Date.from(failureTime.toInstant()));
+            record.setCaseNum(transfer.getCustNum());
+            record.setDay("7");
+            record.setUserType(transfer.getUserType());
+            record.setTransferSyncCidId(transfer.getId().toString());
+            record.setApiCode(transfer.getApiCode());
+            record.setStatus("b");
+            record.setChannel(0);
+            record.setUpdateTime(record.getCreateTime());
+            List<Long> ids = collect.parallelStream().map(CallRecord::getId).collect(Collectors.toList());
+            record.setCallRecordId(Joiner.on(",").join(ids));
+            shuheTransferStopPushRecordMapper.insert(record);
+            String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
+            redisChgService.setex(key, "7", (int) ChronoUnit.SECONDS.between(createTime, failureTime));
+            log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
+        }
+        return true;
+    }
+
+    /**
+     * 2022/5/11 15:14
+     * 查询暂停推送记录 true 有记录, false 无记录
+     */
+    public boolean queryStopPushRecord(MarketingTransferSyncUser transfer) {
+        long l = System.currentTimeMillis();
+        String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
+        boolean exists = redisChgService.exists(key);
+        if (exists) {
+            log.warn("#促复借 查询暂停推送记录是否已经存在缓存中:{}", exists);
+            return true;
+        }
+        ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
+        recordExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                .andCaseNumEqualTo(transfer.getCustNum()).andUserTypeEqualTo(transfer.getUserType())
+                .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
+                        ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
+        int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
+        log.warn("#促复借 查询暂停推送记录:{},查询耗时：{}ms", count, System.currentTimeMillis() - l);
+        return count > 0;
+    }
+
+    /**
+     * 2022/5/9 18:20
+     * 是否首次命中b情况
+     * true 首次
+     * false 非首次
+     */
+    private boolean phoneSaleExtendInfo(String custNum, String apiCode, String userType) {
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        example.createCriteria().andStatusEqualTo("b")
+                .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                .andCustNumEqualTo(custNum);
+        int count = phoneSaleExtendInfoMapper.countByExample(example);
+        log.warn("#促复借 首次b情况:{}", count);
+        return count < 1;
     }
 }
