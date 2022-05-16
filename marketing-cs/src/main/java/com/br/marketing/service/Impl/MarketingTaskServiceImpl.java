@@ -310,7 +310,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String s = whereSqlToShow(datum);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
             count += integer;
-            showStr.append(s).append(integer);
+            showStr.append(s).append("总数据"+integer);
             if(i<transferWhereRes.getData().size()-1){
                 showStr.append(",");
             }
@@ -339,7 +339,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
             count += integer;
-            showStr.append(s).append(integer);
+            showStr.append(s).append("总数据"+integer);
             if(i<data.size()-1){
                 showStr.append(",");
             }
@@ -492,7 +492,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         for (String andStr : andStrs) {
             if(StringUtils.isNotBlank(andStr)){
                 String[] split = andStr.split(judgmentRegex);
-                str.append(split[1]).append(" ");
+                str.append(split[1].replace("'","").trim()).append(" ");
             }
         }
         return str.toString();
