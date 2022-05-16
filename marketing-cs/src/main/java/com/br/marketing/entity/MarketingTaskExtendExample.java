@@ -954,6 +954,76 @@ public class MarketingTaskExtendExample {
             addCriterion("condition_type not between", value1, value2, "conditionType");
             return (Criteria) this;
         }
+
+        public Criteria andConditionInfoShowIsNull() {
+            addCriterion("condition_info_show is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowIsNotNull() {
+            addCriterion("condition_info_show is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowEqualTo(String value) {
+            addCriterion("condition_info_show =", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowNotEqualTo(String value) {
+            addCriterion("condition_info_show <>", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowGreaterThan(String value) {
+            addCriterion("condition_info_show >", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowGreaterThanOrEqualTo(String value) {
+            addCriterion("condition_info_show >=", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowLessThan(String value) {
+            addCriterion("condition_info_show <", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowLessThanOrEqualTo(String value) {
+            addCriterion("condition_info_show <=", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowLike(String value) {
+            addCriterion("condition_info_show like", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowNotLike(String value) {
+            addCriterion("condition_info_show not like", value, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowIn(List<String> values) {
+            addCriterion("condition_info_show in", values, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowNotIn(List<String> values) {
+            addCriterion("condition_info_show not in", values, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowBetween(String value1, String value2) {
+            addCriterion("condition_info_show between", value1, value2, "conditionInfoShow");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionInfoShowNotBetween(String value1, String value2) {
+            addCriterion("condition_info_show not between", value1, value2, "conditionInfoShow");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

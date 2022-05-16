@@ -1,40 +1,41 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.MarketingTaskExtendMapper">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTaskExtend">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="task_id" jdbcType="BIGINT" property="taskId" />
-    <result column="cus_task_id" jdbcType="VARCHAR" property="cusTaskId" />
-    <result column="rule_id" jdbcType="BIGINT" property="ruleId" />
-    <result column="group_type" jdbcType="VARCHAR" property="groupType" />
-    <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="upload_time" jdbcType="VARCHAR" property="uploadTime" />
-    <result column="extend_show_title" jdbcType="VARCHAR" property="extendShowTitle" />
-    <result column="strategy_product_json" jdbcType="VARCHAR" property="strategyProductJson" />
-    <result column="data_condition" jdbcType="VARCHAR" property="dataCondition" />
-    <result column="condition_type" jdbcType="INTEGER" property="conditionType" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingTaskExtendMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTaskExtend" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
+    <result column="cus_task_id" property="cusTaskId" jdbcType="VARCHAR" />
+    <result column="rule_id" property="ruleId" jdbcType="BIGINT" />
+    <result column="group_type" property="groupType" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="upload_time" property="uploadTime" jdbcType="VARCHAR" />
+    <result column="extend_show_title" property="extendShowTitle" jdbcType="VARCHAR" />
+    <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
+    <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
+    <result column="condition_type" property="conditionType" jdbcType="INTEGER" />
+    <result column="condition_info_show" property="conditionInfoShow" jdbcType="VARCHAR" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -45,25 +46,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -74,191 +75,200 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
+  <sql id="Base_Column_List" >
     id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time, 
-    extend_show_title, strategy_product_json, data_condition, condition_type
+    extend_show_title, strategy_product_json, data_condition, condition_type, condition_info_show
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_task_extend
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
     from b_marketing_task_extend
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_marketing_task_extend
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskExtendExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     delete from b_marketing_task_extend
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTaskExtend">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_task_extend (api_code, task_id, cus_task_id, 
       rule_id, group_type, is_del, 
       create_time, upload_time, extend_show_title, 
-      strategy_product_json, data_condition, condition_type
-      )
+      strategy_product_json, data_condition, condition_type, 
+      condition_info_show)
     values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
       #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR}, 
-      #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, #{conditionType,jdbcType=INTEGER}
-      )
+      #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, #{conditionType,jdbcType=INTEGER}, 
+      #{conditionInfoShow,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend">
-    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_task_extend
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="taskId != null">
+      <if test="taskId != null" >
         task_id,
       </if>
-      <if test="cusTaskId != null">
+      <if test="cusTaskId != null" >
         cus_task_id,
       </if>
-      <if test="ruleId != null">
+      <if test="ruleId != null" >
         rule_id,
       </if>
-      <if test="groupType != null">
+      <if test="groupType != null" >
         group_type,
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="uploadTime != null">
+      <if test="uploadTime != null" >
         upload_time,
       </if>
-      <if test="extendShowTitle != null">
+      <if test="extendShowTitle != null" >
         extend_show_title,
       </if>
-      <if test="strategyProductJson != null">
+      <if test="strategyProductJson != null" >
         strategy_product_json,
       </if>
-      <if test="dataCondition != null">
+      <if test="dataCondition != null" >
         data_condition,
       </if>
-      <if test="conditionType != null">
+      <if test="conditionType != null" >
         condition_type,
       </if>
+      <if test="conditionInfoShow != null" >
+        condition_info_show,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="taskId != null">
+      <if test="taskId != null" >
         #{taskId,jdbcType=BIGINT},
       </if>
-      <if test="cusTaskId != null">
+      <if test="cusTaskId != null" >
         #{cusTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="ruleId != null">
+      <if test="ruleId != null" >
         #{ruleId,jdbcType=BIGINT},
       </if>
-      <if test="groupType != null">
+      <if test="groupType != null" >
         #{groupType,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="uploadTime != null">
+      <if test="uploadTime != null" >
         #{uploadTime,jdbcType=VARCHAR},
       </if>
-      <if test="extendShowTitle != null">
+      <if test="extendShowTitle != null" >
         #{extendShowTitle,jdbcType=VARCHAR},
       </if>
-      <if test="strategyProductJson != null">
+      <if test="strategyProductJson != null" >
         #{strategyProductJson,jdbcType=VARCHAR},
       </if>
-      <if test="dataCondition != null">
+      <if test="dataCondition != null" >
         #{dataCondition,jdbcType=VARCHAR},
       </if>
-      <if test="conditionType != null">
+      <if test="conditionType != null" >
         #{conditionType,jdbcType=INTEGER},
+      </if>
+      <if test="conditionInfoShow != null" >
+        #{conditionInfoShow,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" resultType="java.lang.Integer">
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" resultType="java.lang.Integer" >
     select count(*) from b_marketing_task_extend
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_marketing_task_extend
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null">
+      <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.taskId != null">
+      <if test="record.taskId != null" >
         task_id = #{record.taskId,jdbcType=BIGINT},
       </if>
-      <if test="record.cusTaskId != null">
+      <if test="record.cusTaskId != null" >
         cus_task_id = #{record.cusTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="record.ruleId != null">
+      <if test="record.ruleId != null" >
         rule_id = #{record.ruleId,jdbcType=BIGINT},
       </if>
-      <if test="record.groupType != null">
+      <if test="record.groupType != null" >
         group_type = #{record.groupType,jdbcType=VARCHAR},
       </if>
-      <if test="record.isDel != null">
+      <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.uploadTime != null">
+      <if test="record.uploadTime != null" >
         upload_time = #{record.uploadTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.extendShowTitle != null">
+      <if test="record.extendShowTitle != null" >
         extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
       </if>
-      <if test="record.strategyProductJson != null">
+      <if test="record.strategyProductJson != null" >
         strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       </if>
-      <if test="record.dataCondition != null">
+      <if test="record.dataCondition != null" >
         data_condition = #{record.dataCondition,jdbcType=VARCHAR},
       </if>
-      <if test="record.conditionType != null">
+      <if test="record.conditionType != null" >
         condition_type = #{record.conditionType,jdbcType=INTEGER},
       </if>
+      <if test="record.conditionInfoShow != null" >
+        condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR},
+      </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_marketing_task_extend
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -272,54 +282,58 @@
       extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
       strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       data_condition = #{record.dataCondition,jdbcType=VARCHAR},
-      condition_type = #{record.conditionType,jdbcType=INTEGER}
-    <if test="_parameter != null">
+      condition_type = #{record.conditionType,jdbcType=INTEGER},
+      condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTaskExtend">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     update b_marketing_task_extend
-    <set>
-      <if test="apiCode != null">
+    <set >
+      <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="taskId != null">
+      <if test="taskId != null" >
         task_id = #{taskId,jdbcType=BIGINT},
       </if>
-      <if test="cusTaskId != null">
+      <if test="cusTaskId != null" >
         cus_task_id = #{cusTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="ruleId != null">
+      <if test="ruleId != null" >
         rule_id = #{ruleId,jdbcType=BIGINT},
       </if>
-      <if test="groupType != null">
+      <if test="groupType != null" >
         group_type = #{groupType,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="uploadTime != null">
+      <if test="uploadTime != null" >
         upload_time = #{uploadTime,jdbcType=VARCHAR},
       </if>
-      <if test="extendShowTitle != null">
+      <if test="extendShowTitle != null" >
         extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
       </if>
-      <if test="strategyProductJson != null">
+      <if test="strategyProductJson != null" >
         strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
       </if>
-      <if test="dataCondition != null">
+      <if test="dataCondition != null" >
         data_condition = #{dataCondition,jdbcType=VARCHAR},
       </if>
-      <if test="conditionType != null">
+      <if test="conditionType != null" >
         condition_type = #{conditionType,jdbcType=INTEGER},
+      </if>
+      <if test="conditionInfoShow != null" >
+        condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskExtend">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     update b_marketing_task_extend
     set api_code = #{apiCode,jdbcType=VARCHAR},
       task_id = #{taskId,jdbcType=BIGINT},
@@ -332,7 +346,8 @@
       extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
       strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
       data_condition = #{dataCondition,jdbcType=VARCHAR},
-      condition_type = #{conditionType,jdbcType=INTEGER}
+      condition_type = #{conditionType,jdbcType=INTEGER},
+      condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

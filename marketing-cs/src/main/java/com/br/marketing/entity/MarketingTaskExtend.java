@@ -68,6 +68,11 @@ public class MarketingTaskExtend {
      */
     private Integer conditionType;
 
+    /**
+     * 数据范围展示
+     */
+    private String conditionInfoShow;
+
     public Long getId() {
         return id;
     }
@@ -170,5 +175,13 @@ public class MarketingTaskExtend {
 
     public void setConditionType(Integer conditionType) {
         this.conditionType = conditionType;
+    }
+
+    public String getConditionInfoShow() {
+        return conditionInfoShow;
+    }
+
+    public void setConditionInfoShow(String conditionInfoShow) {
+        this.conditionInfoShow = conditionInfoShow == null ? null : conditionInfoShow.trim();
     }
 }
