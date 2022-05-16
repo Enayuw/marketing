@@ -206,6 +206,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getOrgName())?transferFilterData.getOrgName():"").concat(","));
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getSource())?transferFilterData.getSource():"").concat(","));
+                sb.append((StringUtils.isNotEmpty(transferFilterData.getUserType())?transferFilterData.getUserType():"").concat(","));
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLogin())?transferFilterData.getIfLogin():"").concat(","));
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getLoginTime())?transferFilterData.getLoginTime():"").concat(","));
                 sb.append((StringUtils.isNotEmpty(transferFilterData.getIfApply())?transferFilterData.getIfApply():"").concat(","));
