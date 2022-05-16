@@ -24,6 +24,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -59,19 +62,32 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
     final static String JIUFU_TRANSFER_FILE = "jiufu_zhuanhua_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
+    final static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+    final static DateFormat df_short = new SimpleDateFormat("yyyyMMdd");
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
         List<TransferFileTask> resultList = new ArrayList<>();
+        Date  date = new Date();
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        if(StringUtils.isNotBlank(jobParameter)){
+            try {
+                String startDate = jobParameter.split(",")[0];
+                date = df.parse(startDate);
+                yyyyMMdd = df_short.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                log.warn("玖富转化数据提取逻辑-自定义参数格式解析错误！");
+            }
+        }
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
         if (StringUtils.isNotEmpty(marketingCommonConfig.getJiuFuTransferExecuteTime())) {
             execute = " " + marketingCommonConfig.getJiuFuTransferExecuteTime();
         }
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
+        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(date, execute);
         if (now.after(executeTime)) {
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);

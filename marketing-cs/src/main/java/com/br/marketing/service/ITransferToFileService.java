@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ITransferToFileService {
 
-    Result<List<TransferFileTask>> buildTransferTask(String apiCode);
+    Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter);
 
     Result actionTransferToFile(TransferFileTask transferFileTask);
 }

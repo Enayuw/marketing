@@ -114,7 +114,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     private LocalDateTime appointTime;
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String jobParameter) {
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
         result.setDate(transferFileTaskList);

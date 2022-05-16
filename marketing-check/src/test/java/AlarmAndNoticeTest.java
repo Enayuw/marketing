@@ -117,7 +117,7 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void transferFileTest(){
-        Result<List<TransferFileTask>> listResult = transferToFileByJiuFuService.buildTransferTask("7410787");
+        Result<List<TransferFileTask>> listResult = transferToFileByJiuFuService.buildTransferTask("7412002","2022-05-01");
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){

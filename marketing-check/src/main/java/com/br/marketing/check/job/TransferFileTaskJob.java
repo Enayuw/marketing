@@ -70,6 +70,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        log.warn("TransferFileTaskJob传入的自定义参数为:{}",jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -79,7 +81,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (serviceImpl == null) {
                     continue;
                 }
-                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(),jobParameter);
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
