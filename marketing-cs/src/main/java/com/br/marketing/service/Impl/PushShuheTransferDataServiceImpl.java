@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
