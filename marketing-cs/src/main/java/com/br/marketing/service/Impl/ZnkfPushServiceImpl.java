@@ -119,7 +119,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 return "success";
             } else {
                 callRecordMapper.insertSelective(callRecord);
-                if ("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode()) || "7410785".equals(callRecord.getApiCode())) {
+                // 2022-5-17 15:13:23 修改为可配置的apiCode
+//                if ("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode()) || "7410785".equals(callRecord.getApiCode())) {
+                List<String> apiCodes = marketingCommonConfig.getCallRecordDataPushMqApiCodes();
+                if (apiCodes == null) {
+                    apiCodes = Arrays.asList("3710004", "3710023", "3710043", "7410785");
+                }
+                if (apiCodes.contains(callRecord.getApiCode())) {
                     //推mq
                     final MqFact mqFact = new MqFact();
                     mqFact.setSourceId(callRecord.getId());

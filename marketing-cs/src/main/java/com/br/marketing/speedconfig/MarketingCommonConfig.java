@@ -164,4 +164,10 @@ public class MarketingCommonConfig {
      */
     private List<String> shuHeUserAvailableQuotaRange;
 
+    /**
+     * 2022/5/17 15:05
+     * 拨打记录数据配置apicode推送mq
+     */
+    private List<String> callRecordDataPushMqApiCodes;
+
 }
