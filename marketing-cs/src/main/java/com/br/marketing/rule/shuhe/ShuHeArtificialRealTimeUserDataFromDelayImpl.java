@@ -83,7 +83,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
 
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        long l = System.currentTimeMillis();
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MarketingTransferSyncUser transfer = shuHeContext.getTransfer();
@@ -93,13 +92,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         PhoneSaleExtendInfo phoneSaleExtendShuhe = getPhoneSaleExtendShuhe(transfer, shuHeContext);
         phoneSaleExtendShuhe.setSourceId(context.getMqFact().getSourceId());
         realTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendShuhe);
-        log.warn("2.2、转化数据推送电销封装数据耗时:{}ms", System.currentTimeMillis() - l);
         return realTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        long l = System.currentTimeMillis();
         boolean bool = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -163,7 +160,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 }
             }
         }
-        log.warn("2.1、转化数据推送电销判断规则据耗时:{}ms", System.currentTimeMillis() - l);
         return bool;
     }
 

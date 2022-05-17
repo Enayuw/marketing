@@ -42,8 +42,12 @@ public class ShuHeCustomerBlackListNewImpl implements AssembleData<BlackDetailDT
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
         Date expirationDate = json.getDate("clc_usr_max_dx_rrt_end");
         if (!StringUtils.isEmpty(expirationDate)){
-            String format = new SimpleDateFormat("yyyy-MM-dd 23:59:59").format(expirationDate);
-            blackDetailDTO.setExpireDate(format);
+            String format = new SimpleDateFormat("yyyy-MM-dd").format(expirationDate);
+            String d = new SimpleDateFormat("HH:mm:ss").format(expirationDate);
+            if ("00:00:00".equals(d)){
+                d = "23:59:59";
+            }
+            blackDetailDTO.setExpireDate(format+" "+d);
         }
         blackDetailDTO.setPhone(caseShuheUser.getCell());
         return blackDetailDTO;
