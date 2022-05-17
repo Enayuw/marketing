@@ -232,7 +232,7 @@ function start() {
 #停止服务方法
 function stop() {
     if [ $APP_TYPE != 0 ]; then
-        stopapp
+#        stopapp
         sleep 5
         cd /opt/SpringCloud/logs/${NAME}/  &&  mv ${POD_NAME} ${POD_NAME}_$(date +%Y%m%d)
     fi
