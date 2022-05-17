@@ -168,7 +168,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
         String startDate = LocalDate.parse(recordDate, yyyyMMddDF).minusDays(1L).format(ymdDfBy_);
