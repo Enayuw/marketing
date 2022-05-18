@@ -51,7 +51,7 @@ public class IceClient {
     /**
      * 从用户中心查取商户信息
      */
-    private static final String BASE_COLUMNS = "API_CODE,REMARK,COMP_NAME,COMP_SHORT_NAME";
+    private static final String BASE_COLUMNS = "API_CODE,REMARK,COMP_NAME,COMP_SHORT_NAME,COMP_ID,APPLY_LOAN_TYPE";
     private static final String BASE = "base";
 
     @Value("${otherConfig.userCenter.appName:00}")
@@ -91,7 +91,7 @@ public class IceClient {
      */
     public static String getCompanyMsg(String apiCode) {
         CompanyServicePrx service = (CompanyServicePrx) Ice1BSFConsumerBean.getServiceProxy(CompanyServicePrx.class,"V2.0.0");
-        service = (CompanyServicePrx) service.ice_connectionCached(false);
+        service = (CompanyServicePrx) service.ice_connectionCached(true);
         JSONObject baseJson=new JSONObject();
         baseJson.put("appName",appName);
         baseJson.put("appSecretKey",appSecretKey);

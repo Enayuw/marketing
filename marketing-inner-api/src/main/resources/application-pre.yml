@@ -6,7 +6,7 @@ sharding:
         url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
         password: f9daIYUIAXQkeyVbDoOI
-        #password: M6teKbFVl1odfOCkC1JA
+#        password: M6teKbFVl1odfOCkC1JA
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
         filters: stat
@@ -97,6 +97,9 @@ api:
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
         apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true','7410437':'true','7410780':'true','7410797':'true'}"
+  productManagement:
+    url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

@@ -2,12 +2,10 @@ package com.br.marketing.innerapi.controller.auth;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.CircleCaptcha;
-import cn.hutool.captcha.LineCaptcha;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.RedisAuthService;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +14,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * -------------------------------
