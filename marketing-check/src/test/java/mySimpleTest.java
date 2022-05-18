@@ -1,12 +1,22 @@
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.job.CallingToSendJob;
+import com.br.marketing.entity.CustomerCalling;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(classes = {CkeckApplication.class})
 public class mySimpleTest {
+
+    @Autowired
+    private CallingToSendJob callingToSendJob;
     @Test
     public void replace(){
         String str = "orgName不能为空,name不能为空";
