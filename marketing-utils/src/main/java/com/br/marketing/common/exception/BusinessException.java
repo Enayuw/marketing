@@ -3,6 +3,7 @@ package com.br.marketing.common.exception;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 自定义业务异常
@@ -12,6 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
+@ToString
 public class BusinessException extends RuntimeException {
     private static final long serialVersionUID = -4667804982239017435L;
     /**
