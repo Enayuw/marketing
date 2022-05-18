@@ -153,18 +153,18 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             reqHaluoApiDTO.setMethod("hello.finance.loan.marketing.callback.end");
             Result<String> stringResult = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
             log.warn("哈罗数据 批次:{}, 总量: {}, 处理成功: {}，处理结果: {}", taskId, haloCallingCount, haloCallingDealCount, stringResult);
-        } else {
-            try {
-                StringBuilder content = new StringBuilder();
-                content.append("apiCode：".concat(apiCode).concat("\r\n"))
-                        .append("taskId：".concat(taskId).concat("\r\n"))
-                        .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
-                alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
         }
+        try {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                    .append("taskId：".concat(taskId).concat("\r\n"))
+                    .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
+            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+
     }
 
     private void updateSendStatus(List<HaloCallingDataVo> haloCallingDataVoList) {
