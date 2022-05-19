@@ -33,7 +33,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
 
-    List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid,@Param("startDate") String startDate, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
 
     /**
      * 获取指定日期，指定custNum的非延时数据
