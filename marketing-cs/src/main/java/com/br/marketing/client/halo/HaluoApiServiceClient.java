@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -43,7 +44,6 @@ public class HaluoApiServiceClient {
      */
     @RetryMethod(retryNowNum = 3)
     public Result<String> postHaluoOpenApi(ReqHaluoApiDTO reqHaluoApiDTO) {
-        log.warn("调用哈啰openApi接口开始");
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Map paramsMap = new HashMap();
         paramsMap.put(PublicParamsConstants.APPKEY, haloAppKey);
@@ -63,6 +63,9 @@ public class HaluoApiServiceClient {
         if ("200".equals(code)) {
             JSONObject jsonResult = JSONObject.parseObject(response.get("content"));
             JSONObject jsonData = JSONObject.parseObject(jsonResult.getString("data"));
+            if(Objects.isNull(jsonData)){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(jsonResult.toJSONString());
+            }
             //重试
             if (!jsonData.getBoolean("success")) {
                 return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(jsonResult.toJSONString());

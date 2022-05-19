@@ -123,7 +123,6 @@ public class CallingDataThread implements Callable<String> {
     }
 
     private void savePushLog(String requestId, JSONObject param, String result) {
-        log.warn("哈啰日志保存result={}",result);
         JSONArray dataItems = param.getJSONArray("dataItems");
         Map<String, Object> map = new HashMap<>();
         map.put("requestId", requestId);
