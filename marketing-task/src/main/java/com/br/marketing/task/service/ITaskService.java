@@ -9,5 +9,5 @@ public interface ITaskService {
 
     void buildScoreTask(List<Long> scoreRuleIds);
 
-    Result<MarketingTask> getScoreTask(String date,Long taskId);
+    Result<MarketingTask> getScoreTask(String date,Long taskId,Integer isTimeLimit);
 }

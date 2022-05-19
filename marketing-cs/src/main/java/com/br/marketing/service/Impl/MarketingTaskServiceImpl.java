@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
@@ -12,6 +13,7 @@ import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.exception.auth.AppException;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.TaskSelectSaveDTO;
@@ -29,6 +31,7 @@ import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -98,6 +101,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     CustomerRuleMapper customerRuleMapper;
 
     static final String judgmentRegex = "<=|>=|=|>|<";
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -470,13 +480,26 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         //endregion
 
         //region 跑分编号表
-        TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
-        updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
-        TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
-        updateBatchnumber.setStatus(2);
-        taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
+        if(conditionType.equals(0)) {
+            TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
+            updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
+            TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
+            updateBatchnumber.setStatus(2);
+            taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
+        }
         //endregion
 
+        //region 发送通知
+        StringBuilder content = new StringBuilder();
+        content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                .append("ruleId：".concat(ruleVO.getId().toString()).concat("\r\n"))
+                .append("ruleName：".concat(ruleVO.getRuleName()).concat("\r\n"))
+                .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
+                .append("batchNumber：".concat(batchNumber).concat("\r\n"))
+                .append(String.format("预计数量: %d", preNum));
+        alarmClient.sendAlarm(content.toString(), "", appName, secretKey,
+                Constants.sendCodeMap.get("uploadSuccess"));
+        //endregion
         return task.getId();
     }
 

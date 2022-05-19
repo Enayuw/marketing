@@ -305,10 +305,6 @@ public class TaskScoreServiceImpl {
 
 
     private void generateTask(MarketingTask blt, ExecutorService warrningExecutor, MarketingCustomer customer, String day) {
-//        if (blt.getActualNumber() <= 0) {
-//            log.error("该批次监控人数为空，跳过执行:apiCode:{} batch_number：{}", blt.getApiCode(), blt.getBatchNumber());
-//            return;
-//        }
         String productJson = "";
         if (blt.getTaskType().compareTo(new Integer(0)) == 0) {
             productJson = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
@@ -323,6 +319,7 @@ public class TaskScoreServiceImpl {
         String descPath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
                 .concat(blt.getBatchNumber()).concat("/").concat(day);
 
+        //region 写入或者获取跑分记录以及状态
         if (blt.getFileId() != null && blt.getFileId() > 1) {
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(blt.getFileId());
             descPath = file.getFilePath();
@@ -339,14 +336,19 @@ public class TaskScoreServiceImpl {
             } else if (4 == blt.getMonitorType()) {
                 file.setType(1);
             }
+
             file.setExpectedNum(blt.getActualNumber());
 //            file.setShowTitle(createShowTitle(blt));
             straHisFileMapper.insertSelective(file);
+            blt.setFileId(file.getId());
+
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(blt.getStatusId());
             updateStatus.setFileId(file.getId());
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-            blt.setFileId(file.getId());
+
+
+            //region 记录跑分产品
             JSONArray pList = JSONArray.parseArray(productJson);
             if (pList != null) {
                 for (int i = 0; i < pList.size(); i++) {
@@ -387,7 +389,9 @@ public class TaskScoreServiceImpl {
 
                 }
             }
+            //endregion
         }
+        //endregion
 
         StringBuilder addTaskContent = new StringBuilder();
         addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
@@ -450,7 +454,7 @@ public class TaskScoreServiceImpl {
                     Boolean threadpoolStatus = Boolean.TRUE;
                     while (threadpoolStatus) {
                         List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, pageSize);
-                        if(list.size()<=0){
+                        if (list.size() <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }

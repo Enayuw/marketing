@@ -37,7 +37,9 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
         String jobParameter = context.getJobParameter();
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Long taskId = 0L;
+        Integer isTimeLimit = null;
         if(StringUtils.isNotBlank(jobParameter)){
+            isTimeLimit=1;
             String[] split = jobParameter.split(",");
             for (int i = 0; i < split.length; i++) {
                 if(i==0){
@@ -47,9 +49,10 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date,taskId);
+        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date,taskId,isTimeLimit);
         if(ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())){
             MarketingTask marketingTask = scoreTask.getData();
+            marketingTask.setIndex(context.getShardingItems().get(0));
             taskScoreService.process(marketingTask,date);
         }
         Long end =System.currentTimeMillis();
