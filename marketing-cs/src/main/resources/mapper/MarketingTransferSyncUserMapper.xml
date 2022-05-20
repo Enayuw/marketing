@@ -37,7 +37,7 @@
         b_marketing_transfer_sync_${cid}
         where
         <![CDATA[  request_data = #{endDate} ]]>
-        order by insert_time desc,id desc limit #{limitStart},2000;
+        order by create_time desc,id desc limit #{limitStart},2000;
     </select>
 
     <select id="getTransferOrderInsertTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

@@ -3,6 +3,8 @@ package com.br.marketing.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * code is far away from bug with the animal protecting
  * ┏┓　　　┏┓
@@ -71,25 +73,25 @@ public class MerchantParam {
      * 账号状态：0禁用 1启用
      */
     @JSONField(name = "account_status")
-    private String accountSstatus;
+    private String accountStatus;
 
     /**
      * 测试开始时间
      */
     @JSONField(name = "start_time")
-    private String startTime;
+    private Date startTime;
 
     /**
      * 测试结束时间
      */
     @JSONField(name = "end_time")
-    private String endTime;
+    private Date endTime;
 
     /**
      * 数据交互方式(0:API 1:SFTP)
      */
     @JSONField(name = "transport")
-    private Integer transport;
+    private String transport;
 
     /**
      * 是否返回数据详情(1 返回，0 不返回)
@@ -150,5 +152,6 @@ public class MerchantParam {
      */
     @JSONField(name = "file_encryption_key")
     private String fileEncryptionKey;
+
 
 }
