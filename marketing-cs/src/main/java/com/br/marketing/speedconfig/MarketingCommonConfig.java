@@ -153,4 +153,9 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+    /**
+     * 哈啰回调数据落库配置线程数
+     */
+    private Integer haloSaveDataThreadNum;
+
 }
