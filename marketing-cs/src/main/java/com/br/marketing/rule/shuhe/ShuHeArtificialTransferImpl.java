@@ -73,7 +73,6 @@ public class ShuHeArtificialTransferImpl implements AssembleData<DassAssembleTra
                 }
             }
         }
-        log.warn("数禾促复借推电销测试message");
         return bool;
     }
 

@@ -124,6 +124,23 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 延迟队列-通用转化队列延迟队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR)
+    public Queue universalTransferDelayHalfHourQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE);
+        // x-message-ttl  声明队列的TTL
+        args.put("x-message-ttl", 1800000);
+        return QueueBuilder.durable(MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR).withArguments(args).build();
+    }
+
+    /**
      * 延迟队列-通用转化错误重试延迟队列
      *
      * @return
@@ -174,6 +191,18 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(universalTransferErrorDelayQueue())
                 .to(gateExchange())
                 .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+    }
+
+    /**
+     * 绑定交换机- 发送消息到延迟队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding universalTransferQueueDelayHalfHourBinding() {
+        return BindingBuilder.bind(universalTransferDelayHalfHourQueue())
+                .to(gateExchange())
+                .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR);
     }
 
     /**
@@ -260,6 +289,29 @@ public class RabbitMqConfig {
         return primaryRabbitTemplate;
     }
 
+    @Bean(name = "secondaryContainerFactory")
+    public SimpleRabbitListenerContainerFactory secondaryContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("secondaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return containerFactory(configurer, connectionFactory, null);
+    }
+
+    @Bean(name = "secondaryConnectionFactory")
+    public ConnectionFactory secondaryConnectionFactory(
+            @Value("${spring.rabbitmq.secondary.addresses}") String addresses,
+            @Value("${spring.rabbitmq.secondary.username}") String username,
+            @Value("${spring.rabbitmq.secondary.password}") String password,
+            @Value("${spring.rabbitmq.secondary.virtual-host}") String virtualHost
+    ) {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+        connectionFactory.setAddresses(addresses);
+        connectionFactory.setUsername(username);
+        connectionFactory.setPassword(password);
+        connectionFactory.setVirtualHost(virtualHost);
+        connectionFactory.setPublisherConfirms(true);
+        connectionFactory.setPublisherReturns(true);
+        return connectionFactory;
+    }
 
     /**
      * factory：
@@ -277,7 +329,7 @@ public class RabbitMqConfig {
     public SimpleRabbitListenerContainerFactory primaryContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
-        return containerFactory(configurer, connectionFactory,null);
+        return containerFactory(configurer, connectionFactory, null);
     }
 
     /**
@@ -296,7 +348,7 @@ public class RabbitMqConfig {
     public SimpleRabbitListenerContainerFactory fiveDataContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
-        return containerFactory(configurer, connectionFactory,5);
+        return containerFactory(configurer, connectionFactory, 5);
     }
 
     /**
@@ -308,10 +360,10 @@ public class RabbitMqConfig {
      */
     private SimpleRabbitListenerContainerFactory containerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
-            ConnectionFactory connectionFactory,Integer prefetchCount) {
+            ConnectionFactory connectionFactory, Integer prefetchCount) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-        if(prefetchCount!=null&&prefetchCount>0){
+        if (prefetchCount != null && prefetchCount > 0) {
             factory.setPrefetchCount(prefetchCount);
         }
         configurer.configure(factory, connectionFactory);

@@ -14,6 +14,7 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -64,8 +65,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
 
+    @Resource
+    private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        log.warn("TransferFileTaskJob传入的自定义参数为:{}",jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -79,7 +85,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        Result result = serviceImpl.actionTransferToFile(datum);
+                        Result result = serviceImpl.actionTransferToFile(datum,jobParameter);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
                             if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
@@ -114,7 +120,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;
-        } else {
+        } if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByJiuFuService;
+        }else {
             return null;
         }
     }

@@ -1,8 +1,12 @@
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -15,6 +19,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,6 +110,21 @@ public class AlarmAndNoticeTest {
     @Test
     public void deleteMonitor(){
         validDataAlarmServiceImpl.deleteMonitorFileUpload("4200333","4200333_p4_DeleteMonitor_202008284200333");
+    }
+
+    @Resource
+    private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
+
+    @Test
+    public void transferFileTest(){
+        Result<List<TransferFileTask>> listResult = transferToFileByJiuFuService.buildTransferTask("7412002");
+        if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
+            List<TransferFileTask> data = listResult.getData();
+            for (TransferFileTask datum : data){
+                Result result = transferToFileByJiuFuService.actionTransferToFile(datum,"");
+                System.out.println(result.getCode());
+            }
+        }
     }
 
 }

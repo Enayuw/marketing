@@ -1,9 +1,12 @@
 package com.br.marketing.rule.shuhe;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.CuShouDeng;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
@@ -17,15 +20,19 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 
@@ -48,6 +55,10 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
     private DataLoadingHandlerService handlerService;
     @Resource
     private SystemExceptionServiceImpl systemExceptionService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     /**
      * apiCoid:userType:cusNum
@@ -56,14 +67,24 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         MqFact mqFact = context.getMqFact();
         MqFact mqFactNew = new MqFact();
         mqFactNew.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         mqFactNew.setIsDelay(1);
         mqFactNew.setSourceId(mqFact.getSourceId());
-        mqFactNew.setMessage(mqFact.getMessage());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
+        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+            mqFactNew.setDelayTime(0.5F);
+            JSONObject jsonObject = new JSONObject();
+            CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+            jsonObject.put("status", caseShuheUser.getReserveField2());
+            jsonObject.put("prioritySymbol", caseShuheUser.getJsonObject().getOrDefault("prioritySymbol", ""));
+            jsonObject.put("typeSign", caseShuheUser.getJsonObject().getOrDefault("typeSign", ""));
+            mqFactNew.setMessage(jsonObject.toJSONString());
+        }
         return mqFactNew;
     }
 
@@ -83,13 +104,11 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             if (typeBool) {
                 final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 shuHeContext.setTransfer(transfer);
-                final Date creatTime = shuHeContext.getCreatTime();
+                Date creatTime = shuHeContext.getCreatTime();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
                 boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
-                if (b && iUserType instanceof CuShouJie
-                        && !"3710023".equals(transfer.getApiCode())
-                        && !"7410785".equals(transfer.getApiCode())
+                if (b && iUserType instanceof CuShouJie && !(iUserType.getApiCodes().contains(transfer.getApiCode()))
                 ) {
                     systemExceptionService.sendAlarm(String.format(
                             "检测到数禾客户推送转化数据存在异常：该apiCode下不应该出现该场景的数据！" +
@@ -98,8 +117,21 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                             , "MARKETING-INNER-API");
                     b = Boolean.FALSE;
                 }
-                bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
-                        && cacheExists(transfer, shuHeContext, day));
+                if (iUserType instanceof CuFuJie) {
+                    if (b) {
+                        boolean phoneSale = ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
+                                , marketingCommonConfig);
+                        if (phoneSale) {
+                            bool = periodOfValidityTransform(caseShuheUser, day, creatTime)
+                                    && cacheExists(transfer, shuHeContext, day);
+                        }
+                    }
+                    shuHeContext.setCaseShuheUser(caseShuheUser);
+                    log.info("复促借情况{}是否满足推送延迟条件{},其中有效期状态：{},\n数据{}", caseShuheUser.getReserveField2(), bool, b, caseShuheUser.toString());
+                } else {
+                    bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
+                            && cacheExists(transfer, shuHeContext, day));
+                }
                 shuHeContext.setTransfer(null);
             }
         }
@@ -221,6 +253,46 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
             }
         }
         return true;
+    }
+
+    /**
+     * 2022/5/9 17:22
+     * 查询有效期内是否存在已转化的数据
+     */
+    private boolean periodOfValidityTransform(CaseShuheUser caseShuheUser, Integer day, Date creatTime) {
+        String cId = redisChgService.get("marketing:api:shuhe:transfer:cid:"
+                .concat(caseShuheUser.getApiCode()));
+        String tcId;
+        if (StringUtils.isEmpty(cId)) {
+            tcId = tableCreateService.getTcId(caseShuheUser.getApiCode());
+        } else {
+            tcId = cId.replaceFirst("-", "");
+        }
+        if (ObjectUtils.isEmpty(creatTime)) {
+            creatTime = new Date();
+        }
+        LocalDateTime dateTime;
+        if (day == null) {
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().with(
+                    TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59).atZone(
+                    ZoneId.systemDefault()).toLocalDateTime();
+        } else {
+            dateTime = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusDays(day).withHour(23)
+                    .withMinute(59).withSecond(59).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+        LocalDateTime time = creatTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(caseShuheUser.getApiCode())
+                .andCustNumEqualTo(caseShuheUser.getCustNum())
+                .andUserTypeEqualTo(caseShuheUser.getUserType()).andCreateTimeBetween(
+                Date.from(time.atZone(ZoneId.systemDefault()).toInstant())
+                , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
+                .andIfTransformEqualTo("1");
+        int count = marketingTransferSyncUserMapper.countByExample(example);
+        log.info("情况{}，查询到db里已转化数据量：{},", caseShuheUser.getReserveField2(), count);
+        return count < 1;
     }
 
 }
