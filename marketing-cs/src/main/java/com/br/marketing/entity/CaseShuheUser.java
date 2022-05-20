@@ -408,4 +408,41 @@ public class CaseShuheUser {
     public void setJsonObject(JSONObject jsonObject) {
         this.jsonObject = jsonObject;
     }
+
+    @Override
+    public String toString() {
+        return "CaseShuheUser{" +
+                "id=" + id +
+                ", apiCode='" + apiCode + '\'' +
+                ", custNum='" + custNum + '\'' +
+                ", cell='" + cell + '\'' +
+                ", userType='" + userType + '\'' +
+                ", uploadDate='" + uploadDate + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", mobile='" + mobile + '\'' +
+                ", biztype='" + biztype + '\'' +
+                ", isBlack='" + isBlack + '\'' +
+                ", isTurn='" + isTurn + '\'' +
+                ", clcUsrFstLogTimAll='" + clcUsrFstLogTimAll + '\'' +
+                ", clcUsrLstAppStaTim='" + clcUsrLstAppStaTim + '\'' +
+                ", clcUsrIsoPhoTim='" + clcUsrIsoPhoTim + '\'' +
+                ", clcUsrIsoIdtTim='" + clcUsrIsoIdtTim + '\'' +
+                ", clcUsrIsoCrdTim='" + clcUsrIsoCrdTim + '\'' +
+                ", clcUsrIsoInfTim='" + clcUsrIsoInfTim + '\'' +
+                ", clcUsrIsoAtoTim='" + clcUsrIsoAtoTim + '\'' +
+                ", clcUsrAdtTimRcnLon='" + clcUsrAdtTimRcnLon + '\'' +
+                ", clcUsrAdtLmtItr='" + clcUsrAdtLmtItr + '\'' +
+                ", clcUsrFrtFqOrdTim='" + clcUsrFrtFqOrdTim + '\'' +
+                ", clcUsrFstLndTimCshBtHl='" + clcUsrFstLndTimCshBtHl + '\'' +
+                ", jsonData='" + jsonData + '\'' +
+                ", isTransfer=" + isTransfer +
+                ", reserveField1='" + reserveField1 + '\'' +
+                ", reserveField2='" + reserveField2 + '\'' +
+                ", status=" + status +
+                ", saveStatus=" + saveStatus +
+                ", errorInfo='" + errorInfo + '\'' +
+                ", jsonObject=" + jsonObject +
+                '}';
+    }
 }

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ShuheTransferStopPushRecordMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.ShuheTransferStopPushRecord">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="case_num" property="caseNum" jdbcType="VARCHAR"/>
+        <result column="user_type" property="userType" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="failure_time" property="failureTime" jdbcType="TIMESTAMP"/>
+        <result column="call_record_id" property="callRecordId" jdbcType="VARCHAR"/>
+        <result column="transfer_sync_cid_id" property="transferSyncCidId" jdbcType="VARCHAR"/>
+        <result column="day" property="day" jdbcType="VARCHAR"/>
+        <result column="channel" property="channel" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id
+        , api_code, case_num, user_type, create_time, update_time, failure_time, call_record_id,
+    transfer_sync_cid_id, day, channel, status
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.ShuheTransferStopPushRecordExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_case_shuhe_transfer_stop_push_record
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_case_shuhe_transfer_stop_push_record
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_case_shuhe_transfer_stop_push_record
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecordExample">
+        delete from b_case_shuhe_transfer_stop_push_record
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecord">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_case_shuhe_transfer_stop_push_record (api_code, case_num, user_type,
+        create_time, update_time, failure_time,
+        call_record_id, transfer_sync_cid_id, day,
+        channel, status)
+        values (#{apiCode,jdbcType=VARCHAR}, #{caseNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+        #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{failureTime,jdbcType=TIMESTAMP},
+        #{callRecordId,jdbcType=VARCHAR}, #{transferSyncCidId,jdbcType=VARCHAR}, #{day,jdbcType=VARCHAR},
+        #{channel,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecord">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_case_shuhe_transfer_stop_push_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="caseNum != null">
+                case_num,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="failureTime != null">
+                failure_time,
+            </if>
+            <if test="callRecordId != null">
+                call_record_id,
+            </if>
+            <if test="transferSyncCidId != null">
+                transfer_sync_cid_id,
+            </if>
+            <if test="day != null">
+                day,
+            </if>
+            <if test="channel != null">
+                channel,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="caseNum != null">
+                #{caseNum,jdbcType=VARCHAR},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="failureTime != null">
+                #{failureTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="callRecordId != null">
+                #{callRecordId,jdbcType=VARCHAR},
+            </if>
+            <if test="transferSyncCidId != null">
+                #{transferSyncCidId,jdbcType=VARCHAR},
+            </if>
+            <if test="day != null">
+                #{day,jdbcType=VARCHAR},
+            </if>
+            <if test="channel != null">
+                #{channel,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecordExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_case_shuhe_transfer_stop_push_record
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_case_shuhe_transfer_stop_push_record
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.caseNum != null">
+                case_num = #{record.caseNum,jdbcType=VARCHAR},
+            </if>
+            <if test="record.userType != null">
+                user_type = #{record.userType,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.failureTime != null">
+                failure_time = #{record.failureTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.callRecordId != null">
+                call_record_id = #{record.callRecordId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.transferSyncCidId != null">
+                transfer_sync_cid_id = #{record.transferSyncCidId,jdbcType=VARCHAR},
+            </if>
+            <if test="record.day != null">
+                day = #{record.day,jdbcType=VARCHAR},
+            </if>
+            <if test="record.channel != null">
+                channel = #{record.channel,jdbcType=INTEGER},
+            </if>
+            <if test="record.status != null">
+                status = #{record.status,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_case_shuhe_transfer_stop_push_record
+        set id = #{record.id,jdbcType=BIGINT},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        case_num = #{record.caseNum,jdbcType=VARCHAR},
+        user_type = #{record.userType,jdbcType=VARCHAR},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        failure_time = #{record.failureTime,jdbcType=TIMESTAMP},
+        call_record_id = #{record.callRecordId,jdbcType=VARCHAR},
+        transfer_sync_cid_id = #{record.transferSyncCidId,jdbcType=VARCHAR},
+        day = #{record.day,jdbcType=VARCHAR},
+        channel = #{record.channel,jdbcType=INTEGER},
+        status = #{record.status,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecord">
+        update b_case_shuhe_transfer_stop_push_record
+        <set>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="caseNum != null">
+                case_num = #{caseNum,jdbcType=VARCHAR},
+            </if>
+            <if test="userType != null">
+                user_type = #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="failureTime != null">
+                failure_time = #{failureTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="callRecordId != null">
+                call_record_id = #{callRecordId,jdbcType=VARCHAR},
+            </if>
+            <if test="transferSyncCidId != null">
+                transfer_sync_cid_id = #{transferSyncCidId,jdbcType=VARCHAR},
+            </if>
+            <if test="day != null">
+                day = #{day,jdbcType=VARCHAR},
+            </if>
+            <if test="channel != null">
+                channel = #{channel,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ShuheTransferStopPushRecord">
+        update b_case_shuhe_transfer_stop_push_record
+        set api_code             = #{apiCode,jdbcType=VARCHAR},
+            case_num             = #{caseNum,jdbcType=VARCHAR},
+            user_type            = #{userType,jdbcType=VARCHAR},
+            create_time          = #{createTime,jdbcType=TIMESTAMP},
+            update_time          = #{updateTime,jdbcType=TIMESTAMP},
+            failure_time         = #{failureTime,jdbcType=TIMESTAMP},
+            call_record_id       = #{callRecordId,jdbcType=VARCHAR},
+            transfer_sync_cid_id = #{transferSyncCidId,jdbcType=VARCHAR},
+            day                  = #{day,jdbcType=VARCHAR},
+            channel              = #{channel,jdbcType=INTEGER},
+            status               = #{status,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

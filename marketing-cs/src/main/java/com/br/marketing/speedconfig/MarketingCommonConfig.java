@@ -153,4 +153,31 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+
+    /**
+     * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
+     */
+    private HashMap<String, List<String>> shuHePushDXStatusMap;
+
+    /**
+     * # 数禾用户可用额度区间;大于:&gt;、小于:&lt;、等于:&eq;、不等于:&nq;、大于等于:&ge;、小于等于:&le;;eg:["&ge;","1","&le;","100"]
+     */
+    private List<String> shuHeUserAvailableQuotaRange;
+
+    /**
+     * 2022/5/17 15:05
+     * 拨打记录数据配置apicode推送mq
+     */
+    private List<String> callRecordDataPushMqApiCodes;
+
+    /**
+     * 玖富转化数据提取apiCode集合
+     */
+    private List<String> JiuFuTransferApiCodes;
+
+    /**
+     * 玖富转化数据提取执行时间
+     */
+    private String JiuFuTransferExecuteTime;
+
 }

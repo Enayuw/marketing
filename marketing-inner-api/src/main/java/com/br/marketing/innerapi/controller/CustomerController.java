@@ -59,15 +59,20 @@ public class CustomerController {
     @ApiOperation(value = "客户信息列表数据", notes = "获取客户信息列表数据", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "name", value = "合作客户全称", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "accountType",value = "账号类型0：测试；1：正式",paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "accountStatus",value = "账号状态0：禁用；1：启用",paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
     public ApiResult<PageResultReturn> getCustomerList(@RequestParam(defaultValue = "1") int current
                                                         , @RequestParam(defaultValue = "10") int size
-                                                        , @RequestParam(required = false) String cid
-                                                        , @RequestParam(required = false) String apiCode) {
-        PageResultReturn listPage = marketingCustomerService.getCustomerList(current, size, cid, apiCode);
+                                                        , @RequestParam(required = false) String name
+                                                        , @RequestParam(required = false) String apiCode
+                                                        , @RequestParam(required = false) String accountType
+                                                        , @RequestParam(required = false) String accountStatus
+    ) {
+        PageResultReturn listPage = marketingCustomerService.getCustomerList(current, size, name, apiCode,accountType, accountStatus);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

@@ -174,7 +174,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask){
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter){
         if(1==transferFileTask.getFileType()){
             return actionTransferToFileRealTime(transferFileTask);
         }else if(2==transferFileTask.getFileType()){

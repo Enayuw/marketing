@@ -62,136 +62,143 @@ public class MarketingThread implements Callable<String> {
     public MarketingThread(List<MarketingUser> list, Map<String, String> param
             , long currentPage, boolean firstTime, Customer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, StrategyProductDetailVO fieldInfo) {
-        this.list = list;
-        this.apiCode = param.get("apiCode");
-        this.strategyId = param.get("strategyId");
-        this.currentPage = currentPage;
-        this.path = param.get("path");
-        this.strategyStr = param.get("strategyStr");
-        this.redisService = Scheduler.ac.getBean(RedisService.class);
-        this.firstTime = firstTime;
-        this.url = param.get("url");
-        this.sep = param.get("sep");
-        this.redisChgService = Scheduler.ac.getBean(RedisChgService.class);
-        this.batchNumber = param.get("batchNumber");
-        this.cusBatchNumber = param.get("cusBatchNumber");
-        this.isRepair = param.get("isRepair");
-        this.fileId = param.get("fileId");
-        this.customer = customer;
-        this.baseHeadInfo = param.get("baseHeadInfo");
-        this.fieldInfo = fieldInfo;
-        this.marketingTask = marketingTask;
-        this.noflagproductlist = noflagproductlist;
-        this.flagProductList = flagProductList;
+        try {
+            this.list = list;
+            this.apiCode = param.get("apiCode");
+            this.strategyId = param.get("strategyId");
+            this.currentPage = currentPage;
+            this.path = param.get("path");
+            this.strategyStr = param.get("strategyStr");
+            this.redisService = Scheduler.ac.getBean(RedisService.class);
+            this.firstTime = firstTime;
+            this.url = param.get("url");
+            this.sep = param.get("sep");
+            this.redisChgService = Scheduler.ac.getBean(RedisChgService.class);
+            this.batchNumber = param.get("batchNumber");
+            this.cusBatchNumber = param.get("cusBatchNumber");
+            this.isRepair = param.get("isRepair");
+            this.fileId = param.get("fileId");
+            this.customer = customer;
+            this.baseHeadInfo = param.get("baseHeadInfo");
+            this.fieldInfo = fieldInfo;
+            this.marketingTask = marketingTask;
+            this.noflagproductlist = noflagproductlist;
+            this.flagProductList = flagProductList;
 //        this.observedThread = Scheduler.ac.getBean(ObservedScoreThreadServiceImpl.class);
-        Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
+            Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
+        }catch (Exception ex){
+            log.error(String.format("MarektingThread构造错误",ex.getMessage()),ex);
+        }
     }
 
     @Override
     public String call() {
-
-        log.warn("start-----------------");
-        if (list.size() == 0) {
-            log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
-            return null;
-        }
-
-        boolean check = this.checkRedisNumber();
-        log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
-        String descPath = path.concat("/").concat(marketingTask.getIndex().toString());
-
-        File writeName = new File(descPath);
-        if (!writeName.exists()) {
-            writeName.mkdirs();
-        }
-
-        File errorFile = new File(descPath + "/error" + currentPage + ".txt");
-        File file1 = new File(descPath + "/" + currentPage + ".txt");
-
-        try (Writer errorFw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(errorFile), "UTF-8"));
-             Writer fw = new BufferedWriter(
-                     new OutputStreamWriter(
-                             new FileOutputStream(file1), "UTF-8"));) {
-
-            if (!check) {
-                log.error("条数不足--{}", message);
-                dealResult(message, errorFw);
-                errorFw.close();
+        try {
+            log.warn("start-----------------");
+            if (list.size() == 0) {
+                log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
                 return null;
             }
-            JSONObject param = new JSONObject();
-            param.put("strategyId", strategyId);
-            BrCipherMaker instance = BrCipherMaker.getInstance();
-            for (MarketingUser blu : list) {
+
+            boolean check = this.checkRedisNumber();
+            log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
+            String descPath = path.concat("/").concat(marketingTask.getIndex().toString());
+
+            File writeName = new File(descPath);
+            if (!writeName.exists()) {
+                writeName.mkdirs();
+            }
+
+            File errorFile = new File(descPath + "/error" + currentPage + ".txt");
+            File file1 = new File(descPath + "/" + currentPage + ".txt");
+
+            try (Writer errorFw = new BufferedWriter(
+                    new OutputStreamWriter(
+                            new FileOutputStream(errorFile), "UTF-8"));
+                 Writer fw = new BufferedWriter(
+                         new OutputStreamWriter(
+                                 new FileOutputStream(file1), "UTF-8"));) {
+
+                if (!check) {
+                    log.error("条数不足--{}", message);
+                    dealResult(message, errorFw);
+                    errorFw.close();
+                    return null;
+                }
+                JSONObject param = new JSONObject();
+                param.put("strategyId", strategyId);
+                BrCipherMaker instance = BrCipherMaker.getInstance();
+                for (MarketingUser blu : list) {
 //                TimeUnit.MILLISECONDS.sleep(1L);
-                if (blu.getStatus() != 1) {
-                    continue;
-                }
-                RequestLog requestLog = new RequestLog();
-                requestLog.setRequestTime(new Date());
-
-                JSONObject jsonData = new JSONObject();
-                jsonData.put("userType", blu.getUserType());
-                jsonData.put("cusNum", blu.getCusNum());
-                jsonData.put("idCard", instance.decode(blu.getIdCard()));
-                jsonData.put("name", instance.decode(blu.getName()));
-                jsonData.put("cell", instance.decode(blu.getCell()));
-                jsonData.put("passDate", blu.getPassDate());
-                jsonData.put("loanMaturityDate", blu.getLoanMaturityDate());
-                jsonData.put("isRepair", isRepair);
-                if (StringUtils.isNotEmpty(blu.getDecodeFailType())) {
-                    jsonData.put("decodeFailType", blu.getDecodeFailType());
-                }
-                String approvalResult = blu.getApprovalResult();
-                String result = "";
-                if (StringUtils.isNotEmpty(approvalResult)) {
-                    switch (approvalResult) {
-                        case "通过":
-                            result = "1";
-                            break;
-                        case "拒绝":
-                            result = "2";
-                            break;
-                        case "复议":
-                            result = "3";
-                            break;
-                        case "无结果":
-                            result = "4";
-                            break;
-                        case "无贷前审批":
-                            result = "5";
-                            break;
-                        default:
-                            break;
+                    if (blu.getStatus() != 1) {
+                        continue;
                     }
-                }
+                    RequestLog requestLog = new RequestLog();
+                    requestLog.setRequestTime(new Date());
 
-                if (StringUtils.isNotEmpty(result)) {
-                    jsonData.put("approveResult", result);
+                    JSONObject jsonData = new JSONObject();
+                    jsonData.put("userType", blu.getUserType());
+                    jsonData.put("cusNum", blu.getCusNum());
+                    jsonData.put("idCard", instance.decode(blu.getIdCard()));
+                    jsonData.put("name", instance.decode(blu.getName()));
+                    jsonData.put("cell", instance.decode(blu.getCell()));
+                    jsonData.put("passDate", blu.getPassDate());
+                    jsonData.put("loanMaturityDate", blu.getLoanMaturityDate());
+                    jsonData.put("isRepair", isRepair);
+                    if (StringUtils.isNotEmpty(blu.getDecodeFailType())) {
+                        jsonData.put("decodeFailType", blu.getDecodeFailType());
+                    }
+                    String approvalResult = blu.getApprovalResult();
+                    String result = "";
+                    if (StringUtils.isNotEmpty(approvalResult)) {
+                        switch (approvalResult) {
+                            case "通过":
+                                result = "1";
+                                break;
+                            case "拒绝":
+                                result = "2";
+                                break;
+                            case "复议":
+                                result = "3";
+                                break;
+                            case "无结果":
+                                result = "4";
+                                break;
+                            case "无贷前审批":
+                                result = "5";
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    if (StringUtils.isNotEmpty(result)) {
+                        jsonData.put("approveResult", result);
+                    }
+                    jsonData.put("batch_number", blu.getBatchNumber());
+                    param.put("jsonData", jsonData.toString());
+                    String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
+                    dealResult(resultStr, fw, apiCode, blu);
                 }
-                jsonData.put("batch_number", blu.getBatchNumber());
-                param.put("jsonData", jsonData.toString());
-                String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
-                dealResult(resultStr, fw, apiCode, blu);
-            }
-            if (errorList.size() > 0) {
-                for (MarketingUser lu : errorList) {
-                    errorFw.append(lu.getBatchNumber() + "#" + lu.getCusNum() + "#" + lu.getIdCard() + "#" + lu.getCell()
-                            + "#" + lu.getName() + "#" + lu.getHitData() + "#" + lu.getExtendJson() + "#end\n");
+                if (errorList.size() > 0) {
+                    for (MarketingUser lu : errorList) {
+                        errorFw.append(lu.getBatchNumber() + "#" + lu.getCusNum() + "#" + lu.getIdCard() + "#" + lu.getCell()
+                                + "#" + lu.getName() + "#" + lu.getHitData() + "#" + lu.getExtendJson() + "#end\n");
+                    }
+                    String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + apiCode;
+                    redisChgService.hset(key, errorFile.getPath(), batchNumber);
                 }
-                String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + apiCode;
-                redisChgService.hset(key, errorFile.getPath(), batchNumber);
-            }
-            setScoreStatus();
+                setScoreStatus();
 //            Thread.sleep(2L);
-        }
+            }
 //        catch (InterruptedException ex){
 //            observedThread.addTaskList(marketingTask);
 //        }
-        catch (Exception e) {
-            log.error("生成文件出错。。。。", e);
+            catch (Exception e) {
+                log.error("生成文件出错。。。。", e);
+            }
+        }catch (Exception ex){
+            log.error(String.format("跑分线call方法错误：%s",ex.getMessage()),ex);
         }
         return null;
     }

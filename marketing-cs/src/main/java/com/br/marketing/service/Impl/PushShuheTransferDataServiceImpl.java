@@ -662,7 +662,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                         mqFact.setSourceId(transferInfo.getId());
                         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
                         producter.sendToUniversalTransferQueue(mqFact);
-                        log.warn("数禾促复借测试message = {}", JSON.toJSONString(mqFact));
                     }
                 } else {
                     caseShuheUser.setErrorInfo("#3.3saveTransferInfo:保存到标准转化详情异常");
