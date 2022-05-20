@@ -2,6 +2,7 @@ package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.job.CallingToSendJob;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
@@ -11,6 +12,7 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.RepQueryBlackPhoneVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.CustomerCallingDialogMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.service.IApiToDbService;
@@ -25,9 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/data/")
@@ -48,6 +48,12 @@ public class DataController {
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Resource
+    private CallingToSendJob callingToSendJob;
+
+    @Resource
+    CustomerCallingDialogMapper customerCallingDialogMapper;
 
     @GetMapping("testApiToDb")
     public String testApiToDb(@RequestParam("apiCode") String apiCode){
@@ -144,6 +150,19 @@ public class DataController {
 //        reqBlackPhoneQueryDTO.setBlackQueryDetailDTOList(blackQueryDetailDTOList);
 //        RepQueryBlackPhoneVO repQueryBlackPhoneVO = robotaiApiServiceClient.queryBlackPhone(reqBlackPhoneQueryDTO);
 //        log.warn(JSON.toJSONString(repQueryBlackPhoneVO));
+        return "success";
+
+
+    }
+
+    @GetMapping("haluoCallbackEnd")
+    public String haluoCallbackEnd(String apiCode,String taskId) {
+        log.warn("haluoCallbackEnd apiCode:{},taskId:{}",apiCode,taskId);
+        Map<String, Object> cusMap = new HashMap<>(16);
+        cusMap.put("apiCode", apiCode);
+        cusMap.put("taskId", taskId);
+        int haloCallingCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
+        callingToSendJob.callbackEnd(haloCallingCount,apiCode,taskId);
         return "success";
 
 
