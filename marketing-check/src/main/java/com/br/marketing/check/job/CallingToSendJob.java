@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.thread.CallingDataThread;
 import com.br.marketing.client.AlarmApiClient;
@@ -143,27 +144,27 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         cusMap.put("apiCode", apiCode);
         cusMap.put("taskId", taskId);
         int haloCallingDealCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
-        //数据量不相等进行告警，可能taskId重复
-        if (haloCallingDealCount != haloCallingCount) {
-            try {
-                StringBuilder content = new StringBuilder();
-                content.append("apiCode：".concat(apiCode).concat("\r\n"))
-                        .append("taskId：".concat(taskId).concat("\r\n"))
-                        .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
-                alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
+        if (haloCallingDealCount == haloCallingCount) {
+            JSONObject param = new JSONObject();
+            param.put("openSerialNo", apiCode + "_callbackEnd_" + UUID.randomUUID());
+            param.put("batchNo", taskId);
+
+            ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
+            reqHaluoApiDTO.setData(param.toJSONString());
+            reqHaluoApiDTO.setMethod("hello.finance.loan.marketing.callback.end");
+            Result<String> stringResult = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
+            log.warn("哈罗数据 批次:{}, 总量: {}, 处理成功: {}，处理结果: {}", taskId, haloCallingCount, haloCallingDealCount, JSON.toJSON(stringResult));
         }
-        JSONObject param = new JSONObject();
-        param.put("openSerialNo", apiCode + "_callbackEnd_" + UUID.randomUUID());
-        param.put("batchNo", taskId);
-        ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
-        reqHaluoApiDTO.setData(param.toJSONString());
-        reqHaluoApiDTO.setMethod("hello.finance.loan.marketing.callback.end");
-        Result<String> stringResult = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
-        log.warn("哈罗数据 批次:{}, 总量: {}, 处理成功: {}，处理结果: {}", taskId, haloCallingCount, haloCallingDealCount, stringResult);
+        try {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(apiCode).concat("\r\n"))
+                    .append("taskId：".concat(taskId).concat("\r\n"))
+                    .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
+            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
 
     }
 
