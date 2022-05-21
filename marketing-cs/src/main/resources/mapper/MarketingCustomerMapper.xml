@@ -48,17 +48,8 @@
     </select>
 
     <select id="getCustomerList" resultType="com.br.marketing.vo.MarketingCustomerListVO">
-        select id, cid, message, sort, status
-        , api_code as apiCode
-        , thread_num as threadNum
-        , extend_config_info as extendConfigInfo
-        , push_type as pushType
-        , push_thread_num as pushThreadNum
-        , push_url as pushUrl
-        , name
-        , short_name as shortName
-        , DATE_FORMAT(mc.create_time,'%Y-%m-%d %H:%i:%s') as createTime
-        , DATE_FORMAT(mc.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        select
+            <include refid="Base_Column_List" />
         from b_marketing_customer mc
         <where>
             status = 1

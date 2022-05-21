@@ -187,7 +187,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         mcExample.createCriteria().andIdEqualTo(customerRule.getCustomerId()).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(mcExample);
         if (customerList.size() == 0) {
-            throw new BusinessException("抱歉小主，客户不存在或已删除");
+            throw new BusinessException("抱歉小主，客户不存在或已禁用");
         }
         ScoreRuleConfig rule = list.get(0);
         MarketingCustomer customer = customerList.get(0);

@@ -51,11 +51,26 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode) {
+    public PageResultReturn getCustomerList(int page, int pageSize, String name, String apiCode,String accountType,String accountStatus) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<MarketingCustomerListVO> list = marketingCustomerMapper.getCustomerList(cid,apiCode);
-            return PageResultReturn.setPageResult(list, page, pageSize);
+            MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+            MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
+            if(apiCode!=null){
+                criteria.andApiCodeEqualTo(apiCode);
+            }
+            if(name!=null){
+                criteria.andNameLike("%"+name+"%");
+            }
+            if(accountType!=null){
+                criteria.andAccountTypeEqualTo(Byte.valueOf(accountType));
+            }
+            if(accountStatus!=null){
+                criteria.andAccountStatusEqualTo(Byte.valueOf(accountStatus));
+            }
+            marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
+            List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+            return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -71,6 +86,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setThreadNum(vo.getThreadNum());
         marketingCustomer.setSort(vo.getSort());
         marketingCustomer.setStatus(vo.getStatus());
+        marketingCustomer.setAccountStatus(vo.getAccountStatus());
         marketingCustomer.setExtendConfigInfo(vo.getExtendConfigInfo());
         marketingCustomer.setType("all,once");
         //push_type如果为1,push_url、push_thread_num必须不为空
@@ -129,7 +145,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Override
     public ApiResult<Boolean> apiCodeOnly(String id,String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo((byte) 1);
+        example.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
         if (select != null && select.size()>0){
             if(StringUtils.isEmpty(id)){
