@@ -45,7 +45,7 @@
             b_marketing_transfer_sync_${cid}
         where api_code=#{apiCode}
         and apply_result=1
-        <![CDATA[ apply_dt > date_sub(curdate(), INTERVAL 7 DAY) and apply_dt < curdate() ]]>
+        <![CDATA[ and apply_dt > date_sub(curdate(), INTERVAL 7 DAY) and apply_dt < curdate() ]]>
         order by apply_dt desc limit #{limitStart},2000;;
     </select>
 
