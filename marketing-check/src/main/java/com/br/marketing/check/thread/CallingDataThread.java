@@ -92,7 +92,6 @@ public class CallingDataThread implements Callable<String> {
         haloCallingDataVoList.forEach(haloCallingDataVo -> dataItems.add(JSONObject.parse(toJson(haloCallingDataVo))));
         param.put("dataItems", dataItems);
         String result = sendRequest(param);
-        log.warn("接口返回result={}", result);
         afterSendDoWork(requestId, result);
         savePushLog(requestId, param, result);
     }
