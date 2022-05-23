@@ -153,6 +153,10 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+    /**
+     * 哈啰回调数据落库配置线程数
+     */
+    private Integer haloSaveDataThreadNum;
 
     /**
      * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
