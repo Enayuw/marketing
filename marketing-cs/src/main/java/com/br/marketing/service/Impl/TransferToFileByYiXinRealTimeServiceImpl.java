@@ -26,6 +26,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -275,6 +276,12 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 }
                 String applyResult = transferFilterData.getApplyResult();
                 String applyDt = transferFilterData.getApplyDt();
+                try {
+                    Date parse = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(applyDt);
+                    applyDt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(parse);
+                } catch (ParseException e) {
+                    log.warn("非时间格式 {} -- {}",transferFilterData.getId(),applyDt);
+                }
                 String userType = transferFilterData.getUserType();
                 String type = transferFilterData.getType();
                 String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
@@ -863,6 +870,4 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
     }
-
-
 }
