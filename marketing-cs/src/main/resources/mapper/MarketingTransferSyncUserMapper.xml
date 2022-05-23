@@ -45,8 +45,9 @@
             b_marketing_transfer_sync_${cid}
         where api_code=#{apiCode}
         and apply_result=1
-        <![CDATA[ and apply_dt > date_sub(curdate(), INTERVAL 7 DAY) and apply_dt < curdate() ]]>
-        order by apply_dt desc limit #{limitStart},2000;;
+        <![CDATA[ and apply_dt > date_format(date_sub(curdate(), INTERVAL 7 DAY),'%Y-%m-%d')
+          and apply_dt < date_format(curdate(),'%Y-%m-%d') ]]>
+        order by apply_dt desc,id desc limit #{limitStart},2000
     </select>
 
     <select id="getTransferOrderInsertTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

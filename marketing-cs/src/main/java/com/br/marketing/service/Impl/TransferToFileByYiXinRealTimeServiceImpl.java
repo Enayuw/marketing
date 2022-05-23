@@ -229,7 +229,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         //去重后的Set
         Set<String> custNumResult = new HashSet();
         while (mark) {
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByApplyDt(tcId, apiCode, page);;
+            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByApplyDt(tcId, apiCode, page * 2000);
             if (CollectionUtils.isEmpty(transferData)){
                 mark = Boolean.FALSE;
                 continue;
@@ -239,13 +239,15 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             for (MarketingTransferSyncUser marketingTransferSyncUser : transferData) {
                 JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                 //非实时数据 transformType!=1
-                if (custNumResult.add(marketingTransferSyncUser.getCustNum())){
+                if (!custNumResult.contains(marketingTransferSyncUser.getCustNum())){
                     if (reserveField1 == null){
                         dataFilter.add(marketingTransferSyncUser);
+                        custNumResult.add(marketingTransferSyncUser.getCustNum());
                     }else{
                         String transformType = reserveField1.getString("transformType");
                         if (StringUtils.isBlank(transformType) || !"1".equals(transformType)){
                             dataFilter.add(marketingTransferSyncUser);
+                            custNumResult.add(marketingTransferSyncUser.getCustNum());
                         }
                     }
                 }
@@ -275,7 +277,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 String applyDt = transferFilterData.getApplyDt();
                 String userType = transferFilterData.getUserType();
                 String type = transferFilterData.getType();
-                String createTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(transferFilterData.getCreateTime());
+                String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
                 StringBuilder sb = new StringBuilder();
                 sb.append(custNum.concat(","));
                 sb.append(cell.concat(","));
