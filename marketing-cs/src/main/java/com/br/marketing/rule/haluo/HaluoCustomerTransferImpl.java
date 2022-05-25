@@ -1,4 +1,10 @@
 package com.br.marketing.rule.haluo;
+import java.util.List;
+import java.util.Date;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
+import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -9,8 +15,10 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
 import com.br.marketing.context.impl.HaluoRuleCollectDataImpl;
+import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -18,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,16 +36,25 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 @Service
 @Slf4j
-public class HaluoCustomerTransferImpl implements AssembleData<ConversionData> {
+public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCustomerBlackDTO> {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @Autowired
+    PhoneSaleExtendServiceImpl phoneSaleExtendService;
+
+    private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
@@ -62,7 +80,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<ConversionData> {
         MarketingSyncUser syncUser = ruleNecessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
         List<PhoneSaleExtendInfo> phoneSaleExtendInfos = ruleNecessaryData.getPhoneSaleExtendInfoMap().get(transferSyncUser.getCustNum());
         Map<String, List<TaskTime>> taskIdDateMap = ruleNecessaryData.getTaskIdDateMap();
-        //region check
+
         if (syncUser == null) {
             return false;
         }
@@ -77,92 +95,81 @@ public class HaluoCustomerTransferImpl implements AssembleData<ConversionData> {
         if(untilDate>=taskTimeDays){
             return false;
         }
-        //endregion
-
-        JSONObject jb = JSON.parseObject(transferSyncUser.getReserveField1());
-        boolean a = "1".equals(transferSyncUser.getIfLogin())
-                && (jb != null && org.apache.commons.lang3.StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
-                && !"1".equals(transferSyncUser.getIfApply());
-
-        boolean b = "1".equals(transferSyncUser.getIfLogin())
-                && (jb != null && org.apache.commons.lang3.StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-                && !"1".equals(transferSyncUser.getIfApply());
-
-        boolean c = "1".equals(transferSyncUser.getIfLogin())
-                && (jb != null && org.apache.commons.lang3.StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-                && "1".equals(transferSyncUser.getIfApply())
-                && "0".equals(transferSyncUser.getApplyResult());
-        Double unlentAmount = Double.valueOf(org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getUnlentAmount()) ? transferSyncUser.getUnlentAmount() : "0");
-        boolean d = unlentAmount > 0;
-
-        boolean groupa = (status.contains("a")&&a) || (status.contains("b")&&b) || status.contains("c")&&c;
-        boolean groupb = status.contains("d")&&d;
-        if (!groupa && !groupb) {
+        String haluoStatus = phoneSaleExtendService.getHaluoStatus(transferSyncUser, syncUser);
+        if(StringUtils.isEmpty(haluoStatus)){
             return false;
         }
-        if(groupb){
-
-        }
-        return false;
+        return phoneSaleExtendService.haluoSaleJudge(phoneSaleExtendInfos,haluoStatus,syncUser.getCusBatch());
     }
 
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
+    public MultipleDassAndCustomerBlackDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        MultipleDassAndCustomerBlackDTO multipleDassAndCustomerBlackDTO = new MultipleDassAndCustomerBlackDTO();
+        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
+        DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+        BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
+        multipleDassAndCustomerBlackDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        multipleDassAndCustomerBlackDTO.setDassImportAdapDTO(dassImportDataDTO);
+        multipleDassAndCustomerBlackDTO.setReqBlackPhoneParentDTO(blackDetailDTO);
 
-        transferSyncUser transferSyncUser = (transferSyncUser)transmitFact;
-        HaiErRuleCollectDataImpl.HaiErRuleNecessaryData necessaryData =
-                (HaiErRuleCollectDataImpl.HaiErRuleNecessaryData) context.getRuleNecessaryData();
+        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
+        HaluoRuleCollectDataImpl.HaluoRuleNecessaryData ruleNecessaryData =
+                (HaluoRuleCollectDataImpl.HaluoRuleNecessaryData) context.getRuleNecessaryData();
+        MarketingSyncUser syncUser = ruleNecessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
+        String haluoStatus = phoneSaleExtendService.getHaluoStatus(transferSyncUser, syncUser);
+        phoneSaleExtendInfo.setApiCode(transferSyncUser.getApiCode());
+        phoneSaleExtendInfo.setCustNum(transferSyncUser.getCustNum());
+        phoneSaleExtendInfo.setTaskId(syncUser.getCusBatch());
+        phoneSaleExtendInfo.setUserType(syncUser.getUserType());
+        phoneSaleExtendInfo.setAppletDate(transferSyncUser.getRequestData());
+        phoneSaleExtendInfo.setAppletTime(transferSyncUser.getRequestTime());
+        phoneSaleExtendInfo.setStatus(haluoStatus);
+        phoneSaleExtendInfo.setPStatus(0);
+        phoneSaleExtendInfo.setCreateTime(new Date());
+        phoneSaleExtendInfo.setUpdateTime(new Date());
+        phoneSaleExtendInfo.setSourceId(transferSyncUser.getId());
 
-        MarketingSyncUser syncUser = necessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
-        try {
-            if (syncUser == null) {
-                log.error(String.format("海尔该转化数据没有匹配到原始上传数据 dataId:%d",transferSyncUser.getId()));
-                return null;
-            }
-            String status = "";
-            if ("4".equals(transferSyncUser.getUserType())) {
-                status = "0";
-            } else {
-                if(transferSyncUser.getApplyDt() == null){
-                    return null;
+        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        String s = AESUtil.aesEncrypty(cell, aesKey);
+        String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
+                BrCipherMaker.getInstance().decode(syncUser.getName())
+                : "";
+        dassImportDataDTO.setUid(transferSyncUser.getCustNum());
+        dassImportDataDTO.setPhone(s);
+        dassImportDataDTO.setName(name);
+        dassImportDataDTO.setOrgname("hellobike");
+        dassImportDataDTO.setSource("96");
+        dassImportDataDTO.setUserType("d".equals(haluoStatus) ? "3" : "2");
+        dassImportDataDTO.setLoginTime(haluoBydxTimeFormat(transferSyncUser.getLoginTime()));
+        dassImportDataDTO.setIfApply(transferSyncUser.getIfApply());
+        dassImportDataDTO.setApplyDt(haluoBydxTimeFormat(transferSyncUser.getApplyDt()));
+        dassImportDataDTO.setAuditTime(haluoBydxTimeFormat(transferSyncUser.getAuditTime()));
+        dassImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
+        dassImportDataDTO.setUnlentAmount(transferSyncUser.getUnlentAmount());
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
+            JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
+            if (jsonObject != null) {
+                String applyInformation = jsonObject.getString("applyInformation");
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(applyInformation)) {
+                    JSONObject jsonObject1 = new JSONObject();
+                    jsonObject1.put("applyInformation", applyInformation);
+                    dassImportDataDTO.setExtend(JSON.toJSONString(jsonObject1));
                 }
-                Date applydt = null;
-                try {
-                    applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
-                    Date appletTime = syncUser.getAppletTime();
-                    if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
-                        status = "2";
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
             }
-            if (StringUtils.isEmpty(status)) {
-                return null;
-            }
-            ConversionData conversionData = new ConversionData();
-            conversionData.setDataId(transferSyncUser.getId().toString());
-            conversionData.setCid(transferSyncUser.getCid());
-            conversionData.setCaseNum(transferSyncUser.getCustNum());
-            conversionData.setGroupType(transferSyncUser.getUserType());
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
-            conversionData.setInversionStatus(status);
-            if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
-                conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            }
-            TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-            BeanUtils.copyProperties(transferSyncUser, vo);
-            conversionData.setInversionInfo(JSON.toJSONString(vo));
-            return conversionData;
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
         }
-        return null;
+        String expiredate = LocalDate.parse(transferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(6)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
+        blackDetailDTO.setDataId(transferSyncUser.getId().toString());
+        blackDetailDTO.setName(name);
+        blackDetailDTO.setPhone(cell);
+        blackDetailDTO.setExpireDate(expiredate);
+
+        return multipleDassAndCustomerBlackDTO;
     }
 
     @Override
     public String label() {
-        return "Haier_OverdueData_CustomerTransfer";
+        return "HaLuo_Transfer_DassAndCustomerBlack";
     }
 
     @Override
@@ -172,6 +179,18 @@ public class HaluoCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.HAI_ER_RULE_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.HALUO_DASS_COLLECTION.getCode();
+    }
+
+    private String haluoBydxTimeFormat(String time) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(time)) {
+            return time;
+        }
+
+        if (Pattern.matches(msTimeRegex, time)) {
+            return time.replace(":000", "");
+        }
+
+        return time;
     }
 }
