@@ -4,7 +4,11 @@ import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.PhoneSale;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -46,6 +50,9 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
 
@@ -65,5 +72,17 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
                                 Collectors.reducing((v1, v2) ->
                                         v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                 , Optional::get)));
+    }
+
+    public Map<String,List<PhoneSaleExtendInfo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode,String startDate,String endDate){
+        PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
+        extendInfoExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCustNumIn(custNums)
+                .andAppletDateGreaterThanOrEqualTo(startDate)
+                .andAppletDateLessThanOrEqualTo(endDate);
+        List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(extendInfoExample);
+        Map<String, List<PhoneSaleExtendInfo>> map = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendInfo::getCustNum));
+        return map;
     }
 }
