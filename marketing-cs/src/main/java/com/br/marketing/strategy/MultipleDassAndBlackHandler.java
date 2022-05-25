@@ -16,6 +16,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +37,24 @@ public class MultipleDassAndBlackHandler extends AbstractExternalInterfaceHandle
     @Resource
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
+    @Autowired
+    PhoneSaleExtendServiceImpl phoneSaleExtendService;
+
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
     JSONObject call(List<MultipleDassAndCustomerBlackDTO> transferData, ProcessHandlerContext context) {
+
         List<List<MultipleDassAndCustomerBlackDTO>> partition = ListUtils.partition(transferData, 50);
         for (List<MultipleDassAndCustomerBlackDTO> multipleDassAndCustomerBlackDTOS : partition) {
+
+            for (MultipleDassAndCustomerBlackDTO multipleDassAndCustomerBlackDTO : multipleDassAndCustomerBlackDTOS) {
+                Result result = phoneSaleExtendService.savePhoneExtend(multipleDassAndCustomerBlackDTO.getPhoneSaleExtendInfo());
+                if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    multipleDassAndCustomerBlackDTOS.remove(multipleDassAndCustomerBlackDTO);
+                }
+            }
 
             //region push dass
             DassImportAdapDTO dassImportAdapDTO = new DassImportAdapDTO();
@@ -52,7 +64,6 @@ public class MultipleDassAndBlackHandler extends AbstractExternalInterfaceHandle
             List<BlackDetailDTO> blackLists = multipleDassAndCustomerBlackDTOS.stream().map(t -> t.getReqBlackPhoneParentDTO()).collect(Collectors.toList());
             dassImportAdapDTO.setList(dataDTOS);
             dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
-            phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO,0);
             //endregion
 

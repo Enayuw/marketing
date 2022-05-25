@@ -51,7 +51,6 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
     @Autowired
     PhoneSaleExtendServiceImpl phoneSaleExtendService;
 
-    private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -140,10 +139,10 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
         dassImportDataDTO.setOrgname("hellobike");
         dassImportDataDTO.setSource("96");
         dassImportDataDTO.setUserType("d".equals(haluoStatus) ? "3" : "2");
-        dassImportDataDTO.setLoginTime(haluoBydxTimeFormat(transferSyncUser.getLoginTime()));
+        dassImportDataDTO.setLoginTime(phoneSaleExtendService.haluoBydxTimeFormat(transferSyncUser.getLoginTime()));
         dassImportDataDTO.setIfApply(transferSyncUser.getIfApply());
-        dassImportDataDTO.setApplyDt(haluoBydxTimeFormat(transferSyncUser.getApplyDt()));
-        dassImportDataDTO.setAuditTime(haluoBydxTimeFormat(transferSyncUser.getAuditTime()));
+        dassImportDataDTO.setApplyDt(phoneSaleExtendService.haluoBydxTimeFormat(transferSyncUser.getApplyDt()));
+        dassImportDataDTO.setAuditTime(phoneSaleExtendService.haluoBydxTimeFormat(transferSyncUser.getAuditTime()));
         dassImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
         dassImportDataDTO.setUnlentAmount(transferSyncUser.getUnlentAmount());
         if (org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
@@ -182,15 +181,5 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
         return RuleDataCollectionEnum.HALUO_DASS_COLLECTION.getCode();
     }
 
-    private String haluoBydxTimeFormat(String time) {
-        if (org.apache.commons.lang3.StringUtils.isBlank(time)) {
-            return time;
-        }
 
-        if (Pattern.matches(msTimeRegex, time)) {
-            return time.replace(":000", "");
-        }
-
-        return time;
-    }
 }

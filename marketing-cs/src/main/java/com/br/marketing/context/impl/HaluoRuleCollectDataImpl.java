@@ -53,7 +53,7 @@ public class HaluoRuleCollectDataImpl extends CommonMethodHandlerService {
                 taskDate = Integer.valueOf(haluoTransferRule.get("taskIddate")) - 1;
             }
             String endDate = LocalDate.now().format(ymd);
-            String startDate = LocalDate.now().plusDays(taskDate).format(ymd);
+            String startDate = LocalDate.now().minusDays(taskDate).format(ymd);
             Map<String, List<PhoneSaleExtendInfo>> phoneSaleExtendInfos = getPhoneSaleExtendInfos(custNums, context.getApiCode(), startDate, endDate);
             haLuoRuleNecessaryData.setPhoneSaleExtendInfoMap(phoneSaleExtendInfos);
             context.setRuleNecessaryData(haLuoRuleNecessaryData);
@@ -62,7 +62,7 @@ public class HaluoRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.HAI_ER_RULE_DATA_COLLECTION;
+        return RuleDataCollectionEnum.HALUO_DASS_COLLECTION;
     }
 
 

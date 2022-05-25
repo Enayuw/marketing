@@ -21,7 +21,9 @@ import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.dto.SingleDassAndRecordDTO;
 import com.br.marketing.entity.DataCompare;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -130,6 +132,27 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 调用Dass接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     *
+     * @param dassImportAdapDTO
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callSingleDassAndRecord(SingleDassAndRecordDTO dassImportAdapDTO, Integer retry) {
+
+        Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
+            update.setId(dassImportAdapDTO.getSaleExtentId());
+            update.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 调用客服黑名单接口
