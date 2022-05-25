@@ -13,7 +13,14 @@ public class PhoneSaleExtendServiceImpl {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    public boolean haluoSaleJudge(List<PhoneSaleExtendInfo> phoneSales,String dataStatus){
+    /**
+     * 是否符合d的情况
+     *
+     * @param phoneSales
+     * @param dataStatus
+     * @return
+     */
+    public boolean haluoSaleJudge(List<PhoneSaleExtendInfo> phoneSales,String dataStatus,String taskId){
         phoneSales.sort((t,t1)->{return t.getAppletDate().compareTo(t1.getAppletDate());});
         Integer taskTimeDays = 35;
         Integer abcTimeDays = 5;
@@ -30,8 +37,11 @@ public class PhoneSaleExtendServiceImpl {
             String statusStr = haluoTransferRule.getOrDefault("status", "a,b,d");
             status = new HashSet<>(Arrays.asList(statusStr.split(",")));
         }
+        if(!status.contains(dataStatus)){
+            return false;
+        }
         if(dataStatus.equals("d")){
-
+            phoneSales.
         }
     }
 }
