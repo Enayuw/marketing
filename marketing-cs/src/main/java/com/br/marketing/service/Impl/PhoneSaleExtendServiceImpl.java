@@ -106,7 +106,7 @@ public class PhoneSaleExtendServiceImpl {
 
     public void haluoPushDass(){
         List<String> defaultCode = new ArrayList<>();
-        defaultCode.add("7410785");
+        defaultCode.add("7410850");
         defaultCode.add("3710028");
         for (String s : defaultCode) {
             String minDate = LocalDate.now().minusDays(getTaskIdDays() - 1).format(ymd);
@@ -128,7 +128,7 @@ public class PhoneSaleExtendServiceImpl {
                 Integer num =0;
                 for (String key : collect.keySet()) {
                     List<PhoneSaleExtendInfo> phoneSaleExtendInfos1 = collect.get(key);
-                    if(!haluoSaleJudge(phoneSaleExtendInfos1,"d",key)){
+                    if(!haluoSaleJudge(phoneSaleExtendInfos1,"d",taskId)){
                         continue;
                     }
                     phoneSaleExtendInfos1.
@@ -212,11 +212,8 @@ public class PhoneSaleExtendServiceImpl {
         Integer taskTimeDays = 35;
         Integer abcTimeDays = 5;
         Integer dTimeDays = 4;
-        Integer dTimes = 7;
-        HashSet status = new HashSet();
-        status.add("a");
-        status.add("b");
-        status.add("d");
+        Integer dTimes = getDtimes();
+        HashSet status = getStatus();
         HashSet defaultGroupA = new HashSet();
         defaultGroupA.add("a");
         defaultGroupA.add("b");
@@ -226,9 +223,6 @@ public class PhoneSaleExtendServiceImpl {
             taskTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("taskIddate", "35"));
             abcTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("ABCdate", "5"));
             dTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("Ddate", "4"));
-            dTimes = Integer.valueOf(haluoTransferRule.getOrDefault("dTimes", "7"));
-            String statusStr = haluoTransferRule.getOrDefault("status", "a,b,d");
-            status = new HashSet<>(Arrays.asList(statusStr.split(",")));
         }
         if (!status.contains(dataStatus)) {
             return false;
@@ -239,7 +233,7 @@ public class PhoneSaleExtendServiceImpl {
             Integer dnum = 0;
             for (PhoneSaleExtendInfo sale : sales) {
                 if (sale.getStatus().equals("d")) {
-                    if (dnum == 0) {
+                    if (lastSale == null) {
                         lastSale = sale;
                     }
                     dnum++;
@@ -247,6 +241,9 @@ public class PhoneSaleExtendServiceImpl {
             }
             if (dnum >= dTimes) {
                 return false;
+            }
+            if(lastSale==null){
+                return true;
             }
             LocalDate lastDate = LocalDate.parse(lastSale.getAppletDate(), ymd);
             long until = lastDate.until(nowDate, ChronoUnit.DAYS);
