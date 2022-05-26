@@ -123,7 +123,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
         phoneSaleExtendInfo.setAppletDate(transferSyncUser.getRequestData());
         phoneSaleExtendInfo.setAppletTime(transferSyncUser.getRequestTime());
         phoneSaleExtendInfo.setStatus(haluoStatus);
-        phoneSaleExtendInfo.setPStatus(0);
+        phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setUpdateTime(new Date());
         phoneSaleExtendInfo.setSourceId(transferSyncUser.getId());
