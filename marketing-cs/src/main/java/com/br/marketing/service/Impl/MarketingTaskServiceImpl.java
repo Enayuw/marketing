@@ -497,7 +497,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
                 .append(String.format("预计数量: %d", preNum));
-        alarmClient.sendAlarm(content.toString(), "", appName, secretKey,
+        alarmClient.sendAlarm(content.toString(), "任务创建", appName, secretKey,
                 Constants.sendCodeMap.get("uploadSuccess"));
         //endregion
         return task.getId();
