@@ -184,4 +184,24 @@ public class MarketingCommonConfig {
      */
     private String JiuFuTransferExecuteTime;
 
+    /**
+     * 小赢转化数据推送智能客服apiCode集合
+     */
+    private List<String> xiaoYingTransferPushRobotApiCodes;
+
+    /**
+     * 小赢转化数据提取apiCode集合
+     */
+    private List<String> xiaoYingTransferExtractApiCodes;
+
+    /**
+     * 小赢登录断点转化数据提取任务开始时间
+     */
+    private String xiaoYingDengLuDuanDianTransferExtractJobTime;
+
+    /**
+     * 小赢促提转化数据提取任务开始时间
+     */
+    private String xiaoYingCuTiTransferExtractJobTime;
+
 }
