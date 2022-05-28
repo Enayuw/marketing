@@ -202,13 +202,16 @@ public class PhoneSaleExtendServiceImpl {
 
 
     public boolean haluoSaleJudge(List<PhoneSaleExtendInfo> phoneSales, String dataStatus, String taskId) {
-        if(phoneSales==null||phoneSales.size()<=0){
+        if(phoneSales==null){
             return true;
         }
         List<PhoneSaleExtendInfo> sales = phoneSales.stream()
                 .filter(t -> t.getTaskId().equals(taskId))
                 .sorted(Comparator.comparing(PhoneSaleExtendInfo::getAppletDate).reversed()
                         .thenComparing(PhoneSaleExtendInfo::getCreateTime).reversed()).collect(Collectors.toList());
+        if(sales.size()<=0){
+            return true;
+        }
         Integer taskTimeDays = 35;
         Integer abcTimeDays = 5;
         Integer dTimeDays = 4;
