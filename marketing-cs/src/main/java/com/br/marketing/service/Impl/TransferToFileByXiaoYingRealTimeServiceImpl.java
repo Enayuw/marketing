@@ -65,15 +65,44 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+        List<TransferFileTask> list = new ArrayList<>();
         //1.登录未申请授信（断点）
-        List<TransferFileTask> list = buildTransferTaskDengLuDuanDian(apiCode);
+        List<TransferFileTask> duanDian = buildTransferTaskDengLuDuanDian(apiCode);
         //2.促提
         List<TransferFileTask> cuTis = buildTransferTaskCuTi(apiCode);
+        //3.小赢全量转化数据提取
+        List<TransferFileTask> full = buildTransferTaskFullLoad(apiCode);
+        list.addAll(duanDian);
         list.addAll(cuTis);
+        list.addAll(full);
         Result<List<TransferFileTask>> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(list);
         return result;
+    }
+
+    public List<TransferFileTask> buildTransferTaskFullLoad(String apiCode) {
+        int full = 3;
+        List<TransferFileTask> resultList = new ArrayList<>();
+        String extractTime = marketingCommonConfig.getXiaoYingFullLoadTransferExtractJobTime();
+        if (StringUtils.isNull(extractTime)) {
+            extractTime = DEFAULT_EXTRACT_TIME;
+        }
+        LocalTime localTime = LocalTime.parse(extractTime);
+        if (LocalTime.now().isAfter(localTime)) {
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            TransferFileTaskExample example = new TransferFileTaskExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd)
+                    .andFileTypeEqualTo(full);
+            if (CollectionUtils.isEmpty(transferFileTaskMapper.selectByExample(example))) {
+                log.warn("小赢全量转化-添加到任务,apiCode:{}", apiCode);
+                String name = "xiaoyingzhuanhua";
+                TransferFileTask transferFileTask = insertFileTask(apiCode, name, full
+                        , name, yyyyMMdd);
+                resultList.add(transferFileTask);
+            }
+        }
+        return resultList;
     }
 
     /**
@@ -251,10 +280,44 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
                     }
                 });
                 break;
+            case 3:
+                fw.append("custNum,cell,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount").append("\r\n");
+                extractTime = marketingCommonConfig.getXiaoYingFullLoadTransferExtractJobTime();
+                startTime = getStartTime(extractTime, firstTime);
+                endTime = getEndTime(extractTime, lastTime);
+                writeFile(transferFileTask, transferSyncUser, startTime, endTime, (transfer, cell) -> {
+                    try {
+                        writeTransferTaskFull(transfer, cell, fw);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                break;
             default:
                 log.error("小赢任务未找到对应的actionTransferToFile方法,请检查fileType, transferFileTask:{}"
                         , transferFileTask);
         }
+    }
+
+    private void writeTransferTaskFull(MarketingTransferSyncUser syncUser, String cell, Writer fw) throws IOException {
+        fw.append(syncUser.getCustNum()).append(",");
+        fw.append(cell).append(",");
+        fw.append(syncUser.getIfLogin()).append(",");
+        fw.append(StringUtils.isBlank(syncUser.getLoginTime()) ? "" : LocalDateTime.parse(syncUser.getLoginTime()
+                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT)).append(",");
+        fw.append(syncUser.getIfApply()).append(",");
+        fw.append(StringUtils.isBlank(syncUser.getApplyDt()) ? "" : LocalDateTime.parse(syncUser.getApplyDt()
+                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(syncUser.getApplyResult()).append(",");
+        fw.append(StringUtils.isBlank(syncUser.getAuditTime()) ? "" : LocalDateTime.parse(syncUser.getAuditTime()
+                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(syncUser.getAuditAmount()).append(",");
+        fw.append(syncUser.getIfLent()).append(",");
+        fw.append(StringUtils.isBlank(syncUser.getLentTime()) ? "" : LocalDateTime.parse(syncUser.getLentTime()
+                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(syncUser.getLentAmount());
+        fw.append("\r\n");
+        fw.flush();
     }
 
     /**
@@ -357,7 +420,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         updatetask.setTaskNumber(sum);
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("小微数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, sum);
+        log.warn("小赢数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, sum);
     }
 
     /**

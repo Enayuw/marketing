@@ -204,4 +204,9 @@ public class MarketingCommonConfig {
      */
     private String xiaoYingCuTiTransferExtractJobTime;
 
+    /**
+     * 小赢全量转化数据提取任务开始时间
+     */
+    private String xiaoYingFullLoadTransferExtractJobTime;
+
 }
