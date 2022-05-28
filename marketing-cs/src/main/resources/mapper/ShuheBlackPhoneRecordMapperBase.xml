@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.PhoneSaleExtendInfo">
+<mapper namespace="com.br.marketing.mapper.ShuheBlackPhoneRecordMapper">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ShuheBlackPhoneRecord">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
-    <result column="task_id" jdbcType="VARCHAR" property="taskId" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
     <result column="user_type" jdbcType="VARCHAR" property="userType" />
-    <result column="applet_date" jdbcType="VARCHAR" property="appletDate" />
-    <result column="applet_time" jdbcType="VARCHAR" property="appletTime" />
-    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="orgName" jdbcType="VARCHAR" property="orgname" />
+    <result column="source" jdbcType="VARCHAR" property="source" />
+    <result column="push_date" jdbcType="VARCHAR" property="pushDate" />
     <result column="p_status" jdbcType="INTEGER" property="pStatus" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="type" jdbcType="VARCHAR" property="type" />
-    <result column="dx_type" jdbcType="VARCHAR" property="dxType" />
-    <result column="transform_type" jdbcType="VARCHAR" property="transformType" />
-    <result column="source_id" jdbcType="BIGINT" property="sourceId" />
-    <result column="push_dx_time" jdbcType="TIMESTAMP" property="pushDxTime" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -78,16 +74,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, cust_num, task_id, user_type, applet_date, applet_time, `status`, p_status, 
-    create_time, update_time, `type`, dx_type, transform_type, source_id, push_dx_time
+    id, api_code, cust_num, phone, user_type, `type`, orgName, `source`, push_date, p_status, 
+    create_time, update_time
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecordExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_phone_sale_extend_info
+    from b_shuhe_black_phone_record
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -98,35 +94,31 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from b_phone_sale_extend_info
+    from b_shuhe_black_phone_record
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from b_phone_sale_extend_info
+    delete from b_shuhe_black_phone_record
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
-    delete from b_phone_sale_extend_info
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecordExample">
+    delete from b_shuhe_black_phone_record
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.PhoneSaleExtendInfo" useGeneratedKeys="true">
-    insert into b_phone_sale_extend_info (api_code, cust_num, task_id, 
-      user_type, applet_date, applet_time, 
-      `status`, p_status, create_time, 
-      update_time, `type`, dx_type, 
-      transform_type, source_id, push_dx_time
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, 
-      #{userType,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, #{appletTime,jdbcType=VARCHAR}, 
-      #{status,jdbcType=VARCHAR}, #{pStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{type,jdbcType=VARCHAR}, #{dxType,jdbcType=VARCHAR}, 
-      #{transformType,jdbcType=VARCHAR}, #{sourceId,jdbcType=BIGINT}, #{pushDxTime,jdbcType=TIMESTAMP}
-      )
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecord" useGeneratedKeys="true">
+    insert into b_shuhe_black_phone_record (api_code, cust_num, phone, 
+      user_type, `type`, orgName, 
+      `source`, push_date, p_status, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{userType,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{orgname,jdbcType=VARCHAR}, 
+      #{source,jdbcType=VARCHAR}, #{pushDate,jdbcType=VARCHAR}, #{pStatus,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.PhoneSaleExtendInfo" useGeneratedKeys="true">
-    insert into b_phone_sale_extend_info
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecord" useGeneratedKeys="true">
+    insert into b_shuhe_black_phone_record
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
         api_code,
@@ -134,20 +126,23 @@
       <if test="custNum != null">
         cust_num,
       </if>
-      <if test="taskId != null">
-        task_id,
+      <if test="phone != null">
+        phone,
       </if>
       <if test="userType != null">
         user_type,
       </if>
-      <if test="appletDate != null">
-        applet_date,
+      <if test="type != null">
+        `type`,
       </if>
-      <if test="appletTime != null">
-        applet_time,
+      <if test="orgname != null">
+        orgName,
       </if>
-      <if test="status != null">
-        `status`,
+      <if test="source != null">
+        `source`,
+      </if>
+      <if test="pushDate != null">
+        push_date,
       </if>
       <if test="pStatus != null">
         p_status,
@@ -158,21 +153,6 @@
       <if test="updateTime != null">
         update_time,
       </if>
-      <if test="type != null">
-        `type`,
-      </if>
-      <if test="dxType != null">
-        dx_type,
-      </if>
-      <if test="transformType != null">
-        transform_type,
-      </if>
-      <if test="sourceId != null">
-        source_id,
-      </if>
-      <if test="pushDxTime != null">
-        push_dx_time,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
@@ -181,20 +161,23 @@
       <if test="custNum != null">
         #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="taskId != null">
-        #{taskId,jdbcType=VARCHAR},
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
       </if>
       <if test="userType != null">
         #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="appletDate != null">
-        #{appletDate,jdbcType=VARCHAR},
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
       </if>
-      <if test="appletTime != null">
-        #{appletTime,jdbcType=VARCHAR},
+      <if test="orgname != null">
+        #{orgname,jdbcType=VARCHAR},
       </if>
-      <if test="status != null">
-        #{status,jdbcType=VARCHAR},
+      <if test="source != null">
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDate != null">
+        #{pushDate,jdbcType=VARCHAR},
       </if>
       <if test="pStatus != null">
         #{pStatus,jdbcType=INTEGER},
@@ -205,31 +188,16 @@
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="type != null">
-        #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="dxType != null">
-        #{dxType,jdbcType=VARCHAR},
-      </if>
-      <if test="transformType != null">
-        #{transformType,jdbcType=VARCHAR},
-      </if>
-      <if test="sourceId != null">
-        #{sourceId,jdbcType=BIGINT},
-      </if>
-      <if test="pushDxTime != null">
-        #{pushDxTime,jdbcType=TIMESTAMP},
-      </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample" resultType="java.lang.Integer">
-    select count(*) from b_phone_sale_extend_info
+  <select id="countByExample" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecordExample" resultType="java.lang.Long">
+    select count(*) from b_shuhe_black_phone_record
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update b_phone_sale_extend_info
+    update b_shuhe_black_phone_record
     <set>
       <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
@@ -240,20 +208,23 @@
       <if test="record.custNum != null">
         cust_num = #{record.custNum,jdbcType=VARCHAR},
       </if>
-      <if test="record.taskId != null">
-        task_id = #{record.taskId,jdbcType=VARCHAR},
+      <if test="record.phone != null">
+        phone = #{record.phone,jdbcType=VARCHAR},
       </if>
       <if test="record.userType != null">
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
-      <if test="record.appletDate != null">
-        applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      <if test="record.type != null">
+        `type` = #{record.type,jdbcType=VARCHAR},
       </if>
-      <if test="record.appletTime != null">
-        applet_time = #{record.appletTime,jdbcType=VARCHAR},
+      <if test="record.orgname != null">
+        orgName = #{record.orgname,jdbcType=VARCHAR},
       </if>
-      <if test="record.status != null">
-        `status` = #{record.status,jdbcType=VARCHAR},
+      <if test="record.source != null">
+        `source` = #{record.source,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushDate != null">
+        push_date = #{record.pushDate,jdbcType=VARCHAR},
       </if>
       <if test="record.pStatus != null">
         p_status = #{record.pStatus,jdbcType=INTEGER},
@@ -264,50 +235,31 @@
       <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.type != null">
-        `type` = #{record.type,jdbcType=VARCHAR},
-      </if>
-      <if test="record.dxType != null">
-        dx_type = #{record.dxType,jdbcType=VARCHAR},
-      </if>
-      <if test="record.transformType != null">
-        transform_type = #{record.transformType,jdbcType=VARCHAR},
-      </if>
-      <if test="record.sourceId != null">
-        source_id = #{record.sourceId,jdbcType=BIGINT},
-      </if>
-      <if test="record.pushDxTime != null">
-        push_dx_time = #{record.pushDxTime,jdbcType=TIMESTAMP},
-      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update b_phone_sale_extend_info
+    update b_shuhe_black_phone_record
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cust_num = #{record.custNum,jdbcType=VARCHAR},
-      task_id = #{record.taskId,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=VARCHAR},
       user_type = #{record.userType,jdbcType=VARCHAR},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      applet_time = #{record.appletTime,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=VARCHAR},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      orgName = #{record.orgname,jdbcType=VARCHAR},
+      `source` = #{record.source,jdbcType=VARCHAR},
+      push_date = #{record.pushDate,jdbcType=VARCHAR},
       p_status = #{record.pStatus,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      `type` = #{record.type,jdbcType=VARCHAR},
-      dx_type = #{record.dxType,jdbcType=VARCHAR},
-      transform_type = #{record.transformType,jdbcType=VARCHAR},
-      source_id = #{record.sourceId,jdbcType=BIGINT},
-      push_dx_time = #{record.pushDxTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.PhoneSaleExtendInfo">
-    update b_phone_sale_extend_info
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecord">
+    update b_shuhe_black_phone_record
     <set>
       <if test="apiCode != null">
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -315,20 +267,23 @@
       <if test="custNum != null">
         cust_num = #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="taskId != null">
-        task_id = #{taskId,jdbcType=VARCHAR},
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
       </if>
       <if test="userType != null">
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="appletDate != null">
-        applet_date = #{appletDate,jdbcType=VARCHAR},
+      <if test="type != null">
+        `type` = #{type,jdbcType=VARCHAR},
       </if>
-      <if test="appletTime != null">
-        applet_time = #{appletTime,jdbcType=VARCHAR},
+      <if test="orgname != null">
+        orgName = #{orgname,jdbcType=VARCHAR},
       </if>
-      <if test="status != null">
-        `status` = #{status,jdbcType=VARCHAR},
+      <if test="source != null">
+        `source` = #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDate != null">
+        push_date = #{pushDate,jdbcType=VARCHAR},
       </if>
       <if test="pStatus != null">
         p_status = #{pStatus,jdbcType=INTEGER},
@@ -339,41 +294,22 @@
       <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="type != null">
-        `type` = #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="dxType != null">
-        dx_type = #{dxType,jdbcType=VARCHAR},
-      </if>
-      <if test="transformType != null">
-        transform_type = #{transformType,jdbcType=VARCHAR},
-      </if>
-      <if test="sourceId != null">
-        source_id = #{sourceId,jdbcType=BIGINT},
-      </if>
-      <if test="pushDxTime != null">
-        push_dx_time = #{pushDxTime,jdbcType=TIMESTAMP},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PhoneSaleExtendInfo">
-    update b_phone_sale_extend_info
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ShuheBlackPhoneRecord">
+    update b_shuhe_black_phone_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cust_num = #{custNum,jdbcType=VARCHAR},
-      task_id = #{taskId,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
       user_type = #{userType,jdbcType=VARCHAR},
-      applet_date = #{appletDate,jdbcType=VARCHAR},
-      applet_time = #{appletTime,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=VARCHAR},
+      orgName = #{orgname,jdbcType=VARCHAR},
+      `source` = #{source,jdbcType=VARCHAR},
+      push_date = #{pushDate,jdbcType=VARCHAR},
       p_status = #{pStatus,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      `type` = #{type,jdbcType=VARCHAR},
-      dx_type = #{dxType,jdbcType=VARCHAR},
-      transform_type = #{transformType,jdbcType=VARCHAR},
-      source_id = #{sourceId,jdbcType=BIGINT},
-      push_dx_time = #{pushDxTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
