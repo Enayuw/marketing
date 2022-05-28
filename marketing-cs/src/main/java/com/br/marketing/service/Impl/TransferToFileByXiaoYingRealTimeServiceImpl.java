@@ -305,18 +305,14 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         fw.append(syncUser.getCustNum()).append(",");
         fw.append(cell).append(",");
         fw.append(syncUser.getIfLogin()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getLoginTime()) ? "" : LocalDateTime.parse(syncUser.getLoginTime()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT)).append(",");
+        fw.append(dateTimeFormatter(syncUser.getLoginTime())).append(",");
         fw.append(syncUser.getIfApply()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getApplyDt()) ? "" : LocalDateTime.parse(syncUser.getApplyDt()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(dateTimeFormatter(syncUser.getApplyDt())).append(",");
         fw.append(syncUser.getApplyResult()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getAuditTime()) ? "" : LocalDateTime.parse(syncUser.getAuditTime()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(dateTimeFormatter(syncUser.getAuditTime())).append(",");
         fw.append(syncUser.getAuditAmount()).append(",");
         fw.append(syncUser.getIfLent()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getLentTime()) ? "" : LocalDateTime.parse(syncUser.getLentTime()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(dateTimeFormatter(syncUser.getLentTime())).append(",");
         fw.append(syncUser.getLentAmount());
         fw.append("\r\n");
         fw.flush();
