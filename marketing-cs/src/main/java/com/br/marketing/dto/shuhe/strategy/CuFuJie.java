@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
@@ -103,7 +104,14 @@ public class CuFuJie extends IUserType {
 
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
-        return isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+//        return isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+        return isY(caseShuheUser.getIsTurn());
+    }
+
+    @Override
+    public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime, CaseUserServiceImpl caseUserService) {
+        return ifGiveUp(caseShuheUser,creatTime)
+                ||isDxRrrEndAndY(caseShuheUser,caseUserService);
     }
 
     @Override

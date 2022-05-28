@@ -6,7 +6,7 @@ import java.util.Date;
 
 public class CaseShuheUser {
     /**
-     *
+     * 
      */
     private Long id;
 
@@ -149,6 +149,11 @@ public class CaseShuheUser {
      * 数据保存状态 0-成功、1-原始数据保存失败、2-保存转化信息异常、3-保存转化详情异常
      */
     private Integer saveStatus;
+
+    /**
+     * 禁止运营期
+     */
+    private String clcUsrMaxDxRrtEnd;
 
     /**
      * 异常信息
@@ -393,6 +398,14 @@ public class CaseShuheUser {
         this.saveStatus = saveStatus;
     }
 
+    public String getClcUsrMaxDxRrtEnd() {
+        return clcUsrMaxDxRrtEnd;
+    }
+
+    public void setClcUsrMaxDxRrtEnd(String clcUsrMaxDxRrtEnd) {
+        this.clcUsrMaxDxRrtEnd = clcUsrMaxDxRrtEnd == null ? null : clcUsrMaxDxRrtEnd.trim();
+    }
+
     public String getErrorInfo() {
         return errorInfo;
     }
@@ -441,6 +454,7 @@ public class CaseShuheUser {
                 ", reserveField2='" + reserveField2 + '\'' +
                 ", status=" + status +
                 ", saveStatus=" + saveStatus +
+                ", clcUsrMaxDxRrtEnd='" + clcUsrMaxDxRrtEnd + '\'' +
                 ", errorInfo='" + errorInfo + '\'' +
                 ", jsonObject=" + jsonObject +
                 '}';

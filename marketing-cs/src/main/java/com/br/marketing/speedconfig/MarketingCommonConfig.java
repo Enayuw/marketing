@@ -184,4 +184,9 @@ public class MarketingCommonConfig {
      */
     private String JiuFuTransferExecuteTime;
 
+    /**
+     * {"dassBlack":30,"customerBlack":30}
+     */
+    private HashMap<String,Integer> shuhePushBlackDay;
+
 }

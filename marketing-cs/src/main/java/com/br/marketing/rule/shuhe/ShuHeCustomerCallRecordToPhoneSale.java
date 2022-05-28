@@ -18,6 +18,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
 
     @Autowired
     private PushDataService pushDataService;
+
+    @Autowired
+    CaseUserServiceImpl caseUserService;
 
     @Resource
     private ShuHeArtificialRealTimeUserDataFromDelayImpl shuHeArtificialRealTimeUserDataFromDelay;
@@ -181,7 +185,19 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
+            MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+            if(marketingSyncUser==null){
+                log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",bo.getApiCode(),bo.getCaseNum());
+                return false;
+            }
+            if(caseUserService.isY(marketingSyncUser.getCell(),true)||caseUserService.isRrtEnd(marketingSyncUser.getCell(),true)){
+                log.warn("前置表不满足rrend时间或者30天的isblack 通话明细的数据id：%d！",bo.getId());
+                return false;
+            }
+            flag = StringUtils.isNotEmpty(bo.getDataSource())
+                    && bo.getDataSource() == 1
+                    && !isEliminate(bo)
+                    && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
         }
         return flag;
     }
