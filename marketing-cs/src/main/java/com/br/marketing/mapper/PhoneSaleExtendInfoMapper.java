@@ -30,4 +30,12 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @param set
      */
     void updateBatch(@Param("set") Set<String> set);
+
+    /**
+     * 手机号是否重复
+     * @param phone
+     * @param dxType
+     * @param date
+     */
+    int countByPhoneAndType(@Param("phone")String phone,@Param("dxType")String dxType,@Param("date")String date);
 }
