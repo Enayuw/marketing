@@ -60,7 +60,9 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
 
     private final String DEFAULT_EXTRACT_TIME = "10:00:00";
 
-    private final DateTimeFormatter LINE_DATE_COLON_TIME_FORMAT = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+    private final DateTimeFormatter LINE_DATE_COLON_TIME_FORMAT = DateTimeFormatter.ofPattern(
+            DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     @Override
@@ -352,8 +354,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         fw.append(cell).append(",");
         fw.append(syncUser.getIfLogin()).append(",");
         fw.append(syncUser.getIfApply()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getLoginTime()) ? "" :
-                LocalDateTime.parse(syncUser.getLoginTime(), DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(dateTimeFormatter(syncUser.getLoginTime()));
         fw.append("\r\n");
         fw.flush();
     }
@@ -368,14 +369,21 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         fw.append(cell).append(",");
         fw.append(syncUser.getApplyResult()).append(",");
         fw.append(syncUser.getIfLent()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getLoginTime()) ? "" : LocalDateTime.parse(syncUser.getLoginTime()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT)).append(",");
+        fw.append(dateTimeFormatter(syncUser.getLoginTime())).append(",");
         fw.append(syncUser.getIfApply()).append(",");
         fw.append(syncUser.getIfLogin()).append(",");
-        fw.append(StringUtils.isBlank(syncUser.getAuditTime()) ? "" : LocalDateTime.parse(syncUser.getAuditTime()
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT));
+        fw.append(dateTimeFormatter(syncUser.getAuditTime()));
         fw.append("\r\n");
         fw.flush();
+    }
+
+    /**
+     * 2022/5/28 14:40
+     * 调整时间格式为 yyyy-MM-dd HH:mm:ss
+     */
+    private String dateTimeFormatter(String dateTimeStr) {
+        return StringUtils.isBlank(dateTimeStr) ? "" : LocalDateTime.parse(dateTimeStr
+                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT);
     }
 
     /**
@@ -412,6 +420,9 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
                     cell = StringUtils.isBlank(decode) ? cell : DigestUtils.md5DigestAsHex(decode.getBytes());
                 }
                 function.accept(syncUser, cell);
+            }
+            if (list.size() < offset) {
+                break;
             }
         }
         TransferFileTask updatetask = new TransferFileTask();
