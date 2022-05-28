@@ -2,12 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface PhoneSaleExtendInfoMapperBase {
-    int countByExample(PhoneSaleExtendInfoExample example);
+    long countByExample(PhoneSaleExtendInfoExample example);
 
     int deleteByExample(PhoneSaleExtendInfoExample example);
 

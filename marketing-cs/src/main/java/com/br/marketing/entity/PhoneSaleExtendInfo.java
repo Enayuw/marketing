@@ -1,14 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 
-import java.util.Date;
-
+/**
+ * b_phone_sale_extend_info
+ * @author :lizhen
+ */
 @Data
-public class PhoneSaleExtendInfo {
-    /**
-     * 
-     */
+public class PhoneSaleExtendInfo implements Serializable {
     private Long id;
 
     /**
@@ -85,4 +86,11 @@ public class PhoneSaleExtendInfo {
      * 推送电销时间
      */
     private Date pushDxTime;
+
+    /**
+     * 手机号
+     */
+    private String phone;
+
+    private static final long serialVersionUID = 1L;
 }
