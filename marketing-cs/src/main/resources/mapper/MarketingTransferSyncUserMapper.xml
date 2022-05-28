@@ -113,4 +113,40 @@
         </where>
     </select>
 
+    <select id="findTransferByApiCodeAndCreateTimePage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        <where>
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                AND api_code=#{transferSyncUser.apiCode}
+            </if>
+            <if test="startTime != null and startTime.trim() neq '' and endTime != null and endTime.trim() neq ''">
+                AND create_time between #{startTime} and #{endTime}
+            </if>
+            <if test="transferSyncUser.ifLogin != null and transferSyncUser.ifLogin.trim() neq ''">
+                AND if_login=#{transferSyncUser.ifLogin}
+            </if>
+            <if test="transferSyncUser.ifApply != null and transferSyncUser.ifApply.trim() neq ''">
+                AND if_apply=#{transferSyncUser.ifApply}
+            </if>
+            <if test="transferSyncUser.applyResult != null and transferSyncUser.applyResult.trim() neq ''">
+                AND apply_result=#{transferSyncUser.applyResult}
+            </if>
+            <if test="transferSyncUser.ifLent != null and transferSyncUser.ifLent.trim() neq ''">
+                AND if_lent=#{transferSyncUser.ifLent}
+            </if>
+        </where>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
+    </select>
+
 </mapper>
