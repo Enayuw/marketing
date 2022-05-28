@@ -278,7 +278,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
                     try {
                         writeTransferTaskCuTi(transfer, cell, fw);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error(e.getMessage(), e);
                     }
                 });
                 break;
@@ -291,7 +291,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
                     try {
                         writeTransferTaskFull(transfer, cell, fw);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error(e.getMessage(), e);
                     }
                 });
                 break;
