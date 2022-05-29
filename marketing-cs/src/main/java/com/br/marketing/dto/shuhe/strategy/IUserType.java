@@ -246,6 +246,6 @@ public abstract class IUserType {
     }
 
     public boolean isDxRrrEndAndY(CaseShuheUser caseShuheUser,CaseUserServiceImpl caseUserService){
-        return caseUserService.isY(caseShuheUser.getMobile())||caseUserService.isRrtEnd(caseShuheUser.getMobile());
+        return caseUserService.isY(caseShuheUser.getCell())||caseUserService.isRrtEnd(caseShuheUser.getCell());
     }
 }
