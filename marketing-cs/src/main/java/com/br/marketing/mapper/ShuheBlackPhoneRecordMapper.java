@@ -1,6 +1,9 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.ShuheBlackPhoneRecord;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface ShuheBlackPhoneRecordMapper extends ShuheBlackPhoneRecordMapperBase{
 
@@ -12,4 +15,5 @@ public interface ShuheBlackPhoneRecordMapper extends ShuheBlackPhoneRecordMapper
     int countByPhoneAndDate(@Param("phone")String phone, @Param("pushDate")String pushDate);
 
 
+    void saveBatch(@Param("list") List<ShuheBlackPhoneRecord> list);
 }
