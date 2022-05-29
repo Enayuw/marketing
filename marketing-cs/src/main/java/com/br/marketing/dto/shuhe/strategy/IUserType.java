@@ -89,7 +89,7 @@ public abstract class IUserType {
         caseUser.setClcUsrAdtLmtItr(dataItem.getOrDefault("clc_usr_adt_lmt_itr", defaultValue));
         caseUser.setClcUsrFrtFqOrdTim(dataItem.getOrDefault("clc_usr_frt_fq_ord_tim", defaultValue));
         caseUser.setClcUsrFstLndTimCshBtHl(dataItem.getOrDefault("clc_usr_fst_lnd_tim_csh_bt_hl", defaultValue));
-        caseUser.setClcUsrMaxDxRrtEnd(dataItem.getOrDefault(".clc_usr_max_dx_rrt_end", defaultValue));
+        caseUser.setClcUsrMaxDxRrtEnd(dataItem.getOrDefault("clc_usr_max_dx_rrt_end", defaultValue));
     }
 
     /**
