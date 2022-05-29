@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.CaseShuheUserMapperBase">
+<mapper namespace="com.br.marketing.mapper.CaseShuheUserMapper">
+
+    <select id="selectIsBlackData" resultType="com.br.marketing.entity.CaseShuheUser">
+        select *
+        from b_case_shuhe_user
+        where is_black = 'Y'
+        <![CDATA[ and upload_date >= #{startDay}
+          and upload_date < #{endDay}]]>
+        group by mobile;
+    </select>
+
+    <select id="selectOrderRrtEndData" resultType="com.br.marketing.entity.CaseShuheUser">
+        select *
+        from b_case_shuhe_user
+        where clc_usr_max_dx_rrt_end <![CDATA[ <> ]]> ''
+        order by create_time desc limit #{limitStart},2000;
+    </select>
+
 </mapper>

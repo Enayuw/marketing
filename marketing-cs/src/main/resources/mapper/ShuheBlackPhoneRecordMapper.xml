@@ -6,7 +6,22 @@
         select count(*)
         from b_shuhe_black_phone_record
         where phone = #{phone}
-        and push_date = #{pushDate}
+          and push_date = #{pushDate}
     </select>
+
+    <insert id="saveBatch" parameterType="list">
+        insert into b_shuhe_black_phone_record
+        (api_code,cust_num,phone,
+        user_type,`type`,orgName,
+        `source`,push_date,p_status,
+        create_time,update_time)
+        values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR}, #{data.phone,jdbcType=VARCHAR},
+            #{data.userType,jdbcType=VARCHAR}, #{data.type,jdbcType=VARCHAR}, #{data.orgname,jdbcType=VARCHAR},
+            #{data.source,jdbcType=VARCHAR}, #{data.pushDate,jdbcType=VARCHAR}, #{data.pStatus,jdbcType=INTEGER},
+            #{data.createTime,jdbcType=TIMESTAMP}, #{data.updateTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
 
 </mapper>

@@ -1,15 +1,18 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.ShuheBlackPhoneTransferDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.ShuheBlackPhoneRecord;
+import com.br.marketing.service.IShuheBlackPhoneRecordService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,13 +34,16 @@ public class ArtificialShuHeBlackPushTransferHandler extends AbstractExternalInt
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Autowired
+    private IShuheBlackPhoneRecordService iShuheBlackPhoneRecordService;
+
     private static final String ORGNAME = "orgname";
     private static final String SOURCE = "source";
     private static final String TYPE = "type";
     private static final String USER_TYPE = "user_type";
 
     @Override
-    JSONObject call(List<ShuheBlackPhoneTransferDataDTO> transferData, ProcessHandlerContext context) {
+    public JSONObject call(List<ShuheBlackPhoneTransferDataDTO> transferData, ProcessHandlerContext context) {
         /**
          * 电销转化接口 每500条数据一个批次
          */
@@ -66,30 +72,28 @@ public class ArtificialShuHeBlackPushTransferHandler extends AbstractExternalInt
                 );
                 shuheBlackPhoneRecordList.forEach(
                         shuheBlackPhoneRecord -> {
-                            shuheBlackPhoneRecord.setPhone("加密");
+                            shuheBlackPhoneRecord.setPhone(BrCipherMaker.getInstance().encode(shuheBlackPhoneRecord.getPhone()));
                             shuheBlackPhoneRecord.setCreateTime(new Date());
                             shuheBlackPhoneRecord.setType(typeMap.get(TYPE));
                             shuheBlackPhoneRecord.setSource(typeMap.get(SOURCE));
                             shuheBlackPhoneRecord.setUserType(typeMap.get(USER_TYPE));
                             shuheBlackPhoneRecord.setOrgname(typeMap.get(ORGNAME));
+                            shuheBlackPhoneRecord.setPStatus(1);
                         }
                 );
                 DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
                 dassTransferDataAdapDTO.setDassTransferDataDTOList(dassTransferDataDTOList);
-                //TODO 插入b_shuhe_black_phone_record 表
-                dassTransferDataAdapDTO.setPhoneSaleExtendInfoList(null);
+                iShuheBlackPhoneRecordService.saveBatch(shuheBlackPhoneRecordList);
                 methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
             }
         }
         return null;
     }
 
-
     @Override
     InterfaceHandlerEnum handlerEnum() {
         return InterfaceHandlerEnum.ARTIFICIAL_SHUHE_BLACK_DATA;
     }
-
 
     private List<Map<String, String>> getShuHeType() {
         Map<String, String> fujieMap = ImmutableMap.of(ORGNAME, "shuhefujie", SOURCE, "16", USER_TYPE, "1", TYPE, "4");
@@ -98,7 +102,6 @@ public class ArtificialShuHeBlackPushTransferHandler extends AbstractExternalInt
         Map<String, String> shoujieTwoMap = ImmutableMap.of(ORGNAME, "shuheshoujie", SOURCE, "18", USER_TYPE, "1", TYPE, "4");
         return Lists.newArrayList(fujieMap, shenwanMap, shoujieMap, shoujieTwoMap);
     }
-
 
     public static <S, T> List<T> copyList(List<S> sources, Supplier<T> target) {
         List<T> list = new ArrayList<>(sources.size());
