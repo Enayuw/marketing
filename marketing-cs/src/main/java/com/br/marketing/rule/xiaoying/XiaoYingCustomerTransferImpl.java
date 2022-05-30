@@ -88,7 +88,7 @@ public class XiaoYingCustomerTransferImpl implements AssembleData<ConversionData
                     transferSyncUser.setId(transfer.getId());
                     transferSyncUser.settCid(transfer.gettCid());
                     transferSyncUser.setIfTransform(STATE_1);
-                    ((MarketingTransferSyncUser) transmitFact).setIfTransform(STATE_0);
+                    transfer.setIfTransform(STATE_0);
                     iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                     return true;
                 }
