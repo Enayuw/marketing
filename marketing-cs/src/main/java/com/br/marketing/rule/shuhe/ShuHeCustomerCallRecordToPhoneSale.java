@@ -249,7 +249,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         if (StringUtils.isNotEmpty(newest)&&StringUtils.isNotBlank(newest.getReserveField1())){
             JSONObject json = JSON.parseObject(newest.getReserveField1());
             boolean isTurn = "Y".equals(json.getString("is_turn"));
-            boolean isBlack = "Y".equals(json.getString("is_black"));
+//            boolean isBlack = "Y".equals(json.getString("is_black"));
             boolean isRemoveFlag = false;
             if("促申完".equals(bo.getUserType())){
                 String clcUsrIsoAtoTim = newest.getApplyTime();
@@ -282,10 +282,10 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     }
                 }
             }
-            if (isTurn || isBlack || isRemoveFlag) {
+            if (isTurn || isRemoveFlag) {
                 log.info("callrecord数据id为{}符合前置剔除规则", bo.getId());
             }
-            return isTurn || isBlack || isRemoveFlag;
+            return isTurn || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
             newest = new MarketingTransferSyncUser();
             newest.setCustNum(bo.getCaseNum());
