@@ -1,6 +1,7 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.dassservice.input.transfer.ShuheBlackPhoneTransferDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -69,10 +70,16 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String clcUsrMaxDxRrtEnd = jsonObject.getString("clc_usr_max_dx_rrt_end");
             if (!StringUtils.isEmpty(shuHeContext.getCaseShuheUser().getCell())) {
-                boolean isRepeatPhone = iShuheBlackPhoneRecordService.isRepeatPhone(shuHeContext.getCaseShuheUser().getCell(), todayDate.toString());
+                String cell = BrCipherMaker.getInstance().encode(shuHeContext.getCaseShuheUser().getCell());
+                boolean isRepeatPhone = iShuheBlackPhoneRecordService.isRepeatPhone(cell, todayDate.toString());
                 if(!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)){
-                    LocalDate rrtEnd = LocalDateTime.parse(clcUsrMaxDxRrtEnd, dateTimeFormatter).toLocalDate();
-                    bool1 = (rrtEnd.isAfter(todayDate) || rrtEnd.isEqual(todayDate) ) && !isRepeatPhone;
+                    LocalDate rrtEndDate;
+                    try {
+                        rrtEndDate = LocalDate.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    } catch (Exception e) {
+                        rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                    }
+                    bool1 = (rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate) ) && !isRepeatPhone;
                 }
                 bool2 = Y.equals(caseShuheUser.getIsBlack()) && !isRepeatPhone;
                 if(isRepeatPhone){
@@ -80,6 +87,7 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
                 }
             }
         }
+        log.warn("数禾全场景转化过滤-黑名单（营销→Daas）:",bool1 || bool2);
         return bool1 || bool2;
     }
 
