@@ -57,10 +57,10 @@ public class ArtificialShuHeBlackPushTransferHandler extends AbstractExternalInt
             } else {
                 subList = transferData.subList((i - 1) * pageSize, pageSize * (i));
             }
-            List<DassTransferDataDTO> dassTransferDataDTOList = copyList(subList, DassTransferDataDTO::new);
-            List<ShuheBlackPhoneRecord> shuheBlackPhoneRecordList = copyList(subList, ShuheBlackPhoneRecord::new);
             List<Map<String, String>> listType = getShuHeType();
             for (Map<String, String> typeMap : listType) {
+                List<DassTransferDataDTO> dassTransferDataDTOList = copyList(subList, DassTransferDataDTO::new);
+                List<ShuheBlackPhoneRecord> shuheBlackPhoneRecordList = copyList(subList, ShuheBlackPhoneRecord::new);
                 dassTransferDataDTOList.forEach(
                         dassTransferDataDTO -> {
                             dassTransferDataDTO.setType(typeMap.get(TYPE));
