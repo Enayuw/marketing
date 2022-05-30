@@ -13,6 +13,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -58,7 +59,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
             }
             page++;
             for (CaseShuheUser rrtOrderCaseUser : rrtOrderCaseUserList) {
-                if (LocalDate.parse(rrtOrderCaseUser.getClcUsrMaxDxRrtEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).isBefore(LocalDate.now())) {
+                LocalDate rrtEndDate;
+                try {
+                    rrtEndDate = LocalDate.parse(rrtOrderCaseUser.getClcUsrMaxDxRrtEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                } catch (Exception e) {
+                    rrtEndDate = LocalDateTime.parse(rrtOrderCaseUser.getClcUsrMaxDxRrtEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                }
+                if (rrtEndDate.isBefore(LocalDate.now())) {
                     rrtEndMap.add(rrtOrderCaseUser.getMobile());
                     continue;
                 }
@@ -82,6 +89,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
             }
             ;
         });
+        log.warn("数禾黑名单数据推电销转化接口,pushNum ={}",shuheBlackPhoneTransferDataDTOList.size());
         //调用电销接口
         artificialShuHeBlackPushTransferHandler.call(shuheBlackPhoneTransferDataDTOList, null);
 
