@@ -58,25 +58,29 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context){
         LocalDate todayDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
-        boolean bool = Boolean.FALSE;
+        boolean bool1 = Boolean.FALSE;
+        boolean bool2 = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext = (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
             //clc_usr_max_dx_rrt_end>=当前日期，计算到年月日,取数禾前置转化接口用户上传的手机号推送至Daas转化接口
-            //is_black=Y
+            //或者is_black=Y
             final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String clcUsrMaxDxRrtEnd = jsonObject.getString("clc_usr_max_dx_rrt_end");
-            if (!StringUtils.isEmpty(clcUsrMaxDxRrtEnd) && !StringUtils.isEmpty(shuHeContext.getCaseShuheUser().getCell())) {
-                LocalDate rrtEnd = LocalDateTime.parse(clcUsrMaxDxRrtEnd, dateTimeFormatter).toLocalDate();
+            if (!StringUtils.isEmpty(shuHeContext.getCaseShuheUser().getCell())) {
                 boolean isRepeatPhone = iShuheBlackPhoneRecordService.isRepeatPhone(shuHeContext.getCaseShuheUser().getCell(), todayDate.toString());
+                if(!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)){
+                    LocalDate rrtEnd = LocalDateTime.parse(clcUsrMaxDxRrtEnd, dateTimeFormatter).toLocalDate();
+                    bool1 = (rrtEnd.isAfter(todayDate) || rrtEnd.isEqual(todayDate) ) && !isRepeatPhone;
+                }
+                bool2 = Y.equals(caseShuheUser.getIsBlack()) && !isRepeatPhone;
                 if(isRepeatPhone){
                     log.warn("cell={}今日已推过。",shuHeContext.getCaseShuheUser().getCell());
                 }
-                bool = (rrtEnd.isAfter(todayDate) || rrtEnd.isEqual(todayDate) || Y.equals(caseShuheUser.getIsBlack())) && !isRepeatPhone;
             }
         }
-        return bool;
+        return bool1 || bool2;
     }
 
     @Override
