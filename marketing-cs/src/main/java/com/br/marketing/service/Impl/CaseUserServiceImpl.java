@@ -83,7 +83,8 @@ public class CaseUserServiceImpl {
                 return false;
             }
             CaseShuheUser caseShuheUser = caseShuheUsers.get(0);
-            LocalDate endDate = LocalDate.parse(caseShuheUser.getClcUsrMaxDxRrtEnd(), ymd);
+            String date = caseShuheUser.getClcUsrMaxDxRrtEnd().substring(0, 10);
+            LocalDate endDate = LocalDate.parse(date, ymd);
             if (endDate.compareTo(LocalDate.now()) >= 0) {
                 return true;
             } else {
@@ -94,4 +95,5 @@ public class CaseUserServiceImpl {
         }
         return true;
     }
+
 }
