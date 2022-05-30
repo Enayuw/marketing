@@ -435,6 +435,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         updatetask.setStatus(2);
         updatetask.setTaskNumber(sum);
         updatetask.setUpdateTime(new Date());
+        updatetask.setFilePath(transferFileTask.getFilePath());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("小赢数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, sum);
     }
