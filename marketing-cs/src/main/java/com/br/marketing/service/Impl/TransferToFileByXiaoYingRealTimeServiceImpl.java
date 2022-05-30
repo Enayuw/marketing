@@ -304,16 +304,16 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     private void writeTransferTaskFull(MarketingTransferSyncUser syncUser, String cell, Writer fw) throws IOException {
         fw.append(syncUser.getCustNum()).append(",");
         fw.append(cell).append(",");
-        fw.append(syncUser.getIfLogin()).append(",");
+        fw.append(handleNull(syncUser.getIfLogin())).append(",");
         fw.append(dateTimeFormatter(syncUser.getLoginTime())).append(",");
-        fw.append(syncUser.getIfApply()).append(",");
+        fw.append(handleNull(syncUser.getIfApply())).append(",");
         fw.append(dateTimeFormatter(syncUser.getApplyDt())).append(",");
-        fw.append(syncUser.getApplyResult()).append(",");
+        fw.append(handleNull(syncUser.getApplyResult())).append(",");
         fw.append(dateTimeFormatter(syncUser.getAuditTime())).append(",");
-        fw.append(syncUser.getAuditAmount()).append(",");
-        fw.append(syncUser.getIfLent()).append(",");
+        fw.append(handleNull(syncUser.getAuditAmount())).append(",");
+        fw.append(handleNull(syncUser.getIfLent())).append(",");
         fw.append(dateTimeFormatter(syncUser.getLentTime())).append(",");
-        fw.append(syncUser.getLentAmount());
+        fw.append(handleNull(syncUser.getLentAmount()));
         fw.append("\r\n");
         fw.flush();
     }
@@ -366,8 +366,8 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         fw.append(syncUser.getApplyResult()).append(",");
         fw.append(syncUser.getIfLent()).append(",");
         fw.append(dateTimeFormatter(syncUser.getLoginTime())).append(",");
-        fw.append(syncUser.getIfApply()).append(",");
-        fw.append(syncUser.getIfLogin()).append(",");
+        fw.append(handleNull(syncUser.getIfApply())).append(",");
+        fw.append(handleNull(syncUser.getIfLogin())).append(",");
         fw.append(dateTimeFormatter(syncUser.getAuditTime()));
         fw.append("\r\n");
         fw.flush();
@@ -380,6 +380,15 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     private String dateTimeFormatter(String dateTimeStr) {
         return StringUtils.isBlank(dateTimeStr) ? "" : LocalDateTime.parse(dateTimeStr
                 , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT);
+    }
+
+    /**
+     * 2022/5/30 10:00
+     * <p>
+     * 处理null
+     */
+    private String handleNull(String value) {
+        return StringUtils.isNull(value) ? "" : value;
     }
 
     /**
