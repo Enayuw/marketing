@@ -3,11 +3,9 @@ package com.br.marketing.context.impl;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.PhoneSale;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.entity.PhoneSaleExtendInfoExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +51,9 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
+    @Resource
+    PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
+
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
 
@@ -74,15 +75,14 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
                                 , Optional::get)));
     }
 
-    public Map<String,List<PhoneSaleExtendInfo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode,String startDate,String endDate){
-        PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
+    public Map<String,List<PhoneSaleExtendHaluo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode, String startDate, String endDate){
+        PhoneSaleExtendHaluoExample extendInfoExample = new PhoneSaleExtendHaluoExample();
         extendInfoExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
                 .andCustNumIn(custNums)
                 .andAppletDateGreaterThanOrEqualTo(startDate)
                 .andAppletDateLessThanOrEqualTo(endDate);
-        List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(extendInfoExample);
-        Map<String, List<PhoneSaleExtendInfo>> map = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendInfo::getCustNum));
+        List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = phoneSaleExtendHaluoMapper.selectByExample(extendInfoExample);
+        Map<String, List<PhoneSaleExtendHaluo>> map = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendHaluo::getCustNum));
         return map;
     }
 }

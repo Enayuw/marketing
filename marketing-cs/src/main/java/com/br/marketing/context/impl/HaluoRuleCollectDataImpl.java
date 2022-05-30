@@ -54,7 +54,7 @@ public class HaluoRuleCollectDataImpl extends CommonMethodHandlerService {
             }
             String endDate = LocalDate.now().format(ymd);
             String startDate = LocalDate.now().minusDays(taskDate).format(ymd);
-            Map<String, List<PhoneSaleExtendInfo>> phoneSaleExtendInfos = getPhoneSaleExtendInfos(custNums, context.getApiCode(), startDate, endDate);
+            Map<String, List<PhoneSaleExtendHaluo>> phoneSaleExtendInfos = getPhoneSaleExtendInfos(custNums, context.getApiCode(), startDate, endDate);
             haLuoRuleNecessaryData.setPhoneSaleExtendInfoMap(phoneSaleExtendInfos);
             context.setRuleNecessaryData(haLuoRuleNecessaryData);
         }
@@ -76,7 +76,7 @@ public class HaluoRuleCollectDataImpl extends CommonMethodHandlerService {
         /**
          * 电销记录数据
          */
-        private Map<String, List<PhoneSaleExtendInfo>> phoneSaleExtendInfoMap;
+        private Map<String, List<PhoneSaleExtendHaluo>> phoneSaleExtendInfoMap;
 
         private Map<String, List<TaskTime>> taskIdDateMap;
     }

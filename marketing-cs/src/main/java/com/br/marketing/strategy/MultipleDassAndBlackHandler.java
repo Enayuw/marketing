@@ -3,6 +3,7 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
@@ -14,6 +15,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
+import com.br.marketing.entity.PhoneSaleExtendHaluo;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
@@ -50,20 +52,20 @@ public class MultipleDassAndBlackHandler extends AbstractExternalInterfaceHandle
         for (List<MultipleDassAndCustomerBlackDTO> multipleDassAndCustomerBlackDTOS : partition) {
 
             for (MultipleDassAndCustomerBlackDTO multipleDassAndCustomerBlackDTO : multipleDassAndCustomerBlackDTOS) {
-                Result result = phoneSaleExtendService.savePhoneExtend(multipleDassAndCustomerBlackDTO.getPhoneSaleExtendInfo());
+                Result result = phoneSaleExtendService.savePhoneExtend(multipleDassAndCustomerBlackDTO.getPhoneSaleExtendHaluo());
                 if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
                     multipleDassAndCustomerBlackDTOS.remove(multipleDassAndCustomerBlackDTO);
                 }
             }
 
             //region push dass
-            DassImportAdapDTO dassImportAdapDTO = new DassImportAdapDTO();
+            DassImportAdapHaluoDTO dassImportAdapDTO = new DassImportAdapHaluoDTO();
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             List<DassImportDataDTO> dataDTOS = multipleDassAndCustomerBlackDTOS.stream().map(batchData->batchData.getDassImportAdapDTO()).collect(Collectors.toList());
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = multipleDassAndCustomerBlackDTOS.stream().map(batchData->batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
+            List<PhoneSaleExtendHaluo> phoneSaleExtendHaluos = multipleDassAndCustomerBlackDTOS.stream().map(batchData->batchData.getPhoneSaleExtendHaluo()).collect(Collectors.toList());
             List<BlackDetailDTO> blackLists = multipleDassAndCustomerBlackDTOS.stream().map(t -> t.getReqBlackPhoneParentDTO()).collect(Collectors.toList());
             dassImportAdapDTO.setList(dataDTOS);
-            dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
+            dassImportAdapDTO.setPhoneSaleExtendHaluos(phoneSaleExtendHaluos);
             methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO,0);
             //endregion
 

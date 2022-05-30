@@ -77,7 +77,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
         HaluoRuleCollectDataImpl.HaluoRuleNecessaryData ruleNecessaryData =
                 (HaluoRuleCollectDataImpl.HaluoRuleNecessaryData) context.getRuleNecessaryData();
         MarketingSyncUser syncUser = ruleNecessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
-        List<PhoneSaleExtendInfo> phoneSaleExtendInfos = ruleNecessaryData.getPhoneSaleExtendInfoMap().get(transferSyncUser.getCustNum());
+        List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = ruleNecessaryData.getPhoneSaleExtendInfoMap().get(transferSyncUser.getCustNum());
         Map<String, List<TaskTime>> taskIdDateMap = ruleNecessaryData.getTaskIdDateMap();
 
         if (syncUser == null) {
@@ -104,10 +104,10 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
     @Override
     public MultipleDassAndCustomerBlackDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MultipleDassAndCustomerBlackDTO multipleDassAndCustomerBlackDTO = new MultipleDassAndCustomerBlackDTO();
-        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
+        PhoneSaleExtendHaluo phoneSaleExtendHaluo = new PhoneSaleExtendHaluo();
         DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
-        multipleDassAndCustomerBlackDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        multipleDassAndCustomerBlackDTO.setPhoneSaleExtendHaluo(phoneSaleExtendHaluo);
         multipleDassAndCustomerBlackDTO.setDassImportAdapDTO(dassImportDataDTO);
         multipleDassAndCustomerBlackDTO.setReqBlackPhoneParentDTO(blackDetailDTO);
 
@@ -116,24 +116,21 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
                 (HaluoRuleCollectDataImpl.HaluoRuleNecessaryData) context.getRuleNecessaryData();
         MarketingSyncUser syncUser = ruleNecessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
         String haluoStatus = phoneSaleExtendService.getHaluoStatus(transferSyncUser, syncUser);
-        phoneSaleExtendInfo.setApiCode(transferSyncUser.getApiCode());
-        phoneSaleExtendInfo.setCustNum(transferSyncUser.getCustNum());
-        phoneSaleExtendInfo.setTaskId(syncUser.getCusBatch());
-        phoneSaleExtendInfo.setUserType(syncUser.getUserType());
-        phoneSaleExtendInfo.setAppletDate(transferSyncUser.getRequestData());
-        phoneSaleExtendInfo.setAppletTime(transferSyncUser.getRequestTime());
-        phoneSaleExtendInfo.setStatus(haluoStatus);
-        phoneSaleExtendInfo.setPStatus(1);
-        phoneSaleExtendInfo.setCreateTime(new Date());
-        phoneSaleExtendInfo.setUpdateTime(new Date());
-        phoneSaleExtendInfo.setSourceId(transferSyncUser.getId());
+        phoneSaleExtendHaluo.setCustNum(transferSyncUser.getCustNum());
+        phoneSaleExtendHaluo.setApiCode(context.getApiCode());
+        phoneSaleExtendHaluo.setTaskId(syncUser.getCusBatch());
+        phoneSaleExtendHaluo.setAppletDate(transferSyncUser.getRequestData());
+        phoneSaleExtendHaluo.setAppletTime(transferSyncUser.getRequestTime());
+        phoneSaleExtendHaluo.setStatus(haluoStatus);
+        phoneSaleExtendHaluo.setCreateTime(new Date());
+        phoneSaleExtendHaluo.setUpdateTime(new Date());
+        phoneSaleExtendHaluo.setSourceId(transferSyncUser.getId());
 
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String s = AESUtil.aesEncrypty(cell, aesKey);
         String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
                 BrCipherMaker.getInstance().decode(syncUser.getName())
                 : "";
-        dassImportDataDTO.setId(transferSyncUser.getId());
         dassImportDataDTO.setUid(transferSyncUser.getCustNum());
         dassImportDataDTO.setPhone(s);
         dassImportDataDTO.setName(name);

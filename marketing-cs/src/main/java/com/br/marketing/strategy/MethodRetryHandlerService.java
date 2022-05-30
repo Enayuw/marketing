@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
@@ -23,11 +24,16 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.SingleDassAndRecordDTO;
 import com.br.marketing.entity.DataCompare;
+import com.br.marketing.entity.PhoneSaleExtendHaluo;
+import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -83,6 +89,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
 
     /**
      * 全局重试任务执行类
@@ -217,6 +226,37 @@ public class MethodRetryHandlerService {
             saveBizLog(String.join(",",set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
                     dassImportAdapDTO.getTransferInfoId());
             phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+
+    /**
+     * 调用电销批量接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param dassImportAdapDTO
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassRealTimeBatchData(DassImportAdapHaluoDTO dassImportAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassImportAdapDTO.getPhoneSaleExtendHaluos()
+                    .stream().map(PhoneSaleExtendHaluo::getSourceId)
+                    .map(String::valueOf)
+                    .collect(Collectors.toSet());
+            saveBizLog(String.join(",",set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
+                    dassImportAdapDTO.getTransferInfoId());
+            List<Long> ids = dassImportAdapDTO.getPhoneSaleExtendHaluos()
+                    .stream().map(PhoneSaleExtendHaluo::getId)
+                    .collect(Collectors.toList());
+            PhoneSaleExtendHaluoExample updateExample = new PhoneSaleExtendHaluoExample();
+            updateExample.createCriteria().andIdIn(ids);
+            PhoneSaleExtendHaluo updateEntity = new PhoneSaleExtendHaluo();
+            updateEntity.setpStatus(2);
+            phoneSaleExtendHaluoMapper.updateByExampleSelective(updateEntity,updateExample);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));

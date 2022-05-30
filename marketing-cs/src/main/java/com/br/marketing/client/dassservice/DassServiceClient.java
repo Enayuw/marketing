@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
+import com.br.marketing.client.dassservice.input.DassImportAdapUntilDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
@@ -24,6 +26,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
@@ -85,7 +88,19 @@ public class DassServiceClient {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    public Result postHermesUserData(DassImportAdapHaluoDTO dto){
+        DassImportAdapUntilDTO trueDto = new DassImportAdapUntilDTO();
+        BeanUtils.copyProperties(dto,trueDto);
+        return postHermesUserData(trueDto);
+    }
+
     public Result postHermesUserData(DassImportAdapDTO dto) {
+        DassImportAdapUntilDTO trueDto = new DassImportAdapUntilDTO();
+        BeanUtils.copyProperties(dto,trueDto);
+        return postHermesUserData(trueDto);
+    }
+
+    public Result postHermesUserData(DassImportAdapUntilDTO dto) {
         Result result = new Result();
         List<DassImportDataDTO> dtos = dto.getList();
         dtos.forEach(dassImportDataDTO -> dassImportDataDTO.setExtend(extendSort(dassImportDataDTO.getExtend())));

@@ -1,18 +1,13 @@
 package com.br.marketing.service.Impl;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.dto.SingleDassAndRecordDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -25,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.Period;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -48,7 +43,7 @@ public class PhoneSaleExtendServiceImpl {
     MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    PhoneSaleExtendInfoMapper saleExtendInfoMapper;
+    PhoneSaleExtendHaluoMapper saleExtendHaluoMapper;
 
     @Resource
     TaskTimeMapper taskTimeMapper;
@@ -120,26 +115,25 @@ public class PhoneSaleExtendServiceImpl {
                 return;
             }
             for (String taskId : taskIds) {
-                PhoneSaleExtendInfoExample infoExample= new PhoneSaleExtendInfoExample();
+                PhoneSaleExtendHaluoExample infoExample= new PhoneSaleExtendHaluoExample();
                 infoExample.createCriteria().andTaskIdEqualTo(taskId)
                         .andStatusEqualTo("d");
-                List<PhoneSaleExtendInfo> phoneSaleExtendInfos = saleExtendInfoMapper.selectByExample(infoExample);
-                Map<String, List<PhoneSaleExtendInfo>> collect = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendInfo::getCustNum));
+                List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = saleExtendHaluoMapper.selectByExample(infoExample);
+                Map<String, List<PhoneSaleExtendHaluo>> collect = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendHaluo::getCustNum));
                 Integer num =0;
                 for (String key : collect.keySet()) {
-                    List<PhoneSaleExtendInfo> phoneSaleExtendInfos1 = collect.get(key);
+                    List<PhoneSaleExtendHaluo> phoneSaleExtendInfos1 = collect.get(key);
                     if(!haluoSaleJudge(phoneSaleExtendInfos1,"d",taskId)){
                         continue;
                     }
                     phoneSaleExtendInfos1.
-                            sort(Comparator.comparing(PhoneSaleExtendInfo::getAppletDate).reversed()
-                            .thenComparing(PhoneSaleExtendInfo::getCreateTime).reversed());
-                    PhoneSaleExtendInfo extendInfo = phoneSaleExtendInfos1.get(0);
-                    PhoneSaleExtendInfo saleExtendInfo = new PhoneSaleExtendInfo();
-                    saleExtendInfo.setApiCode(extendInfo.getApiCode());
+                            sort(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate).reversed()
+                            .thenComparing(PhoneSaleExtendHaluo::getCreateTime).reversed());
+                    PhoneSaleExtendHaluo extendInfo = phoneSaleExtendInfos1.get(0);
+                    PhoneSaleExtendHaluo saleExtendInfo = new PhoneSaleExtendHaluo();
+                    saleExtendInfo.setApiCode(s);
                     saleExtendInfo.setCustNum(extendInfo.getCustNum());
                     saleExtendInfo.setTaskId(extendInfo.getTaskId());
-                    saleExtendInfo.setUserType(extendInfo.getUserType());
                     saleExtendInfo.setAppletDate(LocalDate.now().format(ymd));
                     saleExtendInfo.setAppletTime(LocalDateTime.now().format(ymdhms));
                     saleExtendInfo.setStatus("d");
@@ -151,7 +145,7 @@ public class PhoneSaleExtendServiceImpl {
                         continue;
                     }
                     MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
-                    transferSyncUserExample.settCid(tableCreateService.getTcId(extendInfo.getApiCode()));
+                    transferSyncUserExample.settCid(tableCreateService.getTcId(s));
                     transferSyncUserExample.createCriteria().andIdEqualTo(extendInfo.getSourceId());
                     List<MarketingTransferSyncUser> transferSyncUsers = transferSyncUserMapper.selectByExample(transferSyncUserExample);
                     MarketingTransferSyncUser transferSyncUser = transferSyncUsers.get(0);
@@ -159,7 +153,7 @@ public class PhoneSaleExtendServiceImpl {
                     List<String> custnumIds = new ArrayList<>();
                     taskquerIds.add(extendInfo.getTaskId());
                     custnumIds.add(extendInfo.getCustNum());
-                    List<MarketingSyncUser> syncUserByTaskAndCust = marketingSyncInfoMapper.getSyncUserByTaskAndCust(extendInfo.getApiCode(), taskquerIds, custnumIds);
+                    List<MarketingSyncUser> syncUserByTaskAndCust = marketingSyncInfoMapper.getSyncUserByTaskAndCust(s, taskquerIds, custnumIds);
                     MarketingSyncUser syncUser = syncUserByTaskAndCust.get(0);
                     String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
                     String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
@@ -201,14 +195,14 @@ public class PhoneSaleExtendServiceImpl {
     }
 
 
-    public boolean haluoSaleJudge(List<PhoneSaleExtendInfo> phoneSales, String dataStatus, String taskId) {
+    public boolean haluoSaleJudge(List<PhoneSaleExtendHaluo> phoneSales, String dataStatus, String taskId) {
         if(phoneSales==null){
             return true;
         }
-        List<PhoneSaleExtendInfo> sales = phoneSales.stream()
+        List<PhoneSaleExtendHaluo> sales = phoneSales.stream()
                 .filter(t -> t.getTaskId().equals(taskId))
-                .sorted(Comparator.comparing(PhoneSaleExtendInfo::getAppletDate).reversed()
-                        .thenComparing(PhoneSaleExtendInfo::getCreateTime).reversed()).collect(Collectors.toList());
+                .sorted(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate).reversed()
+                        .thenComparing(PhoneSaleExtendHaluo::getCreateTime).reversed()).collect(Collectors.toList());
         if(sales.size()<=0){
             return true;
         }
@@ -232,9 +226,9 @@ public class PhoneSaleExtendServiceImpl {
         }
         LocalDate nowDate = LocalDate.now();
         if (dataStatus.equals("d")) {
-            PhoneSaleExtendInfo lastSale = null;
+            PhoneSaleExtendHaluo lastSale = null;
             Integer dnum = 0;
-            for (PhoneSaleExtendInfo sale : sales) {
+            for (PhoneSaleExtendHaluo sale : sales) {
                 if (sale.getStatus().equals("d")) {
                     if (lastSale == null) {
                         lastSale = sale;
@@ -254,14 +248,14 @@ public class PhoneSaleExtendServiceImpl {
                 return true;
             }
         } else {
-            PhoneSaleExtendInfo phoneSaleExtendInfo = sales.get(0);
+            PhoneSaleExtendHaluo phoneSaleExtendInfo = sales.get(0);
             String appletDate = phoneSaleExtendInfo.getAppletDate();
             if (appletDate.equals(nowDate.format(ymd))) {
                 return false;
             }
-            Optional<PhoneSaleExtendInfo> firstGroupA = sales.stream().filter(t -> defaultGroupA.contains(t.getStatus())).findFirst();
+            Optional<PhoneSaleExtendHaluo> firstGroupA = sales.stream().filter(t -> defaultGroupA.contains(t.getStatus())).findFirst();
             if (firstGroupA.isPresent()) {
-                PhoneSaleExtendInfo info = firstGroupA.get();
+                PhoneSaleExtendHaluo info = firstGroupA.get();
                 LocalDate lastDate = LocalDate.parse(info.getAppletDate(), ymd);
                 long until = lastDate.until(nowDate, ChronoUnit.DAYS);
                 if (until >= abcTimeDays) {
@@ -312,7 +306,7 @@ public class PhoneSaleExtendServiceImpl {
         return statusStr;
     }
 
-    public Result savePhoneExtend(PhoneSaleExtendInfo info){
+    public Result savePhoneExtend(PhoneSaleExtendHaluo info){
         Boolean lock = Boolean.FALSE;
         while (!lock) {
             Result<Boolean> booleanResult = addHaluoLock(info);
@@ -331,12 +325,13 @@ public class PhoneSaleExtendServiceImpl {
                 }
             }
         }
-        PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
+        PhoneSaleExtendHaluoExample extendInfoExample = new PhoneSaleExtendHaluoExample();
         extendInfoExample.createCriteria()
+                .andApiCodeEqualTo(info.getApiCode())
                 .andCustNumEqualTo(info.getCustNum())
                 .andTaskIdEqualTo(info.getTaskId())
                 .andAppletDateEqualTo(LocalDate.now().format(ymd));
-        List<PhoneSaleExtendInfo> phoneSaleExtendInfos = saleExtendInfoMapper.selectByExample(extendInfoExample);
+        List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = saleExtendHaluoMapper.selectByExample(extendInfoExample);
         if(phoneSaleExtendInfos.size()>0){
             Set<String> statusSet = phoneSaleExtendInfos.stream().map(t -> t.getStatus()).collect(Collectors.toSet());
             if(info.getStatus().equals("d")&&statusSet.contains("d")){
@@ -348,12 +343,12 @@ public class PhoneSaleExtendServiceImpl {
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
         }
-        saleExtendInfoMapper.insertSelective(info);
+        saleExtendHaluoMapper.insertSelective(info);
         removeHaluoLock(info);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private Result<Boolean> addHaluoLock(PhoneSaleExtendInfo info) {
+    private Result<Boolean> addHaluoLock(PhoneSaleExtendHaluo info) {
         String key = RedisKeyConstant.haluoPushDx.concat(":")
                 .concat(info.getApiCode()).concat(":")
                 .concat(info.getTaskId()).concat(":")
@@ -382,7 +377,7 @@ public class PhoneSaleExtendServiceImpl {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
-    private void removeHaluoLock(PhoneSaleExtendInfo info) {
+    private void removeHaluoLock(PhoneSaleExtendHaluo info) {
         String key = RedisKeyConstant.haluoPushDx.concat(":")
                 .concat(info.getApiCode()).concat(":")
                 .concat(info.getTaskId()).concat(":")
