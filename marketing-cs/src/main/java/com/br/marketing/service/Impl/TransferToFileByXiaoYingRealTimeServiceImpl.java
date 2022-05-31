@@ -378,8 +378,17 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
      * 调整时间格式为 yyyy-MM-dd HH:mm:ss
      */
     private String dateTimeFormatter(String dateTimeStr) {
-        return StringUtils.isBlank(dateTimeStr) ? "" : LocalDateTime.parse(dateTimeStr
-                , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT);
+        if(StringUtils.isBlank(dateTimeStr)){
+            return "";
+        }else{
+            try {
+                return LocalDateTime.parse(dateTimeStr
+                        , DATE_TIME_FORMATTER).format(LINE_DATE_COLON_TIME_FORMAT);
+            } catch (Exception e) {
+                log.warn("格式有误 -- {}", dateTimeStr);
+                return dateTimeStr;
+            }
+        }
     }
 
     /**
