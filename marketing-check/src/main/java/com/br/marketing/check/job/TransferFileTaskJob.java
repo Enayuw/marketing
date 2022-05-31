@@ -13,10 +13,7 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
-import com.br.marketing.service.Impl.SftpInnerServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.Impl.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -68,10 +65,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
 
+    @Resource
+    private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        log.warn("TransferFileTaskJob传入的自定义参数为:{}",jobParameter);
+        log.warn("TransferFileTaskJob传入的自定义参数为:{}", jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -120,9 +120,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;
-        } if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
+        }
+        if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByJiuFuService;
-        }else {
+        }
+        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
+            return xiaoYingRealTimeService;
+        } else {
             return null;
         }
     }
