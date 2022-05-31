@@ -87,7 +87,6 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
                 }
             }
         }
-        log.warn("数禾全场景转化过滤-黑名单（营销→Daas）:",bool1 || bool2);
         return bool1 || bool2;
     }
 
