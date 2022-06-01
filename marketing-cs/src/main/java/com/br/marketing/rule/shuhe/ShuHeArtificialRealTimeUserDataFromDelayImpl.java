@@ -258,7 +258,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setUid(caseShuheUser.getCustNum());
-        dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         if (iUserType instanceof CuFuJie) {
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
@@ -277,6 +276,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 } catch (Exception ignored) {
                 }
             }
+            String amout = jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(amout)) {
+                dataDTO.setAuditAmount(amout);
+            }
+        }else{
+            dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         }
         dataDTO.setExtend(extend.toJSONString());
         return dataDTO;
