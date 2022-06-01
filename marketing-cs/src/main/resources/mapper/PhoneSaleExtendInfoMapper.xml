@@ -103,6 +103,13 @@
         <![CDATA[ and applet_date >= #{startDate} ]]>
         <![CDATA[ and applet_date <= #{endDate} ]]>
     </select>
+    <select id="countByPhoneAndType" resultType="java.lang.Integer">
+        select count(*)
+        from b_phone_sale_extend_info
+        where dx_type = #{dxType}
+        and applet_date = #{date}
+        and phone = #{phone}
+    </select>
     <insert id="saveBatch" parameterType="list">
         insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
         user_type, applet_date, applet_time,

@@ -2074,6 +2074,76 @@ public class CaseShuheUserExample {
             addCriterion("save_status not between", value1, value2, "saveStatus");
             return (Criteria) this;
         }
+
+        public Criteria andClcUsrMaxDxRrtEndIsNull() {
+            addCriterion("clc_usr_max_dx_rrt_end is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndIsNotNull() {
+            addCriterion("clc_usr_max_dx_rrt_end is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end =", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <>", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndGreaterThan(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end >", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndGreaterThanOrEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end >=", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLessThan(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLessThanOrEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <=", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLike(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end like", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotLike(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end not like", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndIn(List<String> values) {
+            addCriterion("clc_usr_max_dx_rrt_end in", values, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotIn(List<String> values) {
+            addCriterion("clc_usr_max_dx_rrt_end not in", values, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndBetween(String value1, String value2) {
+            addCriterion("clc_usr_max_dx_rrt_end between", value1, value2, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotBetween(String value1, String value2) {
+            addCriterion("clc_usr_max_dx_rrt_end not between", value1, value2, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

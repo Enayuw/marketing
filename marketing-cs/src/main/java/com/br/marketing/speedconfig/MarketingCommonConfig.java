@@ -209,4 +209,9 @@ public class MarketingCommonConfig {
      */
     private String xiaoYingFullLoadTransferExtractJobTime;
 
+    /**
+     * {"dassBlack":30,"customerBlack":30}
+     */
+    private HashMap<String,Integer> shuhePushBlackDay;
+
 }

@@ -1,13 +1,16 @@
 package com.br.marketing.dto.shuhe.strategy;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -86,6 +89,7 @@ public abstract class IUserType {
         caseUser.setClcUsrAdtLmtItr(dataItem.getOrDefault("clc_usr_adt_lmt_itr", defaultValue));
         caseUser.setClcUsrFrtFqOrdTim(dataItem.getOrDefault("clc_usr_frt_fq_ord_tim", defaultValue));
         caseUser.setClcUsrFstLndTimCshBtHl(dataItem.getOrDefault("clc_usr_fst_lnd_tim_csh_bt_hl", defaultValue));
+        caseUser.setClcUsrMaxDxRrtEnd(dataItem.getOrDefault("clc_usr_max_dx_rrt_end", defaultValue));
     }
 
     /**
@@ -222,6 +226,11 @@ public abstract class IUserType {
     public abstract boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime);
 
     /**
+     * 前置剔除条件
+     */
+    public abstract boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime, CaseUserServiceImpl caseUserService);
+
+    /**
      * 获取私有信息
      */
     public abstract void getPrivateInfo(DassSingleImportDataDTO dataDTO);
@@ -234,5 +243,9 @@ public abstract class IUserType {
 
     public List<String> getApiCodes() {
         return apiCodes;
+    }
+
+    public boolean isDxRrrEndAndY(CaseShuheUser caseShuheUser,CaseUserServiceImpl caseUserService){
+        return caseUserService.isY(caseShuheUser.getCell())||caseUserService.isRrtEnd(caseShuheUser.getCell());
     }
 }

@@ -24,11 +24,13 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.ShuheTransferStopPushRecordMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -70,6 +72,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private RedisChgService redisChgService;
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    @Autowired
+    CaseUserServiceImpl caseUserService;
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
@@ -117,7 +121,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String status = jsonObject.get("status").toString();
                     caseShuheUser.getJsonObject().putAll(jsonObject);
                     caseShuheUser.setReserveField2(status);
-                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
+                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService);
                     String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
                             , new MarketingSyncUser()).getCell();
                     if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
@@ -154,7 +158,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
-                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
+                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService)
                             && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                             , "a", transfer.getUserType());
                 }
