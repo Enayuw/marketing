@@ -201,12 +201,11 @@ public class PhoneSaleExtendServiceImpl {
         }
         List<PhoneSaleExtendHaluo> sales = phoneSales.stream()
                 .filter(t -> t.getTaskId().equals(taskId))
-                .sorted(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate).reversed()
+                .sorted(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate)
                         .thenComparing(PhoneSaleExtendHaluo::getCreateTime).reversed()).collect(Collectors.toList());
         if(sales.size()<=0){
             return true;
         }
-        Integer taskTimeDays = 35;
         Integer abcTimeDays = 5;
         Integer dTimeDays = 4;
         Integer dTimes = getDtimes();
@@ -217,7 +216,6 @@ public class PhoneSaleExtendServiceImpl {
         defaultGroupA.add("c");
         HashMap<String, String> haluoTransferRule = marketingCommonConfig.getHaluoTransferRule();
         if (haluoTransferRule != null) {
-            taskTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("taskIddate", "35"));
             abcTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("ABCdate", "5"));
             dTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("Ddate", "4"));
         }

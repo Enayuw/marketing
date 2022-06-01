@@ -57,22 +57,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        HashMap<String, String> haluoTransferRule = marketingCommonConfig.getHaluoTransferRule();
-        Integer taskTimeDays = 35;
-        Integer abcTimeDays = 5;
-        Integer dTimeDays = 4;
-        HashSet status = new HashSet();
-        status.add("a");
-        status.add("b");
-        status.add("d");
-        if(haluoTransferRule != null){
-            taskTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("taskIddate", "35"));
-            abcTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("ABCdate", "5"));
-            dTimeDays = Integer.valueOf(haluoTransferRule.getOrDefault("dtimes", "4"));
-            String statusStr = haluoTransferRule.getOrDefault("status", "a,b,d");
-            status = new HashSet<>(Arrays.asList(statusStr.split(",")));
-        }
-
+        Integer taskTimeDays = phoneSaleExtendService.getTaskIdDays();
         MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
         HaluoRuleCollectDataImpl.HaluoRuleNecessaryData ruleNecessaryData =
                 (HaluoRuleCollectDataImpl.HaluoRuleNecessaryData) context.getRuleNecessaryData();

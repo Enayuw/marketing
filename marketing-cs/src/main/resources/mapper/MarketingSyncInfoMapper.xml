@@ -123,6 +123,7 @@
             <foreach collection="custs" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+            and IFNULL(fail_type,'') = ''
         </where>
     </select>
 
