@@ -276,10 +276,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 } catch (Exception ignored) {
                 }
             }
-            String amout = jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(amout)) {
-                dataDTO.setAuditAmount(amout);
-            }
+            dataDTO.setAuditAmount(jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString());
         }else{
             dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         }
