@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 
 
@@ -12,4 +13,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 public interface TransferFileTaskService {
 
     PageResultReturn getTransferFileList(int current, int size, String serach, String startDateStart, String startDateEnd);
+
+    ApiResult reStartTransfer(Integer id);
 }

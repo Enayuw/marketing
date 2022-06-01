@@ -1,14 +1,21 @@
 package com.br.marketing.service.Impl;
 
 import com.br.common.util.DateUtils;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.TransferFileTaskService;
 import com.br.marketing.vo.TransferFileTaskVO;
+import com.dangdang.ddframe.job.api.JobAPIFactory;
+import com.dangdang.ddframe.job.api.JobOperateAPI;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -30,8 +38,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TransferFileTaskServiceImpl implements TransferFileTaskService {
 
+    @Value("${SERVER_LISTS:00}")
+    private String zkAddressList;
+
+    @Value("${NAMESPACE:00}")
+    private String nameSpace;
+
     @Resource
     private TransferFileTaskMapper transferFileTaskMapper;
+
+    private  static final String TRANSFERFILEJOB = "TransferFileTaskJob";
+    private  static final String SYNCFILEJOB = "PutToSftpJob";
+
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
@@ -59,6 +77,20 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
         }).collect(Collectors.toList());
 
         return PageResultReturn.setPageResult(list, current,size);
+    }
+
+    @Override
+    public ApiResult reStartTransfer(Integer id) {
+
+        TransferFileTask fileTask = transferFileTaskMapper.selectByPrimaryKey(id.longValue());
+        if(Objects.isNull(fileTask)){
+            return new ApiResult<>().fail("该条数据提取记录不存在");
+        }
+        transferFileTaskMapper.deleteByPrimaryKey(id.longValue());
+        JobOperateAPI jobOperateAPI = JobAPIFactory.createJobOperateAPI(zkAddressList,nameSpace, Optional.absent());
+        jobOperateAPI.trigger(Optional.of(TRANSFERFILEJOB),Optional.absent());
+        jobOperateAPI.trigger(Optional.of(SYNCFILEJOB),Optional.absent());
+        return new ApiResult<>().success();
     }
 
     private Date addDay(String date, Integer addDays, String format) {
