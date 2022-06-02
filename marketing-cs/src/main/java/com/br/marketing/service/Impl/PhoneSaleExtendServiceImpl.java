@@ -4,15 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
+import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.dto.SingleDassAndRecordDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.strategy.MultipleDassAndBlackHandler;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,6 +71,9 @@ public class PhoneSaleExtendServiceImpl {
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
+
+    @Autowired
+    MultipleDassAndBlackHandler multipleDassAndBlackHandler;
 
     public HashSet<String> getStatus(){
         HashSet status = new HashSet();
@@ -120,78 +129,102 @@ public class PhoneSaleExtendServiceImpl {
                         .andStatusEqualTo("d");
                 List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = saleExtendHaluoMapper.selectByExample(infoExample);
                 Map<String, List<PhoneSaleExtendHaluo>> collect = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendHaluo::getCustNum));
-                Integer num =0;
-                for (String key : collect.keySet()) {
-                    List<PhoneSaleExtendHaluo> phoneSaleExtendInfos1 = collect.get(key);
-                    if(!haluoSaleJudge(phoneSaleExtendInfos1,"d",taskId)){
-                        continue;
-                    }
-                    phoneSaleExtendInfos1.
-                            sort(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate).reversed()
-                            .thenComparing(PhoneSaleExtendHaluo::getCreateTime).reversed());
-                    PhoneSaleExtendHaluo extendInfo = phoneSaleExtendInfos1.get(0);
-                    PhoneSaleExtendHaluo saleExtendInfo = new PhoneSaleExtendHaluo();
-                    saleExtendInfo.setApiCode(s);
-                    saleExtendInfo.setCustNum(extendInfo.getCustNum());
-                    saleExtendInfo.setTaskId(extendInfo.getTaskId());
-                    saleExtendInfo.setAppletDate(LocalDate.now().format(ymd));
-                    saleExtendInfo.setAppletTime(LocalDateTime.now().format(ymdhms));
-                    saleExtendInfo.setStatus("d");
-                    saleExtendInfo.setCreateTime(new Date());
-                    saleExtendInfo.setUpdateTime(new Date());
-                    saleExtendInfo.setSourceId(extendInfo.getSourceId());
-                    Result result = savePhoneExtend(saleExtendInfo);
-                    if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
-                        continue;
-                    }
-                    MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
-                    transferSyncUserExample.settCid(tableCreateService.getTcId(s));
-                    transferSyncUserExample.createCriteria().andIdEqualTo(extendInfo.getSourceId());
-                    List<MarketingTransferSyncUser> transferSyncUsers = transferSyncUserMapper.selectByExample(transferSyncUserExample);
-                    MarketingTransferSyncUser transferSyncUser = transferSyncUsers.get(0);
-                    List<String> taskquerIds = new ArrayList<>();
-                    List<String> custnumIds = new ArrayList<>();
-                    taskquerIds.add(extendInfo.getTaskId());
-                    custnumIds.add(extendInfo.getCustNum());
-                    List<MarketingSyncUser> syncUserByTaskAndCust = marketingSyncInfoMapper.getSyncUserByTaskAndCust(s, taskquerIds, custnumIds);
-                    MarketingSyncUser syncUser = syncUserByTaskAndCust.get(0);
-                    String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
-                    String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
-                            BrCipherMaker.getInstance().decode(syncUser.getName())
-                            : "";
-                    DassSingleImportDataDTO dassImportDataDTO = new DassSingleImportDataDTO();
-                    dassImportDataDTO.setUid(extendInfo.getCustNum());
-                    dassImportDataDTO.setPhone(cell);
-                    dassImportDataDTO.setName(name);
-                    dassImportDataDTO.setOrgname("hellobike");
-                    dassImportDataDTO.setSource("96");
-                    dassImportDataDTO.setUserType("3");
-                    dassImportDataDTO.setLoginTime(haluoBydxTimeFormat(transferSyncUser.getLoginTime()));
-                    dassImportDataDTO.setIfApply(transferSyncUser.getIfApply());
-                    dassImportDataDTO.setApplyDt(haluoBydxTimeFormat(transferSyncUser.getApplyDt()));
-                    dassImportDataDTO.setAuditTime(haluoBydxTimeFormat(transferSyncUser.getAuditTime()));
-                    dassImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
-                    dassImportDataDTO.setUnlentAmount(transferSyncUser.getUnlentAmount());
-                    if (org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
-                        JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
-                        if (jsonObject != null) {
-                            String applyInformation = jsonObject.getString("applyInformation");
-                            if (org.apache.commons.lang3.StringUtils.isNotBlank(applyInformation)) {
-                                JSONObject jsonObject1 = new JSONObject();
-                                jsonObject1.put("applyInformation", applyInformation);
-                                dassImportDataDTO.setExtend(JSON.toJSONString(jsonObject1));
-                            }
-                        }
-                    }
-                    SingleDassAndRecordDTO dto = new SingleDassAndRecordDTO();
-                    dto.setSaleExtentId(saleExtendInfo.getId());
-                    dto.setDassSingleImportDataDTO(dassImportDataDTO);
-                    methodRetryHandlerService.callSingleDassAndRecord(dto,null);
+                List<String> keys = collect.keySet().stream().collect(Collectors.toList());
+                List<List<String>> partition = ListUtils.partition(keys,50);
+                for (List<String> innerKeys : partition) {
+                    pushThread(innerKeys,collect,taskId,s);
                 }
             }
-
-
         }
+    }
+
+    void pushThread(List<String> keys,Map<String, List<PhoneSaleExtendHaluo>> collect,String taskId,String apiCode){
+        DassImportAdapHaluoDTO dassImportAdapDTO = new DassImportAdapHaluoDTO();
+        dassImportAdapDTO.setIsJob(1);
+        List<String> taskquerIds = new ArrayList<>();
+        List<String> custnumIds = new ArrayList<>();
+        taskquerIds.add(taskId);
+        custnumIds.addAll(keys);
+        List<MarketingSyncUser> syncUserByTaskAndCust = marketingSyncInfoMapper.getSyncUserByTaskAndCust(apiCode, taskquerIds, custnumIds);
+        for (String key : keys) {
+            List<PhoneSaleExtendHaluo> phoneSaleExtendInfos1 = collect.get(key);
+            if(!haluoSaleJudge(phoneSaleExtendInfos1,"d",taskId)){
+                continue;
+            }
+
+            //region 获取syncUser 和 transferSyncUser
+            Optional<MarketingSyncUser> first = syncUserByTaskAndCust.stream().filter(t -> t.getCustNum().equals(key)).findFirst();
+            if(!first.isPresent()){
+                continue;
+            }
+            MarketingSyncUser syncUser = first.get();
+
+            phoneSaleExtendInfos1.
+                    sort(Comparator.comparing(PhoneSaleExtendHaluo::getAppletDate)
+                            .thenComparing(PhoneSaleExtendHaluo::getCreateTime).reversed());
+            PhoneSaleExtendHaluo extendInfo = phoneSaleExtendInfos1.get(0);
+            MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
+            transferSyncUserExample.settCid(tableCreateService.getTcId(apiCode));
+            transferSyncUserExample.createCriteria().andIdEqualTo(extendInfo.getSourceId());
+            List<MarketingTransferSyncUser> transferSyncUsers = transferSyncUserMapper.selectByExample(transferSyncUserExample);
+            MarketingTransferSyncUser transferSyncUser = transferSyncUsers.get(0);
+            //endregion
+
+            //region dassImportAdapDTO赋值
+            PhoneSaleExtendHaluo phoneSaleExtendHaluo = new PhoneSaleExtendHaluo();
+            DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+            //endregion
+
+            //region 赋值phoneSaleExtendHaluo
+
+            phoneSaleExtendHaluo.setCustNum(extendInfo.getCustNum());
+            phoneSaleExtendHaluo.setApiCode(apiCode);
+            phoneSaleExtendHaluo.setTaskId(extendInfo.getTaskId());
+            phoneSaleExtendHaluo.setAppletDate(extendInfo.getAppletDate());
+            phoneSaleExtendHaluo.setAppletTime(extendInfo.getAppletTime());
+            phoneSaleExtendHaluo.setStatus("d");
+            phoneSaleExtendHaluo.setCreateTime(new Date());
+            phoneSaleExtendHaluo.setSourceId(extendInfo.getSourceId());
+            //endregion
+
+            //region 组装电销数据
+            String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+            String s = AESUtil.aesEncrypty(cell, aesKey);
+            String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
+                    BrCipherMaker.getInstance().decode(syncUser.getName())
+                    : "";
+            dassImportDataDTO.setUid(extendInfo.getCustNum());
+            dassImportDataDTO.setPhone(s);
+            dassImportDataDTO.setName(name);
+            dassImportDataDTO.setOrgname("hellobike");
+            dassImportDataDTO.setSource("96");
+            dassImportDataDTO.setUserType("3");
+            dassImportDataDTO.setLoginTime(haluoBydxTimeFormat(transferSyncUser.getLoginTime()));
+            dassImportDataDTO.setIfApply(transferSyncUser.getIfApply());
+            dassImportDataDTO.setApplyDt(haluoBydxTimeFormat(transferSyncUser.getApplyDt()));
+            dassImportDataDTO.setAuditTime(haluoBydxTimeFormat(transferSyncUser.getAuditTime()));
+            dassImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
+            dassImportDataDTO.setUnlentAmount(transferSyncUser.getUnlentAmount());
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
+                JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
+                if (jsonObject != null) {
+                    String applyInformation = jsonObject.getString("applyInformation");
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(applyInformation)) {
+                        JSONObject jsonObject1 = new JSONObject();
+                        jsonObject1.put("applyInformation", applyInformation);
+                        dassImportDataDTO.setExtend(JSON.toJSONString(jsonObject1));
+                    }
+                }
+            }
+            //endregion
+
+            Result result = savePhoneExtend(phoneSaleExtendHaluo);
+            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                dassImportAdapDTO.getPhoneSaleExtendHaluos().add(phoneSaleExtendHaluo);
+                dassImportAdapDTO.getList().add(dassImportDataDTO);
+            }
+        }
+        methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO,null);
     }
 
 

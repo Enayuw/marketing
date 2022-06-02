@@ -142,28 +142,6 @@ public class MethodRetryHandlerService {
     }
 
     /**
-     * 调用Dass接口
-     * 调用成功，将该批数据记录到数据库中以便数据对比
-     *
-     * @param dassImportAdapDTO
-     * @return
-     */
-    @RetryMethod(isOrNoDbRetry = true)
-    public Result callSingleDassAndRecord(SingleDassAndRecordDTO dassImportAdapDTO, Integer retry) {
-
-        Result result = dassServiceClient.postRealTimeUserData(dassImportAdapDTO);
-        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
-            update.setId(dassImportAdapDTO.getSaleExtentId());
-            update.setPStatus(2);
-            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
-        }
-        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
-        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-    }
-
-    /**
      * 调用客服黑名单接口
      * 调用成功，将该批数据记录到数据库中以便数据对比
      *
@@ -243,12 +221,14 @@ public class MethodRetryHandlerService {
     public Result callDassRealTimeBatchData(DassImportAdapHaluoDTO dassImportAdapDTO, Integer retry) {
         Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            Set<String> set = dassImportAdapDTO.getPhoneSaleExtendHaluos()
-                    .stream().map(PhoneSaleExtendHaluo::getSourceId)
-                    .map(String::valueOf)
-                    .collect(Collectors.toSet());
-            saveBizLog(String.join(",",set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
-                    dassImportAdapDTO.getTransferInfoId());
+            if(dassImportAdapDTO.getIsJob().equals(new Integer(0))) {
+                Set<String> set = dassImportAdapDTO.getPhoneSaleExtendHaluos()
+                        .stream().map(PhoneSaleExtendHaluo::getSourceId)
+                        .map(String::valueOf)
+                        .collect(Collectors.toSet());
+                saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
+                        dassImportAdapDTO.getTransferInfoId());
+            }
             List<Long> ids = dassImportAdapDTO.getPhoneSaleExtendHaluos()
                     .stream().map(PhoneSaleExtendHaluo::getId)
                     .collect(Collectors.toList());

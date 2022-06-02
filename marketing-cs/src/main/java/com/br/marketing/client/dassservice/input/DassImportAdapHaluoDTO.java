@@ -8,6 +8,8 @@ import java.util.List;
 @Data
 public class DassImportAdapHaluoDTO {
     String  interfaceExtendInfo;
+
+    private Integer isJob = 0;
     /**
      * 批量人工推
      */
