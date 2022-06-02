@@ -19,6 +19,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -108,7 +109,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 //删除b_sync_log
                                 List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
                                 if (!CollectionUtils.isEmpty(syncLogList)) {
-                                    loanSyncLogMapper.deleteByPrimaryKey(syncLogList.get(0).getId());
+                                    SyncLogExample syncLogExample = new SyncLogExample();
+                                    syncLogExample.createCriteria().andApiCodeEqualTo(marketingCustomer.getApiCode())
+                                            .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"));
+                                    loanSyncLogMapper.deleteByExample(syncLogExample);
                                 }
                             }
                         }

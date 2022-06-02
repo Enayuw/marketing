@@ -89,7 +89,8 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
         transferFileTaskMapper.deleteByPrimaryKey(id.longValue());
         JobOperateAPI jobOperateAPI = JobAPIFactory.createJobOperateAPI(zkAddressList,nameSpace, Optional.absent());
         jobOperateAPI.trigger(Optional.of(TRANSFERFILEJOB),Optional.absent());
-        jobOperateAPI.trigger(Optional.of(SYNCFILEJOB),Optional.absent());
+        //PutToSftpJob有判断1分钟的条件，后续运营使用考虑异步触发，目前手动执行
+        //jobOperateAPI.trigger(Optional.of(SYNCFILEJOB),Optional.absent());
         return new ApiResult<>().success();
     }
 
