@@ -122,6 +122,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (StringUtils.isNotEmpty(search) && search.contains("_")) {
             search = search.replace("_", "\\_");
         }
+
         PageHelper.startPage(current, size);
         List<MarketingTaskVO> fastTaskRuleListVOS = marketingTaskMapper.selectList(search, status,
                 createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, null);
@@ -136,7 +137,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         marketingTask.setId(Long.valueOf(id));
         Integer exist = marketingTaskMapper.selectByPriority(priority);
         if (exist > 0) {
-            throw new AppException(CodeEnum.TASK_PRIORITY_EXIST);
+            return new ApiResult<Boolean>().fail(CodeEnum.TASK_PRIORITY_EXIST.getMessage());
         }
         marketingTaskMapper.updateByPrimaryKeySelective(marketingTask);
         return new ApiResult<Boolean>().success(true);
