@@ -176,8 +176,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             MarketingTask marketingTask = marketingTaskMapper.selectByPrimaryKey(Long.valueOf(id));
             Integer taskNumber = marketingTask.getTaskNumber();
             String s = redisChgService.get(RedisKeyConstant.taskScoreNum + ":" + hisFileId);
-            if(s==null) s="0";
-            return Integer.valueOf(s)/taskNumber;
+            if(s==null) {
+                s="0";
+            }
+            return Integer.valueOf(s)*100/taskNumber;
         }
         return 0;
     }
