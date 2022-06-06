@@ -623,6 +623,9 @@
         </if>
         <if test="search !=null and search!=''">
             and bmt.api_code like concat("%", #{search},"%")
+            or bmc.cid like concat("%", #{search},"%")
+            or bmc.short_name like concat("%", #{search},"%")
+
         </if>
         <if test="createTimeStart !=null and createTimeStart!=''">
             <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
@@ -637,13 +640,13 @@
             <![CDATA[  and bmt.update_time <#{updateTimeEnd} ]]>
         </if>
         <if test="taskStatus==0 ">
-            and shf.status is null and btm.status=1
+            and shf.status is null
         </if>
         <if test="taskStatus==2 ">
-            and shf.status = 2 and bftr.status=1
+            and shf.status = 2
         </if>
         <if test="taskStatus==1 ">
-            and shf.status in(0,1,3) and bftr.status=1
+            and shf.status in(0,1,3)
         </if>
         <if test="id !=null">
             and bmt.id = #{id}
