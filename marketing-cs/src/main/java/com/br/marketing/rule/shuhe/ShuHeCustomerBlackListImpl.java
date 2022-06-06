@@ -10,12 +10,18 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * 数禾转化推送客服黑名单 业务
@@ -30,9 +36,20 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+    public static final DateTimeFormatter ymhdms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        HashMap<String, Integer> shuhePushBlackDay = marketingCommonConfig.getShuhePushBlackDay();
+        Integer blackDays = 30;
+        if(shuhePushBlackDay!=null){
+            blackDays = shuhePushBlackDay.getOrDefault("customerBlack", 30);
+        }
+        String endTime = LocalDateTime.now()
+                .withHour(23).withMinute(59).withSecond(59)
+                .plusDays(blackDays).format(ymhdms);
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
@@ -41,7 +58,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
-        blackDetailDTO.setExpireDate(iUserType.getBlackExpireDate(creatTime));
+        blackDetailDTO.setExpireDate(endTime);
         blackDetailDTO.setPhone(caseShuheUser.getCell());
         return blackDetailDTO;
     }

@@ -3,6 +3,7 @@ package com.br.marketing.dto.shuhe.strategy;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -91,6 +92,11 @@ public class CuShouDeng extends IUserType {
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
         return true;
+    }
+
+    @Override
+    public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime, CaseUserServiceImpl caseUserService) {
+        return ifGiveUp(caseShuheUser,creatTime);
     }
 
     @Override

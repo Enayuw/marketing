@@ -11,10 +11,7 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
-import com.br.marketing.service.Impl.SftpInnerServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.Impl.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -71,6 +68,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private SyncLogMapper loanSyncLogMapper;
+    @Resource
+    private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -136,6 +135,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
         if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByJiuFuService;
+        }
+        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
+            return xiaoYingRealTimeService;
         } else {
             return null;
         }

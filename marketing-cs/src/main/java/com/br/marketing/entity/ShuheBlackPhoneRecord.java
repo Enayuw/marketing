@@ -5,11 +5,11 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * b_phone_sale_extend_info
- * @author 
+ * b_shuhe_black_phone_record
+ * @author :lizhen
  */
 @Data
-public class PhoneSaleExtendInfo implements Serializable {
+public class ShuheBlackPhoneRecord implements Serializable {
     private Long id;
 
     /**
@@ -23,9 +23,9 @@ public class PhoneSaleExtendInfo implements Serializable {
     private String custNum;
 
     /**
-     * taskId
+     * 手机号
      */
-    private String taskId;
+    private String phone;
 
     /**
      * 场景
@@ -33,19 +33,24 @@ public class PhoneSaleExtendInfo implements Serializable {
     private String userType;
 
     /**
-     * 数据上传日期
+     * 转化节点
      */
-    private String appletDate;
+    private String type;
 
     /**
-     * 数据上传时间
+     * 机构名称
      */
-    private String appletTime;
+    private String orgname;
 
     /**
-     * 状态 a,b
+     * 机构名称
      */
-    private String status;
+    private String source;
+
+    /**
+     * 数据推送日期
+     */
+    private String pushDate;
 
     /**
      * 1-未推送；2-推送成功；3-推送失败
@@ -61,31 +66,6 @@ public class PhoneSaleExtendInfo implements Serializable {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * 客户传输节点
-     */
-    private String type;
-
-    /**
-     * 电销节点
-     */
-    private String dxType;
-
-    /**
-     * 1-实时推送;0-非实时推送
-     */
-    private String transformType;
-
-    /**
-     * 源数据id
-     */
-    private Long sourceId;
-
-    /**
-     * 推送电销时间
-     */
-    private Date pushDxTime;
 
     private static final long serialVersionUID = 1L;
 }

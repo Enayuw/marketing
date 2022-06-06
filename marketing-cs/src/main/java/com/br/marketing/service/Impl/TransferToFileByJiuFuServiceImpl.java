@@ -127,8 +127,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             LocalDate endDate;
             if(localDate.getDayOfMonth()==1){
                 LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
-                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
-                endDate = lastMonth.with(TemporalAdjusters.lastDayOfMonth()); // 获取当前月的最后一天
+                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取上月的第一天
+                endDate = localDate; // 获取当前时间
             }else {
                 startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
                 endDate = localDate;
