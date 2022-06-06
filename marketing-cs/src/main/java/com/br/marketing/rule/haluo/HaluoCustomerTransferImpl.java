@@ -140,7 +140,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
             }
         }
         String expiredate = LocalDate.parse(transferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(6)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
         blackDetailDTO.setDataId(transferSyncUser.getId().toString());
         blackDetailDTO.setName(name);
         blackDetailDTO.setPhone(cell);
