@@ -121,11 +121,23 @@ public class PhoneSaleExtendServiceImpl {
                 return;
             }
             for (String taskId : taskIds) {
-                List<String> keys = saleExtendHaluoMapper.selectCustNumsByTaskIdAndD(taskId, "d");
-                List<List<String>> partition = ListUtils.partition(keys, 50);
-                for (List<String> innerKeys : partition) {
-                    pushThread(innerKeys, taskId, s);
+                Boolean custPage = Boolean.TRUE;
+                Integer pageSize = 1000;
+                Integer pageIndex = 0;
+                while (custPage){
+                    Integer start = pageIndex*pageSize;
+                    List<String> keys = saleExtendHaluoMapper.selectCustNumsByTaskIdAndD(taskId, "d",start,pageSize);
+                    if(keys.size()<=0){
+                        custPage = Boolean.FALSE;
+                        continue;
+                    }
+                    pageIndex++;
+                    List<List<String>> partition = ListUtils.partition(keys, 50);
+                    for (List<String> innerKeys : partition) {
+                        pushThread(innerKeys, taskId, s);
+                    }
                 }
+
             }
         }
     }

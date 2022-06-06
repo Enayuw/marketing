@@ -7,5 +7,5 @@ public interface PhoneSaleExtendHaluoMapper extends PhoneSaleExtendHaluoMapperBa
 
     List<PhoneSaleExtendHaluo> selectHaluoPhoneSaleExtend(@Param("minId") Long minId,@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    List<String> selectCustNumsByTaskIdAndD(@Param("taskId")String taskId,@Param("status")String status);
+    List<String> selectCustNumsByTaskIdAndD(@Param("taskId")String taskId,@Param("status")String status,@Param("start") Integer start,@Param("pageSize")Integer pageSize);
 }
