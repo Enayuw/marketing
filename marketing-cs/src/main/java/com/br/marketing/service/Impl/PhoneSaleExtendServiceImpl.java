@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -120,21 +121,21 @@ public class PhoneSaleExtendServiceImpl {
                 return;
             }
             for (String taskId : taskIds) {
-                PhoneSaleExtendHaluoExample infoExample = new PhoneSaleExtendHaluoExample();
-                infoExample.createCriteria().andTaskIdEqualTo(taskId)
-                        .andStatusEqualTo("d");
-                List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = saleExtendHaluoMapper.selectByExample(infoExample);
-                Map<String, List<PhoneSaleExtendHaluo>> collect = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendHaluo::getCustNum));
-                List<String> keys = collect.keySet().stream().collect(Collectors.toList());
+                List<String> keys = saleExtendHaluoMapper.selectCustNumsByTaskIdAndD(taskId, "d");
                 List<List<String>> partition = ListUtils.partition(keys, 50);
                 for (List<String> innerKeys : partition) {
-                    pushThread(innerKeys, collect, taskId, s);
+                    pushThread(innerKeys, taskId, s);
                 }
             }
         }
     }
 
-    void pushThread(List<String> keys, Map<String, List<PhoneSaleExtendHaluo>> collect, String taskId, String apiCode) {
+    void pushThread(List<String> keys, String taskId, String apiCode) {
+        PhoneSaleExtendHaluoExample infoExample = new PhoneSaleExtendHaluoExample();
+        infoExample.createCriteria().andTaskIdEqualTo(taskId)
+                .andStatusEqualTo("d")
+                .andCustNumIn(keys);
+        List<PhoneSaleExtendHaluo> collect = saleExtendHaluoMapper.selectByExample(infoExample);
         DassImportAdapHaluoDTO dassImportAdapDTO = new DassImportAdapHaluoDTO();
         dassImportAdapDTO.setList(new ArrayList<DassImportDataDTO>());
         dassImportAdapDTO.setPhoneSaleExtendHaluos(new ArrayList<PhoneSaleExtendHaluo>());
@@ -145,7 +146,7 @@ public class PhoneSaleExtendServiceImpl {
         custnumIds.addAll(keys);
         List<MarketingSyncUser> syncUserByTaskAndCust = marketingSyncInfoMapper.getSyncUserByTaskAndCust(apiCode, taskquerIds, custnumIds);
         for (String key : keys) {
-            List<PhoneSaleExtendHaluo> phoneSaleExtendInfos1 = collect.get(key);
+            List<PhoneSaleExtendHaluo> phoneSaleExtendInfos1 = collect.stream().filter(t->t.getCustNum().equals(key)).collect(Collectors.toList());
             if (!haluoSaleJudge(phoneSaleExtendInfos1, "d", taskId)) {
                 continue;
             }
@@ -182,7 +183,7 @@ public class PhoneSaleExtendServiceImpl {
             phoneSaleExtendHaluo.setApiCode(apiCode);
             phoneSaleExtendHaluo.setTaskId(extendInfo.getTaskId());
             phoneSaleExtendHaluo.setAppletDate(LocalDate.now().format(ymd));
-            phoneSaleExtendHaluo.setAppletTime(LocalDate.now().format(ymdhms));
+            phoneSaleExtendHaluo.setAppletTime(LocalDateTime.now().format(ymdhms));
             phoneSaleExtendHaluo.setStatus("d");
             phoneSaleExtendHaluo.setCreateTime(new Date());
             phoneSaleExtendHaluo.setSourceId(extendInfo.getSourceId());
