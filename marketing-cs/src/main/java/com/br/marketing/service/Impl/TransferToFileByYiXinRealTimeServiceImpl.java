@@ -151,6 +151,29 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 resultList.add(transferFileTask);
             }
 
+            //非实时数据提取规（type=7、8、15）fileType=4
+            taskExample = new TransferFileTaskExample();
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(4);
+            transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+            if (CollectionUtils.isEmpty(transferFileTasks)) {
+                log.warn("宜信非实时数据提取(hist)-开始执行,apiCode ={}", apiCode);
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(4);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setFileChildDir("hist");
+                transferFileTask.setTaskNumber(0);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
+            }
+
             //宜信非实时数据提取-pass-3710012
             taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(5);
