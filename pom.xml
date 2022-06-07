@@ -121,11 +121,6 @@
             </exclusions>
         </dependency>
         <!-- elasticJob -->
-        <dependency>
-            <groupId>com.dangdang</groupId>
-            <artifactId>elastic-job-api-core</artifactId>
-            <version>${elastic-job.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>com.dangdang</groupId>
