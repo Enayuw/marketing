@@ -3,8 +3,10 @@ package com.br.marketing.context.impl;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -46,6 +48,12 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
+
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
 
@@ -65,5 +73,16 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
                                 Collectors.reducing((v1, v2) ->
                                         v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                 , Optional::get)));
+    }
+
+    public Map<String,List<PhoneSaleExtendHaluo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode, String startDate, String endDate){
+        PhoneSaleExtendHaluoExample extendInfoExample = new PhoneSaleExtendHaluoExample();
+        extendInfoExample.createCriteria()
+                .andCustNumIn(custNums)
+                .andAppletDateGreaterThanOrEqualTo(startDate)
+                .andAppletDateLessThanOrEqualTo(endDate);
+        List<PhoneSaleExtendHaluo> phoneSaleExtendInfos = phoneSaleExtendHaluoMapper.selectByExample(extendInfoExample);
+        Map<String, List<PhoneSaleExtendHaluo>> map = phoneSaleExtendInfos.stream().collect(Collectors.groupingBy(PhoneSaleExtendHaluo::getCustNum));
+        return map;
     }
 }

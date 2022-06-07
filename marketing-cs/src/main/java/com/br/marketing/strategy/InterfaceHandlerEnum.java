@@ -12,7 +12,8 @@ public enum InterfaceHandlerEnum {
     ARTIFICIAL_REAL_TIME_USERDATA(8, "人工实时推送用户名单"),
     ARTIFICIAL_BATCH_REALTIME_DATA(9, "人工推电销批量接口"),
     BATCH_MESSAGE_DELAY(10, "消息延迟批量接口"),
-    ARTIFICIAL_SHUHE_BLACK_DATA(11,"数禾黑名单推人工转化接口");
+    ARTIFICIAL_SHUHE_BLACK_DATA(11,"数禾黑名单推人工转化接口"),
+    MULTIPLE_DASSBATCH_CUSTOMERBLACK(12, "推送电销和客服黑名单组合接口");
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;

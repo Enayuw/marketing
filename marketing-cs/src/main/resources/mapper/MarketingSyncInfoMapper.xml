@@ -126,6 +126,19 @@
         </where>
     </select>
 
+    <select id="getPreUserByInCustWithNoFail" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        update_time,applet_date,applet_time
+        from b_marketing_sync_${apiCode}
+        <where>
+            cust_num in
+            <foreach collection="custs" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and IFNULL(fail_type,'') = ''
+        </where>
+    </select>
+
     <select id="countTransferFile" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_${apiCode}

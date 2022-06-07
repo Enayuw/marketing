@@ -15,5 +15,11 @@
         </where>
     </select>
 
-
+<select id="selectCustNumsByTaskIdAndD" resultType="java.lang.String">
+    select cust_num from
+    b_phone_sale_extend_haluo
+    where task_id = #{taskId}
+    and status = #{status}
+    group by cust_num order by cust_num limit #{start},#{pageSize}
+</select>
 </mapper>

@@ -214,4 +214,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String,Integer> shuhePushBlackDay;
 
+    /**
+     *  哈罗转化数据规则
+     *  {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
+     */
+    private HashMap<String,String> haluoTransferRule;
+
 }
