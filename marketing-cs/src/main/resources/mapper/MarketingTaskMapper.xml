@@ -625,6 +625,7 @@
             and bmt.api_code like concat("%", #{search},"%")
             or bmc.cid like concat("%", #{search},"%")
             or bmc.short_name like concat("%", #{search},"%")
+            or bmt.batch_number like concat("%", #{search},"%")
 
         </if>
         <if test="createTimeStart !=null and createTimeStart!=''">
