@@ -175,7 +175,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         String status = marketingTaskMapper.selectHisFileById(hisFileId);
         if("2".equals(status)){
             return 100;
-        }else if("3".equals(status)|| "1".equals(status)){
+        }else if("3,1".contains(status)){
             MarketingTask marketingTask = marketingTaskMapper.selectByPrimaryKey(Long.valueOf(id));
             Integer taskNumber = marketingTask.getTaskNumber();
             String s = redisChgService.get(RedisKeyConstant.taskScoreNum + ":" + hisFileId);
