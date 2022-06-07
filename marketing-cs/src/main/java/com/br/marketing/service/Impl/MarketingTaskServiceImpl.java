@@ -169,10 +169,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public Integer getTaskPercent(String hisFileId,String id) {
+        //3，1 正在跑分
+        //0，待推送
+        //2，已完成
         String status = marketingTaskMapper.selectHisFileById(hisFileId);
         if("2".equals(status)){
             return 100;
-        }else if("3".equals(status)){
+        }else if("3".equals(status)|| "1".equals(status)){
             MarketingTask marketingTask = marketingTaskMapper.selectByPrimaryKey(Long.valueOf(id));
             Integer taskNumber = marketingTask.getTaskNumber();
             String s = redisChgService.get(RedisKeyConstant.taskScoreNum + ":" + hisFileId);
