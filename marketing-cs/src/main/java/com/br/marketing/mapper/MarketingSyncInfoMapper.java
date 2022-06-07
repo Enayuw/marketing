@@ -57,6 +57,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    List<MarketingSyncUser> getPreUserByInCustWithNoFail(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
+
     Integer countTransferFile(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime
             , @Param("endTime") String endTime, @Param("groupType") String groupType, @Param("fileTypes") List<String> fileTypes);
 
