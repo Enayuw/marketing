@@ -647,7 +647,7 @@
             and shf.status = 2
         </if>
         <if test="taskStatus==1 ">
-            and shf.status in(0,1,3)
+            and shf.status in(1,3)
         </if>
         <if test="id !=null">
             and bmt.id = #{id}
