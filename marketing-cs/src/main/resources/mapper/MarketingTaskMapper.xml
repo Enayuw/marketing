@@ -622,7 +622,7 @@
             and bmt.status = #{status}
         </if>
         <if test="search !=null and search!=''">
-            and bmt.api_code like concat("%", #{search},"%")
+            or bmt.api_code like concat("%", #{search},"%")
             or bmc.cid like concat("%", #{search},"%")
             or bmc.short_name like concat("%", #{search},"%")
             or bmt.batch_number like concat("%", #{search},"%")
