@@ -114,16 +114,17 @@ public class TaskServiceImpl implements ITaskService {
         List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId,hm);
 
         for (MarketingTask scoreTask : scoreTasks) {
-            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);
-            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
-                continue;
-            }
-            TaskStatus statusData = taskStatusResult.getData();
             String s = UUID.randomUUID().toString();
             boolean taskLock = getTaskLock(scoreTask, s);
             if (!taskLock) {
                 continue;
             }
+
+            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);
+            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
+                continue;
+            }
+            TaskStatus statusData = taskStatusResult.getData();
             if (statusData != null) {
                 TaskStatus updateStatus = new TaskStatus();
                 updateStatus.setId(statusData.getId());
