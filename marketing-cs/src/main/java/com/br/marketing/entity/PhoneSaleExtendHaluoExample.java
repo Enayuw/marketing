@@ -165,6 +165,76 @@ public class PhoneSaleExtendHaluoExample {
             return (Criteria) this;
         }
 
+        public Criteria andApiCodeIsNull() {
+            addCriterion("api_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIsNotNull() {
+            addCriterion("api_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeEqualTo(String value) {
+            addCriterion("api_code =", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotEqualTo(String value) {
+            addCriterion("api_code <>", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThan(String value) {
+            addCriterion("api_code >", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_code >=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThan(String value) {
+            addCriterion("api_code <", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+            addCriterion("api_code <=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLike(String value) {
+            addCriterion("api_code like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotLike(String value) {
+            addCriterion("api_code not like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIn(List<String> values) {
+            addCriterion("api_code in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotIn(List<String> values) {
+            addCriterion("api_code not in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeBetween(String value1, String value2) {
+            addCriterion("api_code between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotBetween(String value1, String value2) {
+            addCriterion("api_code not between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
         public Criteria andPIdIsNull() {
             addCriterion("p_id is null");
             return (Criteria) this;
@@ -692,6 +762,66 @@ public class PhoneSaleExtendHaluoExample {
 
         public Criteria andPStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("p_status not between", value1, value2, "pStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdIsNull() {
+            addCriterion("source_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdIsNotNull() {
+            addCriterion("source_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdEqualTo(Long value) {
+            addCriterion("source_id =", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdNotEqualTo(Long value) {
+            addCriterion("source_id <>", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdGreaterThan(Long value) {
+            addCriterion("source_id >", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("source_id >=", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdLessThan(Long value) {
+            addCriterion("source_id <", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdLessThanOrEqualTo(Long value) {
+            addCriterion("source_id <=", value, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdIn(List<Long> values) {
+            addCriterion("source_id in", values, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdNotIn(List<Long> values) {
+            addCriterion("source_id not in", values, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdBetween(Long value1, Long value2) {
+            addCriterion("source_id between", value1, value2, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceIdNotBetween(Long value1, Long value2) {
+            addCriterion("source_id not between", value1, value2, "sourceId");
             return (Criteria) this;
         }
 

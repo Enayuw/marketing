@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
+import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
@@ -84,6 +85,14 @@ public class DassServiceClient {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    public Result postHermesUserData(DassImportAdapHaluoDTO dto){
+        DassImportAdapDTO trueDto = new DassImportAdapDTO();
+        trueDto.setList(dto.getList());
+        trueDto.setInterfaceExtendInfo(dto.getInterfaceExtendInfo());
+        trueDto.setTransferInfoId(dto.getTransferInfoId());
+        return postHermesUserData(trueDto);
+    }
 
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
