@@ -142,7 +142,7 @@ public class TaskScoreServiceImpl {
         ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
 
         //线程监听
-        threadNumListen(warrningExecutor, customer);
+        threadNumListen(warrningExecutor, customer,task);
 
         //线程池注册
         observedScoreThreadService.addObserver(warrningExecutor);
@@ -224,7 +224,7 @@ public class TaskScoreServiceImpl {
             //endregion
 
             thread.interrupt();
-            removeZk(customer);
+            removeZk(task);
         } catch (Exception e) {
             log.error("预警调度出错", e);
         }
@@ -589,8 +589,8 @@ public class TaskScoreServiceImpl {
         return ip;
     }
 
-    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer) {
-        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer,MarketingTask task) {
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
         try {
             if (client.checkExists().forPath(zkpath) == null) {
                 client.create().forPath(zkpath, customer.getThreadNum().toString().getBytes(StandardCharsets.UTF_8));
@@ -651,8 +651,8 @@ public class TaskScoreServiceImpl {
         return thread1;
     }
 
-    private void removeZk(MarketingCustomer customer) {
-        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(customer.getApiCode());
+    private void removeZk(MarketingTask task) {
+        String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
         try {
             client.delete().guaranteed().forPath(zkpath);
         } catch (Exception e) {

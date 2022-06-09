@@ -332,7 +332,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
         }
         vo.setConditionInfo(transferData);
-        Long aLong = saveTask(apiCode, number, vo, taskStart, count,0,showStr.toString());
+        Long aLong = saveTask(apiCode, number, vo, taskStart, count,1,showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
     }
@@ -367,7 +367,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode,time);
         }
-        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count,1,showStr.toString());
+        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count,2,showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
 
