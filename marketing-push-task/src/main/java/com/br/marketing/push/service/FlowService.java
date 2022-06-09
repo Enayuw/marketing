@@ -63,8 +63,10 @@ public class FlowService {
                 PushService pushService= PushApplication.ac.getBean(PushServiceImpl.class);
                 pushService.push(pushList);
 
-                //推送消息到pushQueue，进行下一流程处理
-                RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.EX_CHANGER_NAME, MQConstants.CHECK_ROUTING_KEY,customer.getApiCode());
+                for (LoanFile loanFile : pushList) {
+                    //推送消息到pushQueue，进行下一流程处理
+                    RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.EX_CHANGER_NAME, MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
+                }
             }
 
         } catch (Exception e) {

@@ -330,14 +330,13 @@ public class TaskScoreServiceImpl {
             file.setFilePath(descPath);
             file.setCreateTime(new Date());
             file.setUpdateTime(new Date());
+            file.setExpectedNum(blt.getTaskNumber());
             file.setStatus(3);
             if (1 == blt.getMonitorType()) {
                 file.setType(2);
             } else if (4 == blt.getMonitorType()) {
                 file.setType(1);
             }
-
-            file.setExpectedNum(blt.getActualNumber());
 //            file.setShowTitle(createShowTitle(blt));
             straHisFileMapper.insertSelective(file);
             blt.setFileId(file.getId());
