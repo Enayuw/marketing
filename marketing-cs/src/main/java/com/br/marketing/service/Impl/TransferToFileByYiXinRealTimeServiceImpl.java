@@ -704,7 +704,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 fw.append(sb.toString());
             }
             dataFilter.clear();
-            totalSize = resultFilter.size();
+            totalSize = totalSize + resultFilter.size();
             resultFilter.clear();
             data.clear();
         }
