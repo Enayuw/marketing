@@ -18,6 +18,6 @@ public class CheckFileServiceImpl {
     public Result<Boolean> consumerFileCheck(Long fileId){
         resultCheckService.taskResultCheck(fileId);
         pushFinishService.pushFinish(fileId);
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }

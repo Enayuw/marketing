@@ -220,7 +220,7 @@ public class CoreScoreThread implements Callable<String> {
             addDTBPro(typeNoList);
             MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
             if (merchantParam == null) {
-                log.error("用户中心结果为空");
+                log.error("用户中心结果为空"+apiCode);
                 return false;
             }
             getDayNumMap(dayNumMap, merchantParam);

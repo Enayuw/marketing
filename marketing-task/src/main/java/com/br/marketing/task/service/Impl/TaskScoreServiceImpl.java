@@ -220,6 +220,10 @@ public class TaskScoreServiceImpl {
                 updateFile.setId(task.getFileId());
                 updateFile.setStatus(1);
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+                MarketingTask updateTask = new MarketingTask();
+                updateTask.setId(task.getId());
+                updateTask.setPriority(0);
+                marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
             }
             //endregion
 
