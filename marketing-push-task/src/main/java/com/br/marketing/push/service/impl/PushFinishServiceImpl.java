@@ -7,8 +7,10 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoanFile;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.mapper.LoanFileMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.push.service.PushFinishService;
 import com.br.marketing.push.task.FtpToSftpCheckTask;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -50,6 +53,9 @@ public class PushFinishServiceImpl implements PushFinishService {
     @Resource
     SyncConfigMapper loanSyncConfigMapper;
 
+    @Resource
+    StraHisFileMapper straHisFileMapper;
+
     @Override
     public void pushFinish(String apiCode) {
       Integer num=loanFileMapper.queryBlfBySignStatus(apiCode);
@@ -74,7 +80,19 @@ public class PushFinishServiceImpl implements PushFinishService {
 
     @Override
     public void pushFinish(Long fileId) {
-
+        SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
+        StraHisFile file = straHisFileMapper.selectByPrimaryKey(fileId);
+        if(!file.getSignFileStatus().equals(1)){
+            return;
+        }
+        SyncConfig config = new SyncConfig();
+        config.setApiCode(file.getApiCode());
+        config.setType(2);
+        config.setDataType(1);
+        config = loanSyncConfigMapper.queryConfigByConditaion(config);
+        if(config.getCheckSuccess()==1){
+            pushSuccess(file,sftpClient);
+        }
     }
 
     /**
@@ -174,5 +192,29 @@ public class PushFinishServiceImpl implements PushFinishService {
             log.error("push success to sftp 异常，{}",e);
         }
 
+    }
+
+    private void pushSuccess(StraHisFile strafile,SftpClient sftpClient){
+        String apiCode = strafile.getApiCode();
+        String remotePath="/UploadFiles/marketing/"+ apiCode +"/output/"+ DateHelper.getDateAddYyMmDd(0)+"/";
+        String zipFileName = strafile.getZipfileName();
+        String filePath = strafile.getFilePath();
+        File file = new File(filePath+"/"+zipFileName);
+        if(file.exists()){
+            String successFileName=zipFileName+".success";
+            File successFile=new File(path+"/sftp_data/"+ apiCode +"/"+successFileName);
+            boolean newFile=true;
+            if(!successFile.exists()){
+                try {
+                    newFile= successFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(newFile){
+                log.warn("push success to sftp :{}",successFileName);
+                sftpClient.uploadFile(remotePath, successFileName, path+"/sftp_data/"+ apiCode +"/"+successFileName);
+            }
+        }
     }
 }

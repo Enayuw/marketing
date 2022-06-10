@@ -169,6 +169,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 StraHisFile upFile = new StraHisFile();
                 upFile.setId(file.getId());
                 upFile.setSignFileStatus(2);
+                file.setSignFileStatus(2);
                 straHisFileMapper.updateByPrimaryKey(upFile);
             }
             int i = expecteDataNum - actualDataNum;
