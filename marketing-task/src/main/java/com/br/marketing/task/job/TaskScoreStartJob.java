@@ -41,12 +41,13 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
 
+    @Autowired
     ObservedScoreThreadServiceImpl observedScoreThreadService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
-        if(observedScoreThreadService.isInterrupt()){
+        if (observedScoreThreadService.isInterrupt()) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分任务手动停止状态请手动开启");
             alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
@@ -54,30 +55,30 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
             return;
         }
 
-        Long start=System.currentTimeMillis();
+        Long start = System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
         String jobParameter = context.getJobParameter();
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Long taskId = 0L;
         Integer isTimeLimit = null;
-        if(StringUtils.isNotBlank(jobParameter)){
-            isTimeLimit=1;
+        if (StringUtils.isNotBlank(jobParameter)) {
+            isTimeLimit = 1;
             String[] split = jobParameter.split(",");
             for (int i = 0; i < split.length; i++) {
-                if(i==0){
+                if (i == 0) {
                     date = split[i];
-                }else{
+                } else {
                     taskId = Long.valueOf(split[1]);
                 }
             }
         }
-        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date,taskId,isTimeLimit);
-        if(ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())){
+        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date, taskId, isTimeLimit);
+        if (ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())) {
             MarketingTask marketingTask = scoreTask.getData();
             marketingTask.setIndex(context.getShardingItems().get(0));
-            taskScoreService.process(marketingTask,date);
+            taskScoreService.process(marketingTask, date);
         }
-        Long end =System.currentTimeMillis();
-        log.warn("【跑批任务】调度结束，耗时：{},分片：{}",end-start,context.getShardingItemParameters());
+        Long end = System.currentTimeMillis();
+        log.warn("【跑批任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
     }
 }

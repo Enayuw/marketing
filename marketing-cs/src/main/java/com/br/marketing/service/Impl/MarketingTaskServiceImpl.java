@@ -168,21 +168,21 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Integer getTaskPercent(String hisFileId,String id) {
+    public Integer getTaskPercent(String hisFileId, String id) {
         //3，1 正在跑分
         //0，待推送
         //2，已完成
         String status = marketingTaskMapper.selectHisFileById(hisFileId);
-        if("2".equals(status)){
+        if ("2".equals(status)) {
             return 100;
-        }else if("3,1".contains(status)){
+        } else if ("3,1".contains(status)) {
             MarketingTask marketingTask = marketingTaskMapper.selectByPrimaryKey(Long.valueOf(id));
             Integer taskNumber = marketingTask.getTaskNumber();
             String s = redisChgService.get(RedisKeyConstant.taskScoreNum + ":" + hisFileId);
-            if(s==null) {
-                s="0";
+            if (s == null) {
+                s = "0";
             }
-            return Integer.valueOf(s)*100/taskNumber;
+            return Integer.valueOf(s) * 100 / taskNumber;
         }
         return 0;
     }
@@ -209,9 +209,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public void addTaskPercent(Long fileId,Long number) {
+    public void addTaskPercent(Long fileId, Long number) {
         String key = RedisKeyConstant.taskScoreNum.concat(":").concat(fileId.toString());
-        redisChgService.incrBy(key,number);
+        redisChgService.incrBy(key, number);
     }
 
     @Override
@@ -245,7 +245,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         taskStart = LocalDate.now().format(ymd);
         taskEnd = LocalDate.now().plusDays(1L).format(ymd);
-        String sDate = LocalDateTime.parse(sTimeStr,ymdhms).format(ymd);
+        String sDate = LocalDateTime.parse(sTimeStr, ymdhms).format(ymd);
         try {
             sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
             eTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(eTimeStr);
@@ -261,7 +261,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         String nowDay = LocalDate.now().format(ymd);
         // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
         if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d",vo.getId()));
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d", vo.getId()));
         }
         //endregion
 
@@ -309,14 +309,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         //跑分条件转化
         Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), sDate, eTimeStr);
 
-        if(!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
         }
 
         String transferData = conditionTransferRes.getData();
         //获取查询sql条件
         Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
-        if(!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
         }
         StringBuilder showStr = new StringBuilder();
@@ -326,13 +326,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String s = whereSqlToShow(datum);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
             count += integer;
-            showStr.append(s).append("总数据"+integer);
-            if(i<transferWhereRes.getData().size()-1){
+            showStr.append(s).append("总数据" + integer);
+            if (i < transferWhereRes.getData().size() - 1) {
                 showStr.append(",");
             }
         }
         vo.setConditionInfo(transferData);
-        Long aLong = saveTask(apiCode, number, vo, taskStart, count,1,showStr.toString());
+        Long aLong = saveTask(apiCode, number, vo, taskStart, count, 1, showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
     }
@@ -355,8 +355,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
             count += integer;
-            showStr.append(s).append("总数据"+integer);
-            if(i<data.size()-1){
+            showStr.append(s).append("总数据" + integer);
+            if (i < data.size() - 1) {
                 showStr.append(",");
             }
         }
@@ -365,9 +365,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (count > 0) {
             String concatTime = vo.getStartDate().concat(" ").concat(vo.getStartTime() + ":00");
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            number = createMarketingTaskBatchNumber(apiCode,time);
+            number = createMarketingTaskBatchNumber(apiCode, time);
         }
-        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count,2,showStr.toString());
+        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
 
@@ -386,19 +386,19 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
             Result<Long> result = buildScoreTaskOfSelect(datum);
-            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 resIds.add(result.getData());
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
     }
 
-    private String getConditionInfo(List<Long> ids){
+    private String getConditionInfo(List<Long> ids) {
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(ids);
         List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(reportExample);
         JSONArray resObj = new JSONArray();
-        marketingSyncReports.forEach(t->{
+        marketingSyncReports.forEach(t -> {
             JSONObject simpleCondition = new JSONObject();
             JSONArray simpleConditionDetail = new JSONArray();
             JSONObject jsonDate = new JSONObject();
@@ -406,16 +406,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             simpleConditionDetail.add(jsonDate);
             simpleConditionDetail.add(jsonUserType);
 
-            simpleCondition.put("logicalOperation","and");
-            simpleCondition.put("operationFactor",simpleConditionDetail);
+            simpleCondition.put("logicalOperation", "and");
+            simpleCondition.put("operationFactor", simpleConditionDetail);
 
-            jsonDate.put("fieldName","appletDate");
-            jsonDate.put("fieldValue",t.getAppletDate());
-            jsonDate.put("operation","=");
+            jsonDate.put("fieldName", "appletDate");
+            jsonDate.put("fieldValue", t.getAppletDate());
+            jsonDate.put("operation", "=");
 
-            jsonUserType.put("fieldName","userType");
-            jsonUserType.put("fieldValue",t.getUserType());
-            jsonUserType.put("operation","=");
+            jsonUserType.put("fieldName", "userType");
+            jsonUserType.put("fieldValue", t.getUserType());
+            jsonUserType.put("operation", "=");
 
             resObj.add(simpleCondition);
         });
@@ -424,7 +424,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     private Long saveTask(String apiCode, String batchNumber
             , CustomerScoreRuleVO ruleVO, String taskStart
-            , Integer preNum,Integer conditionType,String showDataStr) {
+            , Integer preNum, Integer conditionType, String showDataStr) {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
@@ -486,7 +486,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         //endregion
 
         //region 跑分编号表
-        if(conditionType.equals(0)) {
+        if (conditionType.equals(0)) {
             TaskBatchnumberPreExample updateBatchExample = new TaskBatchnumberPreExample();
             updateBatchExample.createCriteria().andBatchNumberEqualTo(batchNumber);
             TaskBatchnumberPre updateBatchnumber = new TaskBatchnumberPre();
@@ -509,19 +509,19 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return task.getId();
     }
 
-    private String createMarketingTaskBatchNumber(String apiCode,String time){
+    private String createMarketingTaskBatchNumber(String apiCode, String time) {
         int i = (int) ((Math.random() * 9 + 1) * 1000);
         String batchNumber = String.format("%s_%s_%d", apiCode, time, i);
         return batchNumber;
     }
 
-    private String whereSqlToShow(String whereSql){
+    private String whereSqlToShow(String whereSql) {
         StringBuilder str = new StringBuilder();
         String[] andStrs = whereSql.split("and|or");
         for (String andStr : andStrs) {
-            if(StringUtils.isNotBlank(andStr)){
+            if (StringUtils.isNotBlank(andStr)) {
                 String[] split = andStr.split(judgmentRegex);
-                str.append(split[1].replace("'","").trim()).append(" ");
+                str.append(split[1].replace("'", "").trim()).append(" ");
             }
         }
         return str.toString();

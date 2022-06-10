@@ -98,7 +98,7 @@ public class CoreScoreThread implements Callable<String> {
             return null;
         }
         marketingTaskService.addTaskPercent(marketingTask.getFileId(),Long.valueOf(list.size()));
-        boolean check = this.checkRedisNumber();
+//        boolean check = this.checkRedisNumber();
         log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
 
         File writeName = new File(path);
@@ -116,12 +116,12 @@ public class CoreScoreThread implements Callable<String> {
                      new OutputStreamWriter(
                              new FileOutputStream(file1), "UTF-8"));) {
 
-            if (!check) {
-                log.error("条数不足--{}", message);
-                dealResult(message, errorFw);
-                errorFw.close();
-                return null;
-            }
+//            if (!check) {
+//                log.error("条数不足--{}", message);
+//                dealResult(message, errorFw);
+//                errorFw.close();
+//                return null;
+//            }
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
