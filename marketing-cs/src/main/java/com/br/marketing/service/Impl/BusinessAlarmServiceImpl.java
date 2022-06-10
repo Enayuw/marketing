@@ -170,7 +170,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 upFile.setId(file.getId());
                 upFile.setSignFileStatus(2);
                 file.setSignFileStatus(2);
-                straHisFileMapper.updateByPrimaryKey(upFile);
+                straHisFileMapper.updateByPrimaryKeySelective(upFile);
             }
             int i = expecteDataNum - actualDataNum;
             content.append("&nbsp;&nbsp;&nbsp;应返回数据总量：")
