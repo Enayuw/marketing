@@ -116,7 +116,7 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: marketing-flow
+    virtual-host: marketing_juman
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-local-job
