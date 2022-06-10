@@ -1,5 +1,6 @@
 package com.br.marketing.task.service.Impl;
 
+import com.br.marketing.client.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -117,11 +118,20 @@ public class TaskServiceImpl implements ITaskService {
             String s = UUID.randomUUID().toString();
             boolean taskLock = getTaskLock(scoreTask, s);
             if (!taskLock) {
+                removeTaskLock(scoreTask, s);
+                continue;
+            }
+
+            MerchantParam merchantParam = IceClient.getMerchantParam(scoreTask.getApiCode());
+            if (merchantParam == null) {
+                log.error("用户中心结果为空"+scoreTask.getApiCode());
+                removeTaskLock(scoreTask, s);
                 continue;
             }
 
             Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);
             if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
+                removeTaskLock(scoreTask, s);
                 continue;
             }
             TaskStatus statusData = taskStatusResult.getData();
