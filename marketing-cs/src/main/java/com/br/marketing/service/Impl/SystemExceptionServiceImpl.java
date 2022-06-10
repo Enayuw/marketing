@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.IpUtil;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,10 @@ public class SystemExceptionServiceImpl implements EmailService {
 
     }
 
+    @Override
+    public void resultVolumeCheck(StraHisFile file) {
+
+    }
 
     public void ftpToSftpCheck(String apiCode) {
 

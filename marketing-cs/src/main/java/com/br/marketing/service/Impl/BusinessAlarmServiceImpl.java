@@ -148,7 +148,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
         Integer expecteDataNum=file.getExpectedNum();
         Integer actualDataNum=file.getActualNum();
         StringBuilder content = new StringBuilder();
-        if(expecteDataNum!=actualDataNum){
+        if(!expecteDataNum.equals(actualDataNum)){
             String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             String compShortName="";
             String companyMsg = IceClient.getCompanyMsg(apiCode);
