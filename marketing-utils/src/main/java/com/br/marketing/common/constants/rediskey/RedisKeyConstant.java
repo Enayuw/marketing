@@ -42,4 +42,6 @@ public class RedisKeyConstant {
      * 任务已经跑分的数量key
      */
     public static final String taskScoreNum = prefix.concat("taskscorenum");
+
+    public static final String taskScoreAction = prefix.concat("taskscoreaction");
 }

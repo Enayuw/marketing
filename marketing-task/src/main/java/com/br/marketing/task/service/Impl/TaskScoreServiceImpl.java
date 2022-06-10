@@ -172,6 +172,10 @@ public class TaskScoreServiceImpl {
             }
             //endregion
 
+            if(task.getFileId()==null||task.getFileId()<=1){
+                return;
+            }
+
             //region 重试
             try {
                 String hkey = Constants.HXRESULTERROR_RETRY_KEY + ":" + task.getFileId();
