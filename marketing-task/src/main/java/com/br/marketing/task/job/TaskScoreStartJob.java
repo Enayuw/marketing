@@ -1,16 +1,20 @@
 package com.br.marketing.task.job;
 
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.service.ITaskService;
+import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.service.Impl.TaskScoreServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -30,8 +34,26 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
     @Autowired
     TaskScoreServiceImpl taskScoreService;
 
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
+    ObservedScoreThreadServiceImpl observedScoreThreadService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+
+        if(observedScoreThreadService.isInterrupt()){
+            StringBuilder content = new StringBuilder();
+            content.append("当前跑分任务手动停止状态请手动开启");
+            alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
+            return;
+        }
+
         Long start=System.currentTimeMillis();
         log.warn("【跑批任务】调度开始");
         String jobParameter = context.getJobParameter();
