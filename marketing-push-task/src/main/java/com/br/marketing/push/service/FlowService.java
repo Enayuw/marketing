@@ -7,8 +7,10 @@ import com.br.marketing.entity.LoanFile;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
 import com.br.marketing.push.service.impl.PushServiceImpl;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -46,6 +48,10 @@ public class FlowService {
 
     @Resource(name = "rabbitTemplate")
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    RabbitMqProducter producter;
+
     public void flow(Customer customer){
         List<LoanFile> pushList;
         try {
@@ -65,7 +71,7 @@ public class FlowService {
 
                 for (LoanFile loanFile : pushList) {
                     //推送消息到pushQueue，进行下一流程处理
-                    RabbitMqSenderUtils.convertAndSendPriority(rabbitTemplate, MQConstants.EX_CHANGER_NAME, MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
+                    producter.send(MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
                 }
             }
 

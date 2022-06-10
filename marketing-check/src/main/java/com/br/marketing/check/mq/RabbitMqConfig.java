@@ -53,20 +53,6 @@ public class RabbitMqConfig {
         return new TopicExchange(MQConstants.MARKETINGEXCHANGER_NAME, true, false);
     }
 
-    @Bean(name = "warningExchange")
-    public TopicExchange warningExchange() {
-        return new TopicExchange(MQConstants.EX_CHANGER_NAME, true, false);
-    }
-
-    @Bean(name = "checkQueue")
-    public Queue checkQueue() {
-        return new Queue(MQConstants.CHECK_QUEUE_NAME, true, false, false);
-    }
-
-    @Bean(name = "bindingCheckQueue")
-    public Binding bindingCheckQueue() {
-        return BindingBuilder.bind(checkQueue()).to(warningExchange()).with(MQConstants.CHECK_ROUTING_KEY);
-    }
 
     @Bean(name = MQConstants.MARKETING_PUSH_DASS_SCORE)
     public Queue pushDassQueue() {

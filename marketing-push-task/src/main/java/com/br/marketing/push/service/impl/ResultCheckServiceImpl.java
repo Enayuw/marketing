@@ -104,6 +104,9 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             return;
         }
         SftpATTRS sftpATTRS = stringSftpATTRSMap.get(name);
+        if(sftpATTRS==null){
+            return;
+        }
         LoanFile loanFile = fileInfo(apiCode, sftpATTRS, name);
         checkFileSize(apiCode, loanFile,name);
         if(loanFile.isSkip()){
