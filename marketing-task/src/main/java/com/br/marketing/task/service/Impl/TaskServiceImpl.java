@@ -124,7 +124,6 @@ public class TaskServiceImpl implements ITaskService {
             String s = UUID.randomUUID().toString();
             boolean taskLock = getTaskLock(scoreTask, s);
             if (!taskLock) {
-                removeTaskLock(scoreTask, s);
                 continue;
             }
 
