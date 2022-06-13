@@ -75,7 +75,7 @@ public class MergeServiceImpl implements MergeService {
     MarketingSepService marketingSepService;
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
-    @Autowired
+    @Resource
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     private Map<String,String> proFieldMap=new HashMap<>();
@@ -179,11 +179,11 @@ public class MergeServiceImpl implements MergeService {
             }
             List<String> paths = FileUtil.mergeAll(head.toString(), filePathAndName, targetPath.toString(), separator, fileNum);
             zipFile = filePathAndName.replace(".txt", ".zip");
-//            Integer total = 0;
-//            for (String path1 : paths) {
-//                total +=MyFileUtil.getTotalLines(new File(path1))-1;
-//            }
-//            blf.setExpectedNum(total);
+            Integer total = 0;
+            for (String path1 : paths) {
+                total +=MyFileUtil.getTotalLines(new File(path1))-1;
+            }
+            blf.setExpectedNum(total);
 
             Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
             if(new Integer(1).equals(customer.getPushCustomer())){

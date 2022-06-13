@@ -115,16 +115,15 @@ public class TaskServiceImpl implements ITaskService {
         List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId,hm);
 
         for (MarketingTask scoreTask : scoreTasks) {
-            String s = UUID.randomUUID().toString();
-            boolean taskLock = getTaskLock(scoreTask, s);
-            if (!taskLock) {
-                removeTaskLock(scoreTask, s);
-                continue;
-            }
-
             MerchantParam merchantParam = IceClient.getMerchantParam(scoreTask.getApiCode());
             if (merchantParam == null) {
                 log.error("用户中心结果为空"+scoreTask.getApiCode());
+                continue;
+            }
+
+            String s = UUID.randomUUID().toString();
+            boolean taskLock = getTaskLock(scoreTask, s);
+            if (!taskLock) {
                 removeTaskLock(scoreTask, s);
                 continue;
             }
@@ -179,7 +178,9 @@ public class TaskServiceImpl implements ITaskService {
 
         if (1 == task.getMonitorType()) {
             //region 一次性跑分
-            List<TaskStatus> bts = taskStatusMapper.queryOnceBts(task.getBatchNumber());
+            TaskStatusExample statusExample = new TaskStatusExample();
+            statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+            List<TaskStatus> bts = taskStatusMapper.selectByExample(statusExample);
             if (bts.size() > 0 && bts.get(0).getOnceStatus().equals(3)) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(bts.get(0));
             }
