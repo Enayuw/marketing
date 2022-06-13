@@ -214,9 +214,9 @@ public class TaskScoreServiceImpl {
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(task.getStatusId());
             if (task.getMonitorType().equals(1)) {
-                updateStatus.setOnceStatus(observedScoreThreadService.isInterrupt() ? 2 : 4);
+                updateStatus.setOnceStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
             } else {
-                updateStatus.setAllStatus(observedScoreThreadService.isInterrupt() ? 2 : 4);
+                updateStatus.setAllStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
             }
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
             if (!observedScoreThreadService.isInterrupt()) {
