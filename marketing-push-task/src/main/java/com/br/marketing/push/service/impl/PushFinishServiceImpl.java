@@ -90,6 +90,10 @@ public class PushFinishServiceImpl implements PushFinishService {
         config.setType(2);
         config.setDataType(1);
         config = loanSyncConfigMapper.queryConfigByConditaion(config);
+        if(config==null){
+            log.error(String.format("apicode【%s】未配置sftp跑分文件路径",file.getApiCode()));
+            return;
+        }
         if (config.getCheckSuccess() == 1) {
             pushSuccess(file, sftpClient);
         }
