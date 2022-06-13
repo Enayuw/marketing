@@ -106,11 +106,11 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
                 return;
             }
             if (new Integer(4).equals(taskStatus.getOnceStatus())) {
-                updateStatus.setAllStatus(3);
+                updateStatus.setOnceStatus(3);
             }
 
             if (new Integer(4).equals(taskStatus.getAllStatus())) {
-                updateStatus.setOnceStatus(3);
+                updateStatus.setAllStatus(3);
             }
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
             removeActionLock(fileIdStr,s);
