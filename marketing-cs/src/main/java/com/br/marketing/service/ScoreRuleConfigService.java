@@ -38,16 +38,8 @@ public interface ScoreRuleConfigService {
      */
     PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute);
 
-    /**
-     * 保存规则
-     *
-     * @param scoreRuleVO 规则数据
-     * @author zeqiang.guo@brgroup.com
-     * @dateTime 2021/9/2 14:15
-     */
-    ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO scoreRuleConfigDTO, MarketingUserDetail userDetail);
 
-    Result<List<Long>> saveFromCallBack(ScoreRuleConfigDTO scoreRuleConfigDTO);
+
     /**
      * 保存规则
      *
@@ -91,9 +83,6 @@ public interface ScoreRuleConfigService {
      */
     void modify(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail);
 
-    Result<Boolean> isSelectRuleByTask(Long taskId);
-
-    Result<Boolean> isSelectRuleByRule(Long scoreId);
 
     Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date);
 }

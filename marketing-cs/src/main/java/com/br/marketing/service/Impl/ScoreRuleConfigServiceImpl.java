@@ -82,56 +82,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         return null;
     }
-    @Override
-    @Transactional
-    public ApiResult<Boolean> saveFromCallBack(ScoreRuleConfigDTO vo, MarketingUserDetail userDetail) {
-        String[] split = vo.getRuleIds().split(",");
-        MarketingCustomer marketingCustomer = new MarketingCustomer();
-        marketingCustomer.setId(Long.valueOf(userDetail.getId()));
-        for(String s : split){
-            initScoreRuleConfig(vo,s,marketingCustomer);
-        }
-        return new ApiResult<Boolean>().success(true);
-    }
-
-    @Override
-    public Result<List<Long>> saveFromCallBack(ScoreRuleConfigDTO vo) {
-
-        MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andApiCodeEqualTo(vo.getApiCode()).andStatusEqualTo(new Byte("1"));
-        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if(marketingCustomers.size()<=0){
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode不存在客户信息");
-        }
-        MarketingCustomer customer = marketingCustomers.get(0);
-        List<Long> res = new ArrayList<>();
-        String[] split = vo.getRuleIds().split(",");
-        for(String s : split){
-            res.add(initScoreRuleConfig(vo,s,customer).getId());
-        }
-        return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
-    }
-    private ScoreRuleConfig initScoreRuleConfig(ScoreRuleConfigDTO vo,String ruleId,MarketingCustomer customer){
-        ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(Long.parseLong(ruleId));
-        scoreRuleConfig.setRuleName(vo.getRuleName());
-        scoreRuleConfig.setParentId(scoreRuleConfig.getId());
-        scoreRuleConfig.setConditionType("2");
-        scoreRuleConfig.setRuleNameShort(createNo());
-        scoreRuleConfig.setConditionInfo(vo.getConditionInfo());
-        scoreRuleConfig.setStartTime(vo.getTaskTime().substring(11));
-        scoreRuleConfig.setId(null);
-        scoreRuleConfig.setCreateTime(new Date());
-        scoreRuleConfig.setStatus(1);
-        scoreRuleConfig.setStartDate(vo.getTaskTime().substring(0, 10));
-        int i = scoreRuleConfigMapper.insertSelective(scoreRuleConfig);
-
-        CustomerRule customerRule = new CustomerRule();
-        customerRule.setCustomerId(customer.getId());
-        customerRule.setRuleId(scoreRuleConfig.getId());
-        customerRuleMapper.insertSelective(customerRule);
-        return scoreRuleConfig;
-    }
-
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -484,30 +434,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
 
-    @Override
-    public Result<Boolean> isSelectRuleByTask(Long taskId) {
-        if(taskId==null||taskId<=0){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("任务id不能为空");
-        }
-        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
-        extendExample.createCriteria().andTaskIdEqualTo(taskId);
-        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
-        if(marketingTaskExtends.size()<=0){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务是否存在");
-        }
-        if(marketingTaskExtends.size()>1){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务错误");
-        }
-        MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
-        return isSelectRuleByRule(taskExtend.getRuleId());
-    }
 
-    @Override
-    public Result<Boolean> isSelectRuleByRule(Long scoreId) {
-        ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(scoreId);
-        Boolean res = ruleConfig == null ? Boolean.TRUE : ((ruleConfig.getParentId() != null && ruleConfig.getParentId() > 0) ? Boolean.TRUE : Boolean.FALSE);
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
-    }
 
     @Override
     public Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date) {

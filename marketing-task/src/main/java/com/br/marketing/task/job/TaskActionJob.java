@@ -61,7 +61,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         //恢复该节点跑分
         if (actionType.equals("1")) {
             StringBuilder content = new StringBuilder();
-            content.append("当前跑分程序 分片："+context.getShardingItems().toString());
+            content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【恢复】");
             alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
             observedScoreThreadService.setInterrupt(1);
@@ -71,7 +71,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         //暂停该节点跑分
         if (actionType.equals("0")) {
             StringBuilder content = new StringBuilder();
-            content.append("当前跑分程序 分片："+context.getShardingItems().toString());
+            content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【暂停】");
             alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
             observedScoreThreadService.stopThread();
@@ -115,8 +115,10 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
             removeActionLock(fileIdStr,s);
             StringBuilder content = new StringBuilder();
-            content.append("当前跑分程序 分片："+context.getShardingItems().toString());
-            alarmClient.sendAlarm(content.toString(), "跑分任务【"+straHisFile.getBatchNumber()+"】【恢复】", appName, secretKey,
+            content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
+            content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
+            content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
+            alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
         }
     }

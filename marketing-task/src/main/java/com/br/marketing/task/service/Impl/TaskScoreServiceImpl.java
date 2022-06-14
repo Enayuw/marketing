@@ -228,6 +228,10 @@ public class TaskScoreServiceImpl {
                 updateTask.setId(task.getId());
                 updateTask.setPriority(0);
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
+            }else{
+                String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
+                        , task.getBatchNumber(), task.getFileId().toString());
+                sendContent(content,"跑分暂停",Constants.sendCodeMap.get("uploadSuccess"));
             }
             //endregion
 

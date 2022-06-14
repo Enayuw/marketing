@@ -32,18 +32,6 @@ public class RuleOfScoreController {
     private ScoreRuleConfigService scoreRuleConfigService;
 
 
-    @ApiOperation(value = "生成批量跑分", notes = "生成批量跑分")
-    @PostMapping("/saveFromCallBack")
-    public ApiResult<Boolean> saveFromCallBack(@RequestBody @Validated ScoreRuleConfigDTO dto) {
-        //获取用户上下文
-        try {
-            MarketingUserDetail user = ThreadContextInfo.getUser();
-            return scoreRuleConfigService.saveFromCallBack(dto,user);
-        }catch (Exception ex){
-            return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
-        }
-    }
-
     /**
      * 跑分配置列表
      *

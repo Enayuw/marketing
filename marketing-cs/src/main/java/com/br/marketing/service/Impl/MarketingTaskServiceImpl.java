@@ -12,24 +12,17 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
-import com.br.marketing.common.exception.auth.AppException;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CustomerScoreRuleVO;
-import com.br.marketing.vo.FastTaskRuleDetailVO;
-import com.br.marketing.vo.FastTaskRuleListVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.github.pagehelper.PageHelper;
-import com.google.common.base.Splitter;
-import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,8 +33,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * -------------------------------
@@ -186,6 +181,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         return 0;
     }
+
 
     @Override
     public List<ScoreRuleConfig> getScoreRules(String apiCode) {
