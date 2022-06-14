@@ -98,7 +98,7 @@ otherConfig:
         appName: loan-strategy
         appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
-        pageSize: 1000
+        pageSize: 5000
         apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/marketing
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
