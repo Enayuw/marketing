@@ -25,7 +25,9 @@ public class DataSourceAspect {
      */
     @Before("tiKvOfMarketing()")
     public void tiKvOfMarketingInterceptor() {
-        logger.info("切换到数据源{}.......................", "tikv");
+        if(logger.isWarnEnabled()){
+            logger.warn("切换到数据源{}.......................", "tikv");
+        }
         DbContextHolder.setDbType(marketingTikiv);
     }
 
@@ -34,13 +36,17 @@ public class DataSourceAspect {
      */
     @Before("tiflashOfMarketing()")
     public void tiflashOfMarketingInterceptor() {
-        logger.info("切换到数据源{}.......................", "tiflash");
+        if(logger.isWarnEnabled()){
+            logger.warn("切换到数据源{}.......................", "tiflash");
+        }
         DbContextHolder.setDbType(marketingTiFlash);
     }
 
     @After("tiKvOfMarketing()||tiflashOfMarketing()")
     public void afterInterceptor() {
-        logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
+        if(logger.isWarnEnabled()){
+            logger.warn("切换到数据源{}.......................", DbContextHolder.getDbType());
+        }
         DbContextHolder.clearDbType();
     }
 
