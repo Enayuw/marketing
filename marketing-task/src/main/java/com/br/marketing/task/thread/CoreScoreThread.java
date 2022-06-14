@@ -126,20 +126,23 @@ public class CoreScoreThread implements Callable<String> {
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
             for (MarketingSyncUser blu : list) {
-//                TimeUnit.MILLISECONDS.sleep(1L);
                 if (blu.getStatus() != 1) {
                     continue;
                 }
-                RequestLog requestLog = new RequestLog();
-                requestLog.setRequestTime(new Date());
 
-                JSONObject jsonData = new JSONObject();
-                jsonData.put("userType", blu.getUserType());
-                jsonData.put("cusNum", blu.getCustNum());
-                jsonData.put("idCard", instance.decode(blu.getIdCard()));
-                jsonData.put("name", instance.decode(blu.getName()));
-                jsonData.put("cell", instance.decode(blu.getCell()));
-                jsonData.put("isRepair", isRepair);
+                if(marketingTask.getTaskType().equals(1)){
+                    dealResult(fw, blu);
+                }else {
+                    RequestLog requestLog = new RequestLog();
+                    requestLog.setRequestTime(new Date());
+
+                    JSONObject jsonData = new JSONObject();
+                    jsonData.put("userType", blu.getUserType());
+                    jsonData.put("cusNum", blu.getCustNum());
+                    jsonData.put("idCard", instance.decode(blu.getIdCard()));
+                    jsonData.put("name", instance.decode(blu.getName()));
+                    jsonData.put("cell", instance.decode(blu.getCell()));
+                    jsonData.put("isRepair", isRepair);
 //                jsonData.put("passDate", blu.getPassDate());
 //                jsonData.put("loanMaturityDate", blu.getLoanMaturityDate());
 //                if (StringUtils.isNotEmpty(blu.getDecodeFailType())) {
@@ -172,12 +175,9 @@ public class CoreScoreThread implements Callable<String> {
 //                if (StringUtils.isNotEmpty(result)) {
 //                    jsonData.put("approveResult", result);
 //                }
-                jsonData.put("batch_number", marketingTask.getBatchNumber());
-                param.put("jsonData", jsonData.toString());
-                String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
-                if(marketingTask.getTaskType().equals(1)){
-                    dealResult(fw, blu);
-                }else {
+                    jsonData.put("batch_number", marketingTask.getBatchNumber());
+                    param.put("jsonData", jsonData.toString());
+                    String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
                     dealResult(resultStr, fw, apiCode, blu);
                 }
             }
