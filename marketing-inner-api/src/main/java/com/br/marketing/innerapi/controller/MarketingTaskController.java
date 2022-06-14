@@ -131,13 +131,13 @@ public class MarketingTaskController {
             @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     })
     @GetMapping("/getTaskPercent")
-    public ApiResult<Integer> getTaskPercent(String hisFileId,String id ) {
+    public ApiResult<Long> getTaskPercent(String hisFileId,String id ) {
         try {
-            Integer num = marketingTaskService.getTaskPercent(hisFileId,id);
-            return new ApiResult<Integer>().success(num);
+            Long num = marketingTaskService.getTaskPercent(hisFileId,id);
+            return new ApiResult<Long>().success(num);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
-            return new ApiResult<Integer>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<Long>().fail(ServiceResultEnum.FAILED);
         }
     }
     @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")

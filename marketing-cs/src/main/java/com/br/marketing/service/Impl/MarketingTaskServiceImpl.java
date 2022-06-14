@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -168,24 +169,25 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Integer getTaskPercent(String hisFileId, String id) {
+    public Long getTaskPercent(String hisFileId, String id) {
         //3，1 正在跑分
         //0，待推送
         //2，已完成
         String status = marketingTaskMapper.selectHisFileById(hisFileId);
         if ("2".equals(status)) {
-            return 100;
+            return Long.valueOf(100);
         } else if ("3,1".contains(status)) {
             MarketingTask marketingTask = marketingTaskMapper.selectByPrimaryKey(Long.valueOf(id));
-            Integer taskNumber = marketingTask.getTaskNumber();
+            long taskNumber = Long.valueOf(marketingTask.getTaskNumber());
             String s = redisChgService.get(RedisKeyConstant.taskScoreNum + ":" + hisFileId);
             if (s == null) {
                 s = "0";
             }
-            return Integer.valueOf(s) * 100 / taskNumber;
+            return Long.valueOf(s) * 100 / taskNumber;
         }
-        return 0;
+        return Long.valueOf(0);
     }
+
 
     @Override
     public List<ScoreRuleConfig> getScoreRules(String apiCode) {
