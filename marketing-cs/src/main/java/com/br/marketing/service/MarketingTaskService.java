@@ -44,7 +44,7 @@ public interface MarketingTaskService {
 
     MarketingTaskVO getTask(String id);
 
-    Integer getTaskPercent(String hisFileId,String id);
+    Long getTaskPercent(String hisFileId,String id);
 
     List<ScoreRuleConfig> getScoreRules(String apiCode);
 
