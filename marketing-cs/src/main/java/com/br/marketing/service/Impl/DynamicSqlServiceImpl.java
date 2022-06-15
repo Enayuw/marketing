@@ -30,7 +30,6 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Integer type = sqlType==null?0:sqlType.getOrDefault("buildTaskNum", 0);
         Integer count = 0;
         long start = System.currentTimeMillis();
-        log.warn(String.format("执行buildTaskNum,type值【%s】,是否flash【%s】",type.toString(),type.equals(1)?"true":"false"));
         if (type.equals(1)) {
             count = marketingSyncInfoMapper.countByRuleScoreWithDatetiflash_(apiCode, whereStr);
             if(log.isWarnEnabled()){
@@ -51,7 +50,6 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Integer type = sqlType==null?0:sqlType.getOrDefault("scoreMinId", 0);
         Long mid = 0L;
         long start = System.currentTimeMillis();
-        log.warn(String.format("scoreMinId,type值【%s】,是否flash【%s】",type.toString(),type.equals(1)?"true":"false"));
         if (type.equals(1)) {
             mid = marketingSyncInfoMapper.minIdRuleScoreWithDatetiflash_(apiCode, whereStr);
             if(log.isWarnEnabled()){
@@ -72,7 +70,6 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Integer type = sqlType==null?0:sqlType.getOrDefault("scoreData", 0);
         List<MarketingSyncUser> users = new ArrayList<>();
         long start = System.currentTimeMillis();
-        log.warn(String.format("执行scoreData,type值【%s】,是否flash【%s】",type.toString(),type.equals(1)?"true":"false"));
         if (type.equals(1)) {
             users = marketingSyncInfoMapper.selectDataRuleScoreWithDatetiflash_(apiCode, whereStr,id,pageSize);
             if(log.isWarnEnabled()){

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Aspect
+@Order(-1)
 @ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
 public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
@@ -25,8 +26,8 @@ public class DataSourceAspect {
      */
     @Before("tiKvOfMarketing()")
     public void tiKvOfMarketingInterceptor() {
-        if(logger.isWarnEnabled()){
-            logger.warn("切换到数据源{}.......................", "tikv");
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "tikv");
         }
         DbContextHolder.setDbType(marketingTikiv);
     }
@@ -36,16 +37,16 @@ public class DataSourceAspect {
      */
     @Before("tiflashOfMarketing()")
     public void tiflashOfMarketingInterceptor() {
-        if(logger.isWarnEnabled()){
-            logger.warn("切换到数据源{}.......................", "tiflash");
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "tiflash");
         }
         DbContextHolder.setDbType(marketingTiFlash);
     }
 
     @After("tiKvOfMarketing()||tiflashOfMarketing()")
     public void afterInterceptor() {
-        if(logger.isWarnEnabled()){
-            logger.warn("切换到数据源{}.......................", DbContextHolder.getDbType());
+        if(logger.isInfoEnabled()){
+            logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
         }
         DbContextHolder.clearDbType();
     }
