@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
@@ -537,10 +536,9 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             String msg = nonNullCheck(jsonDTO);
             if (!"".equals(msg)) {
                 responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
-                msg = "缺失必填参数:".concat(msg).concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
-                        .concat(jsonDTO.getBizType()).concat("”\n案件编号“").concat(jsonDTO.getOrderId())
+                msg = "缺失必填参数:".concat(msg).concat("\napiCode“" + apiCode).concat("”\nuserType“"
+                        + jsonDTO.getBizType()).concat("”\n案件编号“" + jsonDTO.getOrderId())
                         .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
-                log.warn("shuhe-1:{}", msg);
                 this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
                 return responseShuheDTO;
             }
@@ -566,7 +564,6 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 msg = "未知的业务类型\"" + userType + "\"!";
                 responseShuheDTO.failed("抱歉,".concat(msg));
                 caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
-                log.warn("shuhe-2:{}", responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
                         , appName, secretKey, alarmClient);
