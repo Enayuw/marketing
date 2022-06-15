@@ -197,7 +197,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         user.setApiCode(apiCode);
         user.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         user.setUploadDate(LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        user.setErrorInfo("#5".concat(e.getMessage()));
+        user.setErrorInfo("#5" + e.getMessage());
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setStatus(2);
@@ -639,7 +639,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
                 alarmMgs(caseShuheUser);
             }
         } catch (Exception e) {
-            caseShuheUser.setErrorInfo("#3.2saveTransferInfo:保存到标准转化详情异常:".concat(e.getMessage()));
+            caseShuheUser.setErrorInfo("#3.2saveTransferInfo:保存到标准转化详情异常:" + e.getMessage());
             caseShuheUser.setSaveStatus(3);
             log.error(e.getMessage(), e);
             alarmMgs(caseShuheUser, e);
