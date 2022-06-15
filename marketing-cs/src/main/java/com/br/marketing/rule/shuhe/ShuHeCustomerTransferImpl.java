@@ -53,7 +53,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
+    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
@@ -88,7 +88,19 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
             LocalDate plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
             conversionData.setExpireDate(plusDays + " 23:59:59");
         }
-
+        //重申：填充有效期截止时间字段
+        if ("重申".equals(transfer.getUserType())) {
+            Integer day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
+            LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
+            LocalDate plusDays;
+            if (day == null) {
+                plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
+            } else {
+                plusDays = requestDate.plusDays(day);
+            }
+            //生效截止时间
+            conversionData.setExpireDate(plusDays + " 23:59:59");
+        }
         return conversionData;
     }
 
