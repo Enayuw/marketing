@@ -121,8 +121,10 @@ public class RedisController {
                 .andUserTypeEqualTo(userType)
                 .andCreateTimeBetween(startDateTime, endDateTime);
         example.settCid(StringUtils.isNotBlank(cid) ? cid : "337");
+        String startDateTimeStr = LocalDateTime.ofInstant(startDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String endDateTimeStr = LocalDateTime.ofInstant(endDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         log.warn("1.1、统计总量检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\nandCreateTimeBetween={},{}"
-                , apiCode, userType, startDateTime, endDateTime);
+                , apiCode, userType, startDateTimeStr, endDateTimeStr);
         int count = marketingTransferSyncUserMapper.countByExample(example);
         log.warn("1.2、共有数据量:{}", count);
         int pageSize = 1000;
@@ -138,10 +140,7 @@ public class RedisController {
                 do {
                     log.warn("2.1、第【{}】页,检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\n" +
                                     "andCreateTimeBetween={},{}\nsetOrderByClause={}"
-                            , page.get(), apiCode, userType
-                            , LocalDateTime.ofInstant(startDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                            , LocalDateTime.ofInstant(endDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                            , "create_time");
+                            , page.get(), apiCode, userType, startDateTimeStr, endDateTimeStr, "create_time");
                     example.setOrderByClause("create_time limit " + ((page.getAndIncrement() - 1) * pageSize) + "," + pageSize);
                     List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.selectByExample(example);
                     log.warn("2.2、数据量:{}，查询开始--------", list.size());
@@ -150,7 +149,7 @@ public class RedisController {
                     example1.createCriteria().andRequestIdIn(collect).andApiCodeEqualTo(apiCode);
                     example1.setOrderByClause("create_time");
                     List<MarketingTransferInfo> list1 = marketingTransferInfoMapper.selectByExample(example1);
-                    log.warn("2.3、info数据量:{}", list1.size());
+                    log.warn("2.3、info表数据量:{}", list1.size());
                     for (MarketingTransferInfo transferInfo : list1) {
                         if (!IS_RUN) {
                             log.warn("#2.停止操作后的数据信息：\nid:{}\nRequestId:{}\ncreateTime:{}", transferInfo.getId()
