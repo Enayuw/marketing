@@ -106,7 +106,8 @@ public class RedisController {
             , @RequestParam(name = "eTime", required = false) String e
             , @RequestParam(name = "days", required = false) Long days
             , @RequestParam(name = "code", required = false) String code
-            , @RequestParam(name = "cid", required = false) String cid) {
+            , @RequestParam(name = "cid", required = false) String cid
+            , @RequestParam(name = "type", required = false) String type) {
         String p = "yyyy-MM-dd HH:mm:ss";
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         Date startDateTime = StringUtils.isBlank(s)
@@ -115,7 +116,7 @@ public class RedisController {
         Date endDateTime = StringUtils.isBlank(e)
                 ? Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()) : DateUtils.parse(e, p);
         String apiCode = StringUtils.isNotBlank(code) ? code : "3710051";
-        String userType = "重申";
+        String userType = StringUtils.isBlank(s) ? "重申" : type;
         example.createCriteria().andApiCodeEqualTo(apiCode)
                 .andUserTypeEqualTo(userType)
                 .andCreateTimeBetween(startDateTime, endDateTime);
