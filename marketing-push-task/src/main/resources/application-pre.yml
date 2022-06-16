@@ -48,8 +48,8 @@ datasource:
 #      remove-abandoned: true # 是否自动回收超时连接
 #      remove-abandoned-timeout: 1800 # 超时时间(以秒数为单位)
 #      transaction-query-timeout: 6000 # 事务超时时间
-      filters: stat,wall,log4j2
-      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
@@ -76,8 +76,8 @@ datasource:
 #      remove-abandoned: true # 是否自动回收超时连接
 #      remove-abandoned-timeout: 1800 # 超时时间(以秒数为单位)
 #      transaction-query-timeout: 6000 # 事务超时时间
-      filters: stat,wall,log4j2
-      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
 logging:
     level:
         com.br.off.mapper: debug

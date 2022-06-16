@@ -46,8 +46,8 @@ datasource:
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       #      removeAbandoned: true # 是否自动回收超时连接
       #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-      filters: stat,wall,log4j2
-      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
@@ -72,8 +72,8 @@ datasource:
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       #      removeAbandoned: true # 是否自动回收超时连接
       #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-      filters: stat,wall,log4j2
-      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
 logging:
     level:
         com.br.off.mapper: debug

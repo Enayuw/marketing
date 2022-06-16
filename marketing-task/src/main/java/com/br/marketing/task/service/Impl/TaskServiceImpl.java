@@ -87,7 +87,10 @@ public class TaskServiceImpl implements ITaskService {
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds) {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds);
-        AssertResult.assertResult(scoreConfigNow);
+//        AssertResult.assertResult(scoreConfigNow);
+        if(!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())){
+            return;
+        }
         List<CustomerScoreRuleVO> data = scoreConfigNow.getData();
         for (CustomerScoreRuleVO datum : data) {
 //            if (datum.getParentId() <= 0) {
