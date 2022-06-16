@@ -460,8 +460,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_iso_idt_tim")
                 + separator +
-                getOrDefault(json, "clc_usr_iso_idt_tim")
-                + separator +
                 getOrDefault(json, "clc_usr_iso_crd_tim")
                 + separator +
                 getOrDefault(json, "clc_usr_iso_inf_tim")
