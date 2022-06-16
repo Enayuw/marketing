@@ -92,7 +92,7 @@ public class RedisController {
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
-    private ThreadPoolExecutor pool;
+    private static volatile ThreadPoolExecutor pool;
     private static volatile boolean IS_RUN;
 
     /**
@@ -110,6 +110,7 @@ public class RedisController {
             , @RequestParam(name = "cid", required = false) String cid
             , @RequestParam(name = "type", required = false) String type) {
         String p = "yyyy-MM-dd HH:mm:ss";
+        String key = "marketing:inner:api:shuhe:sendmq";
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         Date startDateTime = StringUtils.isBlank(s)
                 ? Date.from(LocalDateTime.now().minusDays(ObjectUtils.isEmpty(days) ? 31 : days)
@@ -130,30 +131,33 @@ public class RedisController {
         log.warn("1.2、共有数据量:{}", count);
         int pageSize = 1000;
         int pageSum = count / pageSize + ((count % pageSize) > 0 ? 1 : 0);
-        log.warn("1.3、每页:{},共{}页", pageSize, pageSum);
+        log.warn("1.3、每页:{},共{}页;接下来进入一分钟的冷静期，在这期间可停止本次任务", pageSize, pageSum);
         AtomicInteger page = new AtomicInteger(1);
         IS_RUN = true;
+        redisChgService.del(key);
         pool = BrExecutors.getThreadPool(1, 1);
         pool.execute(() -> {
             long l = System.currentTimeMillis();
             MqFact mqFact = new MqFact();
             try {
-                TimeUnit.SECONDS.sleep(30);
+                for (int i = 60; i > 0; i--) {
+                    log.warn(i + "");
+                    TimeUnit.SECONDS.sleep(1);
+                }
                 do {
-                    log.warn("2.1、第【{}】页,检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\n" +
-                                    "andCreateTimeBetween={},{}\nsetOrderByClause={}"
-                            , page.get(), apiCode, userType, startDateTimeStr, endDateTimeStr, "create_time");
                     example.setOrderByClause("create_time limit " + ((page.getAndIncrement() - 1) * pageSize) + "," + pageSize);
                     List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.selectByExample(example);
-                    log.warn("2.2、数据量:{}，查询开始--------", list.size());
+                    log.warn("2.1、第【{}】页，数据量:{},检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\n" +
+                                    "andCreateTimeBetween={},{}\nsetOrderByClause={}"
+                            , page.get(), list.size(), apiCode, userType, startDateTimeStr, endDateTimeStr, "create_time");
                     List<String> collect = list.parallelStream().map(MarketingTransferSyncUser::getRequestId).collect(Collectors.toList());
                     MarketingTransferInfoExample example1 = new MarketingTransferInfoExample();
                     example1.createCriteria().andRequestIdIn(collect).andApiCodeEqualTo(apiCode);
                     example1.setOrderByClause("create_time");
                     List<MarketingTransferInfo> list1 = marketingTransferInfoMapper.selectByExample(example1);
-                    log.warn("2.3、info表数据量:{}", list1.size());
+                    log.warn("2.2、检索到info表对应数据量:{}", list1.size());
                     for (MarketingTransferInfo transferInfo : list1) {
-                        if (!IS_RUN) {
+                        if (Thread.interrupted() || !IS_RUN || redisChgService.exists(key)) {
                             log.warn("#2.停止操作后的数据信息：\nid:{}\nRequestId:{}\ncreateTime:{}", transferInfo.getId()
                                     , transferInfo.getRequestId(), LocalDateTime.ofInstant(transferInfo.getCreateTime().toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                             return;
@@ -164,7 +168,7 @@ public class RedisController {
                     }
                     log.warn("#1.每页最后一条记录的信息：\nRequestId:{}\ncreateTime:{}"
                             , list.get(list.size() - 1).getRequestId(), LocalDateTime.ofInstant(list.get(list.size() - 1).getCreateTime().toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                } while (!Thread.interrupted() && page.get() <= pageSum && IS_RUN);
+                } while (!Thread.interrupted() && page.get() <= pageSum && IS_RUN && !redisChgService.exists(key));
             } catch (Exception exception) {
                 log.error(exception.getMessage(), exception);
                 Thread.currentThread().interrupt();
@@ -179,14 +183,18 @@ public class RedisController {
      * 停止
      */
     @GetMapping("/shuHeSendMqStop")
-    public Boolean stop() {
+    public String stop() {
         IS_RUN = false;
+        redisChgService.setex("marketing:inner:api:shuhe:sendmq", System.currentTimeMillis() + "", 60);
+        if (pool == null) {
+            return "线程变量已没有对象引用，值为null";
+        }
         pool.shutdownNow();
         if (pool.isShutdown()) {
             pool = null;
-            return true;
+            return "true";
         }
         pool = null;
-        return false;
+        return "false";
     }
 }
