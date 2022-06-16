@@ -4,10 +4,12 @@ import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
 
     /**
@@ -37,4 +39,11 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
     List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
             , @Param("shardingTotalCount") int shardingTotalCount
             , @Param("shardingItems") List<Integer> shardingItems);
+
+
+    List<MarketingCustomer> selectCustomerBytestPartion();
+
+    List<MarketingCustomer> selectCustomerBytestPartiontifh_();
+
+    List<MarketingCustomer> selectCustomerBytestPartiontikv_();
 }

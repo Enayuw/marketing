@@ -2,9 +2,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.service.Impl.ScoreRuleConfigServiceImpl;
+import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
@@ -15,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -74,6 +79,15 @@ public class MarketingUserDBTest {
            String targetSftpPwd = AESAlgorithmUtil.decrypt(loanSyncConfig.getTargetSftpPwd(), Constants.SFTP_P_SECRET_KEY);
            System.out.println(srcSftpPwd+"------"+targetSftpPwd);
        }
+    }
+
+    @Resource
+    ScoreRuleConfigMapper scoreRuleConfigMapper;
+
+    @Test
+    public void testQueryRule(){
+        ScoreRuleConfig ruleConfig = scoreRuleConfigMapper.selectByPrimaryKey(360004L);
+        System.out.println(JSON.toJSONString(ruleConfig));
     }
 
 }

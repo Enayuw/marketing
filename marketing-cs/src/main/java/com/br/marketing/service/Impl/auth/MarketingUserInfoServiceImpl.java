@@ -48,7 +48,6 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
-        log.warn("入参:{}", reqObj.toString());
         if (checkParam(reqObj)) {
             if (kapError(reqObj)) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
