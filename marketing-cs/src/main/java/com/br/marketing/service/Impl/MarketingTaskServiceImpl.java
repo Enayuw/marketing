@@ -329,9 +329,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
         }
         vo.setConditionInfo(transferData);
-        Long aLong = saveTask(apiCode, number, vo, taskStart, count, 1, showStr.toString());
-
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
+        return saveTask(apiCode, number, vo, taskStart, count, 1, showStr.toString());
     }
 
     @Override
@@ -364,9 +362,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode, time);
         }
-        Long aLong = saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
-
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(aLong);
+        return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
 
     }
 
@@ -419,14 +415,33 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return JSON.toJSONString(resObj);
     }
 
-    private Long saveTask(String apiCode, String batchNumber
+    private Result<Long> saveTask(String apiCode, String batchNumber
             , CustomerScoreRuleVO ruleVO, String taskStart
             , Integer preNum, Integer conditionType, String showDataStr) {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
-            return hasTask.getId();
+            return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
+
+        if (Integer.valueOf(4).equals(ruleVO.getExecType()) || Integer.valueOf(3).equals(ruleVO.getExecType())) {
+            String closeDate = "";
+            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
+                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
+                if (task1 != null) {
+                    closeDate = task1.getCloseDate();
+                } else {
+                    closeDate = ruleVO.getCycleEndDay();
+                }
+            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
+                closeDate = ruleVO.getCycleEndDay();
+            }
+            LocalDate closeDay = LocalDate.parse(closeDate, ymd);
+            if (closeDay.compareTo(LocalDate.now()) <= 0) {
+                return new Result<Long>().setCode(ResultCode.FAIL.getValue()).setMessage("规则的结束时间小于等于当前时间");
+            }
+        }
+
 
         //region 处理task
         MarketingTask task = new MarketingTask();
@@ -503,7 +518,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         alarmClient.sendAlarm(content.toString(), "任务创建", appName, secretKey,
                 Constants.sendCodeMap.get("uploadSuccess"));
         //endregion
-        return task.getId();
+
+        return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
     }
 
     private String createMarketingTaskBatchNumber(String apiCode, String time) {
