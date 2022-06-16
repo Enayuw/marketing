@@ -424,24 +424,24 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
 
-        if (Integer.valueOf(4).equals(ruleVO.getExecType()) || Integer.valueOf(3).equals(ruleVO.getExecType())) {
-            String closeDate = "";
-            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
-                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-                if (task1 != null) {
-                    closeDate = task1.getCloseDate();
-                } else {
-                    closeDate = ruleVO.getCycleEndDay();
-                }
-            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
-                closeDate = ruleVO.getCycleEndDay();
-            }
-            LocalDate closeDay = LocalDate.parse(closeDate, ymd);
-            if (closeDay.compareTo(LocalDate.now()) <= 0) {
-                return new Result<Long>().setCode(ResultCode.FAIL.getValue()).setMessage("规则的结束时间小于等于当前时间");
-            }
-        }
-
+        //此逻辑暂时去掉，后期优化 需要和前端配合修改
+//        if (Integer.valueOf(4).equals(ruleVO.getExecType()) || Integer.valueOf(3).equals(ruleVO.getExecType())) {
+//            String closeDate = "";
+//            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
+//                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
+//                if (task1 != null) {
+//                    closeDate = task1.getCloseDate();
+//                } else {
+//                    closeDate = ruleVO.getCycleEndDay();
+//                }
+//            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
+//                closeDate = ruleVO.getCycleEndDay();
+//            }
+//            LocalDate closeDay = LocalDate.parse(closeDate, ymd);
+//            if (closeDay.compareTo(LocalDate.now()) <= 0) {
+//                return new Result<Long>().setCode(ResultCode.FAIL.getValue()).setMessage("规则的结束时间小于等于当前时间");
+//            }
+//        }
 
         //region 处理task
         MarketingTask task = new MarketingTask();
