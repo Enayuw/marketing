@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -137,6 +138,7 @@ public class RedisController {
             long l = System.currentTimeMillis();
             MqFact mqFact = new MqFact();
             try {
+                TimeUnit.SECONDS.sleep(30);
                 do {
                     log.warn("2.1、第【{}】页,检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\n" +
                                     "andCreateTimeBetween={},{}\nsetOrderByClause={}"
@@ -168,7 +170,6 @@ public class RedisController {
                 Thread.currentThread().interrupt();
             }
             log.warn("推送耗时：{}ms", System.currentTimeMillis() - l);
-            System.out.println("##推送耗时：" + (System.currentTimeMillis() - l) + "ms");
         });
         return count + "";
     }
