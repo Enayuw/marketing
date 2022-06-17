@@ -104,8 +104,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             ",clc_usr_adt_lmt_lv0,createtime";
 
     private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
-            "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime";
+            "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
+            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime,clc_usr_adt_tim_rcn_lon";
 
     static {
         FILE_NAME_PART = new HashMap<>(8);
