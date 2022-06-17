@@ -470,6 +470,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
+                + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon")
                 + "\r\n";
     }
 
