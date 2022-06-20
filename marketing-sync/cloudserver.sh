@@ -162,56 +162,6 @@ function getstatus() {
   echo ${APPSTATUS}
 }
 
-#注册中心解除注册
-function stopapp() {
-  STATUS=`getstatus`
-  if [[ $STATUS == 'UP' ]] ; then
-    echo "应用[${NAME}]状态为[${STATUS}],现在通知注册中心停止该服务！" 
-    curl -XPUT -s  "${URL}apps/${NAME_UPPER}/${APPNAME}/status?value=OUT_OF_SERVICE" 
-    while [[ `getstatus` != 'OUT_OF_SERVICE' ]];
-    do
-      echo -ne "." 
-      sleep 1
-    done
-    echo "success" 
-  elif [[ $STATUS == 'OUT_OF_SERVICE' ]]; then
-    echo "应用[${NAME}]状态为[${STATUS}],该应用已解除注册，请勿重复操作！" 
-  else
-    echo "应用[${NAME}]状态为[${STATUS}], 状态码无效!"  
-    echo "failure" 
-  fi
-}
-
-#注册中心注册
-function startapp() {
-  STATUS=`getstatus`
-  if [[ $STATUS == 'OUT_OF_SERVICE' || $STATUS == '' ]] ; then
-    echo "应用[${NAME}]状态为[${STATUS}],现在通知注册中心启动该服务！" 
-    curl -XPUT -s "${URL}apps/${NAME_UPPER}/${APPNAME}/status?value=UP" 
-    while [[ `getstatus` != 'UP' ]];
-    do
-      echo -ne "." 
-      sleep 2
-    done
-    echo "success" 
-  elif [[ $STATUS == 'UP' ]]; then
-    echo "应用[${NAME}]状态为[${STATUS}],该应用已启动完毕！" 
-  else 
-    echo "应用[${NAME}]状态为[${STATUS}], 状态码无效!"  
-    echo "failure" 
-  fi
-}
-
-function register(){
-    sleep 5
-    checkport $PID
-    if [ $APP_TYPE != 0 ]; then 
-        sleep 5
-        startapp
-    fi
-    echo "success" 
-}
-
 #启动服务方法
 function start() {
     START_COMM="$JAVA_CMD $PARAMS &" 
