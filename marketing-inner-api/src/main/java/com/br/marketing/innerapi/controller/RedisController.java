@@ -19,7 +19,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -105,24 +104,22 @@ public class RedisController {
     public String shuHeSendMq(
             @RequestParam(name = "sTime", required = false) String s
             , @RequestParam(name = "eTime", required = false) String e
-            , @RequestParam(name = "days", required = false) Long days
-            , @RequestParam(name = "code", required = false) String code
-            , @RequestParam(name = "cid", required = false) String cid
-            , @RequestParam(name = "type", required = false) String type) {
+            , @RequestParam(name = "days", required = false, defaultValue = "31") Long days
+            , @RequestParam(name = "code", required = false, defaultValue = "3710051") String apiCode
+            , @RequestParam(name = "cid", required = false, defaultValue = "337") String cid
+            , @RequestParam(name = "type", required = false, defaultValue = "重申") String userType) {
         String p = "yyyy-MM-dd HH:mm:ss";
         String key = "marketing:inner:api:shuhe:sendmq";
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         Date startDateTime = StringUtils.isBlank(s)
-                ? Date.from(LocalDateTime.now().minusDays(ObjectUtils.isEmpty(days) ? 31 : days)
+                ? Date.from(LocalDateTime.now().minusDays(days)
                 .toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()) : DateUtils.parse(s, p);
         Date endDateTime = StringUtils.isBlank(e)
                 ? Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()) : DateUtils.parse(e, p);
-        String apiCode = StringUtils.isNotBlank(code) ? code : "3710051";
-        String userType = StringUtils.isBlank(s) ? "重申" : type;
         example.createCriteria().andApiCodeEqualTo(apiCode)
                 .andUserTypeEqualTo(userType)
                 .andCreateTimeBetween(startDateTime, endDateTime);
-        example.settCid(StringUtils.isNotBlank(cid) ? cid : "337");
+        example.settCid(cid);
         String startDateTimeStr = LocalDateTime.ofInstant(startDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         String endDateTimeStr = LocalDateTime.ofInstant(endDateTime.toInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         log.warn("1.1、统计总量检索条件:\nandApiCodeEqualTo={}\nandUserTypeEqualTo={}\nandCreateTimeBetween={},{}"
