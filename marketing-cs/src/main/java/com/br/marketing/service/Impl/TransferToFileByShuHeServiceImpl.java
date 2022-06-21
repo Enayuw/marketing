@@ -306,8 +306,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         " LIMIT %s, %s", apiCode, userType, DateUtils.format(firstDateTime, pattern)
                 , DateUtils.format(lastDateTime, pattern), "%s", pageSize);
         List<MarketingTransferSyncUser> list = null;
-        String fileDirectory = path.concat("transferToFile/").concat(apiCode).concat(File.separator)
-                .concat(dateYyyyMmDdStr).concat(File.separator);
+        String fileDirectory = path.concat("transferToFile").concat(File.separator).concat(apiCode)
+                .concat(File.separator).concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
         if (!filePath.exists()) {
             if (!filePath.mkdirs()) {
