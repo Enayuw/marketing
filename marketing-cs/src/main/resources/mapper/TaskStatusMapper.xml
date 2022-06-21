@@ -32,8 +32,6 @@
 		 b_task_status
 		 WHERE
 		 batch_number=#{batchNumber}
-		 AND
-		 once_status=1
 	</select>
 
 </mapper>

@@ -18,6 +18,7 @@ import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -206,6 +207,9 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     public Result<String> getFieldsStrInfo(String apiCode,String batchNumber) {
         Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode,batchNumber);
         if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+            if(CollectionUtils.isEmpty(fieldsInfo.getData())){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue());
+            }
             return new Result<String>().setCode(fieldsInfo.getCode())
                     .setDate(Joiner.on(",").join(fieldsInfo.getData()));
         }else{

@@ -37,6 +37,11 @@ public class MarketingTask {
     private String tableName;
 
     /**
+     * 入参加密方式
+     */
+    private String requestCode;
+
+    /**
      * 策略中文名称
      */
     @JSONField(name = "strategy_name")
@@ -120,6 +125,21 @@ public class MarketingTask {
      */
     private Long fileId;
 
+    /**
+     * 任务开启时间
+     */
+    private String startTime;
+
+    /**
+     * 任务优先级
+     */
+    private Integer priority;
+
+    /**
+     * 状态表id
+     */
+    private Integer statusId;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -162,6 +182,10 @@ public class MarketingTask {
                 ", fileId=" + fileId +
                 ", taskType=" + taskType +
                 ", product_info=" + productInfo +
+                ", startTime=" + startTime +
+                ", priority=" + priority +
+                ", requestCode=" + requestCode +
+                ", statusId=" + statusId +
                 '}';
     }
 }
