@@ -17,6 +17,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -127,7 +128,10 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferExtractJobStartTime();
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
-        Set<String> userTypes = shuHeTransferDataExtractMap.keySet();
+        List<String> userTypes = marketingCommonConfig.getShuHeTransferExtractApiCodes().get(apiCode);
+        if (CollectionUtils.isEmpty(userTypes)) {
+            userTypes = new ArrayList<>(shuHeTransferDataExtractMap.keySet());
+        }
         LocalTime startTime;
         String finalDateYyyyMmDdStr;
         if (StringUtils.isEmpty(shuHeTransferJobStartTime)) {
@@ -170,7 +174,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         if (LocalTime.now().isAfter(startTime) && count < 1) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
-            Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
+            Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, new HashSet<>(userTypes));
             log.warn("数禾[{}]转化数据提取分2#{}", apiCode, dataExtractMap);
             userTypes.forEach(userType -> {
                 TransferFileTask transferFileTask = new TransferFileTask();
