@@ -1955,6 +1955,76 @@ public class CaseShuheUserExample {
             return (Criteria) this;
         }
 
+        public Criteria andErrorInfoIsNull() {
+            addCriterion("error_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoIsNotNull() {
+            addCriterion("error_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoEqualTo(String value) {
+            addCriterion("error_info =", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotEqualTo(String value) {
+            addCriterion("error_info <>", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoGreaterThan(String value) {
+            addCriterion("error_info >", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("error_info >=", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLessThan(String value) {
+            addCriterion("error_info <", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLessThanOrEqualTo(String value) {
+            addCriterion("error_info <=", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLike(String value) {
+            addCriterion("error_info like", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotLike(String value) {
+            addCriterion("error_info not like", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoIn(List<String> values) {
+            addCriterion("error_info in", values, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotIn(List<String> values) {
+            addCriterion("error_info not in", values, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoBetween(String value1, String value2) {
+            addCriterion("error_info between", value1, value2, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotBetween(String value1, String value2) {
+            addCriterion("error_info not between", value1, value2, "errorInfo");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;

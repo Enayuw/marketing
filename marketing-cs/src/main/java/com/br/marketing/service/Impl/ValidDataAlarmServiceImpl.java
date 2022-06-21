@@ -8,6 +8,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoadResult;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.service.EmailService;
@@ -281,6 +282,11 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
 
     @Override
     public void resultVolumeCheck(String apiCode) {
+
+    }
+
+    @Override
+    public void resultVolumeCheck(StraHisFile file) {
 
     }
 

@@ -43,6 +43,28 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    Long getMinIdByRuleScoreWithDate(@Param("apiCode") String apiCode
+            , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
+    Integer countByRuleScoreWithDate(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr);
+
+    Integer countByRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr);
+
+    Long minIdRuleScoreWithDate(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr);
+
+    Long minIdRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr);
+
+    List<MarketingSyncUser> selectDataRuleScoreWithDate(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr,@Param("id") Long id,@Param("pageSize") Integer pageSize);
+
+    List<MarketingSyncUser> selectDataRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr,@Param("id") Long id,@Param("pageSize") Integer pageSize);
+
     Long getMaxIdByRuleScore(@Param("apiCode") String apiCode
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);

@@ -69,7 +69,8 @@ public enum CodeEnum {
     API_ALL_SUCC("200008", "全部策略成功"),
     API_NOT_ALL_SUCC("200009", "部分策略成功"),
     API_ALL_FAIL("200010", "全部策略失败"),
-    API_FLAT_ERROR("200006", "数据打平错误");
+    API_FLAT_ERROR("200006", "数据打平错误"),
+    TASK_PRIORITY_EXIST("100401", "当前当前排序数字已存在");
 
     private final String code;
     private final String message;

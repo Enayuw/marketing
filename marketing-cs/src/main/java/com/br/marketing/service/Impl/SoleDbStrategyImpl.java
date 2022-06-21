@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -14,10 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 public class SoleDbStrategyImpl implements SoleStrategyService {
@@ -433,18 +438,88 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }catch(Exception ex){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则解析有误");
         }
-        StringBuilder dbStr = new StringBuilder();
-        for (RuleConditionFactorVo ruleConditionFactorVo : conditionVo.getOperationFactor()) {
-            String factor = this.analysisFactor(ruleConditionFactorVo);
-            if(StringUtils.isNotBlank(factor)){
-                dbStr.append(String.format(" %s ",conditionVo.getLogicalOperation())).append(factor);
-            }
-        }
-        if(StringUtils.isNotBlank(dbStr.toString())){
+        String dbStr= conditionVo.getOperationFactor()
+                .stream().map(t->analysisFactor(t))
+                .collect(Collectors.joining(" "+conditionVo.getLogicalOperation()+" "));
+        if(StringUtils.isNotBlank(dbStr)){
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue())
-                    .setDate(dbStr.toString().replaceFirst(conditionVo.getLogicalOperation(),""));
+                    .setDate(dbStr);
         }
         return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则有误");
+    }
+
+    @Override
+    public String analysisSimpleConditionPlus(String conditionStr, String date, String time) {
+        return String.format("applet_date='%s' and applet_time<='%s' and (%s)", date, time, conditionStr);
+    }
+
+    @Override
+    public Result<List<String>> analysisConditions(String conditionStr) {
+        if (StringUtils.isBlank(conditionStr)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不能传空");
+        }
+        List<RuleConditionVo> conditionVos = new ArrayList<>();
+        try {
+            conditionVos = JSON.parseObject(conditionStr, new TypeReference<List<RuleConditionVo>>() {
+            }.getType());
+        }catch (Exception ex){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则有误");
+        }
+        List<String> dblist = new ArrayList<>();
+        conditionVos.forEach(t->{
+            String dbStr= t.getOperationFactor()
+                    .stream().map(k->analysisFactor(k))
+                    .collect(Collectors.joining(" "+t.getLogicalOperation()+" "));
+            if(StringUtils.isNotBlank(dbStr)){
+                dblist.add(dbStr);
+            }
+        });
+        return new Result<List<String>>().setCode(ResultCode.SUCCESS.getValue()).setDate(dblist);
+    }
+
+    @Override
+    public Result<String> analysisTransferConditions(String conditionStr, String date, String time) {
+        List<String> res = new ArrayList<>();
+        if (StringUtils.isBlank(conditionStr)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不能传空");
+        }
+        RuleConditionVo conditionVo = new RuleConditionVo();
+        try {
+            conditionVo = JSON.parseObject(conditionStr, new TypeReference<RuleConditionVo>() {
+            }.getType());
+        }catch (Exception ex){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则有误");
+        }
+        if(!conditionVo.getLogicalOperation().equals("or")){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不支持转化");
+        }
+        JSONArray resObj = new JSONArray();
+        conditionVo.getOperationFactor().forEach(t->{
+            JSONObject simpleCondition = new JSONObject();
+            JSONArray simpleConditionDetail = new JSONArray();
+            JSONObject jsonDate = new JSONObject();
+            JSONObject jsonTime = new JSONObject();
+            JSONObject jsonOr = new JSONObject();
+            simpleConditionDetail.add(jsonDate);
+            simpleConditionDetail.add(jsonTime);
+            simpleConditionDetail.add(jsonOr);
+            simpleCondition.put("logicalOperation","and");
+            simpleCondition.put("operationFactor",simpleConditionDetail);
+
+            jsonDate.put("fieldName","appletDate");
+            jsonDate.put("fieldValue",date);
+            jsonDate.put("operation","=");
+
+            jsonTime.put("fieldName","appletTime");
+            jsonTime.put("fieldValue",time);
+            jsonTime.put("operation","<=");
+
+            jsonOr.put("fieldName",t.getFieldName());
+            jsonOr.put("fieldValue",t.getFieldValue());
+            jsonOr.put("operation",t.getOperation());
+
+            resObj.add(simpleCondition);});
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resObj));
     }
 
     private String analysisFactor(RuleConditionFactorVo vo){
@@ -452,26 +527,9 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         if(vo == null){
             return null;
         }
-
         StringBuilder dbStr = new StringBuilder();
-        switch (vo.getFieldName().toLowerCase()){
-            case "usertype":
-                dbStr.append("user_type");
-                break;
-            default:
-                break;
-        }
-        switch (vo.getOperation()){
-            case "=":
-                if(StringUtils.isNull(vo.getFieldValue())){
-                    dbStr.append("=null");
-                }else{
-                    dbStr.append(String.format("='%s'",vo.getFieldValue()));
-                }
-                break;
-            default:
-                break;
-        }
+        dbStr.append(StringUtils.humpToLine2(vo.getFieldName()));
+        dbStr.append(vo.getOperation()).append(StringUtils.isNull(vo.getFieldValue())?"null":"'".concat(vo.getFieldValue()).concat("'"));
         return dbStr.toString();
     }
 }

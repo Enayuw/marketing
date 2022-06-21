@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.service.ScoreRuleConfigService;
@@ -29,6 +30,7 @@ public class RuleOfScoreController {
 
     @Resource
     private ScoreRuleConfigService scoreRuleConfigService;
+
 
     /**
      * 跑分配置列表

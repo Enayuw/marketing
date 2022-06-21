@@ -58,6 +58,21 @@ public class MarketingTaskExtend {
      */
     private String strategyProductJson;
 
+    /**
+     * 数据条件
+     */
+    private String dataCondition;
+
+    /**
+     * 数据条件类型1-自动；2-手动
+     */
+    private Integer conditionType;
+
+    /**
+     * 数据范围展示
+     */
+    private String conditionInfoShow;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +159,29 @@ public class MarketingTaskExtend {
 
     public void setStrategyProductJson(String strategyProductJson) {
         this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
+    }
+
+    public String getDataCondition() {
+        return dataCondition;
+    }
+
+    public void setDataCondition(String dataCondition) {
+        this.dataCondition = dataCondition == null ? null : dataCondition.trim();
+    }
+
+    public Integer getConditionType() {
+        return conditionType;
+    }
+
+    public void setConditionType(Integer conditionType) {
+        this.conditionType = conditionType;
+    }
+
+    public String getConditionInfoShow() {
+        return conditionInfoShow;
+    }
+
+    public void setConditionInfoShow(String conditionInfoShow) {
+        this.conditionInfoShow = conditionInfoShow == null ? null : conditionInfoShow.trim();
     }
 }

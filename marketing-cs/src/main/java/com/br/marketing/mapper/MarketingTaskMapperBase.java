@@ -11,7 +11,7 @@ public interface MarketingTaskMapperBase {
 
     int deleteByExample(MarketingTaskExample example);
 
-    int deleteByPrimaryKey(Integer id);
+    int deleteByPrimaryKey(Long id);
 
     int insert(MarketingTask record);
 
@@ -19,7 +19,7 @@ public interface MarketingTaskMapperBase {
 
     List<MarketingTask> selectByExample(MarketingTaskExample example);
 
-    MarketingTask selectByPrimaryKey(Integer id);
+    MarketingTask selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingTask record, @Param("example") MarketingTaskExample example);
 

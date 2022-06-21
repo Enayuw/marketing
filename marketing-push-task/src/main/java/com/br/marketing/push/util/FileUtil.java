@@ -203,41 +203,56 @@ public class FileUtil {
      * @param pathName 结果文件名称
      * @param destPath 需要合并的目录
      */
-    public static void mergeAll(String head, String pathName, String destPath, String sep, Integer indexNum, List<TaskStatusDistribute> taskStatusDistributes) {
+    public static List<String> mergeAll(String head, String pathName, String destPath, String sep, Integer fileNum) {
         log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}", pathName, destPath);
         long l = System.currentTimeMillis();
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
+        List<String> res = new ArrayList<>();
+        res.add(pathName);
         File file1 = new File(pathName);
-        try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(file1), StandardCharsets.UTF_8));) {
-
+        List<BufferedWriter> fws = new ArrayList<>();
+        try {
+            fws.add(new BufferedWriter(
+                    new OutputStreamWriter(
+                            new FileOutputStream(file1), StandardCharsets.UTF_8)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
             int rownum = 1;
+            Integer fileIndex = 0;
             String headstring = head.substring(0, head.length() - 1);
-            if (destPath.indexOf("error") == -1) {
-                fw.append(headstring + "\r\n");
-            }
             int i = countStr(headstring, sep);
-            for (Integer k = 0; k < indexNum; k++) {
-                Integer index = k;
-                Optional<TaskStatusDistribute> first = taskStatusDistributes.stream().filter(t -> t.getDistributeIndex().equals(index)).findFirst();
-                if(first.isPresent()&&first.get().getActualNum()>0){
-                    String path = destPath.concat(String.valueOf(k)).concat("/");
-                    File writeName = new File(path);
-                    List<String> fileNmaes = getFileNames(writeName);
-                    for (String name : fileNmaes) {
-                        read = new FileReader(path + "/" + name);
-                        br = new BufferedReader(read);
-                        String row;
-                        while ((row = br.readLine()) != null) {
-                            mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
-                        }
-                        br.close();
-                        read.close();
+            String path = destPath.concat("/");
+            File writeName = new File(path);
+            List<String> fileNmaes = getFileNames(writeName);
+            for (String name : fileNmaes) {
+                read = new FileReader(path + "/" + name);
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    if(rownum>fileNum){
+                        fileIndex++;
+                        String fileAddPath = pathName.replace(".txt", "-" + fileIndex).concat(".txt");
+                        res.add(fileAddPath);
+                        File file = new File(fileAddPath);
+                        BufferedWriter bufferedWriter = new BufferedWriter(
+                                new OutputStreamWriter(
+                                        new FileOutputStream(file), StandardCharsets.UTF_8));
+                        fws.add(bufferedWriter);
+                        rownum=1;
                     }
+                    BufferedWriter fw = fws.get(fileIndex);
+                    if(rownum == 1){
+                        fw.append(headstring + "\r\n");
+                    }
+                    mergeExecutor.submit(new CheckRowSep(fw, row, i, sep, name));
+                    rownum++;
                 }
+                br.close();
+                read.close();
             }
             /**
              * 等待所有任务都执行完成
@@ -252,6 +267,11 @@ public class FileUtil {
                     Thread.sleep(3000);
                 } catch (Exception e) {
                     log.error("sleep ", e);
+                }
+            }
+            for (BufferedWriter fw : fws) {
+                if(fw!=null){
+                    fw.close();
                 }
             }
             log.warn("rownum=" + rownum);
@@ -274,8 +294,18 @@ public class FileUtil {
                     log.error("IOException ", e);
                 }
             }
+            for (BufferedWriter fw : fws) {
+                try {
+                    if(fw!=null){
+                        fw.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         log.warn("合并文件结束--耗时：{}", System.currentTimeMillis() - l);
+        return res;
     }
 
     /**
@@ -388,8 +418,11 @@ public class FileUtil {
         for (int i = 0; i < files.length; i++) {
             String name = files[i].getName();
             String str1 = name.replace(".txt", "");
+            if(str1.startsWith("error")){
+                continue;
+            }
             try {
-                Integer.valueOf(str1);
+                Long.valueOf(str1);
                 fileNames.add(name);
             } catch (Exception e) {
                 log.info("filename:{}", name);
