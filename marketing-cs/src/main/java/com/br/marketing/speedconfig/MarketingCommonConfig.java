@@ -78,7 +78,7 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取apiCode集合
      */
-    private List<String> shuHeTransferExtractApiCodes;
+    private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
     /**
      * 数禾转化数据提取任务开始时间
