@@ -128,9 +128,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         String shuHeTransferJobStartTime = marketingCommonConfig.getShuHeTransferExtractJobStartTime();
         String dateYyyyMmDdStr = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         Map<String, String> shuHeTransferDataExtractMap = marketingCommonConfig.getShuHeTransferExtractDayMap();
-        List<String> userTypes = marketingCommonConfig.getShuHeTransferExtractApiCodes().get(apiCode);
+        Set<String> userTypes = new HashSet<>(marketingCommonConfig.getShuHeTransferExtractApiCodes().get(apiCode));
         if (CollectionUtils.isEmpty(userTypes)) {
-            userTypes = new ArrayList<>(shuHeTransferDataExtractMap.keySet());
+            userTypes = shuHeTransferDataExtractMap.keySet();
         }
         LocalTime startTime;
         String finalDateYyyyMmDdStr;
@@ -174,7 +174,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         if (LocalTime.now().isAfter(startTime) && count < 1) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
-            Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, new HashSet<>(userTypes));
+            Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
             log.warn("数禾[{}]转化数据提取分2#{}", apiCode, dataExtractMap);
             userTypes.forEach(userType -> {
                 TransferFileTask transferFileTask = new TransferFileTask();
