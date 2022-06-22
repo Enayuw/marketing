@@ -90,14 +90,13 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     field.setAccessible(true);
                     assignmentFieldValue(config, field, fieldValue);
                 } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(),e);
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(),e);
+                } catch (Exception ex){
+                    log.error(ex.getMessage(),ex);
                 }
             }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

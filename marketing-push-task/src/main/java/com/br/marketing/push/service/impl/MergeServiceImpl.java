@@ -1,5 +1,6 @@
 package com.br.marketing.push.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
@@ -74,7 +75,7 @@ public class MergeServiceImpl implements MergeService {
     MarketingSepService marketingSepService;
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
-    @Autowired
+    @Resource
     TaskStatusDistributeMapper taskStatusDistributeMapper;
 
     private Map<String,String> proFieldMap=new HashMap<>();
@@ -164,12 +165,24 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             initHead(head,separator,baseHeadInfo,dataInfo,taskType);
-            TaskStatusDistributeExample taskStatusDistributeExample = new TaskStatusDistributeExample();
-            taskStatusDistributeExample.createCriteria().andFileIdEqualTo(blf.getId());
-            List<TaskStatusDistribute> taskStatusDistributes = taskStatusDistributeMapper.selectByExample(taskStatusDistributeExample);
-            FileUtil.mergeAll(head.toString(),filePathAndName,targetPath.toString(),separator,blf.getIndexNum(),taskStatusDistributes);
-            zipFile=filePathAndName.replace(".txt",".zip");
-            Integer total =MyFileUtil.getTotalLines(new File(filePathAndName))-1;
+            Integer fileNum = 30000000;
+            if(StringUtils.isNotBlank(customer.getExtendConfigInfo())){
+                try {
+                    JSONObject extendJb = JSON.parseObject(customer.getExtendConfigInfo());
+                    Integer fileNum1 = extendJb.getInteger("fileNum");
+                    if(fileNum1!=null){
+                        fileNum = fileNum1;
+                    }
+                }catch (Exception ex){
+                    log.error(ex.getMessage(),ex);
+                }
+            }
+            List<String> paths = FileUtil.mergeAll(head.toString(), filePathAndName, targetPath.toString(), separator, fileNum);
+            zipFile = filePathAndName.replace(".txt", ".zip");
+            Integer total = 0;
+            for (String path1 : paths) {
+                total +=MyFileUtil.getTotalLines(new File(path1))-1;
+            }
             blf.setExpectedNum(total);
 
             Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
@@ -178,15 +191,15 @@ public class MergeServiceImpl implements MergeService {
             }
             if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
             &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
-                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
-
-                //统计文件上传fastdfs
-                uploadFastDfs(countFileNameList,blf,fileName);
-
-                countFileNameList.add(filePathAndName);
-                ZipUtil.compress(zipFile,countFileNameList);
+//                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
+//
+//                //统计文件上传fastdfs
+//                uploadFastDfs(countFileNameList,blf,fileName);
+//
+//                countFileNameList.add(filePathAndName);
+//                ZipUtil.compress(zipFile,countFileNameList);
             }else {
-                ZipUtil.compress(filePathAndName,zipFile);
+                ZipUtil.compress(zipFile,paths);
             }
 
         }catch (Exception e){
@@ -356,12 +369,12 @@ public class MergeServiceImpl implements MergeService {
     .append(",")
      */
     private void  initHead(StringBuilder head,String sep,String baseHeadInfo,String dataInfo,Integer taskType){
-        if(taskType.compareTo(new Integer(1))==0){
-            if(StringUtils.isNotBlank(baseHeadInfo.trim())){
-                head.append(baseHeadInfo).append(sep);
-            }
-            return;
-        }
+//        if(taskType.compareTo(new Integer(1))==0){
+//            if(StringUtils.isNotBlank(baseHeadInfo.trim())){
+//                head.append(baseHeadInfo).append(sep);
+//            }
+//            return;
+//        }
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(StringUtils.isNotBlank(baseHeadInfo.trim())){

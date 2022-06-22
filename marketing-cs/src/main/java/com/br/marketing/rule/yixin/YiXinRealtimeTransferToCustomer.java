@@ -82,8 +82,9 @@ public class YiXinRealtimeTransferToCustomer implements AssembleData<ConversionD
             if (StringUtils.hasText(reserveField1)){
                 JSONObject json = JSON.parseObject(reserveField1);
                 Integer transformType = json.getInteger("transformType");
+                boolean isTransfromType = !StringUtils.isEmpty(transformType) && 1 == transformType;
                 Integer liveType = json.getInteger("liveType");
-                if(1==transformType && (Arrays.asList(1,2,3,4,6,8).contains(liveType))){
+                if(isTransfromType && (Arrays.asList(1,2,3,4,6,8).contains(liveType))){
                     //推送日+6天闭区间（例如1号推送转化数据同时推送失效时间是7号23：59：59）
                     Date requestDate = null;
                     try {

@@ -4,22 +4,29 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
+import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -30,10 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +64,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Resource
     private RedisChgService redisChgService;
+
+    @Resource
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
+
+    @Autowired
+    SoleStrategyService soleStrategyService;
 
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
@@ -423,4 +433,30 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
     }
 
+
+
+
+    @Override
+    public Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date) {
+        Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
+        return listResult;
+//        Result<Boolean> dataType = isSelectRuleByTask(taskExtend.getTaskId());
+//        if(!ResultCode.SUCCESS.getValue().equals(dataType.getCode())){
+//            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(dataType.getMessage());
+//        }
+//        if(dataType.getData()){
+//            Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
+//            return listResult;
+//        }else{
+//            Result<String> stringResult = soleStrategyService.analysisCondition(taskExtend.getDataCondition());
+//            if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+//                ArrayList<String> strings = new ArrayList<>();
+//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime()).concat(":00")));
+//                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
+//            }
+//            else{
+//                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(stringResult.getMessage());
+//            }
+//        }
+    }
 }

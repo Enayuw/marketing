@@ -133,7 +133,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileBySamoyeServiveImpl;
         } else if (customer.getShortName().contains("哈罗")) {
             return transferToFileByHaluoServiceImpl;
-        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().contains(customer.getApiCode())) {
+        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;

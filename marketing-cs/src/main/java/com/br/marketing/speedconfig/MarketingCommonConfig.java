@@ -78,7 +78,7 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取apiCode集合
      */
-    private List<String> shuHeTransferExtractApiCodes;
+    private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
     /**
      * 数禾转化数据提取任务开始时间
@@ -219,5 +219,16 @@ public class MarketingCommonConfig {
      *  {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
      */
     private HashMap<String,String> haluoTransferRule;
+
+    /**
+     * key:业务sql名称
+     * value:0-shardingjdbc;1:tiflash;2:tikv
+     */
+    private HashMap<String,Integer> sqlType;
+
+    /**
+     * 跑分资源数量
+     */
+    private Integer taskResourceMaxNum;
 
 }
