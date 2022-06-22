@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +16,10 @@ import java.util.Set;
 @Service
 @Slf4j
 public class RedisChgService {
+
+    private static final String LOCK_SUCCESS = "OK";
+    private static final Long RELEASE_SUCCESS = 1L;
+    private static final Long LOCK_WAIT_THRESHOLD = 30000L;
 
     public void set(String key, String value) {
         try {
@@ -135,5 +141,39 @@ public class RedisChgService {
         JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Boolean result = jedis.sismember(key, member);
         return result;
+    }
+
+
+    public void lock(String lockKey, String value) {
+        long begin = System.currentTimeMillis();
+
+        while(System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
+            boolean acquire = this.lock(lockKey, value, 3000L);
+            if (acquire) {
+                return;
+            }
+
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException var7) {
+                var7.printStackTrace();
+            }
+        }
+
+        throw new NullPointerException("获取锁失败");
+    }
+
+    public boolean lock(String lockKey, String requestId, long milliseconds) {
+        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+        String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
+        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Arrays.asList(requestId, "" + milliseconds));
+        return LOCK_SUCCESS.equals(result);
+    }
+
+    public boolean unlock(String lockKey, String requestId) {
+        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        return RELEASE_SUCCESS.equals(result);
     }
 }
