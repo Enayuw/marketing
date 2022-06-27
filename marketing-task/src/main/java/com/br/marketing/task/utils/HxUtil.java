@@ -1,21 +1,17 @@
 package com.br.marketing.task.utils;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.task.Scheduler;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.text.DecimalFormat;
-import java.util.function.Consumer;
 
 /**
  * Created by Bairong on 2020/4/16.
@@ -25,46 +21,46 @@ public class HxUtil {
     private static RestTemplate restTemplate = Scheduler.ac.getBean(RestTemplate.class);
 
     public static String getReport(Customer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
-        log.info("jsonData:{},jsonMeal:{},url:{}",jsonData,jsonMeal,url);
+        log.info("jsonData:{},jsonMeal:{},url:{}", jsonData, jsonMeal, url);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
-        JSONObject json=new JSONObject();
-        JSONObject extendConfigInfoJson=new JSONObject();
-        String extendConfigInfo=customer.getExtendConfigInfo();
-        if(StringUtils.isNotBlank(extendConfigInfo)){
-            try{
-                extendConfigInfoJson=JSONObject.parseObject(extendConfigInfo);
-            }catch (Exception e){
-                log.error("客户扩展字段格式化异常,apiCode={},data={}",customer.getApiCode(),extendConfigInfo);
+        JSONObject json = new JSONObject();
+        JSONObject extendConfigInfoJson = new JSONObject();
+        String extendConfigInfo = customer.getExtendConfigInfo();
+        if (StringUtils.isNotBlank(extendConfigInfo)) {
+            try {
+                extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
+            } catch (Exception e) {
+                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo);
             }
         }
-        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
-        String userType=jsonData.getString("userType");
-        if(isReplace(extendConfigInfoJson,customer,userType)){
+        String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");
+        String userType = jsonData.getString("userType");
+        if (isReplace(extendConfigInfoJson, customer, userType)) {
             StringBuilder meal = new StringBuilder();
             jsonMeal.keySet().forEach(product -> meal.append(product));
-            json.put("meal",meal);
-        }else{
+            json.put("meal", meal);
+        } else {
             json.put("jsonMeal", jsonMeal);
             json.put("originApiCode", customer.getApiCode());
         }
         json.put("id", jsonData.getString("idCard"));
-        json.put("name",jsonData.getString("name"));
-        json.put("cell",jsonData.getString("cell"));
+        json.put("name", jsonData.getString("name"));
+        json.put("cell", jsonData.getString("cell"));
 
-        if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
+        if (StringUtils.isNotEmpty(jsonData.getString("passDate"))) {
             json.put("pass_date", jsonData.getString("passDate"));
         }
-        if(StringUtils.isNotEmpty(jsonData.getString("user_date"))){
+        if (StringUtils.isNotEmpty(jsonData.getString("user_date"))) {
             json.put("user_date", jsonData.getString("user_date"));
         }
-        if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
+        if (StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))) {
             json.put("decodeFailType", jsonData.getString("decodeFailType"));
         }
 
-        JSONObject extDataJson=new JSONObject();
-        if(StringUtils.isNotEmpty(jsonData.getString("isRepair"))){
-            extDataJson.put("isRepair",jsonData.getString("isRepair"));
+        JSONObject extDataJson = new JSONObject();
+        if (StringUtils.isNotEmpty(jsonData.getString("isRepair"))) {
+            extDataJson.put("isRepair", jsonData.getString("isRepair"));
         }
         //渠道标识 计费需要
         extDataJson.put("channelType", jsonData.getString("userType"));
@@ -72,40 +68,121 @@ public class HxUtil {
         /**
          * 0不留存，1留存
          */
-        if(firstTime ||customer.getSaveLog()==1){
-            extDataJson.put("isSaveLog","1");
-        }else{
-            extDataJson.put("isSaveLog","0");
+        if (firstTime || customer.getSaveLog() == 1) {
+            extDataJson.put("isSaveLog", "1");
+        } else {
+            extDataJson.put("isSaveLog", "0");
         }
-        json.put("ExtData",extDataJson);
+        json.put("ExtData", extDataJson);
         json.put("ifDeactivated", "0");
         MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
         paramMap.add("jsonData", json.toString());
         //公共apicode
         paramMap.add("apiCode", Constants.PUBLIC_APICODE);
-        if(isReplace(extendConfigInfoJson,customer,userType)){
+        if (isReplace(extendConfigInfoJson, customer, userType)) {
             paramMap.add("customerId", replaceApiCode);
         }
 
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
-       // log.info("画像请求参数 --- {}", paramMap.toString());
-        String result="";
+        // log.info("画像请求参数 --- {}", paramMap.toString());
+        String result = "";
         try {
             result = restTemplate.postForObject(url, requestEntity, String.class);
-        }catch (Exception e){
-            log.warn(" 画像错误 ---{}---重试",paramMap.toString(),e);
-            try{
+        } catch (Exception e) {
+            log.warn(" 画像错误 ---{}---重试", paramMap.toString(), e);
+            try {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
-                log.warn(" 画像重试返回结果 ---{}",result);
-            }catch (Exception e1){
-                log.error(" 画像重试错误 -{}--{}",jsonData.getString("batch_number"),jsonData.getString("cusNum"),e);
+                log.warn(" 画像重试返回结果 ---{}", result);
+            } catch (Exception e1) {
+                log.error(" 画像重试错误 -{}--{}", jsonData.getString("batch_number"), jsonData.getString("cusNum"), e);
             }
         }
         log.info("画像结果 --- {}", result);
         return result;
     }
 
-    public static String hauXiangFlat(String json){
+    public static String getReport(MarketingCustomer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
+        log.info("jsonData:{},jsonMeal:{},url:{}", jsonData, jsonMeal, url);
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Pinpoint-Sampled", "s0");
+        JSONObject json = new JSONObject();
+        JSONObject extendConfigInfoJson = new JSONObject();
+        String extendConfigInfo = customer.getExtendConfigInfo();
+        if (StringUtils.isNotBlank(extendConfigInfo)) {
+            try {
+                extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
+            } catch (Exception e) {
+                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo);
+            }
+        }
+        String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");
+        String userType = jsonData.getString("userType");
+        if (isReplace(extendConfigInfoJson, customer, userType)) {
+            StringBuilder meal = new StringBuilder();
+            jsonMeal.keySet().forEach(product -> meal.append(product));
+            json.put("meal", meal);
+        } else {
+            json.put("jsonMeal", jsonMeal);
+            json.put("originApiCode", customer.getApiCode());
+        }
+        json.put("id", jsonData.getString("idCard"));
+        json.put("name", jsonData.getString("name"));
+        json.put("cell", jsonData.getString("cell"));
+
+//        if(StringUtils.isNotEmpty(jsonData.getString("passDate"))){
+//            json.put("pass_date", jsonData.getString("passDate"));
+//        }
+//        if(StringUtils.isNotEmpty(jsonData.getString("user_date"))){
+//            json.put("user_date", jsonData.getString("user_date"));
+//        }
+//        if(StringUtils.isNotEmpty(jsonData.getString("decodeFailType"))){
+//            json.put("decodeFailType", jsonData.getString("decodeFailType"));
+//        }
+
+        JSONObject extDataJson = new JSONObject();
+        if (StringUtils.isNotEmpty(jsonData.getString("isRepair"))) {
+            extDataJson.put("isRepair", jsonData.getString("isRepair"));
+        }
+        //渠道标识 计费需要
+        extDataJson.put("channelType", jsonData.getString("userType"));
+
+        /**
+         * 0不留存，1留存
+         */
+        if (firstTime || customer.getSaveLog() == 1) {
+            extDataJson.put("isSaveLog", "1");
+        } else {
+            extDataJson.put("isSaveLog", "0");
+        }
+        json.put("ExtData", extDataJson);
+        json.put("ifDeactivated", "0");
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("jsonData", json.toString());
+        //公共apicode
+        paramMap.add("apiCode", Constants.PUBLIC_APICODE);
+        if (isReplace(extendConfigInfoJson, customer, userType)) {
+            paramMap.add("customerId", replaceApiCode);
+        }
+
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(paramMap, requestHeaders);
+        // log.info("画像请求参数 --- {}", paramMap.toString());
+        String result = "";
+        try {
+            result = restTemplate.postForObject(url, requestEntity, String.class);
+        } catch (Exception e) {
+            log.warn(" 画像错误 ---{}---重试", paramMap.toString(), e);
+            try {
+                result = restTemplate.postForObject(url, requestEntity, String.class);
+                log.warn(" 画像重试返回结果 ---{}", result);
+            } catch (Exception e1) {
+                log.error(" 画像重试错误 -{}--{}", jsonData.getString("batch_number"), jsonData.getString("cusNum"), e);
+            }
+        }
+        log.info("画像结果 --- {}", result);
+        return result;
+    }
+
+    public static String hauXiangFlat(String json) {
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
         MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
@@ -116,16 +193,26 @@ public class HxUtil {
         try {
             paramJson = restTemplate.postForObject("http://k8s.brapp.com/huaxiang-api2/huaxiang/flat", requestEntity, String.class);
         } catch (Exception e) {
-            log.error("hauXiangFlat出错了",e);
+            log.error("hauXiangFlat出错了", e);
         }
         return paramJson;
     }
 
-    private static Boolean isReplace(JSONObject extendConfigInfoJson ,Customer customer,String userType){
-        String replaceApiCode=extendConfigInfoJson.getString("replaceApiCode");
-        if(StringUtils.isNotBlank(replaceApiCode)&&
-                !customer.getApiCode().equals(replaceApiCode)&&
-                ("S01".equalsIgnoreCase(userType)||"S03".equalsIgnoreCase(userType)||"S05".equalsIgnoreCase(userType))) {
+    private static Boolean isReplace(JSONObject extendConfigInfoJson, Customer customer, String userType) {
+        String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");
+        if (StringUtils.isNotBlank(replaceApiCode) &&
+                !customer.getApiCode().equals(replaceApiCode) &&
+                ("S01".equalsIgnoreCase(userType) || "S03".equalsIgnoreCase(userType) || "S05".equalsIgnoreCase(userType))) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
+    private static Boolean isReplace(JSONObject extendConfigInfoJson, MarketingCustomer customer, String userType) {
+        String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");
+        if (StringUtils.isNotBlank(replaceApiCode) &&
+                !customer.getApiCode().equals(replaceApiCode) &&
+                ("S01".equalsIgnoreCase(userType) || "S03".equalsIgnoreCase(userType) || "S05".equalsIgnoreCase(userType))) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;

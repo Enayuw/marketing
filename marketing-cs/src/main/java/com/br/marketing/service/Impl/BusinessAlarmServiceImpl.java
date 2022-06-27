@@ -10,8 +10,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,8 @@ public  class BusinessAlarmServiceImpl implements EmailService {
     private String appName;
     @Resource
     LoanFileMapper loanFileMapper;
+    @Resource
+    StraHisFileMapper straHisFileMapper;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
     private final static Integer SIZE=2000;
@@ -137,6 +141,49 @@ public  class BusinessAlarmServiceImpl implements EmailService {
         }
     }
 
+    @Override
+    public void resultVolumeCheck(StraHisFile file){
+        String apiCode = file.getApiCode();
+        log.warn("resultVolumeCheck  batchnumber--{}",file.getBatchNumber());
+        Integer expecteDataNum=file.getExpectedNum();
+        Integer actualDataNum=file.getActualNum();
+        StringBuilder content = new StringBuilder();
+        if(!expecteDataNum.equals(actualDataNum)){
+            String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            String compShortName="";
+            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            if(StringUtils.isNotEmpty(companyMsg)){
+                JSONObject companyJSONObj = JSON.parseObject(companyMsg);
+                compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
+            }
+
+            content.append("&nbsp;&nbsp;&nbsp;您好:  【").append(compShortName)
+                    .append("】结果文件【").append(file.getZipfileName())
+                    .append("】数据量级异常，触发报警，请及时跟进：<br/>");
+            content.append("&nbsp;&nbsp;&nbsp;校验时间：").append(alarmDate).append("<br/>");
+            /**
+             * 如果应返回的总数据量与实际返回的总数据量差值大于20，
+             * 修改标识文件上传状态为2，表示暂时不能上传finish文件
+             */
+            if(expecteDataNum-actualDataNum>20){
+                StraHisFile upFile = new StraHisFile();
+                upFile.setId(file.getId());
+                upFile.setSignFileStatus(2);
+                file.setSignFileStatus(2);
+                straHisFileMapper.updateByPrimaryKeySelective(upFile);
+            }
+            int i = expecteDataNum - actualDataNum;
+            content.append("&nbsp;&nbsp;&nbsp;应返回数据总量：")
+                    .append(expecteDataNum)
+                    .append(",实际返回数据量：")
+                    .append(actualDataNum)
+                    .append(",数据量条数差异：<font color=\"red\">")
+                    .append(i)
+                    .append("</font><br/>");
+            String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-数据差异报警";
+            alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("resultVolume01"));
+            }
+    }
 
     public void fileUploadFtpException(String apiCode,String message){
         String compShortName="";

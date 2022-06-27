@@ -561,4 +561,106 @@
     <select id="getModule" resultType="java.util.Map">
         select id, product as `code` from b_apicode_score_product where api_code = #{apiCode} and is_del = 1 order by id desc;
     </select>
+    
+    <select id="getScoreTasks" resultType="com.br.marketing.entity.MarketingTask" >
+        select *
+        from b_marketing_task
+        where <![CDATA[  start_date <= #{date} and close_date >#{date} ]]>
+          <if test="taskId!=null and taskId>0">
+              and id = #{taskId}
+          </if>
+          <if test="hm !=null and hm!=''">
+              <![CDATA[ and start_time<=#{hm}  ]]>
+          </if>
+        and status = 1
+        order by priority desc,start_time asc
+    </select>
+    <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select bmt.id,
+        shf.id                                            as `hisFileId`,
+        bmt.api_code                                      as `apiCode`,
+        bmt.batch_number as `batchNumber`,
+        bsrc.id                                           as `ruleId`,
+        bsrc.rule_name                                    as `ruleName`,
+        bsrc.rule_name_short                              as `ruleNumber`,
+        bmc.cid,
+        bmc.short_name                                    as `cName`,
+        bmt.status,
+        bmt.priority,
+        bmt.task_number                                   as `taskNumber`,
+        bsrc.condition_info                               as `conditionInfo`,
+        shf.zipFile_name                                  as `fileName`,
+        bmte.condition_type                               as `conditionType`,
+        bmte.condition_info_show                          as `conditionInfoShow`,
+        bsrc.exec_type                                    as `execType`,
+
+        case
+        when shf.status is null then 0
+        when shf.status = 2 then 2
+        when shf.status = 0 then 3
+        when shf.status = 1 then 1
+        when shf.status = 3 then 1
+        else '-' end                                as taskStatus,
+        bmt.start_date                              as startDate,
+        bmt.close_date                              as closeDate,
+        bmt.start_time                              as startTime,
+        bmt.create_time                             as createTime,
+        bmt.update_time                             as updateTime
+
+        from b_marketing_task bmt
+
+        left join stra_his_file shf on shf.batch_number = bmt.batch_number
+
+        left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+
+        left join  b_marketing_customer bmc  on bmc.api_code = bmt.api_code
+
+        where bsrc.is_del = 1
+        <if test="status !=null">
+            and bmt.status = #{status}
+        </if>
+        <if test="search !=null and search!=''">
+            and (bmt.api_code like concat("%", #{search},"%")
+            or bmc.cid like concat("%", #{search},"%")
+            or bmc.short_name like concat("%", #{search},"%"))
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
+        </if>
+        <if test="updateTimeStart !=null and updateTimeStart!=''">
+            <![CDATA[  and bmt.update_time >=#{updateTimeStart} ]]>
+        </if>
+        <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+            <![CDATA[  and bmt.update_time <#{updateTimeEnd} ]]>
+        </if>
+        <if test="taskStatus==0 ">
+            and shf.status is null
+        </if>
+        <if test="taskStatus==2 ">
+            and shf.status = 2
+        </if>
+        <if test="taskStatus==1 ">
+            and shf.status in(1,3)
+        </if>
+        <if test="taskStatus==3 ">
+            and shf.status =0
+        </if>
+        <if test="id !=null">
+            and bmt.id = #{id}
+        </if>
+        order by bmt.create_time desc,bmt.id desc
+    </select>
+
+    <select id="selectByPriority" resultType="java.lang.Integer">
+        select count(*) from b_marketing_task where status = 1 and priority = #{priority}
+    </select>
+    <select id="selectHisFileById" resultType="java.lang.String">
+        select status from stra_his_file where id =#{hisFileId}
+    </select>
+
 </mapper>

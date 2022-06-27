@@ -18,6 +18,7 @@ import java.util.HashMap;
 
 @Component
 @Slf4j
+@Deprecated
 public class ApiToDbByTimeJob extends AbstractSimpleElasticJob {
 
     @Autowired

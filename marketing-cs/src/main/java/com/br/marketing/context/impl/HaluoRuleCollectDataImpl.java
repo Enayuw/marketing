@@ -8,6 +8,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TaskTimeMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.Data;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,9 @@ public class HaluoRuleCollectDataImpl extends CommonMethodHandlerService {
     }
 
     private Map<String, List<TaskTime>> getTaskIdDate(List<String> taskIds, String apiCode) {
+        if(taskIds==null||taskIds.size()<=0){
+            return new HashMap<>();
+        }
         TaskTimeExample taskTimeExample = new TaskTimeExample();
         taskTimeExample.createCriteria().andTaskIdIn(taskIds)
                 .andApiCodeEqualTo(apiCode);

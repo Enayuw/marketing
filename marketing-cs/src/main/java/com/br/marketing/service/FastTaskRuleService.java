@@ -31,6 +31,7 @@ public interface FastTaskRuleService {
      * @param user
      * @return
      */
+    @Deprecated
     ApiResult<Boolean> save(FastTaskRuleDetailVO vo, MarketingUserDetail user);
 
     /**
