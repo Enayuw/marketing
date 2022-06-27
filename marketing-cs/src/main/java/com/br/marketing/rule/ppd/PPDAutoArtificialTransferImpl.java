@@ -102,14 +102,23 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MqFact mqFact = context.getMqFact();
         //处理拍拍贷静置后的数据
-        if (1 == mqFact.getIsDelay()){
+        Integer isDelay = mqFact.getIsDelay();
+        if (isDelay != null && isDelay == 1){
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
                     (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
             MarketingTransferSyncUser newestTransferSyncUser = ruleNecessaryData.getCustomerTransferMap().get(transfer.getCustNum());
             MarketingSyncUser marketingSyncUser = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
+            if (StringUtils.isEmpty(marketingSyncUser) ){
+                log.warn("上传表中无对应记录 --{}",transfer.getCustNum());
+                return false;
+            } else if (StringUtils.isEmpty(marketingSyncUser.getCell())) {
+                log.warn("上传表中无对应手机号 --{}",transfer.getCustNum());
+                return false;
+            }
             //转化数据cust_num最新一条 ifTransform =1 或 ifTransform =-1
             if (Arrays.asList("1","-1").contains(newestTransferSyncUser.getIfTransform())){
+                log.warn("转化数据cust_num:{} 最新一条ifTransform in(1,-1) --{}",transfer.getCustNum(),JSON.toJSONString(newestTransferSyncUser));
                 return false;
             }
             // 根据userType获取对应的情况类型1,2,3->a,b,c
@@ -195,7 +204,7 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
         String phone = AESUtil.aesEncrypty(cell, aesKey);
         String name = StringUtils.hasText(syncUser.getName()) ?
                 BrCipherMaker.getInstance().decode(syncUser.getName())
-                : "";
+                : "1";
         // 根据custNum取上传接口最新的name转成明文传输
         batchImportData.setName(name);
         batchImportData.setOrgname("ppdai");
@@ -206,18 +215,19 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
         batchImportData.setSource("16");
         // 根据userType获取对应的情况类型1,2,3->a,b,c
         String situation = map.get(transfer.getUserType());
-        if ("c".equals(situation)){
+        if ("c".equals(situation)) {
             batchImportData.setType("3");
-        }else{
-            batchImportData.setType("2");
-        }
-        String reserveField1 = transfer.getReserveField1();
-        JSONObject object = JSON.parseObject(reserveField1);
-        if (!CollectionUtils.isEmpty(object)){
-            String auditAmount = object.getString("auditAmount");
-            if (StringUtils.hasText(auditAmount)){
-                batchImportData.setAuditAmount(auditAmountMap.get(auditAmount));
+            String reserveField1 = transfer.getReserveField1();
+            JSONObject object = JSON.parseObject(reserveField1);
+            if (!CollectionUtils.isEmpty(object)) {
+                String auditAmount = object.getString("auditAmount");
+                if (StringUtils.hasText(auditAmount)) {
+                    String value = auditAmountMap.get(auditAmount);
+                    batchImportData.setAuditAmount(StringUtils.hasText(value)?value:auditAmount);
+                }
             }
+        } else {
+            batchImportData.setType("2");
         }
         return batchImportData;
     }

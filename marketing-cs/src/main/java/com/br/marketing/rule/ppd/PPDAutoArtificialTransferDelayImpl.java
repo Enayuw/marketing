@@ -59,7 +59,7 @@ public class PPDAutoArtificialTransferDelayImpl implements AssembleData<MqFact> 
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode();
+        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY.getCode();
     }
 
     @Override
