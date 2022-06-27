@@ -190,7 +190,6 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
         phoneSaleExtendInfo.setStatus(map.get(transfer.getUserType()));
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setType(transfer.getType());
-        phoneSaleExtendInfo.setDxType(YiXinUtils.getDxType(transfer.getType()));
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("0");
         phoneSaleExtendInfo.setSourceId(transfer.getId());
