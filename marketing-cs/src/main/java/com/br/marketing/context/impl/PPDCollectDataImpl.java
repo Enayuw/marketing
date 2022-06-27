@@ -64,7 +64,7 @@ public class PPDCollectDataImpl extends CommonMethodHandlerService{
             PPDRuleNecessaryData ruleNecessaryData = new PPDRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            String cId = tableCreateService.getCId(context.getApiCode());
+            String cId = tableCreateService.getTcId(context.getApiCode());
             Map<String, MarketingTransferSyncUser> collect = customerMarketingTransferSyncUser(set, context.getApiCode(),cId);
             ruleNecessaryData.setCustomerTransferMap(collect);
             ruleNecessaryData.setCustomerMap(customerMarketingSyncUser(set,context.getApiCode()));
@@ -75,7 +75,7 @@ public class PPDCollectDataImpl extends CommonMethodHandlerService{
     private Map<String, MarketingTransferSyncUser> customerMarketingTransferSyncUser(Set<String> set, String apiCode,String tcId) {
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).
-                andCustNumIn((List<String>) set);
+                andCustNumIn(new ArrayList<>(set));
         example.settCid(tcId);
         List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
         return transferList.stream().collect(
