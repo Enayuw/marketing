@@ -50,11 +50,6 @@ PORT=${SERVER_PORT}
        if [ "$1" = "stop" ]; then exit 0;
        else exit 5; fi; }
 
-URL=`echo ${EUREKA_CLIENT_SERVICE_URL_defaultZone} | awk -F'[ ,]+' {'print $1'}`
-[ ! -z "$URL" ] || { echo "环境变量EUREKA_CLIENT_SERVICE_URL_defaultZone为空或者配置错误！";
-                if [ "$1" = "stop" ]; then exit 0;
-        else exit 5; fi; }
-
 NAME_UPPER="$(echo $NAME| tr '[:lower:]' '[:upper:]')" 
 
 HOSTNAME=`hostname`
@@ -170,8 +165,7 @@ function start() {
     if [ $RETVAL = 0 ]; then
         PID=$!
         echo $PID > "$CLOUDSERVER_PID_FILE" 
-        echo "执行启动命令成功！" 
-        #register &
+        echo "执行启动命令成功！"
         wait $PID
     else
         echo "failure" 
@@ -181,7 +175,6 @@ function start() {
 #停止服务方法
 function stop() {
     if [ $APP_TYPE != 0 ]; then
-#        stopapp
         sleep 5
         cd /opt/SpringCloud/logs/${NAME}/  &&  mv ${POD_NAME} ${POD_NAME}_$(date +%Y%m%d)
     fi
