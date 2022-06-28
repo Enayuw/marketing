@@ -9,6 +9,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -64,6 +65,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
+        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
+                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         log.warn("符合推电销规则，callrecord数据id为{}", dto.getId());
         Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
@@ -84,7 +87,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
         Integer tcid = (Math.abs(dto.getCid()));
         MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnumInHour(tcid.toString(), dto.getCaseNum(),timeAddHour);
-
+        //根据手机号cell获取最新一条上传数据
+        MarketingSyncUser marketingUserByCell =  shuHeContext.getMarketingSyncUserByCell();
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
@@ -118,6 +122,25 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setSource("18");
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
+            if (!Objects.isNull(marketingUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                    extendMap.put("if_coupon", IfCoupon);
+                }
+                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                    extendMap.put("if_tie", IfTie);
+                }
+                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                    extendMap.put("aft_lmt", aftLmt);
+                }
+                String IfCs = parseObject.getOrDefault("if_cs", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
+                    extendMap.put("if_cs", IfCs);
+                }
+            }
         } else if ("促复借".equals(dto.getUserType())) {
             dassSingleImportDataDTO.setOrgname("shuhefujie");
             dassSingleImportDataDTO.setSource("16");
@@ -132,6 +155,21 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     if (org.apache.commons.lang3.StringUtils.isNotBlank(lv)) {
                         extendMap.put("clc_usr_avl_lmt_lv0", lv);
                     }
+                }
+            }
+            if (!Objects.isNull(marketingUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                    extendMap.put("if_coupon", IfCoupon);
+                }
+                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                    extendMap.put("if_tie", IfTie);
+                }
+                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                    extendMap.put("aft_lmt", aftLmt);
                 }
             }
             dassSingleImportDataDTO.setPrioritySymbol("3");

@@ -71,7 +71,6 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
                     Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity(), (v1, v2) ->
                             v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2));
             shuHeRuleNecessaryData.setCustomerMap(collect);
-
             // 生成后续使用数据上下文
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
                     , transfer.getCustNum(), transfer.getUserType());
@@ -80,6 +79,9 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             shuHeRuleNecessaryData.setIUserType(iUserType);
             shuHeRuleNecessaryData.setContinueJudgeRule(true);
             caseShuheUserAdapter(transfer, shuHeRuleNecessaryData);
+            MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCell(context.getApiCode(),
+                    BrCipherMaker.getInstance().encode(shuHeRuleNecessaryData.getCaseShuheUser().getCell()));
+            shuHeRuleNecessaryData.setMarketingSyncUserByCell(marketingSyncUserByCell);
         }
     }
 
@@ -118,6 +120,10 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
         private boolean continueJudgeRule;
 
         private Map<String, MarketingSyncUser> customerMap;
+        /**
+         * 根据手机号cell获取最新一条上传数据
+         */
+        private MarketingSyncUser marketingSyncUserByCell;
 
         private MarketingTransferSyncUser transfer;
 

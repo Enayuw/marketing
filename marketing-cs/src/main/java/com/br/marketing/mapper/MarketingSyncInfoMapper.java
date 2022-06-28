@@ -167,4 +167,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @return
      */
     String getTaskIdByCustNumNotLikeUpload(@Param("apiCode")String apiCode, @Param("custNum")String custNum);
+
+    /**
+     * 根据cell获取上传接口最新一条数据
+     * @param apiCode
+     * @param cell
+     * @return
+     */
+    MarketingSyncUser getNewestPreUserByCell(@Param("apiCode")String apiCode, @Param("cell")String cell);
 }

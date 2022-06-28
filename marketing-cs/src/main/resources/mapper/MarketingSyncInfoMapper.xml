@@ -306,4 +306,10 @@
         order by create_time desc limit 1
     </select>
 
+    <select id="getNewestPreUserByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cell=#{cell} order by create_time desc limit 1;
+    </select>
+
 </mapper>
