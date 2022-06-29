@@ -7,6 +7,7 @@ import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataD
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -70,8 +71,9 @@ public class ArtificialBatchRealTimeDataHandler extends AbstractExternalInterfac
             List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
             dassImportAdapDTO.setList(dataDTOS);
             dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
-            phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
-
+            if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
+                phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
+            }
             methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO,0);
         }
         return null;

@@ -40,7 +40,7 @@ public class VariableDicServiceImpl implements VariableDicService {
         example.setOrderByClause("create_time desc, update_time desc");
         List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
         if (ObjectUtils.isEmpty(variableDics)) {
-            return null;
+            return Collections.emptyList();
         }
         return variableDics.stream().map(v -> new VariableDicSelectVO(
                 v.getFieldName(), v.getFieldValue(), v.getFieldDesc())).collect(Collectors.toList());

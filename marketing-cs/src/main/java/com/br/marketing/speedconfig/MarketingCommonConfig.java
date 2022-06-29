@@ -78,7 +78,7 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取apiCode集合
      */
-    private List<String> shuHeTransferExtractApiCodes;
+    private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
     /**
      * 数禾转化数据提取任务开始时间
@@ -153,6 +153,10 @@ public class MarketingCommonConfig {
      */
     private Double clcUsrAvlLmtLv0;
 
+    /**
+     * 哈啰回调数据落库配置线程数
+     */
+    private Integer haloSaveDataThreadNum;
 
     /**
      * 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
@@ -163,5 +167,68 @@ public class MarketingCommonConfig {
      * # 数禾用户可用额度区间;大于:&gt;、小于:&lt;、等于:&eq;、不等于:&nq;、大于等于:&ge;、小于等于:&le;;eg:["&ge;","1","&le;","100"]
      */
     private List<String> shuHeUserAvailableQuotaRange;
+
+    /**
+     * 2022/5/17 15:05
+     * 拨打记录数据配置apicode推送mq
+     */
+    private List<String> callRecordDataPushMqApiCodes;
+
+    /**
+     * 玖富转化数据提取apiCode集合
+     */
+    private List<String> JiuFuTransferApiCodes;
+
+    /**
+     * 玖富转化数据提取执行时间
+     */
+    private String JiuFuTransferExecuteTime;
+
+    /**
+     * 小赢转化数据推送智能客服apiCode集合
+     */
+    private List<String> xiaoYingTransferPushRobotApiCodes;
+
+    /**
+     * 小赢转化数据提取apiCode集合
+     */
+    private List<String> xiaoYingTransferExtractApiCodes;
+
+    /**
+     * 小赢登录断点转化数据提取任务开始时间
+     */
+    private String xiaoYingDengLuDuanDianTransferExtractJobTime;
+
+    /**
+     * 小赢促提转化数据提取任务开始时间
+     */
+    private String xiaoYingCuTiTransferExtractJobTime;
+
+    /**
+     * 小赢全量转化数据提取任务开始时间
+     */
+    private String xiaoYingFullLoadTransferExtractJobTime;
+
+    /**
+     * {"dassBlack":30,"customerBlack":30}
+     */
+    private HashMap<String,Integer> shuhePushBlackDay;
+
+    /**
+     *  哈罗转化数据规则
+     *  {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
+     */
+    private HashMap<String,String> haluoTransferRule;
+
+    /**
+     * key:业务sql名称
+     * value:0-shardingjdbc;1:tiflash;2:tikv
+     */
+    private HashMap<String,Integer> sqlType;
+
+    /**
+     * 跑分资源数量
+     */
+    private Integer taskResourceMaxNum;
 
 }

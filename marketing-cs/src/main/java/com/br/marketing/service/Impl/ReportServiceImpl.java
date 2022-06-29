@@ -14,6 +14,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.service.EmailService;
@@ -174,6 +175,11 @@ public  class ReportServiceImpl implements EmailService {
 
     @Override
     public void resultVolumeCheck(String apiCode) {
+
+    }
+
+    @Override
+    public void resultVolumeCheck(StraHisFile file) {
 
     }
 

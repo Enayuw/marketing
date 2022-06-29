@@ -39,5 +39,12 @@ public interface CustomerCallingDialogMapper {
 
     List<HaloCallingDataVo> getInfoByColumns(Map<String, Object> cusMap);
 
+    /**
+     * 根据条件查询数据总量
+     * @param cusMap
+     * @return
+     */
+    int getHaloCallingCount(Map<String, Object> cusMap);
+
     List<Map<String, Object>> getRequestId();
 }

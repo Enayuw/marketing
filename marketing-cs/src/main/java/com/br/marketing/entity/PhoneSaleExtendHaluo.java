@@ -9,6 +9,11 @@ public class PhoneSaleExtendHaluo {
     private Long id;
 
     /**
+     * apicode
+     */
+    private String apiCode;
+
+    /**
      * 电销表记录id
      */
     private Long pId;
@@ -49,6 +54,11 @@ public class PhoneSaleExtendHaluo {
     private Integer pStatus;
 
     /**
+     * 转化表id
+     */
+    private Long sourceId;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -64,6 +74,14 @@ public class PhoneSaleExtendHaluo {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public Long getpId() {
@@ -128,6 +146,14 @@ public class PhoneSaleExtendHaluo {
 
     public void setpStatus(Integer pStatus) {
         this.pStatus = pStatus;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
     }
 
     public Date getCreateTime() {

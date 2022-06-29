@@ -1114,9 +1114,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
             }
         }
-        if (haluoApiCodes.contains(transferInfo.getApiCode())) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO, id.toString());
-        }
         if(universalProcessApiCode.contains(transferInfo.getApiCode())){
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);

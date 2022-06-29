@@ -111,7 +111,7 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
         Date now = new Date();
         String recordDate = transferFileTask.getStartDate();

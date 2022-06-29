@@ -5,23 +5,22 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
+import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
-import com.br.marketing.service.Impl.SftpInnerServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.Impl.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -34,7 +33,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCustomerMapper customerMapper;
-    
+
     @Resource
     TransferFileTaskMapper transferFileTaskMapper;
 
@@ -64,8 +63,18 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
 
+    @Resource
+    private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
+
+    @Resource
+    private SyncLogMapper loanSyncLogMapper;
+    @Resource
+    private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        log.warn("TransferFileTaskJob传入的自定义参数为:{}", jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -79,7 +88,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        Result result = serviceImpl.actionTransferToFile(datum);
+                        Result result = serviceImpl.actionTransferToFile(datum, jobParameter);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
                             if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
@@ -95,6 +104,20 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 retryMainLog.setCreateTime(new Date());
                                 retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
                                 retryMainLogMapper.insertSelective(retryMainLog);
+                            } else {
+                                //第一次执行，查询为空，不会进行删除，直接返回
+                                //第二次执行，删除b_sync_log的记录
+                                List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
+                                if (!CollectionUtils.isEmpty(syncLogList)) {
+                                    if (syncLogList.size() != 1) {
+                                        log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}", marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
+                                        return;
+                                    }
+                                    SyncLogExample syncLogExample = new SyncLogExample();
+                                    syncLogExample.createCriteria().andApiCodeEqualTo(marketingCustomer.getApiCode())
+                                            .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"));
+                                    loanSyncLogMapper.deleteByExample(syncLogExample);
+                                }
                             }
                         }
                     }
@@ -110,10 +133,16 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileBySamoyeServiveImpl;
         } else if (customer.getShortName().contains("哈罗")) {
             return transferToFileByHaluoServiceImpl;
-        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().contains(customer.getApiCode())) {
+        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;
+        }
+        if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByJiuFuService;
+        }
+        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
+            return xiaoYingRealTimeService;
         } else {
             return null;
         }

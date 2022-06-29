@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +70,15 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
          */
 
         Set<String> set = new HashSet<>();
-        set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+        HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
+        // 拍拍贷处理规则
+        if (ppdCustomerType.get("transform").contains(context.getApiCode())){
+            set.add("PPD_TransferData_ArtificialBatch");
+        }else{
+            //宜信处理规则
+            set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+        }
+
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("apiCode",context.getApiCode());
         jsonObject.put("ids",mqFacts.stream().map(MqFact::getSourceId).collect(Collectors.toSet()));

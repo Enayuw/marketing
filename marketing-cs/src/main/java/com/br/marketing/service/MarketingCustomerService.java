@@ -37,7 +37,7 @@ public interface MarketingCustomerService {
      * @param apiCode
      * @return
      */
-    PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode);
+    PageResultReturn getCustomerList(int page, int pageSize, String cid, String apiCode,String accountType,String accountStatus);
 
     /**
      * 新增/变更用户信息

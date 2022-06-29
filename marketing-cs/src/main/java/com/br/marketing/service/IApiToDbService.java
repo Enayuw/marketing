@@ -14,6 +14,15 @@ public interface IApiToDbService {
 
     Long getTaskContextId();
 
+    /**
+     *
+     * @param apiCode
+     * @param cusBatch 以前的客户批次号 改为现在规则id
+     * @param groupType 以前的场景 改为现在规则的编号
+     * @param time 规则的时间
+     * @param isOnly
+     * @return
+     */
     Result<String> buildBatchNumber(String apiCode, String cusBatch, String groupType, String time, Integer isOnly);
 
     Result<Boolean> consumerUserToDb(Long synInfoId);

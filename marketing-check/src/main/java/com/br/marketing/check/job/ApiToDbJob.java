@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@Deprecated
 public class ApiToDbJob extends AbstractSimpleElasticJob {
 
     @Autowired

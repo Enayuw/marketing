@@ -3,6 +3,7 @@ package com.br.marketing.dto.shuhe.strategy;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -102,7 +103,8 @@ public class CuShouJie extends IUserType {
     @Override
     public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime) {
         final String clcUsrFrtFqOrdTim = caseShuheUser.getClcUsrFrtFqOrdTim();
-        boolean bool = isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+//        boolean bool = isY(caseShuheUser.getIsTurn()) || isY(caseShuheUser.getIsBlack());
+        boolean bool = isY(caseShuheUser.getIsTurn());
         if (!bool && !StringUtils.isEmpty(clcUsrFrtFqOrdTim)) {
             LocalDate clcUsrFrtFqOrdTimDate = LocalDateTime.parse(clcUsrFrtFqOrdTim, dateTimeFormatter)
                     .toLocalDate();
@@ -111,6 +113,12 @@ public class CuShouJie extends IUserType {
             bool = (clcUsrFrtFqOrdTimDate.isAfter(createDate) || clcUsrFrtFqOrdTimDate.isEqual(createDate));
         }
         return bool;
+    }
+
+    @Override
+    public boolean ifGiveUp(CaseShuheUser caseShuheUser, Date creatTime, CaseUserServiceImpl caseUserService) {
+        return ifGiveUp(caseShuheUser,creatTime)
+                ||isDxRrrEndAndY(caseShuheUser,caseUserService);
     }
 
     @Override

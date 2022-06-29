@@ -1955,6 +1955,76 @@ public class CaseShuheUserExample {
             return (Criteria) this;
         }
 
+        public Criteria andErrorInfoIsNull() {
+            addCriterion("error_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoIsNotNull() {
+            addCriterion("error_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoEqualTo(String value) {
+            addCriterion("error_info =", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotEqualTo(String value) {
+            addCriterion("error_info <>", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoGreaterThan(String value) {
+            addCriterion("error_info >", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("error_info >=", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLessThan(String value) {
+            addCriterion("error_info <", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLessThanOrEqualTo(String value) {
+            addCriterion("error_info <=", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoLike(String value) {
+            addCriterion("error_info like", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotLike(String value) {
+            addCriterion("error_info not like", value, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoIn(List<String> values) {
+            addCriterion("error_info in", values, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotIn(List<String> values) {
+            addCriterion("error_info not in", values, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoBetween(String value1, String value2) {
+            addCriterion("error_info between", value1, value2, "errorInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorInfoNotBetween(String value1, String value2) {
+            addCriterion("error_info not between", value1, value2, "errorInfo");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("status is null");
             return (Criteria) this;
@@ -2072,6 +2142,76 @@ public class CaseShuheUserExample {
 
         public Criteria andSaveStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("save_status not between", value1, value2, "saveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndIsNull() {
+            addCriterion("clc_usr_max_dx_rrt_end is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndIsNotNull() {
+            addCriterion("clc_usr_max_dx_rrt_end is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end =", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <>", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndGreaterThan(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end >", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndGreaterThanOrEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end >=", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLessThan(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLessThanOrEqualTo(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end <=", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndLike(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end like", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotLike(String value) {
+            addCriterion("clc_usr_max_dx_rrt_end not like", value, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndIn(List<String> values) {
+            addCriterion("clc_usr_max_dx_rrt_end in", values, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotIn(List<String> values) {
+            addCriterion("clc_usr_max_dx_rrt_end not in", values, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndBetween(String value1, String value2) {
+            addCriterion("clc_usr_max_dx_rrt_end between", value1, value2, "clcUsrMaxDxRrtEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andClcUsrMaxDxRrtEndNotBetween(String value1, String value2) {
+            addCriterion("clc_usr_max_dx_rrt_end not between", value1, value2, "clcUsrMaxDxRrtEnd");
             return (Criteria) this;
         }
     }

@@ -19,7 +19,7 @@ public class ScoreRuleConfig {
     private String ruleNameShort;
 
     /**
-     * 跑分时间 格式HH:mm 
+     * 跑分时间 格式HH:mm
      */
     private String startTime;
 
@@ -84,7 +84,7 @@ public class ScoreRuleConfig {
     private Integer pushType;
 
     /**
-     * 跑分类型  0 正常跑分 1 不跑分
+     * 跑分类型  0 有策略跑分 1 无策略不跑分 2 数据产品跑分
      */
     private Integer taskType;
 
