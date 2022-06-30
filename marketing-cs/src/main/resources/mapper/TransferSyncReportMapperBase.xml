@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TransferSyncReportMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.TransferSyncReport">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="cid" property="cid" jdbcType="VARCHAR"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
+        <result column="applet_date" property="appletDate" jdbcType="VARCHAR"/>
+        <result column="user_type" property="userType" jdbcType="VARCHAR"/>
+        <result column="data_count" property="dataCount" jdbcType="INTEGER"/>
+        <result column="applet_begin_time" property="appletBeginTime" jdbcType="TIMESTAMP"/>
+        <result column="applet_end_time" property="appletEndTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, cid, api_code, short_name, applet_date, user_type, data_count, applet_begin_time,
+    applet_end_time, create_time, update_time, remark
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.TransferSyncReportExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_transfer_sync_report
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_marketing_transfer_sync_report
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_marketing_transfer_sync_report
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.TransferSyncReportExample">
+        delete from b_marketing_transfer_sync_report
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.TransferSyncReport">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_transfer_sync_report (cid, api_code, short_name,
+        applet_date, user_type, data_count,
+        applet_begin_time, applet_end_time, create_time,
+        update_time, remark)
+        values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
+        #{appletDate,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{dataCount,jdbcType=INTEGER},
+        #{appletBeginTime,jdbcType=TIMESTAMP}, #{appletEndTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.TransferSyncReport">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_transfer_sync_report
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cid != null">
+                cid,
+            </if>
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="shortName != null">
+                short_name,
+            </if>
+            <if test="appletDate != null">
+                applet_date,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="dataCount != null">
+                data_count,
+            </if>
+            <if test="appletBeginTime != null">
+                applet_begin_time,
+            </if>
+            <if test="appletEndTime != null">
+                applet_end_time,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cid != null">
+                #{cid,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="shortName != null">
+                #{shortName,jdbcType=VARCHAR},
+            </if>
+            <if test="appletDate != null">
+                #{appletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="dataCount != null">
+                #{dataCount,jdbcType=INTEGER},
+            </if>
+            <if test="appletBeginTime != null">
+                #{appletBeginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="appletEndTime != null">
+                #{appletEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.TransferSyncReportExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_marketing_transfer_sync_report
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_marketing_transfer_sync_report
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.cid != null">
+                cid = #{record.cid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.shortName != null">
+                short_name = #{record.shortName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.appletDate != null">
+                applet_date = #{record.appletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="record.userType != null">
+                user_type = #{record.userType,jdbcType=VARCHAR},
+            </if>
+            <if test="record.dataCount != null">
+                data_count = #{record.dataCount,jdbcType=INTEGER},
+            </if>
+            <if test="record.appletBeginTime != null">
+                applet_begin_time = #{record.appletBeginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.appletEndTime != null">
+                applet_end_time = #{record.appletEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.remark != null">
+                remark = #{record.remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_marketing_transfer_sync_report
+        set id = #{record.id,jdbcType=BIGINT},
+        cid = #{record.cid,jdbcType=VARCHAR},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        short_name = #{record.shortName,jdbcType=VARCHAR},
+        applet_date = #{record.appletDate,jdbcType=VARCHAR},
+        user_type = #{record.userType,jdbcType=VARCHAR},
+        data_count = #{record.dataCount,jdbcType=INTEGER},
+        applet_begin_time = #{record.appletBeginTime,jdbcType=TIMESTAMP},
+        applet_end_time = #{record.appletEndTime,jdbcType=TIMESTAMP},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        remark = #{record.remark,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TransferSyncReport">
+        update b_marketing_transfer_sync_report
+        <set>
+            <if test="cid != null">
+                cid = #{cid,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="shortName != null">
+                short_name = #{shortName,jdbcType=VARCHAR},
+            </if>
+            <if test="appletDate != null">
+                applet_date = #{appletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="userType != null">
+                user_type = #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="dataCount != null">
+                data_count = #{dataCount,jdbcType=INTEGER},
+            </if>
+            <if test="appletBeginTime != null">
+                applet_begin_time = #{appletBeginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="appletEndTime != null">
+                applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TransferSyncReport">
+        update b_marketing_transfer_sync_report
+        set cid               = #{cid,jdbcType=VARCHAR},
+            api_code          = #{apiCode,jdbcType=VARCHAR},
+            short_name        = #{shortName,jdbcType=VARCHAR},
+            applet_date       = #{appletDate,jdbcType=VARCHAR},
+            user_type         = #{userType,jdbcType=VARCHAR},
+            data_count        = #{dataCount,jdbcType=INTEGER},
+            applet_begin_time = #{appletBeginTime,jdbcType=TIMESTAMP},
+            applet_end_time   = #{appletEndTime,jdbcType=TIMESTAMP},
+            create_time       = #{createTime,jdbcType=TIMESTAMP},
+            update_time       = #{updateTime,jdbcType=TIMESTAMP},
+            remark            = #{remark,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>
