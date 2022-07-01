@@ -52,14 +52,14 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
+        String other = "";
         // 获取全部转化表名
         List<String> tables = getTransferTableList();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
                 if (AuthShowProductor.NORMAL.getCode().byteValue() == customer.getStatus()) {
                     String apiCode = customer.getApiCode();
-                    String tCid = Optional.ofNullable(customer.getCid()).orElse("")
-                            .replace("-", "");
+                    String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
                     boolean isSmy;
                     if (tables.contains("b_marketing_transfer_sync_" + tCid)) {
                         isSmy = false;
@@ -177,7 +177,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     public Map<String, String> getTransferSyncReportListTotal(String cidOrName, String appletTimeStart
             , String appletTimeEnd, String apiCodes, String userTypes) {
         Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
-        Map<String, String> map = new HashMap<>(3);
+        Map<String, String> map = new HashMap<>(2);
         long total = transferSyncReportMapper.getReportListTotal(params);
         map.put("numTotal", DecimalFormat.getNumberInstance().format(total));
         return map;
