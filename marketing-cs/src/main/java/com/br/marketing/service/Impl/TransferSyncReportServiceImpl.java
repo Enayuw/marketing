@@ -52,11 +52,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
-        log.info("1#apiCode的场景：{}", userTypeMapByApiCode.toString());
+        log.warn("1#apiCode的场景：{}", userTypeMapByApiCode.toString());
         String other = "";
         // 获取全部转化表名
         List<String> tables = getTransferTableList();
         for (String dateStr : dateStrSet) {
+            log.warn("2#dateStr：{}", dateStr);
             for (MarketingCustomer customer : customers) {
                 if (AuthShowProductor.NORMAL.getCode().byteValue() == customer.getStatus()) {
                     String apiCode = customer.getApiCode();
@@ -71,6 +72,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                     }
                     // 获取场景
                     Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
+                    log.warn("3#userTypeSet：{}", userTypeSet.toArray());
                     for (String userType : userTypeSet) {
                         try {
                             TransferSyncReport report;
