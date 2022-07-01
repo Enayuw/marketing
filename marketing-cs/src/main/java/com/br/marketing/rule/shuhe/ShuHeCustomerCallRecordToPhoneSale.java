@@ -65,8 +65,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     @Override
     public RealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
-                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         log.warn("符合推电销规则，callrecord数据id为{}", dto.getId());
         Date day = dto.getCreateTime();
         SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
@@ -78,7 +76,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
             return null;
         }
-
+        //根据手机号cell获取最新一条上传数据
+        MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCell(marketingSyncUser.getApiCode(),marketingSyncUser.getCell());
         Date dtoCreateTime = dto.getCreateTime();
         Calendar c = Calendar.getInstance();
         c.setTime(dtoCreateTime);
@@ -87,8 +86,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
         Integer tcid = (Math.abs(dto.getCid()));
         MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnumInHour(tcid.toString(), dto.getCaseNum(),timeAddHour);
-        //根据手机号cell获取最新一条上传数据
-        MarketingSyncUser marketingUserByCell =  shuHeContext.getMarketingSyncUserByCell();
         RealTimeUserDataDTO realTimeUserDataDTO = new RealTimeUserDataDTO();
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
@@ -122,8 +119,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             dassSingleImportDataDTO.setSource("18");
             dassSingleImportDataDTO.setUserType("1");
             dassSingleImportDataDTO.setType("4");
-            if (!Objects.isNull(marketingUserByCell)) {
-                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+            if (!Objects.isNull(marketingSyncUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingSyncUserByCell.getReserveField1());
                 String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
                 if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
                     extendMap.put("if_coupon", IfCoupon);
@@ -157,8 +154,8 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                     }
                 }
             }
-            if (!Objects.isNull(marketingUserByCell)) {
-                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+            if (!Objects.isNull(marketingSyncUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingSyncUserByCell.getReserveField1());
                 String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
                 if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
                     extendMap.put("if_coupon", IfCoupon);
