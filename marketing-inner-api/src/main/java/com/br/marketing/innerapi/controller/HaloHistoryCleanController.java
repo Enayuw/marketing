@@ -1,0 +1,61 @@
+package com.br.marketing.innerapi.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.client.RedisAuthService;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.service.HaloHistoryCleanService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.*;
+
+
+/**
+ * 哈啰历史数据洗数
+ * --------------------------------
+ *
+ * @BelongsProject: IntelliJ IDEA
+ * @BelongsPackage: com.br.marketing.innerapi.controller
+ * @Description: 哈啰历史数据洗数
+ * @CreateTime: 2022-06-30 16 :25
+ * @Version: 1.0
+ * @Author: guangchao.zhang
+ * ------------------------------
+ */
+@RestController
+@Configuration
+@RequestMapping("/rule/cleanHistory")
+@Api(value = "哈啰历史数据洗数", tags = "哈啰历史数据洗数", produces = "application/json", consumes = "application/json", protocols = "http")
+public class HaloHistoryCleanController {
+
+
+    @Autowired
+    private RedisAuthService redisAuthService;
+
+    @Autowired
+    private HaloHistoryCleanService haloHistoryCleanService;
+
+
+    @GetMapping("getHaloButton")
+    @ApiOperation(value = "判断哈啰按钮是否显示", notes = "判断哈啰按钮是否显示")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> getHaloButton(String cid) {
+
+        return new ApiResult<Boolean>().success(redisAuthService.exists("cid-halo-button" + cid));
+    }
+
+    @PostMapping("haluoCleanHistory")
+    @ApiOperation(value = "判断哈啰按钮是否显示", notes = "判断哈啰按钮是否显示")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> cleanHistory(@RequestBody String jsonData ) {
+        return  haloHistoryCleanService.cleanHistory(jsonData);
+    }
+
+
+}

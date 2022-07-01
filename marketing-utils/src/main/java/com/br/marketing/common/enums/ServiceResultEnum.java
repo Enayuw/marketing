@@ -40,6 +40,8 @@ public enum ServiceResultEnum {
     FAILED("5001", "服务器正忙，请稍后再试"),
     //访问失败自定义通用状态
     FAILED_5("5005", "服务走丢了"),
+
+    HALOBUTTONDISABLE("300001", "哈啰按钮禁止使用！")
     ;
 
     /**

@@ -167,4 +167,22 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @return
      */
     String getTaskIdByCustNumNotLikeUpload(@Param("apiCode")String apiCode, @Param("custNum")String custNum);
+
+
+    MarketingSyncUser getMarketingSyncMaxIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+    MarketingSyncUser getMarketingSyncMinIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+    List<MarketingSyncUser> getByMaxIdAndMinId(@Param("apiCode")String apiCode,@Param("beginId")Long beginId,@Param("endIdLe")Long endIdLe);
+
+
+    MarketingSyncUser getCellFromCurrent(@Param("apiCode")String apiCode,@Param("custNum")String custNum);
+
+
+    int updateBySyncHaLuo(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
+                          @Param("apiCode") String apiCode,
+                          @Param("id") Long id);
+
+    int updateBySyncHaLuoRemark(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
+                          @Param("apiCode") String apiCode,
+                          @Param("id") Long id);
+
 }

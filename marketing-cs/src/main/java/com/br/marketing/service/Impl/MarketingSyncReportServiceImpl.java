@@ -1,8 +1,11 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -284,5 +288,20 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("date:{} is error", date, e);
         }
         return time;
+    }
+
+    @Override
+    public void deleteReportByAppletDate(String mes) {
+        JSONObject jsonObject = JSON.parseObject(mes);
+        JSONArray dataArray = jsonObject.getJSONArray("dataArray");
+        if (dataArray != null) {
+            for (int i = 0; i < dataArray.size(); i++) {
+                JSONObject dataJson = dataArray.getJSONObject(i);
+                String apiCode = dataJson.getString("apiCode");
+                String appletDate = dataJson.getString("appletDate");
+                syncReportMapper.deleteByAppletDate(apiCode, appletDate);
+            }
+        }
+
     }
 }

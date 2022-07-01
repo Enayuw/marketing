@@ -48,4 +48,7 @@ public interface MarketingSyncReportService {
      */
     Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
+
+    void deleteReportByAppletDate(String json);
+
 }
