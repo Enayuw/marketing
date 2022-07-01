@@ -66,12 +66,6 @@ public class TransferSyncReportVO {
     private Date appletEndTime;
 
     /**
-     * 备注
-     */
-    @ApiModelProperty(value = "备注")
-    private String remark;
-
-    /**
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")
