@@ -1,11 +1,14 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.TransferSyncReportService;
+import com.br.marketing.vo.TransferSyncReportVO;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,6 +17,9 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.Null;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -125,6 +131,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
      *
      * @param apiCode apicode
      */
+    @SuppressWarnings("all")
     private Map<String, Set<String>> getUserTypeMapByApiCode(@Null String apiCode) {
         VariableDicExample dic = new VariableDicExample();
         VariableDicExample.Criteria criteria = dic.createCriteria().andIsDelEqualTo(1);
@@ -155,5 +162,51 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Override
     public List<TransferSyncReport> findTransferSyncReportList(TransferSyncReportExample example) {
         return transferSyncReportMapper.selectByExample(example);
+    }
+
+    @Override
+    public PageResultReturn getTransferSyncReportList(int current, int size, String cidOrName, String appletTimeStart
+            , String appletTimeEnd, String apiCodes, String userTypes) {
+        Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
+        PageHelper.startPage(current, size);
+        List<TransferSyncReportVO> list = transferSyncReportMapper.selectList(params);
+        return PageResultReturn.setPageResult(list, current, size);
+    }
+
+    @Override
+    public Map<String, String> getTransferSyncReportListTotal(String cidOrName, String appletTimeStart
+            , String appletTimeEnd, String apiCodes, String userTypes) {
+        Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
+        Map<String, String> map = new HashMap<>(3);
+        long total = transferSyncReportMapper.getReportListTotal(params);
+        map.put("numTotal", DecimalFormat.getNumberInstance().format(total));
+        return map;
+    }
+
+    /**
+     * 2022/6/30 22:07
+     * 组装参数
+     */
+    private Map<String, Object> queryParams(String cidOrName, String appletTimeStart
+            , String appletTimeEnd, String apiCodes, String userTypes) {
+        if (StringUtils.isNotEmpty(appletTimeEnd)) {
+            appletTimeEnd = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")) {
+            cidOrName = cidOrName.replace("_", "\\_");
+        }
+        Map<String, Object> params = new HashMap<>(8);
+        params.put("cidOrName", cidOrName);
+        params.put("appletTimeEnd", appletTimeEnd);
+        params.put("appletTimeStart", appletTimeStart);
+        if (StringUtils.isNotBlank(apiCodes)) {
+            String[] split = apiCodes.split(",");
+            params.put("apiCodeList", Arrays.asList(split));
+        }
+        if (StringUtils.isNotBlank(userTypes)) {
+            String[] split = userTypes.split(",");
+            params.put("userTypeList", Arrays.asList(split));
+        }
+        return params;
     }
 }
