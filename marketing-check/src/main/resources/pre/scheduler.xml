@@ -377,7 +377,7 @@
                 disabled="true"
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />2
+    />
 
     <job:simple id="TaskTransferSyncReportJob"
                 class="com.br.marketing.check.job.report.TaskTransferSyncReportJob"
