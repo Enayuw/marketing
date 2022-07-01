@@ -17,7 +17,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.Null;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +52,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
+        log.info("1#apiCode的场景：{}", userTypeMapByApiCode.toString());
         String other = "";
         // 获取全部转化表名
         List<String> tables = getTransferTableList();
@@ -137,7 +137,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
      * @param apiCode apicode
      */
     @SuppressWarnings("all")
-    private Map<String, Set<String>> getUserTypeMapByApiCode(@Null String apiCode) {
+    private Map<String, Set<String>> getUserTypeMapByApiCode(String apiCode) {
         VariableDicExample dic = new VariableDicExample();
         VariableDicExample.Criteria criteria = dic.createCriteria().andIsDelEqualTo(1);
         if (StringUtils.isNotBlank(apiCode)) {
@@ -154,7 +154,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
      * @dateTime 2022/6/30 20:33
      */
     private List<String> getTransferTableList() {
-        String queryTransferTableSql = "SHOW TABLES like 'b_marketing_transfer_%'";
+        String queryTransferTableSql = "SHOW TABLES LIKE 'b\\_marketing\\_transfer\\_%'";
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(queryTransferTableSql);
         return maps.parallelStream().map(m -> m.values().iterator().next().toString()).collect(Collectors.toList());
     }

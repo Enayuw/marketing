@@ -57,7 +57,7 @@ public class TaskTransferSyncReportJob extends AbstractSimpleElasticJob {
         }
         transferSyncReportService.reportProcess(dateStrSet, shardingTotalCount, shardingItems);
         Long end = System.currentTimeMillis();
-        log.warn("【上传数据统计报表任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
+        log.warn("【转化数据统计调度任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
     }
 
     /**
