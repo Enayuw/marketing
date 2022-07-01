@@ -49,6 +49,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
         // 分片获取所有客户
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andStatusEqualTo(AuthShowProductor.NORMAL.getCode().byteValue());
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
@@ -59,71 +60,70 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         for (String dateStr : dateStrSet) {
             log.warn("2#dateStr：{}", dateStr);
             for (MarketingCustomer customer : customers) {
-                if (AuthShowProductor.NORMAL.getCode().byteValue() == customer.getStatus()) {
-                    String apiCode = customer.getApiCode();
-                    String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
-                    boolean isSmy;
-                    if (tables.contains("b_marketing_transfer_sync_" + tCid)) {
-                        isSmy = false;
-                    } else if (tables.contains("b_marketing_transfer_" + apiCode)) {
-                        isSmy = true;
-                    } else {
-                        continue;
-                    }
-                    // 获取场景
-                    Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
-                    log.warn("3#userTypeSet：{}", userTypeSet.toArray());
-                    for (String userType : userTypeSet) {
-                        try {
-                            TransferSyncReport report;
-                            if (isSmy) {
-                                report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
-                            } else {
-                                report = transferSyncReportMapper.dateTimeMinMaxCount(tCid, apiCode, dateStr, userType);
-                            }
-                            Date appletBeginTime = report.getAppletBeginTime();
-                            Date appletEndTime = report.getAppletEndTime();
-                            Integer dataCount = report.getDataCount();
-                            if (appletBeginTime == null || appletEndTime == null || dataCount == null || dataCount < 1) {
-                                continue;
-                            }
-                            // 检索历史记录
-                            TransferSyncReportExample example = new TransferSyncReportExample();
-                            example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                                    .andAppletDateEqualTo(dateStr);
-                            List<TransferSyncReport> list = findTransferSyncReportList(example);
-                            if (CollectionUtils.isEmpty(list)) {
-                                // 添加新记录
-                                report.setUserType(userType);
-                                report.setAppletDate(dateStr);
-                                report.setCid(customer.getCid());
-                                report.setApiCode(apiCode);
-                                report.setShortName(customer.getShortName());
-                                report.setCreateTime(new Date());
-                                report.setUpdateTime(new Date());
-                                transferSyncReportMapper.insertSelective(report);
-                            } else {
-                                // 更新历史记录
-                                TransferSyncReport transferSyncReport = list.get(0);
-                                if (appletBeginTime.equals(transferSyncReport.getAppletBeginTime())) {
-                                    report.setAppletBeginTime(null);
-                                }
-                                if (appletEndTime.equals(transferSyncReport.getAppletEndTime())) {
-                                    report.setAppletEndTime(null);
-                                }
-                                if (dataCount.equals(transferSyncReport.getDataCount())) {
-                                    report.setDataCount(null);
-                                }
-                                if (report.getAppletBeginTime() != null || report.getAppletEndTime() != null
-                                        || report.getDataCount() != null) {
-                                    report.setId(transferSyncReport.getId());
-                                    report.setUpdateTime(new Date());
-                                    transferSyncReportMapper.updateByPrimaryKeySelective(report);
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.error(e.getMessage(), e);
+                String apiCode = customer.getApiCode();
+                String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
+                log.warn("3#apiCode：{};tCid:{}", apiCode, tCid);
+                boolean isSmy;
+                if (tables.contains("b_marketing_transfer_sync_" + tCid)) {
+                    isSmy = false;
+                } else if (tables.contains("b_marketing_transfer_" + apiCode)) {
+                    isSmy = true;
+                } else {
+                    continue;
+                }
+                // 获取场景
+                Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
+                log.warn("4#userTypeSet：{}", userTypeSet.toArray());
+                for (String userType : userTypeSet) {
+                    try {
+                        TransferSyncReport report;
+                        if (isSmy) {
+                            report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
+                        } else {
+                            report = transferSyncReportMapper.dateTimeMinMaxCount(tCid, apiCode, dateStr, userType);
                         }
+                        Date appletBeginTime = report.getAppletBeginTime();
+                        Date appletEndTime = report.getAppletEndTime();
+                        Integer dataCount = report.getDataCount();
+                        if (appletBeginTime == null || appletEndTime == null || dataCount == null || dataCount < 1) {
+                            continue;
+                        }
+                        // 检索历史记录
+                        TransferSyncReportExample example = new TransferSyncReportExample();
+                        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                                .andAppletDateEqualTo(dateStr);
+                        List<TransferSyncReport> list = findTransferSyncReportList(example);
+                        if (CollectionUtils.isEmpty(list)) {
+                            // 添加新记录
+                            report.setUserType(userType);
+                            report.setAppletDate(dateStr);
+                            report.setCid(customer.getCid());
+                            report.setApiCode(apiCode);
+                            report.setShortName(customer.getShortName());
+                            report.setCreateTime(new Date());
+                            report.setUpdateTime(new Date());
+                            transferSyncReportMapper.insertSelective(report);
+                        } else {
+                            // 更新历史记录
+                            TransferSyncReport transferSyncReport = list.get(0);
+                            if (appletBeginTime.equals(transferSyncReport.getAppletBeginTime())) {
+                                report.setAppletBeginTime(null);
+                            }
+                            if (appletEndTime.equals(transferSyncReport.getAppletEndTime())) {
+                                report.setAppletEndTime(null);
+                            }
+                            if (dataCount.equals(transferSyncReport.getDataCount())) {
+                                report.setDataCount(null);
+                            }
+                            if (report.getAppletBeginTime() != null || report.getAppletEndTime() != null
+                                    || report.getDataCount() != null) {
+                                report.setId(transferSyncReport.getId());
+                                report.setUpdateTime(new Date());
+                                transferSyncReportMapper.updateByPrimaryKeySelective(report);
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
                     }
                 }
             }
