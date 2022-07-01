@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.Null;
@@ -182,8 +183,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             , String appletTimeEnd, String apiCodes, String userTypes) {
         Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
         Map<String, String> map = new HashMap<>(2);
-        long total = transferSyncReportMapper.getReportListTotal(params);
-        map.put("numTotal", DecimalFormat.getNumberInstance().format(total));
+        Long total = transferSyncReportMapper.getReportListTotal(params);
+        map.put("numTotal", ObjectUtils.isEmpty(total) ? "0" : DecimalFormat.getNumberInstance().format(total));
         return map;
     }
 

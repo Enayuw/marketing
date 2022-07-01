@@ -55,5 +55,5 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @param params params
      * @return long
      */
-    long getReportListTotal(Map<String, Object> params);
+    Long getReportListTotal(Map<String, Object> params);
 }
