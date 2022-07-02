@@ -68,7 +68,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 JSONObject dataJson = dataArray.getJSONObject(i);
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
-                MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(appletDate, apiCode);
+                MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(apiCode,appletDate);
                 marketingSyncUserList.add(marketingSyncUserMaxId);
             }
             if (marketingSyncUserList.size() == 0 && marketingSyncUserList.isEmpty()) {
