@@ -54,12 +54,13 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
 
     @Override
     public ApiResult<Boolean> cleanHistory(String jsonData) {
+        log.warn("清洗数据接口入参：{}",jsonData);
         //String apiCode = '';
         JSONObject jsonObject = JSON.parseObject(jsonData);
         String cid = jsonObject.getString("cid");
         boolean exists = redisAuthService.exists("cid-halo-button" + cid);
         if (exists) {
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.HALOBUTTONDISABLE);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
         }
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
         List<MarketingSyncUser> marketingSyncUserList = new ArrayList<>();
@@ -69,10 +70,12 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
                 MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(apiCode,appletDate);
-                marketingSyncUserList.add(marketingSyncUserMaxId);
+                if(marketingSyncUserMaxId!=null){
+                    marketingSyncUserList.add(marketingSyncUserMaxId);
+                }
             }
             if (marketingSyncUserList.size() == 0 && marketingSyncUserList.isEmpty()) {
-                return new ApiResult<Boolean>().fail("没有可以清洗的数据");
+                return new ApiResult<Boolean>().fail(ServiceResultEnum.HALO_NO_DATA);
             }
         }else {
             return new ApiResult<Boolean>().fail("入参数据异常");

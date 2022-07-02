@@ -41,7 +41,8 @@ public enum ServiceResultEnum {
     //访问失败自定义通用状态
     FAILED_5("5005", "服务走丢了"),
 
-    HALOBUTTONDISABLE("300001", "哈啰按钮禁止使用！")
+    HALOBUTTONDISABLE("300001", "哈啰按钮禁止使用！"),
+    HALO_NO_DATA("300002", "没有可以清洗的数据！")
     ;
 
     /**
