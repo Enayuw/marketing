@@ -80,7 +80,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         //redisAuthService.set("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
         redisAuthService.set("cid-halo-button" + cid, cid, 120);
         producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
-        return new ApiResult<Boolean>().success();
+        return new ApiResult<Boolean>().success().setData(true);
     }
 
     @Override
