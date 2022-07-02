@@ -106,13 +106,13 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     private void handlerCleanHistory(String appletDate, String apiCode, ThreadPoolExecutor threadPool) {
 
         // 查询上传时间内有问题的最大的id  即 循环结束的id
-        MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(appletDate, apiCode);
+        MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(apiCode,appletDate);
         if (marketingSyncUserMaxId != null) {
             // 最大值为结束id
             Long endId = marketingSyncUserMaxId.getId();
 
             // 查询上传时间内有问题的最小的id  即 循环开始的id
-            MarketingSyncUser marketingSyncUserMinId = marketingSyncInfoMapper.getMarketingSyncMinIdByAppletDate(appletDate, apiCode);
+            MarketingSyncUser marketingSyncUserMinId = marketingSyncInfoMapper.getMarketingSyncMinIdByAppletDate(apiCode,appletDate);
 
             // 记录开始id
             Long beginId = 0L;
