@@ -46,5 +46,5 @@ public interface MarketingSyncReportMapper {
 
     int updateByPrimaryKey(MarketingSyncReport record);
 
-    int deleteByAppletDate(@Param("appletDae") String appletDate,@Param("apiCode") String apiCode);
+    int deleteByAppletDate(@Param("apiCode") String apiCode,@Param("appletDae") String appletDate);
 }
