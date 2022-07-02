@@ -15,14 +15,14 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.HaloExecuteService;
 import com.br.marketing.service.HaloHistoryCleanService;
-import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * halo洗数实现
@@ -61,8 +61,24 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         if (exists) {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.HALOBUTTONDISABLE);
         }
+        JSONArray dataArray = jsonObject.getJSONArray("dataArray");
+        List<MarketingSyncUser> marketingSyncUserList = new ArrayList<>();
+        if (dataArray != null) {
+            for (int i = 0; i < dataArray.size(); i++) {
+                JSONObject dataJson = dataArray.getJSONObject(i);
+                String apiCode = dataJson.getString("apiCode");
+                String appletDate = dataJson.getString("appletDate");
+                MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(appletDate, apiCode);
+                marketingSyncUserList.add(marketingSyncUserMaxId);
+            }
+            if (marketingSyncUserList.size() == 0 && marketingSyncUserList.isEmpty()) {
+                return new ApiResult<Boolean>().fail("没有可以清洗的数据");
+            }
+        }else {
+            return new ApiResult<Boolean>().fail("入参数据异常");
+        }
         //redisAuthService.set("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
-        redisAuthService.set("cid-halo-button"+cid,cid, 120);
+        redisAuthService.set("cid-halo-button" + cid, cid, 120);
         producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
         return new ApiResult<Boolean>().success();
     }
@@ -104,13 +120,16 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 beginId = marketingSyncUserMinId.getId();
             }
 
-            log.warn("历史数据范围 beginId:{} endId:{}", beginId, endId);
+            log.warn("halo历史数据范围 beginId:{} endId:{}", beginId, endId);
 
             // 循环开关
             boolean pageFlag = true;
 
             // 记录结束id
             Long endIdLe;
+
+
+            AtomicInteger errorMark = new AtomicInteger(0);
             while (pageFlag) {
                 endIdLe = beginId + 5000;
 
@@ -138,7 +157,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                         threadPool.submit(() -> {
                             Result apply = haloExecuteService.execute(user);
                             if (!ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                                //errorMark.getAndIncrement();
+                                errorMark.getAndIncrement();
                             }
                         });
                     }
@@ -146,6 +165,9 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                     beginId = beginId + 5000;
                 }
             }
+
+            // 打印日志
+            log.error("halo清洗，错误条数：{},{}",errorMark,apiCode);
         }
     }
 

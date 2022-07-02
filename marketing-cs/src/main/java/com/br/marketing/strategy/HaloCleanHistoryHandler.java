@@ -51,10 +51,10 @@ public class HaloCleanHistoryHandler {
         haloHistoryCleanService.handlerCleanHistory(mes);
 
         // 删除统计数据
-        //marketingSyncReportService.deleteReportByAppletDate(mes);
+        marketingSyncReportService.deleteReportByAppletDate(mes);
 
         // 重新生成统计数据
-        //this.syncReportProcess(mes);
+        this.syncReportProcess(mes);
 
         return result;
 

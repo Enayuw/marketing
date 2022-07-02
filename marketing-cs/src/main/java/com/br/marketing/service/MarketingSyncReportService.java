@@ -49,6 +49,10 @@ public interface MarketingSyncReportService {
     Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
 
+    /**
+     * 根据上传日期和apicode进行删除统计
+     * @param json
+     */
     void deleteReportByAppletDate(String json);
 
 }

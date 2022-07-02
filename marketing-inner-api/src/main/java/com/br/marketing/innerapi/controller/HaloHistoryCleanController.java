@@ -1,13 +1,9 @@
 package com.br.marketing.innerapi.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.service.HaloHistoryCleanService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
