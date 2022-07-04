@@ -3,6 +3,8 @@ package com.br.marketing.innerapi.controller;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.RedisAuthService;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.RedisService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.service.HaloHistoryCleanService;
 import io.swagger.annotations.Api;
@@ -32,8 +34,7 @@ public class HaloHistoryCleanController {
 
 
     @Autowired
-    private RedisAuthService redisAuthService;
-
+    RedisChgService redisChgService;
     @Autowired
     private HaloHistoryCleanService haloHistoryCleanService;
 
@@ -43,7 +44,7 @@ public class HaloHistoryCleanController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> getHaloButton(String cid) {
 
-        return new ApiResult<Boolean>().success(redisAuthService.exists("cid-halo-button" + cid));
+        return new ApiResult<Boolean>().success(redisChgService.exists("cid-halo-button" + cid));
     }
 
     @PostMapping("haluoCleanHistory")

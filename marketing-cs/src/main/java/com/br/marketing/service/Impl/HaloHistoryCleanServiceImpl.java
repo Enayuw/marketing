@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisAuthService;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.RedisService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -44,7 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
 
     @Autowired
-    private RedisAuthService redisAuthService;
+    RedisChgService redisChgService;
+
 
     @Autowired
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
@@ -60,7 +63,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         //String apiCode = '';
         JSONObject jsonObject = JSON.parseObject(jsonData);
         String cid = jsonObject.getString("cid");
-        boolean exists = redisAuthService.exists("cid-halo-button" + cid);
+        boolean exists = redisChgService.exists("cid-halo-button" + cid);
         if (exists) {
             return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
         }
@@ -82,7 +85,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         }else {
             return new ApiResult<Boolean>().fail("入参数据异常");
         }
-        redisAuthService.set("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
+        redisChgService.setex("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
         //redisAuthService.set("cid-halo-button" + cid, cid, 120);
         producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
         return new ApiResult<Boolean>().success().setData(true);
