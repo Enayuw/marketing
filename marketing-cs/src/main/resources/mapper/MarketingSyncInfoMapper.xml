@@ -246,7 +246,7 @@
     <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from
         b_marketing_sync_${apiCode}
-        where cust_num=#{caseNum} order by applet_date desc limit 1;
+        where cust_num=#{caseNum} order by applet_time desc limit 1;
     </select>
 
     <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
@@ -304,6 +304,12 @@
         where cust_num = #{custNum}
             and cus_batch not like concat("%", "_upload")
         order by create_time desc limit 1
+    </select>
+
+    <select id="getNewestPreUserByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cell=#{cell} order by create_time desc limit 1;
     </select>
 
 </mapper>
