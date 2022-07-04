@@ -11,7 +11,6 @@ import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -40,10 +39,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Resource
     private VariableDicMapper variableDicMapper;
-
-    @Resource
-    private JdbcTemplate jdbcTemplate;
-
 
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
@@ -138,17 +133,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         List<VariableDic> dicList = variableDicMapper.selectByExample(dic);
         return dicList.parallelStream().collect(Collectors.groupingBy(VariableDic::getApiCode
                 , Collectors.mapping(VariableDic::getFieldValue, Collectors.toSet())));
-    }
-
-    /**
-     * 获取全部转化表名
-     *
-     * @dateTime 2022/6/30 20:33
-     */
-    private List<String> getTransferTableList() {
-        String queryTransferTableSql = "SHOW TABLES LIKE 'b\\_marketing\\_transfer\\_%'";
-        List<Map<String, Object>> maps = jdbcTemplate.queryForList(queryTransferTableSql);
-        return maps.parallelStream().map(m -> m.values().iterator().next().toString()).collect(Collectors.toList());
     }
 
     @Override
