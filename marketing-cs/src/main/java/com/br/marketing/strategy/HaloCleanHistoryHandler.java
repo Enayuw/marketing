@@ -6,8 +6,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.service.HaloExecuteService;
 import com.br.marketing.service.HaloHistoryCleanService;
 import com.br.marketing.service.MarketingSyncReportService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,11 +28,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class HaloCleanHistoryHandler {
 
-    @Autowired
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-
-    @Autowired
-    private HaloExecuteService haloExecuteService;
 
     @Autowired
     private MarketingSyncReportService marketingSyncReportService;
@@ -55,11 +48,11 @@ public class HaloCleanHistoryHandler {
 
             // 删除统计数据
             log.warn("开始执行删除统计数据任务,消息内容={}", mes);
-            marketingSyncReportService.deleteReportByAppletDate(mes);
+            //marketingSyncReportService.deleteReportByAppletDate(mes);
 
             // 重新生成统计数据
             log.warn("开始执行重新生成统计数据任务,消息内容={}", mes);
-            this.syncReportProcess(mes);
+            //this.syncReportProcess(mes);
         }catch (Exception e){
             log.error("业务处理异常：{}",e);
         }finally {

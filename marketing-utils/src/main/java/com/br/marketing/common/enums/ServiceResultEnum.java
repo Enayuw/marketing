@@ -42,6 +42,7 @@ public enum ServiceResultEnum {
     FAILED_5("5005", "服务走丢了"),
 
     HALOBUTTONDISABLE("300001", "哈啰按钮禁止使用！"),
+    INVALID_CID("300003", "无效的cide"),
     HALO_NO_DATA("300002", "没有可以清洗的数据！")
     ;
 

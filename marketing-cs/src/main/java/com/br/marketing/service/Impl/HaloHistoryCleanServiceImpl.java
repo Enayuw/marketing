@@ -13,8 +13,9 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.HaloExecuteService;
 import com.br.marketing.service.HaloHistoryCleanService;
+import com.br.marketing.strategy.HaloCleanHistoryHandler;
+import com.br.marketing.thread.HaloCleanHistoryThread;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,15 +50,17 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     @Autowired
     private RabbitMqProducter producter;
 
-    @Autowired
-    private HaloExecuteService haloExecuteService;
 
     @Override
     public ApiResult<Boolean> cleanHistory(String jsonData) {
+
         log.warn("清洗数据接口入参：{}",jsonData);
         //String apiCode = '';
         JSONObject jsonObject = JSON.parseObject(jsonData);
         String cid = jsonObject.getString("cid");
+        if("22311".endsWith(cid)){
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
+        }
         boolean exists = redisAuthService.exists("cid-halo-button" + cid);
         if (exists) {
             return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
@@ -157,12 +160,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                         } else if (id > beginId) {
                             beginId = id;
                         }
-                        threadPool.submit(() -> {
-                            Result apply = haloExecuteService.execute(user);
-                            if (!ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                                errorMark.getAndIncrement();
-                            }
-                        });
+                        threadPool.submit(new HaloCleanHistoryThread(user,marketingSyncInfoMapper));
                     }
                 } else {
                     beginId = beginId + 5000;
