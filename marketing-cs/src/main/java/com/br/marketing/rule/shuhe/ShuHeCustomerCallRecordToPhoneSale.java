@@ -18,6 +18,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
 
     @Autowired
     private PushDataService pushDataService;
+
+    @Autowired
+    CaseUserServiceImpl caseUserService;
 
     @Resource
     private ShuHeArtificialRealTimeUserDataFromDelayImpl shuHeArtificialRealTimeUserDataFromDelay;
@@ -181,7 +185,19 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof CallRecordBO){
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            flag = StringUtils.isNotEmpty(bo.getDataSource()) && bo.getDataSource() == 1 && !isEliminate(bo) && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
+            MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
+            if(marketingSyncUser==null){
+                log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",bo.getApiCode(),bo.getCaseNum());
+                return false;
+            }
+            if(caseUserService.isY(marketingSyncUser.getCell(),true)||caseUserService.isRrtEnd(marketingSyncUser.getCell(),true)){
+                log.warn("前置表不满足rrend时间或者30天的isblack 通话明细的数据id：%d！",bo.getId());
+                return false;
+            }
+            flag = StringUtils.isNotEmpty(bo.getDataSource())
+                    && bo.getDataSource() == 1
+                    && !isEliminate(bo)
+                    && pushDataService.pushShDXSingleMutex(bo.getApiCode(),bo.getCaseNum(),"b",bo.getUserType());
         }
         return flag;
     }
@@ -233,7 +249,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         if (StringUtils.isNotEmpty(newest)&&StringUtils.isNotBlank(newest.getReserveField1())){
             JSONObject json = JSON.parseObject(newest.getReserveField1());
             boolean isTurn = "Y".equals(json.getString("is_turn"));
-            boolean isBlack = "Y".equals(json.getString("is_black"));
+//            boolean isBlack = "Y".equals(json.getString("is_black"));
             boolean isRemoveFlag = false;
             if("促申完".equals(bo.getUserType())){
                 String clcUsrIsoAtoTim = newest.getApplyTime();
@@ -252,24 +268,24 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
                     newest.setCreateTime(createTime);
                     isRemoveFlag = true;
-                    log.warn("#促复借c情况存在转化数据,查询存在b情况且在停止推送时间内:{}", isRemoveFlag);
+                    log.info("#促复借c情况存在转化数据,查询存在b情况且在停止推送时间内:{}", isRemoveFlag);
                 } else {
                     newest.setCreateTime(createTime);
                     MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
                     isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
                             ? null : user.getCell());
-                    log.warn("#促复借c情况存在转化数据,命中黑名单情况：{}", isRemoveFlag);
+                    log.info("#促复借c情况存在转化数据,命中黑名单情况：{}", isRemoveFlag);
                     if (!isRemoveFlag) {
                         isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), newest.getUserType()
                                 , bo.getCreateTime());
-                        log.warn("#促复借c情况存在转化数据,查询到推送过a或b情况：{}", isRemoveFlag);
+                        log.info("#促复借c情况存在转化数据,查询到推送过a或b情况：{}", isRemoveFlag);
                     }
                 }
             }
-            if (isTurn || isBlack || isRemoveFlag) {
-                log.warn("callrecord数据id为{}符合前置剔除规则", bo.getId());
+            if (isTurn || isRemoveFlag) {
+                log.info("callrecord数据id为{}符合前置剔除规则", bo.getId());
             }
-            return isTurn || isBlack || isRemoveFlag;
+            return isTurn || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
             newest = new MarketingTransferSyncUser();
             newest.setCustNum(bo.getCaseNum());
@@ -277,13 +293,13 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             newest.setUserType(bo.getUserType());
             newest.setId(0L);
             if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
-                log.warn("#促复借c情况存在不存在转化数据,查询存在b情况且在停止推送时间内");
+                log.info("#促复借c情况存在不存在转化数据,查询存在b情况且在停止推送时间内");
                 return true;
             }
             MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
             if (shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
                     ? null : user.getCell())) {
-                log.warn("#促复借c情况存在不存在转化数据,命中黑名单");
+                log.info("#促复借c情况存在不存在转化数据,命中黑名单");
                 return true;
             }
             return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType(), bo.getCreateTime());
@@ -319,7 +335,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(
                 Date.from(dateTime.toInstant()), date);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
-        log.warn("#促复借c情况是否7内天推送过a或b情况:{}", count);
+        log.info("#促复借c情况是否7内天推送过a或b情况:{}", count);
         return count > 0;
     }
 

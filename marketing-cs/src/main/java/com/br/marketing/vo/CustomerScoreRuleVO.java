@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class CustomerScoreRuleVO extends ScoreRuleConfig {
     private String apiCode;
+    private String startDate;
 }

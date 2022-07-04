@@ -89,6 +89,72 @@
         and is_repeat in (1,2)
         and (${whereStr})
     </select>
+
+    <select id="getMinIdByRuleScoreWithDate" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{sDate}
+            <![CDATA[ and applet_time < #{eTimeStr} ]]>
+            and is_repeat in (1,2)
+            and status = 1
+            and (${whereStr})
+    </select>
+
+    <select id="countByRuleScoreWithDate" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+            and is_repeat in (1,2)
+          and status = 1
+    </select>
+
+    <select id="countByRuleScoreWithDatetiflash_" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+            and is_repeat in (1,2)
+          and status = 1
+    </select>
+
+    <select id="minIdRuleScoreWithDate" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+          and is_repeat in (1,2)
+          and status = 1
+    </select>
+
+    <select id="minIdRuleScoreWithDatetiflash_" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+          and is_repeat in (1,2)
+          and status = 1
+    </select>
+
+    <select id="selectDataRuleScoreWithDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+          <if test="id != null and id >0">
+            <![CDATA[  and id>#{id} ]]>
+          </if>
+        and is_repeat in (1,2)
+        and status = 1
+        order by id asc limit ${pageSize};
+    </select>
+
+    <select id="selectDataRuleScoreWithDatetiflash_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where ${whereStr}
+        <if test="id != null and id >0">
+            <![CDATA[ and id>#{id} ]]>
+        </if>
+        and is_repeat in (1,2)
+        and status = 1
+        order by id asc limit ${pageSize};
+    </select>
     
     <select id="getMaxIdByRuleScore" resultType="java.lang.Long">
         select max(id)
@@ -123,6 +189,19 @@
             <foreach collection="custs" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+        </where>
+    </select>
+
+    <select id="getPreUserByInCustWithNoFail" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        update_time,applet_date,applet_time
+        from b_marketing_sync_${apiCode}
+        <where>
+            cust_num in
+            <foreach collection="custs" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and IFNULL(fail_type,'') = ''
         </where>
     </select>
 

@@ -33,6 +33,16 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
 
+    List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+
+    /**
+     *  根据ApplyDt数据统计
+     * @param cid
+     * @param apiCode
+     * @param limitStart
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart);
     /**
      * 获取指定日期，指定custNum的非延时数据
      * @param cid
@@ -71,4 +81,24 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingTransferSyncUser> getTransferByApiCodeAndCreateTime(@Param("apiCode") String apiCode, @Param("tCid") String tcId, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("minId") Long minId);
+
+    /**
+     * 根据获取分页数据
+     *
+     * @param transferSyncUser pojo
+     * @param startTime        开始时间
+     * @param endTime          结束
+     * @param rowCount         行数
+     * @param offset           步长
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/5/27 11:43
+     */
+    List<MarketingTransferSyncUser> findTransferByApiCodeAndCreateTimePage(
+            @Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser
+            , @Param("startTime") String startTime
+            , @Param("endTime") String endTime
+            , @Param("orderByClause") String orderByClause
+            , @Param("rowCount") int rowCount
+            , @Param("offset") int offset);
 }

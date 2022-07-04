@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.TransferFileTaskMapper" >
+    <select id="getTransferFileList" resultType="com.br.marketing.vo.TransferFileTaskVO">
+        select id
+        , api_code as apiCode
+        , file_name as fileName
+        , task_number as taskNumber
+        , start_date as startDate
+        , status
+        , file_child_dir as fileChildDir
+        , DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime
+        , DATE_FORMAT(update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        from b_transfer_file_task btft
+        <where>
+            <if test="startDateStart !=null and startDateStart!=''">
+                <![CDATA[  and create_time >=#{startDateStart} ]]>
+            </if>
+            <if test="startDateEnd !=null and startDateEnd!=''">
+                <![CDATA[  and create_time <#{startDateEnd} ]]>
+            </if>
+            <if test="serach != null and serach.trim() neq ''">
+                and (api_code like concat("%", #{serach},"%")
+                or file_name like concat("%", #{serach},"%"))
+            </if>
+        </where>
+        order by create_time desc,id desc
+    </select>
 </mapper>

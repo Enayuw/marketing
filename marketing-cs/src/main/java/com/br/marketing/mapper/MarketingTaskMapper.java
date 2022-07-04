@@ -3,6 +3,8 @@ package com.br.marketing.mapper;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.vo.FastTaskRuleListVO;
+import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -13,8 +15,25 @@ import java.util.Map;
 /**
  * Created by Bairong on 2019/8/20.
  */
-@Repository
 public interface MarketingTaskMapper extends MarketingTaskMapperBase {
+
+
+    /**
+     * 跑分记录列表
+     * @param search
+     * @param status
+     * @param createTimeStart
+     * @param createTimeEnd
+     * @param updateTimeStart
+     * @param updateTimeEnd
+     * @param taskStatus
+     * @return
+     */
+    List<MarketingTaskVO> selectList(@Param("search")String search, @Param("status")Integer status,
+                                     @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
+                                     @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,
+                                     @Param("taskStatus")Integer taskStatus, @Param("id")String id);
+
 
     List<Map<String, Object>> getModule(String apiCode);
 
@@ -206,4 +225,9 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     MarketingTask selectCycleTopByApiCode(String apiCode);
 
+    List<MarketingTask> getScoreTasks(@Param("date") String date,@Param("taskId") Long taskId,@Param("hm")String hm);
+
+    Integer selectByPriority(Integer priority);
+
+    String selectHisFileById(String hisFileId);
 }

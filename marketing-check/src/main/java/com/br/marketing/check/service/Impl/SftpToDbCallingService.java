@@ -12,10 +12,12 @@ import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +53,9 @@ public class SftpToDbCallingService {
     private String secretKey;
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 将文件下载到本地
@@ -125,8 +130,10 @@ public class SftpToDbCallingService {
             FileReader read = new FileReader(txtFilePathAndName);
             BufferedReader br = new BufferedReader(read);
             String row;
+            Integer haloSaveDataThreadNum = marketingCommonConfig.getHaloSaveDataThreadNum();
+            log.warn("哈啰回调落库线程数：{}",haloSaveDataThreadNum);
             // 创建线程池
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(haloSaveDataThreadNum, haloSaveDataThreadNum);
             while ((row = br.readLine()) != null) {
                 doThreadPoolProcess(localFile, fuc, address, line, errorMark, row, threadPool);
                 line++;

@@ -20,4 +20,10 @@ public interface SoleStrategyService {
     List<CustomerScoreRuleVO> matchScoreRule(List<CustomerScoreRuleVO> scoreRuleVos, String userType);
 
     Result<String> analysisCondition(String conditionVo);
+
+    String analysisSimpleConditionPlus(String conditionStr,String date,String time);
+
+    Result<List<String>> analysisConditions(String conditionVo);
+
+    Result<String> analysisTransferConditions(String conditionStr,String date,String time);
 }

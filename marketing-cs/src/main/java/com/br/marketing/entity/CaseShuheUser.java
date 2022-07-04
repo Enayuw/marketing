@@ -141,6 +141,11 @@ public class CaseShuheUser {
     private String reserveField2;
 
     /**
+     * 异常信息
+     */
+    private String errorInfo;
+
+    /**
      * 数据状态 0-有效、1-未知场景、2-异常数据
      */
     private Integer status;
@@ -151,15 +156,17 @@ public class CaseShuheUser {
     private Integer saveStatus;
 
     /**
-     * 异常信息
+     * 禁止运营期
      */
-    private String errorInfo;
+    private String clcUsrMaxDxRrtEnd;
+
 
     /**
      * 扩展字段 json对象,不会持久化到db
      * reserveField1
      */
     private JSONObject jsonObject;
+
 
     public Long getId() {
         return id;
@@ -377,6 +384,14 @@ public class CaseShuheUser {
         this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
     }
 
+    public String getErrorInfo() {
+        return errorInfo;
+    }
+
+    public void setErrorInfo(String errorInfo) {
+        this.errorInfo = errorInfo == null ? null : errorInfo.trim();
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -393,12 +408,12 @@ public class CaseShuheUser {
         this.saveStatus = saveStatus;
     }
 
-    public String getErrorInfo() {
-        return errorInfo;
+    public String getClcUsrMaxDxRrtEnd() {
+        return clcUsrMaxDxRrtEnd;
     }
 
-    public void setErrorInfo(String errorInfo) {
-        this.errorInfo = errorInfo == null ? null : errorInfo.trim();
+    public void setClcUsrMaxDxRrtEnd(String clcUsrMaxDxRrtEnd) {
+        this.clcUsrMaxDxRrtEnd = clcUsrMaxDxRrtEnd == null ? null : clcUsrMaxDxRrtEnd.trim();
     }
 
     public JSONObject getJsonObject() {
@@ -439,9 +454,10 @@ public class CaseShuheUser {
                 ", isTransfer=" + isTransfer +
                 ", reserveField1='" + reserveField1 + '\'' +
                 ", reserveField2='" + reserveField2 + '\'' +
+                ", errorInfo='" + errorInfo + '\'' +
                 ", status=" + status +
                 ", saveStatus=" + saveStatus +
-                ", errorInfo='" + errorInfo + '\'' +
+                ", clcUsrMaxDxRrtEnd='" + clcUsrMaxDxRrtEnd + '\'' +
                 ", jsonObject=" + jsonObject +
                 '}';
     }

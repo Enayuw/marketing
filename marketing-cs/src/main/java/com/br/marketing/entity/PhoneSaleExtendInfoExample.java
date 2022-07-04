@@ -12,7 +12,7 @@ public class PhoneSaleExtendInfoExample {
     protected List<Criteria> oredCriteria;
 
     public PhoneSaleExtendInfoExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class PhoneSaleExtendInfoExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -586,72 +586,72 @@ public class PhoneSaleExtendInfoExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(String value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(String value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(String value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(String value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(String value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(String value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLike(String value) {
-            addCriterion("status like", value, "status");
+            addCriterion("`status` like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotLike(String value) {
-            addCriterion("status not like", value, "status");
+            addCriterion("`status` not like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<String> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<String> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(String value1, String value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(String value1, String value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -836,72 +836,72 @@ public class PhoneSaleExtendInfoExample {
         }
 
         public Criteria andTypeIsNull() {
-            addCriterion("type is null");
+            addCriterion("`type` is null");
             return (Criteria) this;
         }
 
         public Criteria andTypeIsNotNull() {
-            addCriterion("type is not null");
+            addCriterion("`type` is not null");
             return (Criteria) this;
         }
 
         public Criteria andTypeEqualTo(String value) {
-            addCriterion("type =", value, "type");
+            addCriterion("`type` =", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotEqualTo(String value) {
-            addCriterion("type <>", value, "type");
+            addCriterion("`type` <>", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThan(String value) {
-            addCriterion("type >", value, "type");
+            addCriterion("`type` >", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("type >=", value, "type");
+            addCriterion("`type` >=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThan(String value) {
-            addCriterion("type <", value, "type");
+            addCriterion("`type` <", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThanOrEqualTo(String value) {
-            addCriterion("type <=", value, "type");
+            addCriterion("`type` <=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLike(String value) {
-            addCriterion("type like", value, "type");
+            addCriterion("`type` like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotLike(String value) {
-            addCriterion("type not like", value, "type");
+            addCriterion("`type` not like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeIn(List<String> values) {
-            addCriterion("type in", values, "type");
+            addCriterion("`type` in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotIn(List<String> values) {
-            addCriterion("type not in", values, "type");
+            addCriterion("`type` not in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeBetween(String value1, String value2) {
-            addCriterion("type between", value1, value2, "type");
+            addCriterion("`type` between", value1, value2, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotBetween(String value1, String value2) {
-            addCriterion("type not between", value1, value2, "type");
+            addCriterion("`type` not between", value1, value2, "type");
             return (Criteria) this;
         }
 
@@ -972,76 +972,6 @@ public class PhoneSaleExtendInfoExample {
 
         public Criteria andDxTypeNotBetween(String value1, String value2) {
             addCriterion("dx_type not between", value1, value2, "dxType");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeIsNull() {
-            addCriterion("push_dx_time is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeIsNotNull() {
-            addCriterion("push_dx_time is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeEqualTo(String value) {
-            addCriterion("push_dx_time =", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeNotEqualTo(String value) {
-            addCriterion("push_dx_time <>", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeGreaterThan(String value) {
-            addCriterion("push_dx_time >", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeGreaterThanOrEqualTo(String value) {
-            addCriterion("push_dx_time >=", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeLessThan(String value) {
-            addCriterion("push_dx_time <", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeLessThanOrEqualTo(String value) {
-            addCriterion("push_dx_time <=", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeLike(String value) {
-            addCriterion("push_dx_time like", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeNotLike(String value) {
-            addCriterion("push_dx_time not like", value, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeIn(List<String> values) {
-            addCriterion("push_dx_time in", values, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeNotIn(List<String> values) {
-            addCriterion("push_dx_time not in", values, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeBetween(String value1, String value2) {
-            addCriterion("push_dx_time between", value1, value2, "pushDxTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushDxTimeNotBetween(String value1, String value2) {
-            addCriterion("push_dx_time not between", value1, value2, "pushDxTime");
             return (Criteria) this;
         }
 
@@ -1174,10 +1104,71 @@ public class PhoneSaleExtendInfoExample {
             addCriterion("source_id not between", value1, value2, "sourceId");
             return (Criteria) this;
         }
+
+        public Criteria andPushDxTimeIsNull() {
+            addCriterion("push_dx_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeIsNotNull() {
+            addCriterion("push_dx_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeEqualTo(Date value) {
+            addCriterion("push_dx_time =", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeNotEqualTo(Date value) {
+            addCriterion("push_dx_time <>", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeGreaterThan(Date value) {
+            addCriterion("push_dx_time >", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("push_dx_time >=", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeLessThan(Date value) {
+            addCriterion("push_dx_time <", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeLessThanOrEqualTo(Date value) {
+            addCriterion("push_dx_time <=", value, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeIn(List<Date> values) {
+            addCriterion("push_dx_time in", values, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeNotIn(List<Date> values) {
+            addCriterion("push_dx_time not in", values, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeBetween(Date value1, Date value2) {
+            addCriterion("push_dx_time between", value1, value2, "pushDxTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushDxTimeNotBetween(Date value1, Date value2) {
+            addCriterion("push_dx_time not between", value1, value2, "pushDxTime");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

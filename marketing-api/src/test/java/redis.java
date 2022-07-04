@@ -695,4 +695,22 @@ public class redis {
         StraHisFile file = straHisFiles.get(0);
         System.out.println(file);
     }
+
+    @Test
+    public void phoneAES(){
+        String content = "";
+        JSONArray objects = JSONArray.parseArray(content);
+        objects.forEach(t->{
+            JSONObject t1 = (JSONObject) t;
+            String localId = t1.getString("localId");
+            String custNum = t1.getString("custNum");
+            String phone = t1.getString("phone");
+            String phoneReal = com.br.common.util.BrCipherMaker.getInstance().decode(phone);
+            String aesPhone = AESUtil.aesEncrypty(phoneReal, "MgoTm8GxuxTUc6y5");
+            System.out.println(String.format("update b_phone_sale set phone_aes='%s',phone='%s' where local_id=%s and uid = '%s';"
+                    ,aesPhone,phone,localId,custNum));
+            System.out.println(String.format("update b_phone_black set phone='%s' where local_id=%s;"
+                    ,phone,localId));
+        });
+    }
 }

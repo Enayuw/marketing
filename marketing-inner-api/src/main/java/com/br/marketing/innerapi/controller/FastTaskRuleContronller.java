@@ -50,6 +50,7 @@ public class FastTaskRuleContronller {
             , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
     })
     @GetMapping("/list")
+    @Deprecated
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String search
@@ -66,8 +67,10 @@ public class FastTaskRuleContronller {
     }
 
 
+
     @ApiOperation(value = "生成批量跑分", notes = "生成批量跑分")
     @PostMapping("/save")
+    @Deprecated
     public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo) {
         //获取用户上下文
         try {
@@ -86,6 +89,7 @@ public class FastTaskRuleContronller {
             , @ApiImplicitParam(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
     })
     @GetMapping("/update")
+    @Deprecated
     public ApiResult<Boolean> update(@RequestParam(required = false) String id,
                                      @RequestParam(required = false) String ruleName,
                                      @RequestParam(required = false) String taskTime) {
@@ -103,6 +107,7 @@ public class FastTaskRuleContronller {
     @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
     @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getFastTask")
+    @Deprecated
     public ApiResult<FastTaskRuleDetailVO> getFastTask(String id) {
         try {
             FastTaskRuleDetailVO vo = fastTaskRuleService.getFastTask(id);
@@ -120,6 +125,7 @@ public class FastTaskRuleContronller {
             @ApiImplicitParam(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
+    @Deprecated
     public ApiResult<Boolean> updateStatusById(String id, Integer status) {
         //查询
         try {
@@ -140,6 +146,7 @@ public class FastTaskRuleContronller {
     @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")
     @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
     @GetMapping("/getScoreRules")
+    @Deprecated
     public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
         try {
             List<ScoreRuleConfig> list = fastTaskRuleService.getScoreRules(apiCode);

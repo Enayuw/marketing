@@ -32,6 +32,24 @@
         order by cust_num desc,insert_time desc,id desc limit #{limitStart},2000;
     </select>
 
+    <select id="getTransferByRequestData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${cid}
+        where
+        <![CDATA[  request_data = #{endDate} ]]>
+        order by create_time desc,id desc limit #{limitStart},2000;
+    </select>
+
+    <select id="getTransferByApplyDt" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+            b_marketing_transfer_sync_${cid}
+        where api_code=#{apiCode}
+        and apply_result=1
+        <![CDATA[ and apply_dt > date_format(date_sub(curdate(), INTERVAL 7 DAY),'%Y-%m-%d')
+          and apply_dt < date_format(curdate(),'%Y-%m-%d') ]]>
+        order by apply_dt desc,id desc limit #{limitStart},2000
+    </select>
+
     <select id="getTransferOrderInsertTimeByCustNum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.* from
         (
@@ -93,6 +111,42 @@
             <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
             order by id asc limit 2000;
         </where>
+    </select>
+
+    <select id="findTransferByApiCodeAndCreateTimePage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        <where>
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                AND api_code=#{transferSyncUser.apiCode}
+            </if>
+            <if test="startTime != null and startTime.trim() neq '' and endTime != null and endTime.trim() neq ''">
+                AND create_time between #{startTime} and #{endTime}
+            </if>
+            <if test="transferSyncUser.ifLogin != null and transferSyncUser.ifLogin.trim() neq ''">
+                AND if_login=#{transferSyncUser.ifLogin}
+            </if>
+            <if test="transferSyncUser.ifApply != null and transferSyncUser.ifApply.trim() neq ''">
+                AND if_apply=#{transferSyncUser.ifApply}
+            </if>
+            <if test="transferSyncUser.applyResult != null and transferSyncUser.applyResult.trim() neq ''">
+                AND apply_result=#{transferSyncUser.applyResult}
+            </if>
+            <if test="transferSyncUser.ifLent != null and transferSyncUser.ifLent.trim() neq ''">
+                AND if_lent=#{transferSyncUser.ifLent}
+            </if>
+        </where>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
     </select>
 
 </mapper>

@@ -972,7 +972,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                                 .append("ruleName：".concat(customerScoreRuleVO.getRuleName()).concat("\r\n"))
                                 .append("time：".concat(endTimeJob).concat("\r\n"))
                                 .append("batchNumber：".concat(number).concat("\r\n"))
-                                .append(String.format("预计数量: %d,入库数量：%d", taskNum, actNum));
+                                .append(String.format("预计数量: %d,入库数量：%ds", taskNum, actNum));
                         alarmClient.sendAlarm(content.toString(), "api人员数据生成任务", appName, secretKey,
                                 Constants.sendCodeMap.get("uploadSuccess"));
                     } catch (Exception ex) {

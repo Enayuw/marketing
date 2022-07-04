@@ -171,4 +171,23 @@ public class TransferFileTask {
     public void setFileChildDir(String fileChildDir) {
         this.fileChildDir = fileChildDir == null ? null : fileChildDir.trim();
     }
+
+    @Override
+    public String toString() {
+        return "TransferFileTask{" +
+                "id=" + id +
+                ", apiCode='" + apiCode + '\'' +
+                ", fileType=" + fileType +
+                ", batchNumber='" + batchNumber + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", fileChildDir='" + fileChildDir + '\'' +
+                ", status=" + status +
+                ", taskNumber=" + taskNumber +
+                ", startDate='" + startDate + '\'' +
+                ", contextId=" + contextId +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                '}';
+    }
 }

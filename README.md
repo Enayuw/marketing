@@ -20,8 +20,8 @@
 - - -
 ### marketing-check  读取文件入库、报警、校验、方法重试等
 - job  
-  1.ApiToDb--生成跑分任务  
-  2.ApiToDbByTimeJob--根据时间参数 生成指定范围的跑分任务  
+  ~~1.ApiToDb--生成跑分任务~~  
+  ~~2.ApiToDbByTimeJob--根据时间参数 生成指定范围的跑分任务~~  
   3.RetryCommonServiceJob--重试服务job  
   4.SftpToDbByResultDataJob--读取上传电销文件入库（通用文件，小薇文件，桔子文件）
   5.SftpToDbByTwoSevenJob--读取七七撞库文件  
@@ -38,8 +38,9 @@
   4.海尔数据消费
 - - -   
 ### marketing-task 跑分服务。
-- TaskConcurrentJob--跑分job
-- TaskStopJob--跑分暂停job
+- TaskScoreStartJob--跑分job
+- TaskActionJob--跑分操作job
+  0-暂停跑分程序以及暂停任务；1-恢复跑分程序；2-恢复被暂停的任务；
 - - -
 ### marketing-push-task 结果推送调度任务，流失预警结果文件推送到ftp。部署在调度平台。
 - mergeJob--合并文件，推送文件至内部sftp

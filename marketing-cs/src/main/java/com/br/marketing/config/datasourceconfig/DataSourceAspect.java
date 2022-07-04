@@ -1,0 +1,61 @@
+package com.br.marketing.config.datasourceconfig;
+
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+@Component
+@Aspect
+@Order(-1)
+@ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
+public class DataSourceAspect {
+    Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
+    static final String marketingTikiv = "marketingTikiv";
+    static final String marketingTiFlash = "marketingTiFlash";
+
+    /**
+     * 切换tikv数据源
+     */
+    @Before("tiKvOfMarketing()")
+    public void tiKvOfMarketingInterceptor() {
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "tikv");
+        }
+        DbContextHolder.setDbType(marketingTikiv);
+    }
+
+    /**
+     * 切换数据源master
+     */
+    @Before("tiflashOfMarketing()")
+    public void tiflashOfMarketingInterceptor() {
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "tiflash");
+        }
+        DbContextHolder.setDbType(marketingTiFlash);
+    }
+
+    @After("tiKvOfMarketing()||tiflashOfMarketing()")
+    public void afterInterceptor() {
+        if(logger.isInfoEnabled()){
+            logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
+        }
+        DbContextHolder.clearDbType();
+    }
+
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTikvMarketing)||execution(* com.br.marketing.mapper.*.*tikv_(..))")
+    public void tiKvOfMarketing() {
+    }
+
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTiFlashMarketing)||execution(* com.br.marketing.mapper.*.*tiflash_(..))")
+    public void tiflashOfMarketing() {
+    }
+}

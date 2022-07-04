@@ -24,11 +24,13 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.ShuheTransferStopPushRecordMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -70,6 +72,8 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private RedisChgService redisChgService;
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    @Autowired
+    CaseUserServiceImpl caseUserService;
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
@@ -117,11 +121,11 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String status = jsonObject.get("status").toString();
                     caseShuheUser.getJsonObject().putAll(jsonObject);
                     caseShuheUser.setReserveField2(status);
-                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime());
+                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService);
                     String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
                             , new MarketingSyncUser()).getCell();
                     if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
-                        log.warn("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
+                        log.info("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
                         return false;
                     }
                     switch (status) {
@@ -130,17 +134,17 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "a", transfer.getUserType());
                             }
-                            log.warn("促复借a情况：一天只推送一次判断结果：{}", bool);
+                            log.info("促复借a情况：一天只推送一次判断结果：{}", bool);
                             break;
                         case "b":
                             // 查询是不是首次命中b
                             if (!phoneSaleExtendInfo(transfer.getCustNum(), transfer.getApiCode(), transfer.getUserType())) {
-                                log.warn("促复借b情况，非首次");
+                                log.info("促复借b情况，非首次");
                                 // 判断是不是在停止推送时间内
                                 if (queryStopPushRecord(transfer)) {
                                     bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                             , "b", transfer.getUserType());
-                                    log.warn("促复借b情况，不查询拨打记录：一天只推送一次判断结果：{}", bool);
+                                    log.info("促复借b情况，不查询拨打记录：一天只推送一次判断结果：{}", bool);
                                     break;
                                 }
                             }
@@ -148,13 +152,13 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "b", transfer.getUserType());
                             }
-                            log.warn("促复借b情况，查询拨打记录：一天只推送一次判断结果：{}", bool);
+                            log.info("促复借b情况，查询拨打记录：一天只推送一次判断结果：{}", bool);
                             break;
                         default:
                     }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
-                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime())
+                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService)
                             && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                             , "a", transfer.getUserType());
                 }
@@ -254,7 +258,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setUid(caseShuheUser.getCustNum());
-        dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         if (iUserType instanceof CuFuJie) {
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
@@ -273,6 +276,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 } catch (Exception ignored) {
                 }
             }
+            dataDTO.setAuditAmount(jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString());
+        }else{
+            dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         }
         dataDTO.setExtend(extend.toJSONString());
         return dataDTO;
@@ -307,7 +313,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         String key = String.format(KEY, transfer.getApiCode(), transfer.getUserType()
                 , transfer.getCustNum()).concat(":" + phone);
         if (redisChgService.exists(key)) {
-            log.warn("#促复借 ###@命中黑名单缓存");
+            log.info("#促复借 ###@命中黑名单缓存");
             return true;
         }
         List<BlackQueryDetailDTO> blackQueryList = new ArrayList<>();
@@ -325,15 +331,15 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         }
         blackQueryList.add(blackQueryDetailDTO);
         Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
-        log.warn("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
+        log.info("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(dataId, "");
             if ("Y".equals(blackFlag)) {
                 redisChgService.setex(key, dataId, 3600 * 12);
-                log.warn("#促复借 ###命中黑名单");
+                log.info("#促复借 ###命中黑名单");
                 return true;
             }
-            log.warn("#促复借 &&&未命中黑名单");
+            log.info("#促复借 &&&未命中黑名单");
             return false;
         }
         return true;
@@ -360,7 +366,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                             && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(collect)) {
-                log.warn("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
+                log.info("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
                 return false;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
@@ -382,7 +388,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             shuheTransferStopPushRecordMapper.insert(record);
             String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
             redisChgService.setex(key, "7", (int) ChronoUnit.SECONDS.between(createTime, failureTime));
-            log.warn("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
+            log.info("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
         }
         return true;
     }
@@ -405,7 +411,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
                         ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
         int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
-        log.warn("#促复借 查询暂停推送记录:{},查询耗时：{}ms", count, System.currentTimeMillis() - l);
+        log.info("#促复借 查询暂停推送记录:{},查询耗时：{}ms", count, System.currentTimeMillis() - l);
         return count > 0;
     }
 
@@ -421,7 +427,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
-        log.warn("#促复借 首次b情况:{}", count);
+        log.info("#促复借 首次b情况:{}", count);
         return count < 1;
     }
 }

@@ -9,5 +9,5 @@ public interface ITransferToFileService {
 
     Result<List<TransferFileTask>> buildTransferTask(String apiCode);
 
-    Result actionTransferToFile(TransferFileTask transferFileTask);
+    Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter);
 }

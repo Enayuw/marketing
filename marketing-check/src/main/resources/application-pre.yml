@@ -6,14 +6,13 @@ sharding:
         url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
         password: f9daIYUIAXQkeyVbDoOI
-        # password: 9gEulsLRkXfzNMJSZMuq
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
         filters: stat
         maxActive: 300
-        initialSize: 1
+        initialSize: 5
         maxWait: 60000
-        minIdle: 1
+        minIdle: 5
         timeBetweenEvictionRunsMillis: 60000
         minEvictableIdleTimeMillis: 300000
         validationQuery: select 'x'
@@ -22,16 +21,15 @@ sharding:
         testOnReturn: false
         poolPreparedStatements: true
         maxOpenPreparedStatements: 20
-    config:
-      sharding:
-        props:
-          sql.show: false
-        tables:
-          b_marketing_user:
-            table-strategy:
-              inline:
-                sharding-column: api_code
-                algorithm-expression: b_marketing_user_${api_code}
+  config:
+    sharding:
+      props:
+        sql.show: true
+mybatis:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 logging:
   level:
     com.br.off.mapper: debug
