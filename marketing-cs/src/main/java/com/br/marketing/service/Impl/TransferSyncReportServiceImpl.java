@@ -53,35 +53,24 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
-        log.warn("1#apiCode的场景：{}", userTypeMapByApiCode.toString());
         String other = "";
-        // 获取全部转化表名
-        List<String> tables = getTransferTableList();
-        log.warn("1.1#tables：{}", Arrays.toString(tables.toArray()));
         for (String dateStr : dateStrSet) {
-            log.warn("2#dateStr：{}", dateStr);
             for (MarketingCustomer customer : customers) {
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
-                log.warn("3#apiCode：{};tCid:{}", apiCode, tCid);
-                boolean isSmy;
-                if (tables.contains("b_marketing_transfer_sync_" + tCid)) {
-                    isSmy = false;
-                } else if (tables.contains("b_marketing_transfer_" + apiCode)) {
-                    isSmy = true;
-                } else {
-                    continue;
-                }
                 // 获取场景
                 Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
-                log.warn("4#userTypeSet：{}", userTypeSet.toArray());
                 for (String userType : userTypeSet) {
                     try {
                         TransferSyncReport report;
-                        if (isSmy) {
-                            report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
-                        } else {
+                        try {
                             report = transferSyncReportMapper.dateTimeMinMaxCount(tCid, apiCode, dateStr, userType);
+                        } catch (Exception e) {
+                            try {
+                                report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
+                            } catch (Exception ignored) {
+                                continue;
+                            }
                         }
                         Date appletBeginTime = report.getAppletBeginTime();
                         Date appletEndTime = report.getAppletEndTime();
