@@ -58,9 +58,6 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         //String apiCode = '';
         JSONObject jsonObject = JSON.parseObject(jsonData);
         String cid = jsonObject.getString("cid");
-        if("22311".endsWith(cid)){
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
-        }
         boolean exists = redisAuthService.exists("cid-halo-button" + cid);
         if (exists) {
             return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
