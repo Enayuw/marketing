@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -67,7 +68,8 @@ public class ArtificialBatchRealTimeDataHandler extends AbstractExternalInterfac
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
 
             List<DassImportDataDTO> dataDTOS = subList.stream().map(batchData->batchData.getDassImportDataDTO()).collect(Collectors.toList());
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
+            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo())
+                    .filter(item-> StringUtils.isNotEmpty(item)).collect(Collectors.toList());
             dassImportAdapDTO.setList(dataDTOS);
             dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
             phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
