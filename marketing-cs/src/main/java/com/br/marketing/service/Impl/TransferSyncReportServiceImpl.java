@@ -57,6 +57,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         String other = "";
         // 获取全部转化表名
         List<String> tables = getTransferTableList();
+        log.warn("1.1#tables：{}", Arrays.toString(tables.toArray()));
         for (String dateStr : dateStrSet) {
             log.warn("2#dateStr：{}", dateStr);
             for (MarketingCustomer customer : customers) {
