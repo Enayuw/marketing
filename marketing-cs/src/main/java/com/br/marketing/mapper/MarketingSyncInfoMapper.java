@@ -185,4 +185,5 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
                           @Param("apiCode") String apiCode,
                           @Param("id") Long id);
 
+    int selectCountError(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
 }

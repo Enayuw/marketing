@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.RedisService;
@@ -11,6 +12,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -21,11 +23,15 @@ import com.br.marketing.thread.HaloCleanHistoryThread;
 import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,6 +60,14 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
 
     @Autowired
     private RabbitMqProducter producter;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+    @Value("${otherConfig.alarm.outsideSecretKey:00}")
+    private String secretKey;
+    @Value("${otherConfig.alarm.outsideAppName:00}")
+    private String appName;
+
 
 
     @Override
@@ -97,16 +111,22 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
         if (dataArray != null) {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
+            StringBuilder content = new StringBuilder();
             for (int i = 0; i < dataArray.size(); i++) {
                 JSONObject dataJson = dataArray.getJSONObject(i);
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
                 handlerCleanHistory(appletDate, apiCode, threadPool);
+                int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
+                content.append("apiCode：".concat(apiCode).concat("，"))
+                        .append("错误数量：".concat(String.valueOf(errorCount)).concat("\r\n"));
             }
             //关闭线程池
             threadPool.shutdown();
             //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
             while (!threadPool.isTerminated()) ;
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", appName, secretKey,
+                    Constants.sendCodeMap.get("uploadSuccess"));
             log.info("所有线程都执行结束");
         }
     }
@@ -162,15 +182,14 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                         } else if (id > beginId) {
                             beginId = id;
                         }
-                        threadPool.submit(new HaloCleanHistoryThread(user,marketingSyncInfoMapper));
+                        threadPool.submit(new HaloCleanHistoryThread(user, marketingSyncInfoMapper));
                     }
                 } else {
                     beginId = beginId + 5000;
                 }
             }
 
-            // 打印日志
-            log.error("halo清洗，错误条数：{},{}",errorMark,apiCode);
+
         }
     }
 

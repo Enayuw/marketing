@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * halo清洗数据
@@ -28,6 +29,7 @@ public class HaloCleanHistoryThread implements Callable<String> {
     private final MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     private final MarketingSyncUser marketingSyncUser;
+
 
     //private final MarketingSyncUser user;
 
@@ -64,8 +66,8 @@ public class HaloCleanHistoryThread implements Callable<String> {
         } else {
             reserveFieldObj.put("message", "未找到离当前时间最近的cell 数据");
             updateHisUser.setReserveField2(reserveFieldObj.toJSONString());
-            int update = marketingSyncInfoMapper.updateBySyncHaLuoRemark(updateHisUser, apiCode, marketingSyncUser.getId());
+            marketingSyncInfoMapper.updateBySyncHaLuoRemark(updateHisUser, apiCode, marketingSyncUser.getId());
         }
-        return null;
+        return "";
     }
 }
