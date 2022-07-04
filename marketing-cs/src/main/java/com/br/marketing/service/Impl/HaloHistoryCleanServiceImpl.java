@@ -16,11 +16,13 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.HaloHistoryCleanService;
 import com.br.marketing.strategy.HaloCleanHistoryHandler;
 import com.br.marketing.thread.HaloCleanHistoryThread;
+import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -80,8 +82,8 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         }else {
             return new ApiResult<Boolean>().fail("入参数据异常");
         }
-        //redisAuthService.set("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
-        redisAuthService.set("cid-halo-button" + cid, cid, 120);
+        redisAuthService.set("cid-halo-button"+cid,cid, TimeUtils.getRemainSecondsOneDay(new Date()));
+        //redisAuthService.set("cid-halo-button" + cid, cid, 120);
         producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
         return new ApiResult<Boolean>().success().setData(true);
     }
