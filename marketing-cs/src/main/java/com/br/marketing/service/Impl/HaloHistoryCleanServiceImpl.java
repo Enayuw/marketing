@@ -125,7 +125,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
 
                 int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
                 content.append("apiCode：".concat(apiCode).concat("，"))
-                        .append("清洗数据量：".concat(String.valueOf(allCount)))
+                        .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
                         .append("错误数量：".concat(String.valueOf(errorCount)).concat("\r\n"));
                 alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
                         Constants.sendCodeMap.get("uploadSuccess"));
