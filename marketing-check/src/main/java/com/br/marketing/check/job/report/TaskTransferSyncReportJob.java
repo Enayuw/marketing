@@ -64,7 +64,7 @@ public class TaskTransferSyncReportJob extends AbstractSimpleElasticJob {
      * 2022/6/29 11:18
      * 解析参数
      */
-    private static void parameterHandle(String param, Set<String> dateStrSet) {
+    private void parameterHandle(String param, Set<String> dateStrSet) {
         // job中没有配置参数时默认使用当前日期
         if (StringUtils.isBlank(param)) {
             return;

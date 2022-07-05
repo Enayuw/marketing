@@ -56,17 +56,17 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 // 获取场景
                 Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
                 for (String userType : userTypeSet) {
+                    TransferSyncReport report;
                     try {
-                        TransferSyncReport report;
+                        report = transferSyncReportMapper.dateTimeMinMaxCount(tCid, apiCode, dateStr, userType);
+                    } catch (Exception e) {
                         try {
-                            report = transferSyncReportMapper.dateTimeMinMaxCount(tCid, apiCode, dateStr, userType);
-                        } catch (Exception e) {
-                            try {
-                                report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
-                            } catch (Exception ignored) {
-                                continue;
-                            }
+                            report = transferSyncReportMapper.dateTimeMinMaxCountSMY(apiCode, dateStr, userType);
+                        } catch (Exception ignored) {
+                            continue;
                         }
+                    }
+                    try {
                         Date appletBeginTime = report.getAppletBeginTime();
                         Date appletEndTime = report.getAppletEndTime();
                         Integer dataCount = report.getDataCount();
