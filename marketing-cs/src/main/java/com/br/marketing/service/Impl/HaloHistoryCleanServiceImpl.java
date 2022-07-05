@@ -117,15 +117,21 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
                 handlerCleanHistory(appletDate, apiCode, threadPool);
-                int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
-                content.append("apiCode：".concat(apiCode).concat("，"))
-                        .append("错误数量：".concat(String.valueOf(errorCount)).concat("\r\n"));
             }
             //关闭线程池
             threadPool.shutdown();
             //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
             while (!threadPool.isTerminated()) ;
-            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", appName, secretKey,
+
+            for (int i = 0; i < dataArray.size(); i++) {
+                JSONObject dataJson = dataArray.getJSONObject(i);
+                String apiCode = dataJson.getString("apiCode");
+                String appletDate = dataJson.getString("appletDate");
+                int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
+                content.append("apiCode：".concat(apiCode).concat("，"))
+                        .append("错误数量：".concat(String.valueOf(errorCount)).concat("\r\n"));
+            }
+            alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
             log.info("所有线程都执行结束");
         }
