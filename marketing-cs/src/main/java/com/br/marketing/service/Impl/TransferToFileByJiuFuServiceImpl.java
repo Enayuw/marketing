@@ -127,10 +127,10 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             LocalDate endDate;
             if(localDate.getDayOfMonth()==1){
                 LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
-                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取上月的第一天
+                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取上月的第二天
                 endDate = localDate; // 获取当前时间
             }else {
-                startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
+                startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取当前月的第二天
                 endDate = localDate;
             }
             writeJiuFuTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
