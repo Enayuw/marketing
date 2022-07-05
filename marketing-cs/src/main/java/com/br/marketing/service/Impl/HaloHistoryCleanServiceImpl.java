@@ -110,31 +110,28 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         JSONObject jsonObject = JSON.parseObject(jsonData);
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
         if (dataArray != null) {
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
-            StringBuilder content = new StringBuilder();
             for (int i = 0; i < dataArray.size(); i++) {
+                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
                 JSONObject dataJson = dataArray.getJSONObject(i);
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
+                StringBuilder content = new StringBuilder();
+                int  allCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
                 handlerCleanHistory(appletDate, apiCode, threadPool);
-            }
-            //关闭线程池
-            threadPool.shutdown();
-            //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
-            while (!threadPool.isTerminated()) ;
+                //关闭线程池
+                threadPool.shutdown();
+                //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
+                while (!threadPool.isTerminated()) ;
 
-            for (int i = 0; i < dataArray.size(); i++) {
-                JSONObject dataJson = dataArray.getJSONObject(i);
-                String apiCode = dataJson.getString("apiCode");
-                String appletDate = dataJson.getString("appletDate");
                 int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
                 content.append("apiCode：".concat(apiCode).concat("，"))
+                        .append("清洗数据量：".concat(String.valueOf(allCount)))
                         .append("错误数量：".concat(String.valueOf(errorCount)).concat("\r\n"));
+                alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
+                        Constants.sendCodeMap.get("uploadSuccess"));
             }
-            alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
-            log.info("所有线程都执行结束");
         }
+        log.info("所有线程都执行结束");
     }
 
     private void handlerCleanHistory(String appletDate, String apiCode, ThreadPoolExecutor threadPool) {
