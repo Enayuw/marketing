@@ -1,6 +1,5 @@
 package com.br.marketing.strategy;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -40,22 +39,19 @@ public class HaloCleanHistoryHandler {
 
     public Result<Boolean> haluoCleanHistory(String mes) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
-
+        //更新数据
+        log.warn("开始执行数据更新任务,消息内容={}", mes);
+        haloHistoryCleanService.handlerCleanHistory(mes);
         try {
-            //更新数据
-            log.warn("开始执行数据更新任务,消息内容={}", mes);
-            haloHistoryCleanService.handlerCleanHistory(mes);
-
             // 删除统计数据
             log.warn("开始执行删除统计数据任务,消息内容={}", mes);
             marketingSyncReportService.deleteReportByAppletDate(mes);
-
             // 重新生成统计数据
             log.warn("开始执行重新生成统计数据任务,消息内容={}", mes);
             this.syncReportProcess(mes);
-        }catch (Exception e){
-            log.error("业务处理异常：{}",e);
-        }finally {
+        } catch (Exception e) {
+            log.error("业务处理异常：{}", e);
+        } finally {
             return result;
         }
 
@@ -70,7 +66,7 @@ public class HaloCleanHistoryHandler {
                 String appletDate = dataJson.getString("appletDate");
                 String apiCode = dataJson.getString("apiCode");
                 // 调用更新接口
-                syncReportService.syncReportProcessByApiCode(appletDate,apiCode);
+                syncReportService.syncReportProcessByApiCode(appletDate, apiCode);
             }
         }
     }
