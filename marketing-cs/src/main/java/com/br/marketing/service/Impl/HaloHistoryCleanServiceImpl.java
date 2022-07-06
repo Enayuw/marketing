@@ -111,7 +111,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
         if (dataArray != null) {
             for (int i = 0; i < dataArray.size(); i++) {
-                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
+                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
                 JSONObject dataJson = dataArray.getJSONObject(i);
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
