@@ -320,7 +320,7 @@
     <select id="getByMaxIdAndMinId" resultType="com.br.marketing.entity.MarketingSyncUser">
         select id,cus_batch,cust_num,cell,applet_date,status,fail_type from
             b_marketing_sync_${apiCode}
-        where api_code=#{apiCode} and id > #{beginId}  and #{endIdLe} >= id and status = 2 and cell="FQΒ4g"  order by id;
+        where api_code=#{apiCode} and  id <![CDATA[>]]> #{beginId}  and id <![CDATA[<=]]>  #{endIdLe}  and status = 2 and cell="FQΒ4g"  order by id;
     </select>
     <select id="getCellFromCurrent" resultType="com.br.marketing.entity.MarketingSyncUser">
         select id,cus_batch,cust_num,cell,applet_date,status,fail_type from
