@@ -68,8 +68,9 @@ public class HaloCleanHistoryHandler {
             for (int i = 0; i < dataArray.size(); i++) {
                 JSONObject dataJson = dataArray.getJSONObject(i);
                 String appletDate = dataJson.getString("appletDate");
+                String apiCode = dataJson.getString("apiCode");
                 // 调用更新接口
-                syncReportService.syncReportProcess(appletDate);
+                syncReportService.syncReportProcessByApiCode(appletDate,apiCode);
             }
         }
     }

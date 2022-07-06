@@ -54,8 +54,21 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        //1.获取所有客户
-        List<Customer> customers = customerMapper.getAllCustomer();
+        this.doSyncReportProcess(uploadDate,null);
+    }
+    @Override
+    public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
+        this.doSyncReportProcess(uploadDate,apiCode);
+    }
+    public void doSyncReportProcess(String uploadDate,String apiCodes){
+        List<Customer> customers = new ArrayList<>();
+        if(apiCodes!=null){
+            //1.获取所有客户
+            customers.add(customerMapper.getCustomerByApiCode(apiCodes));
+        }else {
+            customers = customerMapper.getAllCustomer();
+        }
+
         //2.循环正常客户
         customers.forEach(customer -> {
             try {
@@ -122,7 +135,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             }
         });
     }
-
     /**
      * 根据参数获取上传统计数据
      *
