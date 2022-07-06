@@ -184,9 +184,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                         } else if (id > beginId) {
                             beginId = id;
                         }
-                        // 查询离当前时间最近的有cell的数据 正常的数据
-                        MarketingSyncUser cellFromCurrentUser = marketingSyncInfoMapper.getCellFromCurrent(apiCode, user.getCustNum());
-                        threadPool.submit(new HaloCleanHistoryThread(user, marketingSyncInfoMapper,cellFromCurrentUser));
+                        threadPool.submit(new HaloCleanHistoryThread(user, marketingSyncInfoMapper));
                     }
                 } else {
                     beginId = beginId + 5000;

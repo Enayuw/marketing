@@ -32,20 +32,19 @@ public class HaloCleanHistoryThread implements Callable<String> {
     private final MarketingSyncUser marketingSyncUser;
 
 
-    private final MarketingSyncUser cellFromCurrentUser;
 
 
-    public HaloCleanHistoryThread(MarketingSyncUser marketingSyncUser, MarketingSyncInfoMapper marketingSyncInfoMapper,MarketingSyncUser cellFromCurrentUser) {
+    public HaloCleanHistoryThread(MarketingSyncUser marketingSyncUser, MarketingSyncInfoMapper marketingSyncInfoMapper) {
         this.marketingSyncInfoMapper = marketingSyncInfoMapper;
         this.marketingSyncUser = marketingSyncUser;
-        this.cellFromCurrentUser = cellFromCurrentUser;
     }
 
     @Override
     public String call() {
         try {
             String apiCode = marketingSyncUser.getApiCode();
-
+            // 查询离当前时间最近的有cell的数据 正常的数据
+            MarketingSyncUser cellFromCurrentUser = marketingSyncInfoMapper.getCellFromCurrent(apiCode, marketingSyncUser.getCustNum());
             JSONObject reserveFieldObj = new JSONObject();
             MarketingSyncUser updateHisUser = new MarketingSyncUser();
             if (cellFromCurrentUser != null) {
@@ -71,7 +70,7 @@ public class HaloCleanHistoryThread implements Callable<String> {
                 marketingSyncInfoMapper.updateBySyncHaLuoRemark(updateHisUser, apiCode, marketingSyncUser.getId());
             }
         }catch (Exception e){
-            log.warn("清洗跟新报错，{}",e);
+            log.error("清洗更新报错，{}",e);
         }
 
         return "";
