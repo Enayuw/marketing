@@ -148,7 +148,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             // 记录开始id
             Long beginId = 0L;
             if (marketingSyncUserMinId != null) {
-                beginId = marketingSyncUserMinId.getId();
+                beginId = marketingSyncUserMinId.getId()-1;
             }
 
             log.warn("halo历史数据范围 beginId:{} endId:{}", beginId, endId);
@@ -160,7 +160,6 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             Long endIdLe;
 
 
-            AtomicInteger errorMark = new AtomicInteger(0);
             while (pageFlag) {
                 endIdLe = beginId + 5000;
 
