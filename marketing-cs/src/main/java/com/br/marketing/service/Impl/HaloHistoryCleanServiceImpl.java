@@ -30,6 +30,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -117,12 +118,18 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 String appletDate = dataJson.getString("appletDate");
                 StringBuilder content = new StringBuilder();
                 int  allCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
-                handlerCleanHistory(appletDate, apiCode, threadPool);
-                //关闭线程池
-                threadPool.shutdown();
-                //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
-                while (!threadPool.isTerminated()) ;
-
+                log.warn("数据清洗条数：{}",allCount);
+                CountDownLatch countDownLatch = new CountDownLatch(allCount);
+                doHandlerCleanHistory(appletDate, apiCode, threadPool,countDownLatch);
+                try {
+                    countDownLatch.await();
+                    //关闭线程池
+                    threadPool.shutdown();
+                    //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
+                    while (!threadPool.isTerminated()) ;
+                } catch (InterruptedException e) {
+                    log.warn("线程池异常：{}",e);
+                }
                 int errorCount =  marketingSyncInfoMapper.selectCountError(apiCode,appletDate);
                 content.append("apiCode：".concat(apiCode).concat("，"))
                         .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
@@ -134,7 +141,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
         log.info("所有线程都执行结束");
     }
 
-    private void handlerCleanHistory(String appletDate, String apiCode, ThreadPoolExecutor threadPool) {
+    private void doHandlerCleanHistory(String appletDate, String apiCode, ThreadPoolExecutor threadPool,CountDownLatch countDownLatch) {
 
         // 查询上传时间内有问题的最大的id  即 循环结束的id
         MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(apiCode,appletDate);
@@ -185,6 +192,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                             beginId = id;
                         }
                         threadPool.submit(new HaloCleanHistoryThread(user, marketingSyncInfoMapper));
+                        countDownLatch.countDown();
                     }
                 } else {
                     beginId = beginId + 5000;
