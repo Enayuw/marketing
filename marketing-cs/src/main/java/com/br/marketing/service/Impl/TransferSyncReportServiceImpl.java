@@ -171,7 +171,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     private Map<String, Object> queryParams(String cidOrName, String appletTimeStart
             , String appletTimeEnd, String apiCodes, String userTypes) {
         if (StringUtils.isNotEmpty(appletTimeEnd)) {
-            appletTimeEnd = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            appletTimeEnd = LocalDate.parse(appletTimeEnd, DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE);
         }
         if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")) {
             cidOrName = cidOrName.replace("_", "\\_");
