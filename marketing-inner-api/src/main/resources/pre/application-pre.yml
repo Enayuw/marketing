@@ -74,9 +74,6 @@ datasource:
 #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-eureka:
-  client:
-    service-url.defaultZone: http://10.100.123.121:18000/eureka/
 
 spring:
   rabbitmq:
