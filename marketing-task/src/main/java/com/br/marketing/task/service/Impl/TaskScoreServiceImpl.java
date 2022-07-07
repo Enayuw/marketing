@@ -373,7 +373,7 @@ public class TaskScoreServiceImpl {
                     marketingStrategyProduct.setProductName(code);
                     marketingStrategyProduct.setProductVersion(jsonObject.getString("version"));
                     marketingStrategyProduct.setStrategyId(blt.getStrategyId());
-                    marketingStrategyProduct.setFileId(blt.getId());
+                    marketingStrategyProduct.setFileId(blt.getFileId());
                     marketingStrategyProductMapper.insertSelective(marketingStrategyProduct);
                     String scorekey = RedisCodeProduct.concat(blt.getApiCode());
                     String s = redisChgService.get(scorekey);

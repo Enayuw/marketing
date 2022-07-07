@@ -39,12 +39,6 @@ datasource:
       deny:
       reset-enable: false
       login-username: admin
-
-
-eureka:
-  client:
-    service-url.defaultZone: http://10.100.123.121:18000/eureka/
-
 spring:
   rabbitmq:
     zw:
