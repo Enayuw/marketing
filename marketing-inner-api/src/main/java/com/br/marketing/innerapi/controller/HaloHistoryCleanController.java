@@ -48,7 +48,7 @@ public class HaloHistoryCleanController {
     }
 
     @PostMapping("haluoCleanHistory")
-    @ApiOperation(value = "判断哈啰按钮是否显示", notes = "判断哈啰按钮是否显示")
+    @ApiOperation(value = "哈啰历史数据清洗", notes = "哈啰历史数据清洗")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> cleanHistory(@RequestBody String jsonData ) {
         return  haloHistoryCleanService.cleanHistory(jsonData);
