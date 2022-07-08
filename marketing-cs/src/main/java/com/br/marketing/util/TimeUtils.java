@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 日期工具类
@@ -307,6 +308,7 @@ public class TimeUtils {
 
     /**
      * 获取当前到12点的秒数
+     *
      * @param currentDate
      * @return
      */
@@ -321,7 +323,27 @@ public class TimeUtils {
         long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
         return (int) seconds;
     }
-//7883
+
+    public static String millisecondsToString(long milliseconds) {
+        final long day = TimeUnit.MILLISECONDS.toDays(milliseconds);
+
+        final long hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+                - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(milliseconds));
+
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
+                - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(milliseconds));
+
+        final long seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
+                - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds));
+
+        final long ms = TimeUnit.MILLISECONDS.toMillis(milliseconds)
+                - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(milliseconds));
+
+        System.out.println("milliseconds :-" + milliseconds);
+        return String.format(String.format("%d 天 %d 小时 %d 分 %d 秒", day, hours, minutes, seconds));
+    }
+
+    //7883
     public static void main(String[] args) {
         System.out.println(getRemainSecondsOneDay(new Date()));
     }
