@@ -29,6 +29,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,6 +70,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     final static String YIXIN_NOREALTIME_HIST_FILE = "hist_";
 
     final static String YIXIN_NOREALTIME_PASS_FILE = "pass_";
+    final static String YIXIN_REALTIME_PASS_FILE = "yixin_real_";
 
     final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
@@ -196,6 +198,30 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 transferFileTaskMapper.insertSelective(transferFileTask);
                 resultList.add(transferFileTask);
             }
+
+            //D20220706宜信实时数据逻辑处理-3710012
+            taskExample = new TransferFileTaskExample();
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(6);
+            transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+            if (CollectionUtils.isEmpty(transferFileTasks)) {
+                log.warn("宜信实时数据提取(real-pass)-开始执行,apiCode ={}", apiCode);
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                //Long transferFileContextId = 123L;
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(6);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setFileChildDir("data_yixin_pass");
+                transferFileTask.setTaskNumber(0);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
@@ -212,11 +238,121 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             return actionTransferToFileHist(transferFileTask);
         }else if(5==transferFileTask.getFileType()){
             return actionTransferToFilePass(transferFileTask);
+        }else if(6==transferFileTask.getFileType()){
+            return actionTransferToFileRealPass(transferFileTask);
         }
         log.error("未找到对应的actionTransferToFile方法,请检查fileType");
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate("未找到对应的actionTransferToFile方法,请检查fileType");
     }
 
+    private Result actionTransferToFileRealPass(TransferFileTask transferFileTask) {
+        log.warn("宜信实时数据提取real-pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
+        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(YIXIN_REALTIME_PASS_FILE).append(recordDate).append(".txt");
+        String fileAllPath = descPath.concat(fileName.toString());
+        transferFileTask.setFileName(fileName.toString());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append("custNum,cell,liveType,createTime");
+            fw.append("\r\n");
+            writeYiXinRealTimePass(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void writeYiXinRealTimePass(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+        Long start = System.currentTimeMillis();
+        String tcId = tableCreateService.getTcId(apiCode);
+        LocalDate startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(7);
+        LocalDate endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
+        Integer page = 0;
+        Boolean mark = Boolean.TRUE;
+        //去重后的Set
+        HashSet custNumResult = new HashSet();
+        while(true){
+            while (mark) {
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByTransformTypeAndStatus(tcId, apiCode, endDate.toString(),page * 2000);
+                if (CollectionUtils.isEmpty(transferData)){
+                    mark = Boolean.FALSE;
+                    continue;
+                }
+                page++;
+                List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
+                for (MarketingTransferSyncUser marketingTransferSyncUser : transferData) {
+                    if (custNumResult.add(marketingTransferSyncUser.getCustNum())) {
+                        dataFilter.add(marketingTransferSyncUser);
+                    }
+                }
+                if (CollectionUtils.isEmpty(dataFilter)) {
+                    log.warn("宜信实时数据提取-该批次无transformType=1且status=1数据,apiCode = {}", apiCode);
+                    continue;
+                }
+
+                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+                Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
+                        Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                , Collectors.collectingAndThen(
+                                        Collectors.reducing((v1, v2) ->
+                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                        , Optional::get)));
+
+                for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+                    String custNum = transferFilterData.getCustNum();
+                    String cell = "";
+                    if (preUserMap.containsKey(custNum)) {
+                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                    }
+                    String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
+                    //custNum,cell,liveType,createTime
+                    JSONObject reserveField1 = JSON.parseObject(transferFilterData.getReserveField1());
+                    String liveType = reserveField1.getString("liveType");
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(custNum.concat(","));
+                    sb.append(cell.concat(","));
+                    sb.append(liveType.concat(","));
+                    sb.append(createTime);
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
+                }
+                dataFilter.clear();
+                transferData.clear();
+            }
+            endDate = endDate.minusDays(1);
+            mark = Boolean.TRUE;
+            page = 0;
+            if(endDate.isBefore(startDate)){
+                break;
+            }
+        }
+        int totalSize = custNumResult.size();
+        custNumResult.clear();
+        TransferFileTask updatetask = new TransferFileTask();
+        updatetask.setId(transferFileTask.getId());
+        updatetask.setStatus(2);
+        updatetask.setFileName(transferFileTask.getFileName());
+        updatetask.setFilePath(transferFileTask.getFilePath());
+        updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(6);
+        updatetask.setUpdateTime(new Date());
+        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
+        log.warn("宜信实时数据提取(real-pass)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+
+    }
     private Result actionTransferToFilePass(TransferFileTask transferFileTask) {
         log.warn("宜信非实时数据提取pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
