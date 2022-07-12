@@ -38,4 +38,15 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @param date
      */
     int countByPhoneAndType(@Param("phone")String phone,@Param("dxType")String dxType,@Param("date")String date);
+
+    /**
+     * 拍拍贷新客转人工数据提取
+     * @param apiCode
+     * @param startDate
+     * @param endDate
+     * @param limitStart
+     * @return
+     */
+    List<PhoneSaleExtendInfo> getPPDToDxData(@Param("apiCode")String apiCode,@Param("startDate")String startDate,
+                                             @Param("endDate")String endDate ,@Param("limitStart") Integer limitStart);
 }

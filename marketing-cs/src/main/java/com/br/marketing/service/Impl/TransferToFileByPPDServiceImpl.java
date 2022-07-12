@@ -1,17 +1,11 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.TransferFileTask;
-import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -20,16 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 /**
  * @Author songjuanjnuan
@@ -46,13 +39,9 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
     @Autowired
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
-    private TableCreateServiceImpl tableCreateService;
-    @Autowired
     private RuleRedisServiceImpl ruleRedisService;
     @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -60,9 +49,8 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     final static String PPD_TRANSFER_FILE = "rengong_";
 
-    final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
     final static DateTimeFormatter YYYYMMDDSHORTDFLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
-
+    final static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
     @Override
     public String isMyParam(String apiCode,String jobParameter) {
         if(StringUtils.isNotEmpty(jobParameter)){
@@ -93,7 +81,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("拍拍贷新客实时数据提取-开始执行,apiCode ={}", apiCode);
+                log.warn("拍拍贷新客转人工数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
@@ -115,7 +103,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
-        log.warn("拍拍贷新客转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        log.warn("拍拍贷新客转人工数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
         String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
@@ -132,10 +120,9 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,userType,情况,推送日期");
+            fw.append("custNum,userType,status,push_dx_time");
             fw.append("\r\n");
             //判断是否是首次提取
-            LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
             LocalDate startDate;
             LocalDate endDate;
             if(StringUtils.isNotEmpty(jobParameter) && "true".equals(jobParameter.split(",")[0])){
@@ -145,7 +132,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
                 startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
                 endDate = startDate;
             }
-            //writePPDTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
+            writePPDTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
@@ -155,87 +142,37 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     private void writePPDTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
-        //去重后的Set
-        HashSet custNumResult = new HashSet();
-        while(true){
-            while (mark) {
-                Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, endDate.toString(), page);
-                if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
-                    mark = Boolean.FALSE;
-                    continue;
-                }
-                page++;
-                List<MarketingTransferSyncUser> data = transferData.getData();
-                List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
-                for (MarketingTransferSyncUser marketingTransferSyncUser : data) {
-                    //过滤掉 同一custNum的其他insertTime数据，custNumResult
-                    if (custNumResult.add(marketingTransferSyncUser.getCustNum())) {
-                        dataFilter.add(marketingTransferSyncUser);
-                    }
-                }
-                if (dataFilter.size() <= 0) {
-                    log.warn("玖富转化数据提取-该批次无符合要求的数据,apiCode = {}", apiCode);
-                    continue;
-                }
-                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-                Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
-                        Collectors.groupingBy(MarketingSyncUser::getCustNum
-                                , Collectors.collectingAndThen(
-                                        Collectors.reducing((v1, v2) ->
-                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                        , Optional::get)));
-                //requestId,orgName,custNum,source,userType,ifLogin,loginTime,ifApply,applyDt,applyResult,auditAmount,lentTime,lentAmount,insertTime,applyLoan,applyLoanTime,cell
-                for (MarketingTransferSyncUser transferFilterData : dataFilter) {
-                    String custNum = transferFilterData.getCustNum();
-                    String applyLoan = "";
-                    String applyLoanTime = "";
-                    String cell = "";
-                    if (preUserMap.containsKey(custNum)) {
-                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
-                    }
-                    if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())){
-                        applyLoan = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan"):"";
-                        applyLoanTime = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoanTime"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoanTime"):"";
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getRequestId())?transferFilterData.getRequestId():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getOrgName())?transferFilterData.getOrgName():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getSource())?transferFilterData.getSource():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getUserType())?transferFilterData.getUserType():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLogin())?transferFilterData.getIfLogin():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getLoginTime())?transferFilterData.getLoginTime().replace(":000",""):"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getIfApply())?transferFilterData.getIfApply():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyDt())?transferFilterData.getApplyDt().replace(":000",""):"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyResult())?transferFilterData.getApplyResult():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getAuditAmount())?transferFilterData.getAuditAmount():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime().replace(":000",""):"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getInsertTime())?transferFilterData.getInsertTime().replace(":000",""):"").concat(","));
-                    sb.append(applyLoan.concat(","));
-                    sb.append(applyLoanTime.replace(":000","").concat(","));
-                    sb.append(cell);
-                    sb.append("\r\n");
-                    fw.append(sb.toString());
-                }
-                dataFilter.clear();
-                data.clear();
+        int totalSize =0;
+        while (mark) {
+            List<PhoneSaleExtendInfo> infoData = phoneSaleExtendInfoMapper.getPPDToDxData(apiCode,startDate.toString(),endDate.toString(), page * 2000);
+            if (CollectionUtils.isEmpty(infoData)){
+                mark = Boolean.FALSE;
+                continue;
             }
-            endDate = endDate.minusDays(1);
-            mark = Boolean.TRUE;
-            page = 0;
-            if(endDate.isBefore(startDate)){
-                break;
+            page++;
+            if (infoData.size() <= 0) {
+                log.warn("拍拍贷新客转人工数据提取-该批次无符合要求的数据,apiCode = {}", apiCode);
+                continue;
             }
+            for (PhoneSaleExtendInfo data : infoData) {
+                //custNum,userType,status,push_dx_time
+                String custNum = data.getCustNum();
+                String userType = data.getUserType();
+                String status = data.getStatus();
+                String push_dx_time = data.getPushDxTime() == null ? "" : sdf2.format(data.getPushDxTime());;
+                StringBuilder sb = new StringBuilder();
+                sb.append((StringUtils.isNotEmpty(custNum)?custNum:"").concat(","));
+                sb.append((StringUtils.isNotEmpty(userType)?userType:"").concat(","));
+                sb.append((StringUtils.isNotEmpty(status)?status:"").concat(","));
+                sb.append(push_dx_time);
+                sb.append("\r\n");
+                fw.append(sb.toString());
+            }
+            totalSize = totalSize + infoData.size();
+            infoData.clear();
         }
-
-        int totalSize = custNumResult.size();
-        custNumResult.clear();
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
         updatetask.setStatus(2);
@@ -244,31 +181,13 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         updatetask.setTaskNumber(totalSize);
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("拍拍贷新客转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+        log.warn("拍拍贷新客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
     String createBatchNumber(String apiCode, Long contextId) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
-    }
-
-    /**
-     * 获取转化数据
-     * 按照inserttime排序
-     *
-     * @param tcId
-     * @param endDate
-     * @param pageIndex
-     * @return
-     */
-    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String tcId,String endDate,Integer pageIndex) {
-        Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferByRequestData(tcId, endDate,limitStart);
-        if (transferOrderInsertTime.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-        }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
     }
 
 }

@@ -110,6 +110,12 @@
         and applet_date = #{date}
         and phone = #{phone}
     </select>
+    <select id="getPPDToDxData" resultType="com.br.marketing.entity.PhoneSaleExtendInfo">
+        select * from b_phone_sale_extend_info
+        where api_code =#{apiCode}
+        <![CDATA[ AND push_dx_time >= #{startDate} and push_dx_time < #{endDate} ]]>
+        order by push_dx_time desc,id desc limit #{limitStart},2000;
+    </select>
     <insert id="saveBatch" parameterType="list">
         insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
         user_type, applet_date, applet_time,
