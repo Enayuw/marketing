@@ -2,6 +2,7 @@ package com.br.marketing.mapper.auth;
 
 import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.MarketingRoleExample;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public interface MarketingRoleMapper {
 
     int insertSelective(MarketingRole record);
 
+    @AddDataAuth
     List<MarketingRole> selectByExample(MarketingRoleExample example);
 
     MarketingRole selectByPrimaryKey(Integer id);
