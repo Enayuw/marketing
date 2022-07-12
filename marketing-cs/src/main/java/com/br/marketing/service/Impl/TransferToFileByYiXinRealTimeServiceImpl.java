@@ -198,7 +198,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 transferFileTaskMapper.insertSelective(transferFileTask);
                 resultList.add(transferFileTask);
             }
-
             //D20220706宜信实时数据逻辑处理-3710012
             taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(6);
@@ -320,7 +319,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
                     //custNum,cell,liveType,createTime
                     JSONObject reserveField1 = JSON.parseObject(transferFilterData.getReserveField1());
-                    String liveType = reserveField1.getString("liveType");
+                    String liveType = StringUtils.isNotEmpty(reserveField1.getString("liveType"))?reserveField1.getString("liveType"):"";
                     StringBuilder sb = new StringBuilder();
                     sb.append(custNum.concat(","));
                     sb.append(cell.concat(","));

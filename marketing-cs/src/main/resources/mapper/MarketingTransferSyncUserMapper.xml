@@ -52,9 +52,8 @@
 
     <select id="getTransferByTransformTypeAndStatus" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select ts.* from  b_marketing_transfer_sync_${tcId} ts left join b_marketing_sync_${apiCode} t on ts.cust_num = t.cust_num
-        where ts.api_code=#{apiCode}
-        <![CDATA[  and ts.request_data = #{endDate} ]]>
-        and ts.reserve_field1 like '%"transformType":"1"%' and t.status=1
+        where <![CDATA[  ts.request_data = #{endDate} ]]>
+         and ts.api_code=#{apiCode}  and t.status=1 and ts.reserve_field1 like '%"transformType":"1"%'
         order by ts.create_time desc,ts.id desc limit #{limitStart},2000
     </select>
 
