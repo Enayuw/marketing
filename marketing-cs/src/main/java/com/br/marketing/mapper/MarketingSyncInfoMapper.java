@@ -168,6 +168,26 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      */
     String getTaskIdByCustNumNotLikeUpload(@Param("apiCode")String apiCode, @Param("custNum")String custNum);
 
+
+
+    MarketingSyncUser getMarketingSyncMaxIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+    MarketingSyncUser getMarketingSyncMinIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+    List<MarketingSyncUser> getByMaxIdAndMinId(@Param("apiCode")String apiCode,@Param("beginId")Long beginId,@Param("endIdLe")Long endIdLe);
+
+
+    MarketingSyncUser getCellFromCurrent(@Param("apiCode")String apiCode,@Param("custNum")String custNum);
+
+
+    int updateBySyncHaLuo(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
+                          @Param("apiCode") String apiCode,
+                          @Param("id") Long id);
+
+    int updateBySyncHaLuoRemark(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
+                          @Param("apiCode") String apiCode,
+                          @Param("id") Long id);
+
+    int selectCountError(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+
     /**
      * 根据cell获取上传接口最新一条数据
      * @param apiCode
@@ -175,4 +195,5 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @return
      */
     MarketingSyncUser getNewestPreUserByCell(@Param("apiCode")String apiCode, @Param("cell")String cell);
+
 }
