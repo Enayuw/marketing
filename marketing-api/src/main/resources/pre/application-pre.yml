@@ -25,10 +25,6 @@ sharding:
     sharding:
       props:
         sql.show: true
-eureka:
-  client:
-    service-url.defaultZone: http://10.100.123.121:18000/eureka/
-
 spring:
   rabbitmq:
     zw:

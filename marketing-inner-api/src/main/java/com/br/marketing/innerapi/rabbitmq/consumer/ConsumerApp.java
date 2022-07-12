@@ -7,6 +7,7 @@ import com.br.marketing.client.IceClient;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.strategy.HaloCleanHistoryHandler;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.marketing.strategy.UserCenterHandler;
 import com.br.usernew.ResponseDto;
@@ -44,6 +45,9 @@ public class ConsumerApp {
 
     @Resource
     private UserCenterHandler userCenterHandler;
+
+    @Autowired
+    private HaloCleanHistoryHandler haloCleanHistoryHandler;
 
 
     /**
@@ -149,4 +153,19 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message,  userCenterHandler::handleDataUserCenter, mes, null);
 
     }
+    /**
+     * 消费 营销平台数据导入异步处理
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_HALUO_CLEAN_HISTORY, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY)}, containerFactory = "primaryContainerFactory")
+    public void haloCleanHistory(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, haloCleanHistoryHandler::haluoCleanHistory, o, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+    }
+
 }

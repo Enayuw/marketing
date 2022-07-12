@@ -50,11 +50,6 @@ PORT=${SERVER_PORT}
        if [ "$1" = "stop" ]; then exit 0;
        else exit 5; fi; }
 
-URL=`echo ${EUREKA_CLIENT_SERVICE_URL_defaultZone} | awk -F'[ ,]+' {'print $1'}`
-[ ! -z "$URL" ] || { echo "环境变量EUREKA_CLIENT_SERVICE_URL_defaultZone为空或者配置错误！";
-                if [ "$1" = "stop" ]; then exit 0;
-        else exit 5; fi; }
-
 NAME_UPPER="$(echo $NAME| tr '[:lower:]' '[:upper:]')" 
 
 HOSTNAME=`hostname`
@@ -163,55 +158,6 @@ function getstatus() {
   echo ${APPSTATUS}
 }
 
-#注册中心解除注册
-function stopapp() {
-  STATUS=`getstatus`
-  if [[ $STATUS == 'UP' ]] ; then
-    echo "应用[${NAME}]状态为[${STATUS}],现在通知注册中心停止该服务！" 
-    curl -XPUT -s  "${URL}apps/${NAME_UPPER}/${APPNAME}/status?value=OUT_OF_SERVICE" 
-    while [[ `getstatus` != 'OUT_OF_SERVICE' ]];
-    do
-      echo -ne "." 
-      sleep 1
-    done
-    echo "success" 
-  elif [[ $STATUS == 'OUT_OF_SERVICE' ]]; then
-    echo "应用[${NAME}]状态为[${STATUS}],该应用已解除注册，请勿重复操作！" 
-  else
-    echo "应用[${NAME}]状态为[${STATUS}], 状态码无效!"  
-    echo "failure" 
-  fi
-}
-
-#注册中心注册
-function startapp() {
-  STATUS=`getstatus`
-  if [[ $STATUS == 'OUT_OF_SERVICE' || $STATUS == '' ]] ; then
-    echo "应用[${NAME}]状态为[${STATUS}],现在通知注册中心启动该服务！" 
-    curl -XPUT -s "${URL}apps/${NAME_UPPER}/${APPNAME}/status?value=UP" 
-    while [[ `getstatus` != 'UP' ]];
-    do
-      echo -ne "." 
-      sleep 2
-    done
-    echo "success" 
-  elif [[ $STATUS == 'UP' ]]; then
-    echo "应用[${NAME}]状态为[${STATUS}],该应用已启动完毕！" 
-  else 
-    echo "应用[${NAME}]状态为[${STATUS}], 状态码无效!"  
-    echo "failure" 
-  fi
-}
-
-function register(){
-    sleep 5
-    checkport $PID
-    if [ $APP_TYPE != 0 ]; then 
-        sleep 5
-        startapp
-    fi
-    echo "success" 
-}
 
 #启动服务方法
 function start() {
@@ -222,8 +168,7 @@ function start() {
     if [ $RETVAL = 0 ]; then
         PID=$!
         echo $PID > "$CLOUDSERVER_PID_FILE" 
-        echo "执行启动命令成功！" 
-        #register &
+        echo "执行启动命令成功！"
         wait $PID
     else
         echo "failure" 
@@ -233,7 +178,6 @@ function start() {
 #停止服务方法
 function stop() {
     if [ $APP_TYPE != 0 ]; then
-        stopapp
         sleep 5
         cd /opt/SpringCloud/logs/${NAME}/  &&  mv ${POD_NAME} ${POD_NAME}_$(date +%Y%m%d)
     fi

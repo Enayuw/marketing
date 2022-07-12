@@ -38,17 +38,6 @@ public class DefaultBeanConfigure {
     @Value("${otherConfig.proxy.proxy_password:00}")
     private  String password;
 
-    @Bean
-    @LoadBalanced
-    //根据环境变量RPC_MODE（在marmot deployment.yaml配置）来决定是否增加ribbon负载均衡功能，不配置或配置值为RIBBON_EUREKA时，加载该bean
-    @ConditionalOnExpression("#{'RIBBON_EUREKA'.equals('${rpc.mode:RIBBON_EUREKA}')}")
-    RestTemplate loadBalanced() {
-        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectionRequestTimeout(3000);
-        httpRequestFactory.setConnectTimeout(1000);
-        httpRequestFactory.setReadTimeout(10000);
-        return new RestTemplate(httpRequestFactory);
-    }
 
     @Primary
     @Bean
