@@ -25,6 +25,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.io.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -60,6 +61,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
     final static String PPD_TRANSFER_FILE = "rengong_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
+    final static DateTimeFormatter YYYYMMDDSHORTDFLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     @Override
     public String isMyParam(String apiCode,String jobParameter) {
@@ -91,7 +93,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("玖富转化数据提取-开始执行,apiCode ={}", apiCode);
+                log.warn("拍拍贷新客实时数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
@@ -113,7 +115,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
-        log.warn("玖富转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        log.warn("拍拍贷新客转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
         String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
@@ -130,22 +132,20 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("requestId,orgName,custNum,source,userType,ifLogin,loginTime,ifApply,applyDt,applyResult,auditAmount,lentTime,lentAmount,insertTime,applyLoan,applyLoanTime,cell");
+            fw.append("custNum,userType,情况,推送日期");
             fw.append("\r\n");
-            //判断执行日期是否为本月为1日
-            recordDate = StringUtils.isEmpty(jobParameter) ? recordDate : jobParameter.split(",")[0];
+            //判断是否是首次提取
             LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
             LocalDate startDate;
             LocalDate endDate;
-            if(localDate.getDayOfMonth()==1){
-                LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
-                startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取上月的第二天
-                endDate = localDate; // 获取当前时间
+            if(StringUtils.isNotEmpty(jobParameter) && "true".equals(jobParameter.split(",")[0])){
+                startDate = LocalDate.parse("2022-06-27", YYYYMMDDSHORTDFLINE);
+                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
             }else {
-                startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取当前月的第二天
-                endDate = localDate;
+                startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
+                endDate = startDate;
             }
-            writeJiuFuTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
+            //writePPDTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
@@ -153,7 +153,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void writeJiuFuTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) throws IOException {
+    private void writePPDTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
@@ -244,7 +244,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         updatetask.setTaskNumber(totalSize);
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("玖富转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+        log.warn("拍拍贷新客转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
     String createBatchNumber(String apiCode, Long contextId) {
