@@ -113,7 +113,7 @@
     <select id="getPPDToDxData" resultType="com.br.marketing.entity.PhoneSaleExtendInfo">
         select * from b_phone_sale_extend_info
         where api_code =#{apiCode}
-        <![CDATA[ AND push_dx_time >= #{startDate} and push_dx_time < #{endDate} ]]>
+        <![CDATA[ AND push_dx_time >= #{startDate} and push_dx_time <= #{endDate} ]]>
         order by push_dx_time desc,id desc limit #{limitStart},2000;
     </select>
     <insert id="saveBatch" parameterType="list">
