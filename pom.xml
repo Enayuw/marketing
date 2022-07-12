@@ -154,7 +154,14 @@
         <dependency>
             <groupId>com.br.transfer</groupId>
             <artifactId>header-transfer-spring-boot-starter</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
+            <!-- 排除ribbon依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-ribbon</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <repositories>

@@ -183,7 +183,7 @@ public class MergeServiceImpl implements MergeService {
             for (String path1 : paths) {
                 total +=MyFileUtil.getTotalLines(new File(path1))-1;
             }
-            blf.setExpectedNum(total);
+            blf.setActualNum(total);
 
             Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
             if(new Integer(1).equals(customer.getPushCustomer())){

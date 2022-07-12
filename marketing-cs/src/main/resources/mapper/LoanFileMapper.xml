@@ -248,8 +248,8 @@
 		update_time=now(),
 		statistic_file_path=#{statisticFilePath},
 		score_status=#{scoreStatus}
-		<if test="expectedNum!=null">
-		,expected_num=#{expectedNum}
+		<if test="actualNum!=null">
+		,actual_num=#{actualNum}
 		</if>
 		WHERE
 		id =#{id}

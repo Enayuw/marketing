@@ -246,7 +246,7 @@
     <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from
         b_marketing_sync_${apiCode}
-        where cust_num=#{caseNum} order by applet_date desc limit 1;
+        where cust_num=#{caseNum} order by applet_time desc limit 1;
     </select>
 
     <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
@@ -306,6 +306,7 @@
         order by create_time desc limit 1
     </select>
 
+
     <select id="getMarketingSyncMaxIdByAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
         select max(id) as id from
             b_marketing_sync_${apiCode}
@@ -344,6 +345,11 @@
     </update>
     <select id="selectCountError" resultType="java.lang.Integer">
         select count(*) from b_marketing_sync_${apiCode} where api_code = #{apiCode} and applet_date = #{appletDate} and status =2 and cell="FQΒ4g";
+
+    <select id="getNewestPreUserByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from
+        b_marketing_sync_${apiCode}
+        where cell=#{cell} order by create_time desc limit 1;
     </select>
 
 </mapper>

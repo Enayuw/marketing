@@ -1,5 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
@@ -16,6 +17,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
+import com.br.marketing.dto.shuhe.strategy.CuShouJie;
 import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
@@ -244,6 +246,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
     private DassSingleImportDataDTO getDassSingleImportData(ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
         IUserType iUserType = shuHeContext.getIUserType();
+        MarketingSyncUser marketingUserByCell =  shuHeContext.getMarketingSyncUserByCell();
         DassSingleImportDataDTO dataDTO = new DassSingleImportDataDTO();
         dataDTO.setPrioritySymbol("1");
         JSONObject extend = new JSONObject();
@@ -258,6 +261,27 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         dataDTO.setName("1");
         iUserType.getPrivateInfo(dataDTO);
         dataDTO.setUid(caseShuheUser.getCustNum());
+        if (iUserType instanceof CuShouJie) {
+            if (!Objects.isNull(marketingUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                    extend.put("if_coupon", IfCoupon);
+                }
+                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                    extend.put("if_tie", IfTie);
+                }
+                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                    extend.put("aft_lmt", aftLmt);
+                }
+                String IfCs = parseObject.getOrDefault("if_cs", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
+                    extend.put("if_cs", IfCs);
+                }
+            }
+        }
         if (iUserType instanceof CuFuJie) {
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
@@ -268,6 +292,21 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             if (org.apache.commons.lang3.StringUtils.isNotBlank(typeSign)) {
                 extend.put("typeSign", typeSign);
             }
+            if (!Objects.isNull(marketingUserByCell)) {
+                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                    extend.put("if_coupon", IfCoupon);
+                }
+                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                    extend.put("if_tie", IfTie);
+                }
+                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                    extend.put("aft_lmt", aftLmt);
+                }
+            }
             dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
             String name = shuHeContext.getCustomerMap().get(caseShuheUser.getCustNum()).getName();
             if (!StringUtils.isEmpty(name)) {
@@ -277,7 +316,7 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 }
             }
             dataDTO.setAuditAmount(jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString());
-        }else{
+        } else {
             dataDTO.setAuditAmount(caseShuheUser.getClcUsrAdtLmtItr());
         }
         dataDTO.setExtend(extend.toJSONString());
