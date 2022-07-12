@@ -66,6 +66,20 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     @Override
+    public String isMyParam(String apiCode, String jobParameter) {
+        if(StringUtils.isNotEmpty(jobParameter)){
+            String[] split = jobParameter.split(";");
+            for(String s : split){
+                String paramApiCode = s.split(":")[0];
+                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(paramApiCode)){
+                    return s.split(":")[1];
+                }
+            }
+        }
+        return "";
+    }
+
+    @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> list = new ArrayList<>();
         //1.登录未申请授信（断点）

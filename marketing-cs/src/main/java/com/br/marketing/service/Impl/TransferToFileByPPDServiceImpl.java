@@ -24,9 +24,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -35,12 +32,13 @@ import java.util.stream.Collectors;
 
 /**
  * @Author songjuanjnuan
- * @Date 2022/05/11 14:31
- * @Description:久富转化数据提取
+ * @Date 2022/07/12 11:28
+ * @Description:D20220706拍拍贷新客实时数据逻辑处理-3710014
+ * http://c.100credit.cn/pages/viewpage.action?pageId=76646919
  */
 @Slf4j
 @Service
-public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService {
+public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     @Value("${otherConfig.warning.path:00}")
     private String path;
@@ -59,7 +57,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
 
     final static String EXECUTE_TIME = " 10:00:00";
 
-    final static String JIUFU_TRANSFER_FILE = "jiufu_zhuanhua_";
+    final static String PPD_TRANSFER_FILE = "rengong_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
@@ -69,7 +67,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             String[] split = jobParameter.split(";");
             for(String s : split){
                 String paramApiCode = s.split(":")[0];
-                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getJiuFuTransferApiCodes().contains(paramApiCode)){
+                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getPPDTransferFileApiCodes().contains(paramApiCode)){
                     return s.split(":")[1];
                 }
             }
@@ -83,8 +81,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (StringUtils.isNotEmpty(marketingCommonConfig.getJiuFuTransferExecuteTime())) {
-            execute = " " + marketingCommonConfig.getJiuFuTransferExecuteTime();
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getPPDTransferFileExecuteTime())) {
+            execute = " " + marketingCommonConfig.getPPDTransferFileExecuteTime();
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         if (now.after(executeTime)) {
@@ -124,7 +122,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             writeDic.mkdirs();
         }
         StringBuilder fileName = new StringBuilder();
-        fileName.append(JIUFU_TRANSFER_FILE).append(recordDate).append(".txt");
+        fileName.append(PPD_TRANSFER_FILE).append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
