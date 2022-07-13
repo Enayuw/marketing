@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.MarketingTransferSyncUserAndStatusDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
@@ -109,5 +110,5 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param limitStart
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferByTransformTypeAndStatus(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUserAndStatusDTO> getTransferByTransformTypeAndStatus(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 }
