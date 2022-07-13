@@ -63,6 +63,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
 
     final static String EXECUTE_TIME = " 20:00:00";
     final static String EXECUTE_TIME_NO_REALTIME = " 12:00:00";
+    final static String EXECUTE_TIME_REALPASS = " 12:00:00";
 
     final static String YIXINREALTIMEFILE = "livetype_";
     final static String YIXIN_NOREALTIME_RESULT_FILE = "result_";
@@ -92,6 +93,50 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             if (ResultCode.SUCCESS.getValue().equals(listResultNoRealTime.getCode()) && listResultNoRealTime.getData().size() > 0){
                 List<TransferFileTask> data = listResultNoRealTime.getData();
                 resultList.addAll(data);
+            }
+        }
+        //实时数real-pass据提取
+        Result<List<TransferFileTask>> listResultRealPass = buildTransferTaskRealPass(apiCode);
+        if (ResultCode.SUCCESS.getValue().equals(listResultRealPass.getCode()) && listResultRealPass.getData().size() > 0){
+            List<TransferFileTask> data = listResultRealPass.getData();
+            resultList.addAll(data);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
+    }
+
+    public Result<List<TransferFileTask>> buildTransferTaskRealPass(String apiCode) {
+        List<TransferFileTask> resultList = new ArrayList<>();
+        Date now = new Date();
+        //可配置
+        String execute = EXECUTE_TIME_REALPASS;
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getYinXinTransferRealPassExecuteTime())) {
+            execute = " " + marketingCommonConfig.getYinXinTransferRealPassExecuteTime();
+        }
+        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
+        if (now.after(executeTime)) {
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+            //D20220706宜信实时数据逻辑处理-3710012
+            TransferFileTaskExample taskExample = new TransferFileTaskExample();
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(6);
+            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+            if (CollectionUtils.isEmpty(transferFileTasks)) {
+                log.warn("宜信实时数据提取(real-pass)-开始执行,apiCode ={}", apiCode);
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                //Long transferFileContextId = 123L;
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(6);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setFileChildDir("data_yixin_pass");
+                transferFileTask.setTaskNumber(0);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
@@ -187,29 +232,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(5);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
-                transferFileTask.setFileChildDir("data_yixin_pass");
-                transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
-            }
-            //D20220706宜信实时数据逻辑处理-3710012
-            taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(6);
-            transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("宜信实时数据提取(real-pass)-开始执行,apiCode ={}", apiCode);
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                //Long transferFileContextId = 123L;
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(6);
                 transferFileTask.setBatchNumber(batchNumber);
                 transferFileTask.setFileName("");
                 transferFileTask.setFileChildDir("data_yixin_pass");
