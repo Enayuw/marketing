@@ -431,13 +431,14 @@ public class CoreScoreThread implements Callable<String> {
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo,marketingTask);
+                            , baseHeadConfigVO, fieldInfo,marketingTask,marketingTaskService);
                 }
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);
         }
     }
+
 
     private void dealResult(Writer fw, MarketingSyncUser blu) throws IOException {
         try {
@@ -446,7 +447,7 @@ public class CoreScoreThread implements Callable<String> {
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo,marketingTask);
+                        , baseHeadConfigVO, fieldInfo,marketingTask,marketingTaskService);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);

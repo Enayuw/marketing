@@ -110,6 +110,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
 
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
+
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
                                  String updateTimeStart, String updateTimeEnd, Integer taskStatus) {
@@ -597,7 +600,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         marketingTaskResultPreviews.forEach(t->{
             if(!new Integer(1).equals(t.getIsTitle())){
-                String[] field = t.getContent().split(",");
+                String[] field = t.getContent().split(",",-1);
                 HashMap<String, String> contentHs = new HashMap<>();
                 for (int i = 0; i < field.length; i++) {
                     String fieldValue = field[i];
@@ -613,5 +616,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         resData.setHeadDesc(titleDesc);
         resData.setContent(contentDesc);
         return new Result<ResultPreviewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(resData);
+    }
+
+    @Override
+    public void saveScoreResult(MarketingTaskResultPreview preview) {
+        marketingTaskResultPreviewMapper.insertSelective(preview);
     }
 }

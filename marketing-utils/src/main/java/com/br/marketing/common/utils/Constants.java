@@ -61,6 +61,7 @@ public class Constants {
     public static Map<String, String> monitorTypeMap = new HashMap<>();
     static {
         monitorTypeMap.put("1","once");
+        monitorTypeMap.put("2","once");
         monitorTypeMap.put("3","all");
         monitorTypeMap.put("4","all");
     }
