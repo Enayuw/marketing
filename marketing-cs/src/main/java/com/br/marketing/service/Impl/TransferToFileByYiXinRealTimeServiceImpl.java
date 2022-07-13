@@ -7,13 +7,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.MarketingTransferSyncUserAndStatusDTO;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
@@ -58,9 +54,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     @Resource
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     final static String EXECUTE_TIME = " 20:00:00";
     final static String EXECUTE_TIME_NO_REALTIME = " 12:00:00";
@@ -302,35 +299,50 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         LocalDate endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
+        int totalSize = 0;
         //去重后的Set
         HashSet custNumResult = new HashSet();
         while(true){
             while (mark) {
-                List<MarketingTransferSyncUserAndStatusDTO> transferData = marketingTransferSyncUserMapper.getTransferByTransformTypeAndStatus(tcId, apiCode, endDate.toString(),page * 2000);
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByTransformTypeAndStatus(tcId, apiCode, endDate.toString(),page * 2000);
                 if (CollectionUtils.isEmpty(transferData)){
                     mark = Boolean.FALSE;
                     continue;
                 }
                 page++;
-                List<MarketingTransferSyncUserAndStatusDTO> dataFilter = new ArrayList<>();
-                for (MarketingTransferSyncUserAndStatusDTO marketingTransferSyncUserDto : transferData) {
-                    if(StringUtils.isNotEmpty(marketingTransferSyncUserDto.getReserveField1())){
-                        JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUserDto.getReserveField1());
+                List<MarketingTransferSyncUser> custNumFilter = new ArrayList<>();
+                for (MarketingTransferSyncUser marketingTransferSyncUser : transferData) {
+                    if(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())){
+                        JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
                         //实时数据transformType=1
                         if ((StringUtils.isNotEmpty(reserveField1.getString("transformType"))) && ("1".equals(reserveField1.getString("transformType")))) {
                             //过滤掉 同一custNum的其他insertTime数据，custNumResult
-                            if (custNumResult.add(marketingTransferSyncUserDto.getCustNum())) {
-                                dataFilter.add(marketingTransferSyncUserDto);
+                            if (custNumResult.add(marketingTransferSyncUser.getCustNum())) {
+                                custNumFilter.add(marketingTransferSyncUser);
                             }
                         }
                     }
                 }
+                if (CollectionUtils.isEmpty(custNumFilter)) {
+                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1的数据,apiCode = {}", apiCode);
+                    continue;
+                }
+                List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
+                for(MarketingTransferSyncUser custNumData : custNumFilter){
+                    if(StringUtils.isNotEmpty(custNumData.getCustNum())){
+                        //上传表取最新的案件状态
+                        MarketingSyncUser newestByCustNum = marketingSyncUserMapper.getNewestByCustNum(apiCode, custNumData.getCustNum());
+                        if(newestByCustNum!=null && newestByCustNum.getStatus()!=null && newestByCustNum.getStatus()==1){
+                            dataFilter.add(custNumData);
+                        }
+                    }
+                }
                 if (CollectionUtils.isEmpty(dataFilter)) {
-                    log.warn("宜信实时数据提取-该批次无transformType=1的数据,apiCode = {}", apiCode);
+                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1&&status=1的数据,apiCode = {}", apiCode);
                     continue;
                 }
 
-                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUserAndStatusDTO::getCustNum).collect(Collectors.toSet());
+                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                 List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
                 Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
                         Collectors.groupingBy(MarketingSyncUser::getCustNum
@@ -339,28 +351,28 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                                 v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                         , Optional::get)));
 
-                for (MarketingTransferSyncUserAndStatusDTO transferFilterData : dataFilter) {
-                    if(transferFilterData.getStatus()!=null && transferFilterData.getStatus()==1){
-                        String custNum = transferFilterData.getCustNum();
-                        String cell = "";
-                        if (preUserMap.containsKey(custNum)) {
-                            String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                            cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
-                        }
-                        String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
-                        //custNum,cell,liveType,createTime
-                        JSONObject reserveField1 = JSON.parseObject(transferFilterData.getReserveField1());
-                        String liveType = StringUtils.isNotEmpty(reserveField1.getString("liveType"))?reserveField1.getString("liveType"):"";
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(custNum.concat(","));
-                        sb.append(cell.concat(","));
-                        sb.append(liveType.concat(","));
-                        sb.append(createTime);
-                        sb.append("\r\n");
-                        fw.append(sb.toString());
+                for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+                    String custNum = transferFilterData.getCustNum();
+                    String cell = "";
+                    if (preUserMap.containsKey(custNum)) {
+                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
                     }
+                    String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
+                    //custNum,cell,liveType,createTime
+                    JSONObject reserveField1 = JSON.parseObject(transferFilterData.getReserveField1());
+                    String liveType = StringUtils.isNotEmpty(reserveField1.getString("liveType"))?reserveField1.getString("liveType"):"";
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(custNum.concat(","));
+                    sb.append(cell.concat(","));
+                    sb.append(liveType.concat(","));
+                    sb.append(createTime);
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
                 }
+                totalSize = totalSize + dataFilter.size();
                 dataFilter.clear();
+                custNumFilter.clear();
                 transferData.clear();
             }
             endDate = endDate.minusDays(1);
@@ -370,7 +382,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 break;
             }
         }
-        int totalSize = custNumResult.size();
         custNumResult.clear();
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());

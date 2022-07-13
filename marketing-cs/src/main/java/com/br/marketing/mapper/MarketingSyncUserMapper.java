@@ -30,4 +30,6 @@ public interface MarketingSyncUserMapper {
     int updateSyncUserCaseEffective(@Param("apiCode") String apiCode,@Param("uIds") Set<String> uIds);
 
     List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
+
+    MarketingSyncUser getNewestByCustNum(@Param("apiCode") String apiCode,@Param("custNum") String custNum);
 }
