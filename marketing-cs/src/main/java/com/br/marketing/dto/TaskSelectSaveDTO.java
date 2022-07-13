@@ -30,4 +30,11 @@ public class TaskSelectSaveDTO {
     @NotNull(message = "规则id不能为空")
     @Size(min = 1,message = "规则id不能为空")
     private List<Long> ruleIds;
+
+    @ApiModelProperty(value = "数据条数 大于500无效")
+    @Size(max = 500,message = "验证条数不能大于500")
+    private Integer dataLimit;
+
+    @ApiModelProperty(value = "是否规则验证 1-验证；不传或者其他值不做处理")
+    private Integer isOrNoScoreVer;
 }
