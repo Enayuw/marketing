@@ -76,7 +76,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        log.warn("TransferFileTaskJob传入的自定义参数为:{}", jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -92,6 +91,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     for (TransferFileTask datum : data) {
                         //自定义参数传入格式举例 7410785:2022-07-11,true;7412003:123;.....
                         String myParam = serviceImpl.isMyParam(datum.getApiCode(), jobParameter);
+                        log.warn("apicode={}获取的自定义参数为{}",datum.getApiCode(),myParam);
                         Result result = serviceImpl.actionTransferToFile(datum, myParam);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
