@@ -64,6 +64,11 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     private String path;
 
     @Override
+    public String isMyParam(String apiCode, String jobParameter) {
+        return "";
+    }
+
+    @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
 
         List<TransferFileTask> resultList = new ArrayList<>();
