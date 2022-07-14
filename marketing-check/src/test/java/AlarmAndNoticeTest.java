@@ -8,6 +8,7 @@ import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -114,11 +115,11 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
+    private TransferToFileByYiXinRealTimeServiceImpl transferToFileByShuHeService;
 
     @Test
     public void transferFileTest(){
-        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7410785");
+        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7412003");
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){

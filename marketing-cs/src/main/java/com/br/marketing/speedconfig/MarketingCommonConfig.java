@@ -115,6 +115,11 @@ public class MarketingCommonConfig {
     private String yinXinTransferNoRealTimeExecuteTime;
 
     /**
+     * 宜信实时转化数据real-pass执行时间
+     */
+    private String yinXinTransferRealPassExecuteTime;
+
+    /**
      * 是否开启宜信非实时数据提取
      */
     private Boolean isOpenYinXinTransferNoRealTimeExtract;
