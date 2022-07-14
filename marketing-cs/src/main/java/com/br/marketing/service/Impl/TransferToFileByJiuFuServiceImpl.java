@@ -68,9 +68,9 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         if(StringUtils.isNotEmpty(jobParameter)){
             String[] split = jobParameter.split(";");
             for(String s : split){
-                String paramApiCode = s.split(":")[0];
+                String paramApiCode = s.split("#")[0];
                 if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getJiuFuTransferApiCodes().contains(paramApiCode)){
-                    return s.split(":")[1];
+                    return s.split("#")[1];
                 }
             }
         }

@@ -70,9 +70,9 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         if(StringUtils.isNotEmpty(jobParameter)){
             String[] split = jobParameter.split(";");
             for(String s : split){
-                String paramApiCode = s.split(":")[0];
+                String paramApiCode = s.split("#")[0];
                 if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(paramApiCode)){
-                    return s.split(":")[1];
+                    return s.split("#")[1];
                 }
             }
         }

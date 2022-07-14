@@ -89,7 +89,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        //自定义参数传入格式举例 7410785:2022-07-11,true;7412003:123;.....
+                        //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
                         String myParam = serviceImpl.isMyParam(datum.getApiCode(), jobParameter);
                         log.warn("apicode={}获取的自定义参数为{}",datum.getApiCode(),myParam);
                         Result result = serviceImpl.actionTransferToFile(datum, myParam);
