@@ -389,7 +389,7 @@ public class ResultUtil {
                 }else if("cell".equals(title)){
                     mh.setCell(strCell);
                 }else{
-                    conditionObj.put(title,StringUtils.isBlank(str)?"":str);
+                    conditionObj.put(head.getName(),StringUtils.isBlank(str)?"":str);
                 }
                 //endregion
             }

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TransferSyncReportMapper">
+    <select id="dateTimeMinMaxCountSMY" resultType="com.br.marketing.entity.TransferSyncReport">
+        select min(create_time) appletBeginTime, max(create_time) appletEndTime, count(*) dataCount
+        from b_marketing_transfer_${apiCode}
+        where create_time between '${dateStr} 00:00:00' and '${dateStr} 23:59:59'
+          and group_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="dateTimeMinMaxCount" resultType="com.br.marketing.entity.TransferSyncReport">
+        select min(create_time) appletBeginTime, max(create_time) appletEndTime, count(*) dataCount
+        from b_marketing_transfer_sync_${tCid}
+        where request_data = #{dateStr,jdbcType=VARCHAR}
+          and api_code = #{apiCode,jdbcType=VARCHAR}
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectList" resultType="com.br.marketing.vo.TransferSyncReportVO">
+        select id, cid
+        , api_code as apiCode
+        , short_name as shortName
+        , applet_date as appletDate
+        , user_type as userType
+        , format(data_count,'N0') as dataCount
+        , bmsr.applet_begin_time as appletBeginTime
+        , bmsr.applet_end_time as appletEndTime
+        , bmsr.create_time as createTime
+        , bmsr.update_time as updateTime
+        from b_marketing_transfer_sync_report bmsr
+        <include refid="sql_transfer_sync_where"/>
+        order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
+    </select>
+
+    <select id="getReportListTotal" resultType="java.lang.Long">
+        select sum(data_count) as numTotal
+        from b_marketing_transfer_sync_report bmsr
+        <include refid="sql_transfer_sync_where"/>
+    </select>
+    <sql id="sql_transfer_sync_where">
+        <where>
+            <if test="appletTimeStart !=null and appletTimeStart!=''">
+                <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
+            </if>
+            <if test="appletTimeEnd !=null and appletTimeEnd!=''">
+                <![CDATA[  and bmsr.applet_date <#{appletTimeEnd} ]]>
+            </if>
+            <if test="apiCodeList != null and apiCodeList.size()>0">
+                and bmsr.api_code in
+                <foreach collection="apiCodeList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="userTypeList != null and userTypeList.size()>0">
+                and bmsr.user_type in
+                <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="cidOrName != null and cidOrName.trim() neq ''">
+                and (bmsr.cid like concat("%", #{cidOrName},"%")
+                or bmsr.short_name like concat("%", #{cidOrName},"%"))
+            </if>
+        </where>
+    </sql>
+</mapper>
