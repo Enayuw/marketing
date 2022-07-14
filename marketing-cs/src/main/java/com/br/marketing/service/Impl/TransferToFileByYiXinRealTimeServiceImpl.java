@@ -327,13 +327,17 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     log.warn("宜信实时数据real-pass提取-该批次无transformType=1的数据,apiCode = {}", apiCode);
                     continue;
                 }
+                Set<String> custNums = custNumFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                List<MarketingSyncUser> newestByCustNum = marketingSyncUserMapper.getNewestByCustNums(apiCode, custNums);
+
                 List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
                 for(MarketingTransferSyncUser custNumData : custNumFilter){
-                    if(StringUtils.isNotEmpty(custNumData.getCustNum())){
-                        //上传表取最新的案件状态
-                        MarketingSyncUser newestByCustNum = marketingSyncUserMapper.getNewestByCustNum(apiCode, custNumData.getCustNum());
-                        if(newestByCustNum!=null && newestByCustNum.getStatus()!=null && newestByCustNum.getStatus()==1){
-                            dataFilter.add(custNumData);
+                    for(MarketingSyncUser custNum : newestByCustNum){
+                        if(StringUtils.isNotEmpty(custNumData.getCustNum()) && StringUtils.isNotEmpty(custNum.getCustNum()) && custNumData.getCustNum().equals(custNum.getCustNum())){
+                            //上传表取最新的案件状态
+                            if(custNum.getStatus()!=null && custNum.getStatus()==1){
+                                dataFilter.add(custNumData);
+                            }
                         }
                     }
                 }

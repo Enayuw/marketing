@@ -31,5 +31,5 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
 
-    MarketingSyncUser getNewestByCustNum(@Param("apiCode") String apiCode,@Param("custNum") String custNum);
+    List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode,@Param("custNums") Set<String> custNums);
 }
