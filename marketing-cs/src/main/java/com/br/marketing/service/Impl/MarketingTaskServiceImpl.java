@@ -534,7 +534,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .append("ruleName：".concat(ruleVO.getRuleName()).concat("\r\n"))
                 .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
-                .append(String.format("预计数量: %d", preNum));
+                .append(String.format("预计数量: %d", new Integer(1).equals(ruleVO.getIsOrNoScoreVer())
+                        ?(ruleVO.getDataLimit()!=null&&preNum>ruleVO.getDataLimit()?ruleVO.getDataLimit():ruleVO.getDataLimit())
+                        :preNum));
         alarmClient.sendAlarm(content.toString(), "任务创建", appName, secretKey,
                 Constants.sendCodeMap.get("uploadSuccess"));
         //endregion
