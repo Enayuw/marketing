@@ -5,7 +5,7 @@ import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;

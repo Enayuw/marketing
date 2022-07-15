@@ -3,9 +3,9 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
@@ -56,6 +56,7 @@ public class RuleOfScoreController {
             , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
             , @RequestParam(name = "size", defaultValue = "10") int pageSize
             , @RequestParam(required = false) String search

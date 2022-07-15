@@ -6,7 +6,8 @@ import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
@@ -49,6 +50,7 @@ public class CustomerController {
     @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CustomerSelectVO.class)})
     @GetMapping({"/list", "/list/{cid}"})
+    @AddDataAuthBusiness
     public ApiResult<List<CustomerSelectVO>> getCidOrApiCodeList(@PathVariable(value = "cid", required = false) String cid) {
         List<CustomerSelectVO> list = marketingCustomerService.getCidOrApiCodeList(cid);
         return new ApiResult<List<CustomerSelectVO>>().setData(list).success();

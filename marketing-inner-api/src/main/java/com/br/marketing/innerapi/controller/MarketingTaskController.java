@@ -1,27 +1,19 @@
 package com.br.marketing.innerapi.controller;
 
-import IceInternal.Ex;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.service.FastTaskRuleService;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.vo.FastTaskRuleDetailVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
@@ -60,6 +52,7 @@ public class MarketingTaskController {
             , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
     })
     @GetMapping("/list")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String search
@@ -116,6 +109,7 @@ public class MarketingTaskController {
     @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
     @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getTask")
+    @AddDataAuthBusiness
     public ApiResult<MarketingTaskVO> getTask(String id) {
         try {
             MarketingTaskVO vo = marketingTaskService.getTask(id);

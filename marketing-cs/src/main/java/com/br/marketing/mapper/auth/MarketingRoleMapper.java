@@ -18,7 +18,6 @@ public interface MarketingRoleMapper {
 
     int insertSelective(MarketingRole record);
 
-    @AddDataAuth
     List<MarketingRole> selectByExample(MarketingRoleExample example);
 
     MarketingRole selectByPrimaryKey(Integer id);

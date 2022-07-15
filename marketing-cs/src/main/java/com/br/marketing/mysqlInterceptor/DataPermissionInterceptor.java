@@ -1,6 +1,7 @@
 package com.br.marketing.mysqlInterceptor;
 
 import com.br.common.util.StringUtils;
+import com.br.marketing.context.ThreadApicodeInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -143,7 +144,6 @@ public class DataPermissionInterceptor implements Interceptor {
          */
 
 
-        AddDataAuth addDataAuth = null;
         Object[] args = invocation.getArgs();
         MappedStatement mappedStatement = (MappedStatement) args[MAPPED_STATEMENT_INDEX];
         Object parameter = args[PARAM_OBJ_INDEX];
@@ -168,7 +168,9 @@ public class DataPermissionInterceptor implements Interceptor {
         String sql = boundSql.getSql();
         Configuration configuration = mappedStatement.getConfiguration();
         AddDataAuth permissionByDelegate = getPermissionByDelegate(mappedStatement);
-        if(permissionByDelegate!=null){
+        String apicode = ThreadApicodeInfo.getData();
+        //符合过滤条件：接口和Mapper双注解
+        if (permissionByDelegate != null && StringUtils.isNotBlank(apicode)) {
 
             String sqlId = mappedStatement.getId();
             //String newSql = printSqlLog(configuration, boundSql, sqlId);
@@ -179,20 +181,19 @@ public class DataPermissionInterceptor implements Interceptor {
             //if (id.contains(COUNT_PRE)) {
             //     finalSql = sql +" and id in(60091,30094,30093)";
             //}else {
-                finalSql = "select * from ("+sql+")  as u where u.id in(1,2,3)";
+            finalSql = "select * from (" + sql + ")  as u where u.api_code in(" + apicode + ")";
             //}
-
 
             Field field = boundSql.getClass().getDeclaredField("sql");
             field.setAccessible(true);
             field.set(boundSql, finalSql);
             //field.set(boundSql, sql);
-            printSqlLog(configuration,boundSql);
+            printSqlLog(configuration, boundSql);
             //执行修改后的sql语句
             return executor.query(mappedStatement, parameter, rowBounds, resultHandler, cacheKey, boundSql);
 
-        }else {
-            printSqlLog(configuration,boundSql);
+        } else {
+            printSqlLog(configuration, boundSql);
             return invocation.proceed();
         }
     }
@@ -254,6 +255,7 @@ public class DataPermissionInterceptor implements Interceptor {
     public void setProperties(Properties properties) {
         System.out.println(333);
     }
+
     /**
      * 获取数据权限注解信息
      *

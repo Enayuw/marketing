@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.FastTaskRuleListVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ScoreDetailVo;
@@ -29,6 +30,7 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      * @param taskStatus
      * @return
      */
+    @AddDataAuth
     List<MarketingTaskVO> selectList(@Param("search")String search, @Param("status")Integer status,
                                      @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
                                      @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,

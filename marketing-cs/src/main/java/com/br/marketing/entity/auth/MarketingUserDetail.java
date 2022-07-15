@@ -19,9 +19,9 @@ public class MarketingUserDetail extends MarketingUserInfo{
     private String sessionId;
     private List<MarketingRole> roleList;
     private List<MarketingResource> resourcesList;
-    private Map<String, JSONArray> permissionGroups;
+    private Map<String, Object> permissionGroups;
 
-    public MarketingUserDetail(MarketingUserInfo user, List<MarketingRole> roleList, List<MarketingResource> resourcesList, Map<String, JSONArray> permissionGroups) {
+    public MarketingUserDetail(MarketingUserInfo user, List<MarketingRole> roleList, List<MarketingResource> resourcesList, Map<String, Object> permissionGroups) {
         super(user);
         this.roleList = roleList;
         this.resourcesList = resourcesList;

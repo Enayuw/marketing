@@ -1,4 +1,4 @@
-package com.br.marketing.innerapi.config;
+package com.br.marketing.context;
 
 
 import com.br.marketing.entity.auth.MarketingUserDetail;

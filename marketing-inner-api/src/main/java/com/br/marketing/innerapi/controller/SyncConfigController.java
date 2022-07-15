@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.SyncConfigEditVO;
 import io.swagger.annotations.*;
@@ -40,6 +41,7 @@ public class SyncConfigController {
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getSftpList(@RequestParam(defaultValue = "1") int current
                                                         , @RequestParam(defaultValue = "10") int size
                                                         , @RequestParam(required = false) String apiCode) {

@@ -578,7 +578,7 @@
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
         select bmt.id,
         shf.id                                            as `hisFileId`,
-        bmt.api_code                                      as `apiCode`,
+        bmt.api_code                                      ,
         bmt.batch_number as `batchNumber`,
         bsrc.id                                           as `ruleId`,
         bsrc.rule_name                                    as `ruleName`,

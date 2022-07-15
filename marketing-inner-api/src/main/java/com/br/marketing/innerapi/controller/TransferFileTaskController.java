@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.TransferFileTaskService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public class TransferFileTaskController {
             , @ApiImplicitParam(name = "startDateEnd", value = "执行日期截至", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String serach

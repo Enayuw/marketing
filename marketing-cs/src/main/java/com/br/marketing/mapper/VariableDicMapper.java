@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.VariableDicListVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,5 +14,6 @@ public interface VariableDicMapper extends VariableDicMapperBase {
      * @param apiCode
      * @return
      */
+    @AddDataAuth
     List<VariableDicListVO> getVariableDicList(@Param("cid")String cid, @Param("apiCode")String apiCode);
 }

@@ -32,6 +32,6 @@ public interface MarketingUserInfoMapper {
     int updateByPrimaryKey(MarketingUserInfo record);
 
     MarketingUserInfo selectUserInfo(MarketingUserInfoExample marketingUserInfoExample);
-    @AddDataAuth
+
     List<MarketingUserInfo> selectByExampleList(Map<String,Object> marketingUserInfoExample);
 }

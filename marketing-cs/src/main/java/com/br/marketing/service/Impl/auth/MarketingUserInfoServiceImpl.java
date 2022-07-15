@@ -12,6 +12,8 @@ import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingUserInfoService;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +64,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             List<MarketingRole> marketingRoles = marketingUserInfoRoleMapper.getRolesByUid(marketingUserInfo.getId());
             // 查询当前角色的资源
             List<MarketingResource> marketingResources = marketingUserInfoRoleMapper.getResourcesByUid(marketingUserInfo.getId());
-            MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, new HashMap<>(16));
+            MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, ImmutableMap.of("apicode", marketingUserInfo.getApiCode()));
             marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
             request.getSession().setAttribute(AuthConstants.SESSION_USER, marketingUserDetail);
