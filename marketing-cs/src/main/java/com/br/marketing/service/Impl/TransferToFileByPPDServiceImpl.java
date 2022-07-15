@@ -12,6 +12,7 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -162,14 +163,21 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
                 log.warn("拍拍贷新客转人工数据提取-该批次无符合要求的数据,apiCode = {}", apiCode);
                 continue;
             }
-            Set<String> set = infoData.stream().map(PhoneSaleExtendInfo::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-            Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
-                    Collectors.groupingBy(MarketingSyncUser::getCustNum
-                            , Collectors.collectingAndThen(
-                                    Collectors.reducing((v1, v2) ->
-                                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                    , Optional::get)));
+            List<String> list = infoData.stream().map(PhoneSaleExtendInfo::getCustNum).collect(Collectors.toList());
+            List<List<String>> partition = ListUtils.partition(list, 500);
+            Map<String, MarketingSyncUser> preUserMap = new HashMap<>();
+            for (List<String> strings : partition) {
+                Set<String> set = strings.stream().collect(Collectors.toSet());
+                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+                Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(
+                        Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                , Collectors.collectingAndThen(
+                                        Collectors.reducing((v1, v2) ->
+                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                        , Optional::get)));
+                preUserMap.putAll(map);
+            }
+
             for (PhoneSaleExtendInfo data : infoData) {
                 //custNum,userType,cell,status,push_dx_time
                 String custNum = data.getCustNum();
