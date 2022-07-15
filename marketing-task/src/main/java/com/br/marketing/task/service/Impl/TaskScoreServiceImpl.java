@@ -311,7 +311,7 @@ public class TaskScoreServiceImpl {
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
-                    , flagproductlist, marketingTaskExtend));
+                    , flagproductlist, marketingTaskExtend,true));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -517,7 +517,7 @@ public class TaskScoreServiceImpl {
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt
-                                    , noflagproductlist, flagproductlist, marketingTaskExtend));
+                                    , noflagproductlist, flagproductlist, marketingTaskExtend,false));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }

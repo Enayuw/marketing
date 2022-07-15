@@ -55,10 +55,11 @@ public class CoreScoreThread implements Callable<String> {
     private List<String> noflagproductlist;
     private List<String> flagProductList;
     private MarketingTaskService marketingTaskService;
+    private Boolean isRetry;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
-            , List<String> noflagproductlist, List<String> flagProductList,MarketingTaskExtend marketingTaskExtend) {
+            , List<String> noflagproductlist, List<String> flagProductList,MarketingTaskExtend marketingTaskExtend,Boolean isRetry) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -79,6 +80,7 @@ public class CoreScoreThread implements Callable<String> {
         this.noflagproductlist = noflagproductlist;
         this.flagProductList = flagProductList;
         this.marketingTaskService = Scheduler.ac.getBean(MarketingTaskService.class);
+        this.isRetry = isRetry;
         BaseHeadConfigVO o = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
         }.getType());
         StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
@@ -97,7 +99,9 @@ public class CoreScoreThread implements Callable<String> {
             log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
             return null;
         }
-        marketingTaskService.addTaskPercent(marketingTask.getFileId(),Long.valueOf(list.size()));
+        if(!isRetry) {
+            marketingTaskService.addTaskPercent(marketingTask.getFileId(), Long.valueOf(list.size()));
+        }
 //        boolean check = this.checkRedisNumber();
         log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
 

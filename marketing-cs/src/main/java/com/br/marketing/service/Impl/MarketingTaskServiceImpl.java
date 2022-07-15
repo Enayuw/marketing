@@ -356,9 +356,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
         for (int i = 0; i < data.size(); i++) {
+            if(isVer&&preMaxNum<=0){
+                continue;
+            }
             String whereStr = data.get(i);
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
+            if (isVer) {
+                integer = integer >= preMaxNum ? preMaxNum : integer;
+                preMaxNum = preMaxNum - integer;
+            }
             count += integer;
             showStr.append(s).append("总数据" + integer);
             if (i < data.size() - 1) {
@@ -376,7 +383,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode, time);
         }
-        return saveTask(apiCode, number, vo, vo.getStartDate(), isVer ? (count > preMaxNum ? preMaxNum : count) : count, 2, showStr.toString());
+        return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
 
     }
 
