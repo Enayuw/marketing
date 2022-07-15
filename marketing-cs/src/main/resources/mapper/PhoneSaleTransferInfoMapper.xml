@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PhoneSaleTransferInfoMapper">
+    <insert id="insertSelectiveBatch" parameterType="list">
+        insert into b_phone_sale_transfer_info (
+        api_code,
+        cusa_num,
+        user_type,
+        applet_date,
+        data_type,
+        create_time,
+        update_time,
+        transform_status,
+        source_id)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR},
+            #{data.cusaNum,jdbcType=VARCHAR},
+            #{data.userType,jdbcType=VARCHAR},
+            #{data.appletDate,jdbcType=VARCHAR},
+            #{data.dataType,jdbcType=INTEGER},
+            #{data.createTime,jdbcType=TIMESTAMP},
+            #{data.updateTime,jdbcType=TIMESTAMP},
+            #{data.transformStatus,jdbcType=VARCHAR},
+            #{data.sourceId,jdbcType=BIGINT})
+        </foreach>
+    </insert>
+    <select id="findCusaNumList" resultType="java.lang.String">
+        select cusa_num from b_phone_sale_transfer_info
+        <where>
+            <choose>
+                <when test="info != null">
+                    <if test="info.id != null">
+                        and id = #{info.id,jdbcType=BIGINT}
+                    </if>
+                    <if test="info.apiCode != null">
+                        and api_code = #{info.apiCode,jdbcType=VARCHAR}
+                    </if>
+                    <if test="info.cusaNum != null">
+                        and cusa_num = #{info.cusaNum,jdbcType=VARCHAR}
+                    </if>
+                    <if test="info.userType != null">
+                        and user_type = #{info.userType,jdbcType=VARCHAR}
+                    </if>
+                    <if test="info.appletDate != null">
+                        and applet_date = #{info.appletDate,jdbcType=VARCHAR}
+                    </if>
+                    <if test="info.dataType != null">
+                        and data_type = #{info.dataType,jdbcType=INTEGER}
+                    </if>
+                    <if test="info.createTime != null">
+                        and create_time = #{info.createTime,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="info.updateTime != null">
+                        and update_time = #{info.updateTime,jdbcType=TIMESTAMP}
+                    </if>
+                    <if test="info.transformStatus != null">
+                        and transform_status = #{info.transformStatus,jdbcType=VARCHAR}
+                    </if>
+                    <if test="info.sourceId != null">
+                        and source_id = #{info.sourceId,jdbcType=BIGINT}
+                    </if>
+                    <if test="cusaNums != null">
+                        and cusa_num in (
+                        <foreach collection="cusaNums" item="data" separator=",">
+                            #{data,jdbcType=VARCHAR}
+                        </foreach>
+                        )
+                    </if>
+                </when>
+                <otherwise>
+                    1!=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+</mapper>
