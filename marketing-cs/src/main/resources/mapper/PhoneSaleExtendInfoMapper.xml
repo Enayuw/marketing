@@ -124,13 +124,28 @@
              #{data.updateTime,jdbcType=TIMESTAMP}, #{data.type,jdbcType=VARCHAR}, #{data.dxType,jdbcType=VARCHAR},
              #{data.pushDxTime,jdbcType=TIMESTAMP}, #{data.transformType,jdbcType=VARCHAR}, #{data.sourceId,jdbcType=BIGINT}
              )
-            </foreach>
+         </foreach>
     </insert>
 
     <update id="updateBatch">
-        update b_phone_sale_extend_info set p_status = 2 where p_status = 1 and source_id  in
+        update b_phone_sale_extend_info set p_status = 2 where p_status = 1 and source_id in
         <foreach collection="set" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </update>
+
+    <select id="findPushPhoneSaleListPage" resultType="com.br.marketing.entity.PhoneSaleExtendInfo">
+        select t1.id, cust_num, create_time
+        from b_phone_sale_extend_info t1
+           , (select id
+              from b_phone_sale_extend_info
+              where api_code = #{apiCode}
+                and user_type = #{userType}
+        <![CDATA[ and create_time >= #{startDateTime} ]]>
+        <![CDATA[ and create_time < #{endDateTime} ]]>
+        and ifnull(task_id, '0') != '0'
+                and ifnull(status, '0') != '0'
+              limit ${(pageNum - 1) * pageSize},#{pageSize}) as t2
+        where t2.id = t1.id
+    </select>
 </mapper>
