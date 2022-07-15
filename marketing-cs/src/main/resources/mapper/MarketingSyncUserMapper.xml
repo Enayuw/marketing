@@ -198,4 +198,18 @@
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
     </select>
+
+    <select id="getSyncUserTimeMaxByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select max(create_time) as createTime, cust_num
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and user_type=#{userType}
+        <if test="dateTimeEnd!=null and dateTimeEnd.trim() neq ''">
+            <![CDATA[ and create_time < #{dateTimeEnd} ]]>
+        </if>
+        and status=1 group by cust_num
+    </select>
 </mapper>

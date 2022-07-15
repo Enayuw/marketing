@@ -1,12 +1,15 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -14,12 +17,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
 
     @Autowired
     MarketingSyncInfoMapper marketingSyncInfoMapper;
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
     public Long countRepeat(String execSql) {
@@ -120,5 +126,14 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
             , String userType) {
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
+    }
+
+    @Override
+    public Map<String, Date> getSyncUserTimeMaxByCustNumsMap(String apiCode, Set<String> custNums, String userType
+            , String dateTimeEnd) {
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserTimeMaxByCustNums(
+                apiCode, custNums, userType, dateTimeEnd);
+        return syncUserList.parallelStream().collect(Collectors.toMap(
+                MarketingSyncUser::getCustNum, MarketingSyncUser::getCreateTime, (k1, k2) -> k2));
     }
 }

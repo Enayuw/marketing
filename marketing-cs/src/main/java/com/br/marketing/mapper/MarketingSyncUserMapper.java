@@ -23,11 +23,25 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 根据客户编号修改上传详情表数据为剔除状态
+     *
      * @param apiCode
      * @param uIds
      * @return
      */
-    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode,@Param("uIds") Set<String> uIds);
+    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode, @Param("uIds") Set<String> uIds);
 
-    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
+    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums);
+
+    /**
+     * 2022/7/14 11:20
+     * 获取案件集合中最大时间
+     *
+     * @param dateTimeEnd 截止时间
+     * @return list
+     */
+    List<MarketingSyncUser> getSyncUserTimeMaxByCustNums(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNums
+            , @Param("userType") String userType
+            , @Param("dateTimeEnd") String dateTimeEnd);
+
 }
