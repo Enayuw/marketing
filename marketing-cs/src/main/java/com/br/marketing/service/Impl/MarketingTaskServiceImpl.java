@@ -343,6 +343,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo) {
 
+        Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
         Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
         if (!ResultCode.SUCCESS.getValue().equals(listResult.getCode())) {
@@ -352,6 +353,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         List<String> data = listResult.getData();
 
         Integer count = 0;
+        Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
         for (int i = 0; i < data.size(); i++) {
             String whereStr = data.get(i);
@@ -364,7 +366,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
         }
 
-        if(count<=0){
+        if (count <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode的统计记录失真，请更新该apicode所选的数据统计记录");
         }
 
@@ -374,7 +376,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode, time);
         }
-        return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
+        return saveTask(apiCode, number, vo, vo.getStartDate(), isVer ? (count > preMaxNum ? preMaxNum : count) : count, 2, showStr.toString());
 
     }
 
@@ -390,7 +392,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             datum.setConditionInfo(conditionInfo);
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
-            if(new Integer(1).equals(dto.getIsOrNoScoreVer())){
+            if (new Integer(1).equals(dto.getIsOrNoScoreVer())) {
                 datum.setExecType(2);
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
                 datum.setDataLimit(dto.getDataLimit());
@@ -534,9 +536,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .append("ruleName：".concat(ruleVO.getRuleName()).concat("\r\n"))
                 .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
-                .append(String.format("预计数量: %d", new Integer(1).equals(ruleVO.getIsOrNoScoreVer())
-                        ?(ruleVO.getDataLimit()!=null&&preNum>ruleVO.getDataLimit()?ruleVO.getDataLimit():ruleVO.getDataLimit())
-                        :preNum));
+                .append(String.format("预计数量: %d", preNum));
         alarmClient.sendAlarm(content.toString(), "任务创建", appName, secretKey,
                 Constants.sendCodeMap.get("uploadSuccess"));
         //endregion
@@ -570,7 +570,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .andApiCodeEqualTo(apiCode);
         List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(syncReportExample);
         ArrayList<StatisticsDataDayVO> statisticsDataDayVOS = new ArrayList<>();
-        marketingSyncReports.forEach(t->{
+        marketingSyncReports.forEach(t -> {
             StatisticsDataDayVO statisticsDataDayVO = new StatisticsDataDayVO();
             statisticsDataDayVOS.add(statisticsDataDayVO);
             statisticsDataDayVO.setDay(t.getAppletDate());
@@ -581,7 +581,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Result<ResultPreviewVO> resultPreview( Long tasId) {
+    public Result<ResultPreviewVO> resultPreview(Long tasId) {
         ResultPreviewVO resData = new ResultPreviewVO();
         MarketingTaskResultPreviewExample example = new MarketingTaskResultPreviewExample();
         example.createCriteria().andTaskIdEqualTo(tasId);
@@ -597,20 +597,20 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         for (String s : titleArray) {
             HashMap titleHs = new HashMap();
             titleHs.put("name", s);
-            titleHs.put("status",0);
+            titleHs.put("status", 0);
             titleDesc.add(titleHs);
         }
-        marketingTaskResultPreviews.forEach(t->{
-            if(!new Integer(1).equals(t.getIsTitle())){
-                String[] field = t.getContent().split(",",-1);
+        marketingTaskResultPreviews.forEach(t -> {
+            if (!new Integer(1).equals(t.getIsTitle())) {
+                String[] field = t.getContent().split(",", -1);
                 HashMap<String, String> contentHs = new HashMap<>();
                 for (int i = 0; i < field.length; i++) {
                     String fieldValue = field[i];
                     String fieldTitle = titleArray[i];
                     if (!StringUtils.isBlank(fieldValue)) {
-                        titleDesc.get(i).put("status",1);
+                        titleDesc.get(i).put("status", 1);
                     }
-                    contentHs.put(fieldTitle,StringUtils.isBlank(fieldValue)?"": fieldValue);
+                    contentHs.put(fieldTitle, StringUtils.isBlank(fieldValue) ? "" : fieldValue);
                 }
                 contentDesc.add(contentHs);
             }
