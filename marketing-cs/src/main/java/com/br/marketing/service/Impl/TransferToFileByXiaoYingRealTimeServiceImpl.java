@@ -194,6 +194,10 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
         return transferFileTask;
     }
 
+    /**
+     * jobParameter 格式：yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss
+     * eg: 2022-05-15 09:12:36,2022-06-15 09:12:36
+     */
     @Override
     public Result<Object> actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         Result<Object> result = new Result<>();
