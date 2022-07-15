@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -22,6 +25,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -44,6 +48,8 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     final static String EXECUTE_TIME = " 10:00:00";
 
@@ -120,7 +126,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,userType,status,push_dx_time");
+            fw.append("custNum,userType,cell,status,push_dx_time");
             fw.append("\r\n");
             //判断是否是首次提取
             LocalDate startDate;
@@ -156,15 +162,29 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
                 log.warn("拍拍贷新客转人工数据提取-该批次无符合要求的数据,apiCode = {}", apiCode);
                 continue;
             }
+            Set<String> set = infoData.stream().map(PhoneSaleExtendInfo::getCustNum).collect(Collectors.toSet());
+            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+            Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
+                    Collectors.groupingBy(MarketingSyncUser::getCustNum
+                            , Collectors.collectingAndThen(
+                                    Collectors.reducing((v1, v2) ->
+                                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                    , Optional::get)));
             for (PhoneSaleExtendInfo data : infoData) {
-                //custNum,userType,status,push_dx_time
+                //custNum,userType,cell,status,push_dx_time
                 String custNum = data.getCustNum();
                 String userType = data.getUserType();
+                String cell = "";
+                if (preUserMap.containsKey(custNum)) {
+                    String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                    cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                }
                 String status = data.getStatus();
                 String push_dx_time = data.getPushDxTime() == null ? "" : sdf2.format(data.getPushDxTime());;
                 StringBuilder sb = new StringBuilder();
                 sb.append((StringUtils.isNotEmpty(custNum)?custNum:"").concat(","));
                 sb.append((StringUtils.isNotEmpty(userType)?userType:"").concat(","));
+                sb.append(cell.concat(","));
                 sb.append((StringUtils.isNotEmpty(status)?status:"").concat(","));
                 sb.append(push_dx_time);
                 sb.append("\r\n");
