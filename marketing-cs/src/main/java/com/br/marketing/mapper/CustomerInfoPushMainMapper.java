@@ -13,6 +13,5 @@ public interface CustomerInfoPushMainMapper extends CustomerInfoPushMainMapperBa
     List<PushInfoDetailVO> getPushInfos(RequestPushInfoDTO dto);
 
     @AddDataAuth
-    //TODO sql语句是mApicode，需要修改
     List<PushInfoListVO> getPushInfoList(PushInfoFilterDTO dto);
 }

@@ -29,7 +29,7 @@
 
     <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
         select id,
-        m_api_code as mApiCode,
+        m_api_code as api_code,
         m_cus_batch_number_list as mCusBatchNumberList,
         m_rule_condition_show as mRuleConditionShow,
         m_rule_condition as mRuleCondition,

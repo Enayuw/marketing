@@ -371,7 +371,7 @@
 
   <select id="selectList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
     select id, cid
-    , api_code as apiCode
+    , api_code
     , short_name as shortName
     , applet_date as appletDate
     , user_type as userType
