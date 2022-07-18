@@ -207,8 +207,9 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         phoneSale.setDataType(PhoneSaleTransferDataTypeEnum.INVALID_DATA_FILTER.getValue());
         phoneSale.setApiCode(apiCode);
         phoneSale.setUserType(userType);
+        phoneSale.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         // 查询去重数据
-        List<String> cusaNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
+        Set<String> cusaNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
         List<PhoneSaleTransferInfo> phoneSaleList = new ArrayList<>();
         for (PhoneSaleExtendInfo info : listPage) {
             String custNum = info.getCustNum();
@@ -235,6 +236,8 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 phoneSaleTransferInfo.setCusaNum(custNum);
                 phoneSaleTransferInfo.setUserType(userType);
                 phoneSaleList.add(phoneSaleTransferInfo);
+                // 添加到去重集合
+                cusaNumList.add(custNum);
             }
         }
         // 批量保存推送记录
