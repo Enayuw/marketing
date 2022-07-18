@@ -17,7 +17,8 @@ public class AESUtil {
     private SecretKey sSecretKey = null;
     private Cipher sCipher = null;
     private String sKeyString = null;
-
+    private final static String zeroByPadding = "AES/CBC/ZeroBytePadding";
+    private final static String key_algorithm = "AES";
 
 
  /**
@@ -195,5 +196,24 @@ public class AESUtil {
 
         output = new String(sb);
         return output;
+    }
+
+    public static String encryptIv(String key,String value,String iv,String charset){
+        byte[] encrypt = encrypt(key.getBytes(), value, iv, charset);
+        return new String(Base64.encodeBase64(encrypt));
+    }
+
+    private static byte[] encrypt(byte[] rawKey, String clearPwd,String iv,String charset) {
+        try {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(rawKey, key_algorithm);
+            Cipher cipher = Cipher.getInstance(zeroByPadding);
+            IvParameterSpec _iv = new IvParameterSpec(iv.getBytes());
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec,_iv);
+            byte[] encypted = cipher.doFinal(clearPwd.getBytes(charset));
+            return encypted;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
