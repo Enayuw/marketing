@@ -64,6 +64,20 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     @Override
+    public String isMyParam(String apiCode,String jobParameter) {
+        if(StringUtils.isNotEmpty(jobParameter)){
+            String[] split = jobParameter.split(";");
+            for(String s : split){
+                String paramApiCode = s.split("#")[0];
+                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getJiuFuTransferApiCodes().contains(paramApiCode)){
+                    return s.split("#")[1];
+                }
+            }
+        }
+        return "";
+    }
+
+    @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();

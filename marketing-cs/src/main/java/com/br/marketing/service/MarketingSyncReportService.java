@@ -25,6 +25,15 @@ public interface MarketingSyncReportService {
     void syncReportProcess(String uploadDate);
 
     /**
+     * 根据日期 和 apiCode 对上传数据进行报表统计
+     *
+     * @param uploadDate
+     * @return
+     */
+    void syncReportProcessByApiCode(String uploadDate,String apiCode);
+
+
+    /**
      * 客户上传数据统计报表列表
      * @param current
      * @param size
@@ -47,5 +56,12 @@ public interface MarketingSyncReportService {
      * @return
      */
     Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
+
+
+    /**
+     * 根据上传日期和apicode进行删除统计
+     * @param json
+     */
+    void deleteReportByAppletDate(String json);
 
 }

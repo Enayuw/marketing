@@ -1,0 +1,350 @@
+package com.br.marketing.util;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 日期工具类
+ * --------------------------------
+ *
+ * @BelongsProject: IntelliJ IDEA
+ * @BelongsPackage: com.br.marketing.check.utils
+ * @Description: 日期工具类
+ * @CreateTime: 2022-07-01 14 :39
+ * @Version: 1.0
+ * @Author: guangchao.zhang
+ * ------------------------------
+ */
+@Slf4j
+public class TimeUtils {
+    private TimeUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DATE_FORMAT_ALL = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_STRING = "yyyyMMdd";
+    public static final String YMDHMS = "yyyyMMddHHmmss";
+
+    /**
+     * 转化日期
+     *
+     * @param date
+     * @return
+     */
+    public static String parseDateToString3return(Date date) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        return df.format(date);
+    }
+
+    /**
+     * 转化日期
+     *
+     * @param date
+     * @return
+     */
+    public static String parseDateToStr(Date date) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT_ALL);
+        return df.format(date);
+    }
+
+    /**
+     * 转化日期
+     *
+     * @param date
+     * @return
+     */
+    public static String parseDateToStrNo(Date date) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_STRING);
+        return df.format(date);
+    }
+
+    /**
+     * 格式转换 字符串转 时间
+     *
+     * @param time
+     * @return
+     */
+    public static Date parseStringToDate(String time) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        Date date = null;
+        if (StringUtils.isBlank(time)) {
+            return null;
+        } else {
+            try {
+                date = df.parse(time);
+            } catch (ParseException e) {
+                log.error("年月日parseStringToDate错误", e);
+            }
+        }
+        return date;
+    }
+
+    /**
+     * 格式转换 字符串转 时间
+     *
+     * @param time
+     * @return
+     */
+    public static Date parseStringToTime(String time) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT_ALL);
+        Date date = null;
+        if (StringUtils.isBlank(time)) {
+            return null;
+        } else {
+            try {
+                date = df.parse(time);
+            } catch (ParseException e) {
+                log.error("parseStringToTime错误", e);
+            }
+        }
+        return date;
+    }
+
+    /**
+     * 获取当前日期
+     *
+     * @param format
+     * @return
+     */
+    public static String getNowDate(String format) {
+        SimpleDateFormat df = new SimpleDateFormat(format);
+        return df.format(new Date());
+    }
+
+    /**
+     * 把日期(yyyy-MM-dd)往后增加n小时
+     *
+     * @return
+     */
+    public static String addDayHours(String basicDate, int hours) {
+        if (StringUtils.isBlank(basicDate)) {
+            return null;
+        }
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT_ALL);
+        String tmpDateStr = null;
+        try {
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(parseStringToDate(basicDate));
+            // 把日期往后增加n小时.整数往后推,负数往前移动
+            calendar.add(Calendar.HOUR, hours);
+            // 这个时间就是日期往后推n小时的结果
+            tmpDateStr = df.format(calendar.getTime());
+        } catch (Exception e) {
+            log.error("addDayHours错误", e);
+        }
+        return tmpDateStr;
+    }
+
+    /**
+     * 指定日期加或减days天
+     *
+     * @param date 日期
+     * @param days 天数
+     * @return
+     */
+    public static Date addDay(Date date, int days) {
+        Calendar dateC = Calendar.getInstance();
+        dateC.setTime(date);
+        dateC.add(Calendar.DAY_OF_YEAR, days);
+        return dateC.getTime();
+    }
+
+    /**
+     * 根据日期获取（前或后N天）的时间
+     *
+     * @param basicDate
+     * @param n
+     * @return
+     */
+    public static String nDaysAfterOneDateString(String basicDate, int n) {
+        if (basicDate == null || "".equals(basicDate)) {
+            return null;
+        }
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        String tmpDateStr = null;
+        try {
+            Date tmpDate = df.parse(basicDate);
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(tmpDate);
+            // 把日期往后增加一天.整数往后推,负数往前移动
+            calendar.add(Calendar.DATE, n);
+            // 这个时间就是日期往后推一天的结果
+            tmpDateStr = df.format(calendar.getTime());
+        } catch (ParseException e) {
+            log.error("年月日nDaysAfterOneDateString错误", e);
+        }
+        return tmpDateStr;
+    }
+
+    /**
+     * @param model 1:">" 2:"<" 3:">=" 4:"<=" 5:"="
+     * @param date1
+     * @param date2
+     * @return 比较两个时间的大小 返回true 或者false
+     */
+    public static boolean compareDate(String date1, String date2, Integer model, String format) {
+        DateFormat df = new SimpleDateFormat(format);
+        boolean b = false;
+        try {
+            Date dt1 = df.parse(date1);
+            Date dt2 = df.parse(date2);
+            switch (model) {
+                case 1:
+                    if (dt1.getTime() > dt2.getTime()) {
+                        b = true;
+                    }
+                    break;
+                case 2:
+                    if (dt1.getTime() < dt2.getTime()) {
+                        b = true;
+                    }
+                    break;
+                case 3:
+                    if (dt1.getTime() >= dt2.getTime()) {
+                        b = true;
+                    }
+                    break;
+                case 4:
+                    if (dt1.getTime() <= dt2.getTime()) {
+                        b = true;
+                    }
+                    break;
+                case 5:
+                    if (dt1.getTime() == dt2.getTime()) {
+                        b = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+        } catch (ParseException e) {
+            log.error("年月日compareDate错误", e);
+        }
+        return b;
+    }
+
+    /**
+     * 日期格式校验
+     *
+     * @param str
+     * @return
+     */
+    public static boolean isValidDate(String str) {
+        boolean convertSuccess = true;
+        // 指定日期格式
+        SimpleDateFormat a = new SimpleDateFormat(DATE_FORMAT);
+        SimpleDateFormat b = new SimpleDateFormat(DATE_STRING);
+        if (str.contains("-") && str.length() == 10) {
+            try {
+                // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+                a.setLenient(false);
+                a.parse(str);
+            } catch (ParseException e) {
+                log.error("isValidDate error,str:{}", str, e);
+                // 如果throw java.text.ParseException或者NullPointerException，就说明格式不对
+                convertSuccess = false;
+            }
+        } else if (str.length() == 8) {
+            try {
+                // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+                b.setLenient(false);
+                b.parse(str);
+            } catch (ParseException e) {
+                log.error("isValidDate error,str:{}", str, e);
+                // 如果throw java.text.ParseException或者NullPointerException，就说明格式不对
+                convertSuccess = false;
+            }
+        } else {
+            convertSuccess = false;
+        }
+        return convertSuccess;
+    }
+
+    /**
+     * 月份第一天
+     *
+     * @param basicDate
+     * @return
+     */
+    public static String getFirstDayToDate(String basicDate) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(parseStringToDate(basicDate));
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return df.format(calendar.getTime());
+    }
+
+    /**
+     * 月份最后一天
+     *
+     * @param basicDate
+     * @return
+     */
+    public static String getLastDayToDate(String basicDate) {
+        SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(parseStringToDate(basicDate));
+        //加一个月
+        calendar.add(Calendar.MONTH, 1);
+        //设置为该月第一天
+        calendar.set(Calendar.DATE, 1);
+        //再减一天即为上个月最后一天
+        calendar.add(Calendar.DATE, -1);
+        return df.format(calendar.getTime());
+    }
+
+    /**
+     * 获取当前到12点的秒数
+     *
+     * @param currentDate
+     * @return
+     */
+    public static Integer getRemainSecondsOneDay(Date currentDate) {
+        //使用plusDays加传入的时间加1天，将时分秒设置成0
+        LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
+                        ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
+                .withSecond(0).withNano(0);
+        LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentDate.toInstant(),
+                ZoneId.systemDefault());
+        //使用ChronoUnit.SECONDS.between方法，传入两个LocalDateTime对象即可得到相差的秒数
+        long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
+        return (int) seconds;
+    }
+
+    public static String millisecondsToString(long milliseconds) {
+        final long day = TimeUnit.MILLISECONDS.toDays(milliseconds);
+
+        final long hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+                - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(milliseconds));
+
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
+                - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(milliseconds));
+
+        final long seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
+                - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds));
+
+        final long ms = TimeUnit.MILLISECONDS.toMillis(milliseconds)
+                - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(milliseconds));
+
+        System.out.println("milliseconds :-" + milliseconds);
+        return String.format(String.format("%d 天 %d 小时 %d 分 %d 秒", day, hours, minutes, seconds));
+    }
+
+    //7883
+    public static void main(String[] args) {
+        System.out.println(getRemainSecondsOneDay(new Date()));
+    }
+}

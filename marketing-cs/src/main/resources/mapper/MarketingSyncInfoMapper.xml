@@ -306,6 +306,46 @@
         order by create_time desc limit 1
     </select>
 
+
+    <select id="getMarketingSyncMaxIdByAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select max(id) as id from
+            b_marketing_sync_${apiCode}
+        where api_code=#{apiCode} and applet_date = #{appletDate} and status =2 and cell="FQΒ4g";
+    </select>
+
+    <select id="getMarketingSyncMinIdByAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select min(id) as id from
+            b_marketing_sync_${apiCode}
+        where api_code=#{apiCode} and applet_date = #{appletDate} and status =2 and cell="FQΒ4g";
+    </select>
+    <select id="getByMaxIdAndMinId" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,api_code,cus_batch,cust_num,cell,applet_date,status,fail_type,update_time from
+            b_marketing_sync_${apiCode}
+        where api_code=#{apiCode} and  id <![CDATA[>]]> #{beginId}  and id <![CDATA[<=]]>  #{endIdLe}  and status = 2 and cell="FQΒ4g"  order by id;
+    </select>
+    <select id="getCellFromCurrent" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,api_code,cus_batch,cust_num,cell,applet_date,status,fail_type from
+            b_marketing_sync_${apiCode}
+        where api_code=#{apiCode} and cust_num = #{custNum} and status = 1 order by create_time desc limit 1;
+    </select>
+    <!--修改数据-->
+    <update id="updateBySyncHaLuo">
+        UPDATE b_marketing_sync_${apiCode}
+        set update_time=#{marketingSync.updateTime},
+            reserve_field2=#{marketingSync.reserveField2},
+            cell=#{marketingSync.cell},
+            status=#{marketingSync.status},
+            fail_type=#{marketingSync.failType}
+        where id=#{id} and api_code=#{apiCode}
+    </update>
+    <update id="updateBySyncHaLuoRemark">
+        UPDATE b_marketing_sync_${apiCode}
+        set reserve_field2=#{marketingSync.reserveField2}
+        where id=#{id} and api_code=#{apiCode}
+    </update>
+    <select id="selectCountError" resultType="java.lang.Integer">
+        select count(*) from b_marketing_sync_${apiCode} where api_code = #{apiCode} and applet_date = #{appletDate} and status =2 and cell="FQΒ4g";
+    </select>
     <select id="getNewestPreUserByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from
         b_marketing_sync_${apiCode}

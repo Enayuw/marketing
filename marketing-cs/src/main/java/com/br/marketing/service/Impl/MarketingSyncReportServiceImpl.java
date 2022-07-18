@@ -1,8 +1,11 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -50,8 +54,21 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        //1.获取所有客户
-        List<Customer> customers = customerMapper.getAllCustomer();
+        this.doSyncReportProcess(uploadDate,null);
+    }
+    @Override
+    public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
+        this.doSyncReportProcess(uploadDate,apiCode);
+    }
+    public void doSyncReportProcess(String uploadDate,String apiCodes){
+        List<Customer> customers = new ArrayList<>();
+        if(apiCodes!=null){
+            //1.获取所有客户
+            customers.add(customerMapper.getCustomerByApiCode(apiCodes));
+        }else {
+            customers = customerMapper.getAllCustomer();
+        }
+
         //2.循环正常客户
         customers.forEach(customer -> {
             try {
@@ -118,7 +135,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             }
         });
     }
-
     /**
      * 根据参数获取上传统计数据
      *
@@ -284,5 +300,20 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("date:{} is error", date, e);
         }
         return time;
+    }
+
+    @Override
+    public void deleteReportByAppletDate(String mes) {
+        JSONObject jsonObject = JSON.parseObject(mes);
+        JSONArray dataArray = jsonObject.getJSONArray("dataArray");
+        if (dataArray != null) {
+            for (int i = 0; i < dataArray.size(); i++) {
+                JSONObject dataJson = dataArray.getJSONObject(i);
+                String apiCode = dataJson.getString("apiCode");
+                String appletDate = dataJson.getString("appletDate");
+                syncReportMapper.deleteByAppletDate(apiCode, appletDate);
+            }
+        }
+
     }
 }

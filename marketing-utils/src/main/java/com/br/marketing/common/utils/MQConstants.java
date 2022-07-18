@@ -36,6 +36,8 @@ public class MQConstants {
     public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
 
 
+
+
     //通用转化处理队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
     //通用转化业务静置队列
@@ -43,6 +45,9 @@ public class MQConstants {
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR = "Marketing_Universal_Transfer_Receive_Delay_HalfHour";
     //通用转化错误重试延迟队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing_Universal_Transfer_Error_Delay";
+
+    // 哈啰历史数据清洗队列
+    public static final String MARKETING_HALUO_CLEAN_HISTORY = "Marketing_Haluo_Clean_History";
 
     /**
      * routingkey
@@ -75,4 +80,6 @@ public class MQConstants {
     //通用转化错误重试延迟队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing.Universal.Transfer.Error.Delay";
 
+    // 哈啰历史数据清洗
+    public static final String ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY = "Marketing.Haluo.Clean.History";
 }
