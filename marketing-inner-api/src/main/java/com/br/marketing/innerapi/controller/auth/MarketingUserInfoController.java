@@ -158,7 +158,7 @@ public class MarketingUserInfoController {
      * 更新用户
      *
      */
-    @PostMapping("/updateByUserId")
+    @GetMapping("/updateByUserId")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> updateByUserId(HttpServletRequest request, MarketingUserInfo user) {
         return marketingUserInfoService.updateMarketingUserInfoApiCodes( user);
