@@ -64,7 +64,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             List<MarketingRole> marketingRoles = marketingUserInfoRoleMapper.getRolesByUid(marketingUserInfo.getId());
             // 查询当前角色的资源
             List<MarketingResource> marketingResources = marketingUserInfoRoleMapper.getResourcesByUid(marketingUserInfo.getId());
-            MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, ImmutableMap.of("apicode", marketingUserInfo.getApiCode()));
+            HashMap apiCodes= new HashMap();
+            apiCodes.put("apiCode",marketingUserInfo.getApiCode());
+            MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, apiCodes);
             marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
             request.getSession().setAttribute(AuthConstants.SESSION_USER, marketingUserDetail);
