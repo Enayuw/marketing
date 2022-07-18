@@ -18,6 +18,6 @@ public interface PhoneSaleTransferInfoService {
     /**
      * 获取案件编号集合
      */
-    List<String> findCusaNumList(Set<String> cusaNums, PhoneSaleTransferInfo info);
+    Set<String> findCusaNumList(Set<String> cusaNums, PhoneSaleTransferInfo info);
 
 }
