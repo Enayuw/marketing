@@ -129,28 +129,38 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         int pageNum = 1;
         List<Callable<List<DassAssembleTransferDataDTO>>> list = new ArrayList<>();
         try {
+            // 遍历场景
             for (Map.Entry<String, Map<String, String>> entry : entries) {
                 String userType = entry.getKey();
                 Map<String, String> value = entry.getValue();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(userType);
+                // T天数据截止时间 开区间
                 LocalDateTime endDateTimeT = LocalDateTime.of(LocalDate.now()
                         , LocalTime.parse(value.getOrDefault("time"
                                 , "20:00:00"))).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                // T天数据开始时间 闭区间
+                LocalDateTime startDateTimeT = endDateTimeT.minusDays(day);
+                // T-1天数据开始时间 闭区间
                 LocalDateTime startDateTimeMinusOneT = endDateTimeT.minusDays(1);
+                // T-1天数据结束时间 开区间
                 LocalDateTime endDateTimeMinusOneT = endDateTimeT.toLocalDate().atStartOfDay().atZone(
                         ZoneId.systemDefault()).toLocalDateTime();
+                // 添加T天查询任务
+                String startDateTimeStrT = startDateTimeT.format(isoDateTime);
                 String endDateTimeStrT = endDateTimeT.format(isoDateTime);
+                list.add(() -> invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, pageNum, null));
+                // 添加T-1天查询任务
                 String startDateTimeMinusOneStrT = startDateTimeMinusOneT.format(isoDateTime);
                 String endDateTimeMinusOneStrT = endDateTimeMinusOneT.format(isoDateTime);
-                LocalDateTime startDateTimeT = endDateTimeT.minusDays(day);
-                String startDateTimeStrT = startDateTimeT.format(isoDateTime);
-                list.add(() -> invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, pageNum, null));
                 list.add(() -> invalidDataFilter(userType, value, startDateTimeMinusOneStrT, endDateTimeMinusOneStrT
                         , pageNum, endDateTimeMinusOneStrT));
+                // 执行查询任务
                 List<Future<List<DassAssembleTransferDataDTO>>> futures = POOL.invokeAll(list
                         , 3, TimeUnit.MINUTES);
+                // 获取结果集
                 List<DassAssembleTransferDataDTO> dtoList = futures.get(0).get(5, TimeUnit.SECONDS);
                 dtoList.addAll(futures.get(1).get(5, TimeUnit.SECONDS));
+                // 调用Dass转化接口
                 artificialTransferHandler.call(dtoList, null);
                 list.clear();
             }
@@ -180,6 +190,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
             , String syncUserDateTimeEnd) {
         String apiCode = value.get("apiCode");
         String orgName = value.get("orgname");
+        // 分页获取电销数据
         List<PhoneSaleExtendInfo> listPage = phoneSaleExtendInfoMapper.findPushPhoneSaleListPage(
                 apiCode, userType, startDateTimeStrT, endDateTimeStrT, pageNum, 1000);
         List<DassAssembleTransferDataDTO> transferData = new ArrayList<>();
@@ -188,6 +199,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         }
         Set<String> custNums = listPage.parallelStream().map(
                 PhoneSaleExtendInfo::getCustNum).collect(Collectors.toSet());
+        // 查询有效期开始时间
         Map<String, Date> custNumMap = iMarketingSyncUserService.getSyncUserTimeMaxByCustNumsMap(apiCode
                 , custNums, userType, syncUserDateTimeEnd);
         PhoneSaleTransferInfo phoneSale = new PhoneSaleTransferInfo();
@@ -195,14 +207,17 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         phoneSale.setDataType(PhoneSaleTransferDataTypeEnum.INVALID_DATA_FILTER.getValue());
         phoneSale.setApiCode(apiCode);
         phoneSale.setUserType(userType);
+        // 查询去重数据
         List<String> cusaNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
         List<PhoneSaleTransferInfo> phoneSaleList = new ArrayList<>();
         for (PhoneSaleExtendInfo info : listPage) {
             String custNum = info.getCustNum();
+            // 判断有效期
             if (isLastDayValidity(userType, info.getCreateTime(), custNumMap.getOrDefault(custNum, null))) {
                 if (cusaNumList.contains(custNum)) {
                     continue;
                 }
+                // 构建数据
                 DassAssembleTransferDataDTO dto = new DassAssembleTransferDataDTO();
                 transferData.add(dto);
                 DassTransferDataDTO dataDTO = new DassTransferDataDTO();
@@ -222,6 +237,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 phoneSaleList.add(phoneSaleTransferInfo);
             }
         }
+        // 批量保存推送记录
         phoneSaleTransferInfoService.insertSelectiveBatch(phoneSaleList);
         transferData.addAll(invalidDataFilter(apiCode, value, startDateTimeStrT, endDateTimeStrT, ++pageNum
                 , syncUserDateTimeEnd));
