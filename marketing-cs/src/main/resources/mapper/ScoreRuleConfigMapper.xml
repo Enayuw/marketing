@@ -14,7 +14,7 @@
         , src.task_type as taskType
         , src.product_info as productInfo
         , bmc.cid
-        , bmc.api_code as apiCode
+        , bmc.api_code
         , case src.status
         when 1 then '开启'
         when 2 then '禁用'

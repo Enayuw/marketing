@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.TransferFileTaskMapper" >
     <select id="getTransferFileList" resultType="com.br.marketing.vo.TransferFileTaskVO">
         select id
-        , api_code as apiCode
+        , api_code
         , file_name as fileName
         , task_number as taskNumber
         , start_date as startDate
