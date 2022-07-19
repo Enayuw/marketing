@@ -4,6 +4,10 @@ import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -33,7 +37,14 @@ public class AuthPermissionsAspect {
     @Before("pointCut()")
     public void before() {
         MarketingUserDetail user = ThreadContextInfo.getUser();
-        ThreadApicodeInfo.setData(user.getApiCode());
+        if (user != null) {
+            List adminUser = user.getRoleList().stream().filter(marketingRole -> marketingRole.getId() == 1).collect(Collectors.toList());
+            //超级管理员 跳过
+            if (!CollectionUtils.isEmpty(adminUser)) {
+                return;
+            }
+            ThreadApicodeInfo.setData(user.getApiCode());
+        }
     }
 
     /**
