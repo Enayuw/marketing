@@ -139,7 +139,7 @@ public class TaskServiceImpl implements ITaskService {
             if (statusData != null) {
                 TaskStatus updateStatus = new TaskStatus();
                 updateStatus.setId(statusData.getId());
-                if (scoreTask.getMonitorType().equals(1)) {
+                if (scoreTask.getMonitorType().equals(1)||scoreTask.getMonitorType().equals(2)) {
                     updateStatus.setOnceStatus(1);
                 } else {
                     updateStatus.setAllStatus(1);
@@ -154,7 +154,7 @@ public class TaskServiceImpl implements ITaskService {
                 entityStatus.setBatchNumber(scoreTask.getBatchNumber());
                 entityStatus.setCreateTime(time);
                 entityStatus.setUpdateTime(time);
-                if (scoreTask.getMonitorType().equals(1)) {
+                if (scoreTask.getMonitorType().equals(1)||scoreTask.getMonitorType().equals(2)) {
                     entityStatus.setOnceStatus(1);
                 } else {
                     entityStatus.setAllStatus(1);
@@ -178,7 +178,7 @@ public class TaskServiceImpl implements ITaskService {
      */
     private Result<TaskStatus> canScore(MarketingTask task, String nowDay) {
 
-        if (1 == task.getMonitorType()) {
+        if (1 == task.getMonitorType()||2==task.getMonitorType()) {
             //region 一次性跑分
             TaskStatusExample statusExample = new TaskStatusExample();
             statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
@@ -191,7 +191,7 @@ public class TaskServiceImpl implements ITaskService {
             }
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
             //endregion
-        } else if (4 == task.getMonitorType()) {
+        } else if (4 == task.getMonitorType()||3 == task.getMonitorType()) {
             //region 周期性跑分
             long days = 0;
             try {

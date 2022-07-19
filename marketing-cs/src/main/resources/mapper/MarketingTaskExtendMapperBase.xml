@@ -16,6 +16,7 @@
     <result column="data_condition" property="dataCondition" jdbcType="VARCHAR" />
     <result column="condition_type" property="conditionType" jdbcType="INTEGER" />
     <result column="condition_info_show" property="conditionInfoShow" jdbcType="VARCHAR" />
+    <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,7 +78,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time, 
-    extend_show_title, strategy_product_json, data_condition, condition_type, condition_info_show
+    extend_show_title, strategy_product_json, data_condition, condition_type, condition_info_show, 
+    extend_config_info
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
@@ -117,12 +119,12 @@
       rule_id, group_type, is_del, 
       create_time, upload_time, extend_show_title, 
       strategy_product_json, data_condition, condition_type, 
-      condition_info_show)
+      condition_info_show, extend_config_info)
     values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
       #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR}, 
       #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, #{conditionType,jdbcType=INTEGER}, 
-      #{conditionInfoShow,jdbcType=VARCHAR})
+      #{conditionInfoShow,jdbcType=VARCHAR}, #{extendConfigInfo,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,6 +171,9 @@
       <if test="conditionInfoShow != null" >
         condition_info_show,
       </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -209,6 +214,9 @@
       </if>
       <if test="conditionInfoShow != null" >
         #{conditionInfoShow,jdbcType=VARCHAR},
+      </if>
+      <if test="extendConfigInfo != null" >
+        #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -263,6 +271,9 @@
       <if test="record.conditionInfoShow != null" >
         condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR},
       </if>
+      <if test="record.extendConfigInfo != null" >
+        extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -283,7 +294,8 @@
       strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       data_condition = #{record.dataCondition,jdbcType=VARCHAR},
       condition_type = #{record.conditionType,jdbcType=INTEGER},
-      condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR}
+      condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR},
+      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -330,6 +342,9 @@
       <if test="conditionInfoShow != null" >
         condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR},
       </if>
+      <if test="extendConfigInfo != null" >
+        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -347,7 +362,8 @@
       strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
       data_condition = #{dataCondition,jdbcType=VARCHAR},
       condition_type = #{conditionType,jdbcType=INTEGER},
-      condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR}
+      condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR},
+      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

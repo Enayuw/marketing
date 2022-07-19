@@ -80,11 +80,6 @@ public class MergeServiceImpl implements MergeService {
 
     private Map<String,String> proFieldMap=new HashMap<>();
     private static final Pattern MYREGEX1 = Pattern.compile("_");
-
-    @Value("${otherConfig.warning.ruleList:00}")
-    private String rules;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
     @Override
     public List<LoanFile> process(Customer customer) {
         List<LoanFile> pushList =new ArrayList<>();
@@ -142,19 +137,7 @@ public class MergeServiceImpl implements MergeService {
                 fileName1=fileName1.replace(".txt","");
                 s = MYREGEX1.split(fileName1)[1];
             }
-            Result<String> baseHeadInfoByTaskId = iProductResultSimpleService.getCurrentBaseHeadInfoByTaskId(Long.valueOf(blt.getId().toString()));
-            String baseHeadInfo = "";
-            if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
-                baseHeadInfo = baseHeadInfoByTaskId.getData();
-            }
-            String dataInfo = "";
-            Integer taskType=blt.getTaskType();
-            if(taskType.compareTo(new Integer(0))==0 ||taskType.compareTo(new Integer(2))==0 ){
-                Result<String> fieldsInfo = iProductResultSimpleService.getFieldsStrInfo(blt.getApiCode(),blt.getBatchNumber());
-                if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
-                    dataInfo = fieldsInfo.getData();
-                }
-            }
+
             String startTime = blf.getCreateTime();
             startTime=startTime.split(" ")[0].replace("-","");
 
@@ -164,7 +147,7 @@ public class MergeServiceImpl implements MergeService {
             String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
-            initHead(head,separator,baseHeadInfo,dataInfo,taskType);
+            iProductResultSimpleService.initHead(head,separator,blt);
             Integer fileNum = 30000000;
             if(StringUtils.isNotBlank(customer.getExtendConfigInfo())){
                 try {

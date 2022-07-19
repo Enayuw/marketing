@@ -2,7 +2,9 @@ package com.br.marketing.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
@@ -30,4 +32,11 @@ public class TaskSelectSaveDTO {
     @NotNull(message = "规则id不能为空")
     @Size(min = 1,message = "规则id不能为空")
     private List<Long> ruleIds;
+
+    @ApiModelProperty(value = "数据条数 大于500无效")
+    @Max(value = 500,message = "验证条数不能大于500")
+    private Integer dataLimit;
+
+    @ApiModelProperty(value = "是否规则验证 1-验证；不传或者其他值不做处理")
+    private Integer isOrNoScoreVer;
 }
