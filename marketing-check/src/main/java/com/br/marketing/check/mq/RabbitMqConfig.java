@@ -101,6 +101,14 @@ public class RabbitMqConfig {
     public Binding bindingYiQianBao() {
         return BindingBuilder.bind(pushSftpToDb()).to(gateExchange()).with(MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_RECEIVE);
     }
+    @Bean(name = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)
+    public Queue pushSftpToDbXieCheng() {
+        return new Queue(MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, true, false, false);
+    }
+    @Bean(name = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)
+    public Binding bindingXieCheng() {
+        return BindingBuilder.bind(pushSftpToDbXieCheng()).to(gateExchange()).with(MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE);
+    }
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {

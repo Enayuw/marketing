@@ -41,4 +41,11 @@ public interface PushDataService {
      * @return
      */
     Result<Boolean> pushSftpToDbData(Long localid);
+
+    /**
+     * 推送携程营销数据
+     * @param localid
+     * @return
+     */
+    Result<Boolean> pushXieChengToDbData(Long localid);
 }
