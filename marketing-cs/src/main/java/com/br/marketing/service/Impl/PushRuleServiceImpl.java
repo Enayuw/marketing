@@ -487,8 +487,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
                             (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
-                dto1.setCaseNumber(marketingHistory.getCusNum().concat("_").concat(marketingHistory.getBatchNumber()).concat("_")
-                        .concat(String.valueOf(System.currentTimeMillis())).concat(number.toString()));
+                dto1.setCaseNumber(marketingHistory.getCusNum());
                 dto1.setPhone(DigestUtils.md5DigestAsHex(marketingHistory.getCell().getBytes()));
                 JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                 if (varObject == null) {
