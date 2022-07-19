@@ -134,10 +134,10 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
             LocalDate endDate;
             if(StringUtils.isNotEmpty(jobParameter) && "true".equals(jobParameter.split(",")[0])){
                 startDate = LocalDate.parse("2022-06-27", YYYYMMDDSHORTDFLINE);
-                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
+                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             }else {
                 startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
-                endDate = startDate;
+                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             }
             writePPDTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
         } catch (Exception ex) {
