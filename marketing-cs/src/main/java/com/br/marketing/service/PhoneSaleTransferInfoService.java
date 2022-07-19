@@ -15,6 +15,8 @@ public interface PhoneSaleTransferInfoService {
 
     void insertSelectiveBatch(List<PhoneSaleTransferInfo> list);
 
+    void insertSelectiveBatch(List<PhoneSaleTransferInfo> list, int batchSize);
+
     /**
      * 获取案件编号集合
      */

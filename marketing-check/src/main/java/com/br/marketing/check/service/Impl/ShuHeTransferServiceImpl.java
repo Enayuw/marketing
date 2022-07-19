@@ -128,6 +128,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         Set<Map.Entry<String, Map<String, String>>> entries = typeMap.entrySet();
         int pageNum = 1;
         List<Callable<List<DassAssembleTransferDataDTO>>> list = new ArrayList<>();
+        final List<String> deDuplicationList = new CopyOnWriteArrayList<>();
         try {
             // 遍历场景
             for (Map.Entry<String, Map<String, String>> entry : entries) {
@@ -148,12 +149,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 // 添加T天查询任务
                 String startDateTimeStrT = startDateTimeT.format(isoDateTime);
                 String endDateTimeStrT = endDateTimeT.format(isoDateTime);
-                list.add(() -> invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, pageNum, null));
+                list.add(() -> invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, pageNum
+                        , null, deDuplicationList));
                 // 添加T-1天查询任务
                 String startDateTimeMinusOneStrT = startDateTimeMinusOneT.format(isoDateTime);
                 String endDateTimeMinusOneStrT = endDateTimeMinusOneT.format(isoDateTime);
                 list.add(() -> invalidDataFilter(userType, value, startDateTimeMinusOneStrT, endDateTimeMinusOneStrT
-                        , pageNum, endDateTimeMinusOneStrT));
+                        , pageNum, endDateTimeMinusOneStrT, deDuplicationList));
                 // 执行查询任务
                 List<Future<List<DassAssembleTransferDataDTO>>> futures = POOL.invokeAll(list
                         , 3, TimeUnit.MINUTES);
@@ -163,11 +165,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 // 调用Dass转化接口
                 artificialTransferHandler.call(dtoList, null);
                 list.clear();
+                deDuplicationList.clear();
             }
         } catch (InterruptedException | ExecutionException | TimeoutException | IllegalAccessException e) {
             log.error(e.getMessage(), e);
         } finally {
             list.clear();
+            deDuplicationList.clear();
         }
     }
 
@@ -187,7 +191,8 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
             , String startDateTimeStrT
             , String endDateTimeStrT
             , int pageNum
-            , String syncUserDateTimeEnd) {
+            , String syncUserDateTimeEnd
+            , List<String> deDuplicationList) {
         String apiCode = value.get("apiCode");
         String orgName = value.get("orgname");
         // 分页获取电销数据
@@ -215,7 +220,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
             String custNum = info.getCustNum();
             // 判断有效期
             if (isLastDayValidity(userType, info.getCreateTime(), custNumMap.getOrDefault(custNum, null))) {
-                if (cusaNumList.contains(custNum)) {
+                if (cusaNumList.contains(custNum) || deDuplicationList.contains(custNum)) {
                     continue;
                 }
                 // 构建数据
@@ -238,12 +243,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 phoneSaleList.add(phoneSaleTransferInfo);
                 // 添加到去重集合
                 cusaNumList.add(custNum);
+                deDuplicationList.add(custNum);
             }
         }
         // 批量保存推送记录
         phoneSaleTransferInfoService.insertSelectiveBatch(phoneSaleList);
         transferData.addAll(invalidDataFilter(apiCode, value, startDateTimeStrT, endDateTimeStrT, ++pageNum
-                , syncUserDateTimeEnd));
+                , syncUserDateTimeEnd, deDuplicationList));
         return transferData;
     }
 
