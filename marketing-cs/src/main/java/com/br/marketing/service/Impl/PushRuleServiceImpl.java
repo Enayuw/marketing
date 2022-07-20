@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.*;
 import com.br.common.util.BrCipherMaker;
@@ -307,6 +308,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     static Set<String> taskApiCodeSet = new CopyOnWriteArraySet<String>();
 
     final static Byte customerStatus = Byte.valueOf("1");
+
+    @Resource
+    ScoreSearchConditionMapper scoreSearchConditionMapper;
+
+    @Resource
+    ScoreSearchConditionMappingMapper scoreSearchConditionMappingMapper;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -2480,6 +2487,26 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK, localFile.getId().toString());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    @Override
+    public Result<Long> saveCondition(ConditionSaveDTO dto) {
+        ScoreSearchCondition searchCondition = new ScoreSearchCondition();
+        searchCondition.setConditionType(1);
+        searchCondition.setContent(dto.getmRuleCondition());
+        searchCondition.setContentShow(dto.getmRuleConditionShow());
+        searchCondition.setCreateTime(new Date());
+        scoreSearchConditionMapper.insertSelective(searchCondition);
+
+        ScoreSearchConditionMapping scoreSearchConditionMapping = new ScoreSearchConditionMapping();
+        scoreSearchConditionMapping.setApiCode(dto.getApiCode());
+        scoreSearchConditionMapping.setConditionId(searchCondition.getId());
+        scoreSearchConditionMapping.setCreateTime(new Date());
+        scoreSearchConditionMappingMapper.insertSelective(scoreSearchConditionMapping);
+
+
+
+        return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
     }
 
     private Result<Boolean> addHaluoLock(String apiCode, String taskId, String custNum, String status) {

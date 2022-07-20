@@ -714,6 +714,66 @@ public class EntityOptLogExample {
             addCriterion("create_time not between", value1, value2, "createTime");
             return (Criteria) this;
         }
+
+        public Criteria andOptTypeIsNull() {
+            addCriterion("opt_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeIsNotNull() {
+            addCriterion("opt_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeEqualTo(Integer value) {
+            addCriterion("opt_type =", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeNotEqualTo(Integer value) {
+            addCriterion("opt_type <>", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeGreaterThan(Integer value) {
+            addCriterion("opt_type >", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("opt_type >=", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeLessThan(Integer value) {
+            addCriterion("opt_type <", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("opt_type <=", value, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeIn(List<Integer> values) {
+            addCriterion("opt_type in", values, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeNotIn(List<Integer> values) {
+            addCriterion("opt_type not in", values, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeBetween(Integer value1, Integer value2) {
+            addCriterion("opt_type between", value1, value2, "optType");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("opt_type not between", value1, value2, "optType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

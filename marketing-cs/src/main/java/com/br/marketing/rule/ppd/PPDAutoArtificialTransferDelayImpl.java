@@ -64,7 +64,7 @@ public class PPDAutoArtificialTransferDelayImpl implements AssembleData<MqFact> 
                 return userType;
             }
             Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
-            return ResultCode.SUCCESS.getValue().equals(stringResult);
+            return ResultCode.SUCCESS.getValue().equals(stringResult.getCode());
         }
         return userType;
     }

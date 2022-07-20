@@ -7,6 +7,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ConditionSaveDTO;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
@@ -113,6 +114,13 @@ public class PushRuleFilterController {
     @PostMapping("/pushPreview")
     public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
+    }
+
+    @ApiOperation(value = "保存模板")
+    @PostMapping("/saveCondition")
+    public ApiResult<Integer> saveCondition(@RequestBody ConditionSaveDTO dto) {
+//        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
+        return null;
     }
 
     @ApiOperation(value = "测试消费")

@@ -5,10 +5,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.CustomerBatchNumDTO;
-import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.*;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -55,6 +52,8 @@ public interface PushRuleService {
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
     Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+
+    Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
 
     Result<Boolean> consumerPushCustomer(Long id);
 
