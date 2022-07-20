@@ -64,7 +64,7 @@
                     <if test="info.orgName != null">
                         and org_name = #{info.orgName,jdbcType=BIGINT}
                     </if>
-                    <if test="cusaNums != null">
+                    <if test="custNums != null">
                         and cust_num in (
                         <foreach collection="custNums" item="data" separator=",">
                             #{data,jdbcType=VARCHAR}
