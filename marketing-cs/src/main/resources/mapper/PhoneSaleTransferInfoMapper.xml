@@ -35,8 +35,8 @@
                     <if test="info.apiCode != null">
                         and api_code = #{info.apiCode,jdbcType=VARCHAR}
                     </if>
-                    <if test="info.cusaNum != null">
-                        and cusa_num = #{info.cusaNum,jdbcType=VARCHAR}
+                    <if test="info.custNum != null">
+                        and cust_num = #{info.custNum,jdbcType=VARCHAR}
                     </if>
                     <if test="info.userType != null">
                         and user_type = #{info.userType,jdbcType=VARCHAR}
@@ -58,6 +58,9 @@
                     </if>
                     <if test="info.sourceId != null">
                         and source_id = #{info.sourceId,jdbcType=BIGINT}
+                    </if>
+                    <if test="info.orgName != null">
+                        and org_name = #{info.orgName,jdbcType=BIGINT}
                     </if>
                     <if test="cusaNums != null">
                         and cusa_num in (
