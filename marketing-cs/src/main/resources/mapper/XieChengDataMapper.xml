@@ -6,7 +6,7 @@
     select
     *
     from b_xiecheng_data
-    where  status =1 and push_status =1
+    where  status =1 and push_status =1 and local_id = #{localId}
     order by id asc limit 2000;
   </select>
 </mapper>

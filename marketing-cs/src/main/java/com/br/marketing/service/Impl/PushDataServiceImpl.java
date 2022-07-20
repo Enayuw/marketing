@@ -855,6 +855,11 @@ public class PushDataServiceImpl implements PushDataService {
                     continue;
                 }
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     String result = xieChengService.pushXieChengData(xieChengData);
                     JSONObject resultJson = JSONObject.parseObject(result);
