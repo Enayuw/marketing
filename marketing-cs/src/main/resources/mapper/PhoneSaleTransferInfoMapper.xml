@@ -4,8 +4,9 @@
     <insert id="insertSelectiveBatch" parameterType="list">
         insert into b_phone_sale_transfer_info (
         api_code,
-        cusa_num,
+        cust_num,
         user_type,
+        org_name,
         applet_date,
         data_type,
         create_time,
@@ -14,8 +15,9 @@
         source_id)values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode,jdbcType=VARCHAR},
-            #{data.cusaNum,jdbcType=VARCHAR},
+            #{data.custNum,jdbcType=VARCHAR},
             #{data.userType,jdbcType=VARCHAR},
+            #{data.orgName,jdbcType=VARCHAR},
             #{data.appletDate,jdbcType=VARCHAR},
             #{data.dataType,jdbcType=INTEGER},
             #{data.createTime,jdbcType=TIMESTAMP},
