@@ -248,7 +248,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         }
         // 批量保存推送记录
         phoneSaleTransferInfoService.insertSelectiveBatch(phoneSaleList);
-        transferData.addAll(invalidDataFilter(apiCode, value, startDateTimeStrT, endDateTimeStrT, ++pageNum
+        transferData.addAll(invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, ++pageNum
                 , syncUserDateTimeEnd, deDuplicationList));
         return transferData;
     }
