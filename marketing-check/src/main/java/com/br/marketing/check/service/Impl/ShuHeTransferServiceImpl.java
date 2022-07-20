@@ -235,7 +235,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 phoneSaleTransferInfoNew(phoneSaleList, apiCode, orgName, dataDTO.getTransformStatus()
                         , info.getId(), custNum, userType);
                 // 添加到去重集合
-                cusaNumList.add(custNum);
+                custNumList.add(custNum);
                 deDuplicationList.add(custNum);
             }
         }
