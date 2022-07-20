@@ -214,14 +214,14 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         phoneSale.setUserType(userType);
         phoneSale.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         // 查询去重数据
-        Set<String> cusaNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
+        Set<String> custNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
         List<PhoneSaleTransferInfo> phoneSaleList = new ArrayList<>();
         for (PhoneSaleExtendInfo info : listPage) {
             String custNum = info.getCustNum();
             // 判断有效期
             if (isLastDayValidity(userType, StringUtils.isBlank(syncUserDateTimeEnd) ? LocalDate.now()
                     : LocalDate.now().minusDays(1), custNumMap.getOrDefault(custNum, null))) {
-                if (cusaNumList.contains(custNum) || deDuplicationList.contains(custNum)) {
+                if (custNumList.contains(custNum) || deDuplicationList.contains(custNum)) {
                     continue;
                 }
                 // 构建数据

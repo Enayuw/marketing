@@ -51,7 +51,7 @@ public class PhoneSaleTransferInfoServiceImpl implements PhoneSaleTransferInfoSe
     }
 
     @Override
-    public Set<String> findCusaNumList(Set<String> cusaNums, PhoneSaleTransferInfo info) {
-        return phoneSaleTransferInfoMapper.findCusaNumList(cusaNums, info);
+    public Set<String> findCusaNumList(Set<String> custNums, PhoneSaleTransferInfo info) {
+        return phoneSaleTransferInfoMapper.findCusaNumList(custNums, info);
     }
 }

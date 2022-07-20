@@ -13,7 +13,7 @@ public interface PhoneSaleTransferInfoMapper extends PhoneSaleTransferInfoMapper
     /**
      * 获取案件编号集合
      */
-    Set<String> findCusaNumList(@Param("cusaNums") Set<String> cusaNums, @Param("info") PhoneSaleTransferInfo info);
+    Set<String> findCusaNumList(@Param("custNums") Set<String> custNums, @Param("info") PhoneSaleTransferInfo info);
 
 
 }
