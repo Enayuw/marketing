@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.TransferSyncReportService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ public class TransferSyncReportController {
             , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String cidOrName
@@ -69,6 +71,7 @@ public class TransferSyncReportController {
             , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @AddDataAuthBusiness
     public ApiResult<Map<String, String>> getReportListTotal(@RequestParam(required = false) String cidOrName
             , @RequestParam(required = false) String appletTimeStart
             , @RequestParam(required = false) String appletTimeEnd

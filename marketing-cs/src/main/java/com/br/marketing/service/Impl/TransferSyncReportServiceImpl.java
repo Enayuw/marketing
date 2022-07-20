@@ -7,6 +7,8 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.TransferSyncReportService;
+import com.br.marketing.vo.MarketingSyncReportNumVO;
+import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -159,8 +161,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             , String appletTimeEnd, String apiCodes, String userTypes) {
         Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
         Map<String, String> map = new HashMap<>(2);
-        Long total = transferSyncReportMapper.getReportListTotal(params);
-        map.put("numTotal", ObjectUtils.isEmpty(total) ? "0" : DecimalFormat.getNumberInstance().format(total));
+        List<TransferSyncReportNumVO> totalList = transferSyncReportMapper.getReportListTotal(params);
+        map.put("numTotal", totalList.stream().collect(Collectors.summingInt(TransferSyncReportNumVO::getNumTotal)).toString());
         return map;
     }
 

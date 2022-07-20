@@ -18,7 +18,7 @@
 
     <select id="selectList" resultType="com.br.marketing.vo.TransferSyncReportVO">
         select id, cid
-        , api_code as apiCode
+        , api_code
         , short_name as shortName
         , applet_date as appletDate
         , user_type as userType
@@ -32,10 +32,11 @@
         order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
     </select>
 
-    <select id="getReportListTotal" resultType="java.lang.Long">
-        select sum(data_count) as numTotal
+    <select id="getReportListTotal" resultType="com.br.marketing.vo.TransferSyncReportNumVO">
+        select sum(data_count) as numTotal,api_code
         from b_marketing_transfer_sync_report bmsr
         <include refid="sql_transfer_sync_where"/>
+        group by api_code
     </select>
     <sql id="sql_transfer_sync_where">
         <where>

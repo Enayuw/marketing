@@ -1,7 +1,9 @@
 package com.br.marketing.vo;
 
 import lombok.Data;
-
+/**
+ *上传记录-统计总数
+ */
 @Data
 public class MarketingSyncReportNumVO {
 
@@ -12,7 +14,7 @@ public class MarketingSyncReportNumVO {
     private Integer duplicateRemovalNumTotal;
 
 
-    private Integer apiCode;
+    private String apiCode;
 
 
 }
