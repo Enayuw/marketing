@@ -210,6 +210,6 @@
         <if test="dateTimeEnd!=null and dateTimeEnd.trim() neq ''">
             <![CDATA[ and create_time < #{dateTimeEnd} ]]>
         </if>
-        and status=1 group by cust_num
+        and status=1 group by cust_num order by createTime
     </select>
 </mapper>
