@@ -27,7 +27,7 @@
         </foreach>
     </insert>
     <select id="findCusaNumList" resultType="java.lang.String">
-        select cusa_num from b_phone_sale_transfer_info
+        select cust_num from b_phone_sale_transfer_info
         <where>
             <choose>
                 <when test="info != null">
