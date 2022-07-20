@@ -4,7 +4,7 @@
     <resultMap id="BaseResultMap" type="com.br.marketing.entity.PhoneSaleTransferInfo">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
-        <result column="cusa_num" property="cusaNum" jdbcType="VARCHAR"/>
+        <result column="cust_num" property="custNum" jdbcType="VARCHAR"/>
         <result column="user_type" property="userType" jdbcType="VARCHAR"/>
         <result column="applet_date" property="appletDate" jdbcType="VARCHAR"/>
         <result column="data_type" property="dataType" jdbcType="INTEGER"/>
@@ -12,6 +12,7 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
         <result column="transform_status" property="transformStatus" jdbcType="VARCHAR"/>
         <result column="source_id" property="sourceId" jdbcType="BIGINT"/>
+        <result column="org_name" property="orgName" jdbcType="VARCHAR"/>
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -74,8 +75,8 @@
         </where>
     </sql>
     <sql id="Base_Column_List">
-        id, api_code, cusa_num, user_type, applet_date, data_type, create_time, update_time,
-    transform_status, source_id
+        id, api_code, cust_num, user_type, applet_date, data_type, create_time, update_time,
+    transform_status, source_id, org_name
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
             parameterType="com.br.marketing.entity.PhoneSaleTransferInfoExample">
@@ -113,14 +114,14 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_phone_sale_transfer_info (api_code, cusa_num, user_type,
+        insert into b_phone_sale_transfer_info (api_code, cust_num, user_type,
         applet_date, data_type, create_time,
-        update_time, transform_status, source_id
-        )
-        values (#{apiCode,jdbcType=VARCHAR}, #{cusaNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+        update_time, transform_status, source_id,
+        org_name)
+        values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
         #{appletDate,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
-        #{updateTime,jdbcType=TIMESTAMP}, #{transformStatus,jdbcType=VARCHAR}, #{sourceId,jdbcType=BIGINT}
-        )
+        #{updateTime,jdbcType=TIMESTAMP}, #{transformStatus,jdbcType=VARCHAR}, #{sourceId,jdbcType=BIGINT},
+        #{orgName,jdbcType=VARCHAR})
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSaleTransferInfo">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
@@ -131,8 +132,8 @@
             <if test="apiCode != null">
                 api_code,
             </if>
-            <if test="cusaNum != null">
-                cusa_num,
+            <if test="custNum != null">
+                cust_num,
             </if>
             <if test="userType != null">
                 user_type,
@@ -155,13 +156,16 @@
             <if test="sourceId != null">
                 source_id,
             </if>
+            <if test="orgName != null">
+                org_name,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="apiCode != null">
                 #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cusaNum != null">
-                #{cusaNum,jdbcType=VARCHAR},
+            <if test="custNum != null">
+                #{custNum,jdbcType=VARCHAR},
             </if>
             <if test="userType != null">
                 #{userType,jdbcType=VARCHAR},
@@ -184,6 +188,9 @@
             <if test="sourceId != null">
                 #{sourceId,jdbcType=BIGINT},
             </if>
+            <if test="orgName != null">
+                #{orgName,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
     <select id="countByExample" parameterType="com.br.marketing.entity.PhoneSaleTransferInfoExample"
@@ -202,8 +209,8 @@
             <if test="record.apiCode != null">
                 api_code = #{record.apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="record.cusaNum != null">
-                cusa_num = #{record.cusaNum,jdbcType=VARCHAR},
+            <if test="record.custNum != null">
+                cust_num = #{record.custNum,jdbcType=VARCHAR},
             </if>
             <if test="record.userType != null">
                 user_type = #{record.userType,jdbcType=VARCHAR},
@@ -226,6 +233,9 @@
             <if test="record.sourceId != null">
                 source_id = #{record.sourceId,jdbcType=BIGINT},
             </if>
+            <if test="record.orgName != null">
+                org_name = #{record.orgName,jdbcType=VARCHAR},
+            </if>
         </set>
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
@@ -235,14 +245,15 @@
         update b_phone_sale_transfer_info
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
-        cusa_num = #{record.cusaNum,jdbcType=VARCHAR},
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
         user_type = #{record.userType,jdbcType=VARCHAR},
         applet_date = #{record.appletDate,jdbcType=VARCHAR},
         data_type = #{record.dataType,jdbcType=INTEGER},
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
         transform_status = #{record.transformStatus,jdbcType=VARCHAR},
-        source_id = #{record.sourceId,jdbcType=BIGINT}
+        source_id = #{record.sourceId,jdbcType=BIGINT},
+        org_name = #{record.orgName,jdbcType=VARCHAR}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -253,8 +264,8 @@
             <if test="apiCode != null">
                 api_code = #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cusaNum != null">
-                cusa_num = #{cusaNum,jdbcType=VARCHAR},
+            <if test="custNum != null">
+                cust_num = #{custNum,jdbcType=VARCHAR},
             </if>
             <if test="userType != null">
                 user_type = #{userType,jdbcType=VARCHAR},
@@ -277,20 +288,24 @@
             <if test="sourceId != null">
                 source_id = #{sourceId,jdbcType=BIGINT},
             </if>
+            <if test="orgName != null">
+                org_name = #{orgName,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
     <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PhoneSaleTransferInfo">
         update b_phone_sale_transfer_info
         set api_code         = #{apiCode,jdbcType=VARCHAR},
-            cusa_num         = #{cusaNum,jdbcType=VARCHAR},
+            cust_num         = #{custNum,jdbcType=VARCHAR},
             user_type        = #{userType,jdbcType=VARCHAR},
             applet_date      = #{appletDate,jdbcType=VARCHAR},
             data_type        = #{dataType,jdbcType=INTEGER},
             create_time      = #{createTime,jdbcType=TIMESTAMP},
             update_time      = #{updateTime,jdbcType=TIMESTAMP},
             transform_status = #{transformStatus,jdbcType=VARCHAR},
-            source_id        = #{sourceId,jdbcType=BIGINT}
+            source_id        = #{sourceId,jdbcType=BIGINT},
+            org_name         = #{orgName,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
 </mapper>

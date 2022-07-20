@@ -235,73 +235,73 @@ public class PhoneSaleTransferInfoExample {
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumIsNull() {
-            addCriterion("cusa_num is null");
+        public Criteria andCustNumIsNull() {
+            addCriterion("cust_num is null");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumIsNotNull() {
-            addCriterion("cusa_num is not null");
+        public Criteria andCustNumIsNotNull() {
+            addCriterion("cust_num is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumEqualTo(String value) {
-            addCriterion("cusa_num =", value, "cusaNum");
+        public Criteria andCustNumEqualTo(String value) {
+            addCriterion("cust_num =", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumNotEqualTo(String value) {
-            addCriterion("cusa_num <>", value, "cusaNum");
+        public Criteria andCustNumNotEqualTo(String value) {
+            addCriterion("cust_num <>", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumGreaterThan(String value) {
-            addCriterion("cusa_num >", value, "cusaNum");
+        public Criteria andCustNumGreaterThan(String value) {
+            addCriterion("cust_num >", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumGreaterThanOrEqualTo(String value) {
-            addCriterion("cusa_num >=", value, "cusaNum");
+        public Criteria andCustNumGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_num >=", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumLessThan(String value) {
-            addCriterion("cusa_num <", value, "cusaNum");
+        public Criteria andCustNumLessThan(String value) {
+            addCriterion("cust_num <", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumLessThanOrEqualTo(String value) {
-            addCriterion("cusa_num <=", value, "cusaNum");
+        public Criteria andCustNumLessThanOrEqualTo(String value) {
+            addCriterion("cust_num <=", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumLike(String value) {
-            addCriterion("cusa_num like", value, "cusaNum");
+        public Criteria andCustNumLike(String value) {
+            addCriterion("cust_num like", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumNotLike(String value) {
-            addCriterion("cusa_num not like", value, "cusaNum");
+        public Criteria andCustNumNotLike(String value) {
+            addCriterion("cust_num not like", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumIn(List<String> values) {
-            addCriterion("cusa_num in", values, "cusaNum");
+        public Criteria andCustNumIn(List<String> values) {
+            addCriterion("cust_num in", values, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumNotIn(List<String> values) {
-            addCriterion("cusa_num not in", values, "cusaNum");
+        public Criteria andCustNumNotIn(List<String> values) {
+            addCriterion("cust_num not in", values, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumBetween(String value1, String value2) {
-            addCriterion("cusa_num between", value1, value2, "cusaNum");
+        public Criteria andCustNumBetween(String value1, String value2) {
+            addCriterion("cust_num between", value1, value2, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCusaNumNotBetween(String value1, String value2) {
-            addCriterion("cusa_num not between", value1, value2, "cusaNum");
+        public Criteria andCustNumNotBetween(String value1, String value2) {
+            addCriterion("cust_num not between", value1, value2, "custNum");
             return (Criteria) this;
         }
 
@@ -752,6 +752,76 @@ public class PhoneSaleTransferInfoExample {
 
         public Criteria andSourceIdNotBetween(Long value1, Long value2) {
             addCriterion("source_id not between", value1, value2, "sourceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameIsNull() {
+            addCriterion("org_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameIsNotNull() {
+            addCriterion("org_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameEqualTo(String value) {
+            addCriterion("org_name =", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameNotEqualTo(String value) {
+            addCriterion("org_name <>", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameGreaterThan(String value) {
+            addCriterion("org_name >", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameGreaterThanOrEqualTo(String value) {
+            addCriterion("org_name >=", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameLessThan(String value) {
+            addCriterion("org_name <", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameLessThanOrEqualTo(String value) {
+            addCriterion("org_name <=", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameLike(String value) {
+            addCriterion("org_name like", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameNotLike(String value) {
+            addCriterion("org_name not like", value, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameIn(List<String> values) {
+            addCriterion("org_name in", values, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameNotIn(List<String> values) {
+            addCriterion("org_name not in", values, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameBetween(String value1, String value2) {
+            addCriterion("org_name between", value1, value2, "orgName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrgNameNotBetween(String value1, String value2) {
+            addCriterion("org_name not between", value1, value2, "orgName");
             return (Criteria) this;
         }
     }

@@ -36,7 +36,7 @@ public class PhoneSaleTransferInfoServiceImpl implements PhoneSaleTransferInfoSe
             return;
         }
         List<PhoneSaleTransferInfo> filterList = list.parallelStream().filter(info -> !ObjectUtils.isEmpty(info)
-                && StringUtils.isNotEmpty(info.getApiCode()) && StringUtils.isNotEmpty(info.getCusaNum()))
+                && StringUtils.isNotEmpty(info.getApiCode()) && StringUtils.isNotEmpty(info.getCustNum()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(filterList)) {
             return;

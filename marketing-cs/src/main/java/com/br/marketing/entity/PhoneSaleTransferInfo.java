@@ -16,7 +16,7 @@ public class PhoneSaleTransferInfo {
     /**
      * 案件编号
      */
-    private String cusaNum;
+    private String custNum;
 
     /**
      * 场景
@@ -53,6 +53,11 @@ public class PhoneSaleTransferInfo {
      */
     private Long sourceId;
 
+    /**
+     * 机构名称
+     */
+    private String orgName;
+
     public Long getId() {
         return id;
     }
@@ -69,12 +74,12 @@ public class PhoneSaleTransferInfo {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public String getCusaNum() {
-        return cusaNum;
+    public String getCustNum() {
+        return custNum;
     }
 
-    public void setCusaNum(String cusaNum) {
-        this.cusaNum = cusaNum == null ? null : cusaNum.trim();
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
     }
 
     public String getUserType() {
@@ -131,5 +136,13 @@ public class PhoneSaleTransferInfo {
 
     public void setSourceId(Long sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public String getOrgName() {
+        return orgName;
+    }
+
+    public void setOrgName(String orgName) {
+        this.orgName = orgName == null ? null : orgName.trim();
     }
 }
