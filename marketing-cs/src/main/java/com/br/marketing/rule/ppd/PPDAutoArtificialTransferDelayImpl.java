@@ -57,7 +57,10 @@ public class PPDAutoArtificialTransferDelayImpl implements AssembleData<MqFact> 
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         // ifTransform=0 userType=1,2,3 转化数据静置
-        boolean userType = "0".equals(transfer.getIfTransform()) && Arrays.asList("1", "2", "3").contains(transfer.getUserType());
+        if ("3".equals(transfer.getUserType())) {
+            return "0".equals(transfer.getIfTransform());
+        }
+        boolean userType = "0".equals(transfer.getIfTransform()) && Arrays.asList("1", "2").contains(transfer.getUserType());
         if(userType){
             Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer(context.getApiCode(), this.label());
             if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){
