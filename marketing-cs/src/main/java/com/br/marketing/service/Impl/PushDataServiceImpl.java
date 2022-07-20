@@ -860,14 +860,16 @@ public class PushDataServiceImpl implements PushDataService {
                     JSONObject resultJson = JSONObject.parseObject(result);
                     Integer code = resultJson.getInteger("code");
                     XieChengData resultData = new XieChengData();
+                    resultData.setId(xieChengData.getId());
                     XieChengDataExample xieChengDataExample = new XieChengDataExample();
                     xieChengDataExample.createCriteria().andIdEqualTo(xieChengData.getId());
                     if (code == 0) {
                         resultData.setPushStatus(2);
-                    } else {
-                        resultData.setDataMessage(result);
+                    }else {
+                        resultData.setPushStatus(3);
                     }
-                    xieChengDataMapper.updateByExample(resultData, xieChengDataExample);
+                    resultData.setDataMessage(result);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 }
             }
         }
@@ -877,7 +879,7 @@ public class PushDataServiceImpl implements PushDataService {
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();
         List<YqbDetailVo.UserInfo> userInfoList = new ArrayList<>();
-        pushList.forEach(pushMarketingData ->{
+        pushList.forEach(pushMarketingData -> {
             YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
             userInfo.setPhoneMd5(pushMarketingData.getPhoneMd5());
             userInfo.setDataTime(DateUtils.format(pushMarketingData.getCreateTime(), "yyyyMMddHHmmss"));
