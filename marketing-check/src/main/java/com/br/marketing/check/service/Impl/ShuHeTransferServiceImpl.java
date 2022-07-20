@@ -219,7 +219,8 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         for (PhoneSaleExtendInfo info : listPage) {
             String custNum = info.getCustNum();
             // 判断有效期
-            if (isLastDayValidity(userType, info.getCreateTime(), custNumMap.getOrDefault(custNum, null))) {
+            if (isLastDayValidity(userType, StringUtils.isBlank(syncUserDateTimeEnd) ? LocalDate.now()
+                    : LocalDate.now().minusDays(1), custNumMap.getOrDefault(custNum, null))) {
                 if (cusaNumList.contains(custNum) || deDuplicationList.contains(custNum)) {
                     continue;
                 }
@@ -231,16 +232,8 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 dataDTO.setOrgName(orgName);
                 dataDTO.setTransformStatus("1");
                 dto.setDassTransferDataDTO(dataDTO);
-                PhoneSaleTransferInfo phoneSaleTransferInfo = new PhoneSaleTransferInfo();
-                phoneSaleTransferInfo.setSourceId(info.getId());
-                phoneSaleTransferInfo.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-                phoneSaleTransferInfo.setCreateTime(new Date());
-                phoneSaleTransferInfo.setApiCode(apiCode);
-                phoneSaleTransferInfo.setTransformStatus(dataDTO.getTransformStatus());
-                phoneSaleTransferInfo.setDataType(PhoneSaleTransferDataTypeEnum.INVALID_DATA_FILTER.getValue());
-                phoneSaleTransferInfo.setCusaNum(custNum);
-                phoneSaleTransferInfo.setUserType(userType);
-                phoneSaleList.add(phoneSaleTransferInfo);
+                phoneSaleTransferInfoNew(phoneSaleList, apiCode, orgName, dataDTO.getTransformStatus()
+                        , info.getId(), custNum, userType);
                 // 添加到去重集合
                 cusaNumList.add(custNum);
                 deDuplicationList.add(custNum);
@@ -262,7 +255,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
      * @param validityDate 有效期时间
      * @return true or false
      */
-    private boolean isLastDayValidity(String userType, Date pCreateTime, Date validityDate) {
+    private boolean isLastDayValidity(String userType, LocalDate pCreateTime, Date validityDate) {
         if (ObjectUtils.isEmpty(pCreateTime) || ObjectUtils.isEmpty(validityDate) || StringUtils.isBlank(userType)) {
             return false;
         }
@@ -282,8 +275,23 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         } else {
             lastDate = creatDate.plusDays(day);
         }
-        LocalDate pCreateDate = pCreateTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        return lastDate.isEqual(pCreateDate);
+        return pCreateTime.isEqual(lastDate);
+    }
+
+    private void phoneSaleTransferInfoNew(List<PhoneSaleTransferInfo> phoneSaleList, String apiCode
+            , String orgName, String transformStatus, Long sourceId, String custNum, String userType) {
+        PhoneSaleTransferInfo psti = new PhoneSaleTransferInfo();
+        psti.setSourceId(sourceId);
+        psti.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        psti.setCreateTime(new Date());
+        psti.setApiCode(apiCode);
+        psti.setTransformStatus(transformStatus);
+        psti.setDataType(PhoneSaleTransferDataTypeEnum.INVALID_DATA_FILTER.getValue());
+        psti.setCustNum(custNum);
+        psti.setUserType(userType);
+        psti.setUpdateTime(psti.getCreateTime());
+        psti.setOrgName(orgName);
+        phoneSaleList.add(psti);
     }
 }
 
