@@ -44,7 +44,7 @@ public class ShuHeInvalidDataFilterToDaasTransferJob extends AbstractSimpleElast
         parseParam(context.getJobParameter(), typeMap);
         shuHeTransferService.invalidDataFilterToDaasTransfer(typeMap);
         long end = System.currentTimeMillis();
-        log.warn("【转化数据统计调度任务】调度结束，耗时:{},分片:{},typeMap:{}", end - start
+        log.warn("【数禾失效数据过虑到Dass转化接口调度任务】调度结束，耗时:{},分片:{},typeMap:{}", end - start
                 , context.getShardingItemParameters(), typeMap);
 
     }
