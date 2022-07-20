@@ -861,8 +861,6 @@ public class PushDataServiceImpl implements PushDataService {
                     Integer code = resultJson.getInteger("code");
                     XieChengData resultData = new XieChengData();
                     resultData.setId(xieChengData.getId());
-                    XieChengDataExample xieChengDataExample = new XieChengDataExample();
-                    xieChengDataExample.createCriteria().andIdEqualTo(xieChengData.getId());
                     if (code == 0) {
                         resultData.setPushStatus(2);
                     }else {
