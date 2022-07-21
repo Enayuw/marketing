@@ -11,7 +11,10 @@ import org.springframework.util.ObjectUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -118,7 +121,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
             , String userType) {
         if (CollectionUtils.isEmpty(custNums)) {
-            return Collections.emptyList();
+            custNums = null;
         }
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
     }
