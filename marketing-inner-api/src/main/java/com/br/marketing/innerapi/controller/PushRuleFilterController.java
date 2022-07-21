@@ -14,6 +14,7 @@ import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import io.swagger.annotations.Api;
@@ -118,9 +119,14 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "保存模板")
     @PostMapping("/saveCondition")
-    public ApiResult<Integer> saveCondition(@RequestBody ConditionSaveDTO dto) {
-//        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
-        return null;
+    public ApiResult<Long> saveCondition(@RequestBody ConditionSaveDTO dto) {
+        return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), 1);
+    }
+
+    @ApiOperation(value = "获取模板")
+    @GetMapping("/getConditionByRule")
+    public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode) {
+        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode), 1);
     }
 
     @ApiOperation(value = "测试消费")

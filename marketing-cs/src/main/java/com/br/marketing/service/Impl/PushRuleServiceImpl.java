@@ -315,6 +315,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     ScoreSearchConditionMappingMapper scoreSearchConditionMappingMapper;
 
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -2497,16 +2500,38 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setCreateTime(new Date());
         scoreSearchConditionMapper.insertSelective(searchCondition);
+        entityOptService.writeOptLog(searchCondition.getId(),searchCondition,null,dto.getUserDetail());
 
         ScoreSearchConditionMapping scoreSearchConditionMapping = new ScoreSearchConditionMapping();
         scoreSearchConditionMapping.setApiCode(dto.getApiCode());
         scoreSearchConditionMapping.setConditionId(searchCondition.getId());
         scoreSearchConditionMapping.setCreateTime(new Date());
         scoreSearchConditionMappingMapper.insertSelective(scoreSearchConditionMapping);
-
-
+        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(),scoreSearchConditionMapping,null,dto.getUserDetail());
 
         return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
+    }
+
+    @Override
+    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode) {
+        ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
+        mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
+        List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
+        if(scoreSearchConditionMappings.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        }
+        List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
+        ScoreSearchConditionExample conditionExample= new ScoreSearchConditionExample();
+        conditionExample.createCriteria().andIdIn(conditionIds).andConditionTypeEqualTo(1).andIsDelEqualTo(Constants.DATA_VALID);
+        List<ScoreSearchCondition> scoreSearchConditions = scoreSearchConditionMapper.selectByExample(conditionExample);
+        if(scoreSearchConditions.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        }
+        List<ConditionOfScoreVO> res = new ArrayList<>();
+        scoreSearchConditions.forEach(t->{
+            res.add(new ConditionOfScoreVO().setId(t.getId()).setContentShow(t.getContentShow()));
+        });
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 
     private Result<Boolean> addHaluoLock(String apiCode, String taskId, String custNum, String status) {

@@ -9,6 +9,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
 import com.br.marketing.vo.MarketingTransferUserStatusVO;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -54,6 +55,8 @@ public interface PushRuleService {
     Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
 
     Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
+
+    Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode);
 
     Result<Boolean> consumerPushCustomer(Long id);
 
