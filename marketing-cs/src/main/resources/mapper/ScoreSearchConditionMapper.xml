@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.ScoreSearchConditionMapper" >
+    <select id="getScoreListBySearch" parameterType="com.br.marketing.dto.SearchConditionDTO" resultType="com.br.marketing.vo.ScoreConditionDetailVO">
+        select a.id
+             ,b.api_code as apiCode
+             ,a.name
+             ,a.status
+             ,content_show as contentShow
+             ,date_format(a.create_time,'%Y-%m-%d  %T') as createTime
+             ,date_format(a.update_time,'%Y-%m-%d  %T') as updateTime
+        from b_score_search_condition as a
+        left join b_score_search_condition_mapping as b on b.condition_id = a.id
+        where a.condition_type = 1 and a.is_del = 1 and b.is_del = 1
+        <if test="apiCode !=null and apiCode !=''">
+            and b.api_code = #{apiCode}
+        </if>
+        <if test="name !=null and name !=''">
+            and a.name = #{name}
+        </if>
+        <if test="status !=null">
+            and a.status = #{status}
+        </if>
+        order by a.update_time desc
+    </select>
 </mapper>

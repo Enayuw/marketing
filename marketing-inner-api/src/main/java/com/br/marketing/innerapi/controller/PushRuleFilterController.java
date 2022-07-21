@@ -7,15 +7,13 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ConditionSaveDTO;
-import com.br.marketing.dto.CustomerBatchNumDTO;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.*;
 import com.br.marketing.innerapi.config.ThreadContextInfo;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
+import com.br.marketing.vo.ScoreConditionDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,6 +41,7 @@ public class PushRuleFilterController {
 
     @Autowired
     PushRuleService pushRuleService;
+
 
 
     /**
@@ -127,6 +126,18 @@ public class PushRuleFilterController {
     @GetMapping("/getConditionByRule")
     public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode) {
         return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode), 1);
+    }
+
+    @ApiOperation(value = "修改规则模板")
+    @PostMapping("/optCondition")
+    public ApiResult optCondition(@RequestBody OptConditionDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.optCondition(dto), 1);
+    }
+
+    @ApiOperation(value = "查询规则模板列表")
+    @PostMapping("/getConditionPageData")
+    public ApiResult<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@RequestBody SearchConditionDTO dto) {
+        return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), 1);
     }
 
     @ApiOperation(value = "测试消费")

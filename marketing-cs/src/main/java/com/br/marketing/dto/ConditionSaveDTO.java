@@ -1,16 +1,19 @@
 package com.br.marketing.dto;
 
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 
 
-public class ConditionSaveDTO {
+public class ConditionSaveDTO{
 
     @ApiModelProperty(value = "商户编号")
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
+
+    @ApiModelProperty(value = "商户编号")
+    @NotNull(message = "规则名称不能为空")
+    private String name;
 
     @ApiModelProperty(value = "查询规则")
     @NotNull(message = "查询规则不能为空")
@@ -18,9 +21,6 @@ public class ConditionSaveDTO {
 
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
-
-    @ApiModelProperty(value = "用户信息", hidden = true)
-    private MarketingUserDetail userDetail;
 
     public String getApiCode() {
         return apiCode;
@@ -30,6 +30,13 @@ public class ConditionSaveDTO {
         this.apiCode = apiCode;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getmRuleCondition() {
         return mRuleCondition;
@@ -45,13 +52,5 @@ public class ConditionSaveDTO {
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
         this.mRuleConditionShow = mRuleConditionShow;
-    }
-
-    public MarketingUserDetail getUserDetail() {
-        return userDetail;
-    }
-
-    public void setUserDetail(MarketingUserDetail userDetail) {
-        this.userDetail = userDetail;
     }
 }

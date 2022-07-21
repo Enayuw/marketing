@@ -9,10 +9,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
-import com.br.marketing.vo.MarketingTransferUserStatusVO;
-import com.br.marketing.vo.PushInfoDetailVO;
+import com.br.marketing.vo.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -57,6 +54,10 @@ public interface PushRuleService {
     Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
 
     Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode);
+
+    Result<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@Valid SearchConditionDTO dto);
+
+    Result optCondition(@Valid OptConditionDTO dto);
 
     Result<Boolean> consumerPushCustomer(Long id);
 

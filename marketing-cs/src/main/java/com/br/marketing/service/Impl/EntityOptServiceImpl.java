@@ -5,11 +5,13 @@ import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.enums.TableCodeEnum;
+import com.br.marketing.context.OptUser;
 import com.br.marketing.entity.EntityOptLog;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.service.EntityOptService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -18,6 +20,9 @@ import javax.annotation.Resource;
 @Service
 @Slf4j
 public class EntityOptServiceImpl{
+
+    @Autowired
+    OptUser optUser;
 
     private static HashMap<String,TableCodeEnum> tableHm;
 
@@ -48,7 +53,6 @@ public class EntityOptServiceImpl{
         log.setSourceEntity(tableCodeEnum.getTableEntity());
         log.setContent(JSON.toJSONString(entity));
         log.setOptType(EnumLogCRUD.Create.Value);
-        log.setDesc("");
         log.setOptUserId(user.getId().toString());
         log.setOptUserName(user.getUserName());
         log.setCreateTime(new Date());
@@ -120,16 +124,16 @@ public class EntityOptServiceImpl{
      * @param user  操作人
      * @param <T>
      */
-    public <T> void writeOptLog(Long id,T newEntity, T oldEntity, MarketingUserDetail user){
+    public <T> void writeOptLog(Long id,T newEntity, T oldEntity){
         String simpleName = newEntity.getClass().getSimpleName();
         TableCodeEnum tableCodeEnum = tableHm.get(simpleName);
         if(tableCodeEnum == null){
             return;
         }
         if(oldEntity == null){
-            saveOpt(id,newEntity,user,tableCodeEnum);
+            saveOpt(id,newEntity,optUser.getUserDetail(),tableCodeEnum);
         }else{
-            updateOpt(id,newEntity,oldEntity,user,tableCodeEnum);
+            updateOpt(id,newEntity,oldEntity,optUser.getUserDetail(),tableCodeEnum);
         }
     }
 
