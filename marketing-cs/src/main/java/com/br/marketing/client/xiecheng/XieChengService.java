@@ -42,7 +42,7 @@ public class XieChengService {
     //source: BaiRong_C01
     //channel: commonOutAdMonitor
 
-    @Value("${api.xiecheng.openUrl}")
+    @Value("${api.xiecheng.openUrl:0}")
     private String openUrl;
 
     @Value("${api.xiecheng.appId:0}")
