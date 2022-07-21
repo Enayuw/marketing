@@ -1,0 +1,38 @@
+package com.br.marketing.entity;
+
+import lombok.Data;
+
+/**
+ * 携程上报实体
+ * <p>
+ * --------------------------------
+ *
+ * @BelongsProject: marketing
+ * @BelongsPackage: com.br.marketing.entity
+ * @Description: 携程上报实体
+ * @CreateTime: 2022-07-18 20 :07
+ * @Version: 1.0
+ * @Author: guangchao.zhang
+ * ------------------------------
+ */
+@Data
+public class ThirdAdOuterReq {
+
+    private String timestamp;
+
+    private String source;
+
+    private String clickId;
+
+    private String actionType;
+
+    private String deviceInfo;
+
+    public ThirdAdOuterReq(String timestamp,String source,String clickId,String actionType,String deviceInfo){
+        this.timestamp = timestamp;
+        this.source = source;
+        this.clickId = clickId;
+        this.actionType = actionType;
+        this.deviceInfo = deviceInfo;
+    }
+}

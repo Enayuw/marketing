@@ -104,4 +104,18 @@ public class ConsumerApp {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
     }
+
+    /**
+     * 消费 携程消费
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, containerFactory = "containerFactory")
+    public void xiechengTodb(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, o, null);
+    }
 }

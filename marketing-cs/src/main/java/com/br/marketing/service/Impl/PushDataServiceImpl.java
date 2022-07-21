@@ -21,6 +21,7 @@ import com.br.marketing.client.twosevenservice.TwoSevenService;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
+import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
@@ -94,6 +95,9 @@ public class PushDataServiceImpl implements PushDataService {
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
+    private XieChengDataMapper xieChengDataMapper;
+
+    @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
     private String secretKey;
@@ -131,6 +135,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Autowired
     YiQianBaoService yiQianBaoService;
+
+    @Autowired
+    XieChengService xieChengService;
 
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -831,10 +838,51 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
+    @Override
+    public Result pushXieChengToDbData(Long id) {
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+        //携程推送营销数据
+        if ("xiecheng".equals(localFile.getFileType())) {
+            Boolean actionMark = true;
+            while (actionMark) {
+
+                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
+                if (xieChengDatalist.size() <= 0) {
+                    actionMark = false;
+                    continue;
+                }
+                for (int i = 0; i < xieChengDatalist.size(); i++) {
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    XieChengData xieChengData = xieChengDatalist.get(i);
+                    String result = xieChengService.pushXieChengData(xieChengData);
+                    JSONObject resultJson = JSONObject.parseObject(result);
+                    Integer code = resultJson.getInteger("code");
+                    XieChengData resultData = new XieChengData();
+                    resultData.setId(xieChengData.getId());
+                    if (code == 0) {
+                        resultData.setPushStatus(2);
+                    }else {
+                        resultData.setPushStatus(3);
+                    }
+                    resultData.setDataMessage(result);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                }
+            }
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();
         List<YqbDetailVo.UserInfo> userInfoList = new ArrayList<>();
-        pushList.forEach(pushMarketingData ->{
+        pushList.forEach(pushMarketingData -> {
             YqbDetailVo.UserInfo userInfo = new YqbDetailVo.UserInfo();
             userInfo.setPhoneMd5(pushMarketingData.getPhoneMd5());
             userInfo.setDataTime(DateUtils.format(pushMarketingData.getCreateTime(), "yyyyMMddHHmmss"));
