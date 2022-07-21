@@ -7,6 +7,7 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -125,6 +126,9 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
             , String userType) {
+        if (CollectionUtils.isEmpty(custNums)) {
+            custNums = null;
+        }
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
     }
 
