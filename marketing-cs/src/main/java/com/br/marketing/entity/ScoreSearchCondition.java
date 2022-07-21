@@ -9,6 +9,16 @@ public class ScoreSearchCondition {
     private Long id;
 
     /**
+     * 模板名称
+     */
+    private String name;
+
+    /**
+     * 1-启用;2-禁用
+     */
+    private Integer status;
+
+    /**
      * 条件用途 1-规则模板；2-转化筛选
      */
     private Integer conditionType;
@@ -44,6 +54,22 @@ public class ScoreSearchCondition {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Integer getConditionType() {
