@@ -28,8 +28,7 @@ public class TaskTransferSyncReportJob extends AbstractSimpleElasticJob {
 
     /**
      * 2022/6/29 11:08
-     * 工作配置参数格式：
-     * 格式：yyyy-MM-dd,yyyy-MM-dd,yyyy-MM-dd...
+     * 工作配置(JobParameter)参数格式：yyyy-MM-dd,yyyy-MM-dd,yyyy-MM-dd,...
      * eg:2022-06-28,2022-06-29,2022-06-30
      * <p>
      * 参数配置规则：
