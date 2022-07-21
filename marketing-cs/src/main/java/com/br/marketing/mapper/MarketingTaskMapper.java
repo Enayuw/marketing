@@ -221,8 +221,10 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      */
     List<ApiCodeTask> queryCloseBltSoon(String date);
 
+    @AddDataAuth
     List<ScoreDetailVo> queryBatchs(CustomerBatchNumDTO dto);
 
+    @AddDataAuth
     Integer queryBatchsCount(CustomerBatchNumDTO dto);
 
     MarketingTask selectCycleTopByApiCode(String apiCode);

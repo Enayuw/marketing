@@ -8,6 +8,7 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -62,6 +63,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
         PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
         return new ApiResult<PageResultReturn>().success(listPage);
@@ -75,6 +77,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取列表跑分总数")
     @PostMapping("/getBatchInfosCounts")
+    @AddDataAuthBusiness
     public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
         Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
         return new ApiResult<Integer>().success(totalNum);
