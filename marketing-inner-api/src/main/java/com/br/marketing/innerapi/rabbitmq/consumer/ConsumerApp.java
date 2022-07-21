@@ -154,7 +154,7 @@ public class ConsumerApp {
 
     }
     /**
-     * 消费 营销平台数据导入异步处理
+     * 消费 哈啰数据清洗
      *
      * @param channel 通道
      * @param message 消息体
@@ -165,7 +165,8 @@ public class ConsumerApp {
     public void haloCleanHistory(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, haloCleanHistoryHandler::haluoCleanHistory, o, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+        consumerService.consumerRun(channel, message, haloCleanHistoryHandler::haluoCleanHistory, o, null);
     }
+
 
 }
