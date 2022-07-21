@@ -285,7 +285,7 @@
         from b_marketing_sync_${apiCode}
         where
         <choose>
-            <when test="custNums!=null and custNums.size()>0">
+            <when test="custNums!=null">
                 cust_num in
                 <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
                     #{custNum}

@@ -5,15 +5,13 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class MarketingSyncUserImpl implements IMarketingSyncUserService {
@@ -119,6 +117,9 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     @Override
     public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
             , String userType) {
+        if (CollectionUtils.isEmpty(custNums)) {
+            return Collections.emptyList();
+        }
         return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
     }
 }
