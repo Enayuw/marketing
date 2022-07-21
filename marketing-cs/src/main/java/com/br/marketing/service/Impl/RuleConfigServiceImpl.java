@@ -187,8 +187,8 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         if(ids!=null&&ids.size()>0){
             ruleConfigExample.createCriteria()
                     .andIdIn(ids)
-                    .andIsDelEqualTo(Constants.DATA_VALID)
-                    .andStatusEqualTo(Constants.STATUS_START);
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+//                    .andStatusEqualTo(Constants.STATUS_START);
             ruleConfigExample.setOrderByClause(" start_time asc ");
         }else {
             String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));

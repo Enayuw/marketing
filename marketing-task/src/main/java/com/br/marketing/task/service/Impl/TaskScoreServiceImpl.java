@@ -15,6 +15,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
@@ -125,6 +126,9 @@ public class TaskScoreServiceImpl {
     @Autowired
     IDynamicSqlService iDynamicSqlService;
 
+    @Autowired
+    MarketingTaskService marketingTaskService;
+
     public void process(MarketingTask task, String day) {
         String apiCode = task.getApiCode();
 
@@ -184,8 +188,6 @@ public class TaskScoreServiceImpl {
                     warrningExecutor = BrExecutors.getThreadPool(20, 20);
                     int i = 1;
                     for (String errorFile : hkeys) {
-//                        String batchNumber = redisChgService.hget(hkey, errorFile);
-//                        MarketingTask task = marketingTaskMapper.queryBlt(batchNumber);
                         if (task != null) {
                             this.retry(task, errorFile, warrningExecutor, i, customer);
                             i++;
@@ -213,7 +215,7 @@ public class TaskScoreServiceImpl {
             //region 任务状态表和任务记录表的更新
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(task.getStatusId());
-            if (task.getMonitorType().equals(1)) {
+            if (task.getMonitorType().equals(1)||task.getMonitorType().equals(2)) {
                 updateStatus.setOnceStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
             } else {
                 updateStatus.setAllStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
@@ -222,7 +224,7 @@ public class TaskScoreServiceImpl {
             if (!observedScoreThreadService.isInterrupt()) {
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(task.getFileId());
-                updateFile.setStatus(1);
+                updateFile.setStatus(task.getMonitorType().equals(2)?2:1);
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
@@ -309,7 +311,7 @@ public class TaskScoreServiceImpl {
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
-                    , flagproductlist, marketingTaskExtend));
+                    , flagproductlist, marketingTaskExtend,true));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -344,9 +346,9 @@ public class TaskScoreServiceImpl {
             file.setUpdateTime(new Date());
             file.setExpectedNum(blt.getTaskNumber());
             file.setStatus(3);
-            if (1 == blt.getMonitorType()) {
+            if (1 == blt.getMonitorType()||2 == blt.getMonitorType()) {
                 file.setType(2);
-            } else if (4 == blt.getMonitorType()) {
+            } else if (4 == blt.getMonitorType()||3 == blt.getMonitorType()) {
                 file.setType(1);
             }
 //            file.setShowTitle(createShowTitle(blt));
@@ -456,18 +458,46 @@ public class TaskScoreServiceImpl {
             List<String> conditionDatas = dataCondition.getData();
             int currentPage = 1;
             long startTime = System.currentTimeMillis();
+            boolean isVerScore = 2 == blt.getMonitorType();
+            TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = JSON.parseObject(marketingTaskExtend.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class);
+            Integer verNum = taskExtendExtendFieldDTO!=null&&taskExtendExtendFieldDTO.getDataLimit()!=null&&taskExtendExtendFieldDTO.getDataLimit()>0
+                    ?taskExtendExtendFieldDTO.getDataLimit():500;
+            Boolean isHead = Boolean.TRUE;
             for (String conditionData : conditionDatas) {
+                if(isVerScore&&verNum<=0){
+                    continue;
+                }
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
-                log.warn("min_id--{},pageSize--{}", minId, pageSize);
+                log.warn("min_id--{},pageSize--{}", minId, isVerScore?verNum:pageSize);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
                     Long begin = 0L;
                     Boolean threadpoolStatus = Boolean.TRUE;
                     while (threadpoolStatus) {
-                        List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, pageSize);
+                        if(isVerScore&&verNum<=0){
+                            threadpoolStatus = Boolean.FALSE;
+                            continue;
+                        }
+                        List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore?verNum:pageSize);
                         if (list.size() <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
+                        }
+                        if(isVerScore&&isHead){
+                            StringBuilder verHead = new StringBuilder();
+                            iProductResultSimpleService.initHead(verHead,separator,blt);
+                            MarketingTaskResultPreview preview = new MarketingTaskResultPreview();
+                            preview.setApiCode(blt.getApiCode());
+                            preview.setTaskId(blt.getId());
+                            preview.setFileId(blt.getFileId());
+                            preview.setBatchNumber(blt.getBatchNumber());
+                            preview.setIsTitle(1);
+                            preview.setContent(verHead.toString());
+                            marketingTaskService.saveScoreResult(preview);
+                            isHead = Boolean.FALSE;
+                        }
+                        if(isVerScore){
+                            verNum=verNum-list.size();
                         }
                         begin = list.get(list.size() - 1).getId();
                         if (!getCoreDataStatus(fileId, currentPage)) {
@@ -487,7 +517,7 @@ public class TaskScoreServiceImpl {
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt
-                                    , noflagproductlist, flagproductlist, marketingTaskExtend));
+                                    , noflagproductlist, flagproductlist, marketingTaskExtend,false));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }

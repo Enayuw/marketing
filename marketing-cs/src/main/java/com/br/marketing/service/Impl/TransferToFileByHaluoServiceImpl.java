@@ -73,6 +73,11 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
 
 
     @Override
+    public String isMyParam(String apiCode, String jobParameter) {
+        return "";
+    }
+
+    @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();

@@ -15,12 +15,16 @@ import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ResultPreviewDTO;
+import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
+import com.br.marketing.vo.ResultPreviewVO;
+import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +38,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * -------------------------------
@@ -96,6 +98,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Resource
     CustomerRuleMapper customerRuleMapper;
 
+    @Resource
+    MarketingTaskResultPreviewMapper marketingTaskResultPreviewMapper;
+
     static final String judgmentRegex = "<=|>=|=|>|<";
 
     @Resource
@@ -104,6 +109,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private String secretKey;
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
+
+    @Autowired
+    IProductResultSimpleService iProductResultSimpleService;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -335,6 +343,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo) {
 
+        Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
         Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
         if (!ResultCode.SUCCESS.getValue().equals(listResult.getCode())) {
@@ -344,16 +353,28 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         List<String> data = listResult.getData();
 
         Integer count = 0;
+        Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
         for (int i = 0; i < data.size(); i++) {
+            if(isVer&&preMaxNum<=0){
+                continue;
+            }
             String whereStr = data.get(i);
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
+            if (isVer) {
+                integer = integer >= preMaxNum ? preMaxNum : integer;
+                preMaxNum = preMaxNum - integer;
+            }
             count += integer;
             showStr.append(s).append("总数据" + integer);
             if (i < data.size() - 1) {
                 showStr.append(",");
             }
+        }
+
+        if (count <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode的统计记录失真，请更新该apicode所选的数据统计记录");
         }
 
         String number = "";
@@ -378,6 +399,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             datum.setConditionInfo(conditionInfo);
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
+            if (new Integer(1).equals(dto.getIsOrNoScoreVer())) {
+                datum.setExecType(2);
+                datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
+                datum.setDataLimit(dto.getDataLimit());
+            }
             Result<Long> result = buildScoreTaskOfSelect(datum);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 resIds.add(result.getData());
@@ -468,7 +494,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
             task.setCycleDay(ruleVO.getCycleDay().toString());
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
-            task.setMonitorType(4);
+            task.setMonitorType(3);
             task.setStartDate(taskStart);
             task.setCloseDate(ruleVO.getCycleEndDay());
             task.setCycleDay(ruleVO.getCycleDay().toString());
@@ -494,6 +520,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setDataCondition(ruleVO.getConditionInfo());
         taskExtend.setConditionType(conditionType);
         taskExtend.setConditionInfoShow(showDataStr);
+        if (new Integer(1).equals(ruleVO.getIsOrNoScoreVer())) {
+            taskExtend.setExtendConfigInfo(JSON.toJSONString(new TaskExtendExtendFieldDTO().setDataLimit(ruleVO.getDataLimit())));
+        }
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
 
@@ -540,4 +569,66 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return str.toString();
     }
 
+    @Override
+    public Result<List<StatisticsDataDayVO>> getStatisticsDataDay(String apiCode) {
+        MarketingSyncReportExample syncReportExample = new MarketingSyncReportExample();
+        syncReportExample.setOrderByClause(" applet_date desc limit 30");
+        syncReportExample.createCriteria()
+                .andApiCodeEqualTo(apiCode);
+        List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(syncReportExample);
+        ArrayList<StatisticsDataDayVO> statisticsDataDayVOS = new ArrayList<>();
+        marketingSyncReports.forEach(t -> {
+            StatisticsDataDayVO statisticsDataDayVO = new StatisticsDataDayVO();
+            statisticsDataDayVOS.add(statisticsDataDayVO);
+            statisticsDataDayVO.setDay(t.getAppletDate());
+            statisticsDataDayVO.setNum(t.getDuplicateRemovalNum());
+            statisticsDataDayVO.setId(t.getId());
+        });
+        return new Result<List<StatisticsDataDayVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(statisticsDataDayVOS);
+    }
+
+    @Override
+    public Result<ResultPreviewVO> resultPreview(Long tasId) {
+        ResultPreviewVO resData = new ResultPreviewVO();
+        MarketingTaskResultPreviewExample example = new MarketingTaskResultPreviewExample();
+        example.createCriteria().andTaskIdEqualTo(tasId);
+        List<MarketingTaskResultPreview> marketingTaskResultPreviews = marketingTaskResultPreviewMapper.selectByExample(example);
+        Optional<MarketingTaskResultPreview> first = marketingTaskResultPreviews.stream().filter(t -> new Integer(1).equals(t.getIsTitle())).findFirst();
+        if (!first.isPresent()) {
+            return new Result<ResultPreviewVO>().setCode(ResultCode.SUCCESS.getValue()).setMessage("表头不存在");
+        }
+        MarketingTaskResultPreview marketingTaskResultPreview = first.get();
+        String[] titleArray = marketingTaskResultPreview.getContent().split(",");
+        List<HashMap> titleDesc = new ArrayList<>();
+        List<HashMap> contentDesc = new ArrayList<>();
+        for (String s : titleArray) {
+            HashMap titleHs = new HashMap();
+            titleHs.put("name", s);
+            titleHs.put("status", 0);
+            titleDesc.add(titleHs);
+        }
+        marketingTaskResultPreviews.forEach(t -> {
+            if (!new Integer(1).equals(t.getIsTitle())) {
+                String[] field = t.getContent().split(",", -1);
+                HashMap<String, String> contentHs = new HashMap<>();
+                for (int i = 0; i < field.length; i++) {
+                    String fieldValue = field[i];
+                    String fieldTitle = titleArray[i];
+                    if (!StringUtils.isBlank(fieldValue)) {
+                        titleDesc.get(i).put("status", 1);
+                    }
+                    contentHs.put(fieldTitle, StringUtils.isBlank(fieldValue) ? "" : fieldValue);
+                }
+                contentDesc.add(contentHs);
+            }
+        });
+        resData.setHeadDesc(titleDesc);
+        resData.setContent(contentDesc);
+        return new Result<ResultPreviewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(resData);
+    }
+
+    @Override
+    public void saveScoreResult(MarketingTaskResultPreview preview) {
+        marketingTaskResultPreviewMapper.insertSelective(preview);
+    }
 }

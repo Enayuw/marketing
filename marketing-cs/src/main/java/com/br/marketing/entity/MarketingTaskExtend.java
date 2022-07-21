@@ -73,6 +73,11 @@ public class MarketingTaskExtend {
      */
     private String conditionInfoShow;
 
+    /**
+     * 扩展信息字段
+     */
+    private String extendConfigInfo;
+
     public Long getId() {
         return id;
     }
@@ -183,5 +188,13 @@ public class MarketingTaskExtend {
 
     public void setConditionInfoShow(String conditionInfoShow) {
         this.conditionInfoShow = conditionInfoShow == null ? null : conditionInfoShow.trim();
+    }
+
+    public String getExtendConfigInfo() {
+        return extendConfigInfo;
+    }
+
+    public void setExtendConfigInfo(String extendConfigInfo) {
+        this.extendConfigInfo = extendConfigInfo == null ? null : extendConfigInfo.trim();
     }
 }

@@ -33,13 +33,22 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
 
     /**
      * 手机号是否重复
-     *
      * @param phone
      * @param dxType
      * @param date
      */
-    int countByPhoneAndType(@Param("phone") String phone, @Param("dxType") String dxType, @Param("date") String date);
+    int countByPhoneAndType(@Param("phone")String phone,@Param("dxType")String dxType,@Param("date")String date);
 
+    /**
+     * 拍拍贷新客转人工数据提取
+     * @param apiCode
+     * @param startDate
+     * @param endDate
+     * @param limitStart
+     * @return
+     */
+    List<PhoneSaleExtendInfo> getPPDToDxData(@Param("apiCode")String apiCode,@Param("startDate")String startDate,
+                                             @Param("endDate")String endDate ,@Param("limitStart") Integer limitStart);
     /**
      * 2022/7/13 17:36
      * 获取推送电销人工电销的记录

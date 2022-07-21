@@ -70,11 +70,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private SyncLogMapper loanSyncLogMapper;
     @Resource
     private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
+    @Resource
+    private TransferToFileByPPDServiceImpl transferToFileByPPDService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        log.warn("TransferFileTaskJob传入的自定义参数为:{}", jobParameter);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
@@ -88,7 +89,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        Result result = serviceImpl.actionTransferToFile(datum, jobParameter);
+                        //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
+                        String myParam = serviceImpl.isMyParam(datum.getApiCode(), jobParameter);
+                        log.warn("apicode={}获取的自定义参数为{}",datum.getApiCode(),myParam);
+                        Result result = serviceImpl.actionTransferToFile(datum, myParam);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
                             if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
@@ -128,6 +132,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
     }
 
+
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
         if (customer.getShortName().contains("萨摩耶")) {
             return transferToFileBySamoyeServiveImpl;
@@ -140,6 +145,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
         if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByJiuFuService;
+        }
+        if (marketingCommonConfig.getPPDTransferFileApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByPPDService;
         }
         if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
             return xiaoYingRealTimeService;

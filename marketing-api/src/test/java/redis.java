@@ -713,4 +713,11 @@ public class redis {
                     ,phone,localId));
         });
     }
+
+    public void xcSign(){
+        String appid = "bairong001";
+        String aesKey="f3df6f62f0527bf0";
+        String aesIv="3b2dac323465b024";
+        String signKey="95cc01ec07387a44";
+    }
 }

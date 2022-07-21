@@ -115,6 +115,11 @@ public class MarketingCommonConfig {
     private String yinXinTransferNoRealTimeExecuteTime;
 
     /**
+     * 宜信实时转化数据real-pass执行时间
+     */
+    private String yinXinTransferRealPassExecuteTime;
+
+    /**
      * 是否开启宜信非实时数据提取
      */
     private Boolean isOpenYinXinTransferNoRealTimeExtract;
@@ -230,5 +235,15 @@ public class MarketingCommonConfig {
      * 跑分资源数量
      */
     private Integer taskResourceMaxNum;
+
+    /**
+     * 拍拍贷新客实时转化数据提取apicode集合
+     */
+    private List<String> PPDTransferFileApiCodes;
+
+    /**
+     * 拍拍贷新客实时转化数据提取执行时间
+     */
+    private String PPDTransferFileExecuteTime;
 
 }

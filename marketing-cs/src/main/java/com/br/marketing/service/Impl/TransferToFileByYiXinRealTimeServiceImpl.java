@@ -9,10 +9,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
@@ -29,6 +26,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,12 +54,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     @Resource
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     final static String EXECUTE_TIME = " 20:00:00";
     final static String EXECUTE_TIME_NO_REALTIME = " 12:00:00";
+    final static String EXECUTE_TIME_REALPASS = " 12:00:00";
 
     final static String YIXINREALTIMEFILE = "livetype_";
     final static String YIXIN_NOREALTIME_RESULT_FILE = "result_";
@@ -69,10 +69,16 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     final static String YIXIN_NOREALTIME_HIST_FILE = "hist_";
 
     final static String YIXIN_NOREALTIME_PASS_FILE = "pass_";
+    final static String YIXIN_REALTIME_PASS_FILE = "yixin_real_";
 
     final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
+
+    @Override
+    public String isMyParam(String apiCode, String jobParameter) {
+        return "";
+    }
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
@@ -90,6 +96,50 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             if (ResultCode.SUCCESS.getValue().equals(listResultNoRealTime.getCode()) && listResultNoRealTime.getData().size() > 0){
                 List<TransferFileTask> data = listResultNoRealTime.getData();
                 resultList.addAll(data);
+            }
+        }
+        //实时数real-pass据提取
+        Result<List<TransferFileTask>> listResultRealPass = buildTransferTaskRealPass(apiCode);
+        if (ResultCode.SUCCESS.getValue().equals(listResultRealPass.getCode()) && listResultRealPass.getData().size() > 0){
+            List<TransferFileTask> data = listResultRealPass.getData();
+            resultList.addAll(data);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
+    }
+
+    public Result<List<TransferFileTask>> buildTransferTaskRealPass(String apiCode) {
+        List<TransferFileTask> resultList = new ArrayList<>();
+        Date now = new Date();
+        //可配置
+        String execute = EXECUTE_TIME_REALPASS;
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getYinXinTransferRealPassExecuteTime())) {
+            execute = " " + marketingCommonConfig.getYinXinTransferRealPassExecuteTime();
+        }
+        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
+        if (now.after(executeTime)) {
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+            //D20220706宜信实时数据逻辑处理-3710012
+            TransferFileTaskExample taskExample = new TransferFileTaskExample();
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(6);
+            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+            if (CollectionUtils.isEmpty(transferFileTasks)) {
+                log.warn("宜信实时数据提取(real-pass)-开始执行,apiCode ={}", apiCode);
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                //Long transferFileContextId = 123L;
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                TransferFileTask transferFileTask = new TransferFileTask();
+                transferFileTask.setApiCode(apiCode);
+                transferFileTask.setFileType(6);
+                transferFileTask.setBatchNumber(batchNumber);
+                transferFileTask.setFileName("");
+                transferFileTask.setFileChildDir("data_yixin_pass");
+                transferFileTask.setTaskNumber(0);
+                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setContextId(transferFileContextId);
+                transferFileTask.setCreateTime(new Date());
+                transferFileTask.setUpdateTime(new Date());
+                transferFileTaskMapper.insertSelective(transferFileTask);
+                resultList.add(transferFileTask);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
@@ -212,11 +262,148 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             return actionTransferToFileHist(transferFileTask);
         }else if(5==transferFileTask.getFileType()){
             return actionTransferToFilePass(transferFileTask);
+        }else if(6==transferFileTask.getFileType()){
+            return actionTransferToFileRealPass(transferFileTask);
         }
         log.error("未找到对应的actionTransferToFile方法,请检查fileType");
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate("未找到对应的actionTransferToFile方法,请检查fileType");
     }
 
+    private Result actionTransferToFileRealPass(TransferFileTask transferFileTask) {
+        log.warn("宜信实时数据提取real-pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
+        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(YIXIN_REALTIME_PASS_FILE).append(recordDate).append(".txt");
+        String fileAllPath = descPath.concat(fileName.toString());
+        transferFileTask.setFileName(fileName.toString());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append("custNum,cell,liveType,createTime");
+            fw.append("\r\n");
+            writeYiXinRealTimePass(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void writeYiXinRealTimePass(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+        Long start = System.currentTimeMillis();
+        String tcId = tableCreateService.getTcId(apiCode);
+        LocalDate startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(7);
+        LocalDate endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
+        Integer page = 0;
+        Boolean mark = Boolean.TRUE;
+        int totalSize = 0;
+        //去重后的Set
+        HashSet custNumResult = new HashSet();
+        while(true){
+            while (mark) {
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByTransformTypeAndStatus(tcId, apiCode, endDate.toString(),page * 2000);
+                if (CollectionUtils.isEmpty(transferData)){
+                    mark = Boolean.FALSE;
+                    continue;
+                }
+                page++;
+                List<MarketingTransferSyncUser> custNumFilter = new ArrayList<>();
+                for (MarketingTransferSyncUser marketingTransferSyncUser : transferData) {
+                    if(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())){
+                        JSONObject reserveField1 = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+                        //实时数据transformType=1
+                        if ((StringUtils.isNotEmpty(reserveField1.getString("transformType"))) && ("1".equals(reserveField1.getString("transformType")))) {
+                            //过滤掉 同一custNum的其他insertTime数据，custNumResult
+                            if (custNumResult.add(marketingTransferSyncUser.getCustNum())) {
+                                custNumFilter.add(marketingTransferSyncUser);
+                            }
+                        }
+                    }
+                }
+                if (CollectionUtils.isEmpty(custNumFilter)) {
+                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1的数据,apiCode = {}", apiCode);
+                    continue;
+                }
+                Set<String> custNums = custNumFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                List<MarketingSyncUser> newestByCustNum = marketingSyncUserMapper.getNewestByCustNums(apiCode, custNums);
+
+                List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
+                for(MarketingTransferSyncUser custNumData : custNumFilter){
+                    for(MarketingSyncUser custNum : newestByCustNum){
+                        if(StringUtils.isNotEmpty(custNumData.getCustNum()) && StringUtils.isNotEmpty(custNum.getCustNum()) && custNumData.getCustNum().equals(custNum.getCustNum())){
+                            //上传表取最新的案件状态
+                            if(custNum.getStatus()!=null && custNum.getStatus()==1){
+                                dataFilter.add(custNumData);
+                            }
+                        }
+                    }
+                }
+                if (CollectionUtils.isEmpty(dataFilter)) {
+                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1&&status=1的数据,apiCode = {}", apiCode);
+                    continue;
+                }
+
+                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+                Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
+                        Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                , Collectors.collectingAndThen(
+                                        Collectors.reducing((v1, v2) ->
+                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                        , Optional::get)));
+
+                for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+                    String custNum = transferFilterData.getCustNum();
+                    String cell = "";
+                    if (preUserMap.containsKey(custNum)) {
+                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                    }
+                    String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transferFilterData.getCreateTime());
+                    //custNum,cell,liveType,createTime
+                    JSONObject reserveField1 = JSON.parseObject(transferFilterData.getReserveField1());
+                    String liveType = StringUtils.isNotEmpty(reserveField1.getString("liveType"))?reserveField1.getString("liveType"):"";
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(custNum.concat(","));
+                    sb.append(cell.concat(","));
+                    sb.append(liveType.concat(","));
+                    sb.append(createTime);
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
+                }
+                totalSize = totalSize + dataFilter.size();
+                dataFilter.clear();
+                custNumFilter.clear();
+                transferData.clear();
+            }
+            endDate = endDate.minusDays(1);
+            mark = Boolean.TRUE;
+            page = 0;
+            if(endDate.isBefore(startDate)){
+                break;
+            }
+        }
+        custNumResult.clear();
+        TransferFileTask updatetask = new TransferFileTask();
+        updatetask.setId(transferFileTask.getId());
+        updatetask.setStatus(2);
+        updatetask.setFileName(transferFileTask.getFileName());
+        updatetask.setFilePath(transferFileTask.getFilePath());
+        updatetask.setTaskNumber(totalSize);
+        updatetask.setFileType(6);
+        updatetask.setUpdateTime(new Date());
+        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
+        log.warn("宜信实时数据提取(real-pass)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+
+    }
     private Result actionTransferToFilePass(TransferFileTask transferFileTask) {
         log.warn("宜信非实时数据提取pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();

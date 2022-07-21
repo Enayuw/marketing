@@ -23,7 +23,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     /**
      * 根据cust_num获取1小时内最新数据
-     *
      * @param cid
      * @param caseNum
      * @param timeAddHour
@@ -101,4 +100,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("orderByClause") String orderByClause
             , @Param("rowCount") int rowCount
             , @Param("offset") int offset);
+
+    /**
+     * 过滤转化表实时数据&&上传表案件状态为有效的数据
+     * @param tcId
+     * @param apiCode
+     * @param limitStart
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferByTransformTypeAndStatus(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 }
