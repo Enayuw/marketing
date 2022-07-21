@@ -61,6 +61,7 @@ public class ScoreResultServiceImpl implements IScoreResultService {
             }
             String content = scoreSearchCondition.getContent();
             redisChgService.set(key, content);
+            redisChgService.expire(key,60*5);
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         }
 
