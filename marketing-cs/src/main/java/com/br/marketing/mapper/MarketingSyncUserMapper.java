@@ -32,4 +32,17 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
 
     List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode,@Param("custNums") Set<String> custNums);
+
+    /**
+     * 2022/7/14 11:20
+     * 获取案件集合中最大时间
+     *
+     * @param dateTimeEnd 截止时间
+     * @return list
+     */
+    List<MarketingSyncUser> getSyncUserTimeMaxByCustNums(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNums
+            , @Param("userType") String userType
+            , @Param("dateTimeEnd") String dateTimeEnd);
+
 }
