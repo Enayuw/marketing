@@ -9,6 +9,11 @@ public class ScoreSearchCondition {
     private Long id;
 
     /**
+     * 模板编号
+     */
+    private String conditionNumber;
+
+    /**
      * 模板名称
      */
     private String name;
@@ -54,6 +59,14 @@ public class ScoreSearchCondition {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getConditionNumber() {
+        return conditionNumber;
+    }
+
+    public void setConditionNumber(String conditionNumber) {
+        this.conditionNumber = conditionNumber == null ? null : conditionNumber.trim();
     }
 
     public String getName() {

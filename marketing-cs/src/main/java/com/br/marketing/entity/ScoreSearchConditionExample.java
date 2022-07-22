@@ -165,6 +165,76 @@ public class ScoreSearchConditionExample {
             return (Criteria) this;
         }
 
+        public Criteria andConditionNumberIsNull() {
+            addCriterion("condition_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberIsNotNull() {
+            addCriterion("condition_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberEqualTo(String value) {
+            addCriterion("condition_number =", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberNotEqualTo(String value) {
+            addCriterion("condition_number <>", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberGreaterThan(String value) {
+            addCriterion("condition_number >", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("condition_number >=", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberLessThan(String value) {
+            addCriterion("condition_number <", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberLessThanOrEqualTo(String value) {
+            addCriterion("condition_number <=", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberLike(String value) {
+            addCriterion("condition_number like", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberNotLike(String value) {
+            addCriterion("condition_number not like", value, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberIn(List<String> values) {
+            addCriterion("condition_number in", values, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberNotIn(List<String> values) {
+            addCriterion("condition_number not in", values, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberBetween(String value1, String value2) {
+            addCriterion("condition_number between", value1, value2, "conditionNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andConditionNumberNotBetween(String value1, String value2) {
+            addCriterion("condition_number not between", value1, value2, "conditionNumber");
+            return (Criteria) this;
+        }
+
         public Criteria andNameIsNull() {
             addCriterion("name is null");
             return (Criteria) this;
