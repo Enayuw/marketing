@@ -124,8 +124,8 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "获取模板")
     @GetMapping("/getConditionByRule")
-    public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode) {
-        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode), 1);
+    public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
+        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), 1);
     }
 
     @ApiOperation(value = "修改规则模板")

@@ -8,7 +8,13 @@ public class ConditionOfScoreVO {
     @ApiModelProperty(value = "id")
     private Long id;
 
-    @ApiModelProperty(value = "条件")
+    @ApiModelProperty(value = "模板名称")
+    private String name;
+
+    @ApiModelProperty(value = "条件json")
+    private String content;
+
+    @ApiModelProperty(value = "条件前端文本")
     private String contentShow;
 
     public Long getId() {
@@ -17,6 +23,24 @@ public class ConditionOfScoreVO {
 
     public ConditionOfScoreVO setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ConditionOfScoreVO setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public ConditionOfScoreVO setContent(String content) {
+        this.content = content;
         return this;
     }
 

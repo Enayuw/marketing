@@ -2499,6 +2499,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Date date = new Date();
         ScoreSearchCondition searchCondition = new ScoreSearchCondition();
         searchCondition.setName(dto.getName());
+        searchCondition.setConditionNumber(buildConditionNumber(dto.getApiCode()));
         searchCondition.setConditionType(1);
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
@@ -2518,8 +2519,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
     }
 
+    String buildConditionNumber(String apiCode){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.conditionNumber.concat(":").concat(yyyyMMdd);
+        Long incr = redisChgService.incr(key);
+        redisChgService.expire(key,getKeyExpiration());
+        String s = incr.toString();
+        int length = s.length();
+        for (int i = 3; i > length; i--) {
+            s+="0"+s;
+        }
+        return yyyyMMdd.concat(apiCode).concat(s);
+    }
+
     @Override
-    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode) {
+    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
         ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
         mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
         List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
@@ -2528,17 +2542,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
         ScoreSearchConditionExample conditionExample = new ScoreSearchConditionExample();
-        conditionExample.createCriteria().andIdIn(conditionIds)
+        ScoreSearchConditionExample.Criteria criteria = conditionExample.createCriteria();
+        criteria.andIdIn(conditionIds)
                 .andConditionTypeEqualTo(1)
                 .andStatusEqualTo(1)
                 .andIsDelEqualTo(Constants.DATA_VALID);
+        if(StringUtils.isNotBlank(name)){
+            criteria.andNameLike(name);
+        }
         List<ScoreSearchCondition> scoreSearchConditions = scoreSearchConditionMapper.selectByExample(conditionExample);
         if (scoreSearchConditions.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
         }
         List<ConditionOfScoreVO> res = new ArrayList<>();
         scoreSearchConditions.forEach(t -> {
-            res.add(new ConditionOfScoreVO().setId(t.getId()).setContentShow(t.getContentShow()));
+            res.add(new ConditionOfScoreVO()
+                    .setId(t.getId())
+                    .setContentShow(t.getContentShow())
+                    .setName(t.getName())
+                    .setContent(t.getContent()));
         });
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }

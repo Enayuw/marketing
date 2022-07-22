@@ -9,6 +9,9 @@ public class ScoreConditionDetailVO {
     @ApiModelProperty(value = "规则id")
     private Long id;
 
+    @ApiModelProperty(value = "规则编号")
+    private String conditionNumber;
+
     @ApiModelProperty(value = "apiCode")
     private String apiCode;
 

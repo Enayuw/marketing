@@ -12,6 +12,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public interface PushRuleService {
 
     Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
 
-    Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode);
+    Result<List<ConditionOfScoreVO>> getConditionByRule(@Valid @NotNull(message = "apiCode不能为空")String apiCode, String name);
 
     Result<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@Valid SearchConditionDTO dto);
 
