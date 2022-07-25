@@ -59,7 +59,6 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
         response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
         ThreadContextInfo.removeUser();
         session.invalidate();
-        session = null;
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
