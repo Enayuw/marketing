@@ -6,5 +6,8 @@ import com.br.marketing.vo.ScoreConditionDetailVO;
 import java.util.List;
 
 public interface ScoreSearchConditionMapper extends ScoreSearchConditionMapperBase {
+
     List<ScoreConditionDetailVO> getScoreListBySearch(SearchConditionDTO dto);
+
+    Integer getScoreCountBySearch(SearchConditionDTO dto);
 }

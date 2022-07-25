@@ -2496,6 +2496,16 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Long> saveCondition(ConditionSaveDTO dto) {
+
+        SearchConditionDTO searchConditionDTO = new SearchConditionDTO();
+        searchConditionDTO.setApiCode(dto.getApiCode());
+        searchConditionDTO.setName(dto.getName());
+        searchConditionDTO.setStatus(1);
+        Integer scoreCountBySearch = scoreSearchConditionMapper.getScoreCountBySearch(searchConditionDTO);
+        if(scoreCountBySearch>0){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("姓名重复");
+        }
+
         Date date = new Date();
         ScoreSearchCondition searchCondition = new ScoreSearchCondition();
         searchCondition.setName(dto.getName());

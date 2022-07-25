@@ -24,4 +24,20 @@
         </if>
         order by a.update_time desc
     </select>
+
+    <select id="getScoreCountBySearch" parameterType="com.br.marketing.dto.SearchConditionDTO" resultType="java.lang.Integer">
+        select count(*)
+        from b_score_search_condition as a
+        left join b_score_search_condition_mapping as b on b.condition_id = a.id
+        where a.condition_type = 1 and a.is_del = 1 and b.is_del = 1
+        <if test="apiCode !=null and apiCode !=''">
+            and b.api_code = #{apiCode}
+        </if>
+        <if test="name !=null and name !=''">
+            and a.name = #{name}
+        </if>
+        <if test="status !=null">
+            and a.status = #{status}
+        </if>
+    </select>
 </mapper>
