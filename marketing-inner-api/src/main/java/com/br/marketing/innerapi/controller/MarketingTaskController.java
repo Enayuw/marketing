@@ -4,11 +4,14 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.vo.MarketingTaskVO;
+import com.br.marketing.vo.ResultPreviewVO;
+import com.br.marketing.vo.StatisticsDataDayVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -106,6 +109,7 @@ public class MarketingTaskController {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
+
     @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
     @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getTask")
@@ -119,21 +123,23 @@ public class MarketingTaskController {
             return new ApiResult<MarketingTaskVO>().fail(ServiceResultEnum.FAILED);
         }
     }
+
     @ApiOperation(value = "查看跑分进度", notes = "查看跑分进度")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "hisFileId", value = "hisFileId", required = true, dataType = "String"),
             @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     })
     @GetMapping("/getTaskPercent")
-    public ApiResult<Long> getTaskPercent(String hisFileId,String id ) {
+    public ApiResult<Long> getTaskPercent(String hisFileId, String id) {
         try {
-            Long num = marketingTaskService.getTaskPercent(hisFileId,id);
+            Long num = marketingTaskService.getTaskPercent(hisFileId, id);
             return new ApiResult<Long>().success(num);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Long>().fail(ServiceResultEnum.FAILED);
         }
     }
+
     @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")
     @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
     @GetMapping("/getScoreRules")
@@ -149,7 +155,22 @@ public class MarketingTaskController {
 
     @ApiOperation(value = "生成跑分任务")
     @PostMapping("/saveTask")
-    public ApiResult<List<Long>> saveTask(@RequestBody TaskSelectSaveDTO dto){
-        return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelect(dto),1);
+    public ApiResult<List<Long>> saveTask(@RequestBody TaskSelectSaveDTO dto) {
+        return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelect(dto), 1);
     }
+
+    @ApiOperation(value = "获取验证数据日期")
+    @ApiImplicitParam(name = "apiCode", value = "apiCode", dataType = "string")
+    @GetMapping("/getStatisticsDataDay")
+    public ApiResult<List<StatisticsDataDayVO>> getStatisticsDataDay(@RequestParam String apiCode) {
+        return new ApiResult<List<StatisticsDataDayVO>>().fromResult(marketingTaskService.getStatisticsDataDay(apiCode), 1);
+    }
+
+    @ApiOperation(value = "跑分预览接口",notes = "")
+    @GetMapping("/resultPreview")
+    public ApiResult<ResultPreviewVO> resultPreview(@RequestParam Long taskId){
+        return new ApiResult<ResultPreviewVO>().fromResult(marketingTaskService.resultPreview(taskId),1);
+    }
+
+
 }

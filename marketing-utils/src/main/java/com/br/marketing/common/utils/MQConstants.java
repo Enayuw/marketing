@@ -49,6 +49,9 @@ public class MQConstants {
     // 哈啰历史数据清洗队列
     public static final String MARKETING_HALUO_CLEAN_HISTORY = "Marketing_Haluo_Clean_History";
 
+    // 携程营销数据
+    public static final String MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing_Universal_SftpToDb_XieChengReceive";
+
     /**
      * routingkey
      */
@@ -82,4 +85,7 @@ public class MQConstants {
 
     // 哈啰历史数据清洗
     public static final String ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY = "Marketing.Haluo.Clean.History";
+
+    // 携程营销数据
+    public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing.Universal.SftpToDb.XieChengReceive";
 }

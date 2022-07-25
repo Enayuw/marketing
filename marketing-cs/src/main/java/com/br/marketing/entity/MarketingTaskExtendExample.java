@@ -1024,6 +1024,76 @@ public class MarketingTaskExtendExample {
             addCriterion("condition_info_show not between", value1, value2, "conditionInfoShow");
             return (Criteria) this;
         }
+
+        public Criteria andExtendConfigInfoIsNull() {
+            addCriterion("extend_config_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoIsNotNull() {
+            addCriterion("extend_config_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoEqualTo(String value) {
+            addCriterion("extend_config_info =", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotEqualTo(String value) {
+            addCriterion("extend_config_info <>", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoGreaterThan(String value) {
+            addCriterion("extend_config_info >", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_config_info >=", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLessThan(String value) {
+            addCriterion("extend_config_info <", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLessThanOrEqualTo(String value) {
+            addCriterion("extend_config_info <=", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoLike(String value) {
+            addCriterion("extend_config_info like", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotLike(String value) {
+            addCriterion("extend_config_info not like", value, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoIn(List<String> values) {
+            addCriterion("extend_config_info in", values, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotIn(List<String> values) {
+            addCriterion("extend_config_info not in", values, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoBetween(String value1, String value2) {
+            addCriterion("extend_config_info between", value1, value2, "extendConfigInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendConfigInfoNotBetween(String value1, String value2) {
+            addCriterion("extend_config_info not between", value1, value2, "extendConfigInfo");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

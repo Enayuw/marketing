@@ -4,13 +4,15 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.TaskSelectSaveDTO;
+import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerScoreRuleVO;
-import com.br.marketing.vo.FastTaskRuleDetailVO;
 import com.br.marketing.vo.MarketingTaskVO;
-import org.springframework.validation.annotation.Validated;
+import com.br.marketing.vo.ResultPreviewVO;
+import com.br.marketing.vo.StatisticsDataDayVO;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -54,5 +56,13 @@ public interface MarketingTaskService {
 
     Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo);
 
-    Result<List<Long>> saveTaskSelect(@Validated TaskSelectSaveDTO dto);
+    Result<List<Long>> saveTaskSelect(@Valid TaskSelectSaveDTO dto);
+
+    Result<List<StatisticsDataDayVO>> getStatisticsDataDay(@Valid @NotNull(message = "apiCode不能为空") String apiCode);
+
+    Result<ResultPreviewVO> resultPreview(@Valid @NotNull(message = "taskId不能为空") Long tasId);
+
+    void saveScoreResult(MarketingTaskResultPreview preview);
+
+
 }

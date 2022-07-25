@@ -106,7 +106,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
             "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime,clc_usr_adt_tim_rcn_lon";
+            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime";
 
     static {
         FILE_NAME_PART = new HashMap<>(8);
@@ -170,13 +170,20 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             }
         }
         TransferFileTaskExample taskExample = new TransferFileTaskExample();
-        List<String> stringList = userTypes.parallelStream().map(s ->
-                getFileName(s, apiCode, finalDateYyyyMmDdStr, EXTENSION)).collect(Collectors.toList());
+        Map<String, String> map = new HashMap<>();
+        List<String> stringList = userTypes.parallelStream().map(s -> {
+            String fileName = getFileName(s, apiCode, finalDateYyyyMmDdStr, EXTENSION);
+            map.put(fileName, s);
+            return fileName;
+        }).collect(Collectors.toList());
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
                 .andFileNameIn(stringList);
-        int count = transferFileTaskMapper.countByExample(taskExample);
-        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, count);
-        if (LocalTime.now().isAfter(startTime) && count < 1) {
+        List<TransferFileTask> list = transferFileTaskMapper.selectByExample(taskExample);
+        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, list.size());
+        for (TransferFileTask task : list) {
+            userTypes.remove(map.get(task.getFileName()));
+        }
+        if (LocalTime.now().isAfter(startTime) && userTypes.size() > 0) {
             log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
@@ -473,14 +480,12 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_iso_inf_tim")
                 + separator +
-                ("".equals(getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))?getOrDefault(json, "clc_usr_adt_tim_rcn_lon"):getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))
+                ("".equals(getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy")) ? getOrDefault(json, "clc_usr_grp_zjy_csx_sjs_yzz_cqc_jxd_c2") : getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))
                 + separator +
                 getOrDefault(json, "clc_usr_lst_reaudit_apply_time")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
-                + separator +
-                getOrDefault(json, "clc_usr_adt_tim_rcn_lon")
                 + "\r\n";
     }
 

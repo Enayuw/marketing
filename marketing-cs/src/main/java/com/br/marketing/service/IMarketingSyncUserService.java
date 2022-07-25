@@ -129,4 +129,18 @@ public interface IMarketingSyncUserService {
      * @dateTime 2022/3/7 10:52
      */
     List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums, String userType);
+
+    /**
+     * 根据案件编号批量获取落库的创建时间
+     *
+     * @param apiCode     apiCode集合
+     * @param custNums    案件编号集合
+     * @param userType    场景
+     * @param dateTimeEnd 截止时间
+     * @return key custNum; value:creatTime
+     * @author Guo Zeqiang
+     * @dateTime 2022/7/14 10:52
+     */
+    Map<String, Date> getSyncUserTimeMaxByCustNumsMap(String apiCode, Set<String> custNums, String userType
+            , String dateTimeEnd);
 }

@@ -94,6 +94,16 @@ public class SyncServiceImpl implements SyncService {
         BaseFtpClient srcClient = getClient(loanSyncConfig,true);
         BaseFtpClient targetClient = getClient(loanSyncConfig,false);
         if(srcClient==null||targetClient==null){
+            try {
+                if (srcClient != null) {
+                    srcClient.disconnect();
+                }
+                if (targetClient != null) {
+                    targetClient.disconnect();
+                }
+            }catch (Exception ex){
+                log.error("targetClient or srcClient disconnect"+ex.getMessage(),ex);
+            }
             log.error("targetClient or srcClient is null");
             return;
         }

@@ -49,4 +49,23 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      */
     List<PhoneSaleExtendInfo> getPPDToDxData(@Param("apiCode")String apiCode,@Param("startDate")String startDate,
                                              @Param("endDate")String endDate ,@Param("limitStart") Integer limitStart);
+    /**
+     * 2022/7/13 17:36
+     * 获取推送电销人工电销的记录
+     *
+     * @param apiCode       apiCode
+     * @param userType      场景
+     * @param startDateTime 开始时间 闭
+     * @param endDateTime   结束时间 开
+     * @param pageNum       页号
+     * @param pageSize      页大小
+     * @return list
+     */
+    List<PhoneSaleExtendInfo> findPushPhoneSaleListPage(
+            @Param("apiCode") String apiCode,
+            @Param("userType") String userType,
+            @Param("startDateTime") String startDateTime,
+            @Param("endDateTime") String endDateTime,
+            @Param("pageNum") int pageNum,
+            @Param("pageSize") int pageSize);
 }

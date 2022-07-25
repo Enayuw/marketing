@@ -7,14 +7,12 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingUser;
+import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -36,6 +34,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ResultUtil {
 
+
+    private MarketingTaskService marketingTaskService;
 
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
                                     MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
@@ -169,7 +169,8 @@ public class ResultUtil {
      */
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
-                                    BaseHeadConfigVO baseHeadInfo,StrategyProductDetailVO fieldInfo, MarketingTask marketingTask) throws IOException {
+                                    BaseHeadConfigVO baseHeadInfo,StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
+            ,MarketingTaskService marketingTaskService) throws IOException {
         log.info("cus_num：{} 画像流水:{}",user.getCustNum(),resultJson);
         JSONObject esResult=new JSONObject();
         StringBuilder sb=new StringBuilder();
@@ -204,8 +205,8 @@ public class ResultUtil {
             log.info("sb信息--"+sb.toString());
         }
         fw.append(sb + "\r\n");
-
-        if("1".equals(pushCustomer)){
+        boolean isVer = marketingTask.getMonitorType() == 2;
+        if("1".equals(pushCustomer)&&!isVer){
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setBatchNumber(marketingTask.getBatchNumber());
             mh.setFileId(fileId);
@@ -240,7 +241,18 @@ public class ResultUtil {
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             service.insert(mh, id);
         }
+        if(isVer){
+            MarketingTaskResultPreview preview = new MarketingTaskResultPreview();
+            preview.setApiCode(marketingTask.getApiCode());
+            preview.setTaskId(marketingTask.getId());
+            preview.setFileId(Long.valueOf(fileId));
+            preview.setBatchNumber(marketingTask.getBatchNumber());
+            preview.setContent(sb.toString().substring(0,sb.toString().length()-1));
+            preview.setIsTitle(0);
+            marketingTaskService.saveScoreResult(preview);
+        }
     }
+
 
     private static Result buildResult(JSONObject hxJson, StringBuilder sb,String sep,JSONObject esResult,StrategyProductDetailVO fieldInfo) {
         StringBuilder result=new StringBuilder();
@@ -251,7 +263,9 @@ public class ResultUtil {
             String field = fieldInfo.getFields().get(i);
             String fieldRes = hxJson.getString(field);
             result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"").append(sep);
-            esResult.put(field,StringUtils.isNotBlank(fieldRes)?fieldRes:"");
+            if (esResult!=null) {
+                esResult.put(field,StringUtils.isNotBlank(fieldRes)?fieldRes:"");
+            }
         }
         sb.append(result);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -374,22 +388,24 @@ public class ResultUtil {
                 //endregion
 
                 //region es写入基本字段
-                if ("taskid".equals(title)){
-                    mh.setTaskId(StringUtils.isBlank(str)?"":str);
-                }else if("usertype".equals(title)){
-                    mh.setUserType(StringUtils.isBlank(str)?"":str);
-                }else if("custnum".equals(title)){
-                    mh.setCusNum(StringUtils.isBlank(str)?"":str);
-                }else if("idcard".equals(title)){
-                    mh.setIdCard(strId);
-                }else if("id".equals(title)){
-                    mh.setIdCard(strId);
-                }else if("name".equals(title)){
-                    mh.setName(strNm);
-                }else if("cell".equals(title)){
-                    mh.setCell(strCell);
-                }else{
-                    conditionObj.put(head.getName(),StringUtils.isBlank(str)?"":str);
+                if(mh!=null) {
+                    if ("taskid".equals(title)) {
+                        mh.setTaskId(StringUtils.isBlank(str) ? "" : str);
+                    } else if ("usertype".equals(title)) {
+                        mh.setUserType(StringUtils.isBlank(str) ? "" : str);
+                    } else if ("custnum".equals(title)) {
+                        mh.setCusNum(StringUtils.isBlank(str) ? "" : str);
+                    } else if ("idcard".equals(title)) {
+                        mh.setIdCard(strId);
+                    } else if ("id".equals(title)) {
+                        mh.setIdCard(strId);
+                    } else if ("name".equals(title)) {
+                        mh.setName(strNm);
+                    } else if ("cell".equals(title)) {
+                        mh.setCell(strCell);
+                    } else {
+                        conditionObj.put(head.getName(), StringUtils.isBlank(str) ? "" : str);
+                    }
                 }
                 //endregion
             }

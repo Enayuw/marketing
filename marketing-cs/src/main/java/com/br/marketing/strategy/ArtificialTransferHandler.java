@@ -1,18 +1,15 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -70,13 +67,15 @@ public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<
                 subList = transferData.subList((i - 1) * pageSize, pageSize * (i));
             }
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
-            List<DassTransferDataDTO> dataDTOS = subList.stream().map(batchData->batchData.getDassTransferDataDTO()).collect(Collectors.toList());
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
+            List<DassTransferDataDTO> dataDTOS = subList.stream().map(batchData -> batchData.getDassTransferDataDTO()).collect(Collectors.toList());
+            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().filter(batchData -> !ObjectUtils.isEmpty(batchData.getPhoneSaleExtendInfo())).map(batchData -> batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
             dassTransferDataAdapDTO.setDassTransferDataDTOList(dataDTOS);
             dassTransferDataAdapDTO.setPhoneSaleExtendInfoList(phoneSaleExtendInfos);
-            phoneSaleExtendInfoMapper.saveBatch(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+            if (phoneSaleExtendInfos.size() > 0) {
+                phoneSaleExtendInfoMapper.saveBatch(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+            }
             dassTransferDataAdapDTO.setPhoneSaleExtendInfoList(null);
-            methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO,0);
+            methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
         }
         return null;
     }
