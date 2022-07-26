@@ -67,6 +67,7 @@ public class CustomerController {
             , @ApiImplicitParam(name = "accountStatus",value = "账号状态0：禁用；1：启用",paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getCustomerList(@RequestParam(defaultValue = "1") int current
                                                         , @RequestParam(defaultValue = "10") int size
                                                         , @RequestParam(required = false) String name
@@ -114,6 +115,7 @@ public class CustomerController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "apiCode",value = "",required = false,dataType = "String")
     })
+    @AddDataAuthBusiness
     public ApiResult<List<MarketingCustomerVO>> getApiCodeList(String apiCode){
         try {
             //查询

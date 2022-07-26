@@ -7,6 +7,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadApicodeInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
@@ -18,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.util.*;
@@ -68,7 +70,43 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         }
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
-        soleRuleConfigs.stream().map(soleRuleConfig -> {
+        List<String> apiCodeAuthList = Arrays.asList(ThreadApicodeInfo.getData().split(","));
+        for (Iterator<SoleRuleVO> iterator = soleRuleConfigs.iterator(); iterator.hasNext(); ) {
+            SoleRuleVO soleRuleConfig = iterator.next();
+            //去重字段统计
+            soleRuleConfig.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
+            //使用商户统计
+            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
+            customerSoleExample.createCriteria().andSoleIdEqualTo(soleRuleConfig.getId())
+                    .andIsDelEqualTo(1);
+            int count = customerSoleMapper.countByExample(customerSoleExample);
+            soleRuleConfig.setCusNum(count);
+            //apicode
+            List<String> apicodeList = new ArrayList<>();
+            Set<String> apicodeSet = new HashSet<>();
+            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
+            for (CustomerSole s : customerSoles) {
+                MarketingCustomerExample customerExample = new MarketingCustomerExample();
+                customerExample.createCriteria().andIdEqualTo(s.getCustomerId());
+                List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample);
+                for (MarketingCustomer c : customers) {
+                    apicodeSet.add(c.getApiCode());
+                }
+            }
+            apicodeList.addAll(apicodeSet);
+            if (!CollectionUtils.isEmpty(apiCodeAuthList)) {
+                apiCodeAuthList.retainAll(apicodeList);
+                if (CollectionUtils.isEmpty(apiCodeAuthList)) {
+                    iterator.remove();
+                } else {
+                    soleRuleConfig.setApicodes(apiCodeAuthList);
+                }
+            } else {
+                soleRuleConfig.setApicodes(apicodeList);
+            }
+
+        }
+/*        soleRuleConfigs.stream().map(soleRuleConfig -> {
             //去重字段统计
             soleRuleConfig.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
             //使用商户统计
@@ -93,7 +131,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleRuleConfig.setApicodes(apicodeList);
 
             return soleRuleConfig;
-            }).collect(Collectors.toList());
+            }).collect(Collectors.toList());*/
 
         if(apiCodes == null || "".equals(apiCodes)){
             return PageResultReturn.setPageResult(soleRuleConfigs,page, pageSize);
