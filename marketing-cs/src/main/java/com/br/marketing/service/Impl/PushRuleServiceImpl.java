@@ -2552,6 +2552,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
         ScoreSearchConditionExample conditionExample = new ScoreSearchConditionExample();
+        conditionExample.setOrderByClause("update_time desc");
         ScoreSearchConditionExample.Criteria criteria = conditionExample.createCriteria();
         criteria.andIdIn(conditionIds)
                 .andConditionTypeEqualTo(1)
