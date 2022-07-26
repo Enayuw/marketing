@@ -2503,7 +2503,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchConditionDTO.setStatus(1);
         Integer scoreCountBySearch = scoreSearchConditionMapper.getScoreCountBySearch(searchConditionDTO);
         if(scoreCountBySearch>0){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("姓名重复");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则模板名称重复");
         }
 
         Date date = new Date();
