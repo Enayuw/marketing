@@ -32,6 +32,11 @@ import java.util.Properties;
  * @Version: 1.0
  * @Author: guangchao.zhang
  * ------------------------------
+ * <p>
+ * Executor：拦截执行器的方法。
+ * ParameterHandler：拦截参数的处理。
+ * ResultHandler：拦截结果集的处理。
+ * StatementHandler：拦截Sql语法构建的处理。
  */
 
 
@@ -75,7 +80,6 @@ import java.util.Properties;
  *      在 mybatis 核心配置文件根据配置的位置，拦截顺序是 从上往下
  */
 
-//@Component
 @Intercepts({@Signature(
         type = Executor.class,
         method = "query",
@@ -143,7 +147,6 @@ public class DataPermissionInterceptor implements Interceptor {
          * 4 最后通过 BoundSql#getSql 方法获取 sql
          */
 
-
         Object[] args = invocation.getArgs();
         MappedStatement mappedStatement = (MappedStatement) args[MAPPED_STATEMENT_INDEX];
         Object parameter = args[PARAM_OBJ_INDEX];
@@ -152,7 +155,6 @@ public class DataPermissionInterceptor implements Interceptor {
         Executor executor = (Executor) invocation.getTarget();
         CacheKey cacheKey;
         BoundSql boundSql;
-
 
         //由于逻辑关系，只会进入一次
         if (args.length == 4) {
@@ -169,31 +171,17 @@ public class DataPermissionInterceptor implements Interceptor {
         Configuration configuration = mappedStatement.getConfiguration();
         AddDataAuth permissionByDelegate = getPermissionByDelegate(mappedStatement);
         String apicode = ThreadApicodeInfo.getData();
+        String finalSql = "";
         //符合过滤条件：接口和Mapper双注解
         if (permissionByDelegate != null && StringUtils.isNotBlank(apicode)) {
-
-            String sqlId = mappedStatement.getId();
-            //String newSql = printSqlLog(configuration, boundSql, sqlId);
-
-            String finalSql = "";
-            String id = mappedStatement.getId();
-            //统计SQL取得注解也是实际查询id上得注解，所以需要去掉_COUNT
-            //if (id.contains(COUNT_PRE)) {
-            //     finalSql = sql +" and id in(60091,30094,30093)";
-            //}else {
             finalSql = "select * from (" + sql + ")  as u where u.api_code in(" + apicode + ")";
-            //}
 
             Field field = boundSql.getClass().getDeclaredField("sql");
             field.setAccessible(true);
             field.set(boundSql, finalSql);
-            //field.set(boundSql, sql);
-            printSqlLog(configuration, boundSql);
             //执行修改后的sql语句
             return executor.query(mappedStatement, parameter, rowBounds, resultHandler, cacheKey, boundSql);
-
         } else {
-            printSqlLog(configuration, boundSql);
             return invocation.proceed();
         }
     }
@@ -283,52 +271,6 @@ public class DataPermissionInterceptor implements Interceptor {
             e.printStackTrace();
         }
         return dataAuth;
-    }
-
-    ///**
-    // * 权限关联
-    // * @param sql
-    // * @param dataAuth
-    // * @param boundSql
-    // */
-    //private String permissionSql(String sql,AddDataAuth dataAuth, BoundSql boundSql) {
-    //    String oauthSql = getDataPermission(dataAuth.empId(),dataAuth.project(),dataAuth.org());
-    //    log.info("权限SQL：{}"+oauthSql);
-    //    String newSql = sql +oauthSql + dataAuth.orderBy();
-    //    return newSql;
-    //}
-
-    public static String printSqlLog(Configuration configuration, BoundSql boundSql) {
-        Object parameterObject = boundSql.getParameterObject();
-        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
-        String sql = boundSql.getSql().replaceAll("[\\s]+", " ");
-        StringBuffer sb = new StringBuffer("==> PARAM:");
-        if (parameterMappings.size() > 0 && parameterObject != null) {
-            TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-            if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
-                sql = sql.replaceFirst("\\?", parameterObject.toString());
-            } else {
-                MetaObject metaObject = configuration.newMetaObject(parameterObject);
-                for (ParameterMapping parameterMapping : parameterMappings) {
-                    String propertyName = parameterMapping.getProperty();
-                    if (metaObject.hasGetter(propertyName)) {
-                        Object obj = metaObject.getValue(propertyName);
-                        String parameterValue = obj.toString();
-                        sql = sql.replaceFirst("\\?", parameterValue);
-                        sb.append(parameterValue).append("(").append(obj.getClass().getSimpleName()).append("),");
-                    } else if (boundSql.hasAdditionalParameter(propertyName)) {
-                        Object obj = boundSql.getAdditionalParameter(propertyName);
-                        String parameterValue = obj.toString();
-                        sql = sql.replaceFirst("\\?", parameterValue);
-                        sb.append(parameterValue).append("(").append(obj.getClass().getSimpleName()).append("),");
-                    }
-                }
-            }
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        System.out.println("==> SQL:" + sql);
-        System.out.println(sb.toString());
-        return sql;
     }
 
 }
