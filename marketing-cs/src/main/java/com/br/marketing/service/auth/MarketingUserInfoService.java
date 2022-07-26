@@ -67,4 +67,6 @@ public interface MarketingUserInfoService {
     ApiResult<Boolean> updateMarketingUserPassword(MarketingUserInfo marketingUserInfo);
 
     MarketingUserInfo getById(Integer id);
+
+    ApiResult<Boolean> updateMarketingUserInfoApiCodes(MarketingUserInfo marketingUserInfo);
 }

@@ -5,6 +5,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,6 +27,7 @@ public class PushInfoController {
 
     @ApiOperation(value = "推送列表", notes = "推送列表")
     @PostMapping("/getPushInfoList")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getPushInfoList(@RequestBody PushInfoFilterDTO dto) {
         PageResultReturn list = pushInfoService.getPushInfoList(dto);
         return new ApiResult<PageResultReturn>().success(list);

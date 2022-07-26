@@ -3,18 +3,15 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -66,6 +63,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取批次列表")
     @PostMapping("/getBatchInfos")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
         PageResultReturn listPage = pushRuleService.getBatchInfos(dto);
         return new ApiResult<PageResultReturn>().success(listPage);
@@ -79,6 +77,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "获取列表跑分总数")
     @PostMapping("/getBatchInfosCounts")
+    @AddDataAuthBusiness
     public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
         Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
         return new ApiResult<Integer>().success(totalNum);

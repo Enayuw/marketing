@@ -220,6 +220,12 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
         return new ApiResult<Boolean>().success();
     }
+    @Override
+    public ApiResult<Boolean> updateMarketingUserInfoApiCodes(MarketingUserInfo marketingUserInfo) {
+        marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
+        return new ApiResult<Boolean>().success();
+    }
+
 
     @Override
     public MarketingUserInfo getById(Integer id) {

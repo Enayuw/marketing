@@ -7,6 +7,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
@@ -54,6 +55,7 @@ public class MarketingTaskController {
             , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
     })
     @GetMapping("/list")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String search
@@ -111,6 +113,7 @@ public class MarketingTaskController {
     @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
     @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getTask")
+    @AddDataAuthBusiness
     public ApiResult<MarketingTaskVO> getTask(String id) {
         try {
             MarketingTaskVO vo = marketingTaskService.getTask(id);

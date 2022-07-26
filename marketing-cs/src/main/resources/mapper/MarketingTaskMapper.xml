@@ -478,7 +478,7 @@
 
     <select id="queryBatchs" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
             resultType="com.br.marketing.vo.ScoreDetailVo">
-      select * from(select shf.api_code as apiCode,
+      select * from(select shf.api_code,
         shf.show_title as cusBatchNumber,
         mt.batch_number as batchNumber,
         shf.statistic_file_path as statisticFilePath,
@@ -505,7 +505,7 @@
         </if>
         and shf.score_status = 2
         group by batchNumber
-        order by shf.create_time desc) vie where apiCode = #{apiCode}
+        order by shf.create_time desc) vie where api_code = #{apiCode}
         <if test="productName !=null and productName !=''">
             <foreach collection="moduleList" item="item" index="index" open="and" separator="and">
                  find_in_set (#{item},productName)
@@ -523,7 +523,7 @@
     </select>
     <select id="queryBatchsCount" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
             resultType="java.lang.Integer">
-        select sum(actualNum) from(select shf.api_code as apiCode,
+        select sum(actualNum),api_code from(select shf.api_code,
         shf.show_title as cusBatchNumber,
         mt.batch_number as batchNumber,
         shf.statistic_file_path as statisticFilePath,
@@ -550,7 +550,7 @@
         </if>
         and shf.score_status = 2
         group by batchNumber
-        order by shf.id desc) vie where apiCode = #{apiCode}
+        order by shf.id desc) vie where api_code = #{apiCode}
         <if test="productName !=null and productName !=''">
             <foreach collection="moduleList" item="item" index="index" open="and" separator="and">
                 find_in_set (#{item},productName)
@@ -578,7 +578,7 @@
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
         select bmt.id,
         shf.id                                            as `hisFileId`,
-        bmt.api_code                                      as `apiCode`,
+        bmt.api_code                                      ,
         bmt.batch_number as `batchNumber`,
         bsrc.id                                           as `ruleId`,
         bsrc.rule_name                                    as `ruleName`,

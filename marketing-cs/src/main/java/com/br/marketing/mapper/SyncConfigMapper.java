@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.SyncConfigEditVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -27,5 +28,6 @@ public interface SyncConfigMapper extends SyncConfigMapperBase {
      * @param apiCode
      * @return
      */
+    @AddDataAuth
     List<SyncConfigEditVO> getSftpList(@Param("apiCode")String apiCode);
 }

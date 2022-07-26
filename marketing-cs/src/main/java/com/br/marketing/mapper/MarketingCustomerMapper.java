@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -22,8 +23,10 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 15:35
      */
+    @AddDataAuth
     List<CustomerSelectVO> getCidOrApiCodeList(@Param("cid") String cid);
 
+    @AddDataAuth
     List<MarketingCustomer> selectByLike(String search);
 
     /**

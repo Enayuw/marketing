@@ -371,7 +371,7 @@
 
   <select id="selectList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
     select id, cid
-    , api_code as apiCode
+    , api_code
     , short_name as shortName
     , applet_date as appletDate
     , user_type as userType
@@ -410,8 +410,9 @@
     order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
   </select>
 
-  <select id="getReportListTotal" resultType="map">
-    select SUM(normal_num) as normalNumTotal,SUM(duplicate_removal_num) as duplicateRemovalNumTotal
+  <select id="getReportListTotal" resultType="com.br.marketing.vo.MarketingSyncReportNumVO">
+    select SUM(normal_num) as normalNumTotal,SUM(duplicate_removal_num) as duplicateRemovalNumTotal,
+           api_code
     from b_marketing_sync_report bmsr
     <where>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
@@ -437,6 +438,7 @@
         or bmsr.short_name like concat("%", #{cidOrName},"%"))
       </if>
     </where>
+    group by api_code
   </select>
 
   <delete id="deleteByAppletDate">

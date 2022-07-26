@@ -13,11 +13,13 @@ import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.MarketingSyncReportService;
+import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -275,16 +277,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map map = new HashMap();
         Integer normalNumTotal = 0;
         Integer duplicateRemovalNumTotal = 0;
-        Map total = syncReportMapper.getReportListTotal(params);
-        if(total != null){
+        List<MarketingSyncReportNumVO> listTotal = syncReportMapper.getReportListTotal(params);
+        if (!CollectionUtils.isEmpty(listTotal)) {
             //数据正常入库条数
-            normalNumTotal = total.get("normalNumTotal") == null?0:Integer.parseInt(total.get("normalNumTotal").toString());
+            normalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getNormalNumTotal));
             //去重后数据量
-            duplicateRemovalNumTotal = total.get("duplicateRemovalNumTotal") == null?0:Integer.parseInt(total.get("duplicateRemovalNumTotal").toString());
+            duplicateRemovalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getDuplicateRemovalNumTotal));
         }
-
-        map.put("normalNumTotal",normalNumTotal);
-        map.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
+        map.put("normalNumTotal", normalNumTotal);
+        map.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);
         return map;
     }
 

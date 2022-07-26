@@ -1,6 +1,8 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.TransferSyncReport;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
+import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -46,6 +48,7 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @param params params
      * @return List
      */
+    @AddDataAuth
     List<TransferSyncReportVO> selectList(Map<String, Object> params);
 
     /**
@@ -53,7 +56,8 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * 2022/6/29 19:26
      *
      * @param params params
-     * @return long
+     * @return List
      */
-    Long getReportListTotal(Map<String, Object> params);
+    @AddDataAuth
+    List<TransferSyncReportNumVO> getReportListTotal(Map<String, Object> params);
 }

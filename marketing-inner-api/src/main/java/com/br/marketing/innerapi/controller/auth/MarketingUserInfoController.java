@@ -3,14 +3,14 @@ package com.br.marketing.innerapi.controller.auth;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingRole;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.entity.auth.PasswordReq;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.auth.MarketingRoleService;
 import com.br.marketing.service.auth.MarketingUserInfoService;
 import org.apache.commons.lang3.StringUtils;
@@ -152,6 +152,16 @@ public class MarketingUserInfoController {
             return marketingUserInfoService.updateMarketingUserPassword(marketingUserInfo);
         }
         return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
+    }
+
+    /**
+     * 更新用户
+     *
+     */
+    @GetMapping("/updateByUserId")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> updateByUserId(HttpServletRequest request, MarketingUserInfo user) {
+        return marketingUserInfoService.updateMarketingUserInfoApiCodes( user);
     }
 }
 

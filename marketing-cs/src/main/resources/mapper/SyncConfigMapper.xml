@@ -55,7 +55,7 @@
 
 	<select id="getSftpList" resultType="com.br.marketing.vo.SyncConfigEditVO">
 		select id
-		, api_code as apiCode
+		, api_code
 		, src_path as srcPath
 		, target_path as targetPath
 		, type as type

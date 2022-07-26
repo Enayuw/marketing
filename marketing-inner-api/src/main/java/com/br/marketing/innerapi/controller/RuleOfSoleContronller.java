@@ -5,10 +5,10 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.MarketingCustomerVO;
-import com.br.marketing.vo.SoleOptLogVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -101,6 +101,7 @@ public class RuleOfSoleContronller {
             @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
     @GetMapping("/getCustomer")
+    @AddDataAuthBusiness
     public ApiResult<List<MarketingCustomerVO>> getCustomer(String search){
         //返回 [{"id":"","cid":"","api_code":"123","name":"商户名称","short_name":"商户简称"},{}]
         try {

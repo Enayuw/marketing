@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,6 +21,7 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/8/31 14:38
      */
+    @AddDataAuth
     List<ScoreRuleConfigPageVO> findList(@Param("search") String search
             , @Param("status") Integer status
             , @Param("cts") String cts

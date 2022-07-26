@@ -4,7 +4,7 @@
 
     <select id="getVariableDicList" resultType="com.br.marketing.vo.VariableDicListVO">
         select id, cid
-        , api_code as apiCode
+        , api_code
         , field_name as fieldName
         , field_value as fieldValue
         , field_desc as fieldDesc

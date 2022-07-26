@@ -2,6 +2,8 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
+import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,9 +20,11 @@ public interface MarketingSyncReportMapper {
     String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("uploadDate") String uploadDate);
 
+    @AddDataAuth
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 
-    Map getReportListTotal(Map<String, Object> params);
+    @AddDataAuth
+    List<MarketingSyncReportNumVO> getReportListTotal(Map<String, Object> params);
 
     int modifyReportById(MarketingSyncReport record);
 

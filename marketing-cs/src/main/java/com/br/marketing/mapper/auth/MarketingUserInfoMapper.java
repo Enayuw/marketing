@@ -2,6 +2,7 @@ package com.br.marketing.mapper.auth;
 
 import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.entity.auth.MarketingUserInfoExample;
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

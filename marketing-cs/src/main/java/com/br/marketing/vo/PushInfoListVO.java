@@ -13,7 +13,7 @@ public class PushInfoListVO {
     private Long id;
 
     @ApiModelProperty(value = "apicode")
-    private String mApiCode;
+    private String apiCode;
 
     @ApiModelProperty(value = "跑分批次号")
     private String batchNumbers;
@@ -67,12 +67,12 @@ public class PushInfoListVO {
         this.id = id;
     }
 
-    public String getmApiCode() {
-        return mApiCode;
+    public String getApiCode() {
+        return apiCode;
     }
 
-    public void setmApiCode(String mApiCode) {
-        this.mApiCode = mApiCode;
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode;
     }
 
     public String getmCusBatchNumberList() {

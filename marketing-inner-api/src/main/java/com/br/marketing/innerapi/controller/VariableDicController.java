@@ -4,7 +4,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.innerapi.config.ThreadContextInfo;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
@@ -65,6 +66,7 @@ public class VariableDicController {
             , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
     })
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String cid
