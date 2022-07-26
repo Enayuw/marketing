@@ -191,8 +191,4 @@ public class MyTest {
         System.out.println("输出3："+containsc+"ceshi:"+a % 2);
     }
 
-    @Test
-    public void buildEsSql(){
-
-    }
 }
