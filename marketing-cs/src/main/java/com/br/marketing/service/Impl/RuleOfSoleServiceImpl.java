@@ -8,6 +8,7 @@ import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadApicodeInfo;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
@@ -65,13 +66,22 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleName = soleName.replace("_", "\\_");
         }
 
-        if(apiCodes == null || "".equals(apiCodes)){
+        /*if(apiCodes == null || "".equals(apiCodes)){
             PageHelper.startPage(page, pageSize);
-        }
+        }*/
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
-        List<String> apiCodeAuthList = Arrays.asList(ThreadApicodeInfo.getData().split(","));
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        String apiCodeAuth = "";
+        if (user != null) {
+            List adminUser = user.getRoleList().stream().filter(marketingRole -> marketingRole.getId() == 1).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(adminUser)) {
+                apiCodeAuth = user.getApiCode();
+            }
+        }
+        List<String> apiCodeAuthList = Arrays.asList(apiCodeAuth.split(","));
         for (Iterator<SoleRuleVO> iterator = soleRuleConfigs.iterator(); iterator.hasNext(); ) {
+            List<String> finalApiCodeList = new ArrayList<>(apiCodeAuthList);
             SoleRuleVO soleRuleConfig = iterator.next();
             //去重字段统计
             soleRuleConfig.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
@@ -94,12 +104,13 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 }
             }
             apicodeList.addAll(apicodeSet);
-            if (!CollectionUtils.isEmpty(apiCodeAuthList)) {
-                apiCodeAuthList.retainAll(apicodeList);
-                if (CollectionUtils.isEmpty(apiCodeAuthList)) {
+            if (!CollectionUtils.isEmpty(finalApiCodeList)) {
+                //取交集
+                finalApiCodeList.retainAll(apicodeList);
+                if (CollectionUtils.isEmpty(finalApiCodeList)) {
                     iterator.remove();
                 } else {
-                    soleRuleConfig.setApicodes(apiCodeAuthList);
+                    soleRuleConfig.setApicodes(finalApiCodeList);
                 }
             } else {
                 soleRuleConfig.setApicodes(apicodeList);
@@ -133,9 +144,9 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             return soleRuleConfig;
             }).collect(Collectors.toList());*/
 
-        if(apiCodes == null || "".equals(apiCodes)){
+        /*if(apiCodes == null || "".equals(apiCodes)){
             return PageResultReturn.setPageResult(soleRuleConfigs,page, pageSize);
-        }
+        }*/
 
         if(apiCodes != null && !"".equals(apiCodes)){
             String[] split = apiCodes.split(",");
