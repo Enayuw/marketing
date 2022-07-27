@@ -19,6 +19,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.UUID;
 
 @Configuration
 public class SessionInterceptor  extends HandlerInterceptorAdapter {
@@ -31,20 +32,23 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
     @Autowired
     OptUser optUser;
 
+    @Autowired
+    TempLog tempLog;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String sessionId = request.getParameter("sessionId");
         if (!StringUtils.hasText(sessionId)) {
             sessionId = request.getHeader("sessionId");
         }
-
+        tempLog.setContextId(UUID.randomUUID().toString());
         HttpSession session = request.getSession();
         if (sessionId != null) {
             session.setAttribute("sessionId", sessionId);
             MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
             if (userDetail == null) {
                 session.invalidate();
-                log.warn("【redis失效】sessionId置为空");
+                log.warn("【redis失效】sessionId置为空"+tempLog.getContextId());
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
                 ThreadContextInfo.setUser(userDetail);
@@ -60,11 +64,15 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
-        HttpSession session = request.getSession();
-        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
-        ThreadContextInfo.removeUser();
-        session.invalidate();
-        session = null;
+        try {
+            HttpSession session = request.getSession();
+            response.setHeader("sessionId", (String) session.getAttribute("sessionId"));
+            ThreadContextInfo.removeUser();
+            session.invalidate();
+            session = null;
+        }catch (Exception ex){
+            log.error(tempLog.getContextId()+","+ex.getMessage(),ex);
+        }
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
