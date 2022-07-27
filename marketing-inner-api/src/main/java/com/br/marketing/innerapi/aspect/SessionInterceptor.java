@@ -59,11 +59,11 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
-        HttpSession session = request.getSession();
-        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
+//        HttpSession session = request.getSession();
+//        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
         ThreadContextInfo.removeUser();
-        session.invalidate();
-        session = null;
+//        session.invalidate();
+//        session = null;
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
