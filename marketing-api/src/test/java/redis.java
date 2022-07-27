@@ -761,4 +761,42 @@ public class redis {
 
 
     }
+
+
+    @Test
+    public void vaildPPD(){
+        try (
+                FileReader read = new FileReader("/opt/data/3710014_R20220721001_3710014_20220722000000_3177__20220722_20220722.txt");
+                BufferedReader br = new BufferedReader(read);
+                FileReader custRead = new FileReader("/opt/data/custnum.txt");
+                BufferedReader custBr = new BufferedReader(custRead);
+                Writer fw = new BufferedWriter(
+                        new OutputStreamWriter(
+                                Files.newOutputStream(Paths.get("/opt/data/custnum_should_ppddass.txt")), StandardCharsets.UTF_8));) {
+            String custStr;
+            HashSet<String> strings = new HashSet<>();
+            while ((custStr = custBr.readLine()) != null) {
+                strings.add(custStr);
+            }
+
+            StringBuilder abc = new StringBuilder();
+            String row;
+            Integer line = 1;
+            Integer pushnum = 0;
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+            while ((row = br.readLine()) != null) {
+                if(line > 1){
+                    String[] split = row.split(",",-1);
+                    if(strings.contains(split[2])&&StringUtils.isNotBlank(split[13])&&Long.valueOf(split[13])>=60){
+                        fw.append(split[2]).append(",").append(split[13]).append("\r\n");
+                        pushnum++;
+                    }
+                }
+                line++;
+
+            }
+        }catch (Exception ex){
+
+        }
+    }
 }
