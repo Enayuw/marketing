@@ -1,6 +1,7 @@
 
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
 
@@ -21,6 +22,8 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
@@ -621,4 +624,17 @@ public class redis {
         System.out.println(redisTemplate.executePipelined(sessionCallback));
     }*/
 
+    @Test
+    public void buildConditionNumber(){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.conditionNumber.concat(":").concat(yyyyMMdd);
+        Long incr = redisChgService.incr(key);
+//        redisChgService.expire(key,getKeyExpiration());
+        String s = incr.toString();
+        int length = s.length();
+        for (int i = 3; i > length; i--) {
+            s+="0"+s;
+        }
+//        return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
+    }
 }

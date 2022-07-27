@@ -17,6 +17,9 @@ public class ConditionOfScoreVO {
     @ApiModelProperty(value = "条件前端文本")
     private String contentShow;
 
+    @ApiModelProperty(value = "模板编号")
+    private String conditionNumber;
+
     public Long getId() {
         return id;
     }
@@ -50,6 +53,15 @@ public class ConditionOfScoreVO {
 
     public ConditionOfScoreVO setContentShow(String contentShow) {
         this.contentShow = contentShow;
+        return this;
+    }
+
+    public String getConditionNumber() {
+        return conditionNumber;
+    }
+
+    public ConditionOfScoreVO setConditionNumber(String conditionNumber) {
+        this.conditionNumber = conditionNumber;
         return this;
     }
 }

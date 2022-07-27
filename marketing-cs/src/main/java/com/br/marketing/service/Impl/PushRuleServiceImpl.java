@@ -2537,9 +2537,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         String s = incr.toString();
         int length = s.length();
         for (int i = 3; i > length; i--) {
-            s+="0"+s;
+            s="0"+s;
         }
-        return yyyyMMdd.concat(apiCode).concat(s);
+        return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
     }
 
     @Override
@@ -2551,29 +2551,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
         }
         List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
-        ScoreSearchConditionExample conditionExample = new ScoreSearchConditionExample();
-        conditionExample.setOrderByClause("update_time desc");
-        ScoreSearchConditionExample.Criteria criteria = conditionExample.createCriteria();
-        criteria.andIdIn(conditionIds)
-                .andConditionTypeEqualTo(1)
-                .andStatusEqualTo(1)
-                .andIsDelEqualTo(Constants.DATA_VALID);
-        if(StringUtils.isNotBlank(name)){
-            criteria.andNameLike(name);
+        if(conditionIds.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
         }
-        List<ScoreSearchCondition> scoreSearchConditions = scoreSearchConditionMapper.selectByExample(conditionExample);
-        if (scoreSearchConditions.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(conditionIds, name);
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
         }
-        List<ConditionOfScoreVO> res = new ArrayList<>();
-        scoreSearchConditions.forEach(t -> {
-            res.add(new ConditionOfScoreVO()
-                    .setId(t.getId())
-                    .setContentShow(t.getContentShow())
-                    .setName(t.getName())
-                    .setContent(t.getContent()));
-        });
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreByNameNumberList);
     }
 
     @Override
