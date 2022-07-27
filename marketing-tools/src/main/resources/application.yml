@@ -3,3 +3,7 @@ spring:
     name: marketing-tools
 server:
   port: 19777
+otherConfig:
+  alarm:
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing

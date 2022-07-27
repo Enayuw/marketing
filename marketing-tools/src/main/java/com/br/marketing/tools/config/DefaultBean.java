@@ -24,7 +24,7 @@ public class DefaultBean {
         httpRequestFactory.setReadTimeout(10000);
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         restTemplate.getMessageConverters()
-                .set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+                .set(1, new StringHttpMessageConverter());
         return restTemplate;
     }
 }
