@@ -44,6 +44,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
             MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
             if (userDetail == null) {
                 session.invalidate();
+                log.warn("【redis失效】sessionId置为空");
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
                 ThreadContextInfo.setUser(userDetail);
@@ -59,11 +60,11 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
-//        HttpSession session = request.getSession();
-//        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
+        HttpSession session = request.getSession();
+        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
         ThreadContextInfo.removeUser();
-//        session.invalidate();
-//        session = null;
+        session.invalidate();
+        session = null;
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
