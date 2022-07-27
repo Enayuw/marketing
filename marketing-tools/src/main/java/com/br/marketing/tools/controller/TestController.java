@@ -15,6 +15,12 @@ public class TestController {
 
     @GetMapping("/testlogin")
     public String testLogin(){
+        dbMonitor.testUrlSql();
+        return "123";
+    }
+
+    @GetMapping("/testlogin2")
+    public String testLogin2(){
         dbMonitor.slowDbSql();
         return "123";
     }

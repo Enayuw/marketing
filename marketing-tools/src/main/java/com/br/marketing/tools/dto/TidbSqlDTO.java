@@ -1,0 +1,66 @@
+package com.br.marketing.tools.dto;
+
+import lombok.Data;
+
+@Data
+public class TidbSqlDTO {
+    private String digest;
+    private String query;
+    private String instance;
+    private String db;
+    private String connection_id;
+    private int success;
+    private String timestamp;
+    private double query_time;
+    private int parse_time;
+    private int compile_time;
+    private int rewrite_time;
+    private int preproc_subqueries_time;
+    private int optimize_time;
+    private int wait_ts;
+    private int cop_time;
+    private int lock_keys_time;
+    private int write_sql_response_total;
+    private int exec_retry_time;
+    private int memory_max;
+    private int disk_max;
+    private String txn_start_ts;
+    private String prev_stmt;
+    private String plan;
+    private int is_internal;
+    private String index_names;
+    private String stats;
+    private String backoff_types;
+    private String user;
+    private String host;
+    private int process_time;
+    private int wait_time;
+    private int backoff_time;
+    private int get_commit_ts_time;
+    private int local_latch_wait_time;
+    private int resolve_lock_time;
+    private int prewrite_time;
+    private int wait_prewrite_binlog_time;
+    private int commit_time;
+    private int commit_backoff_time;
+    private int cop_proc_avg;
+    private int cop_proc_p90;
+    private int cop_proc_max;
+    private int cop_wait_avg;
+    private int cop_wait_p90;
+    private int cop_wait_max;
+    private int write_keys;
+    private int write_size;
+    private int prewrite_region;
+    private int txn_retry;
+    private int request_count;
+    private int process_keys;
+    private int total_keys;
+    private String cop_proc_addr;
+    private String cop_wait_addr;
+    private int rocksdb_delete_skipped_count;
+    private int rocksdb_key_skipped_count;
+    private int rocksdb_block_cache_hit_count;
+    private int rocksdb_block_read_count;
+    private int rocksdb_block_read_byte;
+}

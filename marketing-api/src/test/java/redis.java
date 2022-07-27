@@ -1,3 +1,4 @@
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -28,6 +29,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -719,5 +724,41 @@ public class redis {
         String aesKey="f3df6f62f0527bf0";
         String aesIv="3b2dac323465b024";
         String signKey="95cc01ec07387a44";
+    }
+
+    @Test
+    public void testError(){
+        try (
+                FileReader read = new FileReader("/opt/data/660014.txt");
+                BufferedReader br = new BufferedReader(read);) {
+            StringBuilder abc = new StringBuilder();
+            String row;
+            Integer line = 1;
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+            while ((row = br.readLine()) != null) {
+                abc.append(row);
+            }
+            String[] split = abc.toString().split("\\|\\|");
+            try (Writer fw = new BufferedWriter(
+                    new OutputStreamWriter(
+                            Files.newOutputStream(Paths.get("/opt/data/660014_error.txt")), StandardCharsets.UTF_8));) {
+
+
+            for (String s : split) {
+                JSONObject jsonObject = JSON.parseObject(s);
+                for (String s1 : jsonObject.keySet()) {
+                    JSONArray jsonArray = jsonObject.getJSONArray(s1);
+                    String cell = JSON.parseObject(jsonArray.getString(0)).getString("手机号");
+                    fw.append(s1+","+cell+"\r\n");
+                }
+            }
+            } catch (Exception e) {
+
+            }
+        }catch (Exception ex){
+
+        }
+
+
     }
 }
