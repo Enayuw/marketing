@@ -79,7 +79,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 apiCodeAuth = user.getApiCode();
             }
         }
-        List<String> apiCodeAuthList = Arrays.asList(apiCodeAuth.split(","));
+        List<String> apiCodeAuthList = StringUtils.isBlank(apiCodeAuth) ? new ArrayList<>() : Arrays.asList(apiCodeAuth.split(","));
         for (Iterator<SoleRuleVO> iterator = soleRuleConfigs.iterator(); iterator.hasNext(); ) {
             List<String> finalApiCodeList = new ArrayList<>(apiCodeAuthList);
             SoleRuleVO soleRuleConfig = iterator.next();
