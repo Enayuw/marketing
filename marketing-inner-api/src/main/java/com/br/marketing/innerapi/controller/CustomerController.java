@@ -133,6 +133,7 @@ public class CustomerController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
+    @AddDataAuthBusiness
     public ApiResult<List<MarketingCustomerVO>> getCidOrName(String search){
         try {
             //查询

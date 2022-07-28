@@ -37,6 +37,7 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
      */
     List<MarketingCustomerListVO> getCustomerList(@Param("cid")String cid, @Param("apiCode")String apiCode);
 
+    @AddDataAuth
     List<MarketingCustomer> getCidOrName(@Param("search") String search);
 
     List<MarketingCustomer> selectByExampleAndShard(@Param("example") MarketingCustomerExample example
