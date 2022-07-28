@@ -5,18 +5,14 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.CustomerBatchNumDTO;
-import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.*;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
-import com.br.marketing.vo.MarketingTransferUserStatusVO;
-import com.br.marketing.vo.PushInfoDetailVO;
+import com.br.marketing.vo.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +51,14 @@ public interface PushRuleService {
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
     Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+
+    Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
+
+    Result<List<ConditionOfScoreVO>> getConditionByRule(@Valid @NotNull(message = "apiCode不能为空")String apiCode, String name);
+
+    Result<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@Valid SearchConditionDTO dto);
+
+    Result optCondition(@Valid OptConditionDTO dto);
 
     Result<Boolean> consumerPushCustomer(Long id);
 

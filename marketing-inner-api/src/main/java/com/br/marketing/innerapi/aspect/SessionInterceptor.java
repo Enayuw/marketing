@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
+import com.br.marketing.context.OptUser;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.context.ThreadContextInfo;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
     @Autowired
     private RedisAuthService redisService;
 
+    @Autowired
+    OptUser optUser;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -44,6 +47,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
                 ThreadContextInfo.setUser(userDetail);
+                optUser.setUserDetail(userDetail);
                 session.setAttribute("userDetail", userDetail);
                 return super.preHandle(request, response, handler);
             }
@@ -55,10 +59,11 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
-        HttpSession session = request.getSession();
-        response.setHeader("sessionId", (String)session.getAttribute("sessionId"));
-        ThreadContextInfo.removeUser();
-        session.invalidate();
+            HttpSession session = request.getSession();
+            response.setHeader("sessionId", (String) session.getAttribute("sessionId"));
+            ThreadContextInfo.removeUser();
+            session.invalidate();
+            session = null;
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {

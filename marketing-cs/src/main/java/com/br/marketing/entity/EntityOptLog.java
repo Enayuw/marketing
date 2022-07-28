@@ -48,6 +48,11 @@ public class EntityOptLog {
      */
     private Date createTime;
 
+    /**
+     * 操作类型1-新增;2-修改;
+     */
+    private Integer optType;
+
     public Long getId() {
         return id;
     }
@@ -118,5 +123,13 @@ public class EntityOptLog {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getOptType() {
+        return optType;
+    }
+
+    public void setOptType(Integer optType) {
+        this.optType = optType;
     }
 }
