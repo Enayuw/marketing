@@ -48,4 +48,6 @@ public class RedisKeyConstant {
     public static final String taskScoreAction = prefix.concat("taskscoreaction");
 
     public static final String transferRuleCondition = prefix.concat("scorecondition");
+
+    public static final String conditionNumber = prefix.concat("conditionnumber");
 }

@@ -89,7 +89,7 @@ public class XieChengService {
          * data 组装
          */
         JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("clickTel", xieChengData.getClickTel());
+        deviceInfo.put("sha256Tel", xieChengData.getClickTel());
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
                 timestemp,

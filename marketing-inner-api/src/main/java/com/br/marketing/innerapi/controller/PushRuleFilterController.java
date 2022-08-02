@@ -4,6 +4,7 @@ import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.*;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
@@ -12,7 +13,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
+import com.br.marketing.vo.ScoreConditionDetailVO;
+import com.br.marketing.vo.ScoreDetailVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -39,6 +43,7 @@ public class PushRuleFilterController {
 
     @Autowired
     PushRuleService pushRuleService;
+
 
 
     /**
@@ -113,6 +118,30 @@ public class PushRuleFilterController {
     @PostMapping("/pushPreview")
     public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
+    }
+
+    @ApiOperation(value = "保存模板")
+    @PostMapping("/saveCondition")
+    public ApiResult<Long> saveCondition(@RequestBody ConditionSaveDTO dto) {
+        return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), 1);
+    }
+
+    @ApiOperation(value = "获取模板")
+    @GetMapping("/getConditionByRule")
+    public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
+        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), 1);
+    }
+
+    @ApiOperation(value = "修改规则模板")
+    @PostMapping("/optCondition")
+    public ApiResult optCondition(@RequestBody OptConditionDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.optCondition(dto), 1);
+    }
+
+    @ApiOperation(value = "查询规则模板列表")
+    @PostMapping("/getConditionPageData")
+    public ApiResult<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@RequestBody SearchConditionDTO dto) {
+        return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), 1);
     }
 
     @ApiOperation(value = "测试消费")

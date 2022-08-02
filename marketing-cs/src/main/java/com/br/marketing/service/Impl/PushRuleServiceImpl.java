@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import java.util.Date;
+
 import com.alibaba.fastjson.*;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -308,6 +310,15 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     final static Byte customerStatus = Byte.valueOf("1");
 
+    @Resource
+    ScoreSearchConditionMapper scoreSearchConditionMapper;
+
+    @Resource
+    ScoreSearchConditionMappingMapper scoreSearchConditionMappingMapper;
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -410,7 +421,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return getTotal(dto);
     }
 
-//    @Transactional(rollbackFor = Exception.class)
+    //    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
@@ -500,10 +511,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
                     }
                 }
-                varObject.put("custNum",marketingHistory.getCusNum());
-                varObject.put("idCard",marketingHistory.getIdCard());
-                varObject.put("name",marketingHistory.getName());
-                varObject.put("batchNumber",marketingHistory.getBatchNumber());
+                varObject.put("custNum", marketingHistory.getCusNum());
+                varObject.put("idCard", marketingHistory.getIdCard());
+                varObject.put("name", marketingHistory.getName());
+                varObject.put("batchNumber", marketingHistory.getBatchNumber());
                 varObject.put("taskId", marketingHistory.getTaskId());
                 varObject.put("userType", marketingHistory.getUserType());
                 varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
@@ -1113,7 +1124,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
             }
         }
-        if(universalProcessApiCode.contains(transferInfo.getApiCode())){
+        if (universalProcessApiCode.contains(transferInfo.getApiCode())) {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
@@ -2480,6 +2491,101 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK, localFile.getId().toString());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Long> saveCondition(ConditionSaveDTO dto) {
+
+        SearchConditionDTO searchConditionDTO = new SearchConditionDTO();
+        searchConditionDTO.setApiCode(dto.getApiCode());
+        searchConditionDTO.setName(dto.getName());
+        searchConditionDTO.setStatus(1);
+        Integer scoreCountBySearch = scoreSearchConditionMapper.getScoreCountBySearch(searchConditionDTO);
+        if(scoreCountBySearch>0){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则模板名称重复");
+        }
+
+        Date date = new Date();
+        ScoreSearchCondition searchCondition = new ScoreSearchCondition();
+        searchCondition.setName(dto.getName());
+        searchCondition.setConditionNumber(buildConditionNumber(dto.getApiCode()));
+        searchCondition.setConditionType(1);
+        searchCondition.setContent(dto.getmRuleCondition());
+        searchCondition.setContentShow(dto.getmRuleConditionShow());
+        searchCondition.setCreateTime(date);
+        searchCondition.setUpdateTime(date);
+        scoreSearchConditionMapper.insertSelective(searchCondition);
+        entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
+
+        ScoreSearchConditionMapping scoreSearchConditionMapping = new ScoreSearchConditionMapping();
+        scoreSearchConditionMapping.setApiCode(dto.getApiCode());
+        scoreSearchConditionMapping.setConditionId(searchCondition.getId());
+        scoreSearchConditionMapping.setCreateTime(date);
+        scoreSearchConditionMapping.setUpdateTime(date);
+        scoreSearchConditionMappingMapper.insertSelective(scoreSearchConditionMapping);
+        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(), scoreSearchConditionMapping, null);
+
+        return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
+    }
+
+    String buildConditionNumber(String apiCode){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.conditionNumber.concat(":").concat(yyyyMMdd);
+        Long incr = redisChgService.incr(key);
+        redisChgService.expire(key,getKeyExpiration());
+        String s = incr.toString();
+        int length = s.length();
+        for (int i = 3; i > length; i--) {
+            s="0"+s;
+        }
+        return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
+    }
+
+    @Override
+    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
+        ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
+        mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
+        List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
+        if (scoreSearchConditionMappings.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        }
+        List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
+        if(conditionIds.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(conditionIds, name);
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreByNameNumberList);
+    }
+
+    @Override
+    public Result<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(SearchConditionDTO dto) {
+        if(dto.getSize()==null){
+            dto.setSize(10);
+        }
+        PageHelper.startPage(dto.getCurrent(),dto.getSize());
+        List<ScoreConditionDetailVO> scoreListBySearch = scoreSearchConditionMapper.getScoreListBySearch(dto);
+        PageResultReturn pageResultReturn = PageResultReturn.setPageResult(scoreListBySearch, dto.getCurrent(), dto.getSize());
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result optCondition(OptConditionDTO dto) {
+
+        ScoreSearchCondition searchCondition = scoreSearchConditionMapper.selectByPrimaryKey(dto.getId());
+        if (!new Integer(1).equals(searchCondition.getIsDel())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则不存在");
+        }
+        ScoreSearchCondition updateEntity = new ScoreSearchCondition();
+        updateEntity.setId(dto.getId());
+        updateEntity.setStatus(dto.getStatus());
+        scoreSearchConditionMapper.updateByPrimaryKeySelective(updateEntity);
+        entityOptService.writeOptLog(dto.getId(), updateEntity, searchCondition);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     private Result<Boolean> addHaluoLock(String apiCode, String taskId, String custNum, String status) {

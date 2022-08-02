@@ -14,7 +14,9 @@ import lombok.Getter;
 public enum TableCodeEnum {
 
 
-    MARKETING_CUSTOMER("01", "b_marketing_customer","MarketingCustomer");
+    MARKETING_CUSTOMER("01", "b_marketing_customer","MarketingCustomer"),
+    SCORE_SEARCH_CONDITION("02", "b_score_search_condition","ScoreSearchCondition"),
+    SCORE_SEARCH_CONDITION_MAPPING("03", "b_score_search_condition_mapping","ScoreSearchConditionMapping");
 
     /**
      * 表对应的码值
