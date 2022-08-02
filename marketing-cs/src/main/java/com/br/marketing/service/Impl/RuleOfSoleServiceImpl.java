@@ -66,9 +66,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             soleName = soleName.replace("_", "\\_");
         }
 
-        /*if(apiCodes == null || "".equals(apiCodes)){
-            PageHelper.startPage(page, pageSize);
-        }*/
         List<SoleRuleVO> soleRuleConfigs = soleRuleConfigMapper.selectList(soleName,status,
                 createTimeStart,createTimeEnd,updateTimeStart,updateTimeEnd);
         MarketingUserDetail user = ThreadContextInfo.getUser();
@@ -117,37 +114,6 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
             }
 
         }
-/*        soleRuleConfigs.stream().map(soleRuleConfig -> {
-            //去重字段统计
-            soleRuleConfig.setSoleFieldsNum(soleRuleConfig.getSoleFields().split(",").length);
-            //使用商户统计
-            CustomerSoleExample customerSoleExample = new CustomerSoleExample();
-            customerSoleExample.createCriteria().andSoleIdEqualTo(soleRuleConfig.getId())
-                    .andIsDelEqualTo(1);
-            int count = customerSoleMapper.countByExample(customerSoleExample);
-            soleRuleConfig.setCusNum(count);
-            //apicode
-            List<String> apicodeList = new ArrayList<>();
-            Set<String> apicodeSet = new HashSet<>();
-            List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(customerSoleExample);
-            for(CustomerSole s:customerSoles){
-                MarketingCustomerExample customerExample = new MarketingCustomerExample();
-                customerExample.createCriteria().andIdEqualTo(s.getCustomerId());
-                List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample);
-                for(MarketingCustomer c:customers){
-                    apicodeSet.add(c.getApiCode());
-                }
-            }
-            apicodeList.addAll(apicodeSet);
-            soleRuleConfig.setApicodes(apicodeList);
-
-            return soleRuleConfig;
-            }).collect(Collectors.toList());*/
-
-        /*if(apiCodes == null || "".equals(apiCodes)){
-            return PageResultReturn.setPageResult(soleRuleConfigs,page, pageSize);
-        }*/
-
         if(apiCodes != null && !"".equals(apiCodes)){
             String[] split = apiCodes.split(",");
             soleRuleConfigs = soleRuleConfigs.stream().filter(s -> {
