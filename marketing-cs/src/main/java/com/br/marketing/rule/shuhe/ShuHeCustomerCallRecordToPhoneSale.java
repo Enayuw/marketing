@@ -9,7 +9,6 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -71,9 +70,9 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
         SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
-        MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
+        MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(dto.getApiCode(), dto.getCaseNum());
         if(marketingSyncUser==null){
-            log.warn("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！",dto.getApiCode(),dto.getCaseNum());
+            log.warn("上传数据表中(apicode=%s)不存在 custNum=%s and status=1 的数据！", dto.getApiCode(), dto.getCaseNum());
             return null;
         }
         //根据手机号cell获取最新一条上传数据

@@ -47,7 +47,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
         if (marketingSyncUser == null) {
             return null;
         }

@@ -8,7 +8,6 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.PPDCollectDataImpl;
@@ -93,8 +92,11 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
         PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
                 (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-        MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
-        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer,marketingSyncUser));
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        if (marketingSyncUser == null) {
+            return null;
+        }
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser));
         return batchRealTimeUserDataDTO;
     }
 

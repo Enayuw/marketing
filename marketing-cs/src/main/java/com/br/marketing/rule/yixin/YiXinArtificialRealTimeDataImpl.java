@@ -73,10 +73,13 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-        MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        if (marketingSyncUser == null) {
+            return null;
+        }
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
-        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer,marketingSyncUser));
-        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer,marketingSyncUser));
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser));
+        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer, marketingSyncUser));
         return batchRealTimeUserDataDTO;
 
     }
