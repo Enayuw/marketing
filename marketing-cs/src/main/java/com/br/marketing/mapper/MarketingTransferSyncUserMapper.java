@@ -5,6 +5,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
     /**
@@ -109,4 +110,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingTransferSyncUser> getTransferByTransformTypeAndStatus(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 过滤caseEffecctive=0的案件编号
+     * @param tcId
+     * @param apiCode
+     * @param set
+     * @return
+     */
+    List<MarketingTransferSyncUser> getByInCustAndCaseEffective(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("custs") Set<String> set);
 }
