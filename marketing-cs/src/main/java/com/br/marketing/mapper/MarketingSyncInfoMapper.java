@@ -79,6 +79,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    List<MarketingSyncUser> getPreUserByInCustAndStatus(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
+
     List<MarketingSyncUser> getPreUserByInCustWithNoFail(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
     Integer countTransferFile(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime
@@ -102,11 +104,21 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     /**
      * 根据cust_num获取最新数据
+     *
      * @param apiCode
      * @param caseNum
      * @return
      */
     MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum") String caseNum);
+
+    /**
+     * 根据cust_num获取最新数据
+     *
+     * @param apiCode
+     * @param caseNum
+     * @return
+     */
+    MarketingSyncUser getNewestByCusnumAndStatus(@Param("apiCode") String apiCode, @Param("caseNum") String caseNum);
 
     /**
      * 根据案件编号获取最新的taskId

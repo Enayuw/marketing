@@ -192,6 +192,19 @@
         </where>
     </select>
 
+    <select id="getPreUserByInCustAndStatus" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        update_time,applet_date,applet_time
+        from b_marketing_sync_${apiCode}
+        <where>
+            cust_num in
+            <foreach collection="custs" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and status=1
+        </where>
+    </select>
+
     <select id="getPreUserByInCustWithNoFail" resultType="com.br.marketing.entity.MarketingSyncUser">
         select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
         update_time,applet_date,applet_time
@@ -201,7 +214,7 @@
             <foreach collection="custs" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
-            and IFNULL(fail_type,'') = ''
+            and IFNULL(fail_type,'') = '' and status=1
         </where>
     </select>
 
@@ -244,9 +257,18 @@
     </select>
 
     <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select * from
-        b_marketing_sync_${apiCode}
-        where cust_num=#{caseNum} order by applet_time desc limit 1;
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{caseNum}
+        order by applet_time desc limit 1;
+    </select>
+
+    <select id="getNewestByCusnumAndStatus" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{caseNum}
+          and status = 1
+        order by applet_time desc limit 1;
     </select>
 
     <select id="getUserTypeLatestByCustNum" resultType="java.lang.String">
