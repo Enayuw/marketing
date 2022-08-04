@@ -103,6 +103,11 @@ public class ScoreRuleConfig {
      */
     private String strategyProductShow;
 
+    /**
+     * 3k返回的加密类型 0-不加密；1-MD5；2-sha256
+     */
+    private Integer threekEncryptType;
+
     public Long getId() {
         return id;
     }
@@ -261,5 +266,13 @@ public class ScoreRuleConfig {
 
     public void setStrategyProductShow(String strategyProductShow) {
         this.strategyProductShow = strategyProductShow == null ? null : strategyProductShow.trim();
+    }
+
+    public Integer getThreekEncryptType() {
+        return threekEncryptType;
+    }
+
+    public void setThreekEncryptType(Integer threekEncryptType) {
+        this.threekEncryptType = threekEncryptType;
     }
 }
