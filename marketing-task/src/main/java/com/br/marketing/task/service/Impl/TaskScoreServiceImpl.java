@@ -17,6 +17,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
@@ -273,14 +274,16 @@ public class TaskScoreServiceImpl {
         BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
         }.getType());
         String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
-        TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
-        baseHeadConfigVO.getBaseHead().forEach(t -> {
-            if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
-                t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
-                        ? 1
-                        : taskExtendExtendFieldDTO1.getThreekEncryptType());
-            }
-        });
+        if(StringUtils.isNotBlank(extendConfigInfo)) {
+            TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
+            baseHeadConfigVO.getBaseHead().forEach(t -> {
+                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                    t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                            ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                            : taskExtendExtendFieldDTO1.getThreekEncryptType());
+                }
+            });
+        }
         StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
         }.getType());
         StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(marketingTask.getFileId()));
@@ -467,14 +470,16 @@ public class TaskScoreServiceImpl {
             BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
             }.getType());
             String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
-            TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
-            baseHeadConfigVO.getBaseHead().forEach(t -> {
-                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
-                    t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
-                            ? 1
-                            : taskExtendExtendFieldDTO1.getThreekEncryptType());
-                }
-            });
+            if(StringUtils.isNotBlank(extendConfigInfo)) {
+                TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
+                baseHeadConfigVO.getBaseHead().forEach(t -> {
+                    if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                        t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                                ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                                : taskExtendExtendFieldDTO1.getThreekEncryptType());
+                    }
+                });
+            }
             StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
             }.getType());
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));

@@ -446,7 +446,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         taskExtendExample.createCriteria().andTaskIdIn(taskIds);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
         Set<Integer> encrgyTypes = marketingTaskExtends.stream()
-                .map(t -> JSONObject.parseObject(t.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class).getThreekEncryptType())
+                .map(t -> {
+                    if(StringUtils.isBlank(t.getExtendConfigInfo())){
+                        return ScoreThreeKeyEncryptEnum.md5.getValue();
+                    }
+                    Integer threekEncryptType = JSONObject.parseObject(t.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class).getThreekEncryptType();
+                    return threekEncryptType==null?ScoreThreeKeyEncryptEnum.md5.getValue():threekEncryptType;
+                })
                 .collect(Collectors.toSet());
         if (encrgyTypes.size() > 1) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个跑分记录包含不同的加密类型");
