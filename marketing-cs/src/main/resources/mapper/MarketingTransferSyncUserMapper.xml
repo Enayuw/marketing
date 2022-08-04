@@ -61,7 +61,7 @@
     </select>
 
     <select id="getTransferByTransformTypeAndStatus" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select ts.id,ts.cust_num,ts.reserve_field1,ts.create_time from  b_marketing_transfer_sync_${tcId} ts
+        select ts.id,ts.cust_num,ts.reserve_field1,ts.create_time,ts.user_type,ts.if_transform from  b_marketing_transfer_sync_${tcId} ts
         where <![CDATA[  ts.request_data = #{endDate} ]]> and ts.api_code=#{apiCode}
         order by ts.create_time desc,ts.id desc limit #{limitStart},2000
     </select>
