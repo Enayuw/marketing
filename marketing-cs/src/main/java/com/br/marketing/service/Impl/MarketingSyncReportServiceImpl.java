@@ -74,6 +74,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         } else {
             customers = customerMapper.getAllCustomer();
         }
+        Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         for (Customer customer : customers) {
             threadPool.submit(() -> {
@@ -82,7 +83,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                         String apiCode = customer.getApiCode();
                         log.warn("开始执行上传数据统计报表任务,apiCode={},uploadDate={}", apiCode, uploadDate);
                         //3.组装数据
-                        List<String> userTypeList = getUserTypeList(apiCode);
+                        Set<String> userTypeList = userTypeMap.getOrDefault(apiCode, Collections.emptySet());
                         //获取场景
                         if (!userTypeList.isEmpty()) {
                             for (String userType : userTypeList) {
@@ -203,6 +204,20 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             return syncReportMapper.uploadSyncCountflash_(apiCode, userType, uploadDate, AuthShowProductor.NORMAL.getCode());
         }
     }
+    /**
+     * 获取所有场景
+     * @return
+     */
+    private Map<String, Set<String>> getUserTypeMap() {
+        VariableDicExample dic = new VariableDicExample();
+        dic.createCriteria().andIsDelEqualTo(1);
+        List<VariableDic> dicList = variableDicMapper.selectByExample(dic);
+        return dicList.parallelStream().collect(Collectors.groupingBy(VariableDic::getApiCode
+                , Collectors.mapping(VariableDic::getFieldValue, Collectors.toSet())));
+    }
+
+
+
 
     /**
      * 获取场景
