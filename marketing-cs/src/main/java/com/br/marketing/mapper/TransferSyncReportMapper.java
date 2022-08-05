@@ -25,7 +25,7 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @param userType userType
      * @return TransferSyncReport
      */
-    TransferSyncReport dateTimeMinMaxCountSMY(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
+    TransferSyncReport dateTimeMinMaxCountSMYflash_(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
             , @Param("userType") String userType);
 
     /**
@@ -38,7 +38,7 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @param userType userType
      * @return TransferSyncReport
      */
-    TransferSyncReport dateTimeMinMaxCount(@Param("tCid") String tCid, @Param("apiCode") String apiCode
+    TransferSyncReport dateTimeMinMaxCounttiflash_(@Param("tCid") String tCid, @Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr, @Param("userType") String userType);
 
     /**

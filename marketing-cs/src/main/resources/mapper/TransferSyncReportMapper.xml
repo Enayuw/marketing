@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.TransferSyncReportMapper">
-    <select id="dateTimeMinMaxCountSMY" resultType="com.br.marketing.entity.TransferSyncReport">
+    <select id="dateTimeMinMaxCountSMYflash_" resultType="com.br.marketing.entity.TransferSyncReport">
         select min(create_time) appletBeginTime, max(create_time) appletEndTime, count(*) dataCount
         from b_marketing_transfer_${apiCode}
         where create_time between '${dateStr} 00:00:00' and '${dateStr} 23:59:59'
           and group_type = #{userType,jdbcType=VARCHAR}
     </select>
 
-    <select id="dateTimeMinMaxCount" resultType="com.br.marketing.entity.TransferSyncReport">
+    <select id="dateTimeMinMaxCounttiflash_" resultType="com.br.marketing.entity.TransferSyncReport">
         select min(create_time) appletBeginTime, max(create_time) appletEndTime, count(*) dataCount
         from b_marketing_transfer_sync_${tCid}
         where request_data = #{dateStr,jdbcType=VARCHAR}
