@@ -1,6 +1,10 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -23,7 +27,6 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -48,39 +51,38 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
         long l = System.currentTimeMillis();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
         // 分片获取所有客户
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(AuthShowProductor.NORMAL.getCode().byteValue());
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExampleAndShard(customerExample
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
-        CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         String other = "";
-        for (MarketingCustomer customer : customers) {
-            threadPool.submit(() -> {
-                try {
-                    for (String dateStr : dateStrSet) {
-                        String apiCode = customer.getApiCode();
-                        String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
-                        // 获取场景
-                        Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
-                        for (String userType : userTypeSet) {
-                            TransferSyncReport report;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        for (String dateStr : dateStrSet) {
+            for (MarketingCustomer customer : customers) {
+                String apiCode = customer.getApiCode();
+                String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
+                // 获取场景
+                Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
+                for (String userType : userTypeSet) {
+                    threadPool.submit(()->{
+                        TransferSyncReport report;
+                        try {
+                            report = transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, dateStr, userType);
+                        } catch (Exception e) {
                             try {
-                                report = transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, dateStr, userType);
-                            } catch (Exception e) {
-                                try {
-                                    report = transferSyncReportMapper.dateTimeMinMaxCountSMYflash_(apiCode, dateStr, userType);
-                                } catch (Exception ignored) {
-                                    continue;
-                                }
+                                report = transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, dateStr, userType);
+                            } catch (Exception ignored) {
+                                return;
                             }
+                        }
+                        try {
                             Date appletBeginTime = report.getAppletBeginTime();
                             Date appletEndTime = report.getAppletEndTime();
                             Integer dataCount = report.getDataCount();
                             if (appletBeginTime == null || appletEndTime == null || dataCount == null || dataCount < 1) {
-                                continue;
+                                return;
                             }
                             // 检索历史记录
                             TransferSyncReportExample example = new TransferSyncReportExample();
@@ -116,24 +118,25 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                                     transferSyncReportMapper.updateByPrimaryKeySelective(report);
                                 }
                             }
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
                         }
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                } finally {
-                    countDownLatch.countDown();
+                    });
                 }
-            });
+            }
         }
-        // 等待线程执行完毕
-        try {
-            countDownLatch.await();
-            //关闭线程池
-            threadPool.shutdown();
-            log.warn("转化记录-同步记录操作执行完成，耗时{}ms", System.currentTimeMillis() - l);
-        } catch (InterruptedException e) {
-            log.error("countDownLatch 线程执行异常", e);
+        threadPool.shutdown();
+        while (true) {
+            if (threadPool.isTerminated()) {
+                break;
+            }
+            try {
+                Thread.sleep(3000);
+            } catch (Exception e) {
+
+            }
         }
+        log.warn("转化记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l)/1000);
     }
 
     /**

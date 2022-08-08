@@ -149,7 +149,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             countDownLatch.await();
             //关闭线程池
             threadPool.shutdown();
-            log.warn("上传记录-同步记录操作执行完成，耗时{}ms", System.currentTimeMillis() - l);
+            log.warn("上传记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l)/1000);
         } catch (InterruptedException e) {
             log.error("countDownLatch 线程执行异常", e);
         }
