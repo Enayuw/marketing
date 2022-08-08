@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -119,4 +120,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingTransferSyncUser> getByInCustAndCaseEffective(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("custs") Set<String> set);
+
+    /**
+     * 获取request_data = eliminateDate下 applyLoan = 0的数据
+     * @param tcId
+     * @param eliminateDate
+     * @return
+     */
+    List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode,@Param("eliminateDate") LocalDate eliminateDate);
+
 }
