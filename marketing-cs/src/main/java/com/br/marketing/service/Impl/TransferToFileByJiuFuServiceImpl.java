@@ -181,8 +181,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                 List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
                 for (MarketingTransferSyncUser marketingTransferSyncUser : data) {
                     //过滤掉 同一custNum的其他insertTime数据，custNumResult
-                    if (StringUtils.isNotEmpty(marketingTransferSyncUser.getCustNum()) && !eliminateCustNum.contains(marketingTransferSyncUser.getCustNum())
-                            && custNumResult.add(marketingTransferSyncUser.getCustNum())) {
+                    if (StringUtils.isNotEmpty(marketingTransferSyncUser.getCustNum()) && custNumResult.add(marketingTransferSyncUser.getCustNum())
+                            && !eliminateCustNum.contains(marketingTransferSyncUser.getCustNum())) {
                         dataFilter.add(marketingTransferSyncUser);
                     }
                 }
