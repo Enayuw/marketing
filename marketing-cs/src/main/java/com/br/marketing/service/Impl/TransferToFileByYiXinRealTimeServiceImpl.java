@@ -939,8 +939,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private List<MarketingTransferSyncUser> eliminateCaseEffective(String tcId,List<MarketingTransferSyncUser> dataFilter, String apiCode) {
         Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         List<MarketingTransferSyncUser> resultFilter = marketingTransferSyncUserMapper.getByInCustAndCaseEffective(tcId,apiCode, set);
-        Map<String, MarketingTransferSyncUser> filterMap = resultFilter.stream().collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser -> MarketingTransferSyncUser));
-        dataFilter.removeIf(data -> filterMap.containsKey(data.getCustNum()));
+        Set<String> custNumFilter = resultFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        //Map<String, MarketingTransferSyncUser> filterMap = resultFilter.stream().collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser -> MarketingTransferSyncUser));
+        //dataFilter.removeIf(data -> filterMap.containsKey(data.getCustNum()));
+        dataFilter.removeIf(data -> custNumFilter.contains(data.getCustNum()));
         return dataFilter;
     }
 
