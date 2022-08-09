@@ -168,7 +168,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         //剔除applyLoan=1的set
         List<MarketingTransferSyncUser> eliminate = marketingTransferSyncUserMapper.getCustNumByApplyLoan(tcId,apiCode,eliminateDate);
         Set<String> eliminateCustNum = eliminate.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-
+        int totalSize = 0;
         while(true){
             while (mark) {
                 Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, endDate.toString(), page);
@@ -233,6 +233,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }
+                totalSize = totalSize + dataFilter.size();
                 dataFilter.clear();
                 data.clear();
             }
@@ -244,7 +245,6 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             }
         }
 
-        int totalSize = custNumResult.size();
         custNumResult.clear();
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
