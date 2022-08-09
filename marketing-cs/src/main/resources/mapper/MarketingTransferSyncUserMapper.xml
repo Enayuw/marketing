@@ -65,7 +65,7 @@
         b_marketing_transfer_sync_${tcId}
         where api_code=#{apiCode} and
         <![CDATA[ request_data = #{eliminateDate} ]]>
-        and reserve_field1 ->'$.applyLoan'='0';
+        and reserve_field1 ->'$.applyLoan'='1';
     </select>
 
     <select id="getTransferByTransformTypeAndStatus" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
