@@ -139,15 +139,18 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
             LocalDate startDate;
             LocalDate endDate;
+            LocalDate eliminateDate;
             if(localDate.getDayOfMonth()==1){
                 LocalDate lastMonth = localDate.minusMonths(1); // 当前月份减1
                 startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取上月的第二天
                 endDate = localDate; // 获取当前时间
+                eliminateDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth()); // 获取上月的第一天
             }else {
                 startDate = localDate.with(TemporalAdjusters.firstDayOfMonth()).plusDays(1); // 获取当前月的第二天
                 endDate = localDate;
+                eliminateDate = localDate.with(TemporalAdjusters.firstDayOfMonth()); // 获取当前月的第一天
             }
-            writeJiuFuTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
+            writeJiuFuTransferToFile(fw, apiCode, startDate, endDate,eliminateDate,transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
@@ -155,13 +158,17 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void writeJiuFuTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) throws IOException {
+    private void writeJiuFuTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,LocalDate eliminateDate,TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         //去重后的Set
         HashSet custNumResult = new HashSet();
+        //剔除applyLoan=1的set
+        List<MarketingTransferSyncUser> eliminate = marketingTransferSyncUserMapper.getCustNumByApplyLoan(tcId,apiCode,eliminateDate);
+        Set<String> eliminateCustNum = eliminate.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        int totalSize = 0;
         while(true){
             while (mark) {
                 Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, endDate.toString(), page);
@@ -174,7 +181,8 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                 List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
                 for (MarketingTransferSyncUser marketingTransferSyncUser : data) {
                     //过滤掉 同一custNum的其他insertTime数据，custNumResult
-                    if (custNumResult.add(marketingTransferSyncUser.getCustNum())) {
+                    if (StringUtils.isNotEmpty(marketingTransferSyncUser.getCustNum()) && custNumResult.add(marketingTransferSyncUser.getCustNum())
+                            && !eliminateCustNum.contains(marketingTransferSyncUser.getCustNum())) {
                         dataFilter.add(marketingTransferSyncUser);
                     }
                 }
@@ -225,6 +233,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }
+                totalSize = totalSize + dataFilter.size();
                 dataFilter.clear();
                 data.clear();
             }
@@ -236,7 +245,6 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
             }
         }
 
-        int totalSize = custNumResult.size();
         custNumResult.clear();
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
