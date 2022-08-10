@@ -43,6 +43,8 @@ public class LoanFile extends BaseRowModel {
     private Integer pushType;
     private Integer pushStatus;
     private Integer indexNum;
+    private String innerFtpPath;
+    private String fileName;
     @Override
     public String toString() {
         return "LoanFile{" +
@@ -67,6 +69,8 @@ public class LoanFile extends BaseRowModel {
                 ", dataType='" + dataType + '\'' +
                 ", showTitle='" + showTitle + '\'' +
                 ", indexNum='" + indexNum + '\'' +
+                ", innerFtpPath='" + innerFtpPath + '\'' +
+                ", fileName='" + fileName + '\'' +
                 '}';
     }
 }

@@ -13,13 +13,16 @@ import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -111,7 +114,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private String appName;
 
     @Autowired
+    RabbitMqProducter producter;
+
+    @Autowired
     IProductResultSimpleService iProductResultSimpleService;
+
+    @Resource
+    StraHisFileMapper straHisFileMapper;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -483,6 +492,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setFileName(String.format("%s_%s", ruleVO.getId().toString(), ruleVO.getRuleNameShort()));
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
+        task.setIsOnline(ruleVO.getIsOnline());
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
             MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
             if (task1 != null) {
@@ -520,7 +530,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setDataCondition(ruleVO.getConditionInfo());
         taskExtend.setConditionType(conditionType);
         taskExtend.setConditionInfoShow(showDataStr);
+        //跑分扩展信息 3K加密方式
         TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = new TaskExtendExtendFieldDTO().setThreekEncryptType(ruleVO.getThreekEncryptType());
+        //规则验证保存验证条数
         if (new Integer(1).equals(ruleVO.getIsOrNoScoreVer())) {
             taskExtendExtendFieldDTO.setDataLimit(ruleVO.getDataLimit());
         }
@@ -632,5 +644,22 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public void saveScoreResult(MarketingTaskResultPreview preview) {
         marketingTaskResultPreviewMapper.insertSelective(preview);
+    }
+
+    @Override
+    public Result offLineCallBack(OffLineCallBackDTO dto) {
+        Long id = Long.valueOf(dto.getRequestId());
+        StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(id);
+        if(straHisFile == null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid的数据不存在");
+        }
+        StraHisFile updateEntity = new StraHisFile();
+        updateEntity.setId(id);
+        updateEntity.setZipfileName(dto.getFileName());
+        updateEntity.setStatus(7);
+        updateEntity.setOfflineFilePath(dto.getFilePath());
+        straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
+        producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK,id.toString());
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }

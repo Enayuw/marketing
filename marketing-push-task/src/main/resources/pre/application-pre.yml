@@ -98,6 +98,11 @@ otherConfig:
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing
     ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix
+    ftpBasePath: /dp_mkplat/
+    ftpHost: 10.100.123.34
+    ftpPort: 21
+    ftpUsername: Marketing
+    ftpPwd: yPcxugMgQChJovqtGfqFUuBUA==
     sftpHost: 10.100.123.65
     sftpPort: 9999
     sftpUser: BRmarketing_pre
@@ -111,7 +116,10 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
-
+api:
+  bi:
+    baseUrl: http://script-govern-pre.100credit.cn
+    executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

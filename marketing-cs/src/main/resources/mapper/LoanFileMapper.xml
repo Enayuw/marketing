@@ -251,6 +251,12 @@
 		<if test="actualNum!=null">
 		,actual_num=#{actualNum}
 		</if>
+		<if test="fileName !=null and fileName !=''">
+			,file_name = #{fileName}
+		</if>
+		<if test="innerFtpPath !=null and innerFtpPath !=''">
+			,inner_ftp_path = #{innerFtpPath}
+		</if>
 		WHERE
 		id =#{id}
 	</update>

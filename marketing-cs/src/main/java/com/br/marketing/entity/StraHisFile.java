@@ -123,6 +123,21 @@ public class StraHisFile {
      */
     private Integer indexNum;
 
+    /**
+     * 内部ftp地址
+     */
+    private String innerFtpPath;
+
+    /**
+     * 合并文件名称 多个文件用,分割
+     */
+    private String fileName;
+
+    /**
+     * 离线文件路径
+     */
+    private String offlineFilePath;
+
     public Long getId() {
         return id;
     }
@@ -313,5 +328,29 @@ public class StraHisFile {
 
     public void setIndexNum(Integer indexNum) {
         this.indexNum = indexNum;
+    }
+
+    public String getInnerFtpPath() {
+        return innerFtpPath;
+    }
+
+    public void setInnerFtpPath(String innerFtpPath) {
+        this.innerFtpPath = innerFtpPath == null ? null : innerFtpPath.trim();
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName == null ? null : fileName.trim();
+    }
+
+    public String getOfflineFilePath() {
+        return offlineFilePath;
+    }
+
+    public void setOfflineFilePath(String offlineFilePath) {
+        this.offlineFilePath = offlineFilePath == null ? null : offlineFilePath.trim();
     }
 }

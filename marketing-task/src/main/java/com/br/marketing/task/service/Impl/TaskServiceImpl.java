@@ -178,6 +178,7 @@ public class TaskServiceImpl implements ITaskService {
      */
     private Result<TaskStatus> canScore(MarketingTask task, String nowDay) {
 
+        //一次行跑分、规则验证、离线跑批 都判断状态表种的 oncestatus状态来判定任务是否已经跑过
         if (1 == task.getMonitorType()||2==task.getMonitorType()) {
             //region 一次性跑分
             TaskStatusExample statusExample = new TaskStatusExample();

@@ -52,6 +52,11 @@ public class MQConstants {
     // 携程营销数据
     public static final String MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing_Universal_SftpToDb_XieChengReceive";
 
+    // 文件合并队列
+    public static final String MARKETING_PUSHTASK_FILE_MERGE = "Marketing_PushTask_File_Merge";
+
+    // 离线跑批回调队列
+    public static final String MARKETING_OFFLINETASK_FILE_CALLBACK = "Marketing_OffLineTask_File_CallBack";
     /**
      * routingkey
      */
@@ -88,4 +93,10 @@ public class MQConstants {
 
     // 携程营销数据
     public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing.Universal.SftpToDb.XieChengReceive";
+
+    //文件合并
+    public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE = "Marketing.PushTask.File.Merge";
+
+    //离线跑批回调路由键
+    public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK = "Marketing.OffLineTask.File.CallBack";
 }

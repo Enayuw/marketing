@@ -11,7 +11,6 @@ import lombok.Data;
  * @author bejson.com (i@bejson.com)
  * @website http://www.bejson.com/java2pojo/
  */
-@Data
 public class BaseHead {
 
     /**
@@ -29,4 +28,31 @@ public class BaseHead {
      */
     private Integer threekEncryptType;
 
+
+    public String getName() {
+        return name;
+    }
+
+    public BaseHead setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public BaseHead setType(int type) {
+        this.type = type;
+        return this;
+    }
+
+    public Integer getThreekEncryptType() {
+        return threekEncryptType;
+    }
+
+    public BaseHead setThreekEncryptType(Integer threekEncryptType) {
+        this.threekEncryptType = threekEncryptType;
+        return this;
+    }
 }

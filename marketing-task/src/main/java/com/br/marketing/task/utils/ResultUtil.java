@@ -309,9 +309,18 @@ public class ResultUtil {
                             , syncUser.getApiCode(), syncUser.getId());
                 }
             }
+            for (String s : baseHeadConfigVO.getShowBaseHead()) {
 
-            for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
-                String title = head.getName().toLowerCase();
+            }
+
+            BaseHead head = new BaseHead().setType(ia);
+            for (String s : baseHeadConfigVO.getShowBaseHead()) {
+                head.setName(s);
+                Optional<BaseHead> first = baseHeadConfigVO.getBaseHead().stream().filter(t -> t.getName().equals(s)).findFirst();
+                if(first.isPresent()){
+                    head = first.get();
+                }
+                String title = s.toLowerCase();
                 String str = "";
                 String strCell="";
                 String strId="";

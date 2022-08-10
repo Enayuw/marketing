@@ -2,6 +2,7 @@
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.mapper.*;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
 
@@ -15,10 +16,6 @@ import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
-import com.br.marketing.mapper.MarketingStrategyProductMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
 
@@ -54,6 +51,30 @@ public class redis {
 
     @Autowired
     RabbitMqProducter producter;
+
+    @Resource
+    MarketingSyncInfoMapper syncInfoMapper;
+
+    @Test
+    public void testHaluo(){
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+
+        for (int i = 0; i < 10000; i++) {
+            Integer abc = i;
+            threadPool.submit(()->{
+                syncInfoMapper.getCellFromCurrent("7410437",null);
+            });
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+
+            }
+        }catch (Exception ex){
+
+        }
+
+    }
 
     @Test
     public void pushMQ(){

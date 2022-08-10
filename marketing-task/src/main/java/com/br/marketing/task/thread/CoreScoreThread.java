@@ -122,10 +122,9 @@ public class CoreScoreThread implements Callable<String> {
                 if (blu.getStatus() != 1) {
                     continue;
                 }
-
-                if (marketingTask.getTaskType().equals(1)) {
+                if (marketingTask.getTaskType().equals(1)||marketingTask.getIsOnline().equals(2)) {
                     dealResult(fw, blu);
-                } else {
+                }else {
                     RequestLog requestLog = new RequestLog();
                     requestLog.setRequestTime(new Date());
 

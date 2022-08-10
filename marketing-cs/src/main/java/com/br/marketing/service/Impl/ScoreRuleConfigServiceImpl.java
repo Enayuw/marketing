@@ -116,6 +116,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():Integer.valueOf(0));
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
+        rule.setIsOnline(scoreRuleVO.getIsOnline());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
@@ -220,6 +221,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setProductInfo(rule.getProductInfo());
         scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
         scoreRuleVO.setThreekEncryptType(rule.getThreekEncryptType());
+        scoreRuleVO.setIsOnline(rule.getIsOnline());
         return scoreRuleVO;
     }
 
@@ -262,6 +264,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():0);
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
+        rule.setIsOnline(scoreRuleVO.getIsOnline());
         // 默认开启
         rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());

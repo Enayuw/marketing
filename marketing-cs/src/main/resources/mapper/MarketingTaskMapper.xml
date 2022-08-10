@@ -266,7 +266,8 @@
                is_repair,
                context_id,
                task_type,
-               product_info
+               product_info,
+               is_online
         FROM b_marketing_task
         WHERE batch_number = #{batchNumber}
     </select>

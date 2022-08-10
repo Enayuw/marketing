@@ -11,17 +11,16 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.task.thread.CoreScoreThread;
+import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
@@ -131,9 +130,12 @@ public class TaskScoreServiceImpl {
     @Autowired
     MarketingTaskService marketingTaskService;
 
+    @Autowired
+    RabbitMqProducter producter;
+
     public void process(MarketingTask task, String day) {
         String apiCode = task.getApiCode();
-
+        Boolean isOffline = task.getIsOnline().equals(2);
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(new Byte("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
@@ -226,12 +228,19 @@ public class TaskScoreServiceImpl {
             if (!observedScoreThreadService.isInterrupt()) {
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(task.getFileId());
-                updateFile.setStatus(task.getMonitorType().equals(2) ? 2 : 1);
+                if(isOffline){
+                    updateFile.setStatus(4);
+                }else {
+                    updateFile.setStatus(task.getMonitorType().equals(2) ? 2 : 1);
+                }
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
                 updateTask.setPriority(0);
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
+                if(isOffline){
+                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE,task.getFileId().toString());
+                }
             } else {
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
                         , task.getBatchNumber(), task.getFileId().toString());
@@ -271,19 +280,7 @@ public class TaskScoreServiceImpl {
         }
         String separator = marketingSepService.querySepByApiCode(marketingTask.getApiCode());
         MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(marketingTask.getId());
-        BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
-        }.getType());
-        String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
-        if(StringUtils.isNotBlank(extendConfigInfo)) {
-            TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
-            baseHeadConfigVO.getBaseHead().forEach(t -> {
-                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
-                    t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
-                            ? ScoreThreeKeyEncryptEnum.md5.getValue()
-                            : taskExtendExtendFieldDTO1.getThreekEncryptType());
-                }
-            });
-        }
+        BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, marketingTask);
         StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
         }.getType());
         StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(marketingTask.getFileId()));
@@ -333,7 +330,6 @@ public class TaskScoreServiceImpl {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
     }
-
 
     private void generateTask(MarketingTask blt, ExecutorService warrningExecutor, MarketingCustomer customer, String day) {
         String productJson = "";
@@ -433,13 +429,49 @@ public class TaskScoreServiceImpl {
         alarmClient.sendAlarm(msg, title, appName, secretKey, code);
     }
 
+    private BaseHeadConfigVO baseHeadHandle(MarketingTaskExtend marketingTaskExtend, MarketingTask blt) {
+        BaseHeadConfigVO baseHeadConfigVO = StringUtils.isBlank(marketingTaskExtend.getExtendShowTitle())
+                ? new BaseHeadConfigVO(new ArrayList<String>(), new ArrayList<BaseHead>())
+                : JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
+        }.getType());
+        /**
+         * 离线跑批处理基础表头字段
+         *  1、先判断没有配置三要素的情况 也要析出该字段信息到文件
+         *  2、对于配置过三要素的情况 统一把字段的加密类型改为原值析出
+         * 非离线跑批
+         *  1、把相应的加密类型赋值到三要素上
+         */
+        if (new Integer(2).equals(blt.getIsOnline())) {
+            List<String> showBaseHead = baseHeadConfigVO.getShowBaseHead();
+            List<BaseHead> baseHead = baseHeadConfigVO.getBaseHead();
+            iProductResultSimpleService.offLineHeadComplete(showBaseHead,baseHead);
+            baseHeadConfigVO.getBaseHead().forEach(t -> {
+                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                    t.setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue());
+                }
+            });
+        } else {
+            String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
+            if (StringUtils.isNotBlank(extendConfigInfo)) {
+                TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
+                baseHeadConfigVO.getBaseHead().forEach(t -> {
+                    if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                        t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                                ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                                : taskExtendExtendFieldDTO1.getThreekEncryptType());
+                    }
+                });
+            }
+        }
+        return baseHeadConfigVO;
+    }
+
     /**
      * 提交任务
      *
      * @param blt
      * @param descPath
      */
-
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
                       String fileId, MarketingCustomer customer) {
         try {
@@ -456,30 +488,12 @@ public class TaskScoreServiceImpl {
             if (flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 flagproductlist = flagProduct.getData();
             }
-            String strategyProductConfigStr = iProductResultSimpleService.getStrategyProductConfigStr(blt.getApiCode(), blt.getBatchNumber());
-            StrategyProductDetailVO strategyProductDetailVO = new StrategyProductDetailVO();
-            if (!StringUtils.isEmpty(strategyProductConfigStr)) {
-                strategyProductDetailVO = JSON.parseObject(strategyProductConfigStr
-                        , new TypeReference<StrategyProductDetailVO>() {
-                        }.getType());
-            }
+
             String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.valueOf(redisOpen) : 1;
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
-            BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
-            }.getType());
-            String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
-            if(StringUtils.isNotBlank(extendConfigInfo)) {
-                TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
-                baseHeadConfigVO.getBaseHead().forEach(t -> {
-                    if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
-                        t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
-                                ? ScoreThreeKeyEncryptEnum.md5.getValue()
-                                : taskExtendExtendFieldDTO1.getThreekEncryptType());
-                    }
-                });
-            }
+            BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
             StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
             }.getType());
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
