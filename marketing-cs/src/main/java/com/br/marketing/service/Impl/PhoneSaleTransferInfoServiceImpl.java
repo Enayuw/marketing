@@ -46,7 +46,7 @@ public class PhoneSaleTransferInfoServiceImpl implements PhoneSaleTransferInfoSe
         for (int i = 0; i < pageSum; i++) {
             int fromIndex = i * batchSize;
             int toIndex = fromIndex + batchSize;
-            phoneSaleTransferInfoMapper.insertSelectiveBatch(filterList.subList(fromIndex, Math.min(toIndex, size)));
+            phoneSaleTransferInfoMapper.insertBatch(filterList.subList(fromIndex, Math.min(toIndex, size)));
         }
     }
 
