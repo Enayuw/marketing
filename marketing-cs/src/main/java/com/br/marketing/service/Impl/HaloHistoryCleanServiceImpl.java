@@ -66,7 +66,6 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     public ApiResult<Boolean> cleanHistory(String jsonData) {
 
         log.warn("清洗数据接口入参：{}", jsonData);
-        //String apiCode = '';
         JSONObject jsonObject = JSON.parseObject(jsonData);
         String cid = jsonObject.getString("cid");
         boolean exists = redisChgService.exists("cid-halo-button" + cid);
@@ -74,25 +73,10 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             return new ApiResult<Boolean>().fail(ServiceResultEnum.HALOBUTTONDISABLE);
         }
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
-        List<MarketingSyncUser> marketingSyncUserList = new ArrayList<>();
-        if (dataArray != null) {
-            for (int i = 0; i < dataArray.size(); i++) {
-                JSONObject dataJson = dataArray.getJSONObject(i);
-                String apiCode = dataJson.getString("apiCode");
-                String appletDate = dataJson.getString("appletDate");
-                MarketingSyncUser marketingSyncUserMaxId = marketingSyncInfoMapper.getMarketingSyncMaxIdByAppletDate(apiCode, appletDate);
-                if (marketingSyncUserMaxId != null) {
-                    marketingSyncUserList.add(marketingSyncUserMaxId);
-                }
-            }
-            if (marketingSyncUserList.size() == 0 && marketingSyncUserList.isEmpty()) {
-                return new ApiResult<Boolean>().fail(ServiceResultEnum.HALO_NO_DATA);
-            }
-        } else {
+        if (dataArray == null) {
             return new ApiResult<Boolean>().fail("入参数据异常");
         }
-        redisChgService.setex("cid-halo-button" + cid, cid, TimeUtils.getRemainSecondsOneDay(new Date()));
-        //redisAuthService.set("cid-halo-button" + cid, cid, 120);
+        redisChgService.setnx("cid-halo-button" + cid, cid, TimeUtils.getRemainSecondsOneDay(new Date()));
         producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
         return new ApiResult<Boolean>().success().setData(true);
     }
@@ -110,26 +94,28 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 StringBuilder content = new StringBuilder();
                 int allCount = marketingSyncInfoMapper.selectCountError(apiCode, appletDate);
                 log.warn("数据清洗条数：{}", allCount);
-                CountDownLatch countDownLatch = new CountDownLatch(allCount);
-                long startTime = System.currentTimeMillis();
-                doHandlerCleanHistory(appletDate, apiCode, threadPool, countDownLatch);
-                try {
-                    countDownLatch.await();
-                    //关闭线程池
-                    threadPool.shutdown();
-                    //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
-                    while (!threadPool.isTerminated()) ;
-                } catch (InterruptedException e) {
-                    log.warn("线程池异常：{}", e);
+                if (allCount > 0) {
+                    CountDownLatch countDownLatch = new CountDownLatch(allCount);
+                    long startTime = System.currentTimeMillis();
+                    doHandlerCleanHistory(appletDate, apiCode, threadPool, countDownLatch);
+                    try {
+                        countDownLatch.await();
+                        //关闭线程池
+                        threadPool.shutdown();
+                        //当调用shutdown()方法后，并且所有提交的任务完成后返回为true;
+                        while (!threadPool.isTerminated()) ;
+                    } catch (InterruptedException e) {
+                        log.warn("线程池异常：{}", e);
+                    }
+                    long endTime = System.currentTimeMillis();
+                    int errorCount = marketingSyncInfoMapper.selectCountError(apiCode, appletDate);
+                    content.append("apiCode：".concat(apiCode).concat("，"))
+                            .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
+                            .append("错误数量：".concat(String.valueOf(errorCount)).concat("，"))
+                            .append("总耗时：".concat(TimeUtils.millisecondsToString(endTime - startTime)).concat("\r\n"));
+                    alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
+                            Constants.sendCodeMap.get("uploadSuccess"));
                 }
-                long endTime = System.currentTimeMillis();
-                int errorCount = marketingSyncInfoMapper.selectCountError(apiCode, appletDate);
-                content.append("apiCode：".concat(apiCode).concat("，"))
-                        .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
-                        .append("错误数量：".concat(String.valueOf(errorCount)).concat("，"))
-                        .append( "总耗时：".concat(TimeUtils.millisecondsToString(endTime-startTime)).concat("\r\n"));
-                alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
             }
         }
         log.info("所有线程都执行结束");
