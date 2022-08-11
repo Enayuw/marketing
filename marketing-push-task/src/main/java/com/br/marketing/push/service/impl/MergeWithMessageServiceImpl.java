@@ -63,7 +63,7 @@ public class MergeWithMessageServiceImpl {
     private String ftpHost;
     @Value("${otherConfig.warning.ftpPort:00}")
     private Integer ftpPort;
-    @Value("${otherConfig.warning.ftpUser:00}")
+    @Value("${otherConfig.warning.ftpUsername:00}")
     private String ftpUsername;
     @Value("${otherConfig.warning.ftpPwd:00}")
     private String ftpPwd;
@@ -95,35 +95,39 @@ public class MergeWithMessageServiceImpl {
         }
         if(straHisFile != null&& straHisFile.getStatus() ==5){
             straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-            pushToFtp(loanFile);
-            BeanUtils.copyProperties(loanFile, straHisFile);
-            straHisFile.setStatus(6);
-            straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-            reqOffLine(straHisFile);
+            Boolean aBoolean = pushToFtp(straHisFile);
+            if(aBoolean){
+                Result result = reqOffLine(straHisFile);
+                if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    straHisFile.setStatus(6);
+                    straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
+                }
+            }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 
 
-    public void pushToFtp(LoanFile blf){
+    public Boolean pushToFtp(StraHisFile blf){
         String apiCode=blf.getApiCode();
         FtpClient ftpClient = new FtpClient(ftpHost,ftpPort,ftpUsername,ftpPwd,ftpBasePath);
         try {
             ftpClient.connect();
-            String remotePath=ftpBasePath.concat(apiCode).concat("/output/").concat(DateHelper.getDateAddYyMmDd(0));
+            String remotePath= ftpBasePath.concat(apiCode).concat("/output/").concat(DateHelper.getDateAddYyMmDd(0)).concat("/");
             String filePathAndName=blf.getFilePath().concat("/").concat(blf.getFileName());
             File file = new File(filePathAndName);
             if(file.exists()){
                 log.warn("push txt to sftp :{}",blf.getFileName());
-                ftpClient.uploadFile(Files.newInputStream(Paths.get(filePathAndName)), remotePath, blf.getFileName());
+                ftpClient.uploadFileAndMk(Files.newInputStream(Paths.get(filePathAndName)), remotePath, blf.getFileName());
                 String sueccessFilePath = filePathAndName.concat(".success");
                 File successFile = new File(sueccessFilePath);
                 if(!successFile.exists()){
                     successFile.createNewFile();
                 }
-                ftpClient.uploadFile(Files.newInputStream(Paths.get(sueccessFilePath)), remotePath, blf.getFileName().concat(".success"));
+                ftpClient.uploadFileAndMk(Files.newInputStream(Paths.get(sueccessFilePath)), remotePath, blf.getFileName().concat(".success"));
             }
             blf.setInnerFtpPath(remotePath);
+            return true;
         } catch (Exception e) {
             log.error("Exception",e);
         }finally {
@@ -133,9 +137,10 @@ public class MergeWithMessageServiceImpl {
                 log.error("Exception",e);
             }
         }
+        return false;
     }
 
-    private void reqOffLine(StraHisFile file){
+    private Result reqOffLine(StraHisFile file){
         String batchNumber = file.getBatchNumber();
         MarketingTask task = marketingTaskMapper.getByBatchNumber(batchNumber);
         MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
@@ -158,6 +163,6 @@ public class MergeWithMessageServiceImpl {
         scoreDTO.setFilePath(file.getInnerFtpPath());
         scoreDTO.setFileName(file.getFileName());
         scoreDTO.setEncodeType(encodeType.toString());
-        biApiClient.reqOffLineJob(scoreDTO);
+        return biApiClient.reqOffLineJob(scoreDTO);
     }
 }

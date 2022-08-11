@@ -120,6 +120,7 @@ api:
   bi:
     baseUrl: http://script-govern-pre.100credit.cn
     executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
+    token: a3a6958c84454ddbaf3b6bd9650a20be
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class OffLineScoreDTO {
+    private String token;
     private String requestId;
     private JSONArray productInfo;
     private String headInfo;
