@@ -24,4 +24,9 @@ public class BaseHead {
      */
     private int type;
 
+    /**
+     * 加密类型 1-md5；2-sha256
+     */
+    private Integer threekEncryptType;
+
 }

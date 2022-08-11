@@ -101,6 +101,8 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "产品信息", dataType = "string", position = 14)
     private String productInfo;
 
+    @ApiModelProperty(value = "3k值加密方式 0-不加密；1-md5；2-sha256", dataType = "string", position = 15)
+    private Integer threekEncryptType;
 
     public ScoreRuleVO() {
     }
