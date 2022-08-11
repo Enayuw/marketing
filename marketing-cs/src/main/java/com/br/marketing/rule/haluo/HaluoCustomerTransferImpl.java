@@ -109,7 +109,7 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
         String decodeName;
         String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
                 (syncUser.getName().equals(decodeName = BrCipherMaker.getInstance().decode(syncUser.getName())) ? "1"
-                        : decodeName) : "1";
+                        : decodeName) : "";
         dassImportDataDTO.setUid(transferSyncUser.getCustNum());
         dassImportDataDTO.setPhone(s);
         dassImportDataDTO.setName(name);
