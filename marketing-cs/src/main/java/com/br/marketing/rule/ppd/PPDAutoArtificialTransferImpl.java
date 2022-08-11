@@ -203,9 +203,10 @@ public class PPDAutoArtificialTransferImpl implements AssembleData<BatchRealTime
         batchImportData.setId(transfer.getId());
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String phone = AESUtil.aesEncrypty(cell, aesKey);
+        String decodeName;
         String name = StringUtils.hasText(syncUser.getName()) ?
-                BrCipherMaker.getInstance().decode(syncUser.getName())
-                : "1";
+                (syncUser.getName().equals(decodeName = BrCipherMaker.getInstance().decode(syncUser.getName())) ? "1"
+                        : decodeName) : "1";
         // 根据custNum取上传接口最新的name转成明文传输
         batchImportData.setName(name);
         batchImportData.setOrgname("ppdai");
