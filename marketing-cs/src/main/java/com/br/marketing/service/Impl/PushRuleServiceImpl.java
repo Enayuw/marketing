@@ -1,7 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import java.util.Date;
-
 import com.alibaba.fastjson.*;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -1488,7 +1486,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isNotBlank(content) && "name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
-                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+                /** 2022/8/11 17:14 业务需求变更，name字段是否成功解密不影响数据状态 */
+//                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setName(BrCipherMaker.getInstance().encode(content));
         }
