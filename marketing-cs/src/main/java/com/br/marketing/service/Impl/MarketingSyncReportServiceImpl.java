@@ -199,9 +199,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     private Integer getUploadNum(String apiCode, String userType, String uploadDate, Boolean flag) {
         if (flag) {
-            return syncReportMapper.uploadSyncCountflash_(apiCode, userType, uploadDate, AuthShowProductor.NO_NORMAL.getCode());
+            return syncReportMapper.uploadSyncCounttiflash_(apiCode, userType, uploadDate, AuthShowProductor.NO_NORMAL.getCode());
         } else {
-            return syncReportMapper.uploadSyncCountflash_(apiCode, userType, uploadDate, AuthShowProductor.NORMAL.getCode());
+            return syncReportMapper.uploadSyncCounttiflash_(apiCode, userType, uploadDate, AuthShowProductor.NORMAL.getCode());
         }
     }
     /**
