@@ -308,7 +308,7 @@
             <if test="custNums!=null">
                 cust_num in (
                 <foreach collection="custNums" item="custNum" separator=",">
-                    #{custNum}
+                    '${custNum}'
                 </foreach>
                 )
             </if>
