@@ -55,7 +55,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
     CaseUserServiceImpl caseUserService;
 
     @Resource
-    private ShuHeArtificialRealTimeUserDataFromDelayImpl shuHeArtificialRealTimeUserDataFromDelay;
+    private ShuHeArtificialCallFromDelayImpl shuHeArtificialCallFromDelay;
 
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
@@ -76,7 +76,7 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             return null;
         }
         //根据手机号cell获取最新一条上传数据
-        MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCell(marketingSyncUser.getApiCode(),marketingSyncUser.getCell());
+        MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCellAndStatus(marketingSyncUser.getApiCode(), marketingSyncUser.getCell());
         Date dtoCreateTime = dto.getCreateTime();
         Calendar c = Calendar.getInstance();
         c.setTime(dtoCreateTime);
@@ -172,7 +172,10 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             String name = marketingSyncUser.getName();
             if (StringUtils.isNotBlank(name)) {
                 try {
-                    dassSingleImportDataDTO.setName(BrCipherMaker.getInstance().decode(name));
+                    name = BrCipherMaker.getInstance().decode(name);
+                    if (!marketingSyncUser.getName().equals(name)) {
+                        dassSingleImportDataDTO.setName(name);
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -299,25 +302,19 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 Date createTime = newest.getCreateTime();
                 Date createTimeB = bo.getCreateTime();
                 newest.setCreateTime(createTimeB);
-                if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
+                if (shuHeArtificialCallFromDelay.queryStopPushRecord(newest)) {
                     newest.setCreateTime(createTime);
                     isRemoveFlag = true;
-                    log.info("#促复借c情况存在转化数据,查询存在b情况且在停止推送时间内:{}", isRemoveFlag);
                 } else {
                     newest.setCreateTime(createTime);
                     MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
-                    isRemoveFlag = shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+                    isRemoveFlag = shuHeArtificialCallFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
                             ? null : user.getCell());
-                    log.info("#促复借c情况存在转化数据,命中黑名单情况：{}", isRemoveFlag);
                     if (!isRemoveFlag) {
                         isRemoveFlag = phoneSaleExtendInfo(newest.getCustNum(), newest.getApiCode(), newest.getUserType()
                                 , bo.getCreateTime());
-                        log.info("#促复借c情况存在转化数据,查询到推送过a或b情况：{}", isRemoveFlag);
                     }
                 }
-            }
-            if (isTurn || isRemoveFlag) {
-                log.info("callrecord数据id为{}符合前置剔除规则", bo.getId());
             }
             return isTurn || isRemoveFlag;
         } else if ("促复借".equals(bo.getUserType())) {
@@ -326,14 +323,12 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
             newest.setApiCode(bo.getApiCode());
             newest.setUserType(bo.getUserType());
             newest.setId(0L);
-            if (shuHeArtificialRealTimeUserDataFromDelay.queryStopPushRecord(newest)) {
-                log.info("#促复借c情况存在不存在转化数据,查询存在b情况且在停止推送时间内");
+            if (shuHeArtificialCallFromDelay.queryStopPushRecord(newest)) {
                 return true;
             }
             MarketingSyncUser user = marketingSyncInfoMapper.getNewestByCusnum(bo.getApiCode(), bo.getCaseNum());
-            if (shuHeArtificialRealTimeUserDataFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
+            if (shuHeArtificialCallFromDelay.queryBlackFlag(newest, ObjectUtils.isEmpty(user)
                     ? null : user.getCell())) {
-                log.info("#促复借c情况存在不存在转化数据,命中黑名单");
                 return true;
             }
             return phoneSaleExtendInfo(bo.getCaseNum(), bo.getApiCode(), bo.getUserType(), bo.getCreateTime());
@@ -369,7 +364,6 @@ public class ShuHeCustomerCallRecordToPhoneSale implements AssembleData<RealTime
                 .andCustNumEqualTo(custNum).andCreateTimeBetween(
                 Date.from(dateTime.toInstant()), date);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
-        log.info("#促复借c情况是否7内天推送过a或b情况:{}", count);
         return count > 0;
     }
 
