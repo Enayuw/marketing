@@ -520,9 +520,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setDataCondition(ruleVO.getConditionInfo());
         taskExtend.setConditionType(conditionType);
         taskExtend.setConditionInfoShow(showDataStr);
+        TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = new TaskExtendExtendFieldDTO().setThreekEncryptType(ruleVO.getThreekEncryptType());
         if (new Integer(1).equals(ruleVO.getIsOrNoScoreVer())) {
-            taskExtend.setExtendConfigInfo(JSON.toJSONString(new TaskExtendExtendFieldDTO().setDataLimit(ruleVO.getDataLimit())));
+            taskExtendExtendFieldDTO.setDataLimit(ruleVO.getDataLimit());
         }
+        taskExtend.setExtendConfigInfo(JSON.toJSONString(taskExtendExtendFieldDTO));
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
 

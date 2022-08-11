@@ -1404,6 +1404,66 @@ public class ScoreRuleConfigExample {
             addCriterion("strategy_product_show not between", value1, value2, "strategyProductShow");
             return (Criteria) this;
         }
+
+        public Criteria andThreekEncryptTypeIsNull() {
+            addCriterion("threek_encrypt_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeIsNotNull() {
+            addCriterion("threek_encrypt_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeEqualTo(Integer value) {
+            addCriterion("threek_encrypt_type =", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeNotEqualTo(Integer value) {
+            addCriterion("threek_encrypt_type <>", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeGreaterThan(Integer value) {
+            addCriterion("threek_encrypt_type >", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("threek_encrypt_type >=", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeLessThan(Integer value) {
+            addCriterion("threek_encrypt_type <", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("threek_encrypt_type <=", value, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeIn(List<Integer> values) {
+            addCriterion("threek_encrypt_type in", values, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeNotIn(List<Integer> values) {
+            addCriterion("threek_encrypt_type not in", values, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeBetween(Integer value1, Integer value2) {
+            addCriterion("threek_encrypt_type between", value1, value2, "threekEncryptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andThreekEncryptTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("threek_encrypt_type not between", value1, value2, "threekEncryptType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface MarketingSyncReportMapper {
-    int uploadSyncCount(@Param("apiCode") String apiCode, @Param("userType") String userType,
+    int uploadSyncCounttiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
                         @Param("uploadDate") String uploadDate, @Param("status") Integer status);
 
     String uploadSyncMinAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,

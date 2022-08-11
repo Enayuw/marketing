@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import java.util.Date;
 
 import com.alibaba.fastjson.*;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -23,6 +24,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.AESUtil;
@@ -36,6 +38,7 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -319,10 +322,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     EntityOptServiceImpl entityOptService;
 
+    @Resource
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
-
+        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         /**
          * 先校验下 传过来的批次和 模型是否匹配
          * 推送mq
@@ -418,7 +424,54 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Integer> pushPreview(PushCustomerDTO dto) {
+
+        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         return getTotal(dto);
+
+    }
+
+    private Result<Integer> checkThreekEnc(List<Long> fileIds) {
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(fileIds);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
+
+        MarketingTaskExample taskExample = new MarketingTaskExample();
+        taskExample.createCriteria().andBatchNumberIn(batchNumbers);
+
+        List<MarketingTask> marketingTasks = marketingTaskMapper.selectByExample(taskExample);
+        List<Long> taskIds = marketingTasks.stream().map(t -> t.getId()).collect(Collectors.toList());
+
+        MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
+        taskExtendExample.createCriteria().andTaskIdIn(taskIds);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
+        Set<Integer> encrgyTypes = marketingTaskExtends.stream()
+                .map(t -> {
+                    if(StringUtils.isBlank(t.getExtendConfigInfo())){
+                        return ScoreThreeKeyEncryptEnum.md5.getValue();
+                    }
+                    Integer threekEncryptType = JSONObject.parseObject(t.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class).getThreekEncryptType();
+                    return threekEncryptType==null?ScoreThreeKeyEncryptEnum.md5.getValue():threekEncryptType;
+                })
+                .collect(Collectors.toSet());
+        if (encrgyTypes.size() > 1) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个跑分记录包含不同的加密类型");
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(encrgyTypes.stream().findFirst().get());
+    }
+
+    private String encrypt3k(Integer type, String content) {
+        if (com.br.marketing.common.utils.StringUtils.isBlank(content)) {
+            return "";
+        }
+        if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
+            return DigestUtils.md5DigestAsHex(content.getBytes());
+        }
+
+        if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
+            return Sha256Util.getSHA256Encrypt(content);
+        }
+        return content;
     }
 
     //    @Transactional(rollbackFor = Exception.class)
@@ -436,7 +489,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
-
+        Result<Integer> integerResult = checkThreekEnc(fileIds);
+        if(!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())){
+            log.error(String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s",id.toString(),integerResult.getMessage()));
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+        Integer _3kEncrypt = integerResult.getData();
         HashMap<Long, TaskExtendInfoVO> hsTaskExtend = new HashMap<>();
         List<TaskExtendInfoVO> extendInfosByFileIds = straHisFileMapper.getExtendInfosByFileIds(fileIds);
         extendInfosByFileIds.forEach(t -> {
@@ -499,7 +557,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                 }
                 dto1.setCaseNumber(marketingHistory.getCusNum());
-                dto1.setPhone(DigestUtils.md5DigestAsHex(marketingHistory.getCell().getBytes()));
+                dto1.setPhone(encrypt3k(_3kEncrypt,marketingHistory.getCell()));
                 JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                 if (varObject == null) {
                     varObject = new JSONObject();
@@ -512,8 +570,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
                 varObject.put("custNum", marketingHistory.getCusNum());
-                varObject.put("idCard", marketingHistory.getIdCard());
-                varObject.put("name", marketingHistory.getName());
+                varObject.put("idCard", encrypt3k(_3kEncrypt,marketingHistory.getIdCard()));
+                varObject.put("name", encrypt3k(_3kEncrypt,marketingHistory.getName()));
                 varObject.put("batchNumber", marketingHistory.getBatchNumber());
                 varObject.put("taskId", marketingHistory.getTaskId());
                 varObject.put("userType", marketingHistory.getUserType());
@@ -2502,7 +2560,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchConditionDTO.setName(dto.getName());
         searchConditionDTO.setStatus(1);
         Integer scoreCountBySearch = scoreSearchConditionMapper.getScoreCountBySearch(searchConditionDTO);
-        if(scoreCountBySearch>0){
+        if (scoreCountBySearch > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则模板名称重复");
         }
 
@@ -2529,21 +2587,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
     }
 
-    String buildConditionNumber(String apiCode){
+    String buildConditionNumber(String apiCode) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String key = RedisKeyConstant.conditionNumber.concat(":").concat(yyyyMMdd);
         Long incr = redisChgService.incr(key);
-        redisChgService.expire(key,getKeyExpiration());
+        redisChgService.expire(key, getKeyExpiration());
         String s = incr.toString();
         int length = s.length();
         for (int i = 3; i > length; i--) {
-            s="0"+s;
+            s = "0" + s;
         }
         return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
     }
 
     @Override
-    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
+    public Result<List<ConditionOfScoreVO>> getConditionByRule(String apiCode, String name) {
         ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
         mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
         List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
@@ -2551,7 +2609,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
         }
         List<Long> conditionIds = scoreSearchConditionMappings.stream().map(t -> t.getConditionId()).collect(Collectors.toList());
-        if(conditionIds.size()<=0){
+        if (conditionIds.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
         }
         List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(conditionIds, name);
@@ -2563,10 +2621,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(SearchConditionDTO dto) {
-        if(dto.getSize()==null){
+        if (dto.getSize() == null) {
             dto.setSize(10);
         }
-        PageHelper.startPage(dto.getCurrent(),dto.getSize());
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<ScoreConditionDetailVO> scoreListBySearch = scoreSearchConditionMapper.getScoreListBySearch(dto);
         PageResultReturn pageResultReturn = PageResultReturn.setPageResult(scoreListBySearch, dto.getCurrent(), dto.getSize());
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);

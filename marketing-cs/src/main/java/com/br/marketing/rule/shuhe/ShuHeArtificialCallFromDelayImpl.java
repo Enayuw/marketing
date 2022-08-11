@@ -304,14 +304,31 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
                 }
             }
             dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
-            MarketingSyncUser syncUser = shuHeContext.getCustomerMap().getOrDefault(caseShuheUser.getCustNum(), null);
-            if (syncUser != null && !StringUtils.isEmpty(syncUser.getName())) {
-                try {
-                    String name = BrCipherMaker.getInstance().decode(syncUser.getName());
-                    if (!syncUser.getName().equals(name)) {
-                        dataDTO.setName(name);
+            Map<String, MarketingSyncUser> customerMap = shuHeContext.getCustomerMap();
+            if (customerMap.containsKey(caseShuheUser.getCustNum())) {
+                MarketingSyncUser syncUser = customerMap.get(caseShuheUser.getCustNum());
+                String name = syncUser.getName();
+                if (!StringUtils.isEmpty(name)) {
+                    try {
+                        name = BrCipherMaker.getInstance().decode(syncUser.getName());
+                        if (!syncUser.getName().equals(name)) {
+                            dataDTO.setName(name);
+                        }
+                    } catch (Exception ignored) {
                     }
-                } catch (Exception ignored) {
+                }
+                String defaultValue = "";
+                extend.put("special1", defaultValue);
+                String reserveField1 = syncUser.getReserveField1();
+                if (StringUtils.hasText(reserveField1)) {
+                    try {
+                        JSONObject JSONObj = JSONObject.parseObject(reserveField1);
+                        if (JSONObj != null) {
+                            extend.put("special1", JSONObj.getOrDefault("special1", defaultValue));
+                        }
+                    } catch (Exception e) {
+                        log.error("reserveField1:" + reserveField1 + "\n" + e.getMessage(), e);
+                    }
                 }
             }
             dataDTO.setAuditAmount(jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString());
