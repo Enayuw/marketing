@@ -48,7 +48,7 @@ public class ConsumerApp {
     public void consumerPushDass(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, checkFileService::consumerFileCheck, o,"");
+        consumerService.consumerRun(channel, message, checkFileService::consumerFileCheck, o, "");
     }
 
 
@@ -60,10 +60,26 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSHTASK_FILE_MERGE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE)},containerFactory = "containerFactory")
+            , key = MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE)}, containerFactory = "containerFactory")
     public void consumerFileMerge(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, mergeWithMessageService::consumerFileMsg, o,"");
+        consumerService.consumerRun(channel, message, mergeWithMessageService::consumerFileMsg, o, MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY);
+    }
+
+
+    /**
+     * 延迟消费 获取推送客服中心数据状态
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK)}, containerFactory = "containerFactory")
+    public void consumerOfflineCallBack(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, mergeWithMessageService::consumerFileCallBack, o, MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
     }
 }

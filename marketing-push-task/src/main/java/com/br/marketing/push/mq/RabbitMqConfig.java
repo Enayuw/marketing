@@ -11,6 +11,9 @@ import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * //				    _ooOoo_
  * //				   o8888888o
@@ -51,14 +54,6 @@ public class RabbitMqConfig {
         return new TopicExchange(MQConstants.MARKETINGEXCHANGER_NAME, true, false);
     }
 
-//    @Bean(name = "pushQueue")
-//    public Queue pushQueue() {
-//        return new Queue(MQConstants.PUSH_QUEUE_NAME, true, false, false);
-//    }
-//    @Bean(name = "bindingPushQueue")
-//    public Binding bindingPushQueue() {
-//        return BindingBuilder.bind(pushQueue()).to(warningExchange()).with(MQConstants.PUSH_ROUTING_KEY);
-//    }
 
     @Bean(name = MQConstants.CHECK_QUEUE_NAME)
     public Queue checkQueue() {
@@ -68,6 +63,50 @@ public class RabbitMqConfig {
     @Bean(name = "bindinCheckQueue")
     public Binding bindingCheckQueue() {
         return BindingBuilder.bind(checkQueue()).to(gateExchange()).with(MQConstants.CHECK_ROUTING_KEY);
+    }
+
+    /**
+     * 重试队列-离线文件合并重试
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY)
+    public Queue customerFileMergeDelayQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE);
+        // x-message-ttl  声明队列的TTL
+        args.put("x-message-ttl", 30000);
+        return QueueBuilder.durable(MQConstants.MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY).withArguments(args).build();
+    }
+
+    @Bean(name = "bindingFileMergeDelayQueue")
+    public Binding bindingFileMergeDelayQueue() {
+        return BindingBuilder.bind(customerFileMergeDelayQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
+    }
+
+    /**
+     * 重试队列-获取离线文件重试
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY)
+    public Queue customerFileCallBackDelayQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK);
+        // x-message-ttl  声明队列的TTL
+        args.put("x-message-ttl", 30000);
+        return QueueBuilder.durable(MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY).withArguments(args).build();
+    }
+
+    @Bean(name = "bindingFileCallBackDelayQueue")
+    public Binding bindingFileCallBackDelayQueue() {
+        return BindingBuilder.bind(customerFileCallBackDelayQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
     }
 
     @Bean

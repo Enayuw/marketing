@@ -601,7 +601,10 @@
         when shf.status = 0 then 3
         when shf.status = 1 then 1
         when shf.status = 3 then 1
-        else '-' end                                as taskStatus,
+        when shf.status = 4 then 1
+        when shf.status = 5 then 1
+        when shf.status = 6 then 1
+        else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,
         bmt.start_time                              as startTime,
