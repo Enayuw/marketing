@@ -1,10 +1,10 @@
 package com.br.marketing.enums;
 
-public enum ScoreThreeKeyEncryptEnum {
+public enum ScoreStatusEnum {
 
-    init(0),md5(1),sha256(2);
+    running(3),merge(1),push(2),offlinemerge(4);
 
-    ScoreThreeKeyEncryptEnum(Integer value) {
+    ScoreStatusEnum(Integer value) {
         this.value = value;
     }
 

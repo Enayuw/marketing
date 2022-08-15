@@ -649,6 +649,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result offLineCallBack(OffLineCallBackDTO dto) {
         Long id = Long.valueOf(dto.getRequestId());
+        boolean suc = "success".equals(dto.getStatus());
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(id);
         if(straHisFile == null){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid的数据不存在");
@@ -656,10 +657,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         StraHisFile updateEntity = new StraHisFile();
         updateEntity.setId(id);
         updateEntity.setZipfileName(dto.getFileName());
-        updateEntity.setStatus(7);
+        updateEntity.setStatus(suc?7:9);
         updateEntity.setOfflineFilePath(dto.getFilePath());
         straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
-        producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK,id.toString());
+        if(suc) {
+            producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, id.toString());
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }

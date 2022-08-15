@@ -18,4 +18,8 @@ public class OffLineCallBackDTO {
     @ApiModelProperty(value = "文件名称")
     @NotNull(message = "fileName不能为空")
     private String fileName;
+
+    @ApiModelProperty(value = "状态 fail | success")
+    @NotNull(message = "status不能为空")
+    private String status;
 }

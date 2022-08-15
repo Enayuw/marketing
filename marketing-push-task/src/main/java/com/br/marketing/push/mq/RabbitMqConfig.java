@@ -87,6 +87,7 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(customerFileMergeDelayQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
     }
 
+
     /**
      * 重试队列-获取离线文件重试
      *

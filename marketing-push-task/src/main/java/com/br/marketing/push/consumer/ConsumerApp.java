@@ -60,6 +60,9 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSHTASK_FILE_MERGE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE)
+        ,@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSHTASK_FILE_MERGE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_DEAD_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE)}, containerFactory = "containerFactory")
     public void consumerFileMerge(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
@@ -76,6 +79,9 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK)
+            ,@QueueBinding(value = @Queue(value = MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_DEAD_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK)}, containerFactory = "containerFactory")
     public void consumerOfflineCallBack(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {

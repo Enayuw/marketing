@@ -202,20 +202,48 @@ public class MergeWithMessageServiceImpl {
         if(StringUtils.isBlank(s)){
             res = Boolean.TRUE;
         }else{
-            fileAction(straHisFile,s);
+            Boolean aBoolean = fileAction(straHisFile, s);
+            if(aBoolean){
+                upLoadSuccess(straHisFile);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 
+    private void upLoadSuccess(StraHisFile file) {
+        FtpClient ftpClient = new FtpClient(ftpHost, ftpPort, ftpUsername, ftpPwd, ftpBasePath);
+        try {
+            ftpClient.connect();
+            String offlineFilePath = file.getOfflineFilePath();
+            String zipfileName = file.getZipfileName();
+            String remotePath = offlineFilePath.concat("/");
+            String localPathName = file.getFilePath().concat("/").concat(file.getZipfileName()).concat(".success");
+            File localSuccess = new File(localPathName);
+            if (!localSuccess.exists()) {
+                localSuccess.createNewFile();
+            }
+            ftpClient.uploadFileAndMk(Files.newInputStream(Paths.get(localPathName)),remotePath,zipfileName.concat(".success"));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            try {
+                ftpClient.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     private String downFile(StraHisFile file) {
         String offlineFilePath = file.getOfflineFilePath();
         String zipfileName = file.getZipfileName();
-        String remotePathName = offlineFilePath.concat(zipfileName);
+        String remotePathName = offlineFilePath.concat("/").concat(zipfileName);
         FtpClient ftpClient = new FtpClient(ftpHost, ftpPort, ftpUsername, ftpPwd, ftpBasePath);
         String localPathName = file.getFilePath().concat("/").concat(file.getZipfileName());
         try {
             ftpClient.connect();
-            if (ftpClient.isExist(remotePathName.concat(".success"))) {
+            if (ftpClient.isExsits(remotePathName.concat(".suc"))) {
                 boolean download = ftpClient.download(remotePathName, new File(localPathName));
                 if (download) {
                     return localPathName;
@@ -236,7 +264,7 @@ public class MergeWithMessageServiceImpl {
         return null;
     }
 
-    private void fileAction(StraHisFile file,String s) {
+    private Boolean fileAction(StraHisFile file,String s) {
         File zipFile = new File(s);
         String unZipPath = file.getFilePath().concat("/").concat("unzip").concat("/");
         ZipUtils.unZip(zipFile,unZipPath,"");
@@ -299,6 +327,12 @@ public class MergeWithMessageServiceImpl {
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
         }
+        StraHisFile updateFile = new StraHisFile();
+        updateFile.setStatus(0);
+        updateFile.setScoreStatus(2);
+        updateFile.setId(file.getId());
+        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+        return true;
     }
 
     public class EsRun implements Runnable {
@@ -344,28 +378,16 @@ public class MergeWithMessageServiceImpl {
             history.setCell(threeKdec(row.get("cell"),"cell",encryptionType));
             history.setName(threeKdec(row.get("name"),"name",encryptionType));
             try {
-                history.setRequestTime(new SimpleDateFormat("yyyy-MM-dd").parse(row.get("requesttime")));
+                history.setRequestTime(new SimpleDateFormat("yyyy-MM-dd").parse(row.get("request_time")));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             history.setBatchNumber(file.getBatchNumber());
             history.setSwiftNumber("");
             history.setHxSwiftNumber("");
-            history.setCusNum(row.get("custnum"));
-            history.setStrategyId(row.get("strategyid"));
+            history.setCusNum(row.get("cus_num"));
+            history.setStrategyId(row.get("strategy_id"));
             history.setVersion(row.get("version"));
-            for (Object product : products) {
-                JSONObject jp = (JSONObject) product;
-                String code = jp.getString("code");
-                String version = jp.getString("version");
-                MarketingCondition marketingCondition = new MarketingCondition();
-                if(row.containsKey(code.toLowerCase())){
-                    marketingCondition.setCode(code);
-                    marketingCondition.setVersion(version);
-                    marketingCondition.setFieldKey(code.toLowerCase());
-                    marketingCondition.setDValue(StringUtils.isNotBlank(row.get(code.toLowerCase()))?Double.valueOf(row.get(code.toLowerCase())):0);
-                }
-            }
             ArrayList<MarketingCondition> conditions = new ArrayList<>();
             history.setCondition(conditions);
             history.setFileId(file.getId().toString());
@@ -380,7 +402,7 @@ public class MergeWithMessageServiceImpl {
 
             //region hx字段
             for (String hxField : hxFields) {
-                Optional<Object> codeOpt = products.stream().filter(t -> ((JSONObject) t).getString("code").equals(hxField.toLowerCase())).findFirst();
+                Optional<Object> codeOpt = products.stream().filter(t ->hxField.toLowerCase().equals(((JSONObject) t).getString("code").toLowerCase())).findFirst();
                 MarketingCondition marketingCondition = new MarketingCondition();
                 if(codeOpt.isPresent()){
                     JSONObject jo = (JSONObject) codeOpt.get();
