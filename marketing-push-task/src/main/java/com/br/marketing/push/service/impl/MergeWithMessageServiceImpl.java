@@ -1,5 +1,6 @@
 package com.br.marketing.push.service.impl;
 import com.br.marketing.client.DecodeClient;
+import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
@@ -327,10 +328,17 @@ public class MergeWithMessageServiceImpl {
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
         }
+        String md5 = "";
+        try {
+            md5 = MyFileUtil.getMd5(new FileInputStream(s));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         StraHisFile updateFile = new StraHisFile();
         updateFile.setStatus(0);
         updateFile.setScoreStatus(2);
         updateFile.setId(file.getId());
+        updateFile.setMd5(md5);
         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
         return true;
     }
