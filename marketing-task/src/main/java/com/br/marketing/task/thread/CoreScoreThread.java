@@ -7,6 +7,7 @@ import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.*;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.service.MarketingTaskService;
@@ -122,7 +123,8 @@ public class CoreScoreThread implements Callable<String> {
                 if (blu.getStatus() != 1) {
                     continue;
                 }
-                if (marketingTask.getTaskType().equals(1)||marketingTask.getIsOnline().equals(2)) {
+                if (marketingTask.getTaskType().equals(TaskTypeEnum.DIRECTDATA.getValue())
+                        ||marketingTask.getIsOnline().equals(2)) {
                     dealResult(fw, blu);
                 }else {
                     RequestLog requestLog = new RequestLog();

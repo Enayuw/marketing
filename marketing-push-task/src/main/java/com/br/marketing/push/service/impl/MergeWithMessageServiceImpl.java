@@ -1,6 +1,7 @@
 package com.br.marketing.push.service.impl;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.common.utils.file.MyFileUtil;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
@@ -103,7 +104,7 @@ public class MergeWithMessageServiceImpl {
         Boolean res = Boolean.FALSE;
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
         LoanFile loanFile = new LoanFile();
-        if (straHisFile != null && straHisFile.getStatus() == 4) {
+        if (straHisFile != null && straHisFile.getStatus().equals(ScoreStatusEnum.OFFLINEMERGE.getValue())) {
             try {
                 Customer customer = customerMapper.getCustomerByApiCode(straHisFile.getApiCode());
 
@@ -112,7 +113,7 @@ public class MergeWithMessageServiceImpl {
                 String s = mergeService.mergeResultFile(loanFile, customer);
                 if (StringUtils.isNotBlank(s)) {
                     BeanUtils.copyProperties(loanFile, straHisFile);
-                    straHisFile.setStatus(5);
+                    straHisFile.setStatus(ScoreStatusEnum.OFFLINESFP.getValue());
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
                 }
             } catch (Exception ex) {
@@ -125,7 +126,7 @@ public class MergeWithMessageServiceImpl {
             if (aBoolean) {
                 Result result = reqOffLine(straHisFile);
                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    straHisFile.setStatus(6);
+                    straHisFile.setStatus(ScoreStatusEnum.OFFLINECALLBACK.getValue());
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
                 }else{
                     res =Boolean.TRUE;
@@ -335,7 +336,7 @@ public class MergeWithMessageServiceImpl {
             e.printStackTrace();
         }
         StraHisFile updateFile = new StraHisFile();
-        updateFile.setStatus(0);
+        updateFile.setStatus(ScoreStatusEnum.PUSH.getValue());
         updateFile.setScoreStatus(2);
         updateFile.setId(file.getId());
         updateFile.setMd5(md5);

@@ -11,9 +11,11 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
+import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -133,6 +135,11 @@ public class TaskScoreServiceImpl {
     @Autowired
     RabbitMqProducter producter;
 
+    /**
+     * 跑分服务
+     * @param task 执行的任务
+     * @param day  执行的日期
+     */
     public void process(MarketingTask task, String day) {
         String apiCode = task.getApiCode();
         Boolean isOffline = task.getIsOnline().equals(2);
@@ -229,9 +236,9 @@ public class TaskScoreServiceImpl {
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(task.getFileId());
                 if(isOffline){
-                    updateFile.setStatus(4);
+                    updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
                 }else {
-                    updateFile.setStatus(task.getMonitorType().equals(2) ? 2 : 1);
+                    updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
@@ -333,12 +340,12 @@ public class TaskScoreServiceImpl {
 
     private void generateTask(MarketingTask blt, ExecutorService warrningExecutor, MarketingCustomer customer, String day) {
         String productJson = "";
-        if (blt.getTaskType().compareTo(new Integer(0)) == 0) {
+        if (blt.getTaskType().compareTo(TaskTypeEnum.STRATYGYDATA.getValue()) == 0) {
             productJson = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
-        } else if (blt.getTaskType().compareTo(new Integer(2)) == 0) {
+        } else if (blt.getTaskType().compareTo(TaskTypeEnum.PRODUCTDATA.getValue()) == 0) {
             productJson = blt.getProductInfo();
         }
-        if (!blt.getTaskType().equals(1) && StringUtils.isEmpty(productJson)) {
+        if (!blt.getTaskType().equals(TaskTypeEnum.DIRECTDATA.getValue()) && StringUtils.isEmpty(productJson)) {
             log.error("贷中策略不可用:apiCode:{} Strategy_id：{}", blt.getApiCode(), blt.getStrategyId());
             return;
         }
@@ -358,7 +365,7 @@ public class TaskScoreServiceImpl {
             file.setCreateTime(new Date());
             file.setUpdateTime(new Date());
             file.setExpectedNum(blt.getTaskNumber());
-            file.setStatus(3);
+            file.setStatus(ScoreStatusEnum.RUNNING.getValue());
             if (1 == blt.getMonitorType() || 2 == blt.getMonitorType()) {
                 file.setType(2);
             } else if (4 == blt.getMonitorType() || 3 == blt.getMonitorType()) {
@@ -493,18 +500,23 @@ public class TaskScoreServiceImpl {
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.valueOf(redisOpen) : 1;
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
+            //析出客户上传字段
             BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
+            //析出画像字段
             StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
             }.getType());
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
             String day = new SimpleDateFormat("yyyy-MM-dd").format(file.getCreateTime());
+            //获取跑分数据筛选的条件
             Result<List<String>> dataCondition = scoreRuleConfigService.getDataCondition(marketingTaskExtend, blt, day);
             AssertResult.assertResult(dataCondition);
             List<String> conditionDatas = dataCondition.getData();
             int currentPage = 1;
             long startTime = System.currentTimeMillis();
+            //是否是预览跑分
             boolean isVerScore = 2 == blt.getMonitorType();
             TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = JSON.parseObject(marketingTaskExtend.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class);
+            //预览跑分限制的条数
             Integer verNum = taskExtendExtendFieldDTO != null && taskExtendExtendFieldDTO.getDataLimit() != null && taskExtendExtendFieldDTO.getDataLimit() > 0
                     ? taskExtendExtendFieldDTO.getDataLimit() : 500;
             Boolean isHead = Boolean.TRUE;
@@ -523,13 +535,14 @@ public class TaskScoreServiceImpl {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }
+                        //获取跑分数据 预览跑分则筛选限制的剩余条数
                         List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore ? verNum : pageSize);
                         if (list.size() <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }
 
-                        //region 预览跑分 表头
+                        //region 如果是预览跑分并且第一次进入循环 插入表头数据
                         if (isVerScore && isHead) {
                             StringBuilder verHead = new StringBuilder();
                             iProductResultSimpleService.initHead(verHead, separator, blt);
@@ -545,6 +558,7 @@ public class TaskScoreServiceImpl {
                         }
                         //endregion
 
+                        //预览跑分 每次都要计算剩余跑分的条数
                         if (isVerScore) {
                             verNum = verNum - list.size();
                         }
@@ -594,8 +608,8 @@ public class TaskScoreServiceImpl {
     /**
      * 获取跑数状态
      *
-     * @param fileId
-     * @param page
+     * @param fileId 跑分记录id
+     * @param page  页码
      * @return false-为暂未跑完；true-已经跑完；
      */
     boolean getCoreDataStatus(String fileId, Integer page) {
