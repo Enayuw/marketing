@@ -53,10 +53,11 @@ public class TestXiechengController {
         String channel = "commonOutAdMonitor";
 
         JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("clickTel","123123");
+        deviceInfo.put("clickTel","AEAA638C17D05884717153C3C898A41598E87209AC42E4CFCD844F6E724C33D7");
 
-        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
-        ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(timestemp,source,"123123",actionType,deviceInfo.toString());
+        //String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        String timestemp = "1660283657";
+        ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(timestemp,source,"202208110117312",actionType,deviceInfo.toString());
 
 
         Map<String,Object> retMap = Maps.newHashMap();
@@ -65,11 +66,46 @@ public class TestXiechengController {
         retMap.put("channel",channel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq),key,iv));
         retMap.put("sign",FinanceAESUtils.signLocal(retMap,singKey));
-
+        System.out.println(retMap);
         //https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
         System.out.println(JSON.toJSONString(retMap));
-        String send = httpProxyClient.send(JSON.toJSONString(retMap), url, false);
-        System.out.println(send);
-        return send;
+        //String send = httpProxyClient.send(JSON.toJSONString(retMap), url, false);
+        //System.out.println(send);
+        return "send";
+    }
+
+    public static void main(String[] args) throws JSONException {
+        /**
+         * data 组装
+         */
+
+        //String url = "https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do";
+
+        String appId = "bairong001";
+        String key = "f3df6f62f0527bf0";
+        String iv = "3b2dac323465b024";
+        String singKey = "95cc01ec07387a44";
+
+        String source = "BaiRong_C01";
+        String actionType = "SMS";
+        String channel = "commonOutAdMonitor";
+
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("sha256Tel","AEAA638C17D05884717153C3C898A41598E87209AC42E4CFCD844F6E724C33D7");
+
+        //String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        String timestemp = "1660283657";
+        ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(timestemp,source,"202208110117312",actionType,deviceInfo.toString());
+
+
+        Map<String,Object> retMap = Maps.newHashMap();
+        retMap.put("appId",appId);
+        retMap.put("timestamp",timestemp);
+        retMap.put("channel",channel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq),key,iv));
+        retMap.put("sign",FinanceAESUtils.signLocal(retMap,singKey));
+        System.out.println(retMap);
+        //https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
+        System.out.println(JSON.toJSONString(retMap));
     }
 }
