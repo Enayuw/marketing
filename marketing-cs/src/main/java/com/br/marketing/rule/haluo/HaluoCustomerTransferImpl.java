@@ -1,42 +1,35 @@
 package com.br.marketing.rule.haluo;
-import java.util.List;
-import java.util.Date;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.common.util.DateUtils;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
 import com.br.marketing.context.impl.HaluoRuleCollectDataImpl;
 import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.PhoneSaleExtendHaluo;
+import com.br.marketing.entity.TaskTime;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -113,9 +106,10 @@ public class HaluoCustomerTransferImpl implements AssembleData<MultipleDassAndCu
 
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String s = AESUtil.aesEncrypty(cell, aesKey);
+        String decodeName;
         String name = org.apache.commons.lang3.StringUtils.isNotBlank(syncUser.getName()) ?
-                BrCipherMaker.getInstance().decode(syncUser.getName())
-                : "";
+                (syncUser.getName().equals(decodeName = BrCipherMaker.getInstance().decode(syncUser.getName())) ? "1"
+                        : decodeName) : "";
         dassImportDataDTO.setUid(transferSyncUser.getCustNum());
         dassImportDataDTO.setPhone(s);
         dassImportDataDTO.setName(name);

@@ -47,7 +47,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        MarketingSyncUser marketingSyncUser = customerMap.get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
         if (marketingSyncUser == null) {
             return null;
         }
@@ -108,10 +108,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(transfer.getId());
 
-
+        String decodeName;
         String name = StringUtils.hasText(syncUser.getName()) ?
-                BrCipherMaker.getInstance().decode(syncUser.getName())
-                : "";
+                (syncUser.getName().equals(decodeName = BrCipherMaker.getInstance().decode(syncUser.getName())) ? "1"
+                        : decodeName) : "";
         // 根据custNum取上传接口最新的name转成明文传输
         batchImportData.setName(name);
         batchImportData.setOrgname("yixin");

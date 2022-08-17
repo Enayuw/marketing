@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleData<RealTimeUserDataDTO> {
+public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUserDataDTO> {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -127,7 +127,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                     String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
                             , new MarketingSyncUser()).getCell();
                     if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
-                        log.info("促复借判断boolIfGiveUp结果：{}； 判断黑名单结果：{}", boolIfGiveUp, true);
                         return false;
                     }
                     switch (status) {
@@ -136,7 +135,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "a", transfer.getUserType());
                             }
-                            log.info("促复借a情况：一天只推送一次判断结果：{}", bool);
                             break;
                         case "b":
                             // 查询是不是首次命中b
@@ -146,7 +144,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 if (queryStopPushRecord(transfer)) {
                                     bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                             , "b", transfer.getUserType());
-                                    log.info("促复借b情况，不查询拨打记录：一天只推送一次判断结果：{}", bool);
                                     break;
                                 }
                             }
@@ -154,7 +151,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                                 bool = pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                                         , "b", transfer.getUserType());
                             }
-                            log.info("促复借b情况，查询拨打记录：一天只推送一次判断结果：{}", bool);
                             break;
                         default:
                     }
@@ -308,11 +304,31 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 }
             }
             dataDTO.setPrioritySymbol(jsonObject.getOrDefault("prioritySymbol", "").toString());
-            String name = shuHeContext.getCustomerMap().get(caseShuheUser.getCustNum()).getName();
-            if (!StringUtils.isEmpty(name)) {
-                try {
-                    dataDTO.setName(BrCipherMaker.getInstance().decode(name));
-                } catch (Exception ignored) {
+            Map<String, MarketingSyncUser> customerMap = shuHeContext.getCustomerMap();
+            if (customerMap.containsKey(caseShuheUser.getCustNum())) {
+                MarketingSyncUser syncUser = customerMap.get(caseShuheUser.getCustNum());
+                String name = syncUser.getName();
+                if (!StringUtils.isEmpty(name)) {
+                    try {
+                        name = BrCipherMaker.getInstance().decode(syncUser.getName());
+                        if (!syncUser.getName().equals(name)) {
+                            dataDTO.setName(name);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                String defaultValue = "";
+                extend.put("special1", defaultValue);
+                String reserveField1 = syncUser.getReserveField1();
+                if (StringUtils.hasText(reserveField1)) {
+                    try {
+                        JSONObject JSONObj = JSONObject.parseObject(reserveField1);
+                        if (JSONObj != null) {
+                            extend.put("special1", JSONObj.getOrDefault("special1", defaultValue));
+                        }
+                    } catch (Exception e) {
+                        log.error("reserveField1:" + reserveField1 + "\n" + e.getMessage(), e);
+                    }
                 }
             }
             dataDTO.setAuditAmount(jsonObject.getOrDefault("clc_usr_adt_lmt_lv0", "").toString());
@@ -352,7 +368,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         String key = String.format(KEY, transfer.getApiCode(), transfer.getUserType()
                 , transfer.getCustNum()).concat(":" + phone);
         if (redisChgService.exists(key)) {
-            log.info("#促复借 ###@命中黑名单缓存");
             return true;
         }
         List<BlackQueryDetailDTO> blackQueryList = new ArrayList<>();
@@ -370,15 +385,12 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
         }
         blackQueryList.add(blackQueryDetailDTO);
         Result<Map<String, String>> result = robotaiApiServiceClient.queryBlackPhone(dto);
-        log.info("#促复借 查询黑名单条件{}\n结果:状态码:{}\n消息:{}", dto, result.getCode(), result.getData());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             String blackFlag = result.getData().getOrDefault(dataId, "");
             if ("Y".equals(blackFlag)) {
                 redisChgService.setex(key, dataId, 3600 * 12);
-                log.info("#促复借 ###命中黑名单");
                 return true;
             }
-            log.info("#促复借 &&&未命中黑名单");
             return false;
         }
         return true;
@@ -405,7 +417,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                             && org.apache.commons.lang3.StringUtils.isNotBlank(c.getIntentionGrade()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(collect)) {
-                log.info("#促复借 查询拨打记录结果记录过滤后结果:{}", Arrays.toString(collect.toArray()));
                 return false;
             }
             ShuheTransferStopPushRecord record = new ShuheTransferStopPushRecord();
@@ -427,7 +438,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
             shuheTransferStopPushRecordMapper.insert(record);
             String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
             redisChgService.setex(key, "7", (int) ChronoUnit.SECONDS.between(createTime, failureTime));
-            log.info("#促复借 查询拨打记录结果记录到数据库的ShuheTransferStopPushRecord表中:{}", record);
         }
         return true;
     }
@@ -437,11 +447,9 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
      * 查询暂停推送记录 true 有记录, false 无记录
      */
     public boolean queryStopPushRecord(MarketingTransferSyncUser transfer) {
-        long l = System.currentTimeMillis();
         String key = String.format(KEY, transfer.getApiCode(), transfer.getCustNum(), "b");
         boolean exists = redisChgService.exists(key);
         if (exists) {
-            log.warn("#促复借 查询暂停推送记录是否已经存在缓存中:{}", exists);
             return true;
         }
         ShuheTransferStopPushRecordExample recordExample = new ShuheTransferStopPushRecordExample();
@@ -450,7 +458,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 .andFailureTimeGreaterThanOrEqualTo(ObjectUtils.isEmpty(transfer.getCreateTime())
                         ? new Date() : transfer.getCreateTime()).andStatusEqualTo("b").andChannelEqualTo(0);
         int count = shuheTransferStopPushRecordMapper.countByExample(recordExample);
-        log.info("#促复借 查询暂停推送记录:{},查询耗时：{}ms", count, System.currentTimeMillis() - l);
         return count > 0;
     }
 
@@ -466,7 +473,6 @@ public class ShuHeArtificialRealTimeUserDataFromDelayImpl implements AssembleDat
                 .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                 .andCustNumEqualTo(custNum);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
-        log.info("#促复借 首次b情况:{}", count);
         return count < 1;
     }
 }

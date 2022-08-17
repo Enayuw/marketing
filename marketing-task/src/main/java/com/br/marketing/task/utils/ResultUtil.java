@@ -3,11 +3,13 @@ package com.br.marketing.task.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
@@ -36,6 +38,7 @@ public class ResultUtil {
 
 
     private MarketingTaskService marketingTaskService;
+
 
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
                                     MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
@@ -271,6 +274,24 @@ public class ResultUtil {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
+    private static String encrypt3k(Integer type,String content){
+        if(StringUtils.isBlank(content)){
+            return "";
+        }
+        String decode = BrCipherMaker.getInstance().decode(content);
+        if(StringUtils.isBlank(decode)){
+            return content;
+        }
+        if(ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)){
+            return DigestUtils.md5DigestAsHex(decode.getBytes());
+        }
+
+        if(ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)){
+            return Sha256Util.getSHA256Encrypt(decode);
+        }
+        return content;
+    }
+
     private static void getCustomerHead(MarketingSyncUser syncUser
             , BaseHeadConfigVO baseHeadConfigVO,StringBuilder sb,MarketingHistory mh,JSONObject conditionObj,String sep) {
 
@@ -320,35 +341,19 @@ public class ResultUtil {
                             str = syncUser.getCustNum();
                             break;
                         case "idcard":
-                            str = StringUtils.isBlank(syncUser.getFailType())
-                                    && StringUtils.isNotBlank(syncUser.getIdCard())
-                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                    .decode(syncUser.getIdCard()).getBytes())
-                                    : syncUser.getIdCard();
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard());
                             strId = syncUser.getIdCard();
                             break;
                         case "id":
-                            str = StringUtils.isBlank(syncUser.getFailType())
-                                    && StringUtils.isNotBlank(syncUser.getIdCard())
-                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                    .decode(syncUser.getIdCard()).getBytes())
-                                    : syncUser.getIdCard();
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard());
                             strId = syncUser.getIdCard();
                             break;
                         case "cell":
-                            str = StringUtils.isBlank(syncUser.getFailType())
-                                    && StringUtils.isNotBlank(syncUser.getCell())
-                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                    .decode(syncUser.getCell()).getBytes())
-                                    : syncUser.getCell();
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getCell());
                             strCell = syncUser.getCell();
                             break;
                         case "name":
-                            str = StringUtils.isBlank(syncUser.getFailType())
-                                    && StringUtils.isNotBlank(syncUser.getName())
-                                    ? DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance()
-                                    .decode(syncUser.getName()).getBytes())
-                                    : syncUser.getName();
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getName());
                             strNm = syncUser.getName();
                             break;
                         case "grouptype":

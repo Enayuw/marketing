@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -51,6 +52,10 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    @Autowired
+    private TableCreateServiceImpl tableCreateService;
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     final static String EXECUTE_TIME = " 10:00:00";
 
@@ -133,11 +138,11 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
             LocalDate startDate;
             LocalDate endDate;
             if(StringUtils.isNotEmpty(jobParameter) && "true".equals(jobParameter.split(",")[0])){
-                startDate = LocalDate.parse("2022-07-15", YYYYMMDDSHORTDFLINE);
-                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                startDate = LocalDate.parse("2022-07-27", YYYYMMDDSHORTDFLINE);
+                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
             }else {
                 startDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(1);
-                endDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                endDate = startDate;
             }
             writePPDTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
         } catch (Exception ex) {
@@ -149,57 +154,87 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
 
     private void writePPDTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
+        String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize =0;
-        while (mark) {
-            List<PhoneSaleExtendInfo> infoData = phoneSaleExtendInfoMapper.getPPDToDxData(apiCode,startDate.toString(),endDate.toString(), page * 2000);
-            if (CollectionUtils.isEmpty(infoData)){
-                mark = Boolean.FALSE;
-                continue;
-            }
-            page++;
-            if (infoData.size() <= 0) {
-                log.warn("拍拍贷新客转人工数据提取-该批次无符合要求的数据,apiCode = {}", apiCode);
-                continue;
-            }
-            List<String> list = infoData.stream().map(PhoneSaleExtendInfo::getCustNum).collect(Collectors.toList());
-            List<List<String>> partition = ListUtils.partition(list, 500);
-            Map<String, MarketingSyncUser> preUserMap = new HashMap<>();
-            for (List<String> strings : partition) {
-                Set<String> set = strings.stream().collect(Collectors.toSet());
-                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-                Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(
-                        Collectors.groupingBy(MarketingSyncUser::getCustNum
-                                , Collectors.collectingAndThen(
-                                        Collectors.reducing((v1, v2) ->
-                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                        , Optional::get)));
-                preUserMap.putAll(map);
-            }
-
-            for (PhoneSaleExtendInfo data : infoData) {
-                //custNum,userType,cell,status,push_dx_time
-                String custNum = data.getCustNum();
-                String userType = data.getUserType();
-                String cell = "";
-                if (preUserMap.containsKey(custNum)) {
-                    String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                    cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+        while (true) {
+            while (mark) {
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByTransformTypeAndStatus(tcId, apiCode,endDate.toString(), page * 2000);
+                if (CollectionUtils.isEmpty(transferData)) {
+                    mark = Boolean.FALSE;
+                    continue;
                 }
-                String status = data.getStatus();
-                String push_dx_time = data.getPushDxTime() == null ? "" : sdf2.format(data.getPushDxTime());;
-                StringBuilder sb = new StringBuilder();
-                sb.append((StringUtils.isNotEmpty(custNum)?custNum:"").concat(","));
-                sb.append((StringUtils.isNotEmpty(userType)?userType:"").concat(","));
-                sb.append(cell.concat(","));
-                sb.append((StringUtils.isNotEmpty(status)?status:"").concat(","));
-                sb.append(push_dx_time);
-                sb.append("\r\n");
-                fw.append(sb.toString());
+                page++;
+                if (transferData.size() <= 0) {
+                    continue;
+                }
+                //到上传表取cell
+                List<String> list = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+                List<List<String>> partition = ListUtils.partition(list, 500);
+                Map<String, MarketingSyncUser> preUserMap = new HashMap<>();
+                for (List<String> strings : partition) {
+                    Set<String> set = strings.stream().collect(Collectors.toSet());
+                    List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+                    Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(
+                            Collectors.groupingBy(MarketingSyncUser::getCustNum
+                                    , Collectors.collectingAndThen(
+                                            Collectors.reducing((v1, v2) ->
+                                                    v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                            , Optional::get)));
+                    preUserMap.putAll(map);
+                }
+                //到电销表取push_dx_time
+                Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                PhoneSaleExtendInfoExample phoneSaleExtendInfoExample = new PhoneSaleExtendInfoExample();
+                phoneSaleExtendInfoExample.createCriteria().andApiCodeEqualTo(apiCode)
+                        .andAppletDateEqualTo(endDate.toString())
+                        .andCustNumIn(Arrays.asList(set.toArray(new String[0])));
+                phoneSaleExtendInfoExample.setOrderByClause(" push_dx_time asc");
+                List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(phoneSaleExtendInfoExample);
+                Map pushDXTimeMap = new HashMap();
+                for(PhoneSaleExtendInfo info : phoneSaleExtendInfos){
+                    pushDXTimeMap.put(info.getCustNum(),info.getPushDxTime());
+                }
+
+                for (MarketingTransferSyncUser data : transferData) {
+                    //custNum,userType,cell,status,push_dx_time
+                    if(pushDXTimeMap.get(data.getCustNum()) != null){
+                        String custNum = data.getCustNum();
+                        String userType = data.getUserType();
+                        String cell = "";
+                        if (preUserMap.containsKey(custNum)) {
+                            String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                            cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        }
+                        String status = "";
+                        if("0".equals(data.getIfTransform()) && "1".equals(data.getUserType())){
+                            status = "a";
+                        }else if("0".equals(data.getIfTransform()) && "2".equals(data.getUserType())){
+                            status = "b";
+                        }else if("0".equals(data.getIfTransform()) && "3".equals(data.getUserType())){
+                            status = "c";
+                        }
+                        String push_dx_time =  sdf2.format(pushDXTimeMap.get(data.getCustNum()));
+                        StringBuilder sb = new StringBuilder();
+                        sb.append((StringUtils.isNotEmpty(custNum) ? custNum : "").concat(","));
+                        sb.append((StringUtils.isNotEmpty(userType) ? userType : "").concat(","));
+                        sb.append(cell.concat(","));
+                        sb.append(status.concat(","));
+                        sb.append(push_dx_time);
+                        sb.append("\r\n");
+                        fw.append(sb.toString());
+                        totalSize = totalSize + 1;
+                    }
+                }
+                transferData.clear();
             }
-            totalSize = totalSize + infoData.size();
-            infoData.clear();
+            endDate = endDate.minusDays(1);
+            mark = Boolean.TRUE;
+            page = 0;
+            if (endDate.isBefore(startDate)) {
+                break;
+            }
         }
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());

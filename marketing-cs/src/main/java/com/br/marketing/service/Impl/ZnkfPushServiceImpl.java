@@ -161,9 +161,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         String groupType = map.get("groupType").toString();
         IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
         if (iUserType instanceof CuFuJie) {
-            final boolean b = cuFuJie(dto, groupType, iUserType);
-            log.info("#促复借 c情况是否推送到延迟队列:{}", b);
-            return b;
+            return cuFuJie(dto, groupType, iUserType);
         }
         boolean intentionGrade = false;
         if (!"促申完".equals(groupType) && !"促首借".equals(groupType)) {
@@ -342,12 +340,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         if (status.contains("c") && StringUtils.isNotBlank(dto.getCaseNum())
                 && StringUtils.isNotBlank(dto.getDetail().getIntentionGrade())
                 && dto.getDetail().getIntentionGrade().contains("A")) {
-            log.info("#促复借 c情况满足intentionGrade=(\"A\"):");
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(dto.getApiCode()
                     , dto.getCaseNum(), groupType);
             Integer day = handlerService.getShuHePeriodOfValidityDay(groupType);
             Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(dto.getCreateTime(), day, creatTime);
-            log.info("#促复借 c情况有效期验证:{}", periodOfValidity);
             if (!periodOfValidity) {
                 return false;
             }
@@ -407,7 +403,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
                 .andIfTransformEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
-        log.info("情况{}，查询到db里已转化(命中已转化)数据量：{},", "c", count);
         return count < 1;
     }
 }
