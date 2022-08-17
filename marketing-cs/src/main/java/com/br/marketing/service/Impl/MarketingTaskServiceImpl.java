@@ -21,6 +21,7 @@ import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
@@ -365,7 +366,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
         for (int i = 0; i < data.size(); i++) {
-            if(isVer&&preMaxNum<=0){
+            if (isVer && preMaxNum <= 0) {
                 continue;
             }
             String whereStr = data.get(i);
@@ -649,20 +650,46 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result offLineCallBack(OffLineCallBackDTO dto) {
         Long id = Long.valueOf(dto.getRequestId());
+        String lockValue = UUID.randomUUID().toString();
+        boolean b = offLineCallBackLock(id, lockValue);
+        if (!b) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid调用过快");
+        }
         boolean suc = "success".equals(dto.getStatus());
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(id);
-        if(straHisFile == null){
+        if (straHisFile == null) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid的数据不存在");
+        }
+        if (!ScoreStatusEnum.OFFLINECALLBACK.getValue().equals(straHisFile.getStatus())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid已经回调过");
         }
         StraHisFile updateEntity = new StraHisFile();
         updateEntity.setId(id);
         updateEntity.setZipfileName(dto.getFileName());
-        updateEntity.setStatus(suc?7:9);
+        updateEntity.setStatus(suc ? ScoreStatusEnum.OFFLINESUCCESS.getValue() : ScoreStatusEnum.OFFLINEFAIL.getValue());
         updateEntity.setOfflineFilePath(dto.getFilePath());
         straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
-        if(suc) {
+        if (suc) {
             producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, id.toString());
         }
+        removeOffLineLock(id, lockValue);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private boolean offLineCallBackLock(Long id, String value) {
+        String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
+        Long setnx = redisChgService.setnx(key, value, 3);
+        if (setnx.equals(0L)) {
+            return false;
+        }
+        return true;
+    }
+
+    private void removeOffLineLock(Long id, String value) {
+        String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
+        String s = redisChgService.get(key);
+        if (value.equals(s)) {
+            redisChgService.del(key);
+        }
     }
 }

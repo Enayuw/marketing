@@ -7,8 +7,10 @@ public enum ScoreStatusEnum {
     ,PUSH(0,"待推送")
     ,FINISH(2,"结束")
     ,OFFLINEMERGE(4,"离线待合并")
-    ,OFFLINESFP(5,"离线待推ftp")
-    ,OFFLINECALLBACK(6,"离线待回调");
+    ,OFFLINESFP(5,"已合并待推ftp")
+    ,OFFLINECALLBACK(6,"离线待回调")
+    ,OFFLINESUCCESS(7,"离线跑批成功")
+    ,OFFLINEFAIL(9,"离线跑批失败");
 
     ScoreStatusEnum(Integer value,String desc) {
         this.value = value;

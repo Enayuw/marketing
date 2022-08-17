@@ -1,4 +1,6 @@
 package com.br.marketing.push.service.impl;
+
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.enums.ScoreStatusEnum;
@@ -128,11 +130,11 @@ public class MergeWithMessageServiceImpl {
                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     straHisFile.setStatus(ScoreStatusEnum.OFFLINECALLBACK.getValue());
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-                }else{
-                    res =Boolean.TRUE;
+                } else {
+                    res = Boolean.TRUE;
                 }
-            }else{
-                res =Boolean.TRUE;
+            } else {
+                res = Boolean.TRUE;
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
@@ -200,13 +202,15 @@ public class MergeWithMessageServiceImpl {
     public Result consumerFileCallBack(Long fileId) {
         Boolean res = Boolean.FALSE;
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
-        String s = downFile(straHisFile);
-        if(StringUtils.isBlank(s)){
-            res = Boolean.TRUE;
-        }else{
-            Boolean aBoolean = fileAction(straHisFile, s);
-            if(aBoolean){
-                upLoadSuccess(straHisFile);
+        if (straHisFile.getStatus().equals(ScoreStatusEnum.OFFLINESUCCESS.getValue())) {
+            String s = downFile(straHisFile);
+            if (StringUtils.isBlank(s)) {
+                res = Boolean.TRUE;
+            } else {
+                Boolean aBoolean = fileAction(straHisFile, s);
+                if (aBoolean) {
+                    upLoadSuccess(straHisFile);
+                }
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
@@ -224,7 +228,7 @@ public class MergeWithMessageServiceImpl {
             if (!localSuccess.exists()) {
                 localSuccess.createNewFile();
             }
-            ftpClient.uploadFileAndMk(Files.newInputStream(Paths.get(localPathName)),remotePath,zipfileName.concat(".success"));
+            ftpClient.uploadFileAndMk(Files.newInputStream(Paths.get(localPathName)), remotePath, zipfileName.concat(".success"));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         } finally {
@@ -266,39 +270,39 @@ public class MergeWithMessageServiceImpl {
         return null;
     }
 
-    private Boolean fileAction(StraHisFile file,String s) {
+    private Boolean fileAction(StraHisFile file, String s) {
         File zipFile = new File(s);
         String unZipPath = file.getFilePath().concat("/").concat("unzip").concat("/");
-        ZipUtils.unZip(zipFile,unZipPath,"");
+        ZipUtils.unZip(zipFile, unZipPath, "");
         File dic = new File(unZipPath);
         ArrayList<File> files = new ArrayList<>();
-        getFiles(dic,files);
+        getFiles(dic, files);
         MarketingTask task = marketingTaskMapper.getByBatchNumber(file.getBatchNumber());
         MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
         extendExample.createCriteria().andTaskIdEqualTo(task.getId());
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(extendExample);
         MarketingTaskExtend taskExtend = marketingTaskExtends.get(0);
         Integer enc = 1;
-        if(StringUtils.isNotBlank(taskExtend.getExtendConfigInfo())){
+        if (StringUtils.isNotBlank(taskExtend.getExtendConfigInfo())) {
             TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = JSON.parseObject(taskExtend.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class);
-            enc = taskExtendExtendFieldDTO.getThreekEncryptType()!=null?taskExtendExtendFieldDTO.getThreekEncryptType():1;
+            enc = taskExtendExtendFieldDTO.getThreekEncryptType() != null ? taskExtendExtendFieldDTO.getThreekEncryptType() : 1;
         }
 
         final List<String> baseFields;
         final List<String> hxFields;
         Result<String> headRes = iProductResultSimpleService.getCurrentBaseHeadInfoByTaskId(task.getId());
-        if(ResultCode.SUCCESS.getValue().equals(headRes.getCode())&&StringUtils.isNotBlank(headRes.getData())){
+        if (ResultCode.SUCCESS.getValue().equals(headRes.getCode()) && StringUtils.isNotBlank(headRes.getData())) {
             baseFields = Arrays.stream(headRes.getData().split(",")).collect(Collectors.toList());
-        }else{
+        } else {
             baseFields = new ArrayList<>();
         }
         Result<List<String>> fieldsInfo = iProductResultSimpleService.getFieldsInfo(file.getApiCode(), file.getBatchNumber());
-        if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+        if (ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())) {
             hxFields = fieldsInfo.getData();
-        }else{
-            hxFields= new ArrayList<>();
+        } else {
+            hxFields = new ArrayList<>();
         }
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50,50);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
         for (File f : files) {
             try {
                 FileReader read = new FileReader(f);
@@ -306,14 +310,14 @@ public class MergeWithMessageServiceImpl {
                 String ss = "";
                 Integer number = 0;
                 List<String> heads = new ArrayList<>();
-                while ((ss =br.readLine())!=null){
+                while ((ss = br.readLine()) != null) {
                     number++;
-                    if(number==1){
-                        heads=Arrays.stream(ss.split(",")).collect(Collectors.toList());
-                    }else{
+                    if (number == 1) {
+                        heads = Arrays.stream(ss.split(",")).collect(Collectors.toList());
+                    } else {
                         final String content = ss;
                         final List<String> titles = heads;
-                        threadPool.submit(new EsRun(ss,heads,file,hxFields,baseFields,enc,JSON.parseArray(task.getProductInfo())));
+                        threadPool.submit(new EsRun(ss, heads, file, hxFields, baseFields, enc, JSON.parseArray(task.getProductInfo())));
                     }
                 }
                 br.close();
@@ -326,8 +330,8 @@ public class MergeWithMessageServiceImpl {
             while (!threadPool.awaitTermination(5L, TimeUnit.SECONDS)) {
 
             }
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
         String md5 = "";
         try {
@@ -377,15 +381,15 @@ public class MergeWithMessageServiceImpl {
             for (int i = 0; i < split.length; i++) {
                 String value = split[i];
                 String name = heads.get(i);
-                row.put(name.toLowerCase(),value);
+                row.put(name.toLowerCase(), value);
             }
             MarketingHistory history = new MarketingHistory();
             history.setApiCode(file.getApiCode());
             history.setIdCard(threeKdec(StringUtils.isBlank(row.get("id"))
-                    ?(StringUtils.isBlank(row.get("idcard"))?"":row.get("idcard"))
-                    :row.get("id"),"id",encryptionType));
-            history.setCell(threeKdec(row.get("cell"),"cell",encryptionType));
-            history.setName(threeKdec(row.get("name"),"name",encryptionType));
+                    ? (StringUtils.isBlank(row.get("idcard")) ? "" : row.get("idcard"))
+                    : row.get("id"), "id", encryptionType));
+            history.setCell(threeKdec(row.get("cell"), "cell", encryptionType));
+            history.setName(threeKdec(row.get("name"), "name", encryptionType));
             try {
                 history.setRequestTime(new SimpleDateFormat("yyyy-MM-dd").parse(row.get("request_time")));
             } catch (ParseException e) {
@@ -402,26 +406,26 @@ public class MergeWithMessageServiceImpl {
             history.setFileId(file.getId().toString());
             history.setReserveField("");
             history.setTaskId("");
-            if(row.containsKey("grouptype")){
+            if (row.containsKey("grouptype")) {
                 history.setUserType(row.get("grouptype"));
             }
-            if(row.containsKey("usertype")){
+            if (row.containsKey("usertype")) {
                 history.setUserType(row.get("usertype"));
             }
 
             //region hx字段
             for (String hxField : hxFields) {
-                Optional<Object> codeOpt = products.stream().filter(t ->hxField.toLowerCase().equals(((JSONObject) t).getString("code").toLowerCase())).findFirst();
+                Optional<Object> codeOpt = products.stream().filter(t -> hxField.toLowerCase().equals(((JSONObject) t).getString("code").toLowerCase())).findFirst();
                 MarketingCondition marketingCondition = new MarketingCondition();
-                if(codeOpt.isPresent()){
+                if (codeOpt.isPresent()) {
                     JSONObject jo = (JSONObject) codeOpt.get();
                     String code = jo.getString("code");
                     String version = jo.getString("version");
                     marketingCondition.setCode(code);
                     marketingCondition.setVersion(version);
                     marketingCondition.setFieldKey(hxField);
-                    marketingCondition.setDValue(StringUtils.isNotBlank(row.get(hxField))?Double.valueOf(row.get(hxField)):0);
-                }else{
+                    marketingCondition.setDValue(StringUtils.isNotBlank(row.get(hxField)) ? Double.valueOf(row.get(hxField)) : 0);
+                } else {
                     marketingCondition.setFieldKey(hxField);
                     marketingCondition.setStrValue(row.get(hxField));
                 }
@@ -431,10 +435,10 @@ public class MergeWithMessageServiceImpl {
 
             //region 用户上传字段
             for (String baseField : baseFields) {
-                if(baseField.toLowerCase().equals("cell")
-                        ||baseField.toLowerCase().equals("id")
-                        ||baseField.toLowerCase().equals("idcard")
-                        ||baseField.toLowerCase().equals("name")){
+                if (baseField.toLowerCase().equals("cell")
+                        || baseField.toLowerCase().equals("id")
+                        || baseField.toLowerCase().equals("idcard")
+                        || baseField.toLowerCase().equals("name")) {
                     continue;
                 }
                 MarketingCondition marketingCondition = new MarketingCondition();
@@ -444,37 +448,37 @@ public class MergeWithMessageServiceImpl {
             }
             //endregion
             String id = UuidUtils.getUuid();
-            marketingHistoryEsService.insert(history,id);
+            marketingHistoryEsService.insert(history, id);
         }
 
 
     }
 
-    private String threeKdec(String str,String type,Integer encryptionType){
-        if(StringUtils.isNotBlank(str)){
-            if(encryptionType.equals(1)){
-               String s = decodeClient.query(str, type, "md5", "");
-               return StringUtils.isNotBlank(s)?s:"";
-            }else if(encryptionType.equals(2)){
+    private String threeKdec(String str, String type, Integer encryptionType) {
+        if (StringUtils.isNotBlank(str)) {
+            if (encryptionType.equals(1)) {
+                String s = decodeClient.query(str, type, "md5", "");
+                return StringUtils.isNotBlank(s) ? BrCipherMaker.getInstance().encode(s) : "";
+            } else if (encryptionType.equals(2)) {
                 String s = decodeClient.query(str, type, "sha", "");
-                return StringUtils.isNotBlank(s)?s:"";
-            }else{
+                return StringUtils.isNotBlank(s) ? BrCipherMaker.getInstance().encode(s) : "";
+            } else {
                 return str;
             }
-        }else{
+        } else {
             return "";
         }
     }
 
 
-    private void getFiles(File file,List<File> files){
-        if(file.isFile()){
+    private void getFiles(File file, List<File> files) {
+        if (file.isFile()) {
             files.add(file);
         }
-        if(file.isDirectory()){
+        if (file.isDirectory()) {
             File[] files1 = file.listFiles();
             for (File file1 : files1) {
-                getFiles(file1,files);
+                getFiles(file1, files);
             }
         }
     }
