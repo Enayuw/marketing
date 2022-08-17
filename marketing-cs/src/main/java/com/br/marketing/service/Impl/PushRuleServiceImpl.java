@@ -1479,7 +1479,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isNotBlank(content) && "id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
-                user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+                //user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setId(BrCipherMaker.getInstance().encode(content));
         }
