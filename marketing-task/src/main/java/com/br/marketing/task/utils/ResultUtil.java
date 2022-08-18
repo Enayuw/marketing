@@ -209,7 +209,8 @@ public class ResultUtil {
         }
         fw.append(sb + "\r\n");
         boolean isVer = marketingTask.getMonitorType() == 2;
-        if ("1".equals(pushCustomer) && !isVer) {
+        boolean isOffLine = marketingTask.getIsOnline() == 2;
+        if ("1".equals(pushCustomer) && !isVer && !isOffLine) {
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setBatchNumber(marketingTask.getBatchNumber());
             mh.setFileId(fileId);
