@@ -187,9 +187,11 @@ public class FtpClient extends BaseFtpClient {
                         }
                     }
                 }
-                tempPath.concat("/");
             }else{
                 tempPath = path;
+            }
+            if (!tempPath.endsWith("/")) {
+                tempPath = tempPath.concat("/");
             }
             if (!ftp.storeFile(tempPath+fileName, inputStream)) {
                 throw new IOException("Can't upload file '" + fileName + "' to FTP server. Check FTP permissions and path.");
