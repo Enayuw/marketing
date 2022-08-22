@@ -660,7 +660,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (straHisFile == null) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid的数据不存在");
         }
-        if (!ScoreStatusEnum.OFFLINECALLBACK.getValue().equals(straHisFile.getStatus())) {
+        if (!ScoreStatusEnum.OFFLINECALLBACK.getValue().equals(straHisFile.getStatus())
+                && !ScoreStatusEnum.OFFLINEFAIL.getValue().equals(straHisFile.getStatus())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid已经回调过");
         }
         StraHisFile updateEntity = new StraHisFile();
