@@ -2,7 +2,6 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.common.commondto.ApiResult;

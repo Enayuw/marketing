@@ -4,6 +4,7 @@ package com.br.marketing.innerapi.aspect;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.auth.MarketingResource;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import org.slf4j.Logger;
@@ -31,8 +32,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
         }
 
         log.info("request path =====> {} ", path);
-        HttpSession session = request.getSession();
-        MarketingUserDetail userDetail = (MarketingUserDetail) session.getAttribute("userDetail");
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         List<MarketingResource> resourcesList = userDetail.getResourcesList();
         boolean flag = false;
         Iterator var9 = resourcesList.iterator();
