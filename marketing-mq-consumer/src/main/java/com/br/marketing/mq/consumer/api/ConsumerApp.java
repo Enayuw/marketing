@@ -42,6 +42,7 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_PRE_USER_RECEIVE, containerFactory = "fiveDataContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
+        log.warn("MARKETING_PRE_USER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
@@ -57,6 +58,7 @@ public class ConsumerApp {
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE)}, containerFactory = "fiveDataContainerFactory")
     public void consumerShuHePreUser(Channel channel, Message message) {
+        log.warn("MARKETING_PRE_USER_SHUHERECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
@@ -70,6 +72,7 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE, containerFactory = "fiveDataContainerFactory")
     public void consumerTransferUser(Channel channel, Message message) {
+        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
