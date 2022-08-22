@@ -405,7 +405,7 @@ public class MergeWithMessageServiceImpl {
             history.setCondition(conditions);
             history.setFileId(file.getId().toString());
             history.setReserveField("");
-            history.setTaskId("");
+            history.setTaskId(row.get("taskid"));
             if (row.containsKey("grouptype")) {
                 history.setUserType(row.get("grouptype"));
             }
@@ -438,7 +438,8 @@ public class MergeWithMessageServiceImpl {
                 if (baseField.toLowerCase().equals("cell")
                         || baseField.toLowerCase().equals("id")
                         || baseField.toLowerCase().equals("idcard")
-                        || baseField.toLowerCase().equals("name")) {
+                        || baseField.toLowerCase().equals("name")
+                        || baseField.toLowerCase().equals("taskid")) {
                     continue;
                 }
                 MarketingCondition marketingCondition = new MarketingCondition();
