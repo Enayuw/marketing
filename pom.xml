@@ -230,6 +230,7 @@
         <module>marketing-sync</module>
         <module>mybatis-generator</module>
         <module>marketing-tools</module>
+        <module>marketing-mq-consumer</module>
         <!--        <module>marketing-fast-task</module>-->
     </modules>
 </project>

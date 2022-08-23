@@ -1,0 +1,92 @@
+#推送客服的apicode
+apiCodeOfpushCustomer=["3710012","4004643","3710004","3710030","7410437","7410780","7410794","7410797","7410785","7412002","3710034","7410787"]
+#推送哈啰的apicode
+apiCodeOfpushHaluoByTransfer=["3710028"]
+#是否是标准客服转化接口
+customerTransferIsYx={"3710012":true,"7410787":true}
+#海尔apicode
+haierApiCode=["3710018","7410930"]
+#玖富apicode
+jfApiCode=["7412002","3710034"]
+#记录taskid时间的apicode
+apiCodeOfRecordTaskTime=["3710028","7410437","7410850"]
+#去重线程数
+soleNum=20
+#萨摩耶场景转化需要判断的场景
+groupTypeSaMoye=["S01","S02","S0202","S04","S06","S08"]
+#数禾apicode
+shuheApiCode=["3710004","7410785"]
+#走通用流程apiCode
+universalProcessApiCode=["7412003","3710012","7410930","3710018","7410850","7410787","7492631","7492632"]
+#客户使用规则映射
+customerRuleMapping={"7412003":"YiXin","3710012":"YiXin","7410930":"Haier","3710018":"Haier"}
+# 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天;
+## eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+shuHeTransferExtractDayMap={"促首登":"T","促申完":"T+15","促首借":"T+31","促复借":"T","重申":"T"}
+#数禾转化数据提取任务是否使用准全量转化数据
+shuHeTransferExtractIfUseQuasiTotalQuantity=true
+# 数禾转化数据提取apiCode集合
+shuHeTransferExtractApiCodes={"3710004":["促申完","促首登"],"3710023":["促首借"],"7410785":["促申完","促首登","促首借","促复借","重申"],"3710043":["促复借"],"3710051":["重申"],"7412008":["重申"]}
+# 数禾转化数据提取任务开始时间
+shuHeTransferExtractJobStartTime=06:00:00
+# 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day天;
+## eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+shuHePeriodOfValidityDayMap={"促首登":"T","促申完":"T+15","促首借":"T+31","促复借":"T","重申":"T"}
+# 数禾推送电销情况;eg:{"促复借":["a","b","c"],"促首借":["a","b"]}
+shuHePushDXStatusMap={"促复借":["a","b","c"]}
+# 数禾用户可用额度区间;大于:>、小于:<、等于:&eq;、不等于:&nq;、大于等于:≥、小于等于:≤;eg:["≥","1","≤","100"]
+shuHeUserAvailableQuotaRange=["≥","100"]
+#宜信非实时typelist
+yixinNoRealTimeType=["13","12","9","7","17","18","6","11","14","8","4","15"]
+#宜信非实时推客服typelist
+yixinNoRealTimePushRobotAIType=["4","5","6","7","8","11","12","14","15","17","18","19"]
+#电销文件定制处理集合
+dxFileCustomize={"yixin":["3710012"],"xw":["4004666"],"juzi":["3710037"]}
+#宜信实时转化数据提取apiCode集合
+yinXinTransferRealTimeApiCodes=["3710012","7410787"]
+#宜信实时转化数据提取Job执行时间
+yinXinTransferRealTimeExecuteTime=20:00:00
+#宜信非实时转化数据提取Job执行时间
+yinXinTransferNoRealTimeExecuteTime=10:00:00
+#壹钱包加密公钥
+yiQianBaoPubKey=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnYI7ITjERAtNMOUsR2i1Tt0Jt7ku9+sRKpv17UIXleE3eDJQO4bK2al1hySHoKpKqvXN/TBQh+tlZNcDqcaEqc5B5V3+ohdvKciae+d6vohc2SkLxcmxc9jseS9NsZ6UWrCrSad/BiNiOAevioAL0pUK+HL3yRrLyr/S8nbc/0qKoHsF+rhqbw72QcUL63Kl4gq/8/hAEHU6HGvT5cgDuymtdRyT2jMkOTkyu32vX8SUapa2YZi1FmOPsvbeNKnVteBCVpDLRCcYR11yuFO8olSEELOFc4uHwxwOXNWg/J0ps60mRmntBsaFbd/pMkYbPJ/OVBO0PHvSQG/5Gy4qewIDAQAB
+#是否开启宜信非实时数据提取
+isOpenYinXinTransferNoRealTimeExtract=true
+#玖富转化数据提取apiCode集合
+JiuFuTransferApiCodes=["3710034","7412002"]
+#玖富转化数据提取执行时间
+JiuFuTransferExecuteTime=10:00:00
+# 拨打记录数据配置apicode推送mq
+callRecordDataPushMqApiCodes=["3710004","3710023","3710043","7410785"]
+#促复借可用额度
+clcUsrAvlLmtLv0=100
+#哈罗提取文件线程数
+haloSaveDataThreadNum=100
+# 小赢转化数据推送智能客服apiCode集合
+xiaoYingTransferPushRobotApiCodes=["3710022","7412100"]
+# 小赢转化数据提取apiCode集合
+xiaoYingTransferExtractApiCodes=["3710022","7412100"]
+# 小赢登录断点转化数据提取任务开始时间
+xiaoYingDengLuDuanDianTransferExtractJobTime=10:00:00
+# 小赢促提转化数据提取任务开始时间
+xiaoYingCuTiTransferExtractJobTime=10:00:00
+#小赢全量转化数据提取任务开始时间
+xiaoYingFullLoadTransferExtractJobTime=10:00:00
+#数禾推送电销剔除黑名单天数和推送客服黑名单有效期天数
+shuhePushBlackDay={"dassBlack":30,"customerBlack":30}
+#哈罗转化数据规则
+haluoTransferRule={"status":"a,b,c,d","Ddate":"5","ABCdate":"5","taskIddate":"35","dTimes":"7"}
+#sql执行选择数据源配置
+sqlType={"buildTaskNum":1,"scoreMinId":0,"scoreData":0}
+#跑分线程资源数量
+taskResourceMaxNum=300
+#拍拍贷新客实时转化数据提取apiCode集合
+PPDTransferFileApiCodes=["3710014","7492631","7492632"]
+#拍拍贷新客实时转化数据提取执行时间
+PPDTransferFileExecuteTime=10:00:00
+#宜信实时转化数据real-pass执行时间
+yinXinTransferRealPassExecuteTime=10:00:00
+#消息队列过期时间
+messageQueueExpireTime=60000
+#拍拍贷客户apiCode 
+ppdCustomerType={"lend":["3710015","7492631"],"transform":["3710014","7492631","7492632"]}
