@@ -26,12 +26,12 @@ public class PhoneSaleTransferInfoServiceImpl implements PhoneSaleTransferInfoSe
     private PhoneSaleTransferInfoMapper phoneSaleTransferInfoMapper;
 
     @Override
-    public void insertSelectiveBatch(List<PhoneSaleTransferInfo> list) {
-        insertSelectiveBatch(list, 1000);
+    public void insertBatch(List<PhoneSaleTransferInfo> list) {
+        insertBatch(list, 1000);
     }
 
     @Override
-    public void insertSelectiveBatch(List<PhoneSaleTransferInfo> list, int batchSize) {
+    public void insertBatch(List<PhoneSaleTransferInfo> list, int batchSize) {
         if (CollectionUtils.isEmpty(list)) {
             return;
         }
@@ -46,7 +46,7 @@ public class PhoneSaleTransferInfoServiceImpl implements PhoneSaleTransferInfoSe
         for (int i = 0; i < pageSum; i++) {
             int fromIndex = i * batchSize;
             int toIndex = fromIndex + batchSize;
-            phoneSaleTransferInfoMapper.insertSelectiveBatch(filterList.subList(fromIndex, Math.min(toIndex, size)));
+            phoneSaleTransferInfoMapper.insertBatch(filterList.subList(fromIndex, Math.min(toIndex, size)));
         }
     }
 

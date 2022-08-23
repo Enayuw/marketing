@@ -246,4 +246,9 @@ public class MarketingCommonConfig {
      */
     private String PPDTransferFileExecuteTime;
 
+    /**
+     * check服务job的上线开关
+     */
+    private Boolean checkJobOnlineSwitch;
+
 }

@@ -79,6 +79,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    List<MarketingSyncUser> getPreUserByInCustAndStatus(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
+
     List<MarketingSyncUser> getPreUserByInCustWithNoFail(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
     Integer countTransferFile(@Param("apiCode") String apiCode, @Param("beginTime") String beginTime
@@ -102,11 +104,21 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     /**
      * 根据cust_num获取最新数据
+     *
      * @param apiCode
      * @param caseNum
      * @return
      */
     MarketingSyncUser getNewestByCusnum(@Param("apiCode") String apiCode, @Param("caseNum") String caseNum);
+
+    /**
+     * 根据cust_num获取最新数据
+     *
+     * @param apiCode
+     * @param caseNum
+     * @return
+     */
+    MarketingSyncUser getNewestByCusnumAndStatus(@Param("apiCode") String apiCode, @Param("caseNum") String caseNum);
 
     /**
      * 根据案件编号获取最新的taskId
@@ -186,14 +198,24 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
                           @Param("apiCode") String apiCode,
                           @Param("id") Long id);
 
-    int selectCountError(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
+    int selectCountError(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
     /**
      * 根据cell获取上传接口最新一条数据
+     *
      * @param apiCode
      * @param cell
      * @return
      */
-    MarketingSyncUser getNewestPreUserByCell(@Param("apiCode")String apiCode, @Param("cell")String cell);
+    MarketingSyncUser getNewestPreUserByCell(@Param("apiCode") String apiCode, @Param("cell") String cell);
+
+    /**
+     * 根据cell获取上传接口最新一条数据
+     *
+     * @param apiCode
+     * @param cell
+     * @return
+     */
+    MarketingSyncUser getNewestPreUserByCellAndStatus(@Param("apiCode") String apiCode, @Param("cell") String cell);
 
 }

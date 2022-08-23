@@ -17,10 +17,12 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.task.thread.CoreScoreThread;
+import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -146,7 +148,7 @@ public class TaskScoreServiceImpl {
         ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
 
         //线程监听
-        threadNumListen(warrningExecutor, customer,task);
+        threadNumListen(warrningExecutor, customer, task);
 
         //线程池注册
         observedScoreThreadService.addObserver(warrningExecutor);
@@ -176,7 +178,7 @@ public class TaskScoreServiceImpl {
             }
             //endregion
 
-            if(task.getFileId()==null||task.getFileId()<=1){
+            if (task.getFileId() == null || task.getFileId() <= 1) {
                 return;
             }
 
@@ -215,7 +217,7 @@ public class TaskScoreServiceImpl {
             //region 任务状态表和任务记录表的更新
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(task.getStatusId());
-            if (task.getMonitorType().equals(1)||task.getMonitorType().equals(2)) {
+            if (task.getMonitorType().equals(1) || task.getMonitorType().equals(2)) {
                 updateStatus.setOnceStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
             } else {
                 updateStatus.setAllStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
@@ -224,16 +226,16 @@ public class TaskScoreServiceImpl {
             if (!observedScoreThreadService.isInterrupt()) {
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(task.getFileId());
-                updateFile.setStatus(task.getMonitorType().equals(2)?2:1);
+                updateFile.setStatus(task.getMonitorType().equals(2) ? 2 : 1);
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
                 updateTask.setPriority(0);
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
-            }else{
+            } else {
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
                         , task.getBatchNumber(), task.getFileId().toString());
-                sendContent(content,"跑分暂停",Constants.sendCodeMap.get("uploadSuccess"));
+                sendContent(content, "跑分暂停", Constants.sendCodeMap.get("uploadSuccess"));
             }
             //endregion
 
@@ -269,6 +271,21 @@ public class TaskScoreServiceImpl {
         }
         String separator = marketingSepService.querySepByApiCode(marketingTask.getApiCode());
         MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(marketingTask.getId());
+        BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
+        }.getType());
+        String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
+        if(StringUtils.isNotBlank(extendConfigInfo)) {
+            TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
+            baseHeadConfigVO.getBaseHead().forEach(t -> {
+                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                    t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                            ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                            : taskExtendExtendFieldDTO1.getThreekEncryptType());
+                }
+            });
+        }
+        StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
+        }.getType());
         StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(marketingTask.getFileId()));
         String day = new SimpleDateFormat("yyyy-MM-dd").format(file.getCreateTime());
         String productJson = "";
@@ -311,7 +328,7 @@ public class TaskScoreServiceImpl {
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
-                    , flagproductlist, marketingTaskExtend,true));
+                    , flagproductlist, marketingTaskExtend, baseHeadConfigVO, fieldInfo, true));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -346,9 +363,9 @@ public class TaskScoreServiceImpl {
             file.setUpdateTime(new Date());
             file.setExpectedNum(blt.getTaskNumber());
             file.setStatus(3);
-            if (1 == blt.getMonitorType()||2 == blt.getMonitorType()) {
+            if (1 == blt.getMonitorType() || 2 == blt.getMonitorType()) {
                 file.setType(2);
-            } else if (4 == blt.getMonitorType()||3 == blt.getMonitorType()) {
+            } else if (4 == blt.getMonitorType() || 3 == blt.getMonitorType()) {
                 file.setType(1);
             }
 //            file.setShowTitle(createShowTitle(blt));
@@ -447,10 +464,24 @@ public class TaskScoreServiceImpl {
                         }.getType());
             }
             String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
-//            String baseHeadInfo = getBaseHeadInfo(blt.getId(), separator);
             String redisOpen = redisChgService.get(RedisEsOpen);
             Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.valueOf(redisOpen) : 1;
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
+            BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
+            }.getType());
+            String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
+            if(StringUtils.isNotBlank(extendConfigInfo)) {
+                TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
+                baseHeadConfigVO.getBaseHead().forEach(t -> {
+                    if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                        t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                                ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                                : taskExtendExtendFieldDTO1.getThreekEncryptType());
+                    }
+                });
+            }
+            StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
+            }.getType());
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
             String day = new SimpleDateFormat("yyyy-MM-dd").format(file.getCreateTime());
             Result<List<String>> dataCondition = scoreRuleConfigService.getDataCondition(marketingTaskExtend, blt, day);
@@ -460,32 +491,34 @@ public class TaskScoreServiceImpl {
             long startTime = System.currentTimeMillis();
             boolean isVerScore = 2 == blt.getMonitorType();
             TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = JSON.parseObject(marketingTaskExtend.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class);
-            Integer verNum = taskExtendExtendFieldDTO!=null&&taskExtendExtendFieldDTO.getDataLimit()!=null&&taskExtendExtendFieldDTO.getDataLimit()>0
-                    ?taskExtendExtendFieldDTO.getDataLimit():500;
+            Integer verNum = taskExtendExtendFieldDTO != null && taskExtendExtendFieldDTO.getDataLimit() != null && taskExtendExtendFieldDTO.getDataLimit() > 0
+                    ? taskExtendExtendFieldDTO.getDataLimit() : 500;
             Boolean isHead = Boolean.TRUE;
             for (String conditionData : conditionDatas) {
-                if(isVerScore&&verNum<=0){
+                if (isVerScore && verNum <= 0) {
                     continue;
                 }
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
-                log.warn("min_id--{},pageSize--{}", minId, isVerScore?verNum:pageSize);
+                log.warn("min_id--{},pageSize--{}", minId, isVerScore ? verNum : pageSize);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
                     Long begin = 0L;
                     Boolean threadpoolStatus = Boolean.TRUE;
                     while (threadpoolStatus) {
-                        if(isVerScore&&verNum<=0){
+                        if (isVerScore && verNum <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }
-                        List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore?verNum:pageSize);
+                        List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore ? verNum : pageSize);
                         if (list.size() <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }
-                        if(isVerScore&&isHead){
+
+                        //region 预览跑分 表头
+                        if (isVerScore && isHead) {
                             StringBuilder verHead = new StringBuilder();
-                            iProductResultSimpleService.initHead(verHead,separator,blt);
+                            iProductResultSimpleService.initHead(verHead, separator, blt);
                             MarketingTaskResultPreview preview = new MarketingTaskResultPreview();
                             preview.setApiCode(blt.getApiCode());
                             preview.setTaskId(blt.getId());
@@ -496,8 +529,10 @@ public class TaskScoreServiceImpl {
                             marketingTaskService.saveScoreResult(preview);
                             isHead = Boolean.FALSE;
                         }
-                        if(isVerScore){
-                            verNum=verNum-list.size();
+                        //endregion
+
+                        if (isVerScore) {
+                            verNum = verNum - list.size();
                         }
                         begin = list.get(list.size() - 1).getId();
                         if (!getCoreDataStatus(fileId, currentPage)) {
@@ -517,7 +552,7 @@ public class TaskScoreServiceImpl {
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt
-                                    , noflagproductlist, flagproductlist, marketingTaskExtend,false));
+                                    , noflagproductlist, flagproductlist, marketingTaskExtend, baseHeadConfigVO, fieldInfo, false));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
@@ -630,7 +665,7 @@ public class TaskScoreServiceImpl {
         return ip;
     }
 
-    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer,MarketingTask task) {
+    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer, MarketingTask task) {
         String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
         try {
             if (client.checkExists().forPath(zkpath) == null) {

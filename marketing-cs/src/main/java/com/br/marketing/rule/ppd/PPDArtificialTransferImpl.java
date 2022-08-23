@@ -89,6 +89,7 @@ public class PPDArtificialTransferImpl implements AssembleData<DassAssembleTrans
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
+        phoneSaleExtendInfo.setSourceId(transfer.getId());
         return phoneSaleExtendInfo;
     }
 }

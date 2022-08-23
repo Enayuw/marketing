@@ -529,6 +529,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
         ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
         responseShuheDTO.success();
         ShuheTransferJsonDTO jsonDTO = null;
+        String requestId = "";
         try {
             jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
             }.getType());
@@ -591,6 +592,7 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             // 5、转化信息入转化标准库
             goTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool);
             caseShuheUser.setReserveField2(transferSyncUser.getRequestId());
+            requestId = transferSyncUser.getRequestId();
             // 6、数据落前置库
             int row = caseShuheUserMapper.insertSelective(caseShuheUser);
             if (row < 1) {
@@ -604,6 +606,8 @@ public class PushShuheTransferDataServiceImpl implements IPushShuheTransferDataS
             }
             return responseShuheDTO;
         } catch (Exception e) {
+            log.error(String.format("shuhe_error apicode:%s;jsondata:%s;requestId:%s"
+                    ,apiCode,jsonData,requestId));
             log.error(e.getMessage(), e);
             exceptionSave(jsonDTO, jsonData, apiCode, e);
             return responseShuheDTO.failed();

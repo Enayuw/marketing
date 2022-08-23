@@ -336,7 +336,7 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-  <select id="uploadSyncCount" resultType="java.lang.Integer">
+  <select id="uploadSyncCounttiflash_" resultType="java.lang.Integer">
     select count(1) from b_marketing_sync_${apiCode}
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and

@@ -3,7 +3,6 @@ package com.br.marketing.task.thread;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.*;
@@ -35,7 +34,6 @@ public class CoreScoreThread implements Callable<String> {
     private String path;
     private String strategyStr;
     private RedisService redisService;
-//    private ObservedScoreThreadServiceImpl observedThread;
     private String message;
     private boolean firstTime;
     private JSONObject meal = new JSONObject();
@@ -59,7 +57,8 @@ public class CoreScoreThread implements Callable<String> {
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
-            , List<String> noflagproductlist, List<String> flagProductList,MarketingTaskExtend marketingTaskExtend,Boolean isRetry) {
+            , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
+            , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo, Boolean isRetry) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -81,12 +80,8 @@ public class CoreScoreThread implements Callable<String> {
         this.flagProductList = flagProductList;
         this.marketingTaskService = Scheduler.ac.getBean(MarketingTaskService.class);
         this.isRetry = isRetry;
-        BaseHeadConfigVO o = JSON.parseObject(marketingTaskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
-        }.getType());
-        StrategyProductDetailVO fieldInfo = JSON.parseObject(marketingTaskExtend.getStrategyProductJson(), new TypeReference<StrategyProductDetailVO>() {
-        }.getType());
         this.fieldInfo = fieldInfo;
-        this.baseHeadConfigVO = o;
+        this.baseHeadConfigVO = baseHeadConfigVO;
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -99,7 +94,7 @@ public class CoreScoreThread implements Callable<String> {
             log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
             return null;
         }
-        if(!isRetry) {
+        if (!isRetry) {
             marketingTaskService.addTaskPercent(marketingTask.getFileId(), Long.valueOf(list.size()));
         }
 //        boolean check = this.checkRedisNumber();
@@ -120,12 +115,6 @@ public class CoreScoreThread implements Callable<String> {
                      new OutputStreamWriter(
                              new FileOutputStream(file1), "UTF-8"));) {
 
-//            if (!check) {
-//                log.error("条数不足--{}", message);
-//                dealResult(message, errorFw);
-//                errorFw.close();
-//                return null;
-//            }
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
@@ -134,9 +123,9 @@ public class CoreScoreThread implements Callable<String> {
                     continue;
                 }
 
-                if(marketingTask.getTaskType().equals(1)){
+                if (marketingTask.getTaskType().equals(1)) {
                     dealResult(fw, blu);
-                }else {
+                } else {
                     RequestLog requestLog = new RequestLog();
                     requestLog.setRequestTime(new Date());
 
@@ -147,38 +136,6 @@ public class CoreScoreThread implements Callable<String> {
                     jsonData.put("name", instance.decode(blu.getName()));
                     jsonData.put("cell", instance.decode(blu.getCell()));
                     jsonData.put("isRepair", isRepair);
-//                jsonData.put("passDate", blu.getPassDate());
-//                jsonData.put("loanMaturityDate", blu.getLoanMaturityDate());
-//                if (StringUtils.isNotEmpty(blu.getDecodeFailType())) {
-//                    jsonData.put("decodeFailType", blu.getDecodeFailType());
-//                }
-//                String approvalResult = blu.getApprovalResult();
-//                String result = "";
-//                if (StringUtils.isNotEmpty(approvalResult)) {
-//                    switch (approvalResult) {
-//                        case "通过":
-//                            result = "1";
-//                            break;
-//                        case "拒绝":
-//                            result = "2";
-//                            break;
-//                        case "复议":
-//                            result = "3";
-//                            break;
-//                        case "无结果":
-//                            result = "4";
-//                            break;
-//                        case "无贷前审批":
-//                            result = "5";
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                }
-//
-//                if (StringUtils.isNotEmpty(result)) {
-//                    jsonData.put("approveResult", result);
-//                }
                     jsonData.put("batch_number", marketingTask.getBatchNumber());
                     param.put("jsonData", jsonData.toString());
                     String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
@@ -187,14 +144,13 @@ public class CoreScoreThread implements Callable<String> {
             }
             if (errorList.size() > 0) {
                 for (MarketingSyncUser lu : errorList) {
-                    errorFw.append(JSON.toJSONString(lu)+"\n");
+                    errorFw.append(JSON.toJSONString(lu) + "\n");
                 }
                 String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + this.fileId;
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("生成文件出错。。。。", e);
         }
         return null;
@@ -203,7 +159,7 @@ public class CoreScoreThread implements Callable<String> {
     private void setScoreStatus() {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(String.valueOf(currentPage));
         redisChgService.set(key, "1");
-        redisChgService.expire(key,60*60*24*10);
+        redisChgService.expire(key, 60 * 60 * 24 * 10);
     }
 
 
@@ -224,7 +180,7 @@ public class CoreScoreThread implements Callable<String> {
             addDTBPro(typeNoList);
             MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
             if (merchantParam == null) {
-                log.error("用户中心结果为空"+apiCode);
+                log.error("用户中心结果为空" + apiCode);
                 return false;
             }
             getDayNumMap(dayNumMap, merchantParam);
@@ -435,7 +391,7 @@ public class CoreScoreThread implements Callable<String> {
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo,marketingTask,marketingTaskService);
+                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService);
                 }
             }
         } catch (Exception e) {
@@ -451,7 +407,7 @@ public class CoreScoreThread implements Callable<String> {
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo,marketingTask,marketingTaskService);
+                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);

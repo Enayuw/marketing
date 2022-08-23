@@ -44,7 +44,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<MqFact> {
+public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
@@ -127,7 +127,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                         }
                     }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
-                    log.info("复促借情况{}是否满足推送延迟条件{},其中有效期状态：{},\n数据{}", caseShuheUser.getReserveField2(), bool, b, caseShuheUser.toString());
                 } else {
                     bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                             && cacheExists(transfer, shuHeContext, day));
@@ -291,7 +290,6 @@ public class ShuHeArtificialRealTimeUserDataToDelayImpl implements AssembleData<
                 , Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant()))
                 .andIfTransformEqualTo("1");
         int count = marketingTransferSyncUserMapper.countByExample(example);
-        log.info("情况{}，查询到db里已转化数据量：{},", caseShuheUser.getReserveField2(), count);
         return count < 1;
     }
 
