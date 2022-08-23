@@ -3,7 +3,9 @@ package com.br.marketing.context.impl;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.PhoneSaleExtendHaluo;
+import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -66,7 +68,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
 
     public Map<String, MarketingSyncUser> customerMarketingSyncUser(Set<String> set, String apiCode){
 
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
+        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCustAndStatus(apiCode, set);
         return preUserByTask.stream().collect(
                 Collectors.groupingBy(MarketingSyncUser::getCustNum
                         , Collectors.collectingAndThen(

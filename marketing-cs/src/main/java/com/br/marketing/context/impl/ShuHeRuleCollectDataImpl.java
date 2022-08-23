@@ -2,7 +2,6 @@ package com.br.marketing.context.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -21,8 +20,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -51,7 +48,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService {
+public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
@@ -66,10 +63,7 @@ public class ShuHeRuleCollectDataImpl implements AbstractRuleCollectDataService 
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFacts.get(0);
             // 获取上传表信息
             Set<String> set = new HashSet<>(Collections.singletonList(transfer.getCustNum()));
-            List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(context.getApiCode(), set);
-            Map<String, MarketingSyncUser> collect = preUserByTask.stream().collect(
-                    Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity(), (v1, v2) ->
-                            v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2));
+            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(set, context.getApiCode());
             shuHeRuleNecessaryData.setCustomerMap(collect);
             // 生成后续使用数据上下文
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()

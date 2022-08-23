@@ -149,7 +149,7 @@ public class HxUtil {
         /**
          * 0不留存，1留存
          */
-        if (firstTime || customer.getSaveLog() == 1) {
+        if (customer.getSaveLog() == 1) {
             extDataJson.put("isSaveLog", "1");
         } else {
             extDataJson.put("isSaveLog", "0");

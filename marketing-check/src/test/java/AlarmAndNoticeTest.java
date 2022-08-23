@@ -7,7 +7,9 @@ import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByPPDServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
+import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -114,17 +116,17 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByJiuFuServiceImpl transferToFileByShuHeService;
+    private TransferToFileByPPDServiceImpl transferToFileByShuHeService;
 
     @Test
     public void transferFileTest(){
-        String jobParameter = "7412002:2022-07-01;7492632:true";
-        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7492632");
+        String jobParameter = "7412002#2022-07-01;7492632#true";
+        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7492631");
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){
                 String myParam = transferToFileByShuHeService.isMyParam(datum.getApiCode(), jobParameter);
-                Result result = transferToFileByShuHeService.actionTransferToFile(datum,"");
+                Result result = transferToFileByShuHeService.actionTransferToFile(datum,myParam);
                 System.out.println(result.getCode());
             }
         }

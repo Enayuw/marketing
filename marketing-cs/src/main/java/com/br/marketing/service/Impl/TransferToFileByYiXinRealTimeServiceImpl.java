@@ -329,7 +329,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
                 if (CollectionUtils.isEmpty(custNumFilter)) {
-                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1的数据,apiCode = {}", apiCode);
                     continue;
                 }
                 Set<String> custNums = custNumFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
@@ -347,11 +346,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
                 if (CollectionUtils.isEmpty(dataFilter)) {
-                    log.warn("宜信实时数据real-pass提取-该批次无transformType=1&&status=1的数据,apiCode = {}", apiCode);
                     continue;
                 }
-
-                Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                //剔除caseEffecctive=0的案件编号
+                List<MarketingTransferSyncUser> resultData = eliminateCaseEffective(tcId,dataFilter,apiCode);
+                if (resultData.size() <= 0) {
+                    continue;
+                }
+                Set<String> set = resultData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                 List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
                 Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
                         Collectors.groupingBy(MarketingSyncUser::getCustNum
@@ -360,7 +362,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                                 v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                         , Optional::get)));
 
-                for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+                for (MarketingTransferSyncUser transferFilterData : resultData) {
                     String custNum = transferFilterData.getCustNum();
                     String cell = "";
                     if (preUserMap.containsKey(custNum)) {
@@ -379,8 +381,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     sb.append("\r\n");
                     fw.append(sb.toString());
                 }
-                totalSize = totalSize + dataFilter.size();
+                totalSize = totalSize + resultData.size();
                 dataFilter.clear();
+                resultData.clear();
                 custNumFilter.clear();
                 transferData.clear();
             }
@@ -439,6 +442,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         Boolean mark = Boolean.TRUE;
         //去重后的Set
         Set<String> custNumResult = new HashSet();
+        int totalSize = 0;
         while (mark) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferByApplyDt(tcId, apiCode, page * 2000);
             if (CollectionUtils.isEmpty(transferData)){
@@ -464,11 +468,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 }
             }
             if (CollectionUtils.isEmpty(dataFilter)) {
-                log.warn("宜信非实时数据提取-该批次无transformType!=1数据,apiCode = {}", apiCode);
                 continue;
             }
-
-            Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            //剔除caseEffecctive=0的案件编号
+            List<MarketingTransferSyncUser> resultData = eliminateCaseEffective(tcId,dataFilter,apiCode);
+            if (resultData.size() <= 0) {
+                continue;
+            }
+            Set<String> set = resultData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
             Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
                     Collectors.groupingBy(MarketingSyncUser::getCustNum
@@ -477,7 +484,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                             v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                     , Optional::get)));
 
-            for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+            for (MarketingTransferSyncUser transferFilterData : resultData) {
                 String custNum = transferFilterData.getCustNum();
                 String cell = "";
                 if (preUserMap.containsKey(custNum)) {
@@ -506,10 +513,12 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 sb.append("\r\n");
                 fw.append(sb.toString());
             }
+            totalSize = totalSize + resultData.size();
             dataFilter.clear();
+            resultData.clear();
             transferData.clear();
         }
-        int totalSize = custNumResult.size();
+
         custNumResult.clear();
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
@@ -720,6 +729,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         HashSet custNumFilterType = new HashSet();
         //去重后的Set
         HashSet custNumResult = new HashSet();
+        int totalSize = 0;
         while (mark) {
             Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, date, page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
@@ -744,10 +754,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 }
             }
             if (dataFilter.size() <= 0) {
-                log.warn("宜信非实时数据提取-该批次无type为4、15的数据,apiCode = {}", apiCode);
                 continue;
             }
-            Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            //剔除caseEffecctive=0的案件编号
+            List<MarketingTransferSyncUser> resultData = eliminateCaseEffective(tcId,dataFilter,apiCode);
+            if (resultData.size() <= 0) {
+                continue;
+            }
+            Set<String> set = resultData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
             Map<String, MarketingSyncUser> preUserMap = preUserByTask.stream().collect(
                     Collectors.groupingBy(MarketingSyncUser::getCustNum
@@ -756,7 +770,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                             v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                     , Optional::get)));
 
-            for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+            for (MarketingTransferSyncUser transferFilterData : resultData) {
                 String custNum = transferFilterData.getCustNum();
                 String type = transferFilterData.getType();
                 String cell = "";
@@ -772,10 +786,11 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 sb.append("\r\n");
                 fw.append(sb.toString());
             }
+            totalSize = totalSize + resultData.size();
             dataFilter.clear();
+            resultData.clear();
             data.clear();
         }
-        int totalSize = custNumResult.size();
         custNumResult.clear();
         custNumFilterType.clear();
         TransferFileTask updatetask = new TransferFileTask();
@@ -825,7 +840,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
 
             if (dataFilter.size() <= 0) {
-                log.warn("宜信非实时数据提取-该批次无符合hist的数据,apiCode = {}", apiCode);
                 continue;
             }
 
@@ -870,11 +884,16 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
 
             if (resultFilter.size() <= 0) {
-                log.warn("宜信非实时数据提取-该批次无符合hist的数据,apiCode = {}", apiCode);
+               continue;
+            }
+
+            //剔除caseEffecctive=0的案件编号
+            List<MarketingTransferSyncUser> resultData = eliminateCaseEffective(tcId,resultFilter,apiCode);
+            if (resultData.size() <= 0) {
                 continue;
             }
 
-            for (MarketingTransferSyncUser transferFilterData : resultFilter) {
+            for (MarketingTransferSyncUser transferFilterData : resultData) {
                 String custNum = transferFilterData.getCustNum();
                 String type = transferFilterData.getType();
                 String cell = "";
@@ -891,8 +910,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 fw.append(sb.toString());
             }
             dataFilter.clear();
-            totalSize = totalSize + resultFilter.size();
+            totalSize = totalSize + resultData.size();
             resultFilter.clear();
+            resultData.clear();
             data.clear();
         }
         custNumResult.clear();
@@ -907,6 +927,23 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("宜信非实时数据提取(hist)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+    }
+
+    /**
+     * 剔除caseEffecctive=0的案件编号
+     * @param tcId
+     * @param dataFilter
+     * @param apiCode
+     * @return
+     */
+    private List<MarketingTransferSyncUser> eliminateCaseEffective(String tcId,List<MarketingTransferSyncUser> dataFilter, String apiCode) {
+        Set<String> set = dataFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingTransferSyncUser> resultFilter = marketingTransferSyncUserMapper.getByInCustAndCaseEffective(tcId,apiCode, set);
+        Set<String> custNumFilter = resultFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        //Map<String, MarketingTransferSyncUser> filterMap = resultFilter.stream().collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser -> MarketingTransferSyncUser));
+        //dataFilter.removeIf(data -> filterMap.containsKey(data.getCustNum()));
+        dataFilter.removeIf(data -> custNumFilter.contains(data.getCustNum()));
+        return dataFilter;
     }
 
     //=======================实时/非实时分隔线============================================================================================================
