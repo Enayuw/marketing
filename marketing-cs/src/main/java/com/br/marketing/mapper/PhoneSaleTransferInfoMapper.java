@@ -8,7 +8,7 @@ import java.util.Set;
 
 public interface PhoneSaleTransferInfoMapper extends PhoneSaleTransferInfoMapperBase {
 
-    void insertSelectiveBatch(@Param("list") List<PhoneSaleTransferInfo> list);
+    void insertBatch(@Param("list") List<PhoneSaleTransferInfo> list);
 
     /**
      * 获取案件编号集合

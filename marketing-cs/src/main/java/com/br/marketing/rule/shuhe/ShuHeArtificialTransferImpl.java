@@ -49,8 +49,8 @@ public class ShuHeArtificialTransferImpl implements AssembleData<DassAssembleTra
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
         DassAssembleTransferDataDTO transferDataDTO = new DassAssembleTransferDataDTO();
-        transferDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer));
         transferDataDTO.setDassTransferDataDTO(getDassTransferData(transfer, shuHeContext));
+        transferDataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendShuhe(transfer));
         return transferDataDTO;
     }
 

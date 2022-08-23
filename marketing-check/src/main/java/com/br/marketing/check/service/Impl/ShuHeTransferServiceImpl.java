@@ -215,7 +215,6 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         phoneSale.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         // 查询去重数据
         Set<String> custNumList = phoneSaleTransferInfoService.findCusaNumList(custNums, phoneSale);
-        List<PhoneSaleTransferInfo> phoneSaleList = new ArrayList<>();
         for (PhoneSaleExtendInfo info : listPage) {
             String custNum = info.getCustNum();
             // 判断有效期
@@ -232,15 +231,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
                 dataDTO.setOrgName(orgName);
                 dataDTO.setTransformStatus("1");
                 dto.setDassTransferDataDTO(dataDTO);
-                phoneSaleTransferInfoNew(phoneSaleList, apiCode, orgName, dataDTO.getTransformStatus()
+                phoneSaleTransferInfoNew(dto, apiCode, orgName, dataDTO.getTransformStatus()
                         , info.getId(), custNum, userType);
                 // 添加到去重集合
                 custNumList.add(custNum);
                 deDuplicationList.add(custNum);
             }
         }
-        // 批量保存推送记录
-        phoneSaleTransferInfoService.insertSelectiveBatch(phoneSaleList);
         transferData.addAll(invalidDataFilter(userType, value, startDateTimeStrT, endDateTimeStrT, ++pageNum
                 , syncUserDateTimeEnd, deDuplicationList));
         return transferData;
@@ -278,7 +275,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         return pCreateTime.isEqual(lastDate);
     }
 
-    private void phoneSaleTransferInfoNew(List<PhoneSaleTransferInfo> phoneSaleList, String apiCode
+    private void phoneSaleTransferInfoNew(DassAssembleTransferDataDTO dto, String apiCode
             , String orgName, String transformStatus, Long sourceId, String custNum, String userType) {
         PhoneSaleTransferInfo psti = new PhoneSaleTransferInfo();
         psti.setSourceId(sourceId);
@@ -291,7 +288,7 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         psti.setUserType(userType);
         psti.setUpdateTime(psti.getCreateTime());
         psti.setOrgName(orgName);
-        phoneSaleList.add(psti);
+        dto.setPhoneSaleTransferInfo(psti);
     }
 }
 
