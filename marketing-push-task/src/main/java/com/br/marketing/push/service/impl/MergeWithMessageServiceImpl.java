@@ -2,6 +2,7 @@ package com.br.marketing.push.service.impl;
 
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.DecodeClient;
+import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
@@ -47,6 +48,7 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipFile;
@@ -417,17 +419,21 @@ public class MergeWithMessageServiceImpl {
             for (String hxField : hxFields) {
                 Optional<Object> codeOpt = products.stream().filter(t -> hxField.toLowerCase().equals(((JSONObject) t).getString("code").toLowerCase())).findFirst();
                 MarketingCondition marketingCondition = new MarketingCondition();
+                marketingCondition.setFieldKey(hxField);
                 if (codeOpt.isPresent()) {
                     JSONObject jo = (JSONObject) codeOpt.get();
                     String code = jo.getString("code");
                     String version = jo.getString("version");
                     marketingCondition.setCode(code);
                     marketingCondition.setVersion(version);
-                    marketingCondition.setFieldKey(hxField);
                     marketingCondition.setDValue(StringUtils.isNotBlank(row.get(hxField)) ? Double.valueOf(row.get(hxField)) : 0);
                 } else {
-                    marketingCondition.setFieldKey(hxField);
-                    marketingCondition.setStrValue(row.get(hxField));
+                    String s = row.get(hxField);
+                    if (StringUtils.isNotBlank(s) && Pattern.compile(RegexConstants.Numeric).matcher(s).matches()) {
+                        marketingCondition.setDValue(Double.valueOf(s));
+                    } else {
+                        marketingCondition.setStrValue(s);
+                    }
                 }
                 conditions.add(marketingCondition);
             }

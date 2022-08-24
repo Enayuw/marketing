@@ -7,6 +7,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -232,9 +234,14 @@ public class ResultUtil {
                     marketingCondition.setStrValue("");
                     conditionList.add(marketingCondition);
                 } else {
+                    String strValue = esResult.getString(s);
                     MarketingCondition marketingConditionStr = new MarketingCondition();
                     marketingConditionStr.setFieldKey(s);
-                    marketingConditionStr.setStrValue(esResult.getString(s));
+                    if (StringUtils.isNotBlank(strValue) && Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
+                        marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
+                    } else {
+                        marketingConditionStr.setStrValue(esResult.getString(s));
+                    }
                     conditionList.add(marketingConditionStr);
                 }
             }
