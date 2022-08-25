@@ -429,10 +429,9 @@ public class MergeWithMessageServiceImpl {
                     marketingCondition.setDValue(StringUtils.isNotBlank(row.get(hxField)) ? Double.valueOf(row.get(hxField)) : 0);
                 } else {
                     String s = row.get(hxField);
+                    marketingCondition.setStrValue(s);
                     if (StringUtils.isNotBlank(s) && Pattern.compile(RegexConstants.Numeric).matcher(s).matches()) {
                         marketingCondition.setDValue(Double.valueOf(s));
-                    } else {
-                        marketingCondition.setStrValue(s);
                     }
                 }
                 conditions.add(marketingCondition);

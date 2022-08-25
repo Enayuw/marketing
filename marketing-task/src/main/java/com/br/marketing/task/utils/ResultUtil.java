@@ -237,10 +237,9 @@ public class ResultUtil {
                     String strValue = esResult.getString(s);
                     MarketingCondition marketingConditionStr = new MarketingCondition();
                     marketingConditionStr.setFieldKey(s);
+                    marketingConditionStr.setStrValue(esResult.getString(s));
                     if (StringUtils.isNotBlank(strValue) && Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
                         marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
-                    } else {
-                        marketingConditionStr.setStrValue(esResult.getString(s));
                     }
                     conditionList.add(marketingConditionStr);
                 }
