@@ -231,7 +231,7 @@ public class ResultUtil {
                     marketingCondition.setFlag(resultJson.get("flag_score") == null ? "" : resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
                     marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s)) ? 0 : Double.valueOf(esResult.getString(s)));
-                    marketingCondition.setStrValue("");
+                    marketingCondition.setStrValue(esResult.getString(s));
                     conditionList.add(marketingCondition);
                 } else {
                     String strValue = esResult.getString(s);

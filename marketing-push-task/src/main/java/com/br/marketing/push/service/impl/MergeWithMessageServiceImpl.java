@@ -420,16 +420,16 @@ public class MergeWithMessageServiceImpl {
                 Optional<Object> codeOpt = products.stream().filter(t -> hxField.toLowerCase().equals(((JSONObject) t).getString("code").toLowerCase())).findFirst();
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setFieldKey(hxField);
+                String s = row.get(hxField);
+                marketingCondition.setStrValue(s);
                 if (codeOpt.isPresent()) {
                     JSONObject jo = (JSONObject) codeOpt.get();
                     String code = jo.getString("code");
                     String version = jo.getString("version");
                     marketingCondition.setCode(code);
                     marketingCondition.setVersion(version);
-                    marketingCondition.setDValue(StringUtils.isNotBlank(row.get(hxField)) ? Double.valueOf(row.get(hxField)) : 0);
+                    marketingCondition.setDValue(StringUtils.isNotBlank(s) ? Double.valueOf(s) : 0);
                 } else {
-                    String s = row.get(hxField);
-                    marketingCondition.setStrValue(s);
                     if (StringUtils.isNotBlank(s) && Pattern.compile(RegexConstants.Numeric).matcher(s).matches()) {
                         marketingCondition.setDValue(Double.valueOf(s));
                     }
