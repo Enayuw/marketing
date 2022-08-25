@@ -444,12 +444,13 @@ public class MergeWithMessageServiceImpl {
                         || baseField.toLowerCase().equals("id")
                         || baseField.toLowerCase().equals("idcard")
                         || baseField.toLowerCase().equals("name")
-                        || baseField.toLowerCase().equals("taskid")) {
+                        || baseField.toLowerCase().equals("taskid")
+                        || baseField.toLowerCase().equals("usertype")) {
                     continue;
                 }
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setFieldKey(baseField);
-                marketingCondition.setStrValue(row.get(baseField));
+                marketingCondition.setStrValue(row.get(baseField.toLowerCase()));
                 conditions.add(marketingCondition);
             }
             //endregion
