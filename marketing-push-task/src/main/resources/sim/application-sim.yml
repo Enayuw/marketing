@@ -104,8 +104,8 @@ otherConfig:
         ftpBasePath: /dp_mkplat/
         ftpHost: 192.168.188.120
         ftpPort: 21
-        ftpUsername: Marketing
-        ftpPwd: PCIboXXw2+JeAozVbl1lxsG
+        ftpUsername: dp_mkplat_r
+        ftpPwd: 80uoC1ErhqdPyk9GTPNF
         sftpHost: brsftp.brapp.com
         sftpPort: 9999
         sftpUser: BRmarketing
