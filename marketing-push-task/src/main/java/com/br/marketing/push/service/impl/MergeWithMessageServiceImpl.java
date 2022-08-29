@@ -408,12 +408,7 @@ public class MergeWithMessageServiceImpl {
             history.setFileId(file.getId().toString());
             history.setReserveField("");
             history.setTaskId(row.get("taskid"));
-            if (row.containsKey("grouptype")) {
-                history.setUserType(row.get("grouptype"));
-            }
-            if (row.containsKey("usertype")) {
-                history.setUserType(row.get("usertype"));
-            }
+            history.setUserType(row.get("usertype"));
 
             //region hx字段
             for (String hxField : hxFields) {
