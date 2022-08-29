@@ -8,6 +8,7 @@ import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 
 import java.text.ParseException;
@@ -98,6 +99,9 @@ public class MergeWithMessageServiceImpl {
     @Autowired
     MarketingHistoryEsService marketingHistoryEsService;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     /**
      * 消费文件合并信息
      *
@@ -114,8 +118,10 @@ public class MergeWithMessageServiceImpl {
 
                 BeanUtils.copyProperties(straHisFile, loanFile);
                 loanFile.setCreateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()));
+                long start = System.currentTimeMillis();
                 String s = mergeService.mergeResultFile(loanFile, customer);
                 if (StringUtils.isNotBlank(s)) {
+                    log.warn(String.format("离线文件合并统计 文件id：%d,耗时：%d", fileId, System.currentTimeMillis() - start));
                     BeanUtils.copyProperties(loanFile, straHisFile);
                     straHisFile.setStatus(ScoreStatusEnum.OFFLINESFP.getValue());
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
@@ -209,8 +215,10 @@ public class MergeWithMessageServiceImpl {
             if (StringUtils.isBlank(s)) {
                 res = Boolean.TRUE;
             } else {
+                long start = System.currentTimeMillis();
                 Boolean aBoolean = fileAction(straHisFile, s);
                 if (aBoolean) {
+                    log.warn(String.format("离线文件解析入es统计 文件id：%d,耗时：%d", fileId, System.currentTimeMillis() - start));
                     upLoadSuccess(straHisFile);
                 }
             }
@@ -304,7 +312,9 @@ public class MergeWithMessageServiceImpl {
         } else {
             hxFields = new ArrayList<>();
         }
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        Integer offLineInserEsThreadNum = marketingCommonConfig.getOffLineInserEsThreadNum();
+        Integer threadNum = offLineInserEsThreadNum != null && offLineInserEsThreadNum > 0 ? offLineInserEsThreadNum : 50;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         for (File f : files) {
             try {
                 FileReader read = new FileReader(f);

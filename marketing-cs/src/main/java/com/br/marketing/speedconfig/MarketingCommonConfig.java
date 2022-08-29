@@ -246,4 +246,8 @@ public class MarketingCommonConfig {
      */
     private String PPDTransferFileExecuteTime;
 
+    /**
+     * 离线跑批入es文件 线程数
+     */
+    private Integer OffLineInserEsThreadNum;
 }
