@@ -5,6 +5,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.LoginReqObj;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.auth.MarketingUserInfo;
+import com.br.marketing.entity.auth.PasswordReq;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -69,4 +70,7 @@ public interface MarketingUserInfoService {
     MarketingUserInfo getById(Integer id);
 
     ApiResult<Boolean> updateMarketingUserInfoApiCodes(MarketingUserInfo marketingUserInfo);
+
+
+    ApiResult<Boolean> updatePassword(PasswordReq passwordReq);
 }

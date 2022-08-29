@@ -80,6 +80,8 @@ public class MarketingUserInfo {
 
     private List<Map<String, Object>> roles;
 
+    private Integer passwordEditFlag;
+
     public MarketingUserInfo(MarketingUserInfo ucUser) {
         this.id = ucUser.getId();
         this.password = ucUser.getPassword();
@@ -221,5 +223,13 @@ public class MarketingUserInfo {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getPasswordEditFlag() {
+        return passwordEditFlag;
+    }
+
+    public void setPasswordEditFlag(Integer passwordEditFlag) {
+        this.passwordEditFlag = passwordEditFlag;
     }
 }

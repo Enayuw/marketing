@@ -3,9 +3,14 @@ package com.br.marketing.innerapi.controller.auth;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.auth.LoginReqObj;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.entity.auth.MarketingUserInfo;
+import com.br.marketing.entity.auth.PasswordReq;
 import com.br.marketing.service.auth.MarketingUserInfoService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +37,13 @@ public class MarketingAuthController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
         return marketingUserInfoService.login(request,reqObj);
+    }
+    @PostMapping("/updatePassword")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<Boolean> updatePassword(HttpServletRequest request, PasswordReq passwordReq) {
+        return  marketingUserInfoService.updatePassword(passwordReq);
+
+
     }
     /**
      * 获取用户信息

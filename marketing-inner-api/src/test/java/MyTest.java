@@ -1,10 +1,12 @@
 
+import com.br.common.encryption.Sm3Util;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -146,5 +148,10 @@ public class MyTest {
         System.out.println("输出2："+containsb+"ceshi:"+a % 2);
         boolean containsc = objects.contains(b % 2);
         System.out.println("输出3："+containsc+"ceshi:"+a % 2);
+    }
+    @Test
+    public void testSm3() throws IOException {
+        String sm3Value = Sm3Util.getSM3Value("9898");
+        System.out.println(sm3Value);
     }
 }
