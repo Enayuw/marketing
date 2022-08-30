@@ -32,6 +32,7 @@
     <result column="cycle_day" property="cycleDay" jdbcType="VARCHAR" />
     <result column="start_time" property="startTime" jdbcType="VARCHAR" />
     <result column="priority" property="priority" jdbcType="INTEGER" />
+    <result column="is_online" property="isOnline" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -96,7 +97,7 @@
     frequency, create_time, update_time, monitor_status, status, task_number, actual_number, 
     strategy_name, close_date, start_date, error_message, cus_batch, monitor_type, increment, 
     monitor_model, is_check, is_repair, context_id, task_type, cycle_day, start_time, 
-    priority
+    priority, is_online
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExample" >
     select
@@ -141,7 +142,8 @@
       cus_batch, monitor_type, increment, 
       monitor_model, is_check, is_repair, 
       context_id, task_type, cycle_day, 
-      start_time, priority)
+      start_time, priority, is_online
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
       #{fileId,jdbcType=INTEGER}, #{requestCode,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{productInfo,jdbcType=VARCHAR}, #{frequency,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
@@ -151,7 +153,8 @@
       #{cusBatch,jdbcType=VARCHAR}, #{monitorType,jdbcType=INTEGER}, #{increment,jdbcType=INTEGER}, 
       #{monitorModel,jdbcType=INTEGER}, #{isCheck,jdbcType=INTEGER}, #{isRepair,jdbcType=INTEGER}, 
       #{contextId,jdbcType=BIGINT}, #{taskType,jdbcType=INTEGER}, #{cycleDay,jdbcType=VARCHAR}, 
-      #{startTime,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER})
+      #{startTime,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{isOnline,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -246,6 +249,9 @@
       <if test="priority != null" >
         priority,
       </if>
+      <if test="isOnline != null" >
+        is_online,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -334,6 +340,9 @@
       </if>
       <if test="priority != null" >
         #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="isOnline != null" >
+        #{isOnline,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -436,6 +445,9 @@
       <if test="record.priority != null" >
         priority = #{record.priority,jdbcType=INTEGER},
       </if>
+      <if test="record.isOnline != null" >
+        is_online = #{record.isOnline,jdbcType=INTEGER},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -472,7 +484,8 @@
       task_type = #{record.taskType,jdbcType=INTEGER},
       cycle_day = #{record.cycleDay,jdbcType=VARCHAR},
       start_time = #{record.startTime,jdbcType=VARCHAR},
-      priority = #{record.priority,jdbcType=INTEGER}
+      priority = #{record.priority,jdbcType=INTEGER},
+      is_online = #{record.isOnline,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -567,6 +580,9 @@
       <if test="priority != null" >
         priority = #{priority,jdbcType=INTEGER},
       </if>
+      <if test="isOnline != null" >
+        is_online = #{isOnline,jdbcType=INTEGER},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -600,7 +616,8 @@
       task_type = #{taskType,jdbcType=INTEGER},
       cycle_day = #{cycleDay,jdbcType=VARCHAR},
       start_time = #{startTime,jdbcType=VARCHAR},
-      priority = #{priority,jdbcType=INTEGER}
+      priority = #{priority,jdbcType=INTEGER},
+      is_online = #{isOnline,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

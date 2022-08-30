@@ -251,4 +251,8 @@ public class MarketingCommonConfig {
      */
     private Boolean checkJobOnlineSwitch;
 
+    /**
+     * 离线跑批入es文件 线程数
+     */
+    private Integer OffLineInserEsThreadNum;
 }

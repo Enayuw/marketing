@@ -101,6 +101,18 @@ public class TaskServiceImpl implements ITaskService {
         }
     }
 
+    /**
+     *
+     * @param nowDay
+     * @param taskId 任务id
+     * @param isTimeLimit 是否筛选运行时间（HH:mm）小于等于当前时间的任务 null-不筛选；有值则筛选；
+     * @return
+     *
+     * 1、从zk中获取当前所有正在运行的线程数量
+     * 2、给获取到的任务 加锁
+     *  2.1、判断 跑分记录表中的状态 是否未跑过，存在的话是否是中断状态
+     *  2.2、移除锁状态
+     */
     @Override
     public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit) {
         Integer resource = 0;
@@ -178,6 +190,7 @@ public class TaskServiceImpl implements ITaskService {
      */
     private Result<TaskStatus> canScore(MarketingTask task, String nowDay) {
 
+        //一次行跑分、规则验证、离线跑批 都判断状态表种的 oncestatus状态来判定任务是否已经跑过
         if (1 == task.getMonitorType()||2==task.getMonitorType()) {
             //region 一次性跑分
             TaskStatusExample statusExample = new TaskStatusExample();

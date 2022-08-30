@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.ScoreRuleConfig;
@@ -64,5 +65,5 @@ public interface MarketingTaskService {
 
     void saveScoreResult(MarketingTaskResultPreview preview);
 
-
+    Result offLineCallBack(@Valid OffLineCallBackDTO dto);
 }

@@ -13,6 +13,7 @@
         , src.cycle_end_day as cycleEndDay
         , src.task_type as taskType
         , src.product_info as productInfo
+        , src.is_online as isOnline
         , bmc.cid
         , bmc.api_code
         , case src.status

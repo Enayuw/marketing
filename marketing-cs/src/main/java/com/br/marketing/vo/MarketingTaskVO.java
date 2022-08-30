@@ -1,5 +1,6 @@
 package com.br.marketing.vo;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -122,4 +123,6 @@ public class MarketingTaskVO {
 
     private String batchNumber;
 
+    @ApiModelProperty(value = "")
+    private Integer isOnline;
 }
