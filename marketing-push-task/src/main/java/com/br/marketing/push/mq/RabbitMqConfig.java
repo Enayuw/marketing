@@ -84,7 +84,7 @@ public class RabbitMqConfig {
 
     @Bean(name = "bindingFileMergeDelayQueue")
     public Binding bindingFileMergeDelayQueue() {
-        return BindingBuilder.bind(customerFileMergeDelayQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
+        return BindingBuilder.bind(customerFileMergeDelayQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY);
     }
 
 
