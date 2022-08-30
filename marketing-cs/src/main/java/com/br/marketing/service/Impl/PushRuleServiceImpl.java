@@ -946,9 +946,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
         Date nowData2 = new Date();
+        Boolean status = Boolean.TRUE;
         if (errorSize == 0) {
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
         } else if (errorSize == futures.size()) {
+            status = Boolean.FALSE;
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
             MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
@@ -972,6 +974,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         marketingSyncInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
+        }
+        List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
+        if(status&&initDataPushApiCode.contains(apiCode)){
+            MqFact mqFact = new MqFact();
+            mqFact.setSourceId(infoId);
+            mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
         }
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {

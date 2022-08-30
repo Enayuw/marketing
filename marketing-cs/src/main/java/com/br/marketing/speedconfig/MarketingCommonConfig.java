@@ -251,4 +251,9 @@ public class MarketingCommonConfig {
      */
     private Boolean checkJobOnlineSwitch;
 
+    /**
+     * 原始数据流转至规则的apicode集合
+     */
+    private List<String> initDataPushRule;
+
 }
