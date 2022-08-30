@@ -251,4 +251,9 @@ public class MarketingCommonConfig {
      */
     private Boolean checkJobOnlineSwitch;
 
+    /**
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     */
+    private String tongChengPeriodOfValidityDay;
+
 }
