@@ -242,10 +242,12 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         marketingUserInfoExample.createCriteria().andUserNameEqualTo(passwordReq.getUsername()).andStatusEqualTo(1);
         MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
         if (StringUtils.isNotBlank(passwordReq.getNewPassword()) && StringUtils.isNotBlank(passwordReq.getOldPassword())) {
-            if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword())) {
-                return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_PASSWD_ERROR);
-            }
+            // 老数据为md5
+            //if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword())) {
+            //    return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_PASSWD_ERROR);
+            //}
             marketingUserInfo.setPassword(passwordReq.getNewPassword());
+            marketingUserInfo.setPasswordEditFlag(1);
             return updateMarketingUserPassword(marketingUserInfo);
         }
         return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
