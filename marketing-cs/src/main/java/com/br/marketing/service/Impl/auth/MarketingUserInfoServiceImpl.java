@@ -107,7 +107,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      */
     private static String getSecPass(String username, String password, String captcha) {
         try {
-            return Sm3Util.getSM3Value(Sm3Util.getSM3Value(username + password) + captcha);
+            return Sm3Util.getSM3Value(Sm3Util.getSM3Value(username + password).toLowerCase() + captcha).toLowerCase();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
