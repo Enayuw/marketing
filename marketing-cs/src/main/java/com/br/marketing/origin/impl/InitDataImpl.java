@@ -2,6 +2,7 @@ package com.br.marketing.origin.impl;
 
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncInfo;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
@@ -9,6 +10,7 @@ import com.br.marketing.origin.TransferSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,10 +24,13 @@ public class InitDataImpl implements OriginDataService {
         Long infoId = mqFact.getSourceId();
         MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.selectByPrimaryKey(infoId);
         if(marketingSyncInfo == null){
-
+            return new ArrayList<>();
         }
-
-        return null;
+        context.setApiCode(marketingSyncInfo.getApiCode());
+        context.setTransferInfoId(infoId);
+        context.setMqFact(mqFact);
+        List<MarketingSyncUser> vaildUserByRequestId = marketingSyncInfoMapper.getVaildUserByRequestId(marketingSyncInfo.getApiCode(), marketingSyncInfo.getRequestBatch());
+        return new ArrayList<>(vaildUserByRequestId);
     }
 
     @Override

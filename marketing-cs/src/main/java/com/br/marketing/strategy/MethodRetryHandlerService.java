@@ -11,6 +11,9 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDT
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -31,9 +34,11 @@ import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -92,6 +97,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
+
+    @Autowired
+    IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     /**
      * 全局重试任务执行类
@@ -261,7 +269,25 @@ public class MethodRetryHandlerService {
         }
         log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
-
+    /**
+     * 推送决策接口
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
+    public Result callPolicyData(PolicyRetryByRuleDTO dto,Integer retry){
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        Long infoId = dto.getInfoId();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(),infoId);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 }

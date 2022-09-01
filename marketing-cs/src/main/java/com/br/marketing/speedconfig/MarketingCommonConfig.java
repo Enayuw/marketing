@@ -256,4 +256,10 @@ public class MarketingCommonConfig {
      */
     private List<String> initDataPushRule;
 
+    /**
+     * 原始上传数据推送决策 手机号加密类型{"7410437":1}
+     * 1-md5;2-sha256;
+     */
+    private HashMap<String,Integer> pushCellEncPolicy;
+
 }

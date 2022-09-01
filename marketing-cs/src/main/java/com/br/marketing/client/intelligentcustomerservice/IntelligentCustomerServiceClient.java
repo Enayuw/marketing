@@ -3,21 +3,26 @@ package com.br.marketing.client.intelligentcustomerservice;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
+import com.br.marketing.mapper.InterfaceLogMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.util.Date;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class IntelligentCustomerServiceClient {
@@ -36,35 +41,42 @@ public class IntelligentCustomerServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
+    @Resource
+    InterfaceLogMapper interfaceLogMapper;
 
-    public Result<Integer> pushUser(PushMarketingUserDTO dto,Long mId,String pushBatch,Integer pushNum){
+    @Qualifier("interfaceLogDbpool")
+    @Autowired
+    ThreadPoolExecutor interfaceLogDbpool;
+
+
+    public Result<Integer> pushUser(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
         dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
         log.setmId(mId);
         log.setBatch(pushBatch);
         String s = JSON.toJSONString(dto);
-        log.setParam(s.length()>4999?s.substring(0,4999):s);
+        log.setParam(s.length() > 4999 ? s.substring(0, 4999) : s);
 //        log.setParam(s);
         log.setPushNum(pushNum);
 //        log.setParam("");
-        try{
+        try {
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
-            log.setResultContent(transfer.getResult().length()>4999?transfer.getResult().substring(0,4999):transfer.getResult());
+            log.setResultContent(transfer.getResult().length() > 4999 ? transfer.getResult().substring(0, 4999) : transfer.getResult());
             log.setHttpStatus(String.valueOf(transfer.getHttpCode()));
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             log.setCode(jsonObject.getString("code"));
-            if(transfer.getHttpCode()!=200){
-                throw new RuntimeException(String.format("接口状态返回非200 是%d",transfer.getHttpCode()));
+            if (transfer.getHttpCode() != 200) {
+                throw new RuntimeException(String.format("接口状态返回非200 是%d", transfer.getHttpCode()));
             }
-            if("00".equals(jsonObject.getString("code"))){
+            if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
-            }else{
+            } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.setErrorContent(ex.getMessage());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
@@ -73,22 +85,39 @@ public class IntelligentCustomerServiceClient {
         return result;
     }
 
+    public Result pushUser(PushMarketingUserDTO dto) {
+        Result result = new Result();
+        dto.setPlatApiCode(customerServiceApiCode);
+        ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
+                .setUrl(pushUrl).setContentType(MediaType.APPLICATION_FORM_URLENCODED).setRequestParam(dto).postTransferStr();
+        JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+        if (transfer.getHttpCode() != 200) {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            return result;
+        }
+        if ("00".equals(jsonObject.getString("code"))) {
+            result.setCode(ResultCode.SUCCESS.getValue());
+        } else {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+        }
+        return result;
+    }
 
-    public Result<String> getUserStatus(PushMarketingUserDTO dto){
+    public Result<String> getUserStatus(PushMarketingUserDTO dto) {
         dto.setPlatApiCode(customerServiceApiCode);
         Result<String> result = new Result();
-        try{
+        try {
             ThirdApiResultTransfer transfer = new ApiCaller().setUrl(pushUrl)
                     .setContentType(MediaType.MULTIPART_FORM_DATA)
                     .setRequestParam(dto).postTransferStr();
-            if(transfer.getHttpCode() != 200){
+            if (transfer.getHttpCode() != 200) {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
-            }else {
+            } else {
                 JSONObject jsonObject = JSON.parseObject(transfer.getResult());
                 result.setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject.getString("code"));
                 result.setMessage(jsonObject.getString("data"));
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
         return result;

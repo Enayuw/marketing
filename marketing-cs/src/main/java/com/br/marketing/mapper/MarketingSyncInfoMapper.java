@@ -60,10 +60,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("whereStr") String whereStr);
 
     List<MarketingSyncUser> selectDataRuleScoreWithDate(@Param("apiCode") String apiCode
-            , @Param("whereStr") String whereStr,@Param("id") Long id,@Param("pageSize") Integer pageSize);
+            , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize);
 
     List<MarketingSyncUser> selectDataRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
-            , @Param("whereStr") String whereStr,@Param("id") Long id,@Param("pageSize") Integer pageSize);
+            , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize);
 
     Long getMaxIdByRuleScore(@Param("apiCode") String apiCode
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr
@@ -172,22 +172,25 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     @MapKey("custNum,creatTime,taskId")
     List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(@Param("apiCode") String apiCode
             , @Param("custNums") Set<String> custNums, @Param("userType") String userType);
+
     /**
      * 获取cust_num notLike upload的最新数据的taskId
+     *
      * @param apiCode
      * @param custNum
      * @return
      */
-    String getTaskIdByCustNumNotLikeUpload(@Param("apiCode")String apiCode, @Param("custNum")String custNum);
+    String getTaskIdByCustNumNotLikeUpload(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
 
+    MarketingSyncUser getMarketingSyncMaxIdByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
-    MarketingSyncUser getMarketingSyncMaxIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
-    MarketingSyncUser getMarketingSyncMinIdByAppletDate(@Param("apiCode")String apiCode,@Param("appletDate")String appletDate);
-    List<MarketingSyncUser> getByMaxIdAndMinId(@Param("apiCode")String apiCode,@Param("beginId")Long beginId,@Param("endIdLe")Long endIdLe);
+    MarketingSyncUser getMarketingSyncMinIdByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
+
+    List<MarketingSyncUser> getByMaxIdAndMinId(@Param("apiCode") String apiCode, @Param("beginId") Long beginId, @Param("endIdLe") Long endIdLe);
 
 
-    MarketingSyncUser getCellFromCurrent(@Param("apiCode")String apiCode,@Param("custNum")String custNum);
+    MarketingSyncUser getCellFromCurrent(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
 
     int updateBySyncHaLuo(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
@@ -195,8 +198,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
                           @Param("id") Long id);
 
     int updateBySyncHaLuoRemark(@Param("marketingSync") MarketingSyncUser marketingSyncUser,
-                          @Param("apiCode") String apiCode,
-                          @Param("id") Long id);
+                                @Param("apiCode") String apiCode,
+                                @Param("id") Long id);
 
     int selectCountError(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
@@ -217,5 +220,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * @return
      */
     MarketingSyncUser getNewestPreUserByCellAndStatus(@Param("apiCode") String apiCode, @Param("cell") String cell);
+
+    List<MarketingSyncUser> getVaildUserByRequestId(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
 
 }

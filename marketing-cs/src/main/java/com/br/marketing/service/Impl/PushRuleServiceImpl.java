@@ -458,7 +458,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(encrgyTypes.stream().findFirst().get());
     }
 
-    private String encrypt3k(Integer type, String content) {
+    public String encrypt3k(Integer type, String content) {
         if (com.br.marketing.common.utils.StringUtils.isBlank(content)) {
             return "";
         }
