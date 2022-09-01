@@ -44,7 +44,7 @@ public class TongChengCollectDataImpl extends CommonMethodHandlerService {
     @Data
     public class TongChengRuleNecessaryData extends RuleNecessaryData {
         /**
-         * 海尔客服转化所需信息
+         * 同程金融转化所需信息
          */
         private Map<String, MarketingSyncUser> customerMap;
     }
