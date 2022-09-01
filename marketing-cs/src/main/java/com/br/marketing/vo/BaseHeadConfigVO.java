@@ -15,6 +15,15 @@ import java.util.List;
 @Data
 public class BaseHeadConfigVO {
 
+
+    public BaseHeadConfigVO() {
+    }
+
+    public BaseHeadConfigVO(List<String> showBaseHead, List<BaseHead> baseHead) {
+        this.showBaseHead = showBaseHead;
+        this.baseHead = baseHead;
+    }
+
     /**
      * 展示字段列表
      */

@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.MarketingTaskExtendService;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductResultByConfigSimpleServiceImpl implements IProductResultSimpleService {
@@ -329,26 +331,56 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
+    public void offLineHeadComplete(List<String> showHeads, List<BaseHead> heads) {
+        if (!showHeads.contains("name")) {
+            showHeads.add(0, "name");
+            if(heads !=null){
+                heads.add(0,new BaseHead().setName("name").setType(1).setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue()));
+            }
+        }
+        if (!showHeads.contains("id") && !showHeads.contains("idcard")) {
+            showHeads.add(0, "id");
+            if(heads !=null) {
+                heads.add(0,new BaseHead().setName("id").setType(1).setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue()));
+            }
+        }
+        if (!showHeads.contains("cell")) {
+            showHeads.add(0, "cell");
+            if(heads !=null) {
+                heads.add(0,new BaseHead().setName("cell").setType(1).setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue()));
+            }
+        }
+    }
+
+    @Override
     public void initHead(StringBuilder head, String sep, MarketingTask task) {
+
+        boolean isOffLine = new Integer(2).equals(task.getIsOnline());
 
         Result<String> baseHeadInfoByTaskId = getCurrentBaseHeadInfoByTaskId(Long.valueOf(task.getId().toString()));
         String baseHeadInfo = "";
         if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
             baseHeadInfo = baseHeadInfoByTaskId.getData();
         }
-        String dataInfo = "";
-        Integer taskType=task.getTaskType();
-        if(taskType.compareTo(new Integer(0))==0 ||taskType.compareTo(new Integer(2))==0 ){
-            Result<String> fieldsInfo = getFieldsStrInfo(task.getApiCode(),task.getBatchNumber());
-            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
-                dataInfo = fieldsInfo.getData();
-            }
+        if(isOffLine){
+            List<String> heads = Arrays.stream(baseHeadInfo.split(",")).collect(Collectors.toList());
+            offLineHeadComplete(heads,null);
+            baseHeadInfo = Joiner.on(",").join(heads);
         }
 
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
                 .append(sep).append("strategy_id").append(sep).append("version").append(sep);
         if(StringUtils.isNotBlank(baseHeadInfo.trim())){
             head.append(baseHeadInfo).append(sep);
+        }
+        String dataInfo = "";
+        Integer taskType=task.getTaskType();
+        if((taskType.compareTo(new Integer(0))==0 ||taskType.compareTo(new Integer(2))==0)
+                && !isOffLine){
+            Result<String> fieldsInfo = getFieldsStrInfo(task.getApiCode(),task.getBatchNumber());
+            if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
+                dataInfo = fieldsInfo.getData();
+            }
         }
         if(StringUtils.isNotBlank(dataInfo)){
             head.append(dataInfo).append(sep);

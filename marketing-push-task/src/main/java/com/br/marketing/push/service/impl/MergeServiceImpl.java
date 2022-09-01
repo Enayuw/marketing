@@ -14,6 +14,7 @@ import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusDistributeMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
@@ -21,6 +22,7 @@ import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.service.MarketingSepService;
 import com.br.marketing.vo.ConfigByApiCodeVO;
+import com.google.common.base.Joiner;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -120,13 +123,14 @@ public class MergeServiceImpl implements MergeService {
      * @param blf
      * @return
      */
-    private String mergeResultFile(LoanFile blf,Customer customer){
+    public String mergeResultFile(LoanFile blf,Customer customer){
         String zipFile="";
         try{
             StringBuilder targetPath=new StringBuilder();
             targetPath.append(blf.getFilePath())
                     .append("/");
             MarketingTask blt = marketingTaskMapper.queryBlt(blf.getBatchNumber());
+            Boolean isOffLine = new Integer(2).equals(blt.getIsOnline());
             String s ="";
             if(blt==null){
                 log.error("不存在的批次：{}",blf);
@@ -148,8 +152,8 @@ public class MergeServiceImpl implements MergeService {
             StringBuilder head= new StringBuilder();
             String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
             iProductResultSimpleService.initHead(head,separator,blt);
-            Integer fileNum = 30000000;
-            if(StringUtils.isNotBlank(customer.getExtendConfigInfo())){
+            Integer fileNum = isOffLine?300000000:30000000;
+            if(!isOffLine&&StringUtils.isNotBlank(customer.getExtendConfigInfo())){
                 try {
                     JSONObject extendJb = JSON.parseObject(customer.getExtendConfigInfo());
                     Integer fileNum1 = extendJb.getInteger("fileNum");
@@ -163,17 +167,24 @@ public class MergeServiceImpl implements MergeService {
             List<String> paths = FileUtil.mergeAll(head.toString(), filePathAndName, targetPath.toString(), separator, fileNum);
             zipFile = filePathAndName.replace(".txt", ".zip");
             Integer total = 0;
+            List<String> names = new ArrayList<>();
             for (String path1 : paths) {
+                String[] split = path1.split("\\/");
+                String name = split[split.length - 1];
+                names.add(name);
                 total +=MyFileUtil.getTotalLines(new File(path1))-1;
             }
             blf.setActualNum(total);
-
-            Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
-            if(new Integer(1).equals(customer.getPushCustomer())){
+            blf.setFileName(Joiner.on(",").join(names));
+//            Result<ConfigByApiCodeVO> configByApiCode = iProductResultSimpleService.getConfigByApiCode(customer.getApiCode());
+            if(new Integer(1).equals(customer.getPushCustomer())&&!isOffLine){
                 blf.setScoreStatus(2);
             }
-            if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
-            &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
+            if(!isOffLine){
+                ZipUtil.compress(zipFile,paths);
+            }
+//            if(ResultCode.SUCCESS.getValue().equals(configByApiCode.getCode())
+//            &&new Integer(1).equals(configByApiCode.getData().getIsFast())){
 //                ArrayList<String> countFileNameList =standard(filePathAndName,separator,total);
 //
 //                //统计文件上传fastdfs
@@ -181,9 +192,9 @@ public class MergeServiceImpl implements MergeService {
 //
 //                countFileNameList.add(filePathAndName);
 //                ZipUtil.compress(zipFile,countFileNameList);
-            }else {
-                ZipUtil.compress(zipFile,paths);
-            }
+//            }else {
+//                ZipUtil.compress(zipFile,paths);
+//            }
 
         }catch (Exception e){
             log.error("合并文件出错",e);
@@ -192,6 +203,7 @@ public class MergeServiceImpl implements MergeService {
         }
         return zipFile;
     }
+
     private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf,String fileName){
         try{
             fileName=fileName.replace(".txt",".zip");

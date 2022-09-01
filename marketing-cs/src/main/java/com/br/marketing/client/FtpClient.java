@@ -167,6 +167,41 @@ public class FtpClient extends BaseFtpClient {
     }
 
     @Override
+    public void uploadFileAndMk(InputStream inputStream, String path, String fileName) throws Exception {
+        try {
+            String tempPath = "";
+            if(!ftp.changeWorkingDirectory(path)){
+                String[] dirs = path.split("/");
+                for (String dir : dirs) {
+                    if (null == dir || "".equals(dir)) {
+                        continue;
+                    }
+                    tempPath += "/" + dir;
+                    if (!ftp.changeWorkingDirectory(tempPath)) {  //进不去目录，说明该目录不存在
+                        if (!ftp.makeDirectory(tempPath)) { //创建目录
+                            //如果创建文件目录失败，则返回
+                            throw new RuntimeException("创建目录失败 路径为："+tempPath);
+                        } else {
+                            //目录存在，则直接进入该目录
+                            ftp.changeWorkingDirectory(tempPath);
+                        }
+                    }
+                }
+            }else{
+                tempPath = path;
+            }
+            if (!tempPath.endsWith("/")) {
+                tempPath = tempPath.concat("/");
+            }
+            if (!ftp.storeFile(tempPath+fileName, inputStream)) {
+                throw new IOException("Can't upload file '" + fileName + "' to FTP server. Check FTP permissions and path.");
+            }
+        } finally {
+            closeStream(inputStream);
+        }
+    }
+
+    @Override
     public void mkdir(String realTargetPath) throws IOException {
         log.info("ftp mkdir {}", realTargetPath);
         String[] split = realTargetPath.split("/");

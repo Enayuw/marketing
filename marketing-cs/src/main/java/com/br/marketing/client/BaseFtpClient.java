@@ -3,6 +3,7 @@ import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.SyncConfig;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**ftp客户端
@@ -70,6 +71,8 @@ public abstract class BaseFtpClient {
      * @throws Exception
      */
     public abstract void uploadFile(InputStream inputStream,String path,String fileName)throws Exception;
+
+    public abstract void uploadFileAndMk(InputStream inputStream,String path,String fileName) throws Exception;
 
     public abstract void mkdir(String realTargetPath) throws Exception;
 }

@@ -95,7 +95,7 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "周期结束天数", dataType = "string", position = 12)
     private String cycleEndDay;
 
-    @ApiModelProperty(value = "跑分类型 如果不跑分 该值传1", dataType = "integer", position = 13)
+    @ApiModelProperty(value = "跑分类型 如果不跑分0-策略跑分；1-数据透析；2-产品跑分", dataType = "integer", position = 13)
     private Integer taskType;
 
     @ApiModelProperty(value = "产品信息", dataType = "string", position = 14)
@@ -103,6 +103,9 @@ public class ScoreRuleVO implements Serializable {
 
     @ApiModelProperty(value = "3k值加密方式 0-不加密；1-md5；2-sha256", dataType = "string", position = 15)
     private Integer threekEncryptType;
+
+    @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 15)
+    private Integer isOnline;
 
     public ScoreRuleVO() {
     }

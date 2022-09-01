@@ -35,12 +35,21 @@ otherConfig:
   userCenter:
         appName: loan-strategy
         appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/warning
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix
-        ftpHost: 192.168.23.34
+        ftpBasePath: /dp_mkplat/
+        ftpHost: 10.100.123.34
         ftpPort: 21
-        ftpUsername: lsyj_r
-        ftpPwd: 05@LWmvrp
+        ftpUsername: Marketing
+        ftpPwd: yPcxugMgQChJovqtGfqFUuBUA==
+api:
+  bi:
+    baseUrl: http://script-govern-pre.100credit.cn
+    executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
+    token: a3a6958c84454ddbaf3b6bd9650a20be

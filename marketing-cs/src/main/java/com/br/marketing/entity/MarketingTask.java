@@ -140,6 +140,11 @@ public class MarketingTask {
      */
     private Integer statusId;
 
+    /**
+     * 是否线上跑分1-线上；2-离线
+     */
+    private Integer isOnline;
+
     @Override
     public String toString() {
         return "LoanTask{" +
@@ -186,6 +191,7 @@ public class MarketingTask {
                 ", priority=" + priority +
                 ", requestCode=" + requestCode +
                 ", statusId=" + statusId +
+                ", isOnline=" + isOnline +
                 '}';
     }
 }

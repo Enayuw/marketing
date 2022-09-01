@@ -88,14 +88,14 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman_01
+      virtual-host: marketing_juman
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman_01
+      virtual-host: marketing_juman
     secondary:
       addresses: 192.168.21.96:5672,192.168.21.97:5672
       username: rabbitmq
@@ -155,6 +155,9 @@ api:
   productManagement:
     url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
     productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
+  bi:
+    baseUrl: http://script-govern-pre.100credit.cn
+    executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
