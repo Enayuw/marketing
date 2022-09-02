@@ -872,34 +872,45 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return;
         }
         MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+        CaseShuheUploadData record = new CaseShuheUploadData();
+        record.setId(shuheUploadData.getId());
+        record.setRequestId(shuheUploadData.getRequestId());
+        syncInfo.setApiCode(shuheUploadData.getApiCode());
+        syncInfo.setCusBatch(userDTO.getTaskId());
+        syncInfo.setRequestBatch(userDTO.getRequestId());
+        syncInfo.setLast((byte) 0);
+        syncInfo.setTotal(0L);
+        syncInfo.setCreateTime(new Date());
+        syncInfo.setActualNum(userDTO.getDataItems().size());
         try {
-            syncInfo.setApiCode(shuheUploadData.getApiCode());
-            syncInfo.setCusBatch(userDTO.getTaskId());
-            syncInfo.setRequestBatch(userDTO.getRequestId());
-            syncInfo.setLast((byte) 0);
-            syncInfo.setTotal(0L);
-            syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
                     , SerializerFeature.WriteNullListAsEmpty));
-            syncInfo.setActualNum(userDTO.getDataItems().size());
-            CaseShuheUploadData record = new CaseShuheUploadData();
-            record.setId(shuheUploadData.getId());
-            record.setRequestId(shuheUploadData.getRequestId());
             int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             if (i == 1 && syncInfo.getId() != null) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
+                try {
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
+                } catch (Exception e) {
+                    record.setSaveInfoStatus(2);
+                    log.error(e.getMessage(), e);
+                }
             } else {
                 record.setSaveInfoStatus(1);
             }
-            int u = caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
-            if (u != 1) {
-                String mgs = "数禾上传数据前置表更新信息失败";
-                BusinessException exception = new BusinessException(mgs);
-                exception.setExceptionMessage(mgs);
-                throw exception;
-            }
         } catch (Exception e) {
+            record.setSaveInfoStatus(1);
             log.error(e.getMessage(), e);
+        } finally {
+            try {
+                int u = caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
+                if (u != 1) {
+                    String mgs = "数禾上传数据前置表更新信息失败";
+                    BusinessException exception = new BusinessException(mgs);
+                    exception.setExceptionMessage(mgs);
+                    throw exception;
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 
