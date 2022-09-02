@@ -13,7 +13,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
-import com.br.marketing.service.IPushShuheTransferDataService;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -42,7 +42,7 @@ public class MarketingTransferDataController {
     PushRuleService pushRuleService;
 
     @Resource
-    private IPushShuheTransferDataService iPushShuheTransferDataService;
+    private IPushShuheDataService iPushShuheDataService;
 
 
     /**
@@ -103,7 +103,7 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return iPushShuheTransferDataService.saveShuheTransferData(apiCode, jsonData);
+        return iPushShuheDataService.saveShuheTransferData(apiCode, jsonData);
     }
 
 
