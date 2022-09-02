@@ -886,7 +886,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             record.setId(shuheUploadData.getId());
             record.setRequestId(shuheUploadData.getRequestId());
             int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
-            if (i != 1) {
+            if (i == 1 && syncInfo.getId() != null) {
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
+            } else {
                 record.setSaveInfoStatus(1);
             }
             int u = caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
