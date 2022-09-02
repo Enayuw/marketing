@@ -50,4 +50,12 @@ public class RedisKeyConstant {
     public static final String transferRuleCondition = prefix.concat("scorecondition");
 
     public static final String conditionNumber = prefix.concat("conditionnumber");
+
+    /**
+     * 2022/9/1 17:02
+     * 数禾订制上传接口，字段缓存key
+     */
+    public static final String shuHeUploadDataFieldKey = prefix.concat("shuhe:uploaddata:field");
+
+
 }
