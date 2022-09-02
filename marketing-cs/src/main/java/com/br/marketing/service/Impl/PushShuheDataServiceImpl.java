@@ -745,6 +745,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public ResponseCustomDTO saveUploadData(String apiCode, String jsonData) {
+        // TODO: 2022/9/2 需要删除 
+        log.warn("apiCode:{}\njsonData:{}", apiCode, jsonData);
         CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
         shuheUploadData.setJsonData(jsonData);
         shuheUploadData.setUploadDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -979,6 +981,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                                 .concat(fieldStr.toString().replace(separator, "\n"))
                                 .concat("\n请及时与客户沟通^_^")
                         , appName, secretKey, alarmClient);
+                // TODO: 2022/9/2 需要删除记录 
                 log.warn("@@:需要发送邮件了！\n" + Arrays.toString(keySet.toArray()) + "\n新增字段：" + fieldStr.toString());
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
                 if (rSum == null || rSum < FIELD_SET.size()) {
