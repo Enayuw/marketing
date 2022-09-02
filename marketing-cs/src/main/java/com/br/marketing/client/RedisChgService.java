@@ -137,17 +137,25 @@ public class RedisChgService {
         return result;
     }
 
-    public Boolean sismember(String key,String member){
+    public Boolean sismember(String key, String member) {
         JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Boolean result = jedis.sismember(key, member);
         return result;
     }
 
+    /**
+     * 2022/9/1 17:55
+     * 获取set元素中的个数
+     */
+    public Long scard(String key) {
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        return jedis.scard(key);
+    }
 
     public void lock(String lockKey, String value) {
         long begin = System.currentTimeMillis();
 
-        while(System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
+        while (System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
             boolean acquire = this.lock(lockKey, value, 3000L);
             if (acquire) {
                 return;
