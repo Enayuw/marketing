@@ -771,7 +771,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         if (requiredCheck(listInfo, response2ShuheDTO)) {
             exceptionSave(shuheUploadData, response2ShuheDTO, null);
-            return response2ShuheDTO.failed();
+            return response2ShuheDTO;
         }
         final JSONObject extraInfo = uploadDataDTO.getJSONObject("extraInfo");
         if (!CollectionUtils.isEmpty(extraInfo) && extraInfo.containsKey("bizType")) {
@@ -931,9 +931,15 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
      */
     private boolean requiredCheck(JSONArray listInfo, Response2ShuheDTO response2ShuheDTO) {
         if (CollectionUtils.isEmpty(listInfo)) {
-            String desc = response2ShuheDTO.getDesc();
-            response2ShuheDTO.setDesc(desc + " 名单列表内容为空");
-            return true;
+            try {
+                response2ShuheDTO.failed(" 名单列表内容为空");
+                BusinessException exception = new BusinessException(response2ShuheDTO.getDesc());
+                exception.setExceptionMessage(response2ShuheDTO.getDesc());
+                throw exception;
+            } catch (BusinessException e) {
+                log.error(e.getMessage(), e);
+                return true;
+            }
         }
         return false;
     }
