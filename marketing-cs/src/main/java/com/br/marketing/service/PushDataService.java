@@ -48,4 +48,6 @@ public interface PushDataService {
      * @return
      */
     Result<Boolean> pushXieChengToDbData(Long localid);
+
+    String getHaierRequestId(String type);
 }

@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -144,6 +145,61 @@ public class HaierServiceClient {
         return result;
     }
 
+    public Result<Response2Entity> pushToTeleSalesWithSave(HaierReqDTO haierReqDTO){
+        PushDTO.FormData formData = haierReqDTO.getFormData();
+        Result<Response2Entity> result = new Result<>();
+        Assert.notNull(formData, "\"List\" is not null");
+//        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
+        if(log.isWarnEnabled()){
+            log.warn(String.format("推送海尔数据：%s",JSON.toJSONString(formData)));
+        }
+        PushDTO pushDTO = null;
+        try {
+            pushDTO = new PushDTO(apiCode, formData, apiKey);
+        } catch (Exception e) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(e.getMessage());
+        }
+//        log.warn("&&发送内容：[{}]", pushDTO);
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
+        if (httpCode.equals("200")) {
+            final String respStr = stringStringHashMap.getOrDefault("content", "");
+            log.warn("%%应答内容：[{}]", respStr);
+            if (StringUtils.isEmpty(respStr)) {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                return result;
+            }
+            Response2Entity response2Entity = JSONObject.parseObject(respStr, Response2Entity.class);
+            Date date = new Date();
+            if(response2Entity!=null
+                    && response2Entity.getHead()!= null
+                    && "00000".equals(response2Entity.getHead().getRetFlag())){
+                ArrayList<Long> ids = new ArrayList<>();
+                for (PushDTO.DataItems dataItem : haierReqDTO.getFormData().getDataItems()) {
+                    HaierData record = new HaierData();
+                    record.setCustNum(dataItem.getCustNum());
+                    record.setTaskId(dataItem.getTaskId());
+                    record.setCreateTime(date);
+                    record.setLocalId(666L);
+                    record.setPushStatus(2);
+                    haierDataMapper.insertSelective(record);
+                    ids.add(record.getId());
+                }
+                HaierReq req = new HaierReq();
+                req.setReqId(formData.getRequestId());
+                req.setDataId(Joiner.on(",").join(ids));
+                req.setCreateTime(new Date());
+                req.setNum(ids.size());
+                haierReqMapper.insertSelective(req);
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(response2Entity);
+            }else{
+                result.setCode(ResultCode.FAIL.getValue()).setDate(response2Entity);
+            }
+        } else {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(stringStringHashMap.getOrDefault("content", ""));
+        }
+        return result;
+    }
 
     public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData) throws Exception {
         return pushToTeleSales(formData, 0);

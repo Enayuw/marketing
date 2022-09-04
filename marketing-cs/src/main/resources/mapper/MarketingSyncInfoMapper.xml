@@ -386,4 +386,15 @@
         order by create_time desc limit 1;
     </select>
 
+    <select id="getCustNumAppletDateByCustNumStart" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+            <foreach collection="custNums" item="custNum" separator="," open="(" close=")">
+                #{custNum}
+            </foreach>
+        <if test="startDate !=null and startDate !=''">
+            applet_date >= #{startDate}
+        </if>
+    </select>
 </mapper>

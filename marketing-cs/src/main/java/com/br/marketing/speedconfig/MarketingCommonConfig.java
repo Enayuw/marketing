@@ -260,4 +260,8 @@ public class MarketingCommonConfig {
      */
     private String tongChengPeriodOfValidityDay;
 
+    /**
+     * #海尔有效期，T代表当天,T+day代表day天到当天
+     */
+    private String haierPeriodOfValidityDay;
 }

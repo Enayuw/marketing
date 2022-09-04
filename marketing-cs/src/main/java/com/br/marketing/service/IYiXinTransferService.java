@@ -8,4 +8,5 @@ public interface IYiXinTransferService {
 
     Result actionYiXinToRobotAI(String apiCode,String date);
 
+    Result actionHaierToDx(String apiCode);
 }
