@@ -32,7 +32,7 @@
         order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
     </select>
 
-    <select id="getReportListTotal" resultType="com.br.marketing.vo.TransferSyncReportNumVO">
+    <select id="getReportListTotaltiflash_" resultType="com.br.marketing.vo.TransferSyncReportNumVO">
         select sum(data_count) as numTotal,api_code
         from b_marketing_transfer_sync_report bmsr
         <include refid="sql_transfer_sync_where"/>

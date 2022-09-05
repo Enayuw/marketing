@@ -24,7 +24,7 @@ public interface MarketingSyncReportMapper {
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 
     @AddDataAuth
-    List<MarketingSyncReportNumVO> getReportListTotal(Map<String, Object> params);
+    List<MarketingSyncReportNumVO> getReportListTotaltiflash_(Map<String, Object> params);
 
     int modifyReportById(MarketingSyncReport record);
 
