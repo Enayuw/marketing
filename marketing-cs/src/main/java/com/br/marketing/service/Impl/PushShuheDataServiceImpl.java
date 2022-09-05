@@ -1028,7 +1028,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
      * 2022/8/30 18:04
      * 业务流水流水号生成规则：
      * 1.流水号+数据库id
-     * 2.业务流水号总长：19+id长度
+     * 2.业务流水号总长：19+id长度，如使用bigint类型，则：19+19=38
      * eg:
      * 2208300004611020223123456 id为123456
      */
