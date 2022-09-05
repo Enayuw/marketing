@@ -746,8 +746,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public ResponseCustomDTO saveUploadData(String apiCode, String jsonData) {
-        // TODO: 2022/9/2 需要删除 
-        log.warn("apiCode:{}\njsonData:{}", apiCode, jsonData);
         CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
         shuheUploadData.setJsonData(jsonData);
         shuheUploadData.setUploadDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -888,8 +886,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     , SerializerFeature.WriteNullListAsEmpty));
             int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             if (i == 1 && syncInfo.getId() != null) {
-                // TODO: 2022/9/5 打印上线前需要删除 
-                log.warn("发送MQ，id:" + syncInfo.getId());
                 try {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
                 } catch (Exception e) {
@@ -1000,8 +996,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                                 .concat(fieldStr.toString())
                                 .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
                         Constants.sendCodeMap.get("apiSaveDbException"));
-                // TODO: 2022/9/2 需要删除记录 
-                log.warn("@@:需要发送邮件了！\n" + Arrays.toString(keySet.toArray()) + "\n新增字段：" + fieldStr.toString());
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
                 if (rSum == null || rSum < FIELD_SET.size()) {
                     redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));
