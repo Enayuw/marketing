@@ -44,6 +44,8 @@ public class InitDataToPolicyImpl implements AssembleData<PushMarketingUserDetai
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getCell())));
         JSONObject varDto = new JSONObject();
         varDto.put("groupType", syncUser.getUserType());
+        varDto.put("id", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getIdCard())));
+        varDto.put("name", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getName())));
         String reserveField1 = syncUser.getReserveField1();
         if (StringUtils.isNotBlank(reserveField1)) {
             JSONObject initJson = JSON.parseObject(reserveField1);
