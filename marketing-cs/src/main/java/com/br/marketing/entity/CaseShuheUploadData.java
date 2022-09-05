@@ -54,7 +54,7 @@ public class CaseShuheUploadData {
     private Integer status;
 
     /**
-     * 上传数据信息表保存状态 0-成功、1-失败
+     * 上传数据信息表保存状态 0-成功、1-失败、2-推送mq失败
      */
     private Integer saveInfoStatus;
 
