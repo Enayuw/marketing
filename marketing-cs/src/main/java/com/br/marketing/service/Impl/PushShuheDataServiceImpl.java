@@ -14,6 +14,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
@@ -990,16 +991,15 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 if (FIELD_SET.add(key)) {
                     Long aLong = redisChgService.saddMember(RedisKeyConstant.shuHeUploadDataFieldKey, key);
                     if (aLong == 1) {
-                        fieldStr.append(separator).append(key);
+                        fieldStr.append(fieldStr.length() > 0 ? separator : "\n").append(key);
                     }
                 }
             }
             if (fieldStr.length() > 0) {
-                sendAlarmMgs("数禾上传数据接口字段新增检查"
-                        , "本次请求出现新增字段："
-                                .concat(fieldStr.toString().replace(separator, "\n"))
-                                .concat("\n请及时与客户沟通^_^")
-                        , appName, secretKey, alarmClient);
+                alarmClient.sendAlarm("本次请求出现新增字段："
+                                .concat(fieldStr.toString())
+                                .concat("\n请及时与客户沟通^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
+                        Constants.sendCodeMap.get("uploadSuccess"));
                 // TODO: 2022/9/2 需要删除记录 
                 log.warn("@@:需要发送邮件了！\n" + Arrays.toString(keySet.toArray()) + "\n新增字段：" + fieldStr.toString());
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
