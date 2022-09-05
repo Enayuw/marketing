@@ -887,6 +887,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     , SerializerFeature.WriteNullListAsEmpty));
             int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             if (i == 1 && syncInfo.getId() != null) {
+                // TODO: 2022/9/5 打印上线前需要删除 
+                log.warn("发送MQ，id:" + syncInfo.getId());
                 try {
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfo.getId().toString());
                 } catch (Exception e) {
