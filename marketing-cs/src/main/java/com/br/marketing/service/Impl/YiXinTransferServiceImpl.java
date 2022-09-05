@@ -653,6 +653,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
         Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         List<Result> results = new ArrayList<>();
+        List<String> _hasCustNums = new ArrayList<>();
         while (action) {
             List<MarketingTransferSyncUser> transferUsers = marketingTransferSyncUserMapper
                     .getTransferUserByCreateTimeOrder(tcId, apiCode, date, endDate, pageIndex, pageSize);
@@ -704,6 +705,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     if (!"1".equals(applyResult)) {
                         continue;
                     }
+                    if(_hasCustNums.contains(marketingTransferSyncUser.getCustNum())){
+                        continue;
+                    }
                     //endregion
 
                     //region 符合type=1的判断
@@ -729,7 +733,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         continue;
                     }
                     //endregion
-
+                    _hasCustNums.add(syncUser.getCustNum());
                     datas.add(new PushDTO.DataItems(syncUser.getCusBatch(),syncUser.getCustNum()));
                 }
                 //region 推送数据

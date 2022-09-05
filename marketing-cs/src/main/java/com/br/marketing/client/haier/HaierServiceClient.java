@@ -182,6 +182,7 @@ public class HaierServiceClient {
                     record.setCreateTime(date);
                     record.setLocalId(666L);
                     record.setPushStatus(2);
+                    record.setType(haierReqDTO.getFormData().getType());
                     haierDataMapper.insertSelective(record);
                     ids.add(record.getId());
                 }
