@@ -996,9 +996,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 }
             }
             if (fieldStr.length() > 0) {
-                alarmClient.sendAlarm("本次请求出现新增字段："
+                alarmClient.sendAlarm("本次请求发现新增字段："
                                 .concat(fieldStr.toString())
-                                .concat("\n请及时与客户沟通^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
+                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
                         Constants.sendCodeMap.get("apiSaveDbException"));
                 // TODO: 2022/9/2 需要删除记录 
                 log.warn("@@:需要发送邮件了！\n" + Arrays.toString(keySet.toArray()) + "\n新增字段：" + fieldStr.toString());
