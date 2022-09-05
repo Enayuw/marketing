@@ -45,6 +45,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -623,27 +624,35 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
         }
+        Long frontId = null;
+        if(frontData == null) {
+             frontId = saveFrontData(apiCode, date, 4);
+        }else{
+            frontId = frontData.getId();
+        }
         //endregion
 
         String tcId = tableCreateService.getTcId(apiCode);
+        if(StringUtils.isBlank(tcId)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("客户表不存在");
+        }
         Integer pageIndex = 0;
         Integer pageSize = 5000;
         Boolean action = Boolean.TRUE;
 
         //region 获取有效期的开始时间
-        String haierPeriodOfValidityDay = marketingCommonConfig.getHaierPeriodOfValidityDay();
-        String dayStrs = Pattern.compile("\\d")
-                .matcher(StringUtils.isBlank(haierPeriodOfValidityDay) ? "T+30" : haierPeriodOfValidityDay)
-                .group();
+        String haierPeriodOfValidityDay = StringUtils.isBlank(marketingCommonConfig.getHaierPeriodOfValidityDay()) ? "T+30" : marketingCommonConfig.getHaierPeriodOfValidityDay();
+        Matcher matcher = Pattern.compile("\\d+").matcher(haierPeriodOfValidityDay);
         String upLoadStart = LocalDate.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        if (StringUtils.isBlank(dayStrs)) {
-            upLoadStart = LocalDate.now().minusDays(Long.valueOf(dayStrs))
+        if (matcher.find()) {
+            upLoadStart = LocalDate.now().minusDays(Long.valueOf(matcher.group()))
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
         //endregion
 
         Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        List<Result> results = new ArrayList<>();
         while (action) {
             List<MarketingTransferSyncUser> transferUsers = marketingTransferSyncUserMapper
                     .getTransferUserByCreateTimeOrder(tcId, apiCode, date, endDate, pageIndex, pageSize);
@@ -699,7 +708,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                     //region 符合type=1的判断
                     Integer type = 0;
-                    LocalDate _applyDtDate = LocalDate.parse(applyDt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    LocalDate _applyDtDate = LocalDate.parse(applyDt.substring(0,10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     MarketingSyncUser syncUser = syncUserMap.get(marketingTransferSyncUser.getCustNum());
                     LocalDate userStart = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     if (StringUtils.isBlank(marketingTransferSyncUser.getRegisterTime())
@@ -734,10 +743,15 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 haierReqDTO.setFormData(formData);
                 if(datas.size()>0){
                     Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithSave(haierReqDTO);
+                    results.add(response2EntityResult);
                 }
                 //endregion
             }
             pageIndex++;
+        }
+        long count = results.stream().filter(t -> !ResultCode.SUCCESS.getValue().equals(t.getCode())).count();
+        if(count<=0){
+            updateFrontDataStatus(frontId, 2);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }

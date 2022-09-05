@@ -394,7 +394,7 @@
                 #{custNum}
             </foreach>
         <if test="startDate !=null and startDate !=''">
-            applet_date >= #{startDate}
+            and applet_date >= #{startDate}
         </if>
     </select>
 </mapper>

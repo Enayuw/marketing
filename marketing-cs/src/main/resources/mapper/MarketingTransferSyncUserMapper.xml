@@ -179,7 +179,7 @@
         <![CDATA[  create_time >= #{startTime}
         and create_time < #{endTime} ]]>
         <if test="apiCode !=null and apiCode !=''">
-            api_code = #{apiCode}
+           and api_code = #{apiCode}
         </if>
         order by create_time desc limit #{pageIndex},#{pageSize}
 

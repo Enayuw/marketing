@@ -28,7 +28,7 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
+        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser) transmitFact;
         HaiErRuleCollectDataImpl.HaiErRuleNecessaryData necessaryData =
                 (HaiErRuleCollectDataImpl.HaiErRuleNecessaryData) context.getRuleNecessaryData();
         MarketingSyncUser syncUser = necessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
@@ -36,10 +36,16 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             if ("4".equals(transferSyncUser.getUserType())) {
                 return true;
             }
+            if ("3".equals(transferSyncUser.getUserType())
+                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getAuditTime())
+                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getLentTime())
+                    && "0".equals(transferSyncUser.getIfLent())) {
+                return true;
+            }
             if (syncUser == null) {
                 return false;
             }
-            if(transferSyncUser.getApplyDt() == null){
+            if (transferSyncUser.getApplyDt() == null) {
                 return false;
             }
             Date applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
@@ -58,21 +64,21 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
 
-        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)transmitFact;
+        MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser) transmitFact;
         HaiErRuleCollectDataImpl.HaiErRuleNecessaryData necessaryData =
                 (HaiErRuleCollectDataImpl.HaiErRuleNecessaryData) context.getRuleNecessaryData();
 
         MarketingSyncUser syncUser = necessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
             if (syncUser == null) {
-                log.error(String.format("海尔该转化数据没有匹配到原始上传数据 dataId:%d",transferSyncUser.getId()));
+                log.error(String.format("海尔该转化数据没有匹配到原始上传数据 dataId:%d", transferSyncUser.getId()));
                 return null;
             }
             String status = "";
-            if ("4".equals(transferSyncUser.getUserType())) {
+            if ("4".equals(transferSyncUser.getUserType())||"3".equals(transferSyncUser.getUserType())) {
                 status = "0";
             } else {
-                if(transferSyncUser.getApplyDt() == null){
+                if (transferSyncUser.getApplyDt() == null) {
                     return null;
                 }
                 Date applydt = null;
