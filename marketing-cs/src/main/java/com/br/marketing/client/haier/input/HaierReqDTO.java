@@ -10,4 +10,6 @@ public class HaierReqDTO {
     List<Long> ids;
 
     PushDTO.FormData formData;
+
+    String apiCode;
 }

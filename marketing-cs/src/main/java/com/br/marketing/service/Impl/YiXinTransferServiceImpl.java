@@ -678,6 +678,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 //region 推送记录
                 HaierDataExample example = new HaierDataExample();
                 example.createCriteria()
+                        .andApiCodeEqualTo(apiCode)
                         .andCustNumIn(custNumList)
                         .andTypeEqualTo("1")
                         .andPushStatusEqualTo(2)
@@ -750,6 +751,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                 HaierReqDTO haierReqDTO = new HaierReqDTO();
                 haierReqDTO.setFormData(formData);
+                haierReqDTO.setApiCode(apiCode);
                 if(datas.size()>0){
                     Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithSave(haierReqDTO);
                     results.add(response2EntityResult);

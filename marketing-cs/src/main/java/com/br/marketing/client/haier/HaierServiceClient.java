@@ -25,6 +25,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -175,14 +177,17 @@ public class HaierServiceClient {
                     && response2Entity.getHead()!= null
                     && "00000".equals(response2Entity.getHead().getRetFlag())){
                 ArrayList<Long> ids = new ArrayList<>();
+                String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 for (PushDTO.DataItems dataItem : haierReqDTO.getFormData().getDataItems()) {
                     HaierData record = new HaierData();
+                    record.setApiCode(haierReqDTO.getApiCode());
                     record.setCustNum(dataItem.getCustNum());
                     record.setTaskId(dataItem.getTaskId());
                     record.setCreateTime(date);
                     record.setLocalId(666L);
                     record.setPushStatus(2);
                     record.setType(haierReqDTO.getFormData().getType());
+                    record.setCreateDate(Integer.valueOf(yyyyMMdd));
                     haierDataMapper.insertSelective(record);
                     ids.add(record.getId());
                 }
