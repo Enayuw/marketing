@@ -30,6 +30,19 @@ public final class CallUtils {
         return getFormUrlEncodedStr(paramKV, false, encodeName);
     }
 
+    public static String getFormUrlEncodedStr(Object javaBean, String encodeName,Boolean isEncode) {
+        if (javaBean == null) {
+            return "";
+        }
+
+        if (javaBean instanceof String) {
+            return (String) javaBean;
+        }
+
+        Map<String, Object> paramKV = getPropertiesMap(javaBean);
+        return getFormUrlEncodedStr(paramKV,isEncode, encodeName);
+    }
+
     /**
      * 获取javaBean的form-urlencoded拼接字符串
      */
