@@ -3,6 +3,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.MarketingApiApplication;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
@@ -59,6 +60,14 @@ public class redis {
     @Resource
     RedisService redisService;
 //
+
+    @Test
+    public void testAes(){
+        String encrypt = AESAlgorithmUtil.encrypt("yPcxugMgQChJovqtGfqFUuBUA==", Constants.SFTP_P_SECRET_KEY);
+        String encrypt1 = AESAlgorithmUtil.encrypt("PCIboXXw2+JeAozVbl1lxsG", Constants.SFTP_P_SECRET_KEY);
+        System.out.println("密文"+encrypt);
+        System.out.println("密文1"+encrypt1);
+    }
     @Test
     public void test(){
        // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");

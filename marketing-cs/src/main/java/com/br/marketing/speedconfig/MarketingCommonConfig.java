@@ -246,4 +246,18 @@ public class MarketingCommonConfig {
      */
     private String PPDTransferFileExecuteTime;
 
+    /**
+     * check服务job的上线开关
+     */
+    private Boolean checkJobOnlineSwitch;
+
+    /**
+     * 离线跑批入es文件 线程数
+     */
+    private Integer OffLineInserEsThreadNum;
+    /**
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     */
+    private String tongChengPeriodOfValidityDay;
+
 }

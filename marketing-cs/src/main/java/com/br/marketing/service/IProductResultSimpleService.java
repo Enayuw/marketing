@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
+import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.ConfigByApiCodeVO;
 
@@ -38,4 +39,6 @@ public interface IProductResultSimpleService {
     Result<ConfigByApiCodeVO> getConfigByApiCode(String apiCode);
 
     void  initHead(StringBuilder head, String sep, MarketingTask task);
+
+    void offLineHeadComplete(List<String> showHeads, List<BaseHead> heads);
 }

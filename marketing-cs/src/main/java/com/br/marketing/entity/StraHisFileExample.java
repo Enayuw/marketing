@@ -1644,6 +1644,216 @@ public class StraHisFileExample {
             addCriterion("index_num not between", value1, value2, "indexNum");
             return (Criteria) this;
         }
+
+        public Criteria andInnerFtpPathIsNull() {
+            addCriterion("inner_ftp_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathIsNotNull() {
+            addCriterion("inner_ftp_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathEqualTo(String value) {
+            addCriterion("inner_ftp_path =", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathNotEqualTo(String value) {
+            addCriterion("inner_ftp_path <>", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathGreaterThan(String value) {
+            addCriterion("inner_ftp_path >", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathGreaterThanOrEqualTo(String value) {
+            addCriterion("inner_ftp_path >=", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathLessThan(String value) {
+            addCriterion("inner_ftp_path <", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathLessThanOrEqualTo(String value) {
+            addCriterion("inner_ftp_path <=", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathLike(String value) {
+            addCriterion("inner_ftp_path like", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathNotLike(String value) {
+            addCriterion("inner_ftp_path not like", value, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathIn(List<String> values) {
+            addCriterion("inner_ftp_path in", values, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathNotIn(List<String> values) {
+            addCriterion("inner_ftp_path not in", values, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathBetween(String value1, String value2) {
+            addCriterion("inner_ftp_path between", value1, value2, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andInnerFtpPathNotBetween(String value1, String value2) {
+            addCriterion("inner_ftp_path not between", value1, value2, "innerFtpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameIsNull() {
+            addCriterion("file_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameIsNotNull() {
+            addCriterion("file_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameEqualTo(String value) {
+            addCriterion("file_name =", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameNotEqualTo(String value) {
+            addCriterion("file_name <>", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameGreaterThan(String value) {
+            addCriterion("file_name >", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameGreaterThanOrEqualTo(String value) {
+            addCriterion("file_name >=", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameLessThan(String value) {
+            addCriterion("file_name <", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameLessThanOrEqualTo(String value) {
+            addCriterion("file_name <=", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameLike(String value) {
+            addCriterion("file_name like", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameNotLike(String value) {
+            addCriterion("file_name not like", value, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameIn(List<String> values) {
+            addCriterion("file_name in", values, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameNotIn(List<String> values) {
+            addCriterion("file_name not in", values, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameBetween(String value1, String value2) {
+            addCriterion("file_name between", value1, value2, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFileNameNotBetween(String value1, String value2) {
+            addCriterion("file_name not between", value1, value2, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathIsNull() {
+            addCriterion("offline_file_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathIsNotNull() {
+            addCriterion("offline_file_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathEqualTo(String value) {
+            addCriterion("offline_file_path =", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathNotEqualTo(String value) {
+            addCriterion("offline_file_path <>", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathGreaterThan(String value) {
+            addCriterion("offline_file_path >", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathGreaterThanOrEqualTo(String value) {
+            addCriterion("offline_file_path >=", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathLessThan(String value) {
+            addCriterion("offline_file_path <", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathLessThanOrEqualTo(String value) {
+            addCriterion("offline_file_path <=", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathLike(String value) {
+            addCriterion("offline_file_path like", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathNotLike(String value) {
+            addCriterion("offline_file_path not like", value, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathIn(List<String> values) {
+            addCriterion("offline_file_path in", values, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathNotIn(List<String> values) {
+            addCriterion("offline_file_path not in", values, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathBetween(String value1, String value2) {
+            addCriterion("offline_file_path between", value1, value2, "offlineFilePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOfflineFilePathNotBetween(String value1, String value2) {
+            addCriterion("offline_file_path not between", value1, value2, "offlineFilePath");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

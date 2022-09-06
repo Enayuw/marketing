@@ -266,7 +266,8 @@
                is_repair,
                context_id,
                task_type,
-               product_info
+               product_info,
+               is_online
         FROM b_marketing_task
         WHERE batch_number = #{batchNumber}
     </select>
@@ -593,14 +594,19 @@
         bmte.condition_type                               as `conditionType`,
         bmte.condition_info_show                          as `conditionInfoShow`,
         bmt.monitor_type                                  as `execType`,
-
+        bmt.is_online                                     as `isOnline`,
         case
         when shf.status is null then 0
         when shf.status = 2 then 2
         when shf.status = 0 then 3
         when shf.status = 1 then 1
         when shf.status = 3 then 1
-        else '-' end                                as taskStatus,
+        when shf.status = 4 then 1
+        when shf.status = 5 then 1
+        when shf.status = 6 then 1
+        when shf.status = 7 then 1
+        when shf.status = 9 then 1
+        else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,
         bmt.start_time                              as startTime,

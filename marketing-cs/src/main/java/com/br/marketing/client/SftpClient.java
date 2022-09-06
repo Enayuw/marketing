@@ -347,6 +347,10 @@ public class SftpClient extends BaseFtpClient{
         return success;
     }
 
+    @Override
+    public void uploadFileAndMk(InputStream inputStream, String path, String fileName) throws Exception {
+    }
+
     /**
      * 下载远程sftp服务器文件
      *

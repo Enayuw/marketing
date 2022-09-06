@@ -13,13 +13,17 @@ import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -111,7 +115,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private String appName;
 
     @Autowired
+    RabbitMqProducter producter;
+
+    @Autowired
     IProductResultSimpleService iProductResultSimpleService;
+
+    @Resource
+    StraHisFileMapper straHisFileMapper;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -287,7 +297,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .andIsUploadEqualTo(1);
         int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
         if (isUploadCount > 0) {
-            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId());
+            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(),"");
             log.warn(errorMsg);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
         }
@@ -301,7 +311,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     , vo.getId().toString(), vo.getRuleNameShort()
                     , time, null);
             if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId());
+                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(),"");
                 log.warn(errorMsg);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
@@ -356,7 +366,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
         for (int i = 0; i < data.size(); i++) {
-            if(isVer&&preMaxNum<=0){
+            if (isVer && preMaxNum <= 0) {
                 continue;
             }
             String whereStr = data.get(i);
@@ -483,6 +493,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setFileName(String.format("%s_%s", ruleVO.getId().toString(), ruleVO.getRuleNameShort()));
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
+        task.setIsOnline(ruleVO.getIsOnline());
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
             MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
             if (task1 != null) {
@@ -520,7 +531,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setDataCondition(ruleVO.getConditionInfo());
         taskExtend.setConditionType(conditionType);
         taskExtend.setConditionInfoShow(showDataStr);
+        //跑分扩展信息 3K加密方式
         TaskExtendExtendFieldDTO taskExtendExtendFieldDTO = new TaskExtendExtendFieldDTO().setThreekEncryptType(ruleVO.getThreekEncryptType());
+        //规则验证保存验证条数
         if (new Integer(1).equals(ruleVO.getIsOrNoScoreVer())) {
             taskExtendExtendFieldDTO.setDataLimit(ruleVO.getDataLimit());
         }
@@ -632,5 +645,52 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public void saveScoreResult(MarketingTaskResultPreview preview) {
         marketingTaskResultPreviewMapper.insertSelective(preview);
+    }
+
+    @Override
+    public Result offLineCallBack(OffLineCallBackDTO dto) {
+        Long id = Long.valueOf(dto.getRequestId());
+        String lockValue = UUID.randomUUID().toString();
+        boolean b = offLineCallBackLock(id, lockValue);
+        if (!b) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid调用过快");
+        }
+        boolean suc = "success".equals(dto.getStatus());
+        StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(id);
+        if (straHisFile == null) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid的数据不存在");
+        }
+        if (!ScoreStatusEnum.OFFLINECALLBACK.getValue().equals(straHisFile.getStatus())
+                && !ScoreStatusEnum.OFFLINEFAIL.getValue().equals(straHisFile.getStatus())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该requestid已经回调过");
+        }
+        StraHisFile updateEntity = new StraHisFile();
+        updateEntity.setId(id);
+        updateEntity.setZipfileName(dto.getFileName());
+        updateEntity.setStatus(suc ? ScoreStatusEnum.OFFLINESUCCESS.getValue() : ScoreStatusEnum.OFFLINEFAIL.getValue());
+        updateEntity.setOfflineFilePath(dto.getFilePath());
+        straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
+        if (suc) {
+            producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, id.toString());
+        }
+        removeOffLineLock(id, lockValue);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private boolean offLineCallBackLock(Long id, String value) {
+        String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
+        Long setnx = redisChgService.setnx(key, value, 3);
+        if (setnx.equals(0L)) {
+            return false;
+        }
+        return true;
+    }
+
+    private void removeOffLineLock(Long id, String value) {
+        String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
+        String s = redisChgService.get(key);
+        if (value.equals(s)) {
+            redisChgService.del(key);
+        }
     }
 }

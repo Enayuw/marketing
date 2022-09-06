@@ -7,6 +7,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
@@ -25,13 +26,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Created by Bairong on 2019/8/21.
- *
+ * <p>
  * 结果处理工具类，生成结果文件
- *
  */
 @Slf4j
 public class ResultUtil {
@@ -40,77 +41,77 @@ public class ResultUtil {
     private MarketingTaskService marketingTaskService;
 
 
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
-                                    MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId,String pushCustomer,
-                                    String baseHeadInfo,StrategyProductDetailVO fieldInfo) throws IOException {
-        log.info("cus_num：{} 画像流水:{}",user.getCusNum(),resultJson);
-        JSONObject esResult=new JSONObject();
-        StringBuilder sb=new StringBuilder();
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
+                                    MarketingUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
+                                    String baseHeadInfo, StrategyProductDetailVO fieldInfo) throws IOException {
+        log.info("cus_num：{} 画像流水:{}", user.getCusNum(), resultJson);
+        JSONObject esResult = new JSONObject();
+        StringBuilder sb = new StringBuilder();
         MarketingHistory mh = new MarketingHistory();
         /**
          * 添加基本信息
-         */ Date requestTime=new Date();
-              sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
+         */Date requestTime = new Date();
+        sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
                 .append(user.getBatchNumber()).append(sep)
                 .append(user.getCusNum()).append(sep)
                 .append(strategyId).append(sep).append(sep);
-              mh.setRequestTime(requestTime);
-              mh.setBatchNumber(user.getBatchNumber());
-              mh.setCusNum(user.getCusNum());
-              mh.setApiCode(user.getApiCode());
-              mh.setStrategyId(strategyId);
-              mh.setVersion("");
-            if(StringUtils.isNotBlank(baseHeadInfo)){
-                JSONObject jsonObject = null;
-                if(StringUtils.isNotBlank(user.getExtendJson())){
-                    try {
-                        jsonObject = JSONObject.parseObject(user.getExtendJson());
-                    }catch (Exception ex){
-                        log.error("跑分扩展信息解析有误 apiCode:{},id:{}",user.getApiCode(),user.getId());
-                    }
-                }
-                BaseHeadConfigVO o = JSON.parseObject(baseHeadInfo, new TypeReference<BaseHeadConfigVO>() {
-                }.getType());
-//                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
-                for (String s : o.getShowBaseHead()) {
-                    if(jsonObject!=null){
-                        String ss = jsonObject.getString(s);
-                        if(StringUtils.isNotBlank(ss)){
-                            sb.append(ss);
-                        }
-                        String title = s.toLowerCase();
-                        if ("taskid".equals(title)){
-                            user.setTaskId(StringUtils.isBlank(ss)?"":ss);
-                        }else if("usertype".equals(title)){
-                            user.setUserType(StringUtils.isBlank(ss)?"":ss);
-                        }else if("custnum".equals(title)){
-                            user.setCusNum(StringUtils.isBlank(ss)?"":ss);
-                        }else if("idcard".equals(title)){
-                            user.setIdCard(StringUtils.isBlank(ss)?"":ss);
-                        }else if("name".equals(title)){
-                            user.setName(StringUtils.isBlank(ss)?"":ss);
-                        }else if("cell".equals(title)){
-
-                        }else{
-                            esResult.put(s,StringUtils.isBlank(ss)?"":ss);
-                        }
-                    }
-                    sb.append(sep);
+        mh.setRequestTime(requestTime);
+        mh.setBatchNumber(user.getBatchNumber());
+        mh.setCusNum(user.getCusNum());
+        mh.setApiCode(user.getApiCode());
+        mh.setStrategyId(strategyId);
+        mh.setVersion("");
+        if (StringUtils.isNotBlank(baseHeadInfo)) {
+            JSONObject jsonObject = null;
+            if (StringUtils.isNotBlank(user.getExtendJson())) {
+                try {
+                    jsonObject = JSONObject.parseObject(user.getExtendJson());
+                } catch (Exception ex) {
+                    log.error("跑分扩展信息解析有误 apiCode:{},id:{}", user.getApiCode(), user.getId());
                 }
             }
-        Set<String> products=new HashSet<String>();
-        for(String pro:proFieldMap.keySet()){
+            BaseHeadConfigVO o = JSON.parseObject(baseHeadInfo, new TypeReference<BaseHeadConfigVO>() {
+            }.getType());
+//                Map<String, Integer> headMap = o.getBaseHead().stream().collect(Collectors.toMap(BaseHead::getName, BaseHead::getType));
+            for (String s : o.getShowBaseHead()) {
+                if (jsonObject != null) {
+                    String ss = jsonObject.getString(s);
+                    if (StringUtils.isNotBlank(ss)) {
+                        sb.append(ss);
+                    }
+                    String title = s.toLowerCase();
+                    if ("taskid".equals(title)) {
+                        user.setTaskId(StringUtils.isBlank(ss) ? "" : ss);
+                    } else if ("usertype".equals(title)) {
+                        user.setUserType(StringUtils.isBlank(ss) ? "" : ss);
+                    } else if ("custnum".equals(title)) {
+                        user.setCusNum(StringUtils.isBlank(ss) ? "" : ss);
+                    } else if ("idcard".equals(title)) {
+                        user.setIdCard(StringUtils.isBlank(ss) ? "" : ss);
+                    } else if ("name".equals(title)) {
+                        user.setName(StringUtils.isBlank(ss) ? "" : ss);
+                    } else if ("cell".equals(title)) {
+
+                    } else {
+                        esResult.put(s, StringUtils.isBlank(ss) ? "" : ss);
+                    }
+                }
+                sb.append(sep);
+            }
+        }
+        Set<String> products = new HashSet<String>();
+        for (String pro : proFieldMap.keySet()) {
             products.add(pro.toLowerCase());
         }
-        log.info("batch_number:{} products:{}",user.getBatchNumber(),products);
+        log.info("batch_number:{} products:{}", user.getBatchNumber(), products);
 
-         buildResult(resultJson, sb, sep,esResult,fieldInfo);
+        buildResult(resultJson, sb, sep, esResult, fieldInfo);
 
-        if(log.isInfoEnabled()){
-            log.info("sb信息--"+sb.toString());
+        if (log.isInfoEnabled()) {
+            log.info("sb信息--" + sb.toString());
         }
         fw.append(sb + "\r\n");
-        if("1".equals(pushCustomer)){
+        if ("1".equals(pushCustomer)) {
             mh.setIdCard(user.getIdCard());
             mh.setName(user.getName());
             mh.setCell(user.getCell());
@@ -119,25 +120,25 @@ public class ResultUtil {
             mh.setFileId(fileId);
             mh.setTaskId(user.getTaskId());
             mh.setUserType(user.getUserType());
-            mh.setHxSwiftNumber(StringUtils.isNotBlank(resultJson.getString("swift_number"))?resultJson.getString("swift_number"):"");
+            mh.setHxSwiftNumber(StringUtils.isNotBlank(resultJson.getString("swift_number")) ? resultJson.getString("swift_number") : "");
             //region 写入condition
-            HashMap<String,MarketingCondition> conditions = new HashMap<>();
+            HashMap<String, MarketingCondition> conditions = new HashMap<>();
             List<MarketingCondition> conditionList = new ArrayList<>();
             for (String product : meal.keySet()) {
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setCode(product);
                 marketingCondition.setVersion(meal.getJSONObject(product).getString("version"));
-                conditions.put(product.toLowerCase(),marketingCondition);
+                conditions.put(product.toLowerCase(), marketingCondition);
             }
             for (String s : esResult.keySet()) {
                 MarketingCondition marketingCondition = conditions.get(s);
-                if(marketingCondition!=null){
-                    marketingCondition.setFlag(resultJson.get("flag_score")==null?"":resultJson.getString("flag_score"));
+                if (marketingCondition != null) {
+                    marketingCondition.setFlag(resultJson.get("flag_score") == null ? "" : resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s))?0:Double.valueOf(esResult.getString(s)));
+                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s)) ? 0 : Double.valueOf(esResult.getString(s)));
                     marketingCondition.setStrValue("");
                     conditionList.add(marketingCondition);
-                }else{
+                } else {
                     MarketingCondition marketingConditionStr = new MarketingCondition();
                     marketingConditionStr.setFieldKey(s);
                     marketingConditionStr.setStrValue(esResult.getString(s));
@@ -155,6 +156,7 @@ public class ResultUtil {
 
     /**
      * 跑分 优化后的文件写入
+     *
      * @param resultJson
      * @param strategyId
      * @param fw
@@ -170,16 +172,16 @@ public class ResultUtil {
      * @param marketingTask
      * @throws IOException
      */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String  sep , Map<String,String> proFieldMap,
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
-                                    BaseHeadConfigVO baseHeadInfo,StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            ,MarketingTaskService marketingTaskService) throws IOException {
-        log.info("cus_num：{} 画像流水:{}",user.getCustNum(),resultJson);
-        JSONObject esResult=new JSONObject();
-        StringBuilder sb=new StringBuilder();
+                                    BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
+            , MarketingTaskService marketingTaskService) throws IOException {
+        log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
+        JSONObject esResult = new JSONObject();
+        StringBuilder sb = new StringBuilder();
         MarketingHistory mh = new MarketingHistory();
         //region 基本信息
-        Date requestTime=new Date();
+        Date requestTime = new Date();
         sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
                 .append(marketingTask.getBatchNumber()).append(sep)
                 .append(user.getCustNum()).append(sep)
@@ -193,47 +195,52 @@ public class ResultUtil {
         //endregion
 
         //客户上传字段处理
-        getCustomerHead(user,baseHeadInfo, sb,mh,esResult,sep);
+        getCustomerHead(user, baseHeadInfo, sb, mh, esResult, sep);
 
-        Set<String> products=new HashSet<String>();
-        for(String pro:proFieldMap.keySet()){
+        Set<String> products = new HashSet<String>();
+        for (String pro : proFieldMap.keySet()) {
             products.add(pro.toLowerCase());
         }
-        log.info("batch_number:{} products:{}",marketingTask.getBatchNumber(),products);
-        if(resultJson!=null){
-            buildResult(resultJson, sb, sep,esResult,fieldInfo);
-            mh.setHxSwiftNumber(StringUtils.isNotBlank(resultJson.getString("swift_number"))?resultJson.getString("swift_number"):"");
+        log.info("batch_number:{} products:{}", marketingTask.getBatchNumber(), products);
+        if (resultJson != null) {
+            buildResult(resultJson, sb, sep, esResult, fieldInfo);
+            mh.setHxSwiftNumber(StringUtils.isNotBlank(resultJson.getString("swift_number")) ? resultJson.getString("swift_number") : "");
         }
-        if(log.isInfoEnabled()){
-            log.info("sb信息--"+sb.toString());
+        if (log.isInfoEnabled()) {
+            log.info("sb信息--" + sb.toString());
         }
         fw.append(sb + "\r\n");
         boolean isVer = marketingTask.getMonitorType() == 2;
-        if("1".equals(pushCustomer)&&!isVer){
+        boolean isOffLine = marketingTask.getIsOnline() == 2;
+        if ("1".equals(pushCustomer) && !isVer && !isOffLine) {
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setBatchNumber(marketingTask.getBatchNumber());
             mh.setFileId(fileId);
             //region 产品模型，扩展字段存入condition
-            HashMap<String,MarketingCondition> conditions = new HashMap<>();
+            HashMap<String, MarketingCondition> conditions = new HashMap<>();
             List<MarketingCondition> conditionList = new ArrayList<>();
             for (String product : meal.keySet()) {
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setCode(product);
                 marketingCondition.setVersion(meal.getJSONObject(product).getString("version"));
-                conditions.put(product.toLowerCase(),marketingCondition);
+                conditions.put(product.toLowerCase(), marketingCondition);
             }
             for (String s : esResult.keySet()) {
                 MarketingCondition marketingCondition = conditions.get(s);
-                if(marketingCondition!=null){
-                    marketingCondition.setFlag(resultJson.get("flag_score")==null?"":resultJson.getString("flag_score"));
+                if (marketingCondition != null) {
+                    marketingCondition.setFlag(resultJson.get("flag_score") == null ? "" : resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s))?0:Double.valueOf(esResult.getString(s)));
-                    marketingCondition.setStrValue("");
+                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s)) ? 0 : Double.valueOf(esResult.getString(s)));
+                    marketingCondition.setStrValue(esResult.getString(s));
                     conditionList.add(marketingCondition);
-                }else{
+                } else {
+                    String strValue = esResult.getString(s);
                     MarketingCondition marketingConditionStr = new MarketingCondition();
                     marketingConditionStr.setFieldKey(s);
                     marketingConditionStr.setStrValue(esResult.getString(s));
+                    if (StringUtils.isNotBlank(strValue) && Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
+                        marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
+                    }
                     conditionList.add(marketingConditionStr);
                 }
             }
@@ -244,56 +251,56 @@ public class ResultUtil {
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             service.insert(mh, id);
         }
-        if(isVer){
+        if (isVer) {
             MarketingTaskResultPreview preview = new MarketingTaskResultPreview();
             preview.setApiCode(marketingTask.getApiCode());
             preview.setTaskId(marketingTask.getId());
             preview.setFileId(Long.valueOf(fileId));
             preview.setBatchNumber(marketingTask.getBatchNumber());
-            preview.setContent(sb.toString().substring(0,sb.toString().length()-1));
+            preview.setContent(sb.toString().substring(0, sb.toString().length() - 1));
             preview.setIsTitle(0);
             marketingTaskService.saveScoreResult(preview);
         }
     }
 
 
-    private static Result buildResult(JSONObject hxJson, StringBuilder sb,String sep,JSONObject esResult,StrategyProductDetailVO fieldInfo) {
-        StringBuilder result=new StringBuilder();
-        if(fieldInfo == null){
+    private static Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, JSONObject esResult, StrategyProductDetailVO fieldInfo) {
+        StringBuilder result = new StringBuilder();
+        if (fieldInfo == null) {
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
         for (int i = 0; i < fieldInfo.getFields().size(); i++) {
             String field = fieldInfo.getFields().get(i);
             String fieldRes = hxJson.getString(field);
-            result.append(StringUtils.isNotBlank(fieldRes)?fieldRes:"").append(sep);
-            if (esResult!=null) {
-                esResult.put(field,StringUtils.isNotBlank(fieldRes)?fieldRes:"");
+            result.append(StringUtils.isNotBlank(fieldRes) ? fieldRes : "").append(sep);
+            if (esResult != null) {
+                esResult.put(field, StringUtils.isNotBlank(fieldRes) ? fieldRes : "");
             }
         }
         sb.append(result);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private static String encrypt3k(Integer type,String content){
-        if(StringUtils.isBlank(content)){
+    private static String encrypt3k(Integer type, String content) {
+        if (StringUtils.isBlank(content)) {
             return "";
         }
         String decode = BrCipherMaker.getInstance().decode(content);
-        if(StringUtils.isBlank(decode)){
+        if (StringUtils.isBlank(decode)) {
             return content;
         }
-        if(ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)){
+        if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
             return DigestUtils.md5DigestAsHex(decode.getBytes());
         }
 
-        if(ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)){
+        if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(decode);
         }
         return content;
     }
 
     private static void getCustomerHead(MarketingSyncUser syncUser
-            , BaseHeadConfigVO baseHeadConfigVO,StringBuilder sb,MarketingHistory mh,JSONObject conditionObj,String sep) {
+            , BaseHeadConfigVO baseHeadConfigVO, StringBuilder sb, MarketingHistory mh, JSONObject conditionObj, String sep) {
 
         Integer ia = 0, ib = 1, ic = 2;
         if (baseHeadConfigVO != null) {
@@ -309,13 +316,18 @@ public class ResultUtil {
                             , syncUser.getApiCode(), syncUser.getId());
                 }
             }
-
-            for (BaseHead head : baseHeadConfigVO.getBaseHead()) {
-                String title = head.getName().toLowerCase();
+            for (String s : baseHeadConfigVO.getShowBaseHead()) {
+                BaseHead head = new BaseHead().setType(ia);
+                head.setName(s);
+                Optional<BaseHead> first = baseHeadConfigVO.getBaseHead().stream().filter(t -> t.getName().equals(s)).findFirst();
+                if (first.isPresent()) {
+                    head = first.get();
+                }
+                String title = s.toLowerCase();
                 String str = "";
-                String strCell="";
-                String strId="";
-                String strNm="";
+                String strCell = "";
+                String strId = "";
+                String strNm = "";
 
                 //region 遍历配置
                 if (ia.equals(head.getType())) {
@@ -385,15 +397,15 @@ public class ResultUtil {
                 //endregion
 
                 //region 文件写入
-                if(StringUtils.isNotBlank(str)){
+                if (StringUtils.isNotBlank(str)) {
                     sb.append(str).append(sep);
-                }else {
+                } else {
                     sb.append(sep);
                 }
                 //endregion
 
                 //region es写入基本字段
-                if(mh!=null) {
+                if (mh != null) {
                     if ("taskid".equals(title)) {
                         mh.setTaskId(StringUtils.isBlank(str) ? "" : str);
                     } else if ("usertype".equals(title)) {

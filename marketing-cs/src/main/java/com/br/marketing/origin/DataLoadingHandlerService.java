@@ -4,11 +4,13 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.InterfaceHandlerService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -67,6 +69,9 @@ public class DataLoadingHandlerService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    private InterfaceHandlerService interfaceHandlerService;
 
     public String getTcIdFromRedis(String apiCode) {
         // 1 获取分表后缀
@@ -161,6 +166,27 @@ public class DataLoadingHandlerService {
             log.error("获取客户规则失败", e);
         }
         return new HashSet<>();
+    }
+
+
+    /**
+     * 2022/8/29 16:22
+     * 同程金融获取有效期，有效期包含当天
+     *
+     * @return null时为当前月底
+     */
+    public Integer getTongChengPeriodOfValidityDay() {
+        String tongChengPeriodOfValidityDay = marketingCommonConfig.getTongChengPeriodOfValidityDay();
+        if (tongChengPeriodOfValidityDay == null) {
+            tongChengPeriodOfValidityDay = "T+30";
+        }
+        Matcher matcher = PATTERN.matcher(tongChengPeriodOfValidityDay);
+        if (matcher.find()) {
+            String day = matcher.group();
+            return new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+        } else {
+            return null;
+        }
     }
 
 }

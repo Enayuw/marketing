@@ -5,14 +5,14 @@ import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDa
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.PhoneSaleTransferInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.PhoneSaleTransferInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,13 +43,16 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<DassAssembleTransferDataDTO>{
+public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<DassAssembleTransferDataDTO> {
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    private PhoneSaleTransferInfoMapper phoneSaleTransferInfoMapper;
 
     @Override
     public JSONObject call(List<DassAssembleTransferDataDTO> transferData, ProcessHandlerContext context) {
@@ -60,21 +63,23 @@ public class ArtificialTransferHandler extends AbstractExternalInterfaceHandler<
         int totalCount = transferData.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         for (int i = 1; i <= pageCount; i++) {
-            List<DassAssembleTransferDataDTO> subList = new ArrayList<>();
+            List<DassAssembleTransferDataDTO> subList;
             if (i == pageCount) {
                 subList = transferData.subList((i - 1) * pageSize, totalCount);
             } else {
                 subList = transferData.subList((i - 1) * pageSize, pageSize * (i));
             }
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
-            List<DassTransferDataDTO> dataDTOS = subList.stream().map(batchData -> batchData.getDassTransferDataDTO()).collect(Collectors.toList());
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().filter(batchData -> !ObjectUtils.isEmpty(batchData.getPhoneSaleExtendInfo())).map(batchData -> batchData.getPhoneSaleExtendInfo()).collect(Collectors.toList());
+            List<DassTransferDataDTO> dataDTOS = subList.stream()
+                    .map(DassAssembleTransferDataDTO::getDassTransferDataDTO).collect(Collectors.toList());
             dassTransferDataAdapDTO.setDassTransferDataDTOList(dataDTOS);
-            dassTransferDataAdapDTO.setPhoneSaleExtendInfoList(phoneSaleExtendInfos);
-            if (phoneSaleExtendInfos.size() > 0) {
-                phoneSaleExtendInfoMapper.saveBatch(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+            List<PhoneSaleTransferInfo> phoneSaleTransferInfoList = subList.stream()
+                    .map(DassAssembleTransferDataDTO::getPhoneSaleTransferInfo)
+                    .filter(phoneSaleTransferInfo -> !ObjectUtils.isEmpty(phoneSaleTransferInfo))
+                    .collect(Collectors.toList());
+            if (phoneSaleTransferInfoList.size() > 0) {
+                phoneSaleTransferInfoMapper.insertBatch(phoneSaleTransferInfoList);
             }
-            dassTransferDataAdapDTO.setPhoneSaleExtendInfoList(null);
             methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
         }
         return null;
