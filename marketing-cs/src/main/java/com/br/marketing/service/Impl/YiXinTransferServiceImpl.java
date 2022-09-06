@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
@@ -687,54 +688,58 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                 Set<PushDTO.DataItems> datas = new HashSet<>();
                 for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
-                    //region check
-                    if (!syncUserMap.containsKey(marketingTransferSyncUser.getCustNum())) {
-                        continue;
-                    }
-                    if (hasHaierData.contains(marketingTransferSyncUser.getCustNum())) {
-                        continue;
-                    }
-                    String applyDt = marketingTransferSyncUser.getApplyDt();
-                    if (StringUtils.isBlank(applyDt)) {
-                        continue;
-                    }
-                    String applyResult = marketingTransferSyncUser.getApplyResult();
-                    if (StringUtils.isBlank(applyResult)) {
-                        continue;
-                    }
-                    if (!"1".equals(applyResult)) {
-                        continue;
-                    }
-                    if(_hasCustNums.contains(marketingTransferSyncUser.getCustNum())){
-                        continue;
-                    }
-                    //endregion
+                    try {
+                        //region check
+                        if (!syncUserMap.containsKey(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        if (hasHaierData.contains(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        String applyDt = marketingTransferSyncUser.getApplyDt();
+                        if (StringUtils.isBlank(applyDt)) {
+                            continue;
+                        }
+                        String applyResult = marketingTransferSyncUser.getApplyResult();
+                        if (StringUtils.isBlank(applyResult)) {
+                            continue;
+                        }
+                        if (!"1".equals(applyResult)) {
+                            continue;
+                        }
+                        if (_hasCustNums.contains(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        //endregion
 
-                    //region 符合type=1的判断
-                    Integer type = 0;
-                    LocalDate _applyDtDate = LocalDate.parse(applyDt.substring(0,10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    MarketingSyncUser syncUser = syncUserMap.get(marketingTransferSyncUser.getCustNum());
-                    LocalDate userStart = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    if (StringUtils.isBlank(marketingTransferSyncUser.getRegisterTime())
-                            && "1".equals(applyResult)
-                            && _applyDtDate.compareTo(userStart) >= 0) {
-                        type = 1;
+                        //region 符合type=1的判断
+                        Integer type = 0;
+                        LocalDate _applyDtDate = LocalDate.parse(applyDt.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        MarketingSyncUser syncUser = syncUserMap.get(marketingTransferSyncUser.getCustNum());
+                        LocalDate userStart = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        if (StringUtils.isBlank(marketingTransferSyncUser.getRegisterTime())
+                                && "1".equals(applyResult)
+                                && _applyDtDate.compareTo(userStart) >= 0) {
+                            type = 1;
+                        }
+                        if (StringUtils.isNotBlank(marketingTransferSyncUser.getRegisterTime())
+                                && LocalDate.parse(marketingTransferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
+                                && "1".equals(applyResult)
+                                && _applyDtDate.compareTo(userStart) >= 0
+                                && StringUtils.isNotBlank(marketingTransferSyncUser.getAuditTime())
+                                && LocalDate.parse(marketingTransferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
+                                && StringUtils.isBlank(marketingTransferSyncUser.getLentTime())) {
+                            type = 1;
+                        }
+                        if (!type.equals(1)) {
+                            continue;
+                        }
+                        //endregion
+                        _hasCustNums.add(syncUser.getCustNum());
+                        datas.add(new PushDTO.DataItems(syncUser.getCusBatch(), syncUser.getCustNum()));
+                    }catch (Exception ex){
+                        log.error("数据有问题 数据id："+marketingTransferSyncUser.getId()+";apicode:"+marketingTransferSyncUser.getApiCode());
                     }
-                    if (StringUtils.isNotBlank(marketingTransferSyncUser.getRegisterTime())
-                            && LocalDate.parse(marketingTransferSyncUser.getRegisterTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
-                            && "1".equals(applyResult)
-                            && _applyDtDate.compareTo(userStart) >= 0
-                            && StringUtils.isNotBlank(marketingTransferSyncUser.getAuditTime())
-                            && LocalDate.parse(marketingTransferSyncUser.getAuditTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
-                            && StringUtils.isBlank(marketingTransferSyncUser.getLentTime())) {
-                        type = 1;
-                    }
-                    if(!type.equals(1)){
-                        continue;
-                    }
-                    //endregion
-                    _hasCustNums.add(syncUser.getCustNum());
-                    datas.add(new PushDTO.DataItems(syncUser.getCusBatch(),syncUser.getCustNum()));
                 }
                 //region 推送数据
                 PushDTO.FormData formData = new PushDTO.FormData();
