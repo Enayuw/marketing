@@ -39,6 +39,9 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
                 (HaiErRuleCollectDataImpl.HaiErRuleNecessaryData) context.getRuleNecessaryData();
         MarketingSyncUser syncUser = necessaryData.getCustomerMap().get(transferSyncUser.getCustNum());
         try {
+            if (syncUser == null) {
+                return false;
+            }
             if ("4".equals(transferSyncUser.getUserType())) {
                 return true;
             }
@@ -50,10 +53,7 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
                     && "0".equals(transferSyncUser.getIfLent())) {
                 return true;
             }
-            if (syncUser == null) {
-                return false;
-            }
-            if (transferSyncUser.getApplyDt() == null) {
+            if (StringUtils.isEmpty(transferSyncUser.getApplyDt())) {
                 return false;
             }
             LocalDate applydt = LocalDate.parse(transferSyncUser.getApplyDt().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
