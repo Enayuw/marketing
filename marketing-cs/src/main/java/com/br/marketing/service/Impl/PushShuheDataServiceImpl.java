@@ -774,10 +774,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             exceptionSave(shuheUploadData, response2ShuheDTO, null);
             return response2ShuheDTO;
         }
-        final JSONObject extraInfo = uploadDataDTO.getJSONObject("extraInfo");
-        if (!CollectionUtils.isEmpty(extraInfo) && extraInfo.containsKey("bizType")) {
-            Object bizType = extraInfo.get("bizType");
-            shuheUploadData.setUserType(bizType == null ? "" : bizType.toString());
+        if (uploadDataDTO.containsKey("extraInfo")) {
+            String userType = uploadDataDTO.getString("extraInfo");
+            shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
         }
         try {
             int i = caseShuheUploadDataMapper.insertSelective(shuheUploadData);
@@ -797,7 +796,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return response2ShuheDTO.failed();
         }
         saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
-        BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, extraInfo));
+        BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo));
         return response2ShuheDTO.success();
     }
 
@@ -821,13 +820,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             int size = listInfo.size();
             for (int i = 0; i < size; i++) {
                 JSONObject info = listInfo.getJSONObject(i);
-                reserveField1 = new HashMap<>();
-                String bizType = info.getString("bizType");
-                String userType = org.apache.commons.lang3.StringUtils.isBlank(bizType)
-                        ? type : bizType;
+                reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
                 dto.setCell(info.getString("mobile"));
-                dto.setGroupType(userType);
+                dto.setGroupType(type);
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
                 if (!CollectionUtils.isEmpty(varData)) {
@@ -849,7 +845,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 reserveField1.remove("mobile");
                 reserveField1.remove("varData");
                 reserveField1.remove("orderId");
-                reserveField1.remove("bizType");
+                reserveField1.remove("extraInfo");
                 dto.setReserveField1(JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty
                         , SerializerFeature.WriteNullListAsEmpty));
                 list.add(dto);
@@ -966,13 +962,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
      * 2022/9/1 10:45
      * 新增字段检查
      */
-    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo, JSONObject extraInfo) {
+    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo) {
         try {
             Set<String> keySet = new HashSet<>(uploadDataDTO.keySet());
             StringBuilder fieldStr = new StringBuilder();
-            if (!CollectionUtils.isEmpty(extraInfo)) {
-                keySet.addAll(extraInfo.keySet());
-            }
             int size = listInfo.size();
             for (int i = 0; i < size; i++) {
                 JSONObject info = listInfo.getJSONObject(i);
