@@ -100,7 +100,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         }
         String secPass = getSecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
         String md5SecPass = getMd5SecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
-        return secPass.equals(reqObj.getPassword()) || md5SecPass.equals(reqObj.getPassword());
+        return secPass.equals(reqObj.getPassword()) || md5SecPass.equals(reqObj.getMd5Password());
     }
     /**
      * md5转换
