@@ -14,6 +14,7 @@ import lombok.Data;
 public class LoginReqObj {
     private String username;
     private String password;
+    private String md5Password;
     private String captcha;
     private String sessionId;
     private String ticket;

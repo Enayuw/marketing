@@ -55,14 +55,14 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
             marketingUserInfoExample.createCriteria().andUserNameEqualTo(reqObj.getUsername()).andStatusEqualTo(1);
             MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
-            if(marketingUserInfo.getPasswordEditFlag()==0){
-                return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.EDIT_PASSWORD);
-            }
             if (kapError(reqObj)) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
             }
-            if (pwdError(reqObj, marketingUserInfo)) {
+            if (!pwdError(reqObj, marketingUserInfo)) {
                 return new ApiResult<MarketingUserDetail>().fail().fail(ServiceResultEnum.AUTH_LOGIN_PASS_ERROR);
+            }
+            if(marketingUserInfo.getPasswordEditFlag()==0){
+                return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.EDIT_PASSWORD);
             }
             // 查询当前用户所有角色
             List<MarketingRole> marketingRoles = marketingUserInfoRoleMapper.getRolesByUid(marketingUserInfo.getId());
@@ -95,11 +95,18 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      * 密码校验
      */
     private boolean pwdError(LoginReqObj reqObj, MarketingUserInfo user) {
-        if(user == null){
-            return true;
+        if(user == null) {
+            return false;
         }
         String secPass = getSecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
-        return !secPass.equals(reqObj.getPassword());
+        String md5SecPass = getMd5SecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
+        return secPass.equals(reqObj.getPassword()) || md5SecPass.equals(reqObj.getPassword());
+    }
+    /**
+     * md5转换
+     */
+    private static String getMd5SecPass(String username, String password, String captcha) {
+        return md5(md5(username + password) + captcha);
     }
 
     /**
@@ -243,9 +250,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
         if (StringUtils.isNotBlank(passwordReq.getNewPassword()) && StringUtils.isNotBlank(passwordReq.getOldPassword())) {
             // 老数据为md5
-            //if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword())) {
-            //    return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_PASSWD_ERROR);
-            //}
+            if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword()) && !passwordReq.getMd5Password().equals(marketingUserInfo.getPassword())) {
+                return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_PASSWD_ERROR);
+            }
             marketingUserInfo.setPassword(passwordReq.getNewPassword());
             marketingUserInfo.setPasswordEditFlag(1);
             return updateMarketingUserPassword(marketingUserInfo);
