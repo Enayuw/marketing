@@ -108,6 +108,11 @@ public class ScoreRuleConfig {
      */
     private Integer threekEncryptType;
 
+    /**
+     * 是否线上跑分1-线上；2-离线
+     */
+    private Integer isOnline;
+
     public Long getId() {
         return id;
     }
@@ -274,5 +279,13 @@ public class ScoreRuleConfig {
 
     public void setThreekEncryptType(Integer threekEncryptType) {
         this.threekEncryptType = threekEncryptType;
+    }
+
+    public Integer getIsOnline() {
+        return isOnline;
+    }
+
+    public void setIsOnline(Integer isOnline) {
+        this.isOnline = isOnline;
     }
 }

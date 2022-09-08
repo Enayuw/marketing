@@ -218,4 +218,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      */
     MarketingSyncUser getNewestPreUserByCellAndStatus(@Param("apiCode") String apiCode, @Param("cell") String cell);
 
+
+    List<MarketingSyncUser> getCustNumAppletDateByCustNumStart(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNums, @Param("startDate") String startDate);
 }

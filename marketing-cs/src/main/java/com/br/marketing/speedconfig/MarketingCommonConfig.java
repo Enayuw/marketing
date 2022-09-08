@@ -251,4 +251,17 @@ public class MarketingCommonConfig {
      */
     private Boolean checkJobOnlineSwitch;
 
+    /**
+     * 离线跑批入es文件 线程数
+     */
+    private Integer OffLineInserEsThreadNum;
+    /**
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     */
+    private String tongChengPeriodOfValidityDay;
+
+    /**
+     * #海尔有效期，T代表当天,T+day代表day天到当天
+     */
+    private String haierPeriodOfValidityDay;
 }

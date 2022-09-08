@@ -3,6 +3,7 @@ package com.br.marketing.push.service.impl;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -88,10 +89,10 @@ public class PushFinishServiceImpl implements PushFinishService {
         SyncConfig config = new SyncConfig();
         config.setApiCode(file.getApiCode());
         config.setType(2);
-        config.setDataType(1);
+        config.setDataType(DataTypeEnum.SCORE.getValue());
         config = loanSyncConfigMapper.queryConfigByConditaion(config);
-        if(config==null){
-            log.error(String.format("apicode【%s】未配置sftp跑分文件路径",file.getApiCode()));
+        if (config == null) {
+            log.error(String.format("apicode【%s】未配置sftp跑分文件路径", file.getApiCode()));
             return;
         }
         if (config.getCheckSuccess() == 1) {

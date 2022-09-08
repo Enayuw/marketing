@@ -26,6 +26,9 @@
     <result column="push_type" property="pushType" jdbcType="INTEGER" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="index_num" property="indexNum" jdbcType="INTEGER" />
+    <result column="inner_ftp_path" property="innerFtpPath" jdbcType="VARCHAR" />
+    <result column="file_name" property="fileName" jdbcType="VARCHAR" />
+    <result column="offline_file_path" property="offlineFilePath" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -89,7 +92,7 @@
     id, api_code, batch_number, file_path, create_time, update_time, status, type, zipFile_name, 
     error_file, expected_num, upload_time, file_size, actual_num, file_num, sign_file_status, 
     zip_status, md5, score_status, statistic_file_path, show_title, push_type, push_status, 
-    index_num
+    index_num, inner_ftp_path, file_name, offline_file_path
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.StraHisFileExample" >
     select
@@ -132,7 +135,8 @@
       actual_num, file_num, sign_file_status, 
       zip_status, md5, score_status, 
       statistic_file_path, show_title, push_type, 
-      push_status, index_num)
+      push_status, index_num, inner_ftp_path, 
+      file_name, offline_file_path)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
       #{type,jdbcType=INTEGER}, #{zipfileName,jdbcType=VARCHAR}, #{errorFile,jdbcType=VARCHAR}, 
@@ -140,7 +144,8 @@
       #{actualNum,jdbcType=INTEGER}, #{fileNum,jdbcType=INTEGER}, #{signFileStatus,jdbcType=INTEGER}, 
       #{zipStatus,jdbcType=INTEGER}, #{md5,jdbcType=VARCHAR}, #{scoreStatus,jdbcType=INTEGER}, 
       #{statisticFilePath,jdbcType=VARCHAR}, #{showTitle,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
-      #{pushStatus,jdbcType=INTEGER}, #{indexNum,jdbcType=INTEGER})
+      #{pushStatus,jdbcType=INTEGER}, #{indexNum,jdbcType=INTEGER}, #{innerFtpPath,jdbcType=VARCHAR}, 
+      #{fileName,jdbcType=VARCHAR}, #{offlineFilePath,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.StraHisFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -217,6 +222,15 @@
       <if test="indexNum != null" >
         index_num,
       </if>
+      <if test="innerFtpPath != null" >
+        inner_ftp_path,
+      </if>
+      <if test="fileName != null" >
+        file_name,
+      </if>
+      <if test="offlineFilePath != null" >
+        offline_file_path,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -287,6 +301,15 @@
       </if>
       <if test="indexNum != null" >
         #{indexNum,jdbcType=INTEGER},
+      </if>
+      <if test="innerFtpPath != null" >
+        #{innerFtpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null" >
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="offlineFilePath != null" >
+        #{offlineFilePath,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -371,6 +394,15 @@
       <if test="record.indexNum != null" >
         index_num = #{record.indexNum,jdbcType=INTEGER},
       </if>
+      <if test="record.innerFtpPath != null" >
+        inner_ftp_path = #{record.innerFtpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileName != null" >
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.offlineFilePath != null" >
+        offline_file_path = #{record.offlineFilePath,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -401,7 +433,10 @@
       show_title = #{record.showTitle,jdbcType=VARCHAR},
       push_type = #{record.pushType,jdbcType=INTEGER},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
-      index_num = #{record.indexNum,jdbcType=INTEGER}
+      index_num = #{record.indexNum,jdbcType=INTEGER},
+      inner_ftp_path = #{record.innerFtpPath,jdbcType=VARCHAR},
+      file_name = #{record.fileName,jdbcType=VARCHAR},
+      offline_file_path = #{record.offlineFilePath,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -478,6 +513,15 @@
       <if test="indexNum != null" >
         index_num = #{indexNum,jdbcType=INTEGER},
       </if>
+      <if test="innerFtpPath != null" >
+        inner_ftp_path = #{innerFtpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null" >
+        file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="offlineFilePath != null" >
+        offline_file_path = #{offlineFilePath,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -505,7 +549,10 @@
       show_title = #{showTitle,jdbcType=VARCHAR},
       push_type = #{pushType,jdbcType=INTEGER},
       push_status = #{pushStatus,jdbcType=INTEGER},
-      index_num = #{indexNum,jdbcType=INTEGER}
+      index_num = #{indexNum,jdbcType=INTEGER},
+      inner_ftp_path = #{innerFtpPath,jdbcType=VARCHAR},
+      file_name = #{fileName,jdbcType=VARCHAR},
+      offline_file_path = #{offlineFilePath,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

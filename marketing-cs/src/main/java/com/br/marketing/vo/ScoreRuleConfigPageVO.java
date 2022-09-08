@@ -92,4 +92,7 @@ public class ScoreRuleConfigPageVO {
 
     @ApiModelProperty(value = "跑分类型", dataType = "string", position = 15)
     private String productInfo;
+
+    @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 16)
+    private Integer isOnline;
 }
