@@ -10,7 +10,7 @@ import com.br.marketing.dto.ResponseCustomDTO;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 14:24
  */
-public interface IPushShuheTransferDataService {
+public interface IPushShuheDataService {
 
 
     /**
@@ -52,4 +52,14 @@ public interface IPushShuheTransferDataService {
 //     * 删除数禾上下文
 //     */
 //    void removeHandlerContext();
+
+    /**
+     * 保存上传数据
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据
+     * @return ResponseShuheDTO
+     * @author Guo Zeqiang
+     */
+    ResponseCustomDTO saveUploadData(String apiCode, String jsonData);
 }

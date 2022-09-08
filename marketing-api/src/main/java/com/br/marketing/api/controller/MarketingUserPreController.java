@@ -1,6 +1,8 @@
 package com.br.marketing.api.controller;
 
-import com.alibaba.fastjson.*;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.aspect.LogAnnotation;
@@ -16,7 +18,9 @@ import com.br.marketing.common.utils.BrCipherJsonUtils;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
+import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 
 /**
@@ -38,6 +44,9 @@ public class MarketingUserPreController {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Resource
+    private IPushShuheDataService iPushShuheDataService;
 
 
     /**
@@ -136,5 +145,25 @@ public class MarketingUserPreController {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
+    }
+
+    /**
+     * 数禾订制版上传数据接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     * @author Guo Zeqiang
+     * @dateTime 2022/8/28 9:55
+     */
+    @ApiOperation(value = "数禾订制版上传数据接口")
+    @PostMapping("/receiveShuHeUploadData")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveShuHeUploadData(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY, Constants.JSON_DATA_KEYARR));
+        return iPushShuheDataService.saveUploadData(apiCode, jsonData);
     }
 }
