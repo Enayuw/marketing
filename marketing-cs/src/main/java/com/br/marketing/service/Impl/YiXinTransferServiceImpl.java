@@ -656,8 +656,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         List<Result> results = new ArrayList<>();
         List<String> _hasCustNums = new ArrayList<>();
         while (action) {
+            Integer pageStart = pageIndex * pageSize;
             List<MarketingTransferSyncUser> transferUsers = marketingTransferSyncUserMapper
-                    .getTransferUserByCreateTimeOrder(tcId, apiCode, date, endDate, pageIndex, pageSize);
+                    .getTransferUserByCreateTimeOrder(tcId, apiCode, date, endDate, pageStart, pageSize);
             if (transferUsers.size() <= 0) {
                 action = Boolean.FALSE;
                 continue;
