@@ -166,11 +166,21 @@ public class MarketingTaskController {
         return new ApiResult<List<StatisticsDataDayVO>>().fromResult(marketingTaskService.getStatisticsDataDay(apiCode), 1);
     }
 
-    @ApiOperation(value = "跑分预览接口",notes = "")
+    @ApiOperation(value = "跑分预览接口", notes = "")
     @GetMapping("/resultPreview")
-    public ApiResult<ResultPreviewVO> resultPreview(@RequestParam Long taskId){
-        return new ApiResult<ResultPreviewVO>().fromResult(marketingTaskService.resultPreview(taskId),1);
+    public ApiResult<ResultPreviewVO> resultPreview(@RequestParam Long taskId) {
+        return new ApiResult<ResultPreviewVO>().fromResult(marketingTaskService.resultPreview(taskId), 1);
     }
 
+    @ApiOperation(value = "删除任务", notes = "")
+    @GetMapping("/delTask")
+    public ApiResult delTask(@RequestParam Long fileId) {
+        return new ApiResult().fromResult(marketingTaskService.delTask(fileId), 1);
+    }
 
+    @ApiOperation(value = "中止恢复任务", notes = "isOrPause 1-暂停；0-恢复")
+    @GetMapping("/pauseTask")
+    public ApiResult pauseTask(@RequestParam(name = "fileId") Long fileId, @RequestParam(name = "isOrPause") Integer isOrPause) {
+        return new ApiResult().fromResult(marketingTaskService.pauseTask(fileId, isOrPause), 1);
+    }
 }

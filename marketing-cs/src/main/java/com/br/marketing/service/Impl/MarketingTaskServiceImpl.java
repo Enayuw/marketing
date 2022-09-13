@@ -9,6 +9,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
@@ -22,6 +23,7 @@ import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
+import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
@@ -31,12 +33,15 @@ import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -122,6 +127,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     StraHisFileMapper straHisFileMapper;
+
+    @Resource
+    TaskStatusMapper taskStatusMapper;
+
+    @Autowired
+    private CuratorFramework client;
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -297,7 +311,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .andIsUploadEqualTo(1);
         int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
         if (isUploadCount > 0) {
-            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(),"");
+            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(), "");
             log.warn(errorMsg);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
         }
@@ -311,7 +325,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     , vo.getId().toString(), vo.getRuleNameShort()
                     , time, null);
             if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(),"");
+                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
                 log.warn(errorMsg);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
@@ -693,4 +707,82 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             redisChgService.del(key);
         }
     }
+
+    @Override
+    public Result delTask(Long id) {
+        MarketingTask task = marketingTaskMapper.selectByPrimaryKey(id);
+        if (task == null) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该跑分不存在");
+        }
+        if (!task.getStatus().equals(2)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("只有禁用的任务才能删除");
+        }
+        MarketingTask update = new MarketingTask();
+        update.setId(id);
+        update.setStatus(0);
+        marketingTaskMapper.updateByPrimaryKeySelective(update);
+        entityOptService.writeOptLog(id,update,task);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("删除成功");
+    }
+
+    @Override
+    public Result pauseTask(Long fileId, Integer isOrPause) {
+        StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
+        if (straHisFile == null) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该跑分记录不存在");
+        }
+        try {
+            //region 暂停操作
+            if (isOrPause.equals(1)
+                    && ScoreStatusEnum.RUNNING.getValue().equals(straHisFile.getStatus())) {
+                String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(fileId.toString());
+
+                if (client.checkExists().forPath(filePath) == null) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分订阅信息不存在");
+                }
+                String value = new String(client.getData().forPath(filePath));
+                if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
+                }
+                client.setData().forPath(filePath,ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            //endregion
+            //region 恢复操作
+            if (isOrPause.equals(0)
+                    && ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
+                String scoreDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()).substring(0, 10);
+                String actionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+                if(!scoreDate.equals(actionDate)){
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跨天不允许恢复跑分");
+                }
+                StraHisFile updateFile = new StraHisFile();
+                updateFile.setId(fileId);
+                updateFile.setStatus(ScoreStatusEnum.RUNNING.getValue());
+                straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+                entityOptService.writeOptLog(fileId,updateFile,straHisFile);
+
+                TaskStatusExample statusExample = new TaskStatusExample();
+                statusExample.createCriteria().andFileIdEqualTo(fileId.intValue());
+                List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
+                TaskStatus taskStatus = taskStatuses.get(0);
+                TaskStatus updateStatus = new TaskStatus();
+                updateStatus.setId(taskStatus.getId());
+                if(new Integer(4).equals(taskStatus.getOnceStatus())){
+                    updateStatus.setOnceStatus(3);
+                }
+                if(new Integer(4).equals(taskStatus.getAllStatus())){
+                    updateStatus.setOnceStatus(4);
+                }
+                taskStatusMapper.updateByPrimaryKey(updateStatus);
+                entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()),updateStatus,taskStatus);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            //endregion
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("操作失败");
+    }
+
 }

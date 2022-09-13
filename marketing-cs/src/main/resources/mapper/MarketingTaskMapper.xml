@@ -606,6 +606,8 @@
         when shf.status = 6 then 1
         when shf.status = 7 then 1
         when shf.status = 9 then 1
+        when shf.status = 10 then 4
+        when shf.status = 11 then 5
         else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,
@@ -624,6 +626,7 @@
         left join  b_marketing_customer bmc  on bmc.api_code = bmt.api_code
 
         where bsrc.is_del = 1
+            and bmt.status !=0
         <if test="status !=null">
             and bmt.status = #{status}
         </if>

@@ -74,7 +74,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【暂停】");
             alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
-            observedScoreThreadService.stopThread();
+            observedScoreThreadService.stopThreadAll();
             return;
         }
 

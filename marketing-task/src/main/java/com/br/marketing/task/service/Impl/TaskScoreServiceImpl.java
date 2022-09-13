@@ -17,10 +17,12 @@ import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
+import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.task.dto.ObservedTaskObj;
 import com.br.marketing.task.thread.CoreScoreThread;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
@@ -137,6 +139,7 @@ public class TaskScoreServiceImpl {
 
     /**
      * 跑分服务
+     *
      * @param task 执行的任务
      * @param day  执行的日期
      */
@@ -157,10 +160,12 @@ public class TaskScoreServiceImpl {
         ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
 
         //线程监听
-        threadNumListen(warrningExecutor, customer, task);
+        ObservedTaskObj observedTaskObj = new ObservedTaskObj(warrningExecutor, task);
 
         //线程池注册
-        observedScoreThreadService.addObserver(warrningExecutor);
+        observedScoreThreadService.addObserver(observedTaskObj);
+
+        threadNumListen(warrningExecutor, customer, task,observedTaskObj);
 
         try {
 
@@ -176,7 +181,7 @@ public class TaskScoreServiceImpl {
             warrningExecutor.shutdown();
             while (true) {
                 if (warrningExecutor.isTerminated()) {
-                    observedScoreThreadService.removeThread(warrningExecutor);
+                    observedScoreThreadService.removeThread(observedTaskObj);
                     log.warn("所有线程都执行结束");
                     break;
                 }
@@ -235,9 +240,9 @@ public class TaskScoreServiceImpl {
             if (!observedScoreThreadService.isInterrupt()) {
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(task.getFileId());
-                if(isOffline){
+                if (isOffline) {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
-                }else {
+                } else {
                     updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
@@ -245,8 +250,8 @@ public class TaskScoreServiceImpl {
                 updateTask.setId(task.getId());
                 updateTask.setPriority(0);
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
-                if(isOffline){
-                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE,task.getFileId().toString());
+                if (isOffline) {
+                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
                 }
             } else {
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
@@ -451,7 +456,7 @@ public class TaskScoreServiceImpl {
         if (new Integer(2).equals(blt.getIsOnline())) {
             List<String> showBaseHead = baseHeadConfigVO.getShowBaseHead();
             List<BaseHead> baseHead = baseHeadConfigVO.getBaseHead();
-            iProductResultSimpleService.offLineHeadComplete(showBaseHead,baseHead);
+            iProductResultSimpleService.offLineHeadComplete(showBaseHead, baseHead);
             baseHeadConfigVO.getBaseHead().forEach(t -> {
                 if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
                     t.setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue());
@@ -609,7 +614,7 @@ public class TaskScoreServiceImpl {
      * 获取跑数状态
      *
      * @param fileId 跑分记录id
-     * @param page  页码
+     * @param page   页码
      * @return false-为暂未跑完；true-已经跑完；
      */
     boolean getCoreDataStatus(String fileId, Integer page) {
@@ -693,7 +698,8 @@ public class TaskScoreServiceImpl {
         return ip;
     }
 
-    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer, MarketingTask task) {
+    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer, MarketingTask task,ObservedTaskObj taskObj) {
+        //region 线程数量
         String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
         try {
             if (client.checkExists().forPath(zkpath) == null) {
@@ -720,7 +726,35 @@ public class TaskScoreServiceImpl {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        //endregion
 
+        //region 跑分状态
+        String zkStatusPath = ZookeeperPath.marketStatusPath.concat("/").concat(task.getFileId().toString());
+        try {
+            if (client.checkExists().forPath(zkStatusPath) == null) {
+                client.create().forPath(zkStatusPath, ZkScoreStatusEnum.RUNNING.getValue().getBytes(StandardCharsets.UTF_8));
+            } else {
+                client.setData().forPath(zkStatusPath, ZkScoreStatusEnum.RUNNING.getValue().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        NodeCache nodeStatus = new NodeCache(client, zkStatusPath);
+        nodeStatus.getListenable().addListener(() -> {
+            if (nodeStatus.getCurrentData() != null) {
+                String currentStatus = new String(nodeStatus.getCurrentData().getData());
+                if (!taskObj.getInterrupt().equals(1) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
+                    observedScoreThreadService.stopThread(taskObj);
+                }
+            }
+        });
+        try {
+            nodeStatus.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //endregion
     }
 
     private Thread threadReport(ThreadPoolExecutor executor, MarketingCustomer customer) {
