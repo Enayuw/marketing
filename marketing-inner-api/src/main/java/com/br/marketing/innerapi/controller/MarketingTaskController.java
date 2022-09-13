@@ -174,8 +174,8 @@ public class MarketingTaskController {
 
     @ApiOperation(value = "删除任务", notes = "")
     @GetMapping("/delTask")
-    public ApiResult delTask(@RequestParam Long fileId) {
-        return new ApiResult().fromResult(marketingTaskService.delTask(fileId), 1);
+    public ApiResult delTask(@RequestParam Long id) {
+        return new ApiResult().fromResult(marketingTaskService.delTask(id), 1);
     }
 
     @ApiOperation(value = "中止恢复任务", notes = "isOrPause 1-暂停；0-恢复")

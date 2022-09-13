@@ -67,7 +67,7 @@ public interface MarketingTaskService {
 
     Result offLineCallBack(@Valid OffLineCallBackDTO dto);
 
-    Result delTask(Long fileId);
+    Result delTask(Long id);
 
     Result pauseTask(@Valid @NotNull(message = "fileId不能为空") Long fileId,@NotNull(message = "isOrPause不能为空")Integer isOrPause);
 
