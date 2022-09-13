@@ -1,5 +1,6 @@
 package com.br.marketing.client.intelligentcustomerservice;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -88,17 +89,22 @@ public class IntelligentCustomerServiceClient {
     public Result pushUser(PushMarketingUserDTO dto) {
         Result result = new Result();
         dto.setPlatApiCode(customerServiceApiCode);
-        ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
-                .setUrl(pushUrl).setContentType(MediaType.APPLICATION_FORM_URLENCODED).setRequestParam(dto).postTransferStr();
-        JSONObject jsonObject = JSON.parseObject(transfer.getResult());
-        if (transfer.getHttpCode() != 200) {
-            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-            return result;
-        }
-        if ("00".equals(jsonObject.getString("code"))) {
-            result.setCode(ResultCode.SUCCESS.getValue());
-        } else {
-            result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+        try {
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
+                    .setUrl(pushUrl).setContentType(MediaType.APPLICATION_FORM_URLENCODED).setRequestParam(dto).postTransferStr();
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            if (transfer.getHttpCode() != 200) {
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                return result;
+            }
+            if ("00".equals(jsonObject.getString("code"))) {
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(),ex);
+            result.setDate(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;
     }
