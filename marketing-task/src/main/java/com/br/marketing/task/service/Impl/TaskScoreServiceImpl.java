@@ -165,7 +165,7 @@ public class TaskScoreServiceImpl {
         //线程池注册
         observedScoreThreadService.addObserver(observedTaskObj);
 
-        threadNumListen(warrningExecutor, customer, task,observedTaskObj);
+        threadNumListen(warrningExecutor, customer, task);
 
         try {
 
@@ -173,7 +173,7 @@ public class TaskScoreServiceImpl {
             Thread thread = threadReport(warrningExecutor, customer);
 
             //region 跑分
-            this.generateTask(task, warrningExecutor, customer, day);
+            this.generateTask(observedTaskObj, customer, day);
             /**
              * 等待所有任务都执行完成
              **/
@@ -232,14 +232,14 @@ public class TaskScoreServiceImpl {
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(task.getStatusId());
             if (task.getMonitorType().equals(1) || task.getMonitorType().equals(2)) {
-                updateStatus.setOnceStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
+                updateStatus.setOnceStatus(observedTaskObj.getInterrupt().equals(1) ? 4 : 2);
             } else {
-                updateStatus.setAllStatus(observedScoreThreadService.isInterrupt() ? 4 : 2);
+                updateStatus.setAllStatus(observedTaskObj.getInterrupt().equals(1) ? 4 : 2);
             }
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-            if (!observedScoreThreadService.isInterrupt()) {
-                StraHisFile updateFile = new StraHisFile();
-                updateFile.setId(task.getFileId());
+            StraHisFile updateFile = new StraHisFile();
+            updateFile.setId(task.getFileId());
+            if (observedTaskObj.getInterrupt().equals(0)) {
                 if (isOffline) {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
                 } else {
@@ -254,6 +254,8 @@ public class TaskScoreServiceImpl {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
                 }
             } else {
+                updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
+                straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
                         , task.getBatchNumber(), task.getFileId().toString());
                 sendContent(content, "跑分暂停", Constants.sendCodeMap.get("uploadSuccess"));
@@ -343,7 +345,9 @@ public class TaskScoreServiceImpl {
         }
     }
 
-    private void generateTask(MarketingTask blt, ExecutorService warrningExecutor, MarketingCustomer customer, String day) {
+    private void generateTask(ObservedTaskObj taskObj , MarketingCustomer customer, String day) {
+        ExecutorService warrningExecutor = taskObj.getExecutorService();
+        MarketingTask blt = taskObj.getMarketingTask();
         String productJson = "";
         if (blt.getTaskType().compareTo(TaskTypeEnum.STRATYGYDATA.getValue()) == 0) {
             productJson = strategyCS.strategyIdCheck(blt.getApiCode(), blt.getStrategyId());
@@ -430,10 +434,10 @@ public class TaskScoreServiceImpl {
             //endregion
         }
         //endregion
-
         StringBuilder addTaskContent = new StringBuilder();
         addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
         sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
+        scoreStatusListen(taskObj);
         core(blt, descPath, true, productJson, warrningExecutor, blt.getFileId().toString(), customer);
     }
 
@@ -698,8 +702,13 @@ public class TaskScoreServiceImpl {
         return ip;
     }
 
-    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer, MarketingTask task,ObservedTaskObj taskObj) {
-        //region 线程数量
+    /**
+     * 线程监听
+     * @param executor
+     * @param customer
+     * @param task
+     */
+    private void threadNumListen(ThreadPoolExecutor executor, MarketingCustomer customer, MarketingTask task) {
         String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
         try {
             if (client.checkExists().forPath(zkpath) == null) {
@@ -726,11 +735,37 @@ public class TaskScoreServiceImpl {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //endregion
+    }
 
-        //region 跑分状态
+    public static void main(String[] args) {
+        String[] split = ZookeeperPath.marketStatusPath.split("\\/");
+        for (String s : split) {
+            System.out.println("args = " + s);
+        }
+    }
+    /**
+     * 跑分监听
+     * @param taskObj
+     */
+    private void scoreStatusListen(ObservedTaskObj taskObj){
+        MarketingTask task = taskObj.getMarketingTask();
         String zkStatusPath = ZookeeperPath.marketStatusPath.concat("/").concat(task.getFileId().toString());
         try {
+            String parentPaht = "";
+            String[] parentArrays = zkStatusPath.split("\\/");
+            for (int i = 0; i < parentArrays.length; i++) {
+                String pathNode = parentArrays[i];
+                if(StringUtils.isBlank(pathNode)){
+                    continue;
+                }
+                if(i== parentArrays.length-1){
+                    continue;
+                }
+                parentPaht += "/"+ pathNode;
+                if(client.checkExists().forPath(parentPaht) == null){
+                    client.create().forPath(parentPaht);
+                }
+            }
             if (client.checkExists().forPath(zkStatusPath) == null) {
                 client.create().forPath(zkStatusPath, ZkScoreStatusEnum.RUNNING.getValue().getBytes(StandardCharsets.UTF_8));
             } else {
@@ -743,7 +778,7 @@ public class TaskScoreServiceImpl {
         nodeStatus.getListenable().addListener(() -> {
             if (nodeStatus.getCurrentData() != null) {
                 String currentStatus = new String(nodeStatus.getCurrentData().getData());
-                if (!taskObj.getInterrupt().equals(1) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
+                if (taskObj.getInterrupt().equals(0) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
                     observedScoreThreadService.stopThread(taskObj);
                 }
             }
@@ -753,8 +788,6 @@ public class TaskScoreServiceImpl {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //endregion
     }
 
     private Thread threadReport(ThreadPoolExecutor executor, MarketingCustomer customer) {
@@ -791,11 +824,12 @@ public class TaskScoreServiceImpl {
 
     private void removeZk(MarketingTask task) {
         String zkpath = ZookeeperPath.marketPath.concat("/").concat(getLocalIp().concat("_")).concat(task.getBatchNumber());
+        String zkStatusPath = ZookeeperPath.marketStatusPath.concat("/").concat(task.getFileId().toString());
         try {
             client.delete().guaranteed().forPath(zkpath);
+            client.delete().guaranteed().forPath(zkStatusPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }

@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 public class ObservedTaskObj {
     private ExecutorService executorService;
     private MarketingTask marketingTask;
-    private Integer interrupt = 1;
+    private Integer interrupt = 0;
 
     public ObservedTaskObj(ExecutorService executorService,MarketingTask marketingTask){
         this.executorService = executorService;

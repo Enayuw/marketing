@@ -53,8 +53,8 @@ public class ObservedScoreThreadServiceImpl {
     public void stopThread(ObservedTaskObj ObservedTaskObj) {
         ExecutorService executorService = ObservedTaskObj.getExecutorService();
         MarketingTask marketingTask = ObservedTaskObj.getMarketingTask();
-        if(!executorService.isTerminated()&& !ObservedTaskObj.getInterrupt().equals(1)){
-            ObservedTaskObj.setInterrupt(0);
+        if(!executorService.isTerminated()&& ObservedTaskObj.getInterrupt().equals(0)){
+            ObservedTaskObj.setInterrupt(1);
             StraHisFile file = new StraHisFile();
             file.setStatus(ScoreStatusEnum.PAUSE.getValue());
             file.setId(marketingTask.getFileId());

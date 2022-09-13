@@ -772,9 +772,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     updateStatus.setOnceStatus(3);
                 }
                 if(new Integer(4).equals(taskStatus.getAllStatus())){
-                    updateStatus.setOnceStatus(4);
+                    updateStatus.setAllStatus(3);
                 }
-                taskStatusMapper.updateByPrimaryKey(updateStatus);
+                taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
                 entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()),updateStatus,taskStatus);
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
