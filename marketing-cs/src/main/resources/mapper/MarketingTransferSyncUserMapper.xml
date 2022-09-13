@@ -172,5 +172,16 @@
         limit ${rowCount},${offset}
         ) as t1 where t1.id = t2.id
     </select>
+    <select id="getTransferUserByCreateTimeOrder" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tcId}
+        where
+        <![CDATA[  create_time >= #{startTime}
+        and create_time < #{endTime} ]]>
+        <if test="apiCode !=null and apiCode !=''">
+           and api_code = #{apiCode}
+        </if>
+        order by create_time desc limit #{pageIndex},#{pageSize}
 
+    </select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.auth;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.encryption.Sm3Util;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.auth.AuthConstants;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -48,15 +50,19 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
 
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
+
         if (checkParam(reqObj)) {
-            if (kapError(reqObj)) {
-                return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
-            }
             MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
             marketingUserInfoExample.createCriteria().andUserNameEqualTo(reqObj.getUsername()).andStatusEqualTo(1);
             MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
-            if (pwdError(reqObj, marketingUserInfo)) {
+            if (kapError(reqObj)) {
+                return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_CHECK_CODE_ERROR);
+            }
+            if (!pwdError(reqObj, marketingUserInfo)) {
                 return new ApiResult<MarketingUserDetail>().fail().fail(ServiceResultEnum.AUTH_LOGIN_PASS_ERROR);
+            }
+            if(marketingUserInfo.getPasswordEditFlag()==0){
+                return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.EDIT_PASSWORD);
             }
             // 查询当前用户所有角色
             List<MarketingRole> marketingRoles = marketingUserInfoRoleMapper.getRolesByUid(marketingUserInfo.getId());
@@ -89,18 +95,29 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      * 密码校验
      */
     private boolean pwdError(LoginReqObj reqObj, MarketingUserInfo user) {
-        if(user == null){
-            return true;
+        if(user == null) {
+            return false;
         }
         String secPass = getSecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
-        return !secPass.equals(reqObj.getPassword());
+        String md5SecPass = getMd5SecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
+        return secPass.equals(reqObj.getPassword()) || md5SecPass.equals(reqObj.getMd5Password());
+    }
+    /**
+     * md5转换
+     */
+    private static String getMd5SecPass(String username, String password, String captcha) {
+        return md5(md5(username + password) + captcha);
     }
 
     /**
      * md5转换
      */
     private static String getSecPass(String username, String password, String captcha) {
-        return md5(md5(username + password) + captcha);
+        try {
+            return Sm3Util.getSM3Value(Sm3Util.getSM3Value(username + password).toLowerCase() + captcha).toLowerCase();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -224,6 +241,23 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     public ApiResult<Boolean> updateMarketingUserInfoApiCodes(MarketingUserInfo marketingUserInfo) {
         marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
         return new ApiResult<Boolean>().success();
+    }
+
+    @Override
+    public ApiResult<Boolean> updatePassword(PasswordReq passwordReq) {
+        MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
+        marketingUserInfoExample.createCriteria().andUserNameEqualTo(passwordReq.getUsername()).andStatusEqualTo(1);
+        MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
+        if (StringUtils.isNotBlank(passwordReq.getNewPassword()) && StringUtils.isNotBlank(passwordReq.getOldPassword())) {
+            // 老数据为md5
+            if (!passwordReq.getOldPassword().equals(marketingUserInfo.getPassword()) && !passwordReq.getMd5Password().equals(marketingUserInfo.getPassword())) {
+                return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_PASSWD_ERROR);
+            }
+            marketingUserInfo.setPassword(passwordReq.getNewPassword());
+            marketingUserInfo.setPasswordEditFlag(1);
+            return updateMarketingUserPassword(marketingUserInfo);
+        }
+        return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
     }
 
 

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
+import java.util.Properties;
 
 @Service
 public class IntelligentCustomerServiceClient {

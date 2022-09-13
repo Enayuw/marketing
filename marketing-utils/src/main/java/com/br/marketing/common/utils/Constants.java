@@ -140,6 +140,7 @@ public class Constants {
         sendCodeMap.put("pushToCustomer", "60002");
         sendCodeMap.put("pushToHaier", "60003");
         sendCodeMap.put("ladderCommonly", "60006");
+        sendCodeMap.put("apiSaveDbException", "60001");
     }
 
     public static final String REDIS_STMT_RULE_PREFIX = "redisMonitor_";

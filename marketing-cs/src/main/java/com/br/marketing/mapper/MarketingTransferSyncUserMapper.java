@@ -129,4 +129,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode,@Param("eliminateDate") LocalDate eliminateDate);
 
+    List<MarketingTransferSyncUser> getTransferUserByCreateTimeOrder(@Param("tcId") String tcId, @Param("apiCode") String apiCode
+            ,@Param("startTime") String startTime,@Param("endTime") String endTime
+            ,@Param("pageIndex") Integer pageIndex,@Param("pageSize") Integer pageSize);
 }

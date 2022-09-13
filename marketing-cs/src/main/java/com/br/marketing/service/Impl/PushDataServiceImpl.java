@@ -530,7 +530,8 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
 
-    String getHaierRequestId(String type) {
+    @Override
+    public String getHaierRequestId(String type) {
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String s = RandomUtils.randomStr(4);
         return yyyyMMddHHmmss.concat("_").concat(type).concat(s);

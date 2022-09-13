@@ -297,7 +297,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .andIsUploadEqualTo(1);
         int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
         if (isUploadCount > 0) {
-            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId());
+            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(),"");
             log.warn(errorMsg);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
         }
@@ -311,7 +311,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     , vo.getId().toString(), vo.getRuleNameShort()
                     , time, null);
             if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId());
+                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(),"");
                 log.warn(errorMsg);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
