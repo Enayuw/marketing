@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -82,9 +81,10 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     }
 
     @Override
-    public void handlerCleanHistory(String jsonData) {
+    public Integer handlerCleanHistory(String jsonData) {
         JSONObject jsonObject = JSON.parseObject(jsonData);
         JSONArray dataArray = jsonObject.getJSONArray("dataArray");
+        int allCount = 0;
         if (dataArray != null) {
             for (int i = 0; i < dataArray.size(); i++) {
                 ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
@@ -92,7 +92,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                 String apiCode = dataJson.getString("apiCode");
                 String appletDate = dataJson.getString("appletDate");
                 StringBuilder content = new StringBuilder();
-                int allCount = marketingSyncInfoMapper.selectCountError(apiCode, appletDate);
+                allCount = allCount + marketingSyncInfoMapper.selectCountError(apiCode, appletDate);
                 log.warn("数据清洗条数：{}", allCount);
                 if (allCount > 0) {
                     CountDownLatch countDownLatch = new CountDownLatch(allCount);
@@ -119,6 +119,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             }
         }
         log.info("所有线程都执行结束");
+        return allCount;
     }
 
     private void doHandlerCleanHistory(String appletDate, String apiCode, ThreadPoolExecutor threadPool, CountDownLatch countDownLatch) {
