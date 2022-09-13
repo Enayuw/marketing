@@ -410,7 +410,7 @@
     order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
   </select>
 
-  <select id="getReportListTotal" resultType="com.br.marketing.vo.MarketingSyncReportNumVO">
+  <select id="getReportListTotaltiflash_" resultType="com.br.marketing.vo.MarketingSyncReportNumVO">
     select SUM(normal_num) as normalNumTotal,SUM(duplicate_removal_num) as duplicateRemovalNumTotal,
            api_code
     from b_marketing_sync_report bmsr

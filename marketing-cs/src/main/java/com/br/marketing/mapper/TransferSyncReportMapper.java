@@ -59,5 +59,5 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @return List
      */
     @AddDataAuth
-    List<TransferSyncReportNumVO> getReportListTotal(Map<String, Object> params);
+    List<TransferSyncReportNumVO> getReportListTotaltiflash_(Map<String, Object> params);
 }
