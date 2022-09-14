@@ -505,6 +505,7 @@
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
         </if>
         and shf.score_status = 2
+        and mt.status != 0
         group by batchNumber
         order by shf.create_time desc) vie where api_code = #{apiCode}
         <if test="productName !=null and productName !=''">
@@ -550,6 +551,7 @@
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
         </if>
         and shf.score_status = 2
+        and mt.status != 0
         group by batchNumber
         order by shf.id desc) vie where api_code = #{apiCode}
         <if test="productName !=null and productName !=''">
