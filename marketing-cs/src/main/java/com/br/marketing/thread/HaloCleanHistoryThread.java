@@ -62,7 +62,6 @@ public class HaloCleanHistoryThread implements Callable<String> {
                 updateHisUser.setFailType(cellFromCurrentUser.getFailType());
                 updateHisUser.setUpdateTime(new Date());
                 int update = marketingSyncInfoMapper.updateBySyncHaLuo(updateHisUser, apiCode, marketingSyncUser.getId());
-                log.warn("更新操作 update:{} id:{}", update, marketingSyncUser.getId());
                 //修改数据的id,修改数据的上传时间,修改数据的status,修改数据的failType,custNum,
             } else {
                 reserveFieldObj.put("message", "未找到离当前时间最近的cell 数据");
