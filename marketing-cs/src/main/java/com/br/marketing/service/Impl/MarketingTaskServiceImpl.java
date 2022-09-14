@@ -714,15 +714,23 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (task == null) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该跑分不存在");
         }
-        if (!task.getStatus().equals(2)) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("只有禁用的任务才能删除");
+        StraHisFileExample fileExample = new StraHisFileExample();
+        fileExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+        List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
+        Boolean isFinish = Boolean.FALSE;
+        if (files.size() > 0) {
+            long count = files.stream().filter(t -> !ScoreStatusEnum.FINISH.getValue().equals(t.getStatus())).count();
+            isFinish = task.getStatus().equals(1) && count <= 0;
         }
-        MarketingTask update = new MarketingTask();
-        update.setId(id);
-        update.setStatus(0);
-        marketingTaskMapper.updateByPrimaryKeySelective(update);
-        entityOptService.writeOptLog(id,update,task);
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("删除成功");
+        if (task.getStatus().equals(2) || isFinish) {
+            MarketingTask update = new MarketingTask();
+            update.setId(id);
+            update.setStatus(0);
+            marketingTaskMapper.updateByPrimaryKeySelective(update);
+            entityOptService.writeOptLog(id, update, task);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("删除成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("禁用或者已跑分结束的才能删除");
     }
 
     @Override
@@ -744,7 +752,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
                 }
-                client.setData().forPath(filePath,ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
+                client.setData().forPath(filePath, ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
             //endregion
@@ -753,14 +761,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     && ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
                 String scoreDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()).substring(0, 10);
                 String actionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                if(!scoreDate.equals(actionDate)){
+                if (!scoreDate.equals(actionDate)) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跨天不允许恢复跑分");
                 }
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(fileId);
                 updateFile.setStatus(ScoreStatusEnum.RUNNING.getValue());
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                entityOptService.writeOptLog(fileId,updateFile,straHisFile);
+                entityOptService.writeOptLog(fileId, updateFile, straHisFile);
 
                 TaskStatusExample statusExample = new TaskStatusExample();
                 statusExample.createCriteria().andFileIdEqualTo(fileId.intValue());
@@ -768,14 +776,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 TaskStatus taskStatus = taskStatuses.get(0);
                 TaskStatus updateStatus = new TaskStatus();
                 updateStatus.setId(taskStatus.getId());
-                if(new Integer(4).equals(taskStatus.getOnceStatus())){
+                if (new Integer(4).equals(taskStatus.getOnceStatus())) {
                     updateStatus.setOnceStatus(3);
                 }
-                if(new Integer(4).equals(taskStatus.getAllStatus())){
+                if (new Integer(4).equals(taskStatus.getAllStatus())) {
                     updateStatus.setAllStatus(3);
                 }
                 taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-                entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()),updateStatus,taskStatus);
+                entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
             //endregion
