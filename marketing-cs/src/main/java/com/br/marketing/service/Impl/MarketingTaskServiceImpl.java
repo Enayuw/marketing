@@ -741,8 +741,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         try {
             //region 暂停操作
-            if (isOrPause.equals(1)
-                    && ScoreStatusEnum.RUNNING.getValue().equals(straHisFile.getStatus())) {
+            if (isOrPause.equals(1)) {
+
+                if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFile.getStatus())) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
+                }
+
                 String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(fileId.toString());
 
                 if (client.checkExists().forPath(filePath) == null) {
@@ -757,8 +761,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
             //endregion
             //region 恢复操作
-            if (isOrPause.equals(0)
-                    && ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
+            if (isOrPause.equals(0)) {
+                if (!ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不是已暂停状态");
+                }
                 String scoreDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()).substring(0, 10);
                 String actionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
                 if (!scoreDate.equals(actionDate)) {
