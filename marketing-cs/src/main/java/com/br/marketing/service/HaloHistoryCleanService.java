@@ -22,5 +22,5 @@ public interface HaloHistoryCleanService {
     ApiResult<Boolean> cleanHistory(String jsonData );
 
 
-    void handlerCleanHistory(String jsonData);
+    Integer handlerCleanHistory(String jsonData);
 }
