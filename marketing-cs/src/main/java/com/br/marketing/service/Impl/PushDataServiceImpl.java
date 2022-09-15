@@ -160,6 +160,7 @@ public class PushDataServiceImpl implements PushDataService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
+        localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
@@ -203,6 +204,10 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception e) {
             }
         }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
@@ -254,6 +259,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
+        localFile.setPushStartTime(new Date());
         AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -357,6 +363,9 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             number++;
         }
+        localFile.setPushNumber(number);
+        localFile.setPushEndTime(new Date());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         /** 调用撞库接口有网络失败的 需要重试 */
         if (errorMark.get() > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -819,10 +828,13 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //壹钱包推送营销数据
         if ("yiqianbao".equals(localFile.getFileType())) {
+            localFile.setPushStartTime(new Date());
             Boolean actionMark = true;
             Long minId = null;
+            Integer pushCount = 0;
             while (actionMark) {
                 List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id, minId);
+                pushCount = pushCount +dataList.size();
                 if (dataList.size() <= 0) {
                     actionMark = false;
                     continue;
@@ -835,6 +847,10 @@ public class PushDataServiceImpl implements PushDataService {
                     updatePushStatus(pushList);
                 });
             }
+
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(pushCount);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
@@ -847,10 +863,13 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //携程推送营销数据
         if ("xiecheng".equals(localFile.getFileType())) {
+            localFile.setPushStartTime(new Date());
             Boolean actionMark = true;
+            Integer pushCount = 0;
             while (actionMark) {
 
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
+                pushCount = pushCount+xieChengDatalist.size();
                 if (xieChengDatalist.size() <= 0) {
                     actionMark = false;
                     continue;
@@ -876,6 +895,9 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 }
             }
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(pushCount);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
