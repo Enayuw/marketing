@@ -4,4 +4,26 @@
     <insert id="insertFileData">
         ${insertSql}
     </insert>
+
+    <select id="selectList" resultType="com.br.marketing.vo.LocalFileVo">
+        select bf.*,bc.short_name from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code where file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo')
+        <if test="search !=null and search!=''">
+            and (
+            bf.cid like concat("%", #{search},"%")
+            or bc.short_name like concat("%", #{search},"%"))
+        </if>
+        <if test="uploadStartTime !=null and uploadStartTime!=''">
+            <![CDATA[  and bf.create_time >=#{uploadStartTime} ]]>
+        </if>
+        <if test="uploadEndTime !=null and uploadEndTime!=''">
+            <![CDATA[  and bf.create_time <#{uploadEndTime} ]]>
+        </if>
+
+        <if test="fileType!=null and fileType !='' ">
+            and bf.file_type = #{fileType}
+        </if>
+
+        order by bmt.create_time desc,bmt.id desc
+    </select>
+
 </mapper>

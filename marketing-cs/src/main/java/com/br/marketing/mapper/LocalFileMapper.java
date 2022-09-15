@@ -1,9 +1,19 @@
 package com.br.marketing.mapper;
 
 
+
+import com.br.marketing.vo.LocalFileVo;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface LocalFileMapper extends LocalFileMapperBase {
 
     Integer insertFileData(@Param("insertSql") String insertSql);
+
+    List<LocalFileVo> selectList(@Param("search")String search,
+                                 @Param("apiCode")String apiCode,
+                                 @Param("uploadStartTime")String uploadStartTime,
+                                 @Param("uploadEndTime")String uploadEndTime,
+                                 @Param("fileType")String fileType);
 }
