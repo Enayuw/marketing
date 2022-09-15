@@ -1,0 +1,38 @@
+package com.br.marketing.client.intelligentcustomerservice.input;
+
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.rule.SourceData;
+import lombok.Data;
+
+/**
+ * 用于规则流转进行组装的对象
+ */
+@Data
+public class PushMarketingUserDetailByRuleDTO extends SourceData {
+
+    /**
+     * 数据集id
+     */
+    private String batchNumber;
+
+    /**
+     * 案件编号
+     */
+    private String caseNumber;
+
+    /**
+     *手机号码
+     */
+    private String phone;
+
+    /**
+     *变量JSON
+     */
+    private JSONObject variables;
+
+    /**
+     * 触达策略
+     */
+    private String strategyCode;
+
+}
