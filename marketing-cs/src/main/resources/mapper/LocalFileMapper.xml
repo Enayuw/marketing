@@ -6,10 +6,23 @@
     </insert>
 
     <select id="selectList" resultType="com.br.marketing.vo.LocalFileVo">
-        select bf.*,bc.short_name from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code where file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo')
+        select bf.id,
+        bf.api_code,
+        bf.file_type,
+        bf.file_name,
+        bf.status,
+        bf.complete,
+        bf.actual_number,
+        bf.create_time,
+        bf.error_actual_number,
+        bf.push_start_time,
+        bf.push_end_time,
+        bf.push_number,
+        bc.short_name,
+        bc.cid from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo')
         <if test="search !=null and search!=''">
             and (
-            bf.cid like concat("%", #{search},"%")
+            bc.cid like concat("%", #{search},"%")
             or bc.short_name like concat("%", #{search},"%"))
         </if>
         <if test="uploadStartTime !=null and uploadStartTime!=''">
@@ -23,7 +36,7 @@
             and bf.file_type = #{fileType}
         </if>
 
-        order by bmt.create_time desc,bmt.id desc
+        order by bf.create_time desc
     </select>
 
 </mapper>
