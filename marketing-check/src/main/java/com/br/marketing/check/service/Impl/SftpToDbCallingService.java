@@ -196,6 +196,7 @@ public class SftpToDbCallingService {
         if (errorMark.get() > 0) {
             updateFile.setComplete("3");
         }
+        updateFile.setErrorActualNumber(Integer.valueOf(errorMark.toString()));
         localFileMapper.updateByPrimaryKeySelective(updateFile);
 
         afterProcessSendEmailAlert(localFile, errorMark, updateFile);
