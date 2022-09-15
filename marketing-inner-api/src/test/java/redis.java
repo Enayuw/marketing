@@ -4,6 +4,7 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
@@ -302,6 +303,14 @@ public class redis {
     DecimalFormat df = new DecimalFormat("######0.000");
     @Test
     public void testScript(){
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode("7410437");
+        queryBaseBean.setBatchNumbers("7410437_20220829000000_2092");
+        queryBaseBean.setFileIds("1620036");
+        queryBaseBean.setJsonData("{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"sd_scorencashonshxhcsd_pd_cell_city\",\"operation\":\"in\",\"value\":[\"长春\",\"四平\"]},{\"type\":\"operation\",\"key\":\"pd_id_apply_age\",\"operation\":\"between_left\",\"value\":\"30,40\"}]}");
+        int i = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+        System.out.println("数量"+i);
+
 //        Date date = new Date();
 //        String apiCode = "7410431";
 //        for (int k = 0; k < 10; k++) {
