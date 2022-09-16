@@ -138,6 +138,23 @@ public class CoreScoreThread implements Callable<String> {
                     jsonData.put("cell", instance.decode(blu.getCell()));
                     jsonData.put("isRepair", isRepair);
                     jsonData.put("batch_number", marketingTask.getBatchNumber());
+                    JSONObject extData = null;
+                    if(customer.getShortName().contains("拍拍贷新客")
+                    && StringUtils.isNotBlank(blu.getReserveField1())){
+                        try {
+                            JSONObject jsonObject = JSONObject.parseObject(blu.getReserveField1());
+                            String sleepGroup = jsonObject.getString("sleepGroup");
+                            if(StringUtils.isNotBlank(sleepGroup)){
+                                extData = new JSONObject();
+                                extData.put("sleepGroup",sleepGroup);
+                            }
+                        }catch (Exception ex){
+                            log.error("拍拍贷扩展字段转化json出问题"+ex.getMessage(),ex);
+                        }
+                    }
+                    if(extData!=null){
+                        jsonData.put("extData",extData);
+                    }
                     param.put("jsonData", jsonData.toString());
                     String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
                     dealResult(resultStr, fw, apiCode, blu);

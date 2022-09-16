@@ -143,6 +143,10 @@ public class HxUtil {
         if (StringUtils.isNotEmpty(jsonData.getString("isRepair"))) {
             extDataJson.put("isRepair", jsonData.getString("isRepair"));
         }
+        JSONObject extData = jsonData.getJSONObject("extData");
+        if(extData !=null){
+            extData.keySet().forEach(t->extDataJson.put(t,extData.get(t)));
+        }
         //渠道标识 计费需要
         extDataJson.put("channelType", jsonData.getString("userType"));
 
