@@ -20,6 +20,7 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
+import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
@@ -63,8 +64,8 @@ import java.util.Set;
 @Component
 @Slf4j
 public class SftpToDbJob extends AbstractSimpleElasticJob {
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -155,7 +156,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     if (zipFileNameSet.contains(successFile)) {
                         StringBuilder errorMessage = new StringBuilder("压缩文件异常,");
                         if (zipFileName.contains("DeleteMonitor")) {
-                            context.setLocalZipFilePath(path.concat("delete/").concat(apiCode).concat("/"));
+                            context.setLocalZipFilePath(syncConfigService.getPath().concat("delete/").concat(apiCode).concat("/"));
                             context.setType("delete");
                             context.setCusBatch(Constants.MYREGEX.split(zipFileName)[0]);
                             context.init();
@@ -166,7 +167,7 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }
                             validDataAlarmService.deleteMonitorFileUpload(apiCode, Constants.MYREGEX.split(context.getZipFileName())[0]);
                         } else {
-                            context.setLocalZipFilePath(path.concat("sftp_data/").concat(apiCode).concat("/"));
+                            context.setLocalZipFilePath(syncConfigService.getPath().concat("sftp_data/").concat(apiCode).concat("/"));
                             String batchNumber = SftpToDbUtils.getBatchNumber(apiCode);
                             context.setBatchNumber(batchNumber);
                             context.setType("data");

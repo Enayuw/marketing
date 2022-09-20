@@ -275,4 +275,9 @@ public class MarketingCommonConfig {
      */
     private HashMap<String,Integer> pushCellEncPolicy;
 
+    /**
+     * nfs路径
+     */
+    private String nfsPath;
+
 }

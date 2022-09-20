@@ -10,11 +10,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
-import com.br.marketing.service.MarketingSepService;
-import com.br.marketing.service.MarketingTaskExtendService;
-import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.task.service.LoanWarningService;
 import com.br.marketing.task.thread.LoanWarningThread;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -41,8 +38,8 @@ import java.util.concurrent.ExecutorService;
 public class LoanWarningServiceImpl  implements LoanWarningService{
     @Value("${otherConfig.warning.pageSize:00}")
     private Integer pageSize;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.mom.appSecretKey:00}")
     private String appSecretKey;
 
@@ -279,7 +276,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
             }
                 log.warn("batchNumber:{}",blt.getBatchNumber());
                 blt.setTableName("b_marketing_user_"+blt.getApiCode());
-                String descPath=path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
+                String descPath= syncConfigService.getPath().concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
                         .concat(blt.getBatchNumber()).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
                 Integer pushType=0;
             ScoreRuleConfig scoreRuleConfig =getScoreRuleConfig(blt);

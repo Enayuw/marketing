@@ -11,6 +11,7 @@ import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +41,8 @@ import java.util.stream.Collectors;
 @Service
 public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFileService {
 
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Autowired
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
@@ -273,7 +274,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         log.warn("宜信实时数据提取real-pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
