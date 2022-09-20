@@ -83,8 +83,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("同程转化数据提取-开始执行,apiCode ={}", apiCode);
-//                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                Long transferFileContextId = 789L;
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
@@ -172,36 +171,35 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                                         , Optional::get)));
                 for (MarketingTransferSyncUser transferFilterData : dataFilter) {
                     String custNum = transferFilterData.getCustNum();
-                    String effectiveTime = "";
-                    String cell = "";
                     if (preUserMap.containsKey(custNum)) {
                         String appletDate = preUserMap.get(custNum).getAppletDate();
+                        String effectiveTime = "";
                         LocalDate appletDateLocal = LocalDate.parse(appletDate, YYYYMMDDSHORTLINE);
                         if(appletDateLocal.isBefore(startDate) || appletDateLocal.isAfter(endDate)){
                             continue;
                         }
                         String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        String cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())){
+                            effectiveTime = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"):"";
+                        }
+                        //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime
+                        StringBuilder sb = new StringBuilder();
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
+                        sb.append(cell.concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getUserType())?transferFilterData.getUserType():"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyDt())?transferFilterData.getApplyDt().replace(":000",""):"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyResult())?transferFilterData.getApplyResult():"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getAuditTime())?transferFilterData.getAuditTime():"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLent())?transferFilterData.getIfLent():"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime().replace(":000",""):"").concat(","));
+                        sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
+                        sb.append(effectiveTime.replace(":000",""));
+                        sb.append("\r\n");
+                        fw.append(sb.toString());
+                        totalSize = totalSize + 1;
                     }
-                    if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())){
-                        effectiveTime = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"):"";
-                    }
-                    //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime
-                    StringBuilder sb = new StringBuilder();
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
-                    sb.append(cell.concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getUserType())?transferFilterData.getUserType():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyDt())?transferFilterData.getApplyDt().replace(":000",""):"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getApplyResult())?transferFilterData.getApplyResult():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getAuditTime())?transferFilterData.getAuditTime():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLent())?transferFilterData.getIfLent():"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime().replace(":000",""):"").concat(","));
-                    sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
-                    sb.append(effectiveTime.replace(":000",""));
-                    sb.append("\r\n");
-                    fw.append(sb.toString());
                 }
-                totalSize = totalSize + dataFilter.size();
                 dataFilter.clear();
                 data.clear();
             }
