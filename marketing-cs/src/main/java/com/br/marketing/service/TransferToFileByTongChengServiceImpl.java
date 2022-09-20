@@ -175,7 +175,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                         String appletDate = preUserMap.get(custNum).getAppletDate();
                         String effectiveTime = "";
                         LocalDate appletDateLocal = LocalDate.parse(appletDate, YYYYMMDDSHORTLINE);
-                        if(appletDateLocal.isBefore(startDate) || appletDateLocal.isAfter(endDate)){
+                        if(appletDateLocal.isBefore(startDate) || appletDateLocal.isEqual(startDate)|| appletDateLocal.isAfter(endDate)){
                             continue;
                         }
                         String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
