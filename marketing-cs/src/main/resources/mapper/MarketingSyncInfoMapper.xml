@@ -397,4 +397,11 @@
             and applet_date >= #{startDate}
         </if>
     </select>
+
+    <select id="getVaildUserByRequestId" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where request_batch = #{requestId}
+          and status = 1;
+    </select>
 </mapper>

@@ -52,6 +52,8 @@ public interface PushRuleService {
 
     Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
 
+    String encrypt3k(Integer type, String content);
+
     Result<Long> saveCondition(@Valid ConditionSaveDTO dto);
 
     Result<List<ConditionOfScoreVO>> getConditionByRule(@Valid @NotNull(message = "apiCode不能为空")String apiCode, String name);
