@@ -142,9 +142,10 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
         //去重后的Set
         HashSet custNumResult = new HashSet();
         int totalSize = 0;
+        LocalDate date = endDate;
         while(true){
             while (mark) {
-                Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, endDate.toString(), page);
+                Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, date.toString(), page);
                 if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                     mark = Boolean.FALSE;
                     continue;
@@ -203,10 +204,10 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                 dataFilter.clear();
                 data.clear();
             }
-            endDate = endDate.minusDays(1);
+            date = date.minusDays(1);
             mark = Boolean.TRUE;
             page = 0;
-            if(endDate.isBefore(startDate)){
+            if(date.isBefore(startDate)){
                 break;
             }
         }
