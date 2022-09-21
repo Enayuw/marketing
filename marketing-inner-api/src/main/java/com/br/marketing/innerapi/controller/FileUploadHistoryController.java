@@ -39,11 +39,11 @@ public class FileUploadHistoryController {
             , @RequestParam(defaultValue = "10") int size
             , @RequestParam(required = false) String search
             , @RequestParam(required = false) String apiCode
-            , @RequestParam(required = false) String uploadStartTime
-            , @RequestParam(required = false) String uploadEndTime
+            , @RequestParam(required = false) String uploadTimeStart
+            , @RequestParam(required = false) String uploadTimeEnd
             , @RequestParam(required = false) String fileType
     ) {
-        PageResultReturn list = localfileService.list(current, size, search,apiCode, uploadStartTime,uploadEndTime,fileType);
+        PageResultReturn list = localfileService.list(current, size, search,apiCode, uploadTimeStart,uploadTimeEnd,fileType);
         return new ApiResult<PageResultReturn>().success(list);
     }
 }
