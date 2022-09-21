@@ -180,8 +180,8 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                         }
                         String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
                         String cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
-                        if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())){
-                            effectiveTime = StringUtils.isNotEmpty(JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"))?JSON.parseObject(transferFilterData.getReserveField1()).getString("effectiveTime"):"";
+                        if(StringUtils.isNotEmpty(preUserMap.get(custNum).getReserveField1())){
+                            effectiveTime = JSON.parseObject(preUserMap.get(custNum).getReserveField1()).getString("effectiveTime");
                         }
                         //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime
                         StringBuilder sb = new StringBuilder();
@@ -194,7 +194,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLent())?transferFilterData.getIfLent():"").concat(","));
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime().replace(":000",""):"").concat(","));
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
-                        sb.append(effectiveTime.replace(":000",""));
+                        sb.append(StringUtils.isNotEmpty(effectiveTime)?effectiveTime.replace(":000",""):"");
                         sb.append("\r\n");
                         fw.append(sb.toString());
                         totalSize = totalSize + 1;
