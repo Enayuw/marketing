@@ -124,9 +124,9 @@ public class CoreScoreThread implements Callable<String> {
                     continue;
                 }
                 if (marketingTask.getTaskType().equals(TaskTypeEnum.DIRECTDATA.getValue())
-                        ||marketingTask.getIsOnline().equals(2)) {
+                        || marketingTask.getIsOnline().equals(2)) {
                     dealResult(fw, blu);
-                }else {
+                } else {
                     RequestLog requestLog = new RequestLog();
                     requestLog.setRequestTime(new Date());
 
@@ -139,21 +139,23 @@ public class CoreScoreThread implements Callable<String> {
                     jsonData.put("isRepair", isRepair);
                     jsonData.put("batch_number", marketingTask.getBatchNumber());
                     JSONObject extData = null;
-                    if(customer.getShortName().contains("拍拍贷新客")){
-                        boolean notBlank = StringUtils.isNotBlank(blu.getReserveField1());
+                    if (customer.getShortName().contains("拍拍贷新客")) {
+                        extData = new JSONObject();
                         String sleepGroup = "";
                         try {
-                            JSONObject jsonObject = JSONObject.parseObject(blu.getReserveField1());
-                            if(StringUtils.isNotBlank(jsonObject.getString("sleepGroup"))){
-                                sleepGroup = jsonObject.getString("sleepGroup");
+                            if (StringUtils.isNotBlank(blu.getReserveField1())) {
+                                JSONObject jsonObject = JSONObject.parseObject(blu.getReserveField1());
+                                if (StringUtils.isNotBlank(jsonObject.getString("sleepGroup"))) {
+                                    sleepGroup = jsonObject.getString("sleepGroup");
+                                }
                             }
-                        }catch (Exception ex){
-                            log.error("拍拍贷扩展字段转化json出问题"+ex.getMessage(),ex);
+                        } catch (Exception ex) {
+                            log.error("拍拍贷扩展字段转化json出问题" + ex.getMessage(), ex);
                         }
-                        extData.put("sleepGroup",sleepGroup);
+                        extData.put("sleepGroup", sleepGroup);
                     }
-                    if(extData!=null){
-                        jsonData.put("extData",extData);
+                    if (extData != null) {
+                        jsonData.put("extData", extData);
                     }
                     param.put("jsonData", jsonData.toString());
                     String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
