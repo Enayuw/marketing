@@ -62,15 +62,16 @@ public class PingController {
             //service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
             //sendMailData(content,title,appName,secretKey,exceptionCode,service);
             //生成打告警标签的消息内容
-            String msg = AlertLog.buildWarnMessage("1001", title+content+"测试告警。。。。");
+            //【预发】marketing-inner-api-778459df56-22m58营销平台MARKETING-INNER-API测试报警
+            String msg = AlertLog.buildWarnMessage("1001", content);
             //将生成的消息打印输出
-            log.warn(msg, 10, new RuntimeException("120测试告警"));
+            log.warn(msg, 10, new RuntimeException("1001测试告警"));
             //其中 AlertLog 只是为日志的内容添加了标签，打印日志时还是按照正常方式输入参数、异 常。
-            String msg2 = AlertLog.buildWarnMessage("1002", content+"测试告警。。。。，当前平均查询时间为： 10 s", title+"测试邮件主题");
-            log.warn(msg2, 10, new RuntimeException("110测试邮件告警"));
+            String msg2 = AlertLog.buildWarnMessage("1002", content, title+"测试邮件主题");
+            log.warn(msg2, 10, new RuntimeException("1002测试邮件告警"));
         }catch (Exception e){
-            String msg2 = AlertLog.buildWarnMessage("1002", content+"测试告警。。。。，发送报警异常", title+"....");
-            log.error(msg2,10, new RuntimeException("110测试邮件告警"+e));
+            String msg2 = AlertLog.buildWarnMessage("1002", content, title+"发送邮件异常");
+            log.error(msg2,10, new RuntimeException("发送邮件异常"+e));
         }
     }
 
