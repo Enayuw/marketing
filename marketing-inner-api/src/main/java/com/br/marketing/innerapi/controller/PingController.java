@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.net.IpUtil;
 import org.slf4j.Logger;
@@ -47,7 +48,12 @@ public class PingController {
 
     @GetMapping("/logErrorTest")
     public String logErrorTest() {
-        log.error("调用了测试报警接口,请忽略~");
+        JSONObject json=new JSONObject();
+        json.put("host", IpUtil.getHostName());
+        json.put("serverName", "MARKETING-INNER-API");
+        json.put("message", "提示信息");
+        String msg = AlertLog.buildWarnMessage("1001", json.toString(), "测试报警接口，不打印堆栈信息");
+        log.warn(msg, 10, "");
         return "log.error()";
     }
 
