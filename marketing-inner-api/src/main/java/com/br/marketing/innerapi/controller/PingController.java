@@ -1,12 +1,10 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.net.IpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,12 +47,15 @@ public class PingController {
     @GetMapping("/logErrorTest")
     public String logErrorTest() {
         try{
-            int i = 20 / 0;
+            test();
         }catch (Exception e){
-            log.error("测试报警接口，log.error()",e);
+            log.error("测试报警接口，log.error()",e.getMessage(),e);
         }
         return "log.error()";
     }
 
+    public void test(){
+        int i = 20 / 0;
+    }
 
 }
