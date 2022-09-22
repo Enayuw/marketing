@@ -2,6 +2,7 @@ package com.br.marketing.client;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
+import com.br.common.log.AlertLog;
 import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
@@ -58,11 +59,15 @@ public class AlarmApiClient implements ApplicationContextAware {
             title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
         }
         try{
-            BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
-            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-            sendMailData(content,title,appName,secretKey,exceptionCode,service);
+//            BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
+//            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
+//            sendMailData(content,title,appName,secretKey,exceptionCode,service);
+            String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
+            log.warn(msg, 10, new RuntimeException("内部系统异常"));
         }catch (Exception e){
-            log.error("发送邮件异常", e);
+            String msg = AlertLog.buildWarnMessage("60000", content, title);
+            log.warn(msg, 10, new RuntimeException("发送邮件异常" + e));
+//            log.error("发送邮件异常", e);
         }
 
     }
