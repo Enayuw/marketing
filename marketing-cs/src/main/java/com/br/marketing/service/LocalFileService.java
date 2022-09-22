@@ -15,7 +15,7 @@ import com.br.marketing.commonentity.PageResultReturn;
  * @Author: guangchao.zhang
  * ------------------------------
  */
-public interface LocalfileService {
+public interface LocalFileService {
 
     /**
      * 获取客户信息列表数据
@@ -25,4 +25,5 @@ public interface LocalfileService {
      * @return
      */
     PageResultReturn list(int page, int pageSize,String search, String apiCode, String uploadStartTime,String uploadEndTime, String fileType);
+    Integer allCount();
 }

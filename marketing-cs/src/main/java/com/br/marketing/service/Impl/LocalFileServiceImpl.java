@@ -4,7 +4,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.service.LocalfileService;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.vo.LocalFileVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class LocalfileServiceImpl implements LocalfileService {
+public class LocalFileServiceImpl implements LocalFileService {
 
     @Resource
     LocalFileMapper localFileMapper;
@@ -48,6 +48,10 @@ public class LocalfileServiceImpl implements LocalfileService {
         List<LocalFileVo> localFileList = localFileMapper.selectList(search, apiCode,uploadStartTime,uploadEndTime,fileType);
 
         return PageResultReturn.setPageResult(localFileList, current, pageSize);
+    }
+    @Override
+    public Integer allCount() {
+        return localFileMapper.allCount();
     }
     private Date addDay(String date) {
         Calendar c = Calendar.getInstance();

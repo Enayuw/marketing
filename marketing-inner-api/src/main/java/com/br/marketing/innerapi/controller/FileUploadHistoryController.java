@@ -3,8 +3,9 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
-import com.br.marketing.service.LocalfileService;
+import com.br.marketing.service.LocalFileService;
 import io.swagger.annotations.Api;
+import io.swagger.models.auth.In;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,7 +32,7 @@ import javax.annotation.Resource;
 public class FileUploadHistoryController {
 
     @Resource
-    LocalfileService localfileService;
+    LocalFileService localfileService;
 
     @GetMapping("/list")
     @AddDataAuthBusiness
@@ -43,7 +44,12 @@ public class FileUploadHistoryController {
             , @RequestParam(required = false) String uploadTimeEnd
             , @RequestParam(required = false) String fileType
     ) {
-        PageResultReturn list = localfileService.list(current, size, search,apiCode, uploadTimeStart,uploadTimeEnd,fileType);
-        return new ApiResult<PageResultReturn>().success(list);
+        return new ApiResult<PageResultReturn>().success(localfileService.list(current, size, search,apiCode, uploadTimeStart,uploadTimeEnd,fileType));
     }
+    @GetMapping("/allCount")
+    @AddDataAuthBusiness
+    public ApiResult<Integer> allCount() {
+        return new ApiResult<Integer>().success(localfileService.allCount());
+    }
+
 }
