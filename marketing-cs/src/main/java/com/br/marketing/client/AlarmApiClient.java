@@ -63,13 +63,39 @@ public class AlarmApiClient implements ApplicationContextAware {
 //            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
 //            sendMailData(content,title,appName,secretKey,exceptionCode,service);
             String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
-            log.warn(msg, 10, new RuntimeException("内部系统异常"));
+            log.warn(msg);
         }catch (Exception e){
-            String msg = AlertLog.buildWarnMessage("60000", content, title);
-            log.warn(msg, 10, new RuntimeException("发送邮件异常" + e));
-//            log.error("发送邮件异常", e);
+            log.error("发送邮件异常", e);
         }
 
+    }
+
+    /**
+     * 新报警平台未知错误，打印堆栈信息
+     * @param content
+     * @param title
+     * @param exceptionCode
+     */
+    public void sendAlarmPrintStack(String content, String title,String exceptionCode){
+        String activeEnv=getActiveProfile();
+        String enviroment ="";
+        if(DEV.equals(activeEnv) || PRE.equals(activeEnv)){
+            enviroment= "预发";
+        }else if(PROD.equals(activeEnv)){
+            enviroment= "生产";
+        }
+        String hostName = IpUtil.getHostName();
+        if(StringUtils.isNotEmpty(title)){
+            title="【"+enviroment+"】"+hostName +title;
+        }else{
+            title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
+        }
+        try{
+            String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
+            log.warn(msg);
+        }catch (Exception e){
+            log.error("发送邮件异常", e);
+        }
     }
 
     /**

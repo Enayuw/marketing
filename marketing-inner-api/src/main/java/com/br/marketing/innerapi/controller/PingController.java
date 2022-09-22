@@ -41,19 +41,18 @@ public class PingController {
         JSONObject json=new JSONObject();
         json.put("host", IpUtil.getHostName());
         json.put("serverName", "MARKETING-INNER-API");
-        json.put("message", "测试报警接口");
+        json.put("message", "测试报警内容 alarmClient.sendAlarm()");
         alarmClient.sendAlarm(json.toString(),"调用了测试报警接口,请忽略~",null,null, "1001");
         return "111";
     }
 
     @GetMapping("/logErrorTest")
     public String logErrorTest() {
-        JSONObject json=new JSONObject();
-        json.put("host", IpUtil.getHostName());
-        json.put("serverName", "MARKETING-INNER-API");
-        json.put("message", "提示信息");
-        String msg = AlertLog.buildWarnMessage("1001", json.toString(), "测试报警接口，不打印堆栈信息");
-        log.warn(msg, 10, "");
+        try{
+            int i = 20 / 0;
+        }catch (Exception e){
+            log.error("测试报警接口，log.error()");
+        }
         return "log.error()";
     }
 
