@@ -51,7 +51,7 @@ public class PingController {
         try{
             int i = 20 / 0;
         }catch (Exception e){
-            log.error("测试报警接口，log.error()");
+            log.error("测试报警接口，log.error()",e);
         }
         return "log.error()";
     }
