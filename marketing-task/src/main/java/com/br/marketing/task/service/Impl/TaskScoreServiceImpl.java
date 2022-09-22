@@ -453,7 +453,8 @@ public class TaskScoreServiceImpl {
             List<BaseHead> baseHead = baseHeadConfigVO.getBaseHead();
             iProductResultSimpleService.offLineHeadComplete(showBaseHead,baseHead);
             baseHeadConfigVO.getBaseHead().forEach(t -> {
-                if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                String key = t.getName().toLowerCase();
+                if (key.equals("name") || key.equals("id") || key.equals("idcard") || key.equals("cell")) {
                     t.setThreekEncryptType(ScoreThreeKeyEncryptEnum.init.getValue());
                 }
             });
@@ -462,7 +463,8 @@ public class TaskScoreServiceImpl {
             if (StringUtils.isNotBlank(extendConfigInfo)) {
                 TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
                 baseHeadConfigVO.getBaseHead().forEach(t -> {
-                    if (t.getName().equals("name") || t.getName().equals("id") || t.getName().equals("idcard") || t.getName().equals("cell")) {
+                    String key = t.getName().toLowerCase();
+                    if (key.equals("name") || key.equals("id") || key.equals("idcard") || key.equals("cell")) {
                         t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
                                 ? ScoreThreeKeyEncryptEnum.md5.getValue()
                                 : taskExtendExtendFieldDTO1.getThreekEncryptType());

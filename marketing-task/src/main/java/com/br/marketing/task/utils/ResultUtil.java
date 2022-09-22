@@ -413,13 +413,13 @@ public class ResultUtil {
                     } else if ("custnum".equals(title)) {
                         mh.setCusNum(StringUtils.isBlank(str) ? "" : str);
                     } else if ("idcard".equals(title)) {
-                        mh.setIdCard(strId);
+                        mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
                     } else if ("id".equals(title)) {
-                        mh.setIdCard(strId);
+                        mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
                     } else if ("name".equals(title)) {
-                        mh.setName(strNm);
+                        mh.setName(StringUtils.isBlank(strNm) ? "" : strNm);
                     } else if ("cell".equals(title)) {
-                        mh.setCell(strCell);
+                        mh.setCell(StringUtils.isBlank(strCell) ? "" : strCell);
                     } else {
                         conditionObj.put(head.getName(), StringUtils.isBlank(str) ? "" : str);
                     }
