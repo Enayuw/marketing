@@ -78,12 +78,14 @@ public class CaseUserServiceImpl {
             if (user == null || user.getId() == null) {
                 return false;
             }
+            log.warn("##查询结果:" + user.toString());
             LocalDate localDate = LocalDate.now();
             String clcUsrMaxDxRrtEnd = user.getClcUsrMaxDxRrtEnd();
             if (StringUtils.isNotBlank(clcUsrMaxDxRrtEnd)) {
                 String date = clcUsrMaxDxRrtEnd.substring(0, 10);
                 LocalDate endDate = LocalDate.parse(date, ymd);
                 if (endDate.compareTo(localDate) >= 0) {
+                    log.warn("##查询结果clcUsrMaxDxRrtEnd:" + clcUsrMaxDxRrtEnd);
                     return true;
                 }
             }
@@ -104,7 +106,9 @@ public class CaseUserServiceImpl {
                         return false;
                     }
                 }
-                if (forbidCallEndTimDate.isBefore(localDate) && forbidCallEndTimDate.isEqual(localDate)) {
+                log.warn("##查询结果forbidCallEndTimDate:" + forbidCallEndTimDate);
+                if (forbidCallEndTimDate.isBefore(localDate) || forbidCallEndTimDate.isEqual(localDate)) {
+                    log.warn("##查询结果forbidCallEndTimDate:ture");
                     return true;
                 }
             }
