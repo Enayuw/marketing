@@ -39,10 +39,10 @@ public class LocalFileServiceImpl implements LocalFileService {
     @Override
     public PageResultReturn list(int current, int pageSize, String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
         if (StringUtils.isNotEmpty(uploadStartTime)) {
-            uploadStartTime = DateUtils.format(addDay(uploadStartTime), "yyyy-MM-dd");
+            uploadStartTime = DateUtils.format(addDay(uploadStartTime), "yyyy-MM-dd HH:mm:ss");
         }
         if (StringUtils.isNotEmpty(uploadEndTime)) {
-            uploadEndTime = DateUtils.format(addDay(uploadEndTime), "yyyy-MM-dd");
+            uploadEndTime = DateUtils.format(addDay(uploadEndTime), "yyyy-MM-dd HH:mm:ss");
         }
         PageHelper.startPage(current, pageSize);
         List<LocalFileVo> localFileList = localFileMapper.selectList(search, apiCode,uploadStartTime,uploadEndTime,fileType);
@@ -57,9 +57,9 @@ public class LocalFileServiceImpl implements LocalFileService {
         Calendar c = Calendar.getInstance();
         Date time = null;
         try {
-            Date endTime = DateUtils.parse(date, "yyyy-MM-dd");
+            Date endTime = DateUtils.parse(date, "yyyy-MM-dd HH:mm:ss");
             c.setTime(endTime);
-            c.add(Calendar.DAY_OF_MONTH, 1);
+            c.add(Calendar.DAY_OF_MONTH, 0);
             time = c.getTime();
         } catch (ParseException e) {
             log.error("date:{} is error", date, e);
