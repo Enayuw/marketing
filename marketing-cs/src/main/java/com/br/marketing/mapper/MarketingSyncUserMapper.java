@@ -4,6 +4,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface MarketingSyncUserMapper {
@@ -44,5 +45,27 @@ public interface MarketingSyncUserMapper {
             , @Param("custNums") Set<String> custNums
             , @Param("userType") String userType
             , @Param("dateTimeEnd") String dateTimeEnd);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateAllFieldList(@Param("apiCode") String apiCode
+            , @Param("custNumSet") Set<String> custNumSet
+            , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateList(@Param("apiCode") String apiCode
+            , @Param("custNumSet") Set<String> custNumSet
+            , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
 
 }

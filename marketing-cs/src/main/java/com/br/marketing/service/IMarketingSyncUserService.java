@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 
 import java.util.Date;
@@ -143,4 +144,73 @@ public interface IMarketingSyncUserService {
      */
     Map<String, Date> getSyncUserTimeMaxByCustNumsMap(String apiCode, Set<String> custNums, String userType
             , String dateTimeEnd);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateAllFieldList(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return Map key custNum; value MarketingSyncUser
+     */
+    Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateAllFieldMap(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return Map key custNum; value MarketingSyncUser
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateAllFieldMapValueOne(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateList(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateMap(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @return list
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode
+            , Set<String> custNumSet);
 }
