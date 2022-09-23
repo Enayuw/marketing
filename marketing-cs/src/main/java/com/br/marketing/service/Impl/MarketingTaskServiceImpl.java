@@ -744,13 +744,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if (isOrPause.equals(1)) {
 
                 if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFile.getStatus())) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分调度任务已结束，不支持暂停");
                 }
 
                 String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(fileId.toString());
 
                 if (client.checkExists().forPath(filePath) == null) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分订阅信息不存在");
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分调度任务启动中，请10分钟后重试");
                 }
                 String value = new String(client.getData().forPath(filePath));
                 if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
