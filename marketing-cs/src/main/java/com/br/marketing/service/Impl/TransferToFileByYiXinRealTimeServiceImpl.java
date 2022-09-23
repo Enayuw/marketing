@@ -8,8 +8,12 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
@@ -29,6 +33,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +64,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+    @Resource
+    private IMarketingSyncUserService marketingSyncUserService;
 
     final static String EXECUTE_TIME = " 20:00:00";
     final static String EXECUTE_TIME_NO_REALTIME = " 12:00:00";
@@ -100,9 +108,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         }
         //实时数real-pass据提取
         Result<List<TransferFileTask>> listResultRealPass = buildTransferTaskRealPass(apiCode);
-        if (ResultCode.SUCCESS.getValue().equals(listResultRealPass.getCode()) && listResultRealPass.getData().size() > 0){
+        if (ResultCode.SUCCESS.getValue().equals(listResultRealPass.getCode()) && listResultRealPass.getData().size() > 0) {
             List<TransferFileTask> data = listResultRealPass.getData();
             resultList.addAll(data);
+        }
+        //宜信拒贷数据逻辑处理-3710012
+        List<TransferFileTask> denyDataHandles = buildTransferTaskDenyDataHandle(apiCode);
+        if (denyDataHandles.size() > 0) {
+            resultList.addAll(denyDataHandles);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
@@ -262,8 +275,11 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             return actionTransferToFileHist(transferFileTask);
         }else if(5==transferFileTask.getFileType()){
             return actionTransferToFilePass(transferFileTask);
-        }else if(6==transferFileTask.getFileType()){
+        }else if (6 == transferFileTask.getFileType()) {
             return actionTransferToFileRealPass(transferFileTask);
+        } else if (7 == transferFileTask.getFileType()) {
+            // 宜信拒贷数据逻辑处理
+            return actionTransferToFileDenyDataHandle(transferFileTask);
         }
         log.error("未找到对应的actionTransferToFile方法,请检查fileType");
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate("未找到对应的actionTransferToFile方法,请检查fileType");
@@ -407,6 +423,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         log.warn("宜信实时数据提取(real-pass)-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
 
     }
+
     private Result actionTransferToFilePass(TransferFileTask transferFileTask) {
         log.warn("宜信非实时数据提取pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
@@ -884,7 +901,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
 
             if (resultFilter.size() <= 0) {
-               continue;
+                continue;
             }
 
             //剔除caseEffecctive=0的案件编号
@@ -1116,5 +1133,246 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
+    }
+
+    /**
+     * 2022/9/21 16:14
+     * D20220916宜信拒贷数据逻辑处理-3710012
+     */
+    private List<TransferFileTask> buildTransferTaskDenyDataHandle(String apiCode) {
+        List<TransferFileTask> resultList = new ArrayList<>();
+        if ("3710012".equals(apiCode)) {
+            Date now = new Date();
+            //可配置
+            String execute;
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getYinXinTransferRealPassExecuteTime())) {
+                execute = " " + marketingCommonConfig.getYinXinTransferRealPassExecuteTime();
+            } else {
+                execute = EXECUTE_TIME_NO_REALTIME;
+            }
+            Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
+            if (now.after(executeTime)) {
+                String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+                TransferFileTaskExample taskExample = new TransferFileTaskExample();
+                // 宜信拒贷数据逻辑处理-3710012 fileType 7
+                int fileType = 7;
+                taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd)
+                        .andFileTypeEqualTo(fileType);
+                List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+                if (CollectionUtils.isEmpty(transferFileTasks)) {
+                    log.warn("宜信拒贷数据逻辑处理-开始执行,apiCode ={}", apiCode);
+                    Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                    String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                    TransferFileTask transferFileTask = new TransferFileTask();
+                    transferFileTask.setApiCode(apiCode);
+                    transferFileTask.setFileType(fileType);
+                    transferFileTask.setBatchNumber(batchNumber);
+                    transferFileTask.setFileName("");
+                    transferFileTask.setFileChildDir("data_yixin_deny");
+                    transferFileTask.setTaskNumber(0);
+                    transferFileTask.setStartDate(yyyyMMdd);
+                    transferFileTask.setContextId(transferFileContextId);
+                    transferFileTask.setCreateTime(new Date());
+                    transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
+                    transferFileTaskMapper.insertSelective(transferFileTask);
+                    resultList.add(transferFileTask);
+                }
+            }
+        }
+        return resultList;
+    }
+
+    private Result<Object> actionTransferToFileDenyDataHandle(TransferFileTask transferFileTask) {
+        Result<Object> result = new Result<>();
+        String apiCode = transferFileTask.getApiCode();
+        log.warn("宜信拒贷数据逻辑处理)-开始写入文件,apiCode ={}", apiCode);
+        long start = System.currentTimeMillis();
+        String tcId = tableCreateService.getTcId(apiCode);
+        LocalDate localDate = LocalDate.now();
+        String beforeDateStr = localDate.minusDays(32).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String currentDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String fileNamePrefix = "yixin_deny_";
+        String tableHeld = "custNum,cell,applyResult,applyDt,type,createtime,userType";
+        String filePath = createFilePath(transferFileTask, fileNamePrefix, "_01");
+        Writer writer = fileWrite(filePath, tableHeld);
+        int page = 0;
+        // TODO: 2022/9/22  测试数据,上生产时需要恢复
+//        int offset=2000;
+        int offset = 20;
+        int fileNo = 1;
+        // TODO: 2022/9/22  测试数据,上生产时需要恢复
+//        int fileDataSize = 500000;
+        int fileDataSize = 50;
+        //案件编号归档
+        Set<String> custNumUnrepeatedSet = new HashSet<>();
+        try {
+            for (; ; ) {
+                List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper
+                        .findByApplyResultAndRequestDataAndApplyDtPage(tcId, apiCode, "0"
+                                , currentDateStr, beforeDateStr, page * offset, offset);
+                if (CollectionUtils.isEmpty(transferList)) {
+                    break;
+                }
+                page++;
+                Map<String, MarketingTransferSyncUser> map = transferList.parallelStream().filter(t -> {
+                    String reserveField1 = t.getReserveField1();
+                    if (StringUtils.isNotBlank(reserveField1)) {
+                        JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
+                        return fieldJsonObj.containsKey("transformType")
+                                && !"1".equals(fieldJsonObj.get("transformType"));
+                    }
+                    return false;
+                }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
+                        , BinaryOperator.maxBy(Comparator.comparing(MarketingTransferSyncUser::getApplyDt))));
+                Set<String> custNumSet = map.keySet();
+                Set<String> custNumRemoveSet = marketingTransferSyncUserMapper.getCustNumSet(
+                        tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
+                // 剔除
+                custNumSet.removeAll(custNumRemoveSet);
+                // 需要清洗userType的custNum
+                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
+                        apiCode, custNumSet);
+                boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
+                for (String custNum : custNumSet) {
+                    // 归档去重
+                    if (custNumUnrepeatedSet.add(custNum)) {
+                        MarketingTransferSyncUser transferSyncUser = map.get(custNum);
+                        String cell = "";
+                        transferSyncUser.setUserType("");
+                        if (isNotNullBoll) {
+                            MarketingSyncUser syncUser = freeMap.getOrDefault(custNum, null);
+                            if (syncUser != null) {
+                                transferSyncUser.setUserType(syncUser.getUserType());
+                                cell = syncUser.getCell();
+                            }
+                        }
+                        int size = custNumUnrepeatedSet.size();
+                        if (size > fileDataSize * fileNo) {
+                            fileNo++;
+                            if (writer != null) {
+                                writer.close();
+                            }
+                            transferFileTask.setTaskNumber(fileDataSize);
+                            // 保存文件
+                            saveUpdate(transferFileTask);
+                            // 多文件生成时创建记录
+                            transferFileTask.setId(null);
+                            String fileNameEnd = "_" + String.format("%02d", fileNo);
+                            filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
+                            writer = fileWrite(filePath, tableHeld);
+                        }
+                        if (writer == null) {
+                            return result.setCode(ResultCode.FAIL.getValue());
+                        }
+                        // 写文件
+                        try {
+                            writer.append(transferSyncUser.getCustNum()).append(",")
+                                    .append(cell).append(",")
+                                    .append(transferSyncUser.getApplyResult()).append(",")
+                                    .append(StringUtils.isNotBlank(transferSyncUser.getApplyDt())
+                                            ? transferSyncUser.getApplyDt().replace(":000", "") : "")
+                                    .append(",")
+                                    .append(transferSyncUser.getType()).append(",")
+                                    .append(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT)))
+                                    .append(",")
+                                    .append(transferSyncUser.getUserType()).append("\r\n");
+                            writer.flush();
+                        } catch (IOException e) {
+                            log.error(e.getMessage(), e);
+                            writer.close();
+                        }
+                    }
+                }
+            }
+            int totalSize = custNumUnrepeatedSet.size();
+            transferFileTask.setTaskNumber(totalSize - (fileNo - 1) * fileDataSize);
+            // 保存文件
+            saveUpdate(transferFileTask);
+            log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+                    , apiCode, System.currentTimeMillis() - start, totalSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return result.setCode(ResultCode.FAIL.getValue());
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException ioException) {
+                log.error(ioException.getMessage(), ioException);
+            }
+        }
+        return result.setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void saveUpdate(TransferFileTask task) {
+        if (task.getId() == null) {
+            Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+            String batchNumber = createBatchNumber(task.getApiCode(), transferFileContextId);
+            task.setBatchNumber(batchNumber);
+            task.setContextId(transferFileContextId);
+            task.setStatus(2);
+            task.setFileType(6);
+            task.setCreateTime(new Date());
+            task.setUpdateTime(task.getCreateTime());
+            transferFileTaskMapper.insertSelective(task);
+            return;
+        }
+        TransferFileTask updatetask = new TransferFileTask();
+        updatetask.setId(task.getId());
+        updatetask.setStatus(2);
+        updatetask.setFileName(task.getFileName());
+        updatetask.setFilePath(task.getFilePath());
+        updatetask.setTaskNumber(task.getTaskNumber());
+        updatetask.setFileType(6);
+        updatetask.setUpdateTime(new Date());
+        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
+    }
+
+    private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix) {
+        return createFilePath(transferFileTask, fileNamePrefix, "");
+    }
+
+    private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix, String fileNameEnd) {
+        //yyyyMMdd
+        String recordDate = transferFileTask.getStartDate();
+        String descPath = path.concat("transferToFile/").concat(transferFileTask.getApiCode())
+                .concat("/").concat(recordDate).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            if (!writeDic.mkdirs()) {
+                log.error("文件目录创建失败：" + descPath);
+            }
+        }
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(fileNamePrefix).append(recordDate).append(fileNameEnd).append(".txt");
+        transferFileTask.setFileName(fileName.toString());
+        String fileAllPath = descPath.concat(fileName.toString());
+        transferFileTask.setFilePath(descPath);
+        return fileAllPath;
+    }
+
+    private Writer fileWrite(String filePath, String tableHeld) {
+        File file = new File(filePath);
+        Writer fw = null;
+        try {
+            fw = new BufferedWriter(
+                    new OutputStreamWriter(
+                            new FileOutputStream(file), "UTF-8"));
+            fw.append(tableHeld);
+            fw.append("\r\n");
+            return fw;
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            if (fw != null) {
+                try {
+                    fw.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
     }
 }
