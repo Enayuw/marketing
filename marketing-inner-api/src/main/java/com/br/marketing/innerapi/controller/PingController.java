@@ -49,7 +49,7 @@ public class PingController {
         try{
             test();
         }catch (Exception e){
-            log.error("测试报警接口，log.error()",e.getMessage(),e);
+            log.error("测试报警接口，log.error()","。。。");
         }
         return "log.error()";
     }

@@ -21,6 +21,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             if(throwableProxy!=null) {
                 Throwable throwable = throwableProxy.getThrowable();
                 content.append("-----").append(throwable.getMessage());
+                content.append("\n--堆栈信息--").append("\n"+throwable.getStackTrace()[0]+"\n"+throwable.getStackTrace()[1]);
             }
             try {
                 EmailService emailService= MarketingInnerApiApplication.ac.getBean(SystemExceptionServiceImpl.class);
