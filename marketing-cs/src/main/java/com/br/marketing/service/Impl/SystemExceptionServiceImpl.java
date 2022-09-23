@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.Constants;
@@ -30,6 +31,14 @@ public class SystemExceptionServiceImpl implements EmailService {
         json.put("serverName", type);
         json.put("message", context);
         alarmClient.sendAlarm(json.toString(),"营销平台"+type+"内部系统异常报警",appName,secretKey,Constants.sendCodeMap.get("sysError"));
+    }
+
+    public void sendAlarmPrintStack(String context, String type, ThrowableProxy throwableProxy) {
+        JSONObject json=new JSONObject();
+        json.put("host", IpUtil.getHostName());
+        json.put("serverName", type);
+        json.put("message", context);
+        alarmClient.sendAlarmPrintStack(json.toString(),"营销平台"+type+"内部系统异常报警",Constants.sendCodeMap.get("sysError"),throwableProxy);
     }
 
     @Override
