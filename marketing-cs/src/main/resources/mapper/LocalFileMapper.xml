@@ -26,7 +26,7 @@
             or bc.short_name like concat("%", #{search},"%"))
         </if>
         <if test="apiCode !=null and apiCode!=''">
-            <![CDATA[  and bc.apiCode =#{apiCode} ]]>
+            <![CDATA[  and bc.api_code =#{apiCode} ]]>
         </if>
         <if test="uploadStartTime !=null and uploadStartTime!=''">
             <![CDATA[  and bf.create_time >=#{uploadStartTime} ]]>
