@@ -18,7 +18,7 @@
         order by create_time desc limit #{limitStart}, 2000;
     </select>
 
-    <select id="getByCellOrClcUsrMaxDxRrtEndOrusrForbidCallEndTim" resultType="com.br.marketing.entity.CaseShuheUser">
+    <select id="getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim" resultType="com.br.marketing.entity.CaseShuheUser">
         select id, clc_usr_max_dx_rrt_end, usr_forbid_call_end_tim
         from b_case_shuhe_user
         where (cell = #{cell} or mobile = #{cell})

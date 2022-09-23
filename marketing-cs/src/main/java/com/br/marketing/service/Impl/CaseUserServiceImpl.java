@@ -73,7 +73,7 @@ public class CaseUserServiceImpl {
     public boolean isRrtEnd(String mobile, boolean isLog) {
         try {
             CaseShuheUser user = caseShuheUserMapper
-                    .getByCellOrClcUsrMaxDxRrtEndOrusrForbidCallEndTim(
+                    .getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim(
                             isLog ? mobile : BrCipherMaker.getInstance().encode(mobile));
             if (user == null || user.getId() == null) {
                 return false;
