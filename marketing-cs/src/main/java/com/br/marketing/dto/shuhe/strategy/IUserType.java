@@ -1,6 +1,5 @@
 package com.br.marketing.dto.shuhe.strategy;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
@@ -10,7 +9,6 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.Impl.CaseUserServiceImpl;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -90,6 +88,7 @@ public abstract class IUserType {
         caseUser.setClcUsrFrtFqOrdTim(dataItem.getOrDefault("clc_usr_frt_fq_ord_tim", defaultValue));
         caseUser.setClcUsrFstLndTimCshBtHl(dataItem.getOrDefault("clc_usr_fst_lnd_tim_csh_bt_hl", defaultValue));
         caseUser.setClcUsrMaxDxRrtEnd(dataItem.getOrDefault("clc_usr_max_dx_rrt_end", defaultValue));
+        caseUser.setUsrForbidCallEndTim(dataItem.getOrDefault("usr_forbid_call_end_tim", defaultValue));
     }
 
     /**
