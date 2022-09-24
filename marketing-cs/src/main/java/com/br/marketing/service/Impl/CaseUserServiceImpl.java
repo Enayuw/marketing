@@ -95,7 +95,6 @@ public class CaseUserServiceImpl {
                             , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
                             .toLocalDate();
                 } catch (Exception e) {
-                    log.error(e.getMessage(), e);
                     try {
                         forbidCallEndTimDate = LocalDate.parse(usrForbidCallEndTim
                                 , DateTimeFormatter.ISO_LOCAL_DATE);
