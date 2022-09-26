@@ -161,7 +161,7 @@ public class CaseShuheUser {
     private String clcUsrMaxDxRrtEnd;
 
     /**
-     * 禁止外呼截止时间
+     * 用户禁呼结束时间
      */
     private String usrForbidCallEndTim;
 

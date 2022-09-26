@@ -21,7 +21,7 @@
     <select id="getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim" resultType="com.br.marketing.entity.CaseShuheUser">
         select id, clc_usr_max_dx_rrt_end, usr_forbid_call_end_tim
         from b_case_shuhe_user
-        where (cell = #{cell} or mobile = #{cell})
+        where cell = #{cell}
           and (clc_usr_max_dx_rrt_end <![CDATA[ <> ]]> '' or usr_forbid_call_end_tim <![CDATA[ <> ]]> '') limit 1;
     </select>
 
