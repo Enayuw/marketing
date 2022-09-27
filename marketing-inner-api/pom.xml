@@ -165,12 +165,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>com.br.common</groupId>
-            <artifactId>br-log</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
     </dependencies>
 
     <build>

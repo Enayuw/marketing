@@ -93,7 +93,12 @@ public class AlarmApiClient implements ApplicationContextAware {
         }
         try{
             String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
-            log.warn(msg,new Exception(throwableProxy.getThrowable()));
+            if(throwableProxy!=null){
+                log.warn(msg,new Exception(throwableProxy.getThrowable()));
+            }else {
+                log.warn(msg);
+            }
+
         }catch (Exception e){
             log.error("发送邮件异常", e);
         }

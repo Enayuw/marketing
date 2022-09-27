@@ -4,8 +4,6 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +22,8 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 content.append("-----").append(throwable.getMessage());
             }
             try {
-                EmailService emailService=CkeckApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-CHECK");
+                SystemExceptionServiceImpl emailService=CkeckApplication.ac.getBean(SystemExceptionServiceImpl.class);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-CHECK",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }
