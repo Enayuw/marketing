@@ -61,6 +61,7 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
         LocalDate todayDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
         boolean bool1 = Boolean.FALSE;
         boolean bool2 = Boolean.FALSE;
+        boolean bool3 = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext = (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
@@ -69,25 +70,36 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
             final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String clcUsrMaxDxRrtEnd = jsonObject.getString("clc_usr_max_dx_rrt_end");
+            String usrForbidCallEndTim = caseShuheUser.getUsrForbidCallEndTim();
             if (!StringUtils.isEmpty(shuHeContext.getCaseShuheUser().getCell())) {
                 String cell = BrCipherMaker.getInstance().encode(shuHeContext.getCaseShuheUser().getCell());
                 boolean isRepeatPhone = iShuheBlackPhoneRecordService.isRepeatPhone(cell, todayDate.toString());
-                if(!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)){
-                    LocalDate rrtEndDate;
-                    try {
-                        rrtEndDate = LocalDate.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    } catch (Exception e) {
-                        rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
-                    }
-                    bool1 = (rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate) ) && !isRepeatPhone;
-                }
-                bool2 = Y.equals(caseShuheUser.getIsBlack()) && !isRepeatPhone;
                 if(isRepeatPhone){
                     log.warn("cell={}今日已推过。",shuHeContext.getCaseShuheUser().getCell());
+                }else{
+                    if(!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)){
+                        LocalDate rrtEndDate;
+                        try {
+                            rrtEndDate = LocalDate.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        } catch (Exception e) {
+                            rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                        }
+                        bool1 = (rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate) );
+                    }
+                    bool2 = Y.equals(caseShuheUser.getIsBlack()) && !isRepeatPhone;
+                    if(!StringUtils.isEmpty(usrForbidCallEndTim)){
+                        LocalDate rrtEndTime;
+                        try {
+                            rrtEndTime = LocalDate.parse(usrForbidCallEndTim.substring(0,10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                            bool3 = (rrtEndTime.isAfter(todayDate) || rrtEndTime.isEqual(todayDate) );
+                        } catch (Exception e) {
+                            log.error(e.getMessage(),e);
+                        }
+                    }
                 }
             }
         }
-        return bool1 || bool2;
+        return bool1 || bool2 || bool3;
     }
 
     @Override
