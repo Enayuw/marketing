@@ -11,7 +11,7 @@ public interface CaseShuheUserMapper extends CaseShuheUserMapperBase {
     List<CaseShuheUser> selectIsBlackData(@Param("startDay") String startDay, @Param("endDay") String endDay);
 
 
-    List<CaseShuheUser> selectOrderRrtEndData(@Param("limitStart") Integer limitStart);
+    List<CaseShuheUser> selectOrderRrtEndData(@Param("limitStart") Integer limitStart,@Param("nowDay") String nowDay);
 
     CaseShuheUser getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim(@Param("cell") String cell);
 }

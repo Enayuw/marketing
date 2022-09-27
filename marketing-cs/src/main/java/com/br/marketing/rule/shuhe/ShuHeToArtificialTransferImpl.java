@@ -86,7 +86,7 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
                         }
                         bool1 = (rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate) );
                     }
-                    bool2 = Y.equals(caseShuheUser.getIsBlack()) && !isRepeatPhone;
+                    bool2 = Y.equals(caseShuheUser.getIsBlack());
                     if(!StringUtils.isEmpty(usrForbidCallEndTim)){
                         LocalDate rrtEndTime;
                         try {
