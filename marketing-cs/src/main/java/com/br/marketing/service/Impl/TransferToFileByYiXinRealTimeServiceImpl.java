@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
@@ -27,12 +28,14 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -82,6 +85,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool();
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -1193,18 +1197,23 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         String currentDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String fileNamePrefix = "yixin_deny_";
         String tableHeld = "custNum,cell,applyResult,applyDt,type,createtime,userType";
-        String filePath = createFilePath(transferFileTask, fileNamePrefix, "_01");
-        Writer writer = fileWrite(filePath, tableHeld);
+        // 页号
         int page = 0;
+        // 分页步长
         // TODO: 2022/9/22  测试数据,上生产时需要恢复
 //        int offset=2000;
         int offset = 20;
-        int fileNo = 1;
         // TODO: 2022/9/22  测试数据,上生产时需要恢复
+        // 文件内数据量
 //        int fileDataSize = 500000;
-        int fileDataSize = 50;
-        //案件编号归档
-        Set<String> custNumUnrepeatedSet = new HashSet<>();
+        int fileDataSize = 5;
+        // 案件编号归档
+        Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        // 文件编号
+        int fileNo = 1;
+        String filePath = createFilePath(transferFileTask, fileNamePrefix, "_0" + 1);
+        CompletionService<Writer> completionService = new ExecutorCompletionService<>(POOL_EXECUTOR);
+        List<Writer> writerList = new ArrayList<>(Collections.singletonList(fileWrite(filePath, tableHeld)));
         try {
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper
@@ -1214,81 +1223,69 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     break;
                 }
                 page++;
-                Map<String, MarketingTransferSyncUser> map = transferList.parallelStream().filter(t -> {
-                    String reserveField1 = t.getReserveField1();
-                    if (StringUtils.isNotBlank(reserveField1)) {
-                        JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
-                        return fieldJsonObj.containsKey("transformType")
-                                && !"1".equals(fieldJsonObj.get("transformType"));
-                    }
-                    return false;
-                }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
-                        , BinaryOperator.maxBy(Comparator.comparing(MarketingTransferSyncUser::getApplyDt))));
-                Set<String> custNumSet = map.keySet();
-                Set<String> custNumRemoveSet = marketingTransferSyncUserMapper.getCustNumSet(
-                        tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
-                // 剔除
-                custNumSet.removeAll(custNumRemoveSet);
-                // 需要清洗userType的custNum
-                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
-                        apiCode, custNumSet);
-                boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
+                // 获取到ApplyDt最新且transformType!=1的集合
+                CompletableFuture<Map<String, MarketingTransferSyncUser>> mapCompletableFuture =
+                        CompletableFuture.supplyAsync(() -> transferList.parallelStream().filter(t -> {
+                                    String reserveField1 = t.getReserveField1();
+                                    if (StringUtils.isNotBlank(reserveField1)) {
+                                        JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
+                                        return fieldJsonObj.containsKey("transformType")
+                                                && !"1".equals(fieldJsonObj.get("transformType"));
+                                    }
+                                    return false;
+                                }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
+                                , BinaryOperator.maxBy(Comparator.comparing(MarketingTransferSyncUser::getApplyDt))))
+                                , POOL_EXECUTOR);
+                // 获取剔除后的案件编号
+                CompletableFuture<Set<String>> custNumSetFuture = mapCompletableFuture.thenApply(map -> {
+                    Set<String> custNumSet = map.keySet();
+                    Set<String> custNumRemoveSet = marketingTransferSyncUserMapper.getCustNumSet(
+                            tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
+                    // 剔除
+                    custNumSet.removeAll(custNumRemoveSet);
+                    return custNumSet;
+                });
+                // 获取上传表信息
+                Map<String, MarketingSyncUser> freeMap = custNumSetFuture.thenApply(custNumSet -> {
+                    // 需要清洗userType的custNum
+                    return marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(apiCode, custNumSet);
+                }).get(5, TimeUnit.SECONDS);
+                Map<String, MarketingTransferSyncUser> map = mapCompletableFuture.get();
+                Set<String> custNumSet = custNumSetFuture.get();
+                List<MarketingTransferSyncUser> list = new ArrayList<>();
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
                         MarketingTransferSyncUser transferSyncUser = map.get(custNum);
-                        String cell = "";
-                        transferSyncUser.setUserType("");
-                        if (isNotNullBoll) {
-                            MarketingSyncUser syncUser = freeMap.getOrDefault(custNum, null);
-                            if (syncUser != null) {
-                                transferSyncUser.setUserType(syncUser.getUserType());
-                                cell = syncUser.getCell();
-                            }
-                        }
-                        int size = custNumUnrepeatedSet.size();
-                        if (size > fileDataSize * fileNo) {
-                            fileNo++;
-                            if (writer != null) {
-                                writer.close();
-                            }
+                        // 判断是否需要新创建文件
+                        if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
+                            // 提交异步写入任务
+                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap));
+                            list = new ArrayList<>();
+                            ++fileNo;
                             transferFileTask.setTaskNumber(fileDataSize);
-                            // 保存文件
+                            // 保存更新文件
                             saveUpdate(transferFileTask);
                             // 多文件生成时创建记录
                             transferFileTask.setId(null);
                             String fileNameEnd = "_" + String.format("%02d", fileNo);
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
-                            writer = fileWrite(filePath, tableHeld);
+                            writerList.add(fileWrite(filePath, tableHeld));
                         }
-                        if (writer == null) {
-                            return result.setCode(ResultCode.FAIL.getValue());
-                        }
-                        // 写文件
-                        try {
-                            writer.append(transferSyncUser.getCustNum()).append(",")
-                                    .append(cell).append(",")
-                                    .append(transferSyncUser.getApplyResult()).append(",")
-                                    .append(StringUtils.isNotBlank(transferSyncUser.getApplyDt())
-                                            ? transferSyncUser.getApplyDt().replace(":000", "") : "")
-                                    .append(",")
-                                    .append(transferSyncUser.getType()).append(",")
-                                    .append(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT)))
-                                    .append(",")
-                                    .append(transferSyncUser.getUserType()).append("\r\n");
-                            writer.flush();
-                        } catch (IOException e) {
-                            log.error(e.getMessage(), e);
-                            writer.close();
-                        }
+                        list.add(transferSyncUser);
                     }
                 }
+                // 提交异步写入任务
+                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap));
+            }
+            int count = (page + fileNo - 1);
+            for (int i = 0; i < count; i++) {
+                completionService.take();
             }
             int totalSize = custNumUnrepeatedSet.size();
             transferFileTask.setTaskNumber(totalSize - (fileNo - 1) * fileDataSize);
-            // 保存文件
-            saveUpdate(transferFileTask);
+            // 异步保存更新文件
+            POOL_EXECUTOR.execute(() -> saveUpdate(transferFileTask));
             log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (Exception e) {
@@ -1296,8 +1293,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             return result.setCode(ResultCode.FAIL.getValue());
         } finally {
             try {
-                if (writer != null) {
-                    writer.close();
+                for (Writer writer : writerList) {
+                    if (writer != null) {
+                        writer.close();
+                    }
                 }
             } catch (IOException ioException) {
                 log.error(ioException.getMessage(), ioException);
@@ -1306,6 +1305,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
+    /**
+     * 2022/9/27 20:26
+     * 保存或更新文件记录
+     */
     private void saveUpdate(TransferFileTask task) {
         if (task.getId() == null) {
             Long transferFileContextId = ruleRedisService.getTransferFileContextId();
@@ -1313,7 +1316,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             task.setBatchNumber(batchNumber);
             task.setContextId(transferFileContextId);
             task.setStatus(2);
-            task.setFileType(6);
+            task.setFileType(7);
             task.setCreateTime(new Date());
             task.setUpdateTime(task.getCreateTime());
             transferFileTaskMapper.insertSelective(task);
@@ -1325,7 +1328,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         updatetask.setFileName(task.getFileName());
         updatetask.setFilePath(task.getFilePath());
         updatetask.setTaskNumber(task.getTaskNumber());
-        updatetask.setFileType(6);
+        updatetask.setFileType(7);
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
     }
@@ -1334,6 +1337,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         return createFilePath(transferFileTask, fileNamePrefix, "");
     }
 
+    /**
+     * 2022/9/27 20:27
+     * 生成文件目录
+     */
     private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix, String fileNameEnd) {
         //yyyyMMdd
         String recordDate = transferFileTask.getStartDate();
@@ -1353,13 +1360,17 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         return fileAllPath;
     }
 
+    /**
+     * 2022/9/27 20:27
+     * 写入文件
+     */
     private Writer fileWrite(String filePath, String tableHeld) {
         File file = new File(filePath);
         Writer fw = null;
         try {
             fw = new BufferedWriter(
                     new OutputStreamWriter(
-                            new FileOutputStream(file), "UTF-8"));
+                            new FileOutputStream(file), StandardCharsets.UTF_8));
             fw.append(tableHeld);
             fw.append("\r\n");
             return fw;
@@ -1374,5 +1385,55 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
         }
         return null;
+    }
+
+    /**
+     * 2022/9/27 20:27
+     * 写入文件内容任务
+     */
+    private static class CompletionWriteTask implements Callable<Writer> {
+        private final Writer fw;
+        private final List<MarketingTransferSyncUser> list;
+        private final Map<String, MarketingSyncUser> freeMap;
+
+        public CompletionWriteTask(Writer fw, List<MarketingTransferSyncUser> list
+                , Map<String, MarketingSyncUser> freeMap) {
+            this.fw = fw;
+            this.list = list;
+            this.freeMap = freeMap;
+        }
+
+        @Override
+        public Writer call() throws Exception {
+            if (fw == null) {
+                return null;
+            }
+            boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
+            for (MarketingTransferSyncUser user : list) {
+                String cell = "";
+                user.setUserType("");
+                if (isNotNullBoll) {
+                    MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
+                    if (syncUser != null) {
+                        user.setUserType(syncUser.getUserType());
+                        cell = syncUser.getCell();
+                    }
+                }
+                // 写文件
+                fw.append(user.getCustNum()).append(",")
+                        .append(cell).append(",")
+                        .append(user.getApplyResult()).append(",")
+                        .append(StringUtils.isNotBlank(user.getApplyDt())
+                                ? user.getApplyDt().replace(":000", "") : "")
+                        .append(",")
+                        .append(user.getType()).append(",")
+                        .append(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                                .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT)))
+                        .append(",")
+                        .append(user.getUserType()).append("\r\n");
+            }
+            fw.flush();
+            return fw;
+        }
     }
 }
