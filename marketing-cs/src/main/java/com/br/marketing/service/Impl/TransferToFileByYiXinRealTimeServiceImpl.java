@@ -1368,9 +1368,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         File file = new File(filePath);
         Writer fw = null;
         try {
-            fw = new BufferedWriter(
-                    new OutputStreamWriter(
-                            new FileOutputStream(file), StandardCharsets.UTF_8));
+            fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
             fw.append(tableHeld);
             fw.append("\r\n");
             return fw;
