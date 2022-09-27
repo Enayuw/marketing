@@ -57,8 +57,24 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
                 return false;
             }
             LocalDate applydt = LocalDate.parse(transferSyncUser.getApplyDt().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            LocalDate appletDate = LocalDate.parse(syncUser.getAppletDate(),DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate appletDate = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletDate) >= 0) {
+                return true;
+            }
+            if (StringUtils.isEmpty(transferSyncUser.getRegisterTime())
+                    && "1".equals(transferSyncUser.getApplyResult())
+                    && applydt.compareTo(appletDate) >= 0) {
+                return true;
+            }
+            if (!StringUtils.isEmpty(transferSyncUser.getRegisterTime())
+                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getRegisterTime()).matches()
+                    && LocalDate.parse(transferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
+                    && !StringUtils.isEmpty(transferSyncUser.getAuditTime())
+                    && LocalDate.parse(transferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
+                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getAuditTime()).matches()
+                    && StringUtils.isEmpty(transferSyncUser.getLentTime())
+                    && "1".equals(transferSyncUser.getApplyResult())
+                    && applydt.compareTo(appletDate) >= 0) {
                 return true;
             }
         } catch (Exception ex) {
