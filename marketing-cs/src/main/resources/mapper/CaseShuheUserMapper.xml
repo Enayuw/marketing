@@ -15,7 +15,15 @@
         select *
         from b_case_shuhe_user
         where clc_usr_max_dx_rrt_end <![CDATA[ <> ]]> ''
-        order by create_time desc limit #{limitStart},2000;
+        order by create_time desc limit #{limitStart}, 2000;
+    </select>
+
+    <select id="getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim" resultType="java.lang.Long">
+        select count(*)
+        from b_case_shuhe_user
+        where cell = #{cell}
+          and (<![CDATA[clc_usr_max_dx_rrt_end >= #{localDate}]]>
+            or <![CDATA[usr_forbid_call_end_tim >= ]]> #{localDate})
     </select>
 
 </mapper>

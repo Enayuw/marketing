@@ -33,6 +33,7 @@
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="save_status" property="saveStatus" jdbcType="INTEGER" />
     <result column="clc_usr_max_dx_rrt_end" property="clcUsrMaxDxRrtEnd" jdbcType="VARCHAR" />
+    <result column="usr_forbid_call_end_tim" property="usrForbidCallEndTim" jdbcType="VARCHAR"/>
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -99,11 +100,11 @@
     clc_usr_iso_idt_tim, clc_usr_iso_crd_tim, clc_usr_iso_inf_tim, clc_usr_iso_ato_tim,
     clc_usr_adt_tim_rcn_lon, clc_usr_adt_lmt_itr, clc_usr_frt_fq_ord_tim, clc_usr_fst_lnd_tim_csh_bt_hl,
     json_data, is_transfer, reserve_field1, reserve_field2, error_info, status, save_status,
-    clc_usr_max_dx_rrt_end
+    clc_usr_max_dx_rrt_end, usr_forbid_call_end_tim
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CaseShuheUserExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CaseShuheUserExample">
     select
-    <if test="distinct" >
+    <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List"/>
@@ -128,12 +129,12 @@
   </delete>
   <delete id="deleteByExample" parameterType="com.br.marketing.entity.CaseShuheUserExample">
     delete from b_case_shuhe_user
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.CaseShuheUser" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+  <insert id="insert" parameterType="com.br.marketing.entity.CaseShuheUser">
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_case_shuhe_user (api_code, cust_num, cell,
@@ -145,8 +146,8 @@
     clc_usr_adt_tim_rcn_lon, clc_usr_adt_lmt_itr, clc_usr_frt_fq_ord_tim,
     clc_usr_fst_lnd_tim_csh_bt_hl, json_data, is_transfer,
     reserve_field1, reserve_field2, error_info,
-    status, save_status, clc_usr_max_dx_rrt_end
-    )
+    status, save_status, clc_usr_max_dx_rrt_end,
+    usr_forbid_call_end_tim)
     values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR},
     #{userType,jdbcType=VARCHAR}, #{uploadDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}, #{mobile,jdbcType=VARCHAR}, #{biztype,jdbcType=VARCHAR},
@@ -156,8 +157,8 @@
     #{clcUsrAdtTimRcnLon,jdbcType=VARCHAR}, #{clcUsrAdtLmtItr,jdbcType=VARCHAR}, #{clcUsrFrtFqOrdTim,jdbcType=VARCHAR},
     #{clcUsrFstLndTimCshBtHl,jdbcType=VARCHAR}, #{jsonData,jdbcType=VARCHAR}, #{isTransfer,jdbcType=INTEGER},
     #{reserveField1,jdbcType=VARCHAR}, #{reserveField2,jdbcType=VARCHAR}, #{errorInfo,jdbcType=VARCHAR},
-    #{status,jdbcType=INTEGER}, #{saveStatus,jdbcType=INTEGER}, #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR}
-    )
+    #{status,jdbcType=INTEGER}, #{saveStatus,jdbcType=INTEGER}, #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
+    #{usrForbidCallEndTim,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CaseShuheUser" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -255,6 +256,9 @@
       <if test="clcUsrMaxDxRrtEnd != null">
         clc_usr_max_dx_rrt_end,
       </if>
+      <if test="usrForbidCallEndTim != null">
+        usr_forbid_call_end_tim,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -346,6 +350,9 @@
       </if>
       <if test="clcUsrMaxDxRrtEnd != null">
         #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
+      </if>
+      <if test="usrForbidCallEndTim != null">
+        #{usrForbidCallEndTim,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -451,6 +458,9 @@
       <if test="record.clcUsrMaxDxRrtEnd != null">
         clc_usr_max_dx_rrt_end = #{record.clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
       </if>
+      <if test="record.usrForbidCallEndTim != null">
+        usr_forbid_call_end_tim = #{record.usrForbidCallEndTim,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -488,7 +498,8 @@
     error_info = #{record.errorInfo,jdbcType=VARCHAR},
     status = #{record.status,jdbcType=INTEGER},
     save_status = #{record.saveStatus,jdbcType=INTEGER},
-    clc_usr_max_dx_rrt_end = #{record.clcUsrMaxDxRrtEnd,jdbcType=VARCHAR}
+    clc_usr_max_dx_rrt_end = #{record.clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
+    usr_forbid_call_end_tim = #{record.usrForbidCallEndTim,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -586,6 +597,9 @@
       <if test="clcUsrMaxDxRrtEnd != null">
         clc_usr_max_dx_rrt_end = #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
       </if>
+      <if test="usrForbidCallEndTim != null">
+        usr_forbid_call_end_tim = #{usrForbidCallEndTim,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -620,7 +634,8 @@
         error_info                    = #{errorInfo,jdbcType=VARCHAR},
         status                        = #{status,jdbcType=INTEGER},
         save_status                   = #{saveStatus,jdbcType=INTEGER},
-        clc_usr_max_dx_rrt_end        = #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR}
+        clc_usr_max_dx_rrt_end        = #{clcUsrMaxDxRrtEnd,jdbcType=VARCHAR},
+        usr_forbid_call_end_tim       = #{usrForbidCallEndTim,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

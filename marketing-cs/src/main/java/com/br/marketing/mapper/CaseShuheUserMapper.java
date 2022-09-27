@@ -12,4 +12,7 @@ public interface CaseShuheUserMapper extends CaseShuheUserMapperBase {
 
 
     List<CaseShuheUser> selectOrderRrtEndData(@Param("limitStart") Integer limitStart);
+
+    Long getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim(@Param("cell") String cell
+            , @Param("localDate") String localDate);
 }
