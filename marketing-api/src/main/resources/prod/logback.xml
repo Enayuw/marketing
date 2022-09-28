@@ -9,7 +9,7 @@
     <property name="LOG_HOME" value="/opt/SpringCloud/logs/${APP_NAME}/${POD_NAME}"/>
     <!-- 日志输出格式 -->
     <property name="ENCODER_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger:%L] -%msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] -%msg%n"/>
     <contextName>${POD_NAME}</contextName>
 
     <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
