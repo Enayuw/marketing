@@ -37,6 +37,7 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -822,7 +823,14 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 JSONObject info = listInfo.getJSONObject(i);
                 reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
-                dto.setCell(info.getString("mobile"));
+                String mobile = info.getString("mobile");
+                try {
+                    dto.setCell(org.apache.commons.lang3.StringUtils.isNotBlank(mobile)
+                            ? ShuHeAESencUtil.decrypt(mobile) : mobile);
+                } catch (Exception e) {
+                    dto.setCell(mobile);
+                    log.error(e.getMessage(), e);
+                }
                 dto.setGroupType(type);
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
