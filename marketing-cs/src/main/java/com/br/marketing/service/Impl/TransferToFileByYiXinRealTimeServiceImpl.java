@@ -20,6 +20,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -1186,7 +1187,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         return resultList;
     }
 
-    private Result<Object> actionTransferToFileDenyDataHandle(TransferFileTask transferFileTask) {
+    private Result<Object> actionTransferToFileDenyDataHandle(final TransferFileTask transferFileTask) {
         Result<Object> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
         log.warn("宜信拒贷数据逻辑处理)-开始写入文件,apiCode ={}", apiCode);
@@ -1201,12 +1202,11 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         int page = 0;
         // 分页步长
         // TODO: 2022/9/22  测试数据,上生产时需要恢复
-//        int offset=2000;
-        int offset = 20;
+        int offset = 2000;
         // TODO: 2022/9/22  测试数据,上生产时需要恢复
         // 文件内数据量
-//        int fileDataSize = 500000;
-        int fileDataSize = 5;
+        int fileDataSize = 500000;
+//        int fileDataSize = 5;
         // 案件编号归档
         Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
         // 文件编号
@@ -1264,8 +1264,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                             list = new ArrayList<>();
                             ++fileNo;
                             transferFileTask.setTaskNumber(fileDataSize);
-                            // 保存更新文件
-                            saveUpdate(transferFileTask);
+                            // 异步保存更新文件
+                            final TransferFileTask task = new TransferFileTask();
+                            BeanUtils.copyProperties(transferFileTask, task);
+                            POOL_EXECUTOR.execute(() -> saveUpdate(task));
                             // 多文件生成时创建记录
                             transferFileTask.setId(null);
                             String fileNameEnd = "_" + String.format("%02d", fileNo);
@@ -1284,8 +1286,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
             int totalSize = custNumUnrepeatedSet.size();
             transferFileTask.setTaskNumber(totalSize - (fileNo - 1) * fileDataSize);
-            // 异步保存更新文件
-            POOL_EXECUTOR.execute(() -> saveUpdate(transferFileTask));
+            // 保存更新文件
+            saveUpdate(transferFileTask);
             log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (Exception e) {
