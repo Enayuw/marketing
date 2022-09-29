@@ -68,12 +68,13 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
 
     @Override
     public void pushBlackDataToDaas() {
-        String endDay = LocalDate.now().format(yyyyMMddDF);
+        String endDay = LocalDate.now().plusDays(1L).format(yyyyMMddDF);
         String endDay_ = LocalDate.now().format(yyyy_MM_ddDF);
         String StartDay = LocalDate.parse(endDay, yyyyMMddDF).minusDays(30L).format(yyyyMMddDF);
         List<ShuheBlackPhoneTransferDataDTO> shuheBlackPhoneTransferDataDTOList = new ArrayList<>();
         List<CaseShuheUser> blackPhoneDataList = new ArrayList<>();
         //is_black为Y
+        //获取时间范围 大于等于29天前 小于明天
         List<CaseShuheUser> blackCaseUserList = caseShuheUserMapper.selectIsBlackData(StartDay, endDay);
         blackPhoneDataList.addAll(blackCaseUserList);
         Set<String> blackMap = blackCaseUserList.parallelStream().map(CaseShuheUser::getMobile).collect(Collectors.toSet());
