@@ -30,6 +30,7 @@ import java.util.UUID;
 /**
  * 暂停跑分任务
  */
+@Deprecated
 @Component
 @Slf4j
 public class TaskActionJob extends AbstractSimpleElasticJob {
@@ -97,15 +98,15 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
             if(straHisFile ==null){
                 return;
             }
-            Result result = marketingTaskService.pauseTask(fileId, 0);
-            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
-                StringBuilder content = new StringBuilder();
-                content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
-                content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
-                content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
-                alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
-                        Constants.sendCodeMap.get("uploadSuccess"));
-            }
+//            Result result = marketingTaskService.pauseTask(fileId, 0);
+//            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+//                StringBuilder content = new StringBuilder();
+//                content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
+//                content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
+//                content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
+//                alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
+//                        Constants.sendCodeMap.get("uploadSuccess"));
+//            }
             removeActionLock(fileIdStr,s);
         }
     }

@@ -28,6 +28,7 @@ public interface MarketingTaskService {
 
     /**
      * 跑分记录列表
+     *
      * @param current
      * @param size
      * @param search
@@ -47,11 +48,11 @@ public interface MarketingTaskService {
 
     MarketingTaskVO getTask(String id);
 
-    Long getTaskPercent(String hisFileId,String id);
+    Long getTaskPercent(String hisFileId, String id);
 
     List<ScoreRuleConfig> getScoreRules(String apiCode);
 
-    void addTaskPercent(Long fileId,Long number);
+    void addTaskPercent(Long fileId, Long number);
 
     Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
 
@@ -68,7 +69,5 @@ public interface MarketingTaskService {
     Result offLineCallBack(@Valid OffLineCallBackDTO dto);
 
     Result delTask(Long id);
-
-    Result pauseTask(@Valid @NotNull(message = "fileId不能为空") Long fileId,@NotNull(message = "isOrPause不能为空")Integer isOrPause);
 
 }

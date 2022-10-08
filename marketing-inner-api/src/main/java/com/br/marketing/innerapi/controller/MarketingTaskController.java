@@ -7,6 +7,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.innerapi.service.impl.TaskOptServiceImpl;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -42,6 +43,9 @@ public class MarketingTaskController {
 
     @Autowired
     MarketingTaskService marketingTaskService;
+
+    @Autowired
+    TaskOptServiceImpl taskOptService;
 
     @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
@@ -181,6 +185,6 @@ public class MarketingTaskController {
     @ApiOperation(value = "中止恢复任务", notes = "isOrPause 1-暂停；0-恢复")
     @GetMapping("/pauseTask")
     public ApiResult pauseTask(@RequestParam(name = "fileId") Long fileId, @RequestParam(name = "isOrPause") Integer isOrPause) {
-        return new ApiResult().fromResult(marketingTaskService.pauseTask(fileId, isOrPause), 1);
+        return new ApiResult().fromResult(taskOptService.pauseTask(fileId, isOrPause), 1);
     }
 }
