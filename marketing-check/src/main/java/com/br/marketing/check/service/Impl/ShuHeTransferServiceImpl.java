@@ -62,16 +62,19 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
     private PhoneSaleTransferInfoService phoneSaleTransferInfoService;
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private final static DateTimeFormatter yyyy_MM_ddDF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final DateTimeFormatter isoDateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final static ThreadPoolExecutor POOL = BrExecutors.getThreadPool(2, 3);
 
     @Override
     public void pushBlackDataToDaas() {
-        String endDay = LocalDate.now().format(yyyyMMddDF);
+        String endDay = LocalDate.now().plusDays(1L).format(yyyyMMddDF);
+        String endDay_ = LocalDate.now().format(yyyy_MM_ddDF);
         String StartDay = LocalDate.parse(endDay, yyyyMMddDF).minusDays(30L).format(yyyyMMddDF);
         List<ShuheBlackPhoneTransferDataDTO> shuheBlackPhoneTransferDataDTOList = new ArrayList<>();
         List<CaseShuheUser> blackPhoneDataList = new ArrayList<>();
         //is_black为Y
+        //获取时间范围 大于等于29天前 小于明天
         List<CaseShuheUser> blackCaseUserList = caseShuheUserMapper.selectIsBlackData(StartDay, endDay);
         blackPhoneDataList.addAll(blackCaseUserList);
         Set<String> blackMap = blackCaseUserList.parallelStream().map(CaseShuheUser::getMobile).collect(Collectors.toSet());
@@ -80,28 +83,17 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         Boolean mark = Boolean.TRUE;
         Integer page = 0;
         while (mark) {
-            List<CaseShuheUser> rrtOrderCaseUserList = caseShuheUserMapper.selectOrderRrtEndData(page * 2000);
+            List<CaseShuheUser> rrtOrderCaseUserList = caseShuheUserMapper.selectOrderRrtEndData(page * 2000,endDay_);
             if (CollectionUtils.isEmpty(rrtOrderCaseUserList)) {
                 mark = Boolean.FALSE;
                 continue;
             }
             page++;
-            for (CaseShuheUser rrtOrderCaseUser : rrtOrderCaseUserList) {
-                LocalDate rrtEndDate;
-                try {
-                    rrtEndDate = LocalDate.parse(rrtOrderCaseUser.getClcUsrMaxDxRrtEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                } catch (Exception e) {
-                    rrtEndDate = LocalDateTime.parse(rrtOrderCaseUser.getClcUsrMaxDxRrtEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+            rrtOrderCaseUserList.forEach(t->{
+                if (rrtEndMap.add(t.getMobile()) && blackMap.add(t.getMobile())) {
+                    blackPhoneDataList.add(t);
                 }
-                if (rrtEndDate.isBefore(LocalDate.now())) {
-                    rrtEndMap.add(rrtOrderCaseUser.getMobile());
-                    continue;
-                }
-                //最新的一条>=当前日期，并且不在isBlack=Y中，推送
-                if (rrtEndMap.add(rrtOrderCaseUser.getMobile()) && blackMap.add(rrtOrderCaseUser.getMobile())) {
-                    blackPhoneDataList.add(rrtOrderCaseUser);
-                }
-            }
+            });
         }
         LocalDate todayDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
         //根据数禾黑名单推电销记录表去重
