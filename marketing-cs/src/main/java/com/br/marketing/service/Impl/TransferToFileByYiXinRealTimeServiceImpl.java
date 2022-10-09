@@ -1146,7 +1146,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      */
     private List<TransferFileTask> buildTransferTaskDenyDataHandle(String apiCode) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        if ("3710012".equals(apiCode)) {
+        if ("3710012".equals(apiCode) || "7410787".equals(apiCode)) {
             Date now = new Date();
             //可配置
             String execute;
