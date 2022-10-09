@@ -1224,34 +1224,25 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 }
                 page++;
                 // 获取到ApplyDt最新且transformType!=1的集合
-                CompletableFuture<Map<String, MarketingTransferSyncUser>> mapCompletableFuture =
-                        CompletableFuture.supplyAsync(() -> transferList.parallelStream().filter(t -> {
-                                    String reserveField1 = t.getReserveField1();
-                                    if (StringUtils.isNotBlank(reserveField1)) {
-                                        JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
-                                        return fieldJsonObj.containsKey("transformType")
-                                                && !"1".equals(fieldJsonObj.get("transformType"));
-                                    }
-                                    return false;
-                                }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
-                                , BinaryOperator.maxBy(Comparator.comparing(MarketingTransferSyncUser::getApplyDt))))
-                                , POOL_EXECUTOR);
+                Map<String, MarketingTransferSyncUser> map = transferList.parallelStream().filter(t -> {
+                    String reserveField1 = t.getReserveField1();
+                    if (StringUtils.isNotBlank(reserveField1)) {
+                        JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
+                        return fieldJsonObj.containsKey("transformType")
+                                && !"1".equals(fieldJsonObj.get("transformType"));
+                    }
+                    return false;
+                }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
+                        , BinaryOperator.maxBy(Comparator.comparing(MarketingTransferSyncUser::getApplyDt))));
                 // 获取剔除后的案件编号
-                CompletableFuture<Set<String>> custNumSetFuture = mapCompletableFuture.thenApply(map -> {
-                    Set<String> custNumSet = map.keySet();
-                    Set<String> custNumRemoveSet = marketingTransferSyncUserMapper.getCustNumSet(
-                            tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
-                    // 剔除
-                    custNumSet.removeAll(custNumRemoveSet);
-                    return custNumSet;
-                });
-                // 获取上传表信息
-                Map<String, MarketingSyncUser> freeMap = custNumSetFuture.thenApply(custNumSet -> {
-                    // 需要清洗userType的custNum
-                    return marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(apiCode, custNumSet);
-                }).get(5, TimeUnit.SECONDS);
-                Map<String, MarketingTransferSyncUser> map = mapCompletableFuture.get();
-                Set<String> custNumSet = custNumSetFuture.get();
+                Set<String> custNumSet = map.keySet();
+                Set<String> custNumRemoveSet = marketingTransferSyncUserMapper.getCustNumSet(
+                        tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
+                // 剔除
+                custNumSet.removeAll(custNumRemoveSet);
+                // 获取上传表信息,需要清洗userType的custNum
+                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
+                        apiCode, custNumSet);
                 List<MarketingTransferSyncUser> list = new ArrayList<>();
                 for (String custNum : custNumSet) {
                     // 归档去重
