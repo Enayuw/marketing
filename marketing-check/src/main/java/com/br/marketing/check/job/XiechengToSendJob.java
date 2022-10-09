@@ -1,9 +1,17 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.client.xiecheng.XieChengService;
+import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.PushRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author guangchao.zhang
@@ -15,10 +23,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class XiechengToSendJob extends AbstractSimpleElasticJob {
 
-
+    @Autowired
+    RabbitMqProducter producter;
+    @Resource
+    private XieChengDataMapper xieChengDataMapper;
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-
+        List<String> strings = xieChengDataMapper.selectLocalIdByNotSend();
+        strings.forEach(str->{
+            log.warn("测试发送携程数据日志id{}",str);
+            producter.send("Marketing.Universal.SftpToDb.XieChengReceive", str);
+        });
     }
-
 }

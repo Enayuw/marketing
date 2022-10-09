@@ -850,7 +850,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushXieChengToDbData(Long id) {
+        log.warn("测试发送携程数据日志消费id{}",id);
         Integer xiechengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
+        log.warn("测试发送携程数据日志",xiechengDateSendThread);
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
