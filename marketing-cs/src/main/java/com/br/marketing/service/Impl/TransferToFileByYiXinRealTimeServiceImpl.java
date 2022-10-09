@@ -1407,7 +1407,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
                     if (syncUser != null) {
                         user.setUserType(syncUser.getUserType());
-                        cell = syncUser.getCell();
+                        String cellUser = syncUser.getCell();
+                        String decode = BrCipherMaker.getInstance().decode(cellUser);
+                        cell = StringUtils.isBlank(decode) ? cellUser : DigestUtils.md5DigestAsHex(decode.getBytes());
                     }
                 }
                 // 写文件
@@ -1419,7 +1421,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         .append(",")
                         .append(user.getType()).append(",")
                         .append(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT)))
+                                .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)))
                         .append(",")
                         .append(user.getUserType()).append("\r\n");
             }
