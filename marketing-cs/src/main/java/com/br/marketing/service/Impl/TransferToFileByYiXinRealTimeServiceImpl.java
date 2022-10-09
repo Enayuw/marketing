@@ -1201,12 +1201,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         // 页号
         int page = 0;
         // 分页步长
-        // TODO: 2022/9/22  测试数据,上生产时需要恢复
         int offset = 2000;
-        // TODO: 2022/9/22  测试数据,上生产时需要恢复
         // 文件内数据量
         int fileDataSize = 500000;
-//        int fileDataSize = 5;
         // 案件编号归档
         Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
         // 文件编号
