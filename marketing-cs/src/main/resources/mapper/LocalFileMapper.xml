@@ -42,7 +42,7 @@
         order by bf.create_time desc
     </select>
     <select id="allCount" resultType="java.lang.Integer">
-        select sum(actual_number) from b_local_file
+        select sum(actual_number),api_code from b_local_file
     </select>
 
 </mapper>
