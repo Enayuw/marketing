@@ -285,4 +285,9 @@ public class MarketingCommonConfig {
      */
     private String tongChengTransferExecuteTime;
 
+    /**
+     * 携程数据推送线程数
+     */
+    private Integer xiechengDateSendThread;
+
 }
