@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -20,7 +21,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -1208,9 +1208,11 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
         // 文件编号
         int fileNo = 1;
-        String filePath = createFilePath(transferFileTask, fileNamePrefix, "_0" + 1);
+        String filePath = createFilePath(transferFileTask, fileNamePrefix, "_0" + 1 + ".txt");
         CompletionService<Writer> completionService = new ExecutorCompletionService<>(POOL_EXECUTOR);
         List<Writer> writerList = new ArrayList<>(Collections.singletonList(fileWrite(filePath, tableHeld)));
+        List<String> pathNames = new ArrayList<>();
+        pathNames.add(filePath);
         try {
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper
@@ -1252,16 +1254,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                     , marketingSyncUserMapper));
                             list = new ArrayList<>();
                             ++fileNo;
-                            transferFileTask.setTaskNumber(fileDataSize);
-                            // 异步保存更新文件
-                            final TransferFileTask task = new TransferFileTask();
-                            BeanUtils.copyProperties(transferFileTask, task);
-                            POOL_EXECUTOR.execute(() -> saveUpdate(task));
-                            // 多文件生成时创建记录
-                            transferFileTask.setId(null);
-                            String fileNameEnd = "_" + String.format("%02d", fileNo);
+                            String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
                             writerList.add(fileWrite(filePath, tableHeld));
+                            pathNames.add(filePath);
                         }
                         list.add(transferSyncUser);
                     }
@@ -1274,12 +1270,15 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             for (int i = 0; i < count; i++) {
                 completionService.take();
             }
+            // 打包压缩多文件
+            ZipUtil.compress(createFilePath(transferFileTask, fileNamePrefix, ".zip"), pathNames);
             int totalSize = custNumUnrepeatedSet.size();
-            transferFileTask.setTaskNumber(totalSize - (fileNo - 1) * fileDataSize);
+            transferFileTask.setTaskNumber(totalSize);
             // 保存更新文件
             saveUpdate(transferFileTask);
             log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize);
+            deleteFile(pathNames);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return result.setCode(ResultCode.FAIL.getValue());
@@ -1298,22 +1297,29 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     }
 
     /**
+     * 2022/10/10 18:53
+     * 删除文件
+     */
+    private void deleteFile(List<String> pathNames) {
+        CompletableFuture.runAsync(() -> {
+            for (String path : pathNames) {
+                CompletableFuture.runAsync(() -> {
+                    File file = new File(path);
+                    if (file.exists()) {
+                        if (!file.delete()) {
+                            file.deleteOnExit();
+                        }
+                    }
+                }, POOL_EXECUTOR);
+            }
+        }, POOL_EXECUTOR);
+    }
+
+    /**
      * 2022/9/27 20:26
      * 保存或更新文件记录
      */
     private void saveUpdate(TransferFileTask task) {
-        if (task.getId() == null) {
-            Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-            String batchNumber = createBatchNumber(task.getApiCode(), transferFileContextId);
-            task.setBatchNumber(batchNumber);
-            task.setContextId(transferFileContextId);
-            task.setStatus(2);
-            task.setFileType(7);
-            task.setCreateTime(new Date());
-            task.setUpdateTime(task.getCreateTime());
-            transferFileTaskMapper.insertSelective(task);
-            return;
-        }
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(task.getId());
         updatetask.setStatus(2);
@@ -1326,7 +1332,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     }
 
     private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix) {
-        return createFilePath(transferFileTask, fileNamePrefix, "");
+        return createFilePath(transferFileTask, fileNamePrefix, ".txt");
     }
 
     /**
@@ -1345,7 +1351,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
         }
         StringBuilder fileName = new StringBuilder();
-        fileName.append(fileNamePrefix).append(recordDate).append(fileNameEnd).append(".txt");
+        fileName.append(fileNamePrefix).append(recordDate).append(fileNameEnd);
         transferFileTask.setFileName(fileName.toString());
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFilePath(descPath);
