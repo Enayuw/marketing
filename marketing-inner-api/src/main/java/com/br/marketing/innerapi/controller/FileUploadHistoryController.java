@@ -48,8 +48,12 @@ public class FileUploadHistoryController {
 
     @GetMapping("/allCount")
     @AddDataAuthBusiness
-    public ApiResult<Integer> allCount() {
-        return new ApiResult<Integer>().success(localfileService.allCount());
+    public ApiResult<Integer> allCount(@RequestParam(required = false) String search
+            , @RequestParam(required = false) String apiCode
+            , @RequestParam(required = false) String uploadTimeStart
+            , @RequestParam(required = false) String uploadTimeEnd
+            , @RequestParam(required = false) String fileType) {
+        return new ApiResult<Integer>().success(localfileService.allCount(search, apiCode, uploadTimeStart, uploadTimeEnd, fileType));
     }
 
 }

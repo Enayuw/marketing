@@ -25,5 +25,5 @@ public interface LocalFileService {
      * @return
      */
     PageResultReturn list(int page, int pageSize,String search, String apiCode, String uploadStartTime,String uploadEndTime, String fileType);
-    Integer allCount();
+    Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType);
 }

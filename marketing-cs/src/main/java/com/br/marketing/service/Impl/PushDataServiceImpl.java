@@ -379,13 +379,17 @@ public class PushDataServiceImpl implements PushDataService {
         Integer day = Integer.valueOf(LocalDate.now().format(yyyyMMddDF));
         Boolean mark = Boolean.TRUE;
         Long minId = null;
+        Integer successAccount = 0;
+        LocalFile localFile = new LocalFile();
+        localFile.setPushStartTime(new Date());
         while (mark) {
             List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
-            if (haierData.size() <= 0) {
+            if (haierData.size() == 0) {
                 mark = Boolean.FALSE;
                 continue;
             }
             String apiCode = haierData.get(0).getApiCode();
+            localFile.setId(haierData.get(0).getLocalId());
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
             for (String s : types.keySet()) {
@@ -436,6 +440,9 @@ public class PushDataServiceImpl implements PushDataService {
                     if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
+                            if(response2EntityResult.getCode()==1){
+                                successAccount = successAccount+1;
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -443,6 +450,9 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         }
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(successAccount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 

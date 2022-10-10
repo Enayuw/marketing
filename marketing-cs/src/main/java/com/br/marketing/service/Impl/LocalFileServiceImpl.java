@@ -50,8 +50,8 @@ public class LocalFileServiceImpl implements LocalFileService {
         return PageResultReturn.setPageResult(localFileList, current, pageSize);
     }
     @Override
-    public Integer allCount() {
-        return localFileMapper.allCount();
+    public Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
+        return localFileMapper.allCount(search,apiCode,uploadStartTime,uploadEndTime,fileType);
     }
     private Date addDay(String date) {
         Calendar c = Calendar.getInstance();

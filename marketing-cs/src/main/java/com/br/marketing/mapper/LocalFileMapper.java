@@ -19,5 +19,9 @@ public interface LocalFileMapper extends LocalFileMapperBase {
                                  @Param("uploadEndTime")String uploadEndTime,
                                  @Param("fileType")String fileType);
     @AddDataAuth
-    Integer allCount();
+    Integer allCount(@Param("search")String search,
+                     @Param("apiCode")String apiCode,
+                     @Param("uploadStartTime")String uploadStartTime,
+                     @Param("uploadEndTime")String uploadEndTime,
+                     @Param("fileType")String fileType);
 }
