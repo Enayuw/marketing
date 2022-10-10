@@ -1402,7 +1402,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
             boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
             for (MarketingTransferSyncUser user : list) {
-                String cell = "";
+                String cell;
                 user.setUserType("");
                 if (isNotNullBoll) {
                     MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
@@ -1414,10 +1414,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                 user.getApiCode(), user.getCustNum(), user.getUserType());
                         cell = sync2User.getCell();
                     }
-                    String decode = BrCipherMaker.getInstance().decode(cell);
-                    if (StringUtils.isBlank(decode)) {
-                        cell = DigestUtils.md5DigestAsHex(decode.getBytes());
-                    }
+                } else {
+                    MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                            user.getApiCode(), user.getCustNum(), user.getUserType());
+                    cell = sync2User.getCell();
+                }
+                String decode = BrCipherMaker.getInstance().decode(cell);
+                if (StringUtils.isBlank(decode)) {
+                    cell = DigestUtils.md5DigestAsHex(decode.getBytes());
                 }
                 // 写文件
                 fw.append(user.getCustNum()).append(",")
