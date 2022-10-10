@@ -1225,8 +1225,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     String reserveField1 = t.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject fieldJsonObj = JSONObject.parseObject(reserveField1);
-                        return fieldJsonObj.containsKey("transformType")
-                                && !"1".equals(fieldJsonObj.get("transformType"));
+                        return !fieldJsonObj.containsKey("transformType")
+                                || !"1".equals(fieldJsonObj.get("transformType"));
                     }
                     return false;
                 }).collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity()
@@ -1248,7 +1248,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         // 判断是否需要新创建文件
                         if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
                             // 提交异步写入任务
-                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap));
+                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap
+                                    , marketingSyncUserMapper));
                             list = new ArrayList<>();
                             ++fileNo;
                             transferFileTask.setTaskNumber(fileDataSize);
@@ -1266,7 +1267,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
                 // 提交异步写入任务
-                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap));
+                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap
+                        , marketingSyncUserMapper));
             }
             int count = (page + fileNo - 1);
             for (int i = 0; i < count; i++) {
@@ -1383,12 +1385,14 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         private final Writer fw;
         private final List<MarketingTransferSyncUser> list;
         private final Map<String, MarketingSyncUser> freeMap;
+        private final MarketingSyncUserMapper marketingSyncUserMapper;
 
         public CompletionWriteTask(Writer fw, List<MarketingTransferSyncUser> list
-                , Map<String, MarketingSyncUser> freeMap) {
+                , Map<String, MarketingSyncUser> freeMap, MarketingSyncUserMapper marketingSyncUserMapper) {
             this.fw = fw;
             this.list = list;
             this.freeMap = freeMap;
+            this.marketingSyncUserMapper = marketingSyncUserMapper;
         }
 
         @Override
@@ -1404,9 +1408,15 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
                     if (syncUser != null) {
                         user.setUserType(syncUser.getUserType());
-                        String cellUser = syncUser.getCell();
-                        String decode = BrCipherMaker.getInstance().decode(cellUser);
-                        cell = StringUtils.isBlank(decode) ? cellUser : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        cell = syncUser.getCell();
+                    } else {
+                        MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                                user.getApiCode(), user.getCustNum(), user.getUserType());
+                        cell = sync2User.getCell();
+                    }
+                    String decode = BrCipherMaker.getInstance().decode(cell);
+                    if (StringUtils.isBlank(decode)) {
+                        cell = DigestUtils.md5DigestAsHex(decode.getBytes());
                     }
                 }
                 // 写文件
