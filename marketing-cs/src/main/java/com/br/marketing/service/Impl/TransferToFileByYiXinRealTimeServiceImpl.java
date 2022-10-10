@@ -1402,27 +1402,28 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
             boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
             for (MarketingTransferSyncUser user : list) {
-                String cell;
+                String cell = "";
+                String userType = user.getUserType();
                 user.setUserType("");
                 if (isNotNullBoll) {
                     MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
                     if (syncUser != null) {
                         user.setUserType(syncUser.getUserType());
                         cell = syncUser.getCell();
-                    } else {
-                        MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                                user.getApiCode(), user.getCustNum(), user.getUserType());
+                    }
+                }
+                if (StringUtils.isBlank(cell)) {
+                    MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                            user.getApiCode(), user.getCustNum(), userType);
+                    if (sync2User != null) {
                         cell = sync2User.getCell();
                     }
-                } else {
-                    MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                            user.getApiCode(), user.getCustNum(), user.getUserType());
-                    cell = sync2User.getCell();
                 }
                 String decode = BrCipherMaker.getInstance().decode(cell);
-                if (StringUtils.isBlank(decode)) {
+                if (StringUtils.isNotBlank(decode)) {
                     cell = DigestUtils.md5DigestAsHex(decode.getBytes());
                 }
+                log.warn("####，{}，{}", cell, user.getCustNum());
                 // 写文件
                 fw.append(user.getCustNum()).append(",")
                         .append(cell).append(",")
