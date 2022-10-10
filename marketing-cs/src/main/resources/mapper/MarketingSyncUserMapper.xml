@@ -262,6 +262,15 @@
                 #{custNum}
             </foreach>
         </if>
+        and status=1
         group by applet_date,user_type,cust_num order by applet_date desc,max(create_time) desc
     </sql>
+
+    <select id="getCellByCustNumsAndMaxCreateTime" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select max(create_time) as createTime, cell
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+          and user_type = #{userType}
+          and status = 1
+    </select>
 </mapper>

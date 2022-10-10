@@ -68,4 +68,13 @@ public interface MarketingSyncUserMapper {
             , @Param("custNumSet") Set<String> custNumSet
             , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
 
+    /**
+     * 2022/10/10 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @return list
+     */
+    MarketingSyncUser getCellByCustNumsAndMaxCreateTime(@Param("apiCode") String apiCode
+            , @Param("custNum") String custNum, @Param("userType") String userType);
+
 }
