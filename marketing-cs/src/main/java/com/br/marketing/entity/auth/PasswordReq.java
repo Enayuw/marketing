@@ -12,6 +12,8 @@ import lombok.Data;
  */
 @Data
 public class PasswordReq {
-    String newPassword;
-    String oldPassword;
+    private String newPassword;
+    private String oldPassword;
+    private String md5Password;
+    private String username;
 }

@@ -1,4 +1,4 @@
-package com.br.marketing.innerapi.task;
+package com.br.marketing.check.job;
 
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.service.MarketingSyncReportService;

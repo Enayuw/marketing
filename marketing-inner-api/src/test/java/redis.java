@@ -1,7 +1,10 @@
 
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
@@ -119,17 +122,17 @@ public class redis {
 
     @Test
     public void testPushUser(){
-        String s = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("AgsNΒ7VlVSWwkAVwY").getBytes());
-        String s2 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("Uw0JDAoΒ6DBVRdXF0").getBytes());
-        System.out.println(s);
-        System.out.println(s2);
-        String ss = BrCipherMaker.getInstance().decode("UwAKCQAFCVBXV1Β6M");
-        System.out.println(ss);
-//        String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"123123_2\",\"batchNumber\":\"123123\",\"data\":[{\"caseNumber\":\"1_82021072601_csd_1627293995809\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";
-//        PushMarketingUserDTO o = JSON.parseObject(ab, new TypeReference<PushMarketingUserDTO>() {
-//        }.getType());
-//        Result<Integer> integerResult = intelligentCustomerServiceClient.pushUser(o, 123L, "123");
-//        System.out.println(integerResult.getMessage());
+//        String s = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("AgsNΒ7VlVSWwkAVwY").getBytes());
+//        String s2 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode("Uw0JDAoΒ6DBVRdXF0").getBytes());
+//        System.out.println(s);
+//        System.out.println(s2);
+//        String ss = BrCipherMaker.getInstance().decode("UwAKCQAFCVBXV1Β6M");
+//        System.out.println(ss);
+        String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"juman_20220905_01\",\"batchNumber\":\"juman_20220905\",\"data\":[{\"caseNumber\":\"20220905_01\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\",\"sleepGroup\":\"540+\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";
+        PushMarketingUserDTO o = JSON.parseObject(ab, new TypeReference<PushMarketingUserDTO>() {
+        }.getType());
+        Result<Integer> integerResult = intelligentCustomerServiceClient.pushUser(o, 123L, "123",1);
+        System.out.println(integerResult.getMessage());
     }
 
     @Test
@@ -300,6 +303,14 @@ public class redis {
     DecimalFormat df = new DecimalFormat("######0.000");
     @Test
     public void testScript(){
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode("7410437");
+        queryBaseBean.setBatchNumbers("7410437_20220829000000_2092");
+        queryBaseBean.setFileIds("1620036");
+        queryBaseBean.setJsonData("{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"sd_scorencashonshxhcsd_pd_cell_city\",\"operation\":\"in\",\"value\":[\"长春\",\"四平\"]},{\"type\":\"operation\",\"key\":\"pd_id_apply_age\",\"operation\":\"between_left\",\"value\":\"30,40\"}]}");
+        int i = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+        System.out.println("数量"+i);
+
 //        Date date = new Date();
 //        String apiCode = "7410431";
 //        for (int k = 0; k < 10; k++) {

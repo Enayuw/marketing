@@ -24,7 +24,7 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate,MomCommonUtil momCommonUtil,ThreadPoolExecutor threadPoolExecutor) {
+    public ApiCaller(RestTemplate restTemplate, MomCommonUtil momCommonUtil, ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
         this.momCommonUtil = momCommonUtil;
@@ -54,7 +54,14 @@ public class ApiCaller {
 
     protected String encodeName = "utf-8";
 
+    private Boolean isEncode = Boolean.FALSE;
+
     private ThreadPoolExecutor logDbPool;
+
+    public ApiCaller setEncode(Boolean encode) {
+        isEncode = encode;
+        return this;
+    }
 
     public void setLogPool(ThreadPoolExecutor logPool) {
         this.logDbPool = logPool;
@@ -98,11 +105,11 @@ public class ApiCaller {
     }
 
     public ThirdApiResultTransfer postTransferStr() {
-        if(momCommonUtil!=null){
-            if(StringUtils.isBlank(interfaceLog.getApiCode())){
-             throw new RuntimeException("记录接口日志 apiCode不能为空");
+        if (momCommonUtil != null) {
+            if (StringUtils.isBlank(interfaceLog.getApiCode())) {
+                throw new RuntimeException("记录接口日志 apiCode不能为空");
             }
-            if(StringUtils.isBlank(interfaceLog.getSwiftNumber())){
+            if (StringUtils.isBlank(interfaceLog.getSwiftNumber())) {
                 throw new RuntimeException("记录接口日志 SwiftNumber不能为空");
             }
         }
@@ -114,19 +121,19 @@ public class ApiCaller {
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
         Long l = System.currentTimeMillis() - start;
-        if(momCommonUtil != null) {
+        if (momCommonUtil != null) {
             try {
                 interfaceLog.setCostTime(l);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
-                logDbPool.submit(()->{
+                logDbPool.submit(() -> {
                     momCommonUtil.sendMQ(interfaceLog);
                 });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
         }
-        if(log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
                     , url, l, postHttpEntity.getBody()
                     , stringResponseEntity.getStatusCodeValue(), stringResponseEntity.getBody()));
@@ -151,7 +158,7 @@ public class ApiCaller {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 //            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
-            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName), httpHeaders);
+            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName, isEncode), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {
             requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
         } else {

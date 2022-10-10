@@ -160,6 +160,11 @@ public class CaseShuheUser {
      */
     private String clcUsrMaxDxRrtEnd;
 
+    /**
+     * 用户禁呼结束时间
+     */
+    private String usrForbidCallEndTim;
+
 
     /**
      * 扩展字段 json对象,不会持久化到db
@@ -416,6 +421,14 @@ public class CaseShuheUser {
         this.clcUsrMaxDxRrtEnd = clcUsrMaxDxRrtEnd == null ? null : clcUsrMaxDxRrtEnd.trim();
     }
 
+    public String getUsrForbidCallEndTim() {
+        return usrForbidCallEndTim;
+    }
+
+    public void setUsrForbidCallEndTim(String usrForbidCallEndTim) {
+        this.usrForbidCallEndTim = usrForbidCallEndTim;
+    }
+
     public JSONObject getJsonObject() {
         return jsonObject;
     }
@@ -458,6 +471,7 @@ public class CaseShuheUser {
                 ", status=" + status +
                 ", saveStatus=" + saveStatus +
                 ", clcUsrMaxDxRrtEnd='" + clcUsrMaxDxRrtEnd + '\'' +
+                ", usrForbidCallEndTim='" + usrForbidCallEndTim + '\'' +
                 ", jsonObject=" + jsonObject +
                 '}';
     }

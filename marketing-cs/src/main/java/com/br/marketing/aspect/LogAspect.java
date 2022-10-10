@@ -7,6 +7,9 @@ import com.br.bsf.ext.app.util.Ice1BSFConsumerBean;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.utils.IpUtil;
 import com.br.marketing.context.RuntimeDataContext;
+import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.dto.shuhe.Response2ShuheDTO;
+import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.entity.MarketingInfoLog;
 import com.br.mom.v3.broker_layer_api.api.BrokerLayerServicePrx;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +98,47 @@ public class LogAspect {
             if (costTime > 1000) {
                 log.warn("request_batch:{},response code:{},message:{},cost_time:{}",
                         RuntimeDataContext.getData().getRequestBatch(), ret.getCode(), ret.getMessage(), costTime);
+            }
+            sendUploadLog(JSON.toJSONString(uploadLog));
+        } catch (Exception e) {
+            log.error("pointCut error", e);
+        } finally {
+            RuntimeDataContext.removeData();
+        }
+    }
+
+    /**
+     * 后置调用 数禾订制
+     *
+     * @param
+     * @return
+     */
+    @AfterReturning(returning = "res", pointcut = "execution (public * com.br.marketing.*.controller.MarketingTransferDataController.receiveShuheTransferDataSync(..))" +
+            "|| execution(public * com.br.marketing.*.controller.MarketingUserPreController.receiveShuHeUploadData(..))")
+    public void doAfterReturning(ResponseCustomDTO res) {
+        try {
+            MarketingInfoLog uploadLog = RuntimeDataContext.getData();
+            uploadLog.setResponseJson(JSON.toJSONString(res));
+            long endTime = System.currentTimeMillis();
+            uploadLog.setEndTime(endTime);
+            long costTime = endTime - RuntimeDataContext.getData().getStartTime();
+            uploadLog.setCostTime(costTime);
+            if (res instanceof Response2ShuheDTO) {
+                Response2ShuheDTO response2ShuheDTO = (Response2ShuheDTO) res;
+                uploadLog.setResponseCode(String.valueOf(response2ShuheDTO.getCode()));
+                if (costTime > 1000) {
+                    log.warn("request_batch:{},response code:{},message:{},msgId:{},cost_time:{}",
+                            RuntimeDataContext.getData().getRequestBatch(), uploadLog.getResponseCode()
+                            , response2ShuheDTO.getDesc(), response2ShuheDTO.getMsgId(), costTime);
+                }
+            } else if (res instanceof ResponseShuheDTO) {
+                ResponseShuheDTO responseShuheDTO = (ResponseShuheDTO) res;
+                uploadLog.setResponseCode(String.valueOf(responseShuheDTO.getCode()));
+                if (costTime > 1000) {
+                    log.warn("request_batch:{},response code:{},message:{},cost_time:{}",
+                            RuntimeDataContext.getData().getRequestBatch(), uploadLog.getResponseCode()
+                            , responseShuheDTO.getDesc(), costTime);
+                }
             }
             sendUploadLog(JSON.toJSONString(uploadLog));
         } catch (Exception e) {

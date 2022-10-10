@@ -1,9 +1,14 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.haier.HaierServiceClient;
+import com.br.marketing.client.haier.input.HaierReqDTO;
+import com.br.marketing.client.haier.output.PushDTO;
+import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -16,6 +21,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IDxService;
 import com.br.marketing.service.IYiXinTransferService;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -23,6 +29,7 @@ import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Hours;
@@ -34,10 +41,13 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +70,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     @Resource
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
+    @Resource
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
+
     @Autowired
     RedisChgService redisChgService;
 
@@ -79,6 +92,15 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     IDxService iDxService;
     @Resource
     private DataCompareMapper dataCompareMapper;
+
+    @Resource
+    HaierDataMapper haierDataMapper;
+
+    @Autowired
+    PushDataService pushDataService;
+
+    @Autowired
+    HaierServiceClient haierServiceClient;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -190,21 +212,21 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                     List<List<PhoneSaleInfoVO>> onwPart = Lists.partition(dxRecordLastOne, 200);
                     for (List<PhoneSaleInfoVO> phoneSaleInfoVOS : onwPart) {
-                        List<HashMap<String,String>> _dxRecordLastConditionList = new ArrayList<>();
+                        List<HashMap<String, String>> _dxRecordLastConditionList = new ArrayList<>();
                         PhoneSaleRecordInfoDTO _60recordInfoDTOpart = new PhoneSaleRecordInfoDTO();
                         _60recordInfoDTOpart.setCustNums(custNums);
                         _60recordInfoDTOpart.setApiCode(_tApicode);
                         _60recordInfoDTOpart.setTransferType("0");
                         for (PhoneSaleInfoVO phoneSaleInfoVO : phoneSaleInfoVOS) {
-                            _dxRecordLastOneCustNumsMap.put(phoneSaleInfoVO.getCustNum(),phoneSaleInfoVO);
-                            HashMap _dxRecordLastCondition = new HashMap<String,String>();
-                            _dxRecordLastCondition.put("custNum",phoneSaleInfoVO.getCustNum());
-                            _dxRecordLastCondition.put("appletDate",phoneSaleInfoVO.getAppletDate());
+                            _dxRecordLastOneCustNumsMap.put(phoneSaleInfoVO.getCustNum(), phoneSaleInfoVO);
+                            HashMap _dxRecordLastCondition = new HashMap<String, String>();
+                            _dxRecordLastCondition.put("custNum", phoneSaleInfoVO.getCustNum());
+                            _dxRecordLastCondition.put("appletDate", phoneSaleInfoVO.getAppletDate());
                             _dxRecordLastConditionList.add(_dxRecordLastCondition);
                         }
                         _60recordInfoDTOpart.setCustNumAndApplets(_dxRecordLastConditionList);
                         List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTOpart);
-                        if(dxRecordLastTwo !=null && dxRecordLastTwo.size()>0){
+                        if (dxRecordLastTwo != null && dxRecordLastTwo.size() > 0) {
                             _dxRecordLastTwo.putAll(dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum)));
                         }
                     }
@@ -225,23 +247,23 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                             continue;
                         }
                         PhoneSaleInfoVO phoneSaleInfoVO = _dxRecordLastOneCustNumsMap.get(transferSyncUser.getCustNum());
-                        if (phoneSaleInfoVO != null ) {
+                        if (phoneSaleInfoVO != null) {
                             //type不同就可以推送
-                            if(!phoneSaleInfoVO.getType().equals(transferSyncUser.getType())){
+                            if (!phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
                                 dataFilter2.add(transferSyncUser);
                                 continue;
                             }
                             List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwo.get(transferSyncUser.getCustNum());
-                            if(phoneSaleInfoVOS!=null&&phoneSaleInfoVOS.size()>0){
+                            if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
                                 PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(0);
-                                if(phoneSaleInfoVO.getType().equals(phoneSaleInfoVO1.getType())){
+                                if (phoneSaleInfoVO.getType().equals(phoneSaleInfoVO1.getType())) {
                                     continue;
                                 }
                             }
 
                             long distanceDays = DateHelper
-                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData())+1;
-                            if(distanceDays>30 && distanceDays<=60){
+                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData()) + 1;
+                            if (distanceDays > 30 && distanceDays <= 60) {
                                 dataFilter2.add(transferSyncUser);
                                 continue;
                             }
@@ -254,16 +276,16 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     //region 黑名单查询
                     HashMap<String, String> blackData = new HashMap<>();
                     //todo 上线删除
-                    if(log.isWarnEnabled()){
+                    if (log.isWarnEnabled()) {
                         List<Long> collect = dataFilter2.stream().map(t -> t.getId()).collect(Collectors.toList());
-                        log.warn(String.format("黑名单查询总数据 pushUid：%s,线程数：%d,黑名单数据：%s",pushUid,_threadValue, JSON.toJSONString(collect)));
+                        log.warn(String.format("黑名单查询总数据 pushUid：%s,线程数：%d,黑名单数据：%s", pushUid, _threadValue, JSON.toJSONString(collect)));
                     }
                     List<List<MarketingTransferSyncUser>> partition = Lists.partition(dataFilter2, 500);
                     for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
                         //todo 上线删除
-                        if(log.isWarnEnabled()){
+                        if (log.isWarnEnabled()) {
                             List<Long> collect = marketingTransferSyncUsers.stream().map(t -> t.getId()).collect(Collectors.toList());
-                            log.warn(String.format("黑名单查询分页数据 pushUid：%s,线程数：%d,黑名单数据：%s",pushUid,_threadValue, JSON.toJSONString(collect)));
+                            log.warn(String.format("黑名单查询分页数据 pushUid：%s,线程数：%d,黑名单数据：%s", pushUid, _threadValue, JSON.toJSONString(collect)));
                         }
                         Result<Map<String, String>> result = iDxService.getBlackByTransfer(marketingTransferSyncUsers, _tApicode);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -271,7 +293,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         }
                     }
                     if (log.isInfoEnabled()) {
-                        log.info(String.format("黑名单查询 pushUid：%s,黑名单数据：%s",pushUid, JSON.toJSONString(blackData)));
+                        log.info(String.format("黑名单查询 pushUid：%s,黑名单数据：%s", pushUid, JSON.toJSONString(blackData)));
                     }
                     //endregion
 
@@ -295,7 +317,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         if (log.isWarnEnabled()) {
-                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s",pushUid, mqStr));
+                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s", pushUid, mqStr));
                         }
                     }
                     //endregion
@@ -580,4 +602,170 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         mqFact.setMessage(JSONObject.toJSONString(paramMessage));
         producter.sendToUniversalTransferQueue(mqFact);
     }
+
+    @Override
+    public Result actionHaierToDx(String apiCode) {
+
+        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String endDate = LocalDate.parse(date).plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Integer haierStart = Integer.valueOf(LocalDate.now().minusDays(29L).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        if (StringUtils.isBlank(apiCode)) {
+            apiCode = "3710018";
+        }
+
+        //region check 1.查询推送记录；2.查询推送记录的状态；
+        if (!(LocalDateTime.now().getHour() >= 10)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("执行时间未到");
+        }
+        Result<TransferActionFront> frontDataRes = getFrontData(apiCode, date, 4);
+        if (!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(frontDataRes.getMessage());
+        }
+        TransferActionFront frontData = frontDataRes.getData();
+        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
+        }
+        Long frontId = null;
+        if(frontData == null) {
+             frontId = saveFrontData(apiCode, date, 4);
+        }else{
+            frontId = frontData.getId();
+        }
+        //endregion
+
+        String tcId = tableCreateService.getTcId(apiCode);
+        if(StringUtils.isBlank(tcId)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("客户表不存在");
+        }
+        Integer pageIndex = 0;
+        Integer pageSize = 5000;
+        Boolean action = Boolean.TRUE;
+
+        //region 获取有效期的开始时间
+        String haierPeriodOfValidityDay = StringUtils.isBlank(marketingCommonConfig.getHaierPeriodOfValidityDay()) ? "T+30" : marketingCommonConfig.getHaierPeriodOfValidityDay();
+        Matcher matcher = Pattern.compile("\\d+").matcher(haierPeriodOfValidityDay);
+        String upLoadStart = LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        if (matcher.find()) {
+            upLoadStart = LocalDate.now().minusDays(Long.valueOf(matcher.group()))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
+        //endregion
+
+        Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        List<Result> results = new ArrayList<>();
+        List<String> _hasCustNums = new ArrayList<>();
+        while (action) {
+            Integer pageStart = pageIndex * pageSize;
+            List<MarketingTransferSyncUser> transferUsers = marketingTransferSyncUserMapper
+                    .getTransferUserByCreateTimeOrder(tcId, apiCode, date, endDate, pageStart, pageSize);
+            if (transferUsers.size() <= 0) {
+                action = Boolean.FALSE;
+                continue;
+            }
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferUsers, 500);
+            for (List<MarketingTransferSyncUser> marketingTransferSyncUsers : partition) {
+                Set<String> custNums = marketingTransferSyncUsers.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+
+                //region 获取原始数据
+                List<MarketingSyncUser> custNumAppletDateByCustNumStart = marketingSyncInfoMapper.getCustNumAppletDateByCustNumStart(apiCode, custNums, upLoadStart);
+                Map<String, MarketingSyncUser> syncUserMap = custNumAppletDateByCustNumStart.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
+                        , t -> t
+                        , (v1, v2) -> v1.getCreateTime().after(v2.getCreateTime()) ? v1 : v2));
+                //endregion
+
+                List<String> custNumList = custNums.stream().collect(Collectors.toList());
+
+                //region 推送记录
+                HaierDataExample example = new HaierDataExample();
+                example.createCriteria()
+                        .andApiCodeEqualTo(apiCode)
+                        .andCustNumIn(custNumList)
+                        .andTypeEqualTo("1")
+                        .andPushStatusEqualTo(2)
+                        .andCreateDateGreaterThanOrEqualTo(haierStart);
+                List<HaierData> repeatData = haierDataMapper.selectByExample(example);
+                Set<String> hasHaierData = repeatData.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
+                //endregion
+
+                Set<PushDTO.DataItems> datas = new HashSet<>();
+                for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+                    try {
+                        //region check
+                        if (!syncUserMap.containsKey(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        if (hasHaierData.contains(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        String applyDt = marketingTransferSyncUser.getApplyDt();
+                        if (StringUtils.isBlank(applyDt)) {
+                            continue;
+                        }
+                        String applyResult = marketingTransferSyncUser.getApplyResult();
+                        if (StringUtils.isBlank(applyResult)) {
+                            continue;
+                        }
+                        if (!"1".equals(applyResult)) {
+                            continue;
+                        }
+                        if (_hasCustNums.contains(marketingTransferSyncUser.getCustNum())) {
+                            continue;
+                        }
+                        //endregion
+
+                        //region 符合type=1的判断
+                        Integer type = 0;
+                        LocalDate _applyDtDate = LocalDate.parse(applyDt.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        MarketingSyncUser syncUser = syncUserMap.get(marketingTransferSyncUser.getCustNum());
+                        LocalDate userStart = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        if (StringUtils.isBlank(marketingTransferSyncUser.getRegisterTime())
+                                && "1".equals(applyResult)
+                                && _applyDtDate.compareTo(userStart) >= 0) {
+                            type = 1;
+                        }
+                        if (StringUtils.isNotBlank(marketingTransferSyncUser.getRegisterTime())
+                                && LocalDate.parse(marketingTransferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
+                                && "1".equals(applyResult)
+                                && _applyDtDate.compareTo(userStart) >= 0
+                                && StringUtils.isNotBlank(marketingTransferSyncUser.getAuditTime())
+                                && LocalDate.parse(marketingTransferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
+                                && StringUtils.isBlank(marketingTransferSyncUser.getLentTime())) {
+                            type = 1;
+                        }
+                        if (!type.equals(1)) {
+                            continue;
+                        }
+                        //endregion
+                        _hasCustNums.add(syncUser.getCustNum());
+                        datas.add(new PushDTO.DataItems(syncUser.getCusBatch(), syncUser.getCustNum()));
+                    }catch (Exception ex){
+                        log.error("数据有问题 数据id："+marketingTransferSyncUser.getId()+";apicode:"+marketingTransferSyncUser.getApiCode());
+                    }
+                }
+                //region 推送数据
+                PushDTO.FormData formData = new PushDTO.FormData();
+                formData.setDataItems(datas);
+                formData.setBatchNo(day.toString().concat("_").concat("1"));
+                formData.setType("1");
+                formData.setRequestId(pushDataService.getHaierRequestId("1"));
+
+                HaierReqDTO haierReqDTO = new HaierReqDTO();
+                haierReqDTO.setFormData(formData);
+                haierReqDTO.setApiCode(apiCode);
+                if(datas.size()>0){
+                    Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithSave(haierReqDTO);
+                    results.add(response2EntityResult);
+                }
+                //endregion
+            }
+            pageIndex++;
+        }
+        long count = results.stream().filter(t -> !ResultCode.SUCCESS.getValue().equals(t.getCode())).count();
+        if(count<=0){
+            updateFrontDataStatus(frontId, 2);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
 }

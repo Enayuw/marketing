@@ -113,6 +113,31 @@ public class MarketingSyncUser {
      */
     private Integer isRepeat;
 
+    public MarketingSyncUser(Long id, String apiCode, String cusBatch, String requestBatch, String custNum, String idCard, String name, String cell, String groupType, String userType, String registerDate, String reserveField1, String reserveField2, Date createTime, Date updateTime, String appletDate, Integer status, String failType, Date appletTime, Integer isTask, Date taskTime, Integer isRepeat) {
+        this.id = id;
+        this.apiCode = apiCode;
+        this.cusBatch = cusBatch;
+        this.requestBatch = requestBatch;
+        this.custNum = custNum;
+        this.idCard = idCard;
+        this.name = name;
+        this.cell = cell;
+        this.groupType = groupType;
+        this.userType = userType;
+        this.registerDate = registerDate;
+        this.reserveField1 = reserveField1;
+        this.reserveField2 = reserveField2;
+        this.createTime = createTime;
+        this.updateTime = updateTime;
+        this.appletDate = appletDate;
+        this.status = status;
+        this.failType = failType;
+        this.appletTime = appletTime;
+        this.isTask = isTask;
+        this.taskTime = taskTime;
+        this.isRepeat = isRepeat;
+    }
+
     public Long getId() {
         return id;
     }

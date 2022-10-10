@@ -12,6 +12,7 @@ import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -65,6 +66,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
+
+    @Resource
+    private TransferToFileByTongChengServiceImpl transferToFileByTongChengService;
 
     @Resource
     private SyncLogMapper loanSyncLogMapper;
@@ -148,6 +152,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
         if (marketingCommonConfig.getPPDTransferFileApiCodes().contains(customer.getApiCode())) {
             return transferToFileByPPDService;
+        }
+        if (marketingCommonConfig.getTongChengTransferFileApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByTongChengService;
         }
         if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
             return xiaoYingRealTimeService;

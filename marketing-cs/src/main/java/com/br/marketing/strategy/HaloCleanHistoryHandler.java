@@ -40,14 +40,17 @@ public class HaloCleanHistoryHandler {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         //更新数据
         log.warn("开始执行数据更新任务,消息内容={}", mes);
-        haloHistoryCleanService.handlerCleanHistory(mes);
+
         try {
-            // 删除统计数据
-            log.warn("开始执行删除统计数据任务,消息内容={}", mes);
-            marketingSyncReportService.deleteReportByAppletDate(mes);
-            // 重新生成统计数据
-            log.warn("开始执行重新生成统计数据任务,消息内容={}", mes);
-            this.syncReportProcess(mes);
+            Integer integer = haloHistoryCleanService.handlerCleanHistory(mes);
+            if(integer>0){
+                // 删除统计数据
+                log.warn("开始执行删除统计数据任务,消息内容={}", mes);
+                marketingSyncReportService.deleteReportByAppletDate(mes);
+                // 重新生成统计数据
+                log.warn("开始执行重新生成统计数据任务,消息内容={}", mes);
+                this.syncReportProcess(mes);
+            }
         } catch (Exception e) {
             log.warn("--------------------");
         } finally {

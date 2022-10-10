@@ -458,7 +458,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(encrgyTypes.stream().findFirst().get());
     }
 
-    private String encrypt3k(Integer type, String content) {
+    public String encrypt3k(Integer type, String content) {
         if (com.br.marketing.common.utils.StringUtils.isBlank(content)) {
             return "";
         }
@@ -528,14 +528,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer number = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        int totalYuShu = total % 2000;
-        int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
+        Integer pageSize = 500;
+        int totalYuShu = total % pageSize;
+        int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
         for (int i = 1; i <= totalPage; i++) {
             String sn = String.valueOf(i);
             if (i == totalPage && totalYuShu > 0) {
                 queryBaseBean.setPageSize(totalYuShu);
             } else {
-                queryBaseBean.setPageSize(2000);
+                queryBaseBean.setPageSize(pageSize);
             }
             queryBaseBean.setSearchAfter(searchAfterStr);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
@@ -946,9 +947,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
         Date nowData2 = new Date();
+        Boolean status = Boolean.TRUE;
         if (errorSize == 0) {
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_success);
         } else if (errorSize == futures.size()) {
+            status = Boolean.FALSE;
             updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_fail);
             MarketingSyncErrorInfo errorInfo = new MarketingSyncErrorInfo();
             errorInfo.setApiCode(marketingSyncInfo.getApiCode());
@@ -972,6 +975,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         marketingSyncInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
+        }
+        List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
+        if(status&&initDataPushApiCode.contains(apiCode)){
+            MqFact mqFact = new MqFact();
+            mqFact.setSourceId(infoId);
+            mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
         }
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
