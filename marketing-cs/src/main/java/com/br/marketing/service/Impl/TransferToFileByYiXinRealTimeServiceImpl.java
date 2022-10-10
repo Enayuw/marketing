@@ -1423,7 +1423,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 if (StringUtils.isNotBlank(decode)) {
                     cell = DigestUtils.md5DigestAsHex(decode.getBytes());
                 }
-                log.warn("####，{}，{}", cell, user.getCustNum());
                 // 写文件
                 fw.append(user.getCustNum()).append(",")
                         .append(cell).append(",")
