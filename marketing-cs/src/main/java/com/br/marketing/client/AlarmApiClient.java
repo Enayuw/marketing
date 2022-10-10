@@ -92,15 +92,16 @@ public class AlarmApiClient implements ApplicationContextAware {
             title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
         }
         try{
-            String msg = AlertLog.buildErrorMessage(exceptionCode, content, title);
+            String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
             if(throwableProxy!=null){
-                log.error(msg,new Exception(throwableProxy.getThrowable()));
+                log.warn(msg,new Exception(throwableProxy.getThrowable()));
             }else {
-                log.error(msg);
+                log.warn(msg);
             }
 
         }catch (Exception e){
-            log.error("发送邮件异常", e);
+            String msg = AlertLog.buildWarnMessage(exceptionCode, "", "发送邮件异常");
+            log.warn(msg);
         }
     }
 
