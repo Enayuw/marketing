@@ -739,12 +739,6 @@ public class TaskScoreServiceImpl {
         }
     }
 
-    public static void main(String[] args) {
-        String[] split = ZookeeperPath.marketStatusPath.split("\\/");
-        for (String s : split) {
-            System.out.println("args = " + s);
-        }
-    }
     /**
      * 跑分监听
      * @param taskObj
