@@ -189,13 +189,12 @@
             resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select cust_num, apply_result, apply_dt, type, create_time, reserve_field1,user_type,api_code
         from b_marketing_transfer_sync_${tcId} t1,
-        (select id
-        from b_marketing_transfer_sync_${tcId}
+        (select id from b_marketing_transfer_sync_${tcId}
         where apply_result = #{applyResult}
         <if test="apiCode !=null and apiCode !=''">
             and api_code = #{apiCode}
         </if>
-        and <![CDATA[ request_data = #{requestDate} and apply_dt < #{applyDt} ]]>
+        and <![CDATA[ request_data=#{requestDate} and apply_dt<=#{applyDt} ]]>
         order by apply_dt desc, id limit #{rowCount}, #{offset}) as t2
         where t1.id = t2.id
     </select>
@@ -203,7 +202,7 @@
     <select id="getCustNumSet" resultType="java.lang.String">
         select cust_num from b_marketing_transfer_sync_${tcId}
         where (case_effective=#{caseEffective}
-        or (<![CDATA[ request_data = #{requestDate} and apply_dt>= #{applyDt} and apply_dt<= #{requestDate} ]]>
+        or (<![CDATA[ request_data=#{requestDate} and apply_dt>=#{applyDt} and apply_dt<=#{requestDate} ]]>
         and apply_result is not null and apply_result!=''))
         <if test="apiCode !=null and apiCode !=''">
             and api_code = #{apiCode}
