@@ -202,7 +202,7 @@
     <select id="getCustNumSet" resultType="java.lang.String">
         select cust_num from b_marketing_transfer_sync_${tcId}
         where (case_effective=#{caseEffective}
-        or (<![CDATA[ request_data=#{requestDate} and apply_dt>=#{applyDt} and apply_dt<=#{requestDate} ]]>
+        or (<![CDATA[ request_data=#{requestDate} and apply_dt>=#{applyDt} and apply_dt<='${requestDate} 23:59:59' ]]>
         and apply_result is not null and apply_result!=''))
         <if test="apiCode !=null and apiCode !=''">
             and api_code = #{apiCode}
