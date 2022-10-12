@@ -202,14 +202,12 @@
 
     <select id="getCustNumSet" resultType="java.lang.String">
         select cust_num from b_marketing_transfer_sync_${tcId}
-        where
-        case_effective=#{caseEffective}
+        where (case_effective=#{caseEffective}
+        or (<![CDATA[ request_data = #{requestDate} and apply_dt>= #{applyDt} and apply_dt<= #{requestDate} ]]>
+        and apply_result is not null and apply_result!=''))
         <if test="apiCode !=null and apiCode !=''">
             and api_code = #{apiCode}
         </if>
-        and <![CDATA[ request_data = #{requestDate} and apply_dt>= #{applyDt} and apply_dt<= #{requestDate} ]]>
-        and apply_result is not null
-        and apply_result!=''
         <if test="custNumSet !=null and custNumSet.size() !=0">
             and cust_num in
             <foreach collection="custNumSet" item="item" open="(" close=")" separator=",">
