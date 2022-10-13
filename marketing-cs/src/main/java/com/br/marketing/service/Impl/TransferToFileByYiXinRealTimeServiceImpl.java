@@ -1239,7 +1239,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
                 // 剔除
                 custNumSet.removeAll(custNumRemoveSet);
-                Map<String, MarketingTransferSyncUser> newMap = new ConcurrentHashMap<>(custNumSet.size());
+                Map<String, MarketingTransferSyncUser> newMap = new HashMap<>(custNumSet.size());
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
@@ -1247,9 +1247,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         // 判断是否需要新创建文件
                         if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
                             // 提交异步写入任务
-                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
+                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1)
+                                    , new HashMap<>(newMap)
                                     , apiCode, marketingSyncUserMapper, marketingSyncUserService));
-                            newMap = new ConcurrentHashMap<>(custNumSet.size());
+                            newMap = new HashMap<>(custNumSet.size());
                             ++fileNo;
                             String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
@@ -1394,8 +1395,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         private final IMarketingSyncUserService marketingSyncUserService;
 
         public CompletionWriteTask(final Writer fw
-                , Map<String
-                , MarketingTransferSyncUser> map
+                , Map<String, MarketingTransferSyncUser> map
                 , String apiCode
                 , MarketingSyncUserMapper marketingSyncUserMapper
                 , IMarketingSyncUserService marketingSyncUserService) {
