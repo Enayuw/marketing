@@ -267,10 +267,12 @@
     </sql>
 
     <select id="getCellByCustNumsAndMaxCreateTime" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select max(create_time) as createTime, cell
+        select max(create_time) as createTime, cell,cust_num,user_type
         from b_marketing_sync_${apiCode}
-        where cust_num = #{custNum}
-          and user_type = #{userType}
-          and status = 1
+        where
+        <foreach collection="list" item="item" open="(" separator=" or " close=")">
+            (cust_num = #{item.custNum} and user_type = #{item.userType})
+        </foreach>
+        and status = 1 group by cust_num,user_type
     </select>
 </mapper>

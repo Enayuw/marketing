@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -70,11 +71,11 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 2022/10/10 11:20
-     * 获取自定义日期与场景下的上传信息
+     * 批量获取最新时间数据信息手机号
      *
      * @return list
      */
-    MarketingSyncUser getCellByCustNumsAndMaxCreateTime(@Param("apiCode") String apiCode
-            , @Param("custNum") String custNum, @Param("userType") String userType);
+    List<MarketingSyncUser> getCellByCustNumsAndMaxCreateTime(@Param("apiCode") String apiCode
+            , @Param("list") List<MarketingTransferSyncUser> list);
 
 }
