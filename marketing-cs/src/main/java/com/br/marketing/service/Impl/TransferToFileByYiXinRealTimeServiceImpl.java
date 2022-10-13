@@ -1239,7 +1239,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
                 // 剔除
                 custNumSet.removeAll(custNumRemoveSet);
-                Map<String, MarketingTransferSyncUser> newMap = new ConcurrentHashMap<>(custNumSet.size());
+                Map<Integer, Map<String, MarketingTransferSyncUser>> fileDataMpa = new HashMap<>();
+                Map<String, MarketingTransferSyncUser> newMap = new HashMap<>(custNumSet.size());
+                fileDataMpa.put(fileNo, newMap);
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
@@ -1248,20 +1250,20 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
                             // 提交异步写入任务
                             completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1)
-                                    , new ConcurrentHashMap<>(newMap)
+                                    , fileDataMpa.get(fileNo)
                                     , apiCode, marketingSyncUserMapper, marketingSyncUserService));
-                            newMap = new ConcurrentHashMap<>(custNumSet.size());
                             ++fileNo;
+                            fileDataMpa.put(fileNo, new HashMap<>());
                             String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
                             writerList.add(fileWrite(filePath, tableHeld));
                             pathNames.add(filePath);
                         }
-                        newMap.put(custNum, transferSyncUser);
+                        fileDataMpa.get(fileNo).put(custNum, transferSyncUser);
                     }
                 }
                 // 提交异步写入任务
-                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), new ConcurrentHashMap<>(newMap)
+                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), fileDataMpa.get(fileNo)
                         , apiCode, marketingSyncUserMapper, marketingSyncUserService));
             }
             int count = (page + fileNo - 1);
