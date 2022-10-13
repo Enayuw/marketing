@@ -1203,7 +1203,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         // 分页步长
         int offset = 2000;
         // 文件内数据量
-        int fileDataSize = 500000;
+        int fileDataSize = 5000;
         // 案件编号归档
         Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
         // 文件编号
@@ -1262,11 +1262,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 // 提交异步写入任务
                 completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
                         , apiCode, marketingSyncUserMapper, marketingSyncUserService));
-                map.clear();
             }
             int count = (page + fileNo - 1);
             for (int i = 0; i < count; i++) {
-                completionService.take();
+                completionService.take().get().close();
             }
             // 打包压缩多文件
             ZipUtil.compress(createFilePath(transferFileTask, fileNamePrefix, ".zip"), pathNames);
@@ -1276,7 +1275,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             saveUpdate(transferFileTask);
             log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize);
-            deleteFile(pathNames);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return result.setCode(ResultCode.FAIL.getValue());
@@ -1290,7 +1288,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             } catch (IOException ioException) {
                 log.error(ioException.getMessage(), ioException);
             }
-            custNumUnrepeatedSet.clear();
+            deleteFileAndClean(pathNames, custNumUnrepeatedSet);
         }
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
@@ -1299,7 +1297,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      * 2022/10/10 18:53
      * 删除文件
      */
-    private void deleteFile(List<String> pathNames) {
+    private void deleteFileAndClean(List<String> pathNames, Set<String> custNumUnrepeatedSet) {
         CompletableFuture.runAsync(() -> {
             for (String path : pathNames) {
                 CompletableFuture.runAsync(() -> {
@@ -1311,6 +1309,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }, POOL_EXECUTOR);
             }
+            custNumUnrepeatedSet.clear();
         }, POOL_EXECUTOR);
     }
 
@@ -1408,68 +1407,76 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         }
 
         @Override
-        public Writer call() throws Exception {
+        public Writer call() {
             if (fw == null || CollectionUtils.isEmpty(map)) {
                 return null;
             }
-            Set<String> custNumSet = map.keySet();
-            // 获取上传表信息,需要清洗userType的custNum
-            Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
-                    apiCode, custNumSet);
-            boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
-            Map<String, String> cellMap = new HashMap<>();
-            if (!isNotNullBoll || freeMap.size() < map.size()) {
-                if (isNotNullBoll) {
-                    custNumSet.removeAll(freeMap.keySet());
-                }
-                List<MarketingTransferSyncUser> list = new ArrayList<>();
-                custNumSet.forEach(num -> list.add(map.get(num)));
-                int len = 1000;
-                int size = custNumSet.size();
-                if (size > len) {
-                    List<MarketingSyncUser> sync2UserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                            apiCode, list.subList(len, size));
-                    size = len;
-                    cellMap.putAll(sync2UserList.parallelStream().collect(
-                            Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
-                }
-                List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                        apiCode, list.subList(0, size));
-                cellMap.putAll(syncUserList.parallelStream().collect(
-                        Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
-            }
-            for (MarketingTransferSyncUser user : map.values()) {
-                String cell = "";
-                String userType = user.getUserType();
-                user.setUserType("");
-                if (isNotNullBoll) {
-                    MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
-                    if (syncUser != null) {
-                        user.setUserType(syncUser.getUserType());
-                        cell = syncUser.getCell();
+            try {
+                Set<String> custNumSet = map.keySet();
+                // 获取上传表信息,需要清洗userType的custNum
+                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
+                        apiCode, custNumSet);
+                boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
+                Map<String, String> cellMap = new HashMap<>();
+                if (!isNotNullBoll || freeMap.size() < map.size()) {
+                    if (isNotNullBoll) {
+                        custNumSet.removeAll(freeMap.keySet());
+                    }
+                    List<MarketingTransferSyncUser> list = new ArrayList<>();
+                    custNumSet.forEach(num -> list.add(map.get(num)));
+                    int len = 1000;
+                    int size = custNumSet.size();
+                    if (size > len) {
+                        List<MarketingSyncUser> sync2UserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                                apiCode, list.subList(len, size));
+                        size = len;
+                        if (!CollectionUtils.isEmpty(sync2UserList)) {
+                            cellMap.putAll(sync2UserList.parallelStream().collect(
+                                    Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
+                        }
+                    }
+                    List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                            apiCode, list.subList(0, size));
+                    if (!CollectionUtils.isEmpty(syncUserList)) {
+                        cellMap.putAll(syncUserList.parallelStream().collect(
+                                Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
                     }
                 }
-                if (StringUtils.isBlank(cell)) {
-                    cell = cellMap.getOrDefault(user.getCustNum() + userType, "");
+                for (MarketingTransferSyncUser user : map.values()) {
+                    String cell = "";
+                    String userType = user.getUserType();
+                    user.setUserType("");
+                    if (isNotNullBoll) {
+                        MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
+                        if (syncUser != null) {
+                            user.setUserType(syncUser.getUserType());
+                            cell = syncUser.getCell();
+                        }
+                    }
+                    if (StringUtils.isBlank(cell)) {
+                        cell = cellMap.getOrDefault(user.getCustNum() + userType, "");
+                    }
+                    String decode = BrCipherMaker.getInstance().decode(cell);
+                    if (StringUtils.isNotBlank(decode)) {
+                        cell = DigestUtils.md5DigestAsHex(decode.getBytes());
+                    }
+                    // 写文件
+                    fw.append(user.getCustNum()).append(",")
+                            .append(cell).append(",")
+                            .append(user.getApplyResult()).append(",")
+                            .append(StringUtils.isNotBlank(user.getApplyDt())
+                                    ? user.getApplyDt().replace(":000", "") : "")
+                            .append(",")
+                            .append(user.getType()).append(",")
+                            .append(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                                    .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)))
+                            .append(",")
+                            .append(user.getUserType()).append("\r\n");
+                    fw.flush();
                 }
-                String decode = BrCipherMaker.getInstance().decode(cell);
-                if (StringUtils.isNotBlank(decode)) {
-                    cell = DigestUtils.md5DigestAsHex(decode.getBytes());
-                }
-                // 写文件
-                fw.append(user.getCustNum()).append(",")
-                        .append(cell).append(",")
-                        .append(user.getApplyResult()).append(",")
-                        .append(StringUtils.isNotBlank(user.getApplyDt())
-                                ? user.getApplyDt().replace(":000", "") : "")
-                        .append(",")
-                        .append(user.getType()).append(",")
-                        .append(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)))
-                        .append(",")
-                        .append(user.getUserType()).append("\r\n");
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
             }
-            fw.flush();
             return fw;
         }
     }
