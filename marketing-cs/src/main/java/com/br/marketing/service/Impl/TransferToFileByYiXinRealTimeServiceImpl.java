@@ -1239,7 +1239,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
                 // 剔除
                 custNumSet.removeAll(custNumRemoveSet);
-                Map<String, MarketingTransferSyncUser> newMap = new HashMap<>(custNumSet.size());
+                Map<String, MarketingTransferSyncUser> newMap = new ConcurrentHashMap<>(custNumSet.size());
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
@@ -1248,9 +1248,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
                             // 提交异步写入任务
                             completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1)
-                                    , new HashMap<>(newMap)
+                                    , new ConcurrentHashMap<>(newMap)
                                     , apiCode, marketingSyncUserMapper, marketingSyncUserService));
-                            newMap = new HashMap<>(custNumSet.size());
+                            newMap = new ConcurrentHashMap<>(custNumSet.size());
                             ++fileNo;
                             String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
@@ -1261,7 +1261,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
                 // 提交异步写入任务
-                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
+                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), new ConcurrentHashMap<>(newMap)
                         , apiCode, marketingSyncUserMapper, marketingSyncUserService));
             }
             int count = (page + fileNo - 1);
@@ -1280,6 +1280,17 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             log.error(e.getMessage(), e);
             return result.setCode(ResultCode.FAIL.getValue());
         } finally {
+            deleteFileAndClean(pathNames, custNumUnrepeatedSet, writerList);
+        }
+        return result.setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * 2022/10/10 18:53
+     * 删除文件
+     */
+    private void deleteFileAndClean(List<String> pathNames, Set<String> custNumUnrepeatedSet, List<Writer> writerList) {
+        CompletableFuture.runAsync(() -> {
             try {
                 for (Writer writer : writerList) {
                     if (writer != null) {
@@ -1289,17 +1300,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             } catch (IOException ioException) {
                 log.error(ioException.getMessage(), ioException);
             }
-            deleteFileAndClean(pathNames, custNumUnrepeatedSet);
-        }
-        return result.setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    /**
-     * 2022/10/10 18:53
-     * 删除文件
-     */
-    private void deleteFileAndClean(List<String> pathNames, Set<String> custNumUnrepeatedSet) {
-        CompletableFuture.runAsync(() -> {
             for (String path : pathNames) {
                 CompletableFuture.runAsync(() -> {
                     File file = new File(path);
