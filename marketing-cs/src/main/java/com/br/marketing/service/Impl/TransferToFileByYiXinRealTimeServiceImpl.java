@@ -1266,7 +1266,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
             int count = (page + fileNo - 1);
             for (int i = 0; i < count; i++) {
-                completionService.take().get().close();
+                completionService.take();
             }
             // 打包压缩多文件
             ZipUtil.compress(createFilePath(transferFileTask, fileNamePrefix, ".zip"), pathNames);
