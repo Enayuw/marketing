@@ -130,17 +130,20 @@ public class Constants {
     }
 
     static {
-        sendCodeMap.put("sysError", "60000");
-        sendCodeMap.put("resultVolume01", "50005");
-        sendCodeMap.put("ftpToSftp", "50004");
-        sendCodeMap.put("dataFileUploadFail", "50001");
-        sendCodeMap.put("dataFileVolumn", "50002");
+        //主动发送——成功通知(开发,测试,产品,运营),立即推送
         sendCodeMap.put("uploadSuccess", "50000");
-        sendCodeMap.put("fileUploadFtp", "50003");
-        sendCodeMap.put("pushToCustomer", "60002");
-        sendCodeMap.put("pushToHaier", "60003");
-        sendCodeMap.put("ladderCommonly", "60006");
-        sendCodeMap.put("apiSaveDbException", "60001");
+        //主动发送——成功通知(开发,测试),立即推送
+        sendCodeMap.put("InternalSuccessNotice", "51000");
+        //未知错误,立即推送
+        sendCodeMap.put("sysError", "60000");
+        //主动发送——业务异常,立即推送
+        sendCodeMap.put("dataExceptionUrgent", "61000");
+        //主动发送——业务异常,阶梯推送
+        sendCodeMap.put("dataExceptionCommonly", "62000");
+        //萨摩耶转化数据报警，手机号缺失,阶梯推送
+        sendCodeMap.put("samoyeCommonly", "62001");
+        //画像返回98,阶梯推送
+        sendCodeMap.put("huaxiangCommonly", "62002");
     }
 
     public static final String REDIS_STMT_RULE_PREFIX = "redisMonitor_";

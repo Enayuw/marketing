@@ -78,7 +78,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                         .append("<br/>");
             }
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+            alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("dataExceptionUrgent"));
         }else {
             param.put("status","1");
             List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -111,7 +111,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                     }
                 }
                 String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
+                alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("uploadSuccess"));
             }
 
         }
@@ -175,7 +175,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                             .append("<br/>");
                 }
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+                alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("dataExceptionUrgent"));
         }
         param.put("status","1");
         List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -266,7 +266,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
             log.error("任务信息：{}",sb1);
             content.append("<br/>");
             String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("uploadSuccess"));
         }
     }
 
@@ -343,7 +343,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                    .append(dataVolume)
                    .append(" <br/>");
             String title = "【紧急预警】【" + compShortName + "-" + apiCode + "】智能营销平台-上传数据文件数据量异常";
-            alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+            alarmClient.sendAlarm(content.toString(), title, Constants.sendCodeMap.get("dataExceptionUrgent"));
         }else{
             log.error("dataFileVolumn参数错误:{}",message);
         }

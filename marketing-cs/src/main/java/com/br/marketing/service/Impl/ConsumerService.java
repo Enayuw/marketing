@@ -59,8 +59,7 @@ public class ConsumerService {
                     , new String(message.getBody(), StandardCharsets.UTF_8)
                     , e.getMessage());
             log.error(error,e);
-            alarmClient.sendAlarm(error,"消费异常",appName,secretKey,
-                    Constants.sendCodeMap.get("sysError"));
+            alarmClient.sendAlarm(error,"消费异常", Constants.sendCodeMap.get("sysError"));
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             } catch (IOException ioException) {

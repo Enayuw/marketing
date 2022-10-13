@@ -579,8 +579,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 .append("已发送批次量：".concat(String.valueOf(i - 1)).concat("\r\n"))
                                 .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
-                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", appName, secretKey,
-                                Constants.sendCodeMap.get("pushToCustomer"));
+                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务",Constants.sendCodeMap.get("dataExceptionUrgent"));
                     }
                 }
             } else {

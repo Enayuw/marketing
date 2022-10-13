@@ -148,7 +148,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                         .concat(jsonDTO.getBizType()).concat("”\n案件编号“").concat(jsonDTO.getOrderId())
                         .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
                 log.warn("shuhe-1:{}", msg);
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                this.sendAlarmMgsUrgent(title, msg, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -184,7 +184,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 log.warn("shuhe-2:{}", responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
             } else {
                 responseShuheDTO.success();
                 caseShuheUser.setErrorInfo("");
@@ -199,9 +199,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             int row = caseShuheUserMapper.insertSelective(caseShuheUser);
             if (row < 1) {
                 msg = "数禾推送数据保存失败！";
-                this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
+                this.sendAlarmMgsUrgent(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                        .concat("请尽快处理^_^"), appName, secretKey, alarmClient);
+                        .concat("请尽快处理^_^"), alarmClient);
                 log.error(msg);
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
@@ -258,10 +258,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
             this.sendAlarmMgs(title, ("apiCode“").concat(apiCode)
-                    .concat("”\n").concat(exception.toString()), appName, secretKey, alarmClient);
+                    .concat("”\n").concat(exception.toString()),alarmClient);
         }
         this.sendAlarmMgs(title, ("apiCode“").concat(apiCode)
-                .concat("”\n").concat(e.toString()), appName, secretKey, alarmClient);
+                .concat("”\n").concat(e.toString()),alarmClient);
     }
 
     /**
@@ -291,10 +291,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     continue;
                 }
                 String msg = "数禾异步推送异常，异常逻辑：" + stat;
-                this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(caseShuheUser.getApiCode())
+                this.sendAlarmMgsUrgent(title, msg.concat("\napiCode“").concat(caseShuheUser.getApiCode())
                         .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                         .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
-                        .concat("”\n").concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                        .concat("”\n").concat("尽快处理^_^"), alarmClient);
                 log.error(msg);
                 String errorInfo = caseShuheUser.getErrorInfo();
                 if (StringUtils.isEmpty(errorInfo)) {
@@ -304,12 +304,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 }
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error("shuhe-3:isDone=" + future.isDone() + (e.getMessage()), e);
-                this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                                 .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                                 .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                                 .concat("当前完成情况:" + future.isDone() + "\n")
                                 .concat("异步推送任务异常，可能未获取异步返回结果…^_^，原因：\n") + e
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
                 caseShuheUser.setErrorInfo("#3@:isDone=" + future.isDone() + (e));
             }
         }
@@ -360,11 +360,11 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     }));
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
-                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                    this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                                     .concat("转黑名单失败！请尽快处理^_^，原因：\n") + e
-                            , appName, secretKey, alarmClient);
+                                    ,alarmClient);
                 }
                 caseShuheUser.setIsTransfer(2);
             } else if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
@@ -398,11 +398,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     }));
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
-                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                    this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                                    .concat("数禾促申完转电销失败！请尽快处理^_^，原因：\n") + e, appName
-                            , secretKey, alarmClient);
+                                    .concat("数禾促申完转电销失败！请尽快处理^_^，原因：\n") + e,alarmClient);
                 }
             }
         }
@@ -424,10 +423,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+            this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                    .concat("转化入库失败！请尽快处理^_^，原因：\n") + e, appName, secretKey, alarmClient);
+                    .concat("转化入库失败！请尽快处理^_^，原因：\n") + e,alarmClient);
         }
     }
 
@@ -460,10 +459,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return i + i1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+            this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                    .concat("保存到黑名单失败\n") + e, appName, secretKey, alarmClient);
+                    .concat("保存到黑名单失败\n") + e, alarmClient);
             return -1;
         }
     }
@@ -501,10 +500,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return rowSync;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+            this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                    .concat("保存到转化信息失败\n") + e, appName, secretKey, alarmClient);
+                    .concat("保存到转化信息失败\n") + e,alarmClient);
             return -1;
         }
     }
@@ -560,10 +559,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return 1;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+            this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
-                    .concat("保存到电销失败\n") + e, appName, secretKey, alarmClient);
+                    .concat("保存到电销失败\n") + e,alarmClient);
             return -1;
         }
     }
@@ -584,7 +583,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 msg = "缺失必填参数:".concat(msg).concat("\napiCode“" + apiCode).concat("”\nuserType“"
                         + jsonDTO.getBizType()).concat("”\n案件编号“" + jsonDTO.getOrderId())
                         .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                this.sendAlarmMgsUrgent(title, msg, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -611,12 +610,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
             } else if (!iUserType.getApiCodes().contains(apiCode)) {
                 this.sendAlarmMgs(title, "场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
                                 .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
             }
             Future<String> futureTaskId = BR_EXECUTORS.submit(() ->
                     iMarketingSyncUserService.getTaskIdLatestByCustNum(
@@ -641,9 +640,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             int row = caseShuheUserMapper.insertSelective(caseShuheUser);
             if (row < 1) {
                 msg = "数禾推送数据保存失败！";
-                this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
+                this.sendAlarmMgsUrgent(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
-                        .concat("请尽快处理^_^"), appName, secretKey, alarmClient);
+                        .concat("请尽快处理^_^"),alarmClient);
                 log.error(msg);
                 responseShuheDTO.failed("抱歉，".concat(msg));
                 faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
@@ -671,7 +670,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             this.sendAlarmMgs(title, "数禾客户信息未维护...".concat("\napiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
-                    .concat("”\n").concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                    .concat("”\n").concat("尽快处理^_^"),alarmClient);
             return;
         }
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -711,12 +710,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 } else {
                     caseShuheUser.setErrorInfo("#3.3saveTransferInfo:保存到标准转化详情异常");
                     caseShuheUser.setSaveStatus(3);
-                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+                    this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
                                     .concat("”\ntransferInfoId“" + rowInfo).concat("”\n")
                                     .concat(caseShuheUser.getErrorInfo())
-                            , appName, secretKey, alarmClient);
+                                    ,alarmClient);
                 }
             } else {
                 caseShuheUser.setErrorInfo("#2.1saveTransferInfo:保存到标准转化信息失败");
@@ -733,11 +732,11 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
 
     private void alarmMgs(CaseShuheUser caseShuheUser, Exception e) {
-        this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+        this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                         .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                         .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                         .concat(caseShuheUser.getErrorInfo()).concat(e == null ? "" : e.toString())
-                , appName, secretKey, alarmClient);
+                        ,alarmClient);
     }
 
     private void alarmMgs(CaseShuheUser caseShuheUser) {
@@ -987,8 +986,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             if (fieldStr.length() > 0) {
                 alarmClient.sendAlarm("本次请求发现新增字段："
                                 .concat(fieldStr.toString())
-                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
-                        Constants.sendCodeMap.get("apiSaveDbException"));
+                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查",
+                                Constants.sendCodeMap.get("dataExceptionUrgent"));
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
                 if (rSum == null || rSum < FIELD_SET.size()) {
                     redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));

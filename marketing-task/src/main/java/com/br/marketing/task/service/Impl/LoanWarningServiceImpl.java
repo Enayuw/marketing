@@ -69,6 +69,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
     MarketingTaskExtendService marketingTaskExtendService;
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
+    @Resource
+    private AlarmApiClient alarmClient;
+
     private final static String RedisEsOpen="es:open";
 
     final static Integer allMonitorType = 4;
@@ -176,7 +179,9 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                     HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                             String.format("【紧急报警】【%s】营销平台客户监控- 数据产品flag异常  \001 您好:  数据产品flag异常,flag为98的请求有：%s条，请及时跟进"
                                     ,apiCode,sum));
-                    log.error("hxResult product flag error",hxResultRuntimeException);
+                    log.warn("hxResult product flag error",hxResultRuntimeException);
+                    String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
+                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(),title, Constants.sendCodeMap.get("huaxiangCommonly"));
                 }
 
             }catch (Exception e){

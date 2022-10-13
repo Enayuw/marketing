@@ -1,6 +1,7 @@
 package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,6 +16,7 @@ import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +25,9 @@ import java.util.Set;
  */
 @Slf4j
 public class VaildHxResultUtil {
+
+    @Resource
+    private static AlarmApiClient alarmClient;
 
     /**
      * 校验画像结果正确性
@@ -98,7 +103,9 @@ public class VaildHxResultUtil {
             HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                     String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
                             ,apiCode,apiCode,flag,string));
-            log.error("hxResult product flag error",hxResultRuntimeException);
+            log.warn("hxResult product flag error",hxResultRuntimeException);
+            String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
+            alarmClient.sendAlarm(hxResultRuntimeException.getMessage(), title, Constants.sendCodeMap.get("huaxiangCommonly"));
         break;
             }
         }
@@ -179,7 +186,9 @@ public class VaildHxResultUtil {
                 HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                         String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
                                 ,apiCode,apiCode,flag,string));
-                log.error("hxResult product flag error",hxResultRuntimeException);
+                log.warn("hxResult product flag error",hxResultRuntimeException);
+                String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
+                alarmClient.sendAlarm(hxResultRuntimeException.getMessage(), title, Constants.sendCodeMap.get("huaxiangCommonly"));
                 break;
             }
         }

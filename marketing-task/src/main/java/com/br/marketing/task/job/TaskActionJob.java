@@ -62,8 +62,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("1")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【恢复】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", Constants.sendCodeMap.get("uploadSuccess"));
             observedScoreThreadService.setInterrupt(1);
             return;
         }
@@ -72,8 +71,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("0")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【暂停】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", Constants.sendCodeMap.get("uploadSuccess"));
             observedScoreThreadService.stopThread();
             return;
         }
@@ -118,8 +116,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
             content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
             content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
-            alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", Constants.sendCodeMap.get("uploadSuccess"));
         }
     }
 

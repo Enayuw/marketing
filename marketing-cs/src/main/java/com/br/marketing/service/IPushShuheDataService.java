@@ -34,10 +34,17 @@ public interface IPushShuheDataService {
      */
     ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
 
-    default void sendAlarmMgs(String title, String error, String appName, String secretKey, AlarmApiClient alarmClient) {
+    default void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, appName, secretKey,
-                    Constants.sendCodeMap.get("ladderCommonly"));
+            alarmClient.sendAlarm(error, title, Constants.sendCodeMap.get("dataExceptionCommonly"));
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    default void sendAlarmMgsUrgent(String title, String error, AlarmApiClient alarmClient) {
+        try {
+            alarmClient.sendAlarm(error, title, Constants.sendCodeMap.get("dataExceptionUrgent"));
         } catch (Exception ignored) {
 
         }

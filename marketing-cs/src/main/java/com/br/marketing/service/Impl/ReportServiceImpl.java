@@ -134,7 +134,7 @@ public  class ReportServiceImpl implements EmailService {
 
         content.append("</body></html>");
         String title="智能营销平台昨日上传任务统计&当日任务进度统计";
-        alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("InternalSuccessNotice"));
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
 import com.br.common.log.AlertLog;
 import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
 import com.br.marketing.es.util.SwiftNumberManager;
@@ -41,11 +42,9 @@ public class AlarmApiClient implements ApplicationContextAware {
     /**发送邮件
      * @param content
      * @param title
-     * @param appName
-     * @param secretKey
      * @param exceptionCode
      */
-    public void sendAlarm(String content, String title, String appName, String secretKey, String exceptionCode){
+    public void sendAlarm(String content, String title, String exceptionCode){
         String activeEnv=getActiveProfile();
         String enviroment ="";
         if(DEV.equals(activeEnv) || PRE.equals(activeEnv)){
@@ -100,7 +99,7 @@ public class AlarmApiClient implements ApplicationContextAware {
             }
 
         }catch (Exception e){
-            String msg = AlertLog.buildWarnMessage(exceptionCode, "", "发送邮件异常");
+            String msg = AlertLog.buildWarnMessage(Constants.sendCodeMap.get("sysError"), "", "发送邮件异常");
             log.warn(msg);
         }
     }

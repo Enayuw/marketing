@@ -62,8 +62,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                     , apiCode, DateUtils.format(new Date()));
             log.error(smg.concat("\n#返回记录：").concat(outboundVO.getData().toString()).concat("\n发送记录：")
                     .concat(robotOutboundDTO.toString()));
-            alarmClient.sendAlarm(smg, TITLE, appName, secretKey,
-                    Constants.sendCodeMap.get("pushToCustomer"));
+            alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
         }
         String responseBody = pushTransferRobotaiLog.getResponseBody();
         String smg = String.format("apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]的客户转化数据推送失败或部分失败!" +
@@ -75,8 +74,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                 , responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
         Object data = outboundVO.getData();
         log.warn(smg.concat("\n#失败记录：").concat(data == null ? "" : data.toString()));
-        alarmClient.sendAlarm(smg, TITLE, appName, secretKey,
-                Constants.sendCodeMap.get("pushToCustomer"));
+        alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
         return insert;
     }
 
@@ -104,8 +102,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                     , apiCode, DateUtils.format(new Date()));
             log.error(smg.concat("\n#返回记录：").concat(outboundVO.getData().toString()).concat("\n发送记录：")
                     .concat(robotOutboundDTO.toString()));
-            alarmClient.sendAlarm(smg, TITLE, appName, secretKey,
-                    Constants.sendCodeMap.get("pushToCustomer"));
+            alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
         }
         return insert;
     }

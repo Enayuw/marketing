@@ -40,7 +40,7 @@ public class PingController {
         json.put("host", IpUtil.getHostName());
         json.put("serverName", "MARKETING-INNER-API");
         json.put("message", "测试报警内容 alarmClient.sendAlarm()");
-        alarmClient.sendAlarm(json.toString(),"调用了测试报警接口,请忽略~",null,null, "1001");
+        alarmClient.sendAlarm(json.toString(),"调用了测试报警接口,请忽略~", "1001");
         return "111";
     }
 

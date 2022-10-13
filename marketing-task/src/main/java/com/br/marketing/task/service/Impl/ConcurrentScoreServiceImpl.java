@@ -444,7 +444,7 @@ public class ConcurrentScoreServiceImpl implements LoanWarningService {
     }
 
     private void sendContent(String msg, String title, String code) {
-        alarmClient.sendAlarm(msg, title, appName, secretKey, code);
+        alarmClient.sendAlarm(msg, title, code);
     }
 
     /**

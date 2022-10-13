@@ -30,7 +30,7 @@ public class SystemExceptionServiceImpl implements EmailService {
         json.put("host", IpUtil.getHostName());
         json.put("serverName", type);
         json.put("message", context);
-        alarmClient.sendAlarm(json.toString(),"营销平台"+type+"内部系统异常报警",appName,secretKey,Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(json.toString(),"营销平台"+type+"内部系统异常报警",Constants.sendCodeMap.get("sysError"));
     }
 
     public void sendAlarmPrintStack(String context, String type, ThrowableProxy throwableProxy) {
@@ -43,7 +43,7 @@ public class SystemExceptionServiceImpl implements EmailService {
 
     @Override
     public void hxResultErrorAlarm(String title, String message) {
-        alarmClient.sendAlarm(message,title,appName,secretKey,Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(message,title,Constants.sendCodeMap.get("sysError"));
     }
 
     @Override

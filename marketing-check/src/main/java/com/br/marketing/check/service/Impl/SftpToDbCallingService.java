@@ -224,8 +224,7 @@ public class SftpToDbCallingService {
     }
 
     private void sendEmailAlert(StringBuilder content) {
-        alarmClient.sendAlarm(content.toString(), "----拨打回调数据sftp数据上传", appName, secretKey,
-                Constants.sendCodeMap.get("uploadSuccess"));
+        alarmClient.sendAlarm(content.toString(), "----拨打回调数据sftp数据上传", Constants.sendCodeMap.get("uploadSuccess"));
     }
 
     /**

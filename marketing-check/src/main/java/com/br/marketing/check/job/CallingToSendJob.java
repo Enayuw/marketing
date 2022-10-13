@@ -160,7 +160,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             content.append("apiCode：".concat(apiCode).concat("\r\n"))
                     .append("taskId：".concat(taskId).concat("\r\n"))
                     .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
-            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
+            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务",
                     Constants.sendCodeMap.get("uploadSuccess"));
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);

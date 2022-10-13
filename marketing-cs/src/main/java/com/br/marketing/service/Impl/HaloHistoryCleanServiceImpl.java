@@ -113,8 +113,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                             .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
                             .append("错误数量：".concat(String.valueOf(errorCount)).concat("，"))
                             .append("总耗时：".concat(TimeUtils.millisecondsToString(endTime - startTime)).concat("\r\n"));
-                    alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
-                            Constants.sendCodeMap.get("uploadSuccess"));
+                    alarmClient.sendAlarm(content.toString(), "哈啰洗库", Constants.sendCodeMap.get("uploadSuccess"));
                 }
             }
         }
