@@ -1239,10 +1239,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
                 // 剔除
                 custNumSet.removeAll(custNumRemoveSet);
-                // 获取上传表信息,需要清洗userType的custNum
-                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
-                        apiCode, custNumSet);
-                List<MarketingTransferSyncUser> list = new ArrayList<>();
+                Map<String, MarketingTransferSyncUser> newMap = new HashMap<>(custNumSet.size());
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
@@ -1250,21 +1247,22 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         // 判断是否需要新创建文件
                         if (custNumUnrepeatedSet.size() > fileDataSize * fileNo) {
                             // 提交异步写入任务
-                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap
-                                    , marketingSyncUserMapper));
-                            list = new ArrayList<>();
+                            completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
+                                    , apiCode, marketingSyncUserMapper, marketingSyncUserService));
+                            newMap = new HashMap<>(custNumSet.size());
                             ++fileNo;
                             String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
                             writerList.add(fileWrite(filePath, tableHeld));
                             pathNames.add(filePath);
                         }
-                        list.add(transferSyncUser);
+                        newMap.put(custNum, transferSyncUser);
                     }
                 }
                 // 提交异步写入任务
-                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), list, freeMap
-                        , marketingSyncUserMapper));
+                completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
+                        , apiCode, marketingSyncUserMapper, marketingSyncUserService));
+                map.clear();
             }
             int count = (page + fileNo - 1);
             for (int i = 0; i < count; i++) {
@@ -1292,6 +1290,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             } catch (IOException ioException) {
                 log.error(ioException.getMessage(), ioException);
             }
+            custNumUnrepeatedSet.clear();
         }
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
@@ -1369,6 +1368,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
             fw.append(tableHeld);
             fw.append("\r\n");
+            fw.flush();
             return fw;
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -1389,25 +1389,56 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      */
     private static class CompletionWriteTask implements Callable<Writer> {
         private final Writer fw;
-        private final List<MarketingTransferSyncUser> list;
-        private final Map<String, MarketingSyncUser> freeMap;
+        private final Map<String, MarketingTransferSyncUser> map;
+        private final String apiCode;
         private final MarketingSyncUserMapper marketingSyncUserMapper;
+        private final IMarketingSyncUserService marketingSyncUserService;
 
-        public CompletionWriteTask(Writer fw, List<MarketingTransferSyncUser> list
-                , Map<String, MarketingSyncUser> freeMap, MarketingSyncUserMapper marketingSyncUserMapper) {
+        public CompletionWriteTask(final Writer fw
+                , Map<String
+                , MarketingTransferSyncUser> map
+                , String apiCode
+                , MarketingSyncUserMapper marketingSyncUserMapper
+                , IMarketingSyncUserService marketingSyncUserService) {
             this.fw = fw;
-            this.list = list;
-            this.freeMap = freeMap;
+            this.map = map;
+            this.apiCode = apiCode;
             this.marketingSyncUserMapper = marketingSyncUserMapper;
+            this.marketingSyncUserService = marketingSyncUserService;
         }
 
         @Override
         public Writer call() throws Exception {
-            if (fw == null) {
+            if (fw == null || CollectionUtils.isEmpty(map)) {
                 return null;
             }
+            Set<String> custNumSet = map.keySet();
+            // 获取上传表信息,需要清洗userType的custNum
+            Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
+                    apiCode, custNumSet);
             boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
-            for (MarketingTransferSyncUser user : list) {
+            Map<String, String> cellMap = new HashMap<>();
+            if (!isNotNullBoll || freeMap.size() < map.size()) {
+                if (isNotNullBoll) {
+                    custNumSet.removeAll(freeMap.keySet());
+                }
+                List<MarketingTransferSyncUser> list = new ArrayList<>();
+                custNumSet.forEach(num -> list.add(map.get(num)));
+                int len = 1000;
+                int size = custNumSet.size();
+                if (size > len) {
+                    List<MarketingSyncUser> sync2UserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                            apiCode, list.subList(len, size));
+                    size = len;
+                    cellMap.putAll(sync2UserList.parallelStream().collect(
+                            Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
+                }
+                List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                        apiCode, list.subList(0, size));
+                cellMap.putAll(syncUserList.parallelStream().collect(
+                        Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
+            }
+            for (MarketingTransferSyncUser user : map.values()) {
                 String cell = "";
                 String userType = user.getUserType();
                 user.setUserType("");
@@ -1419,11 +1450,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }
                 if (StringUtils.isBlank(cell)) {
-                    MarketingSyncUser sync2User = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                            user.getApiCode(), user.getCustNum(), userType);
-                    if (sync2User != null) {
-                        cell = sync2User.getCell();
-                    }
+                    cell = cellMap.getOrDefault(user.getCustNum() + userType, "");
                 }
                 String decode = BrCipherMaker.getInstance().decode(cell);
                 if (StringUtils.isNotBlank(decode)) {
