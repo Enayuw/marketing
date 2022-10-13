@@ -204,7 +204,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
                                 .isBefore(LocalDate.parse(v2.getAppletDate(), DateTimeFormatter.ISO_LOCAL_DATE)))
                                 && (!ObjectUtils.isEmpty(v1.getCreateTime())
                                 && !ObjectUtils.isEmpty(v2.getCreateTime())
-                                && v1.getCreateTime().before(v2.getCreateTime())) ? v1 : v2));
+                                && v1.getCreateTime().before(v2.getCreateTime())) ? v2 : v1));
     }
 
     /**
