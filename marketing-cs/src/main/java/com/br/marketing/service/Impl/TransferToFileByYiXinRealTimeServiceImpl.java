@@ -1463,19 +1463,20 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         cell = DigestUtils.md5DigestAsHex(decode.getBytes());
                     }
                     // 写文件
-                    fw.append(user.getCustNum()).append(",")
-                            .append(cell).append(",")
-                            .append(user.getApplyResult()).append(",")
-                            .append(StringUtils.isNotBlank(user.getApplyDt())
-                                    ? user.getApplyDt().replace(":000", "") : "")
-                            .append(",")
-                            .append(user.getType()).append(",")
-                            .append(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                    .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)))
-                            .append(",")
-                            .append(user.getUserType()).append("\r\n");
-                    fw.flush();
+                    String txt = user.getCustNum() + "," +
+                            cell + "," +
+                            user.getApplyResult() + "," +
+                            (StringUtils.isNotBlank(user.getApplyDt())
+                                    ? user.getApplyDt().replace(":000", "") : "") +
+                            "," +
+                            user.getType() + "," +
+                            user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                                    .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)) +
+                            "," +
+                            user.getUserType() + "\r\n";
+                    fw.append(txt);
                 }
+                fw.flush();
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
