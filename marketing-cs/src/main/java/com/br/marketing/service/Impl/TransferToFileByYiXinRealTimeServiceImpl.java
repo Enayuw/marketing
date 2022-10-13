@@ -1413,13 +1413,15 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             if (fw == null || CollectionUtils.isEmpty(map)) {
                 return null;
             }
+            Map<String, MarketingSyncUser> freeMap = null;
+            boolean isNotNullBoll = false;
+            Map<String, String> cellMap = new HashMap<>();
             try {
                 Set<String> custNumSet = map.keySet();
                 // 获取上传表信息,需要清洗userType的custNum
-                Map<String, MarketingSyncUser> freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
+                freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
                         apiCode, custNumSet);
-                boolean isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
-                Map<String, String> cellMap = new HashMap<>();
+                isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
                 if (!isNotNullBoll || freeMap.size() < map.size()) {
                     if (isNotNullBoll) {
                         custNumSet.removeAll(freeMap.keySet());
@@ -1444,6 +1446,10 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                                 Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
                     }
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+            try {
                 for (MarketingTransferSyncUser user : map.values()) {
                     String cell = "";
                     String userType = user.getUserType();
@@ -1477,7 +1483,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     fw.append(txt);
                 }
                 fw.flush();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
             return fw;
