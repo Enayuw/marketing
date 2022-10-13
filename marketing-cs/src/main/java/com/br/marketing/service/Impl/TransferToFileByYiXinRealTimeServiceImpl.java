@@ -1239,7 +1239,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         tcId, apiCode, currentDateStr, beforeDateStr, "0", custNumSet);
                 // 剔除
                 custNumSet.removeAll(custNumRemoveSet);
-                Map<String, MarketingTransferSyncUser> newMap = new HashMap<>(custNumSet.size());
+                Map<String, MarketingTransferSyncUser> newMap = new ConcurrentHashMap<>(custNumSet.size());
                 for (String custNum : custNumSet) {
                     // 归档去重
                     if (custNumUnrepeatedSet.add(custNum)) {
@@ -1249,7 +1249,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                             // 提交异步写入任务
                             completionService.submit(new CompletionWriteTask(writerList.get(fileNo - 1), newMap
                                     , apiCode, marketingSyncUserMapper, marketingSyncUserService));
-                            newMap = new HashMap<>(custNumSet.size());
+                            newMap = new ConcurrentHashMap<>(custNumSet.size());
                             ++fileNo;
                             String fileNameEnd = "_" + String.format("%02d", fileNo) + ".txt";
                             filePath = createFilePath(transferFileTask, fileNamePrefix, fileNameEnd);
