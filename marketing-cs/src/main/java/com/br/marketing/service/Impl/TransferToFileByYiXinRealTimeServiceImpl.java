@@ -1203,7 +1203,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         // 分页步长
         int offset = 2000;
         // 文件内数据量
-        int fileDataSize = 5000;
+        int fileDataSize = 500000;
         // 案件编号归档
         Set<String> custNumUnrepeatedSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
         // 文件编号
