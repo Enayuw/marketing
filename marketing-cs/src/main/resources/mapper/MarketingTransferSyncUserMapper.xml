@@ -195,7 +195,7 @@
             and api_code = #{apiCode}
         </if>
         and <![CDATA[ request_data=#{requestDate} and apply_dt<='${applyDt} 23:59:59' ]]>
-        order by apply_dt desc, id limit #{rowCount}, #{offset}) as t2
+        order by apply_dt desc, id desc limit #{rowCount}, #{offset}) as t2
         where t1.id = t2.id
     </select>
 
