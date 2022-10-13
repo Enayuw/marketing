@@ -1,13 +1,11 @@
 package com.br.marketing.task.job;
 
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.service.Impl.ConcurrentScoreServiceImpl;
-import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.service.LoanWarningService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
