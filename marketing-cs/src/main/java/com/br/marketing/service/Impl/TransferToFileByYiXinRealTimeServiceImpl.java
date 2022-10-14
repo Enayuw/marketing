@@ -1426,7 +1426,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 return fw;
             }
             Map<String, MarketingSyncUser> freeMap = null;
-            boolean isNotNullBoll = false;
             Map<String, String> cellMap;
             Set<String> custNumSet = map.keySet();
             try {
@@ -1435,9 +1434,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-            isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
+            boolean isNotNullFreeMapBool = !CollectionUtils.isEmpty(freeMap);
             List<MarketingTransferSyncUser> list = new ArrayList<>();
-            if (isNotNullBoll) {
+            if (isNotNullFreeMapBool) {
                 if (freeMap.size() < map.size()) {
                     for (Map.Entry<String, MarketingTransferSyncUser> entry : map.entrySet()) {
                         if (freeMap.containsKey(entry.getKey())) {
@@ -1446,24 +1445,27 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         list.add(entry.getValue());
                     }
                     cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
+                } else {
+                    cellMap = null;
                 }
             } else {
                 list.addAll(map.values());
                 cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
             }
+            boolean isNotNullCellMapBool = !CollectionUtils.isEmpty(cellMap);
             try {
                 for (MarketingTransferSyncUser user : map.values()) {
                     String cell = "";
                     String userType = user.getUserType();
                     user.setUserType("");
-                    if (isNotNullBoll) {
+                    if (isNotNullFreeMapBool) {
                         MarketingSyncUser syncUser = freeMap.getOrDefault(user.getCustNum(), null);
                         if (syncUser != null) {
                             user.setUserType(syncUser.getUserType());
                             cell = syncUser.getCell();
                         }
                     }
-                    if (StringUtils.isBlank(cell)) {
+                    if (StringUtils.isBlank(cell) && isNotNullCellMapBool) {
                         cell = cellMap.getOrDefault(user.getCustNum() + userType, "");
                     }
                     String decode = BrCipherMaker.getInstance().decode(cell);
