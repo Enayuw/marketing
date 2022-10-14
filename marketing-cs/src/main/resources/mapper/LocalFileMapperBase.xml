@@ -294,6 +294,18 @@
       <if test="actualNumber != null" >
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="errorActualNumber != null" >
+        error_actual_number = #{errorActualNumber,jdbcType=INTEGER},
+      </if>
+      <if test="pushNumber != null" >
+        push_number = #{pushNumber,jdbcType=INTEGER},
+      </if>
+      <if test="pushStartTime != null" >
+        push_start_time = #{pushStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushEndTime != null" >
+        push_end_time = #{pushEndTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>

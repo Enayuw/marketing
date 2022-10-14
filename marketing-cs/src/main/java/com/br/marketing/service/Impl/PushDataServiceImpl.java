@@ -36,7 +36,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushDataService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -169,6 +168,7 @@ public class PushDataServiceImpl implements PushDataService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
+        localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
@@ -212,6 +212,10 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception e) {
             }
         }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
@@ -263,6 +267,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
+        localFile.setPushStartTime(new Date());
         AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -366,6 +371,9 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             number++;
         }
+        localFile.setPushNumber(number);
+        localFile.setPushEndTime(new Date());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         /** 调用撞库接口有网络失败的 需要重试 */
         if (errorMark.get() > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -379,13 +387,17 @@ public class PushDataServiceImpl implements PushDataService {
         Integer day = Integer.valueOf(LocalDate.now().format(yyyyMMddDF));
         Boolean mark = Boolean.TRUE;
         Long minId = null;
+        Integer successAccount = 0;
+        LocalFile localFile = new LocalFile();
+        localFile.setPushStartTime(new Date());
         while (mark) {
             List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
-            if (haierData.size() <= 0) {
+            if (haierData.size() == 0) {
                 mark = Boolean.FALSE;
                 continue;
             }
             String apiCode = haierData.get(0).getApiCode();
+            localFile.setId(haierData.get(0).getLocalId());
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
             for (String s : types.keySet()) {
@@ -436,6 +448,9 @@ public class PushDataServiceImpl implements PushDataService {
                     if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
+                            if(response2EntityResult.getCode()==1){
+                                successAccount = successAccount+1;
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -443,6 +458,9 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         }
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(successAccount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -828,10 +846,13 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //壹钱包推送营销数据
         if ("yiqianbao".equals(localFile.getFileType())) {
+            localFile.setPushStartTime(new Date());
             Boolean actionMark = true;
             Long minId = null;
+            Integer pushCount = 0;
             while (actionMark) {
                 List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id, minId);
+                pushCount = pushCount +dataList.size();
                 if (dataList.size() <= 0) {
                     actionMark = false;
                     continue;
@@ -844,6 +865,10 @@ public class PushDataServiceImpl implements PushDataService {
                     updatePushStatus(pushList);
                 });
             }
+
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(pushCount);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
@@ -859,48 +884,41 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //携程推送营销数据
         if ("xiecheng".equals(localFile.getFileType())) {
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xiechengDateSendThread, xiechengDateSendThread);
-         // 判断当前时间是否在 9:30~20:00之间
-            String format = "HH:mm:ss";
-            try {
+            localFile.setPushStartTime(new Date());
+            Boolean actionMark = true;
+            Integer pushCount = 0;
+            while (actionMark) {
 
-                Boolean actionMark = true;
-                while (actionMark) {
-                    Date date = new Date();
-                    SimpleDateFormat sdf =new SimpleDateFormat("HH:mm:ss");
-                    Date nowTime = new SimpleDateFormat(format).parse(sdf.format(date));
-                    Date startTime = new SimpleDateFormat(format).parse("09:30:00");
-                    Date endTime = new SimpleDateFormat(format).parse("20:00:00");
-                    actionMark = isEffectiveDate(nowTime, startTime, endTime);
-                    if(!actionMark) continue;
-                    List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
-                    if (xieChengDatalist.size() == 0) {
-                        actionMark = false;
-                        continue;
-                    }
-                    for (int i = 0; i < xieChengDatalist.size(); i++) {
-                        XieChengData xieChengData = xieChengDatalist.get(i);
-                        threadPool.submit(() -> {
-                            String result = xieChengService.pushXieChengData(xieChengData);
-                            JSONObject resultJson = JSONObject.parseObject(result);
-                            Integer code = resultJson.getInteger("code");
-                            XieChengData resultData = new XieChengData();
-                            resultData.setId(xieChengData.getId());
-                            if (code == 0) {
-                                resultData.setPushStatus(2);
-                            }else {
-                                resultData.setPushStatus(3);
-                            }
-                            resultData.setDataMessage(result);
-                            xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        });
-
-                    }
+                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
+                pushCount = pushCount+xieChengDatalist.size();
+                if (xieChengDatalist.size() <= 0) {
+                    actionMark = false;
+                    continue;
                 }
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
+                for (int i = 0; i < xieChengDatalist.size(); i++) {
+                    try {
+                        Thread.sleep(500L);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    XieChengData xieChengData = xieChengDatalist.get(i);
+                    String result = xieChengService.pushXieChengData(xieChengData);
+                    JSONObject resultJson = JSONObject.parseObject(result);
+                    Integer code = resultJson.getInteger("code");
+                    XieChengData resultData = new XieChengData();
+                    resultData.setId(xieChengData.getId());
+                    if (code == 0) {
+                        resultData.setPushStatus(2);
+                    }else {
+                        resultData.setPushStatus(3);
+                    }
+                    resultData.setDataMessage(result);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                }
             }
-
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(pushCount);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
