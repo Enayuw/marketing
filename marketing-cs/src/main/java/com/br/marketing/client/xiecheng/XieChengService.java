@@ -105,7 +105,8 @@ public class XieChengService {
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         log.warn("携程发送参数 para={}", JSON.toJSONString(retMap));
-        String send = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
+//        String send = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
+        String send = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
         log.warn("携程数据返回信息：{}", send);
         return send;
 
