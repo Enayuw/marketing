@@ -1437,18 +1437,18 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             }
             isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
             List<MarketingTransferSyncUser> list = new ArrayList<>();
-            if (isNotNullBoll && freeMap.size() < map.size()) {
-                for (Map.Entry<String, MarketingTransferSyncUser> entry : map.entrySet()) {
-                    if (freeMap.containsKey(entry.getKey())) {
-                        continue;
+            if (isNotNullBoll) {
+                if (freeMap.size() < map.size()) {
+                    for (Map.Entry<String, MarketingTransferSyncUser> entry : map.entrySet()) {
+                        if (freeMap.containsKey(entry.getKey())) {
+                            continue;
+                        }
+                        list.add(entry.getValue());
                     }
-                    list.add(entry.getValue());
+                    cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
                 }
-                cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
             } else {
-                for (Map.Entry<String, MarketingTransferSyncUser> entry : map.entrySet()) {
-                    list.add(entry.getValue());
-                }
+                list.addAll(map.values());
                 cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
             }
             try {
