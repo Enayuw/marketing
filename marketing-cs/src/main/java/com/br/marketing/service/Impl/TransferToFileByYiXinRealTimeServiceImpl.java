@@ -86,7 +86,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
-    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool();
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(50, 50);
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -1270,20 +1270,21 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             for (int i = 0; i < count; i++) {
                 completionService.take();
             }
-            // 打包压缩多文件
-            ZipUtil.compress(createFilePath(transferFileTask, fileNamePrefix, ".zip"), pathNames);
-            int totalSize = custNumUnrepeatedSet.size();
-            transferFileTask.setTaskNumber(totalSize);
-            // 保存更新文件
-            saveUpdate(transferFileTask);
-            log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
-                    , apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return result.setCode(ResultCode.FAIL.getValue());
         } finally {
-            deleteFileAndClean(pathNames, custNumUnrepeatedSet, writerList);
+            writerCloseAndClean(writerList, custNumUnrepeatedSet);
         }
+        // 打包压缩多文件
+        ZipUtil.compress(createFilePath(transferFileTask, fileNamePrefix, ".zip"), pathNames);
+        deleteFileAndClean(pathNames);
+        int totalSize = custNumUnrepeatedSet.size();
+        transferFileTask.setTaskNumber(totalSize);
+        // 保存更新文件
+        saveUpdate(transferFileTask);
+        log.warn("宜信拒贷数据逻辑处理-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+                , apiCode, System.currentTimeMillis() - start, totalSize);
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -1291,17 +1292,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      * 2022/10/10 18:53
      * 删除文件
      */
-    private void deleteFileAndClean(List<String> pathNames, Set<String> custNumUnrepeatedSet, List<Writer> writerList) {
+    private void deleteFileAndClean(List<String> pathNames) {
         CompletableFuture.runAsync(() -> {
-            try {
-                for (Writer writer : writerList) {
-                    if (writer != null) {
-                        writer.close();
-                    }
-                }
-            } catch (IOException ioException) {
-                log.error(ioException.getMessage(), ioException);
-            }
             for (String path : pathNames) {
                 CompletableFuture.runAsync(() -> {
                     File file = new File(path);
@@ -1312,7 +1304,25 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                     }
                 }, POOL_EXECUTOR);
             }
+        }, POOL_EXECUTOR);
+    }
+
+    /**
+     * 2022/10/10 18:53
+     * 关闭写入流,  清理集合
+     */
+    private void writerCloseAndClean(List<Writer> writerList, Set<String> custNumUnrepeatedSet) {
+        CompletableFuture.runAsync(() -> {
             custNumUnrepeatedSet.clear();
+            try {
+                for (Writer writer : writerList) {
+                    if (writer != null) {
+                        writer.close();
+                    }
+                }
+            } catch (IOException ioException) {
+                log.error(ioException.getMessage(), ioException);
+            }
         }, POOL_EXECUTOR);
     }
 
@@ -1419,31 +1429,33 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             try {
                 Set<String> custNumSet = map.keySet();
                 // 获取上传表信息,需要清洗userType的custNum
-                freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(
-                        apiCode, custNumSet);
+                freeMap = marketingSyncUserService.getFreeUserTypeAndDateMapValueOne(apiCode, custNumSet);
                 isNotNullBoll = !CollectionUtils.isEmpty(freeMap);
                 if (!isNotNullBoll || freeMap.size() < map.size()) {
-                    if (isNotNullBoll) {
-                        custNumSet.removeAll(freeMap.keySet());
-                    }
                     List<MarketingTransferSyncUser> list = new ArrayList<>();
-                    custNumSet.forEach(num -> list.add(map.get(num)));
-                    int len = 1000;
-                    int size = custNumSet.size();
-                    if (size > len) {
-                        List<MarketingSyncUser> sync2UserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                                apiCode, list.subList(len, size));
-                        size = len;
-                        if (!CollectionUtils.isEmpty(sync2UserList)) {
-                            cellMap.putAll(sync2UserList.parallelStream().collect(
-                                    Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
+                    for (String num : custNumSet) {
+                        if (freeMap.containsKey(num)) {
+                            continue;
                         }
+                        list.add(map.get(num));
                     }
-                    List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                            apiCode, list.subList(0, size));
-                    if (!CollectionUtils.isEmpty(syncUserList)) {
-                        cellMap.putAll(syncUserList.parallelStream().collect(
-                                Collectors.toMap(u -> u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
+                    int pageSize = 500;
+                    int totalCount = list.size();
+                    int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+                    List<MarketingTransferSyncUser> subList;
+                    for (int i = 1; i <= pageCount; i++) {
+                        if (i == pageCount) {
+                            subList = list.subList((i - 1) * pageSize, totalCount);
+                        } else {
+                            subList = list.subList((i - 1) * pageSize, pageSize * (i));
+                        }
+                        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                                apiCode, subList);
+                        if (!CollectionUtils.isEmpty(syncUserList)) {
+                            cellMap.putAll(syncUserList.parallelStream().collect(
+                                    Collectors.toMap(u -> "" + u.getCustNum() + u.getUserType()
+                                            , MarketingSyncUser::getCell)));
+                        }
                     }
                 }
             } catch (Exception e) {
