@@ -2214,6 +2214,76 @@ public class CaseShuheUserExample {
             addCriterion("clc_usr_max_dx_rrt_end not between", value1, value2, "clcUsrMaxDxRrtEnd");
             return (Criteria) this;
         }
+
+        public Criteria andUsrForbidCallEndTimIsNull() {
+            addCriterion("usr_forbid_call_end_tim is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimIsNotNull() {
+            addCriterion("usr_forbid_call_end_tim is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimEqualTo(String value) {
+            addCriterion("usr_forbid_call_end_tim =", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimNotEqualTo(String value) {
+            addCriterion("usr_forbid_call_end_tim <>", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimGreaterThan(String value) {
+            addCriterion("usr_forbid_call_end_tim >", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimGreaterThanOrEqualTo(String value) {
+            addCriterion("usr_forbid_call_end_tim >=", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimLessThan(String value) {
+            addCriterion("usr_forbid_call_end_tim <", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimLessThanOrEqualTo(String value) {
+            addCriterion("usr_forbid_call_end_tim <=", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimLike(String value) {
+            addCriterion("usr_forbid_call_end_tim like", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimNotLike(String value) {
+            addCriterion("usr_forbid_call_end_tim not like", value, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimIn(List<String> values) {
+            addCriterion("usr_forbid_call_end_tim in", values, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimNotIn(List<String> values) {
+            addCriterion("usr_forbid_call_end_tim not in", values, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimBetween(String value1, String value2) {
+            addCriterion("usr_forbid_call_end_tim between", value1, value2, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
+
+        public Criteria andUsrForbidCallEndTimNotBetween(String value1, String value2) {
+            addCriterion("usr_forbid_call_end_tim not between", value1, value2, "usrForbidCallEndTim");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

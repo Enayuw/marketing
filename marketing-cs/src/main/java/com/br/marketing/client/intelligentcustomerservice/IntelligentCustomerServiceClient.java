@@ -65,6 +65,7 @@ public class IntelligentCustomerServiceClient {
         try {
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setEncode(Boolean.TRUE)
                     .setRequestParam(dto).postTransferStr();
             log.setResultContent(transfer.getResult().length() > 4999 ? transfer.getResult().substring(0, 4999) : transfer.getResult());
             log.setHttpStatus(String.valueOf(transfer.getHttpCode()));
@@ -92,7 +93,7 @@ public class IntelligentCustomerServiceClient {
         dto.setPlatApiCode(customerServiceApiCode);
         try {
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
-                    .setUrl(pushUrl).setContentType(MediaType.APPLICATION_FORM_URLENCODED).setRequestParam(dto).postTransferStr();
+                    .setUrl(pushUrl).setContentType(MediaType.APPLICATION_FORM_URLENCODED).setRequestParam(dto).setEncode(Boolean.TRUE).postTransferStr();
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             if (transfer.getHttpCode() != 200) {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

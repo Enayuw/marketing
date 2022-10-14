@@ -528,14 +528,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer number = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        int totalYuShu = total % 2000;
-        int totalPage = total / 2000 + (totalYuShu > 0 ? 1 : 0);
+        Integer pageSize = 500;
+        int totalYuShu = total % pageSize;
+        int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
         for (int i = 1; i <= totalPage; i++) {
             String sn = String.valueOf(i);
             if (i == totalPage && totalYuShu > 0) {
                 queryBaseBean.setPageSize(totalYuShu);
             } else {
-                queryBaseBean.setPageSize(2000);
+                queryBaseBean.setPageSize(pageSize);
             }
             queryBaseBean.setSearchAfter(searchAfterStr);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);

@@ -10,6 +10,7 @@ import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByPPDServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -116,12 +117,12 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByPPDServiceImpl transferToFileByShuHeService;
+    private TransferToFileByTongChengServiceImpl transferToFileByShuHeService;
 
     @Test
     public void transferFileTest(){
         String jobParameter = "7412002#2022-07-01;7492632#true";
-        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7492631");
+        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7492634");
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){
