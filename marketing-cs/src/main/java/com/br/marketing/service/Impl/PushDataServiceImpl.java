@@ -160,7 +160,7 @@ public class PushDataServiceImpl implements PushDataService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
-        localFile.setPushStartTime(new Date());
+        localFile.setPushStartTime(localFile.getPushStartTime()==null?new Date():localFile.getPushStartTime());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
@@ -206,7 +206,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(number);
+        localFile.setPushNumber(localFile.getPushNumber()+number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
@@ -259,7 +259,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
-        localFile.setPushStartTime(new Date());
+        localFile.setPushStartTime(localFile.getPushStartTime()==null?new Date():localFile.getPushStartTime());
         AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -363,7 +363,7 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             number++;
         }
-        localFile.setPushNumber(number);
+        localFile.setPushNumber(localFile.getPushNumber()+number);
         localFile.setPushEndTime(new Date());
         localFileMapper.updateByPrimaryKeySelective(localFile);
         /** 调用撞库接口有网络失败的 需要重试 */
@@ -379,9 +379,9 @@ public class PushDataServiceImpl implements PushDataService {
         Integer day = Integer.valueOf(LocalDate.now().format(yyyyMMddDF));
         Boolean mark = Boolean.TRUE;
         Long minId = null;
-        Integer successAccount = 0;
         LocalFile localFile = new LocalFile();
         localFile.setPushStartTime(new Date());
+        List<Long> countIds = new ArrayList<>();
         while (mark) {
             List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
             if (haierData.size() == 0) {
@@ -389,9 +389,10 @@ public class PushDataServiceImpl implements PushDataService {
                 continue;
             }
             String apiCode = haierData.get(0).getApiCode();
-            localFile.setId(haierData.get(0).getLocalId());
+             localFile = localFileMapper.selectByPrimaryKey(haierData.get(0).getLocalId());
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
+
             for (String s : types.keySet()) {
                 String type = s;
                 List<HaierData> haierList = types.get(s);
@@ -441,7 +442,7 @@ public class PushDataServiceImpl implements PushDataService {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
                             if(response2EntityResult.getCode()==1){
-                                successAccount = successAccount+1;
+                                countIds.addAll(ids);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -450,8 +451,10 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         }
+
+
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(successAccount);
+        localFile.setPushNumber(localFile.getPushNumber()+countIds.size());
         localFileMapper.updateByPrimaryKeySelective(localFile);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -859,7 +862,7 @@ public class PushDataServiceImpl implements PushDataService {
             }
 
             localFile.setPushEndTime(new Date());
-            localFile.setPushNumber(pushCount);
+            localFile.setPushNumber(localFile.getPushNumber()+pushCount);
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -873,7 +876,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //携程推送营销数据
         if ("xiecheng".equals(localFile.getFileType())) {
-            localFile.setPushStartTime(new Date());
+            localFile.setPushStartTime(localFile.getPushStartTime()==null?new Date():localFile.getPushStartTime());
             Boolean actionMark = true;
             Integer pushCount = 0;
             while (actionMark) {
@@ -906,7 +909,7 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
             localFile.setPushEndTime(new Date());
-            localFile.setPushNumber(pushCount);
+            localFile.setPushNumber(localFile.getPushNumber()+pushCount);
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
