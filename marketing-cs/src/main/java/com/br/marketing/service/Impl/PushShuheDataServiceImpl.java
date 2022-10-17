@@ -634,20 +634,30 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             // 4、客户转化数据适配标准转化数据
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
                     (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
-            // 5、转化信息入转化标准库
-            goTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool);
-            caseShuheUser.setReserveField2(transferSyncUser.getRequestId());
-            requestId = transferSyncUser.getRequestId();
+            SecureRandom random = new SecureRandom();
+            requestId = Md5Utils.cell32(caseShuheUser.getJsonData()
+                    .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
+            caseShuheUser.setReserveField2(requestId);
+            transferSyncUser.setRequestId(requestId);
             // 6、数据落前置库
-            int row = caseShuheUserMapper.insertSelective(caseShuheUser);
-            if (row < 1) {
-                msg = "数禾推送数据保存失败！";
+            try {
+                int row = caseShuheUserMapper.insertSelective(caseShuheUser);
+                if (row < 1) {
+                    throw new BusinessException("入库失败!影响的记录数：" + row);
+                }
+            } catch (Exception e) {
+                msg = "数禾推送数据前置表保存失败！";
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("请尽快处理^_^"), appName, secretKey, alarmClient);
-                log.error(msg);
+                log.error(msg.concat("" + e.getMessage()), e);
                 responseShuheDTO.failed("抱歉，".concat(msg));
-                faultTolerantInsert(jsonDTO, caseShuheUser.getIsTransfer(), jsonData, apiCode, msg);
+                faultTolerantInsert(jsonDTO, 0, jsonData, apiCode, msg);
+            }
+            // 5、转化信息入转化标准库
+            goTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool);
+            if (caseShuheUser.getSaveStatus() != null) {
+                updateCaseShuhe(caseShuheUser);
             }
             return responseShuheDTO;
         } catch (Exception e) {
@@ -659,15 +669,23 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         }
     }
 
+    private void updateCaseShuhe(CaseShuheUser caseShuheUser) {
+        BR_EXECUTORS.execute(() -> {
+            CaseShuheUser csu = new CaseShuheUser();
+            csu.setId(caseShuheUser.getId());
+            csu.setSaveStatus(caseShuheUser.getSaveStatus());
+            csu.setErrorInfo(caseShuheUser.getErrorInfo());
+            csu.setUpdateTime(new Date());
+            caseShuheUserMapper.updateByPrimaryKeySelective(csu);
+        });
+    }
+
     /**
      * 去转化新方法 适应框架
      */
     private void goTransferNew(String apiCode, CaseShuheUser caseShuheUser
             , MarketingTransferSyncUser transferSyncUser, boolean sendToQueueBool) {
         this.setCid(transferSyncUser);
-        SecureRandom random = new SecureRandom();
-        transferSyncUser.setRequestId(Md5Utils.cell32(caseShuheUser.getJsonData()
-                .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000))));
         if (StringUtils.isEmpty(transferSyncUser.gettCid())) {
             this.sendAlarmMgs(title, "数禾客户信息未维护...".concat("\napiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
