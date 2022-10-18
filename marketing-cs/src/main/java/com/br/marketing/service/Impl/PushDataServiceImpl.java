@@ -397,7 +397,7 @@ public class PushDataServiceImpl implements PushDataService {
                 continue;
             }
             String apiCode = haierData.get(0).getApiCode();
-            localFile = localFileMapper.selectByPrimaryKey(haierData.get(0).getLocalId());
+            localFile.setId(haierData.get(0).getLocalId());
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
 
