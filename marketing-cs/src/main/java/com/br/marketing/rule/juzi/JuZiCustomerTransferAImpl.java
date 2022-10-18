@@ -1,6 +1,7 @@
 package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -9,6 +10,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -24,6 +26,7 @@ import java.time.format.DateTimeFormatter;
  * @Date : Create in 2022/10/17 10:28
  */
 @Service
+@Slf4j
 public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
 
     protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
@@ -31,10 +34,16 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
+        log.warn("桔子推送客服转化，apicode={}",transfer.getApiCode());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
-        conversionData.setCaseNum(transfer.getCustNum());
+        if (!StringUtils.isEmpty(transfer.getReserveField1())) {
+            JSONObject jsonObject = JSON.parseObject(transfer.getReserveField1());
+            if (jsonObject != null) {
+                conversionData.setCaseNum(jsonObject.getString("custNum"));
+            }
+        }
         conversionData.setInversionStatus("0");
         if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
             LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
@@ -46,8 +55,7 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
             LocalDate plusDays = parse.plusDays(30);
             conversionData.setExpireDate(plusDays.toString());
         }
-        String md5 = transfer.getCustNum().substring(15);
-        conversionData.setPhone(!StringUtils.isEmpty(md5) ? BrCipherMaker.getInstance().decode(md5) : "");
+        conversionData.setPhone(!StringUtils.isEmpty(transfer.getCustNum()) ? BrCipherMaker.getInstance().decode(transfer.getCustNum()) : "");
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
