@@ -167,7 +167,7 @@ public class PushDataServiceImpl implements PushDataService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
-        localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+        localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
@@ -266,7 +266,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
-        localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+        localFile.setPushStartTime(new Date());
         AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
