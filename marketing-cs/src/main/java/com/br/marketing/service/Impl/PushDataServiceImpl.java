@@ -458,8 +458,10 @@ public class PushDataServiceImpl implements PushDataService {
                     if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
+                            log.warn("海尔推送返回日志：{}",response2EntityResult.getCode());
                             if(response2EntityResult.getCode()==1){
                                 countIds.addAll(ids);
+                                log.warn("海尔推送id日志：{}",countIds);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -922,9 +924,9 @@ public class PushDataServiceImpl implements PushDataService {
                     actionMark = false;
                     continue;
                 }
+                pushCount = pushCount + xieChengDatalist.size();
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
-                    pushCount = pushCount + xieChengDatalist.size();
                     threadPool.submit(() -> {
                         String result = xieChengService.pushXieChengData(xieChengData);
                         JSONObject resultJson = JSONObject.parseObject(result);
