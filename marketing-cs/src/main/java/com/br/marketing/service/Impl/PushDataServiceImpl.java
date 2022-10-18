@@ -213,7 +213,12 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(localFile.getPushNumber()+number);
+        if(localFile.getPushNumber()==null){
+            localFile.setPushNumber(number);
+        }else {
+            localFile.setPushNumber(localFile.getPushNumber()+number);
+        }
+
         localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
@@ -370,7 +375,12 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             number++;
         }
-        localFile.setPushNumber(localFile.getPushNumber()+number);
+        if(localFile.getPushNumber()==null){
+            localFile.setPushNumber(number);
+        }else {
+            localFile.setPushNumber(localFile.getPushNumber()+number);
+        }
+
         localFile.setPushEndTime(new Date());
         localFileMapper.updateByPrimaryKeySelective(localFile);
         /** 调用撞库接口有网络失败的 需要重试 */
@@ -461,7 +471,12 @@ public class PushDataServiceImpl implements PushDataService {
 
 
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(localFile.getPushNumber()+countIds.size());
+        if(localFile.getPushNumber()==null){
+            localFile.setPushNumber(countIds.size());
+        }else {
+            localFile.setPushNumber(localFile.getPushNumber()+countIds.size());
+        }
+
         localFileMapper.updateByPrimaryKeySelective(localFile);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -869,7 +884,12 @@ public class PushDataServiceImpl implements PushDataService {
             }
 
             localFile.setPushEndTime(new Date());
-            localFile.setPushNumber(localFile.getPushNumber()+pushCount);
+            if(localFile.getPushNumber()==null){
+                localFile.setPushNumber(pushCount);
+            }else {
+                localFile.setPushNumber(localFile.getPushNumber()+pushCount);
+            }
+
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -923,7 +943,11 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
             localFile.setPushEndTime(new Date());
-            localFile.setPushNumber(localFile.getPushNumber()+pushCount);
+            if(localFile.getPushNumber()==null){
+                localFile.setPushNumber(pushCount);
+            }else {
+                localFile.setPushNumber(localFile.getPushNumber()+pushCount);
+            }
             localFileMapper.updateByPrimaryKeySelective(localFile);
         } catch (Exception e) {
             throw new RuntimeException(e);
