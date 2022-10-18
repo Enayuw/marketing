@@ -256,23 +256,29 @@
                 1!=1
             </otherwise>
         </choose>
-        <if test="custNumSet != null and custNumSet.size() != 0">
-            and cust_num in
-            <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
-                #{custNum}
-            </foreach>
-        </if>
+        <choose>
+            <when test="custNumSet != null and custNumSet.size() != 0">
+                and cust_num in
+                <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+                    #{custNum}
+                </foreach>
+            </when>
+            <otherwise>
+                and 1!=1
+            </otherwise>
+        </choose>
         and status=1
         group by applet_date,user_type,cust_num order by applet_date desc,max(create_time) desc
     </sql>
 
     <select id="getCellByCustNumsAndMaxCreateTime" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select max(create_time) as createTime, cell,cust_num,user_type
+        select max(create_time) as createTime, cell,cust_num
         from b_marketing_sync_${apiCode}
         where
-        <foreach collection="list" item="item" open="(" separator=" or " close=")">
-            (cust_num = #{item.custNum} and user_type = #{item.userType})
+        cust_num in
+        <foreach collection="set" item="custNum" open="(" separator="," close=")">
+            #{custNum}
         </foreach>
-        and status = 1 group by cust_num,user_type
+        and status = 1 group by cust_num
     </select>
 </mapper>
