@@ -1435,22 +1435,16 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                 log.error(e.getMessage(), e);
             }
             boolean isNotNullFreeMapBool = !CollectionUtils.isEmpty(freeMap);
-            List<MarketingTransferSyncUser> list = new ArrayList<>();
             if (isNotNullFreeMapBool) {
                 if (freeMap.size() < map.size()) {
-                    for (Map.Entry<String, MarketingTransferSyncUser> entry : map.entrySet()) {
-                        if (freeMap.containsKey(entry.getKey())) {
-                            continue;
-                        }
-                        list.add(entry.getValue());
-                    }
-                    cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
+                    Set<String> custNums = new HashSet<>(custNumSet);
+                    custNums.removeAll(freeMap.keySet());
+                    cellMap = findDBCell(custNums, apiCode, marketingSyncUserMapper);
                 } else {
                     cellMap = null;
                 }
             } else {
-                list.addAll(map.values());
-                cellMap = findDBCell(list, apiCode, marketingSyncUserMapper);
+                cellMap = findDBCell(custNumSet, apiCode, marketingSyncUserMapper);
             }
             boolean isNotNullCellMapBool = !CollectionUtils.isEmpty(cellMap);
             try {
@@ -1466,7 +1460,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
                         }
                     }
                     if (StringUtils.isBlank(cell) && isNotNullCellMapBool) {
-                        cell = cellMap.getOrDefault(user.getCustNum() + userType, "");
+                        cell = cellMap.getOrDefault(user.getCustNum(), "");
                     }
                     String decode = BrCipherMaker.getInstance().decode(cell);
                     if (StringUtils.isNotBlank(decode)) {
@@ -1498,30 +1492,18 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      * 2022/10/14 12:48
      * 重新从数据库中获取手机号
      */
-    private static Map<String, String> findDBCell(final List<MarketingTransferSyncUser> list, String apiCode
+    private static Map<String, String> findDBCell(Set<String> custNumSet, String apiCode
             , MarketingSyncUserMapper marketingSyncUserMapper) {
-        Map<String, String> cellMap = new HashMap<>();
-        int pageSize = 500;
         try {
-            int totalCount = list.size();
-            int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-            List<MarketingTransferSyncUser> subList;
-            for (int i = 1; i <= pageCount; i++) {
-                if (i == pageCount) {
-                    subList = list.subList((i - 1) * pageSize, totalCount);
-                } else {
-                    subList = list.subList((i - 1) * pageSize, pageSize * (i));
-                }
-                List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
-                        apiCode, subList);
-                if (!CollectionUtils.isEmpty(syncUserList)) {
-                    cellMap.putAll(syncUserList.parallelStream().collect(Collectors.toMap(
-                            u -> "" + u.getCustNum() + u.getUserType(), MarketingSyncUser::getCell)));
-                }
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getCellByCustNumsAndMaxCreateTime(
+                    apiCode, custNumSet);
+            if (!CollectionUtils.isEmpty(syncUserList)) {
+                return syncUserList.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
+                        , MarketingSyncUser::getCell));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        return cellMap;
+        return null;
     }
 }
