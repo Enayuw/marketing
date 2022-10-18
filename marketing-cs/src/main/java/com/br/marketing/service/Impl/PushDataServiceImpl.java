@@ -449,10 +449,8 @@ public class PushDataServiceImpl implements PushDataService {
                     if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
-                            log.warn("海尔推送返回日志：{}", response2EntityResult.getCode());
                             if (response2EntityResult.getCode() == 1) {
                                 countIds.addAll(ids);
-                                log.warn("海尔推送id日志：{}", countIds);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -880,7 +878,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushXieChengToDbData(Long id) {
-        log.warn("携程推送开始======");
         Integer xiechengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xiechengDateSendThread, xiechengDateSendThread);
         // 判断当前时间是否在 9:30~20:00之间
@@ -891,7 +888,6 @@ public class PushDataServiceImpl implements PushDataService {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
             }
             Boolean actionMark = true;
-            log.warn("xiecheng时间：{}",localFile.getPushStartTime());
             localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
 
 
@@ -902,7 +898,6 @@ public class PushDataServiceImpl implements PushDataService {
                 Date startTime = new SimpleDateFormat(format).parse("09:00:00");
                 Date endTime = new SimpleDateFormat(format).parse("20:00:00");
                 actionMark = isEffectiveDate(nowTime, startTime, endTime);
-                log.warn("xiecheng-actionMark",actionMark);
                 if(!actionMark){
                     continue;
                 }
