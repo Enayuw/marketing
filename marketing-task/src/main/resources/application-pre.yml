@@ -54,7 +54,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://10.100.151.104:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -98,7 +98,7 @@ otherConfig:
         appName: loan-strategy
         appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
-        pageSize: 1000
+        pageSize: 10
         apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/marketing
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin

@@ -47,4 +47,6 @@ public interface ResourceAllocationService {
      * @throws Exception
      */
     Boolean deleteZkData(String path) throws Exception;
+
+    String seeZkData(String path) throws Exception;
 }

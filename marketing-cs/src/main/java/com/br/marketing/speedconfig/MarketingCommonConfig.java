@@ -279,4 +279,14 @@ public class MarketingCommonConfig {
      */
     private Map<String, Set<String>> freeUserTypeAndDateMap;
 
+    /**
+     * 同程转化数据提取apicode集合
+     */
+    private List<String> tongChengTransferFileApiCodes;
+
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String tongChengTransferExecuteTime;
+
 }

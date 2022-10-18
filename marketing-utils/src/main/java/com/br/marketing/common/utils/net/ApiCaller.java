@@ -58,8 +58,9 @@ public class ApiCaller {
 
     private ThreadPoolExecutor logDbPool;
 
-    public void setEncode(Boolean encode) {
+    public ApiCaller setEncode(Boolean encode) {
         isEncode = encode;
+        return this;
     }
 
     public void setLogPool(ThreadPoolExecutor logPool) {

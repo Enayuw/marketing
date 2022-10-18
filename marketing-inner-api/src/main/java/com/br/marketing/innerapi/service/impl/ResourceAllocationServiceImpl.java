@@ -1,5 +1,7 @@
 package com.br.marketing.innerapi.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
 import lombok.extern.slf4j.Slf4j;
@@ -136,4 +138,18 @@ public class ResourceAllocationServiceImpl implements ResourceAllocationService 
         }
     }
 
+    @Override
+    public String seeZkData(String path) throws Exception {
+        List<String> childPaths = client.getChildren().forPath(path);
+        ArrayList<JSONObject> objects = new ArrayList<>();
+        for (String childPath : childPaths) {
+            JSONObject jsonObject = new JSONObject();
+            String _path = path.concat("/").concat(childPath);
+            String value = new String(client.getData().forPath(_path));
+            jsonObject.put("path",_path);
+            jsonObject.put("value",value);
+            objects.add(jsonObject);
+        }
+        return JSON.toJSONString(objects);
+    }
 }
