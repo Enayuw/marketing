@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
@@ -425,8 +426,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -461,8 +462,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -503,8 +504,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +

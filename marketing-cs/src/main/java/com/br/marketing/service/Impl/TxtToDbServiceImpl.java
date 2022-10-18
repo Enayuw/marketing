@@ -745,6 +745,17 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return objectResult;
     }
 
+    String decryptName(String name){
+        String res = "";
+        if (DecodeClient.isMd5(name)) {
+            //cell md5
+            res = decodeClient.query(name, "name", "md5", "");
+        } else {
+            //cell sha256
+            res = decodeClient.query(name, "name", "sha", "");
+        }
+        return objectResult;
+    }
     @Override
     public Result phoneTodbByJuZi(TxtToDbDTO dto) {
         PhoneSale phoneSale = new PhoneSale();
