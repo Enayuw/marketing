@@ -273,15 +273,14 @@
 
     <select id="getCellByCustNumsAndMaxCreateTime" resultType="com.br.marketing.entity.MarketingSyncUser">
         select t1.cell, t1.cust_num
-        from b_marketing_sync_${apiCode} t1
-        inner join(
-        select max(create_time) createtime, cust_num
+        from b_marketing_sync_${apiCode} t1,
+        (select max(create_time) createtime, cust_num
         from b_marketing_sync_${apiCode}
         where cust_num in
         <foreach collection="set" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
         and status = 1 group by cust_num
-        ) as t2 on t1.create_time = t2.createtime and t1.cust_num = t2.cust_num group by t1.cust_num
+        ) as t2 where t1.create_time = t2.createtime and t1.cust_num = t2.cust_num group by t1.cust_num
     </select>
 </mapper>
