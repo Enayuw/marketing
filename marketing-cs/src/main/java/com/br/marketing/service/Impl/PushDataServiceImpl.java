@@ -924,6 +924,7 @@ public class PushDataServiceImpl implements PushDataService {
                     actionMark = false;
                     continue;
                 }
+                log.warn("携程查询数量：{}",xieChengDatalist.size());
                 pushCount = pushCount + xieChengDatalist.size();
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
@@ -944,6 +945,7 @@ public class PushDataServiceImpl implements PushDataService {
 
                 }
             }
+            log.warn("携程推送数量：{},{}",localFile.getPushNumber(),pushCount);
             localFile.setPushEndTime(new Date());
             if(localFile.getPushNumber()==null){
                 localFile.setPushNumber(pushCount);
