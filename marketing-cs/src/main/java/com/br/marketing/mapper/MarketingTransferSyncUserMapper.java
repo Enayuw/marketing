@@ -127,9 +127,65 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param eliminateDate
      * @return
      */
-    List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode,@Param("eliminateDate") LocalDate eliminateDate);
+    List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("eliminateDate") LocalDate eliminateDate);
 
     List<MarketingTransferSyncUser> getTransferUserByCreateTimeOrder(@Param("tcId") String tcId, @Param("apiCode") String apiCode
-            ,@Param("startTime") String startTime,@Param("endTime") String endTime
-            ,@Param("pageIndex") Integer pageIndex,@Param("pageSize") Integer pageSize);
+            , @Param("startTime") String startTime, @Param("endTime") String endTime
+            , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSize);
+
+    /**
+     * 根据
+     * apiCode
+     * applyResult
+     * requestData
+     * applyDt
+     * 获取分页数据
+     *
+     * @param tcId        cid
+     * @param apiCode     code
+     * @param applyResult 审批结果
+     * @param requestDate 客户请求日期
+     * @param applyDt     进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param rowCount    行数
+     * @param offset      步长
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/9/21 13:43
+     */
+    List<MarketingTransferSyncUser> findByApplyResultAndRequestDataAndApplyDtPage(
+            @Param("tcId") String tcId
+            , @Param("apiCode") String apiCode
+            , @Param("applyResult") String applyResult
+            , @Param("requestDate") String requestDate
+            , @Param("applyDt") String applyDt
+            , @Param("rowCount") int rowCount
+            , @Param("offset") int offset);
+
+    /**
+     * 根据
+     * apiCode
+     * requestData
+     * applyDt
+     * caseEffective
+     * custNumSet
+     * 获取案件集合数据
+     *
+     * @param tcId          cid
+     * @param apiCode       code
+     * @param requestDate   客户请求日期
+     * @param applyDt       进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param caseEffective 进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param custNumSet    案件集合
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/9/21 13:43
+     */
+    Set<String> getCustNumSet(
+            @Param("tcId") String tcId
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate
+            , @Param("applyDt") String applyDt
+            , @Param("caseEffective") String caseEffective
+            , @Param("custNumSet") Set<String> custNumSet
+    );
 }

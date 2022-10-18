@@ -225,4 +225,62 @@
         </if>
         and status=1 group by cust_num order by createTime
     </select>
+
+    <select id="getFreeUserTypeAndDateAllFieldList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select t2.* from (select id <include refid="find_free_usertype_and_date_sql"></include>) t1
+        ,b_marketing_sync_3710012 t2 where t1.id=t2.id;
+    </select>
+
+    <select id="getFreeUserTypeAndDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select applet_date,user_type,cust_num,create_time,cell,id
+        <include refid="find_free_usertype_and_date_sql"></include>
+    </select>
+
+    <sql id="find_free_usertype_and_date_sql">
+        from b_marketing_sync_${apiCode}
+        where
+        <choose>
+            <when test="freeUserTypeAndDateMap !=null and freeUserTypeAndDateMap.size() != 0">
+                <foreach collection="freeUserTypeAndDateMap" item="dateSet" index="key" open="(" close=")"
+                         separator=" or ">
+                    <if test="key != null and key != '' and dateSet != null and dateSet.size() != 0">
+                        <foreach collection="dateSet" item="date" open="(" close=")">
+                            <if test="date != '' and date != null">
+                                user_type=#{key} and <![CDATA[ applet_date=#{date} ]]>
+                            </if>
+                        </foreach>
+                    </if>
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="custNumSet != null and custNumSet.size() != 0">
+                and cust_num in
+                <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+                    #{custNum}
+                </foreach>
+            </when>
+            <otherwise>
+                and 1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        group by applet_date,user_type,cust_num order by applet_date desc,max(create_time) desc
+    </sql>
+
+    <select id="getCellByCustNumsAndMaxCreateTime" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select t1.cell, t1.cust_num
+        from b_marketing_sync_${apiCode} t1,
+        (select max(create_time) createtime, cust_num
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="set" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and status = 1 group by cust_num
+        ) as t2 where t1.create_time = t2.createtime and t1.cust_num = t2.cust_num group by t1.cust_num
+    </select>
 </mapper>
