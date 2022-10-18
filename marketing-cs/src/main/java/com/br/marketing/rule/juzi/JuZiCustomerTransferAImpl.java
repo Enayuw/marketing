@@ -1,6 +1,7 @@
 package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -35,12 +36,18 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         conversionData.setCid(transfer.getCid());
         conversionData.setCaseNum(transfer.getCustNum());
         conversionData.setInversionStatus("0");
-        if(!StringUtils.isEmpty(transfer.getApplyDt())){
+        if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
             LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
             LocalDate plusDays = parse.plusDays(30);
             conversionData.setExpireDate(plusDays.toString());
         }
-        conversionData.setPhone(transfer.getCustNum().substring(15));
+        if(!StringUtils.isEmpty(transfer.getUnlentAmount()) && "0".equals(transfer.getUnlentAmount())){
+            LocalDate parse = LocalDate.parse(transfer.getUnlentAmount(), dateTimeFormatter);
+            LocalDate plusDays = parse.plusDays(30);
+            conversionData.setExpireDate(plusDays.toString());
+        }
+        String md5 = transfer.getCustNum().substring(15);
+        conversionData.setPhone(!StringUtils.isEmpty(md5) ? BrCipherMaker.getInstance().decode(md5) : "");
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
@@ -55,13 +62,14 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         /**
          * 转化数据上传接口命中applyResult=0的数据
+         * 转化数据上传接口命中unlentAmount=0的数据
          */
-        return "0".equals(transfer.getApplyResult());
+        return "0".equals(transfer.getApplyResult()) || "0".equals(transfer.getUnlentAmount());
     }
 
     @Override
     public String label() {
-        return "JuZi_TransferData_A_CustomerTransfer";
+        return "JuZi_TransferData_CustomerTransfer";
     }
 
     @Override
