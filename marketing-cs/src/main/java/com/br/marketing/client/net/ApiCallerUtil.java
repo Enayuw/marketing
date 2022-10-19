@@ -1,6 +1,7 @@
 package com.br.marketing.client.net;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.CallUtils;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.InterfaceLog;
@@ -54,6 +55,13 @@ public class ApiCallerUtil {
     private ThreadPoolExecutor logDbPool;
 
     private String desc;
+
+    private Boolean isEncode = Boolean.FALSE;
+
+    public ApiCallerUtil setEncode(Boolean encode) {
+        isEncode = encode;
+        return this;
+    }
 
     public ApiCallerUtil setDesc(String desc) {
         this.desc = desc;
@@ -146,7 +154,7 @@ public class ApiCallerUtil {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 //            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
-            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName), httpHeaders);
+            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName,isEncode), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {
             requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
         } else {

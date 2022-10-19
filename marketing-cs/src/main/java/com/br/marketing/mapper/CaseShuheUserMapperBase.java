@@ -17,21 +17,15 @@ public interface CaseShuheUserMapperBase {
 
     int insertSelective(CaseShuheUser record);
 
-    List<CaseShuheUser> selectByExampleWithBLOBs(CaseShuheUserExample example);
-
     List<CaseShuheUser> selectByExample(CaseShuheUserExample example);
 
     CaseShuheUser selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
-
     int updateByExample(@Param("record") CaseShuheUser record, @Param("example") CaseShuheUserExample example);
 
     int updateByPrimaryKeySelective(CaseShuheUser record);
-
-    int updateByPrimaryKeyWithBLOBs(CaseShuheUser record);
 
     int updateByPrimaryKey(CaseShuheUser record);
 }

@@ -57,4 +57,17 @@ public class BackEndResourceController {
         }
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
+
+    @ApiOperation(value = "查看zk节点信息",notes = "查看zk节点信息")
+    @GetMapping("/seeZkData")
+    public ApiResult<String> seeZkData(String path){
+        try {
+            String content = resourceAllocationService.seeZkData(path);
+            return new ApiResult<String>().success().setData(content);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<String>().fail().setMessage(ex.getMessage());
+        }
+    }
 }

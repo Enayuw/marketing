@@ -16,6 +16,11 @@ public class CustomerCallingDialog {
     private String apiCode;
 
     /**
+     * 本地文件记录id
+     */
+    private Long localId;
+
+    /**
      *
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -188,6 +193,14 @@ public class CustomerCallingDialog {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Long getLocalId() {
+        return localId;
+    }
+
+    public void setLocalId(Long localId) {
+        this.localId = localId;
     }
 
     public String getCid() {

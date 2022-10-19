@@ -155,6 +155,8 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
             user.setClcUsrIsoCrdTim(object.getString("clc_usr_iso_crd_tim"));
             user.setClcUsrIsoInfTim(object.getString("clc_usr_iso_inf_tim"));
             user.setClcUsrFrtFqOrdTim(object.getString("applyLoanTime"));
+            user.setClcUsrMaxDxRrtEnd(object.getString("clc_usr_max_dx_rrt_end"));
+            user.setUsrForbidCallEndTim(object.getString("usr_forbid_call_end_tim"));
             user.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
             user.setJsonObject(object);
             data.setTaskId(object.getString("taskId"));
