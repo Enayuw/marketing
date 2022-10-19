@@ -41,7 +41,7 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         if (!StringUtils.isEmpty(transfer.getReserveField1())) {
             JSONObject jsonObject = JSON.parseObject(transfer.getReserveField1());
             if (jsonObject != null) {
-                conversionData.setCaseNum(jsonObject.getString("custNum"));
+                conversionData.setCaseNum(jsonObject.getString("initCustNum"));
             }
         }
         conversionData.setInversionStatus("0");

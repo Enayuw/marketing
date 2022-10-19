@@ -1131,6 +1131,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
+                //桔子特殊处理
+                if(marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
+                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum())){
+                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
+                    String reserveField1 = transferDataItemDTO.getReserveField1();
+                    if (StringUtils.isNotBlank(reserveField1)) {
+                        JSONObject json = JSON.parseObject(reserveField1);
+                        json.put("initCustNum",transferDataItemDTO.getCustNum());
+                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
+                    }
+                }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                 } catch (Exception ex) {
