@@ -1,8 +1,6 @@
 package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -44,6 +42,7 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
+        conversionData.setCaseNum(transfer.getCustNum());
         if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
             LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
             LocalDate plusDays = parse.plusDays(30);
