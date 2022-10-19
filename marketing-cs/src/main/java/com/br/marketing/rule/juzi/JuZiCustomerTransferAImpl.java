@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  *
@@ -43,15 +44,19 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
         conversionData.setCaseNum(transfer.getCustNum());
-        if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
-            LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
-            LocalDate plusDays = parse.plusDays(30);
-            conversionData.setExpireDate(plusDays + " 00:00:00");
-        }
-        if(!StringUtils.isEmpty(transfer.getUnlentAmount()) && "0".equals(transfer.getUnlentAmount())){
-            LocalDate parse = LocalDate.parse(transfer.getUnlentAmount(), dateTimeFormatter);
-            LocalDate plusDays = parse.plusDays(30);
-            conversionData.setExpireDate(plusDays + " 00:00:00");
+        try{
+            if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
+                LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
+                LocalDate plusDays = parse.plusDays(30);
+                conversionData.setExpireDate(plusDays + " 23:59:59");
+            }
+            if(!StringUtils.isEmpty(transfer.getUnlentAmount()) && "0".equals(transfer.getUnlentAmount())){
+                LocalDate parse = LocalDate.parse(transfer.getUnlentAmount(), dateTimeFormatter);
+                LocalDate plusDays = parse.plusDays(30);
+                conversionData.setExpireDate(plusDays + " 23:59:59");
+            }
+        }catch (DateTimeParseException e){
+            log.warn("日期转换出错！applyDt或者lentTime不符合yyyy-MM-dd HH:mm:ss[:SSS]格式！");
         }
         String query = decodeClient.query(transfer.getCustNum(), "cell", "md5", "");
         conversionData.setPhone(query);
