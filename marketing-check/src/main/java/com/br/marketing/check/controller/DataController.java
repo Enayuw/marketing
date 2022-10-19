@@ -155,18 +155,18 @@ public class DataController {
 
     }
 
-    @GetMapping("haluoCallbackEnd")
-    public String haluoCallbackEnd(String apiCode,String taskId) {
-        log.warn("haluoCallbackEnd apiCode:{},taskId:{}",apiCode,taskId);
-        Map<String, Object> cusMap = new HashMap<>(16);
-        cusMap.put("apiCode", apiCode);
-        cusMap.put("taskId", taskId);
-        int haloCallingCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
-        callingToSendJob.callbackEnd(haloCallingCount,apiCode,taskId);
-        return "success";
+    //@GetMapping("haluoCallbackEnd")
+    //public String haluoCallbackEnd(String apiCode,String taskId) {
+    //    log.warn("haluoCallbackEnd apiCode:{},taskId:{}",apiCode,taskId);
+    //    Map<String, Object> cusMap = new HashMap<>(16);
+    //    cusMap.put("apiCode", apiCode);
+    //    cusMap.put("taskId", taskId);
+    //    int haloCallingCount = customerCallingDialogMapper.getHaloCallingCount(cusMap);
+    //    callingToSendJob.callbackEnd(haloCallingCount,apiCode,taskId);
+    //    return "success";
+    //
 
-
-    }
+    //}
 
 
 }
