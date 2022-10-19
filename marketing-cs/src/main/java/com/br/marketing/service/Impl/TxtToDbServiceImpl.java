@@ -279,10 +279,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             error = error.replace("name不能为空;", "");
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
-                            if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
-                                phoneSale.setName(StringUtils.isBlank(content) ? "1" : content);
-                            }
+                            phoneSale.setName(decryptName(s));
                         }
                         break;
                     case "gender":
@@ -503,7 +500,10 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             error = error.replace("name不能为空;", "");
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
-                            phoneSale.setName(decryptName(s));
+                            if(DecodeClient.isMd5(s)){
+                                String content = decodeClient.query(s, "name", "md5", "");
+                                phoneSale.setName(StringUtils.isNotBlank(content) ? content : "1");
+                            }
                         }
                         break;
                     case "gender":
