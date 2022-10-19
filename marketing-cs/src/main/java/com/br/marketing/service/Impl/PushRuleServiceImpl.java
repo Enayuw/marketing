@@ -1133,7 +1133,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
                 //桔子特殊处理
                 if(marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum())){
+                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length()>15){
                     transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
                     String reserveField1 = transferDataItemDTO.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
