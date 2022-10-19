@@ -1356,7 +1356,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix, String fileNameEnd) {
         //yyyyMMdd
         String recordDate = transferFileTask.getStartDate();
-        String descPath = path.concat("transferToFile/").concat(transferFileTask.getApiCode())
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(transferFileTask.getApiCode())
                 .concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
