@@ -46,12 +46,12 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
             LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
             LocalDate plusDays = parse.plusDays(30);
-            conversionData.setExpireDate(plusDays.toString());
+            conversionData.setExpireDate(plusDays + " 00:00:00");
         }
         if(!StringUtils.isEmpty(transfer.getUnlentAmount()) && "0".equals(transfer.getUnlentAmount())){
             LocalDate parse = LocalDate.parse(transfer.getUnlentAmount(), dateTimeFormatter);
             LocalDate plusDays = parse.plusDays(30);
-            conversionData.setExpireDate(plusDays.toString());
+            conversionData.setExpireDate(plusDays + " 00:00:00");
         }
         String query = decodeClient.query(transfer.getCustNum(), "cell", "md5", "");
         conversionData.setPhone(query);
