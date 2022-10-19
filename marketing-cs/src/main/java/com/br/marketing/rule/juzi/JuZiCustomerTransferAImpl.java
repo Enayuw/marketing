@@ -72,7 +72,9 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
          * 转化数据上传接口命中applyResult=0的数据
          * 转化数据上传接口命中unlentAmount=0的数据
          */
-        return "0".equals(transfer.getApplyResult()) || "0".equals(transfer.getUnlentAmount());
+        boolean bool = "0".equals(transfer.getApplyResult()) || "0".equals(transfer.getUnlentAmount());
+        log.warn("桔子推客服转化标识：{}",bool);
+        return bool;
     }
 
     @Override
