@@ -376,7 +376,7 @@
     />
 
     <job:simple id="juZiTransferCyclicalPushDaasJob"
-                class="com.br.marketing.check.job.orange.OrangeTransferCyclicalPushDaasJob"
+                class="com.br.marketing.check.job.orange.OrangeTransferCyclicalPushDassJob"
                 cron="0 30/10 10-20 * * ?"
                 description="桔子周期性自动化转Daas"
                 registry-center-ref="regCenter"
