@@ -299,4 +299,9 @@ public class MarketingCommonConfig {
      */
     private List<String> juZiTransferInsertApiCodes;
 
+    /**
+     * 桔子周期性推送dass,查询实时推送数据日期;eg:{"a":[2],"b":[2],"c":[2,6,13,27],"d":[6]}
+     */
+    private Map<String, Set<Integer>> orangeTransferCyclicalPushDassDay;
+
 }
