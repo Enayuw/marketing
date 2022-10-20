@@ -50,7 +50,8 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
                 LocalDate plusDays = parse.plusDays(30);
                 conversionData.setExpireDate(plusDays + " 23:59:59");
             }
-            if("0".equals(transfer.getUnlentAmount()) && !StringUtils.isEmpty(transfer.getLentTime())){
+            if(("0".equals(transfer.getUnlentAmount()) || "0.00".equals(transfer.getUnlentAmount()))
+                    && !StringUtils.isEmpty(transfer.getLentTime())){
                 LocalDate parse = LocalDate.parse(transfer.getLentTime(), dateTimeFormatter);
                 LocalDate plusDays = parse.plusDays(30);
                 conversionData.setExpireDate(plusDays + " 23:59:59");
