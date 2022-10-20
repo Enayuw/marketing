@@ -188,4 +188,24 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("caseEffective") String caseEffective
             , @Param("custNumSet") Set<String> custNumSet
     );
+
+    /**
+     * 2022/10/20 10:36
+     * 获取周期性推送dass的转化数据
+     *
+     * @param cid      cid
+     * @param apiCode  apiCode
+     * @param dateSet  日期集合
+     * @param status   情况
+     * @param pageNum  页号
+     * @param pageSize 页大小
+     * @return list
+     */
+    List<MarketingTransferSyncUser> findOrangeCyclicalTransferSyncPage(
+            @Param("cid") String cid,
+            @Param("apiCode") String apiCode,
+            @Param("dateSet") Set<String> dateSet,
+            @Param("status") String status,
+            @Param("pageNum") int pageNum,
+            @Param("pageSize") int pageSize);
 }
