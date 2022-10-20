@@ -77,9 +77,10 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
          * 转化数据上传接口命中applyResult=0的数据
          * 转化数据上传接口命中unlentAmount=0的数据
          */
-        boolean bool = "0".equals(transfer.getApplyResult()) || "0".equals(transfer.getUnlentAmount());
-        log.warn("桔子推客服转化标识：{}",bool);
-        return bool;
+        boolean bool1 = "0".equals(transfer.getApplyResult()) && !StringUtils.isEmpty(transfer.getApplyDt());
+        boolean bool2 = ("0".equals(transfer.getUnlentAmount()) || "0.00".equals(transfer.getUnlentAmount())) && !StringUtils.isEmpty(transfer.getLentTime());
+        log.warn("桔子推客服转化标识：{}",bool1 || bool2);
+        return bool1 || bool2;
     }
 
     @Override
