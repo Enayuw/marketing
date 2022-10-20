@@ -151,7 +151,8 @@
         <![CDATA[ and create_time < #{endDateTime} ]]>
         and ifnull(task_id, '0') != '0'
                 and ifnull(status, '0') != '0'
-              limit ${(pageNum - 1) * pageSize},#{pageSize}) as t2
+              order by id
+                  limit ${(pageNum - 1) * pageSize}, #{pageSize}) as t2
         where t2.id = t1.id
     </select>
 </mapper>
