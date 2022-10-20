@@ -45,12 +45,12 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         conversionData.setInversionStatus("0");
         conversionData.setCaseNum(transfer.getCustNum());
         try{
-            if(!StringUtils.isEmpty(transfer.getApplyDt()) && "0".equals(transfer.getApplyResult())){
+            if("0".equals(transfer.getApplyResult()) && !StringUtils.isEmpty(transfer.getApplyDt())){
                 LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
                 LocalDate plusDays = parse.plusDays(30);
                 conversionData.setExpireDate(plusDays + " 23:59:59");
             }
-            if(!StringUtils.isEmpty(transfer.getUnlentAmount()) && "0".equals(transfer.getUnlentAmount())){
+            if("0".equals(transfer.getUnlentAmount()) && !StringUtils.isEmpty(transfer.getLentTime())){
                 LocalDate parse = LocalDate.parse(transfer.getLentTime(), dateTimeFormatter);
                 LocalDate plusDays = parse.plusDays(30);
                 conversionData.setExpireDate(plusDays + " 23:59:59");
