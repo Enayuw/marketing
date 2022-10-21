@@ -82,7 +82,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      */
     private Map<String, MarketingTransferSyncUser> preRejectWhereC1OrD1(List<MarketingTransferSyncUser> list
             , LocalDate localDate) {
-        Map<String, MarketingTransferSyncUser> map = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
             String reserveField1 = user.getReserveField1();
             String custNum = user.getCustNum();
@@ -125,7 +125,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      */
     private Map<String, MarketingTransferSyncUser> preRejectWhereA1OrB1(List<MarketingTransferSyncUser> list
             , LocalDate localDate) {
-        Map<String, MarketingTransferSyncUser> map = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
             String applyDtStr = user.getApplyDt();
             String custNum = user.getCustNum();
