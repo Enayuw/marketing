@@ -172,15 +172,15 @@
 
     <select id="getCustNumByCustNumAndStatusAndDateSet" resultType="java.lang.String">
         select cust_num from b_phone_sale_extend_info
-        where api_code = ${apiCode}
+        where api_code = '${apiCode}'
         and cust_num in
         <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
-            ${custNum}
+            '${custNum}'
         </foreach>
         and status in
         <foreach collection="statusList" item="status" open="(" separator="," close=")">
-            ${status}
+            '${status}'
         </foreach>
-        and applet_date=${appletDate}
+        and applet_date='${appletDate}'
     </select>
 </mapper>
