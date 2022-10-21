@@ -193,7 +193,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             custNums.removeAll(aRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecord(apiCode, recordDate, custNums);
+            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
             custNums.removeAll(pushThreeRecord);
             aRulecustNum.addAll(custNums);
         }
@@ -235,7 +235,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             custNums.removeAll(bRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecord(apiCode, recordDate, custNums);
+            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
             custNums.removeAll(pushThreeRecord);
             bRulecustNum.addAll(custNums);
         }
