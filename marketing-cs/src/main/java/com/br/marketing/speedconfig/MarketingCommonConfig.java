@@ -298,5 +298,9 @@ public class MarketingCommonConfig {
      * 桔子转化数据入库特殊处理apicode集合
      */
     private List<String> juZiTransferInsertApiCodes;
+    /**
+     * 桔子实时转化定时任务执行时间
+     */
+    private String juZiRealTimeTransferExecuteTime;
 
 }
