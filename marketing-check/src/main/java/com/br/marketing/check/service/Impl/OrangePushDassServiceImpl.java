@@ -134,9 +134,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 continue;
             }
             try {
-                applyDtStr = applyDtStr.replace(":000", "");
-                LocalDateTime localDateTime = LocalDateTime.parse(applyDtStr
-                        , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT));
+                LocalDateTime localDateTime = LocalDateTime.parse(applyDtStr, DATE_TIME_FORMATTER);
                 if (localDate.isEqual(localDateTime.toLocalDate().plusDays(30))) {
                     continue;
                 }
