@@ -37,6 +37,7 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,6 +90,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private CaseShuheUploadDataMapper caseShuheUploadDataMapper;
     @Resource
     private MarketingUserMapper marketingUserMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    ;
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.secretKey:00}")
@@ -614,10 +618,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
                         , appName, secretKey, alarmClient);
             } else if (!iUserType.getApiCodes().contains(apiCode)) {
-                this.sendAlarmMgs(title, "场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
-                                .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
-                                .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                log.warn("场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
+                        .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
+                        .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
             }
             Future<String> futureTaskId = BR_EXECUTORS.submit(() ->
                     iMarketingSyncUserService.getTaskIdLatestByCustNum(
@@ -697,56 +700,22 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         transferSyncUser.setInsertTime(localDateTime.format(dateTimeFormatter));
         transferSyncUser.setRequestData(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         transferSyncUser.setRequestTime(transferSyncUser.getInsertTime());
-        int rowSync = 0;
-        try {
-            rowSync = iTransferSyncUserService.insertSelective(transferSyncUser);
-            if (rowSync < 1) {
-                caseShuheUser.setSaveStatus(3);
-                caseShuheUser.setErrorInfo("#3.1saveTransferInfo:保存到标准转化详情失败");
-                alarmMgs(caseShuheUser);
-            }
-        } catch (Exception e) {
-            caseShuheUser.setErrorInfo("#3.2saveTransferInfo:保存到标准转化详情异常:" + e.getMessage());
-            caseShuheUser.setSaveStatus(3);
-            log.error(e.getMessage(), e);
-            alarmMgs(caseShuheUser, e);
-        }
         MarketingTransferInfo transferInfo = new MarketingTransferInfo();
         transferInfo.setApiCode(apiCode);
         transferInfo.setRequestId(transferSyncUser.getRequestId());
         transferInfo.setCreateTime(new Date());
         transferInfo.setJsonData(JSONObject.toJSONString(transferSyncUser));
         transferInfo.setActualNum(1);
-        try {
-            int rowInfo = marketingTransferInfoMapper.insertSelective(transferInfo);
-            if (rowInfo > 0) {
-                if (rowSync > 0) {
-                    if (sendToQueueBool) {
-                        final MqFact mqFact = new MqFact();
-                        mqFact.setSourceId(transferInfo.getId());
-                        mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-                        producter.sendToUniversalTransferQueue(mqFact);
-                    }
-                } else {
-                    caseShuheUser.setErrorInfo("#3.3saveTransferInfo:保存到标准转化详情异常");
-                    caseShuheUser.setSaveStatus(3);
-                    this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
-                                    .concat("”\nuserType“").concat(caseShuheUser.getUserType())
-                                    .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
-                                    .concat("”\ntransferInfoId“" + rowInfo).concat("”\n")
-                                    .concat(caseShuheUser.getErrorInfo())
-                            , appName, secretKey, alarmClient);
-                }
-            } else {
-                caseShuheUser.setErrorInfo("#2.1saveTransferInfo:保存到标准转化信息失败");
-                caseShuheUser.setSaveStatus(2);
-                alarmMgs(caseShuheUser);
-            }
-        } catch (Exception e) {
-            caseShuheUser.setSaveStatus(2);
-            caseShuheUser.setErrorInfo("#2.2saveTransferInfo:保存到标准转化信息异常:" + e.getMessage());
-            log.error(e.getMessage(), e);
-            alarmMgs(caseShuheUser, e);
+        Long id = iTransferSyncUserService.insertInfoAndSync(transferSyncUser, transferInfo, caseShuheUser);
+        if (id == null) {
+            alarmMgs(caseShuheUser);
+        }
+        List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
+        if (sendToQueueBool && universalProcessApiCode.contains(apiCode)) {
+            final MqFact mqFact = new MqFact();
+            mqFact.setSourceId(transferInfo.getId());
+            mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
         }
     }
 
