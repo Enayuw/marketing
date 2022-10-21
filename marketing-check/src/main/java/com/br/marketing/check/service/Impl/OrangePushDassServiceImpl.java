@@ -204,13 +204,14 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             , Map<String, MarketingTransferSyncUser>> biFunction, String userType, String... statusList) {
         Set<String> dateSet = getDateSet(status, localDate);
         int page = 1;
+        int pageSize = 2000;
         boolean nextBool = true;
         while (nextBool) {
             List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper
-                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, page, 2000);
+                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, page, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
-            } else if (pageList.size() < 2000) {
+            } else if (pageList.size() < pageSize) {
                 nextBool = false;
             }
             page++;
