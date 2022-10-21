@@ -326,7 +326,10 @@
             a.applet_date=#{date}
         </foreach>
         and a.api_code=#{apiCode}
-        and a.status=#{status} order by id
+        and a.status=#{status}
+        and a.transform_type='1'
+        and a.p_status=2
+        order by id
         limit ${(pageNum - 1) * pageSize}
         , #{pageSize}) t2
         where t1.id = t2.id
