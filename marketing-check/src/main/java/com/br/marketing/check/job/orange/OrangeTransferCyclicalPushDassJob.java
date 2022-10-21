@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
  */
 @Component
 @Slf4j
-public class OrangeTransferCyclicalPushDaasJob extends AbstractSimpleElasticJob {
+public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob {
 
     @Resource
     private OrangePushDassService orangePushDassService;
@@ -64,7 +64,7 @@ public class OrangeTransferCyclicalPushDaasJob extends AbstractSimpleElasticJob 
             if (size > 0) {
                 continue;
             }
-            orangePushDassService.transferCyclicalPushDaas(apiCode);
+            orangePushDassService.transferCyclicalPushDass(apiCode);
         }
         long end = System.currentTimeMillis();
         log.warn("【桔子周期性自动化转Daas】调度结束，耗时:{}", end - start);

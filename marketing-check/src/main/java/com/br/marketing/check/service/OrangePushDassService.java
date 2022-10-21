@@ -12,5 +12,5 @@ public interface OrangePushDassService {
      * 2022/10/19 17:26
      * 周期推送电销
      */
-    void transferCyclicalPushDaas(String apiCode);
+    void transferCyclicalPushDass(String apiCode);
 }
