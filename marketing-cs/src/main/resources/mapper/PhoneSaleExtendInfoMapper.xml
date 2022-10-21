@@ -164,9 +164,23 @@
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
-        AND   api_code = #{apiCode}
-        AND   create_time >= #{recordDate}
-        AND   status = 'a' or status = 'a1' or status = 'b' or status = 'b1'
+        AND api_code = #{apiCode}
+        AND create_time >= #{recordDate}
+        AND status = 'a' or status = 'a1' or status = 'b' or status = 'b1'
         group by cust_num HAVING count(cust_num) = 3
+    </select>
+
+    <select id="getCustNumByCustNumAndStatusAndDateSet" resultType="java.lang.String">
+        select cust_num from b_phone_sale_extend_info
+        where api_code = ${apiCode}
+        and cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            ${custNum}
+        </foreach>
+        and status in
+        <foreach collection="statusList" item="status" open="(" separator="," close=")">
+            ${status}
+        </foreach>
+        and applet_date=${appletDate}
     </select>
 </mapper>

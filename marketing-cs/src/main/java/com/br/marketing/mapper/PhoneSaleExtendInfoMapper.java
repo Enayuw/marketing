@@ -19,6 +19,7 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
     List<PhoneSaleInfoVO> getDxRecordLastTwo(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
 
     List<String> getDxRecordCustByTransferType(PhoneSaleRecordInfoDTO saleRecordInfoDTO);
+
     /**
      * 批量插入
      * @param list
@@ -47,8 +48,9 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @param limitStart
      * @return
      */
-    List<PhoneSaleExtendInfo> getPPDToDxData(@Param("apiCode")String apiCode,@Param("startDate")String startDate,
-                                             @Param("endDate")String endDate ,@Param("limitStart") Integer limitStart);
+    List<PhoneSaleExtendInfo> getPPDToDxData(@Param("apiCode")String apiCode, @Param("startDate")String startDate,
+                                             @Param("endDate")String endDate , @Param("limitStart") Integer limitStart);
+
     /**
      * 2022/7/13 17:36
      * 获取推送电销人工电销的记录
@@ -79,5 +81,21 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
     List<String> getJuziPushThreeRecord(
             @Param("apiCode") String apiCode,
             @Param("recordDate") String recordDate,
-            @Param("custNums")List<String> custNums);
+            @Param("custNums") List<String> custNums);
+
+    /**
+     * 2022/10/21 10:36
+     * 获取不同情况下的案件编号
+     *
+     * @param apiCode    apiCode
+     * @param custNumSet 案件编号集合
+     * @param statusList 状态集合
+     * @param appletDate 日期字符串
+     * @return Set<String>
+     */
+    Set<String> getCustNumByCustNumAndStatusAndDateSet(
+            @Param("apiCode") String apiCode,
+            @Param("custNumSet") Set<String> custNumSet,
+            @Param("statusList") List<String> statusList,
+            @Param("appletDate") String appletDate);
 }
