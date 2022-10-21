@@ -68,4 +68,16 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
             @Param("endDateTime") String endDateTime,
             @Param("pageNum") int pageNum,
             @Param("pageSize") int pageSize);
+
+    /**
+     * 获取桔子转化a+a1+b+b1场景7天内推送3次记录
+     * @param apiCode       apiCode
+     * @param recordDate  T-7
+     * @param custNums      案件编号
+     * @return list
+     */
+    List<String> getJuziPushThreeRecord(
+            @Param("apiCode") String apiCode,
+            @Param("recordDate") String recordDate,
+            @Param("custNums")List<String> custNums);
 }

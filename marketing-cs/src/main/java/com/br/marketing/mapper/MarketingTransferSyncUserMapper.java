@@ -189,6 +189,78 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("custNumSet") Set<String> custNumSet
     );
 
+
+    /**
+     * 获取桔子D规则的转化数据
+     *
+     * @param tcId
+     * @param requestData
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiDRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("minId") Long minId);
+
+
+    /**
+     * 获取桔子C规则的转化数据
+     *
+     * @param tcId
+     * @param requestData
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiCRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("minId") Long minId);
+    /**
+     * 获取桔子B规则的转化数据
+     *
+     * @param tcId
+     * @param registerTime
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiBRuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("registerTime") String registerTime, @Param("minId") Long minId);
+    /**
+     * 获取桔子A规则的转化数据
+     *
+     * @param tcId
+     * @param loginTime
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiARuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("loginTime") String loginTime, @Param("minId") Long minId);
+
+    /**
+     * 获取桔子D规则的锁定期数据
+     *
+     * @param tcId
+     * @param lentTime
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime,@Param("custNums")List<String> custNums);
+
+    /**
+     * 获取桔子C规则的锁定期数据
+     *
+     * @param tcId
+     * @param applyLoanTime
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime,@Param("custNums")List<String> custNums);
+
+    /**
+     * 获取桔子B规则或A规则的锁定期数据
+     *
+     * @param tcId
+     * @param applyDt
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")List<String> custNums);
+
+
+
     /**
      * 2022/10/20 10:36
      * 获取周期性推送dass的转化数据
