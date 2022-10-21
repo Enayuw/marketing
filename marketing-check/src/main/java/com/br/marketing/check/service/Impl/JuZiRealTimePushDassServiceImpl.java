@@ -14,8 +14,10 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.entity.TransferActionFront;
+import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +47,9 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TransferActionFrontMapper transferActionFrontMapper;
 
     @Autowired
     TableCreateServiceImpl tableCreateService;
@@ -79,22 +85,17 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
         if (!now.before(executeTime)) {
-            //region check 1.查询推送记录；2.查询推送记录的状态；3.查询数据处理情况
-            Result<TransferActionFront> frontDataRes = yiXinTransferService.getFrontData(apiCode, recordDate, 3);
-            if (!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())) {
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(frontDataRes.getMessage());
-            }
-            TransferActionFront frontData = frontDataRes.getData();
-            if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+            //查询推送记录
+            List<TransferActionFront> actionFrontList = getActionFront(apiCode, 3);
+            if (actionFrontList.size()>0) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 3);
             Map<String, List<String>> buildPushDaasMap = buildRealTimePushData(apiCode, recordDate);
             pushToDaas(apiCode, buildPushDaasMap);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate("桔子实时任务推送电销完成");
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -304,7 +305,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 continue;
             }
             minId = juZiDRuleTransferData.get(juZiDRuleTransferData.size() - 1).getId() + 1;
-            List<String> custNums = juZiDRuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
+            List<String> custNums = juZiDRuleTransferData.stream().map(transferData -> transferData.getCustNum()).distinct().collect(Collectors.toList());
             String lentTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             List<String> dRuleLockData = marketingTransferSyncUserMapper.getJuZiDRuleLockData(tcId, lentTime, custNums);
             //剔除锁定期的数据
@@ -331,5 +332,15 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
         // 第二天凌晨毫秒数
         long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         return (int) (l1 - l) / 1000;
+    }
+
+    private List<TransferActionFront> getActionFront(String apiCode, int actionType) {
+        TransferActionFrontExample example = new TransferActionFrontExample();
+        TransferActionFrontExample.Criteria criteria = example.createCriteria();
+        criteria.andApiCodeEqualTo(apiCode)
+                .andActionDataEqualTo(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
+                .andActionTypeEqualTo(actionType)
+                .andIsDelEqualTo(1);
+        return transferActionFrontMapper.selectByExample(example);
     }
 }
