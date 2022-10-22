@@ -179,7 +179,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                         .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                         .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
             }
-            // 3、异步查询db获取相应TaskId
+            // 3、查询db获取相应TaskId
             String taskId = "";
             try {
                 taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, jsonDTO.getOrderId(), userType);
@@ -205,7 +205,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("”\nrequestId“").concat(requestId).concat("”\n");
                 this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
-                log.error(msg.concat("”\njsondata“").concat(jsonData).concat("”\n").concat("" + e.getMessage()), e);
+                log.error(msg.concat("”\njsondata:").concat(jsonData).concat("\n").concat("" + e.getMessage()), e);
                 faultTolerantInsert(jsonDTO, jsonData, apiCode, msg);
                 responseShuheDTO.failed("抱歉，保存失败");
             }
