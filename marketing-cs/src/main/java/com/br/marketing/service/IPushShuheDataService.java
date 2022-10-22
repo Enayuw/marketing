@@ -14,17 +14,6 @@ public interface IPushShuheDataService {
 
 
     /**
-     * 插入数禾（客户订制）转化数据
-     *
-     * @param apiCode  apiCode
-     * @param jsonData 业务数据
-     * @return ResponseShuheDTO
-     * @author Guo Zeqiang
-     */
-    @Deprecated
-    ResponseCustomDTO insertShuheTransferData(String apiCode, String jsonData);
-
-    /**
      * 保存数禾（客户订制）转化数据
      *
      * @param apiCode  apiCode
