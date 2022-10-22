@@ -43,24 +43,30 @@ public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob 
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         String parameter = shardingContext.getJobParameter();
+        boolean nextBool = true;
         if (StringUtils.isNotEmpty(parameter)) {
-            StringTokenizer stringTokenizer = new StringTokenizer(parameter, ",");
-            while (stringTokenizer.hasMoreTokens()) {
-                API_CODE_LIST.add(stringTokenizer.nextToken());
+            StringTokenizer string = new StringTokenizer(parameter, ",");
+            while (string.hasMoreTokens()) {
+                String apiCode = string.nextToken();
+                if (API_CODE_LIST.contains(apiCode)) {
+                    if (nextBool) {
+                        nextBool = false;
+                    }
+                    continue;
+                }
+                API_CODE_LIST.add(apiCode);
             }
         }
         for (String apiCode : API_CODE_LIST) {
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, 2, 3);
             int size = actionFrontList.size();
-            /*
-             * 1. 前置任务是否完成
-             *
-             */
-            if (size < 1) {
+            // 1. 前置任务是否完成
+            if (size < 1 && nextBool) {
                 continue;
             }
             actionFrontList = getActionFront(apiCode, null, 4);
             size = actionFrontList.size();
+            // 2. 周期性任务是否已存在
             if (size > 0) {
                 continue;
             }
