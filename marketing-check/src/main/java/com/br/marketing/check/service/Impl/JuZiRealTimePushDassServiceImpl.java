@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataD
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.RandomUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -22,8 +23,10 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -71,6 +74,9 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
 
     @Autowired
     ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
+
+    @Value("${api.dass.aesKey:}")
+    private String aesKey;
 
     @Override
     public Result actionRealTimeDataToDx(String apiCode) {
@@ -123,7 +129,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                     dassImportDataDTO.setUserType("B");
                 }
                 dassImportDataDTO.setUid(custNum);
-                dassImportDataDTO.setPhone(decodeClient.query(custNum, "cell", "md5", ""));
+                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(decodeClient.query(custNum, "cell", "md5", ""), aesKey));
                 PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
                 phoneSaleExtendInfo.setApiCode(apiCode);
                 phoneSaleExtendInfo.setCreateTime(new Date());
