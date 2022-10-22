@@ -316,7 +316,7 @@
 
 
     <select id="findOrangeCyclicalTransferSyncPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select t1.id, t1.cust_num, t1.apply_dt, t1.reserve_field1
+        select t1.id, t1.cust_num, t1.apply_dt, t1.reserve_field1, t1.api_code, t1.user_type, t1.create_time, t1.type
         from b_marketing_transfer_sync_${cid} t1,
         (select b.id
         from b_phone_sale_extend_info a
