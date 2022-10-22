@@ -74,7 +74,6 @@ public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob 
         }
         long end = System.currentTimeMillis();
         log.warn("【桔子周期性自动化转Daas】调度结束，耗时:{}", end - start);
-
     }
 
     private List<TransferActionFront> getActionFront(String apiCode, Integer status, int actionType) {
