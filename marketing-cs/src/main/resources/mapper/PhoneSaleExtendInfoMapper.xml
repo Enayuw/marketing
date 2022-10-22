@@ -156,9 +156,8 @@
         where t2.id = t1.id
     </select>
 
-    <select id="getJuziPushThreeRecord" resultType="java.lang.String">
-        select cust_num
-        from b_phone_sale_extend_info
+    <select id="getJuziPushThreeRecordtikv_" resultType="java.lang.String">
+        select cust_num from b_phone_sale_extend_info
         where
         cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">

@@ -78,7 +78,7 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @param custNums      案件编号
      * @return list
      */
-    List<String> getJuziPushThreeRecord(
+    List<String> getJuziPushThreeRecordtikv_(
             @Param("apiCode") String apiCode,
             @Param("recordDate") String recordDate,
             @Param("custNums") List<String> custNums);

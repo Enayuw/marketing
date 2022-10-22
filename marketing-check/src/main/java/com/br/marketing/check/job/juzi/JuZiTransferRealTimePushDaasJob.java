@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * 桔子实时自动化转Daas-3710037（营销→Daas）
@@ -34,7 +35,9 @@ public class JuZiTransferRealTimePushDaasJob extends AbstractSimpleElasticJob {
         } else {
             result = juZiRealTimePushDassService.actionRealTimeDataToDx(null);
         }
-        log.warn("桔子实时自动化数据推电销 result={}", JSON.toJSONString(result));
+        if (!Objects.isNull(result.getData())) {
+            log.warn("桔子实时自动化数据推电销完成 result={}", JSON.toJSONString(result));
+        }
 
     }
 }
