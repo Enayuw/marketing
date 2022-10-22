@@ -22,7 +22,8 @@ public class CuShouDeng extends IUserType {
 
     public CuShouDeng(String... api2Codes) {
         super(api2Codes);
-        super.apiCodes.add("3710004");
+        super.apiCodes.add("3710071");
+        super.apiCodes.add("7410875");
     }
 
     @Override
