@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -217,7 +218,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             page++;
             List<MarketingTransferSyncUser> list = statusFilter(biFunction.apply(pageList, localDate)
                     , localDate, apiCode, statusList);
-            sendDass(list, status, userType);
+            sendDass(list, status + "1", userType);
         }
     }
 
@@ -228,8 +229,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             u.setUserType(userType);
             dataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendInfo(u, status));
             dataDTO.setDassImportDataDTO(getDassImportData(u));
+            transferData.add(dataDTO);
         }
-        artificialBatchRealTimeDataHandler.call(transferData, null);
+        artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
     }
 
     /**
@@ -269,7 +271,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private List<MarketingTransferSyncUser> statusFilter(Map<String, MarketingTransferSyncUser> map
             , LocalDate localDate, String apiCode, String... statusList) {
         if (map.size() < 1 || statusList.length < 1) {
-            return (List<MarketingTransferSyncUser>) map.values();
+            return new ArrayList<>(map.values());
         }
         String dateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
         Set<String> custNumSet = map.keySet();
@@ -282,7 +284,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
                 , recordDate, new ArrayList<>(custNumSet));
         custNumSet.removeAll(new HashSet<>(pushThreeRecord));
-        return (List<MarketingTransferSyncUser>) map.values();
+        return new ArrayList<>(map.values());
     }
 
     private PhoneSaleExtendInfo getPhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String status) {
@@ -297,6 +299,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
+        phoneSaleExtendInfo.setUpdateTime(phoneSaleExtendInfo.getCreateTime());
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("0");
         phoneSaleExtendInfo.setStatus(status);
