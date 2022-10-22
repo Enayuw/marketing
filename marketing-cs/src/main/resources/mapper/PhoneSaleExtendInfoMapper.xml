@@ -163,9 +163,9 @@
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
-        AND api_code = #{apiCode}
-        AND create_time >= #{recordDate}
-        AND status = 'a' or status = 'a1' or status = 'b' or status = 'b1'
+        AND   api_code = #{apiCode}
+        AND   create_time >= #{recordDate}
+        AND   (status = 'a' or status = 'a1' or status = 'b' or status = 'b1')
         group by cust_num HAVING count(cust_num) = 3
     </select>
 

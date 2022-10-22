@@ -270,7 +270,7 @@
             AND request_data = #{requestData}
             AND if_apply= '0'
             AND if_lent= '0'
-            AND login_time =#{loginTime}
+            AND <![CDATA[  login_time >= #{loginTime} and login_time < #{requestData} ]]>
             AND  json_unquote(json_extract(reserve_field1,'$.applyLoan')) = '0'
             order by id asc limit 2000;
         </where>
