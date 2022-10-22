@@ -279,7 +279,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         custNumSet.removeAll(set);
         //a+a1+b+b1求和7天内推送3次
         String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecord(apiCode
+        List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
                 , recordDate, new ArrayList<>(custNumSet));
         custNumSet.removeAll(new HashSet<>(pushThreeRecord));
         return (List<MarketingTransferSyncUser>) map.values();
