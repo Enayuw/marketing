@@ -20,8 +20,8 @@ public interface ITransferSyncUserService {
      * 1. 先保存info表信息
      * 2. 再保存详情表
      */
-    Long insertInfoAndSync(MarketingTransferSyncUser marketingTransferSyncUser
-            , MarketingTransferInfo transferInfo, CaseShuheUser caseShuheUser);
+    void insertInfoAndSync(MarketingTransferSyncUser marketingTransferSyncUser
+            , MarketingTransferInfo transferInfo, CaseShuheUser caseShuheUser) throws Exception;
 
     int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
 
