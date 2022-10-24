@@ -25,6 +25,7 @@ import java.time.format.DateTimeParseException;
  * ---------------------------------
  * @Author : juanjuan.song
  * @Date : Create in 2022/10/17 10:28
+ * 客服转化接口案件编号和手机号二选一必填，不满足则接收转化数据失败
  */
 @Service
 @Slf4j
@@ -42,7 +43,6 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
-        conversionData.setCaseNum(transfer.getCustNum());
         try{
             if("0".equals(transfer.getApplyResult()) && !StringUtils.isEmpty(transfer.getApplyDt())){
                 LocalDate parse = LocalDate.parse(transfer.getApplyDt(), dateTimeFormatter);
