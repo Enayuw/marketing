@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.CustomerCallingDialog;
 import com.br.marketing.entity.CustomerCallingDialogExample;
 import com.br.marketing.vo.HaloCallingDataVo;
+import com.br.marketing.vo.HaloCallingLocalFileDataVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -47,4 +48,6 @@ public interface CustomerCallingDialogMapper {
     int getHaloCallingCount(Map<String, Object> cusMap);
 
     List<Map<String, Object>> getRequestId();
+
+    HaloCallingLocalFileDataVo getNewOne();
 }

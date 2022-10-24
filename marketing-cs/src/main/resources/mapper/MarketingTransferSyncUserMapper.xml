@@ -179,9 +179,40 @@
         <![CDATA[  create_time >= #{startTime}
         and create_time < #{endTime} ]]>
         <if test="apiCode !=null and apiCode !=''">
-           and api_code = #{apiCode}
+            and api_code = #{apiCode}
         </if>
         order by create_time desc limit #{pageIndex},#{pageSize}
 
+    </select>
+
+    <select id="findByApplyResultAndRequestDataAndApplyDtPage"
+            resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select cust_num, apply_result, apply_dt, type, create_time, reserve_field1,user_type,api_code
+        from b_marketing_transfer_sync_${tcId} t1,
+        (select id from b_marketing_transfer_sync_${tcId}
+        where apply_result = #{applyResult}
+        <if test="apiCode !=null and apiCode !=''">
+            and api_code = #{apiCode}
+        </if>
+        and <![CDATA[ request_data=#{requestDate} and apply_dt<='${applyDt} 23:59:59' ]]>
+        order by apply_dt desc, id desc limit #{rowCount}, #{offset}) as t2
+        where t1.id = t2.id
+    </select>
+
+    <select id="getCustNumSet" resultType="java.lang.String">
+        select cust_num from b_marketing_transfer_sync_${tcId}
+        where (case_effective=#{caseEffective}
+        or (<![CDATA[ request_data=#{requestDate} and apply_dt>=#{applyDt} and apply_dt<='${requestDate} 23:59:59' ]]>
+        and apply_result is not null and apply_result!=''))
+        <if test="apiCode !=null and apiCode !=''">
+            and api_code = #{apiCode}
+        </if>
+        <if test="custNumSet !=null and custNumSet.size() !=0">
+            and cust_num in
+            <foreach collection="custNumSet" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        group by cust_num
     </select>
 </mapper>

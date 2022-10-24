@@ -9,12 +9,14 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.SyncConfigEditVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     @Resource
     private SyncConfigMapper syncConfigMapper;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public PageResultReturn getSftpList(int page, int pageSize, String apiCode) {
@@ -179,4 +183,9 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         return false;
     }
 
+    @Override
+    public String getPath() {
+        String nfsPath = marketingCommonConfig.getNfsPath();
+        return StringUtils.isBlank(nfsPath)?"/opt/data/inloan/download/marketing/":nfsPath;
+    }
 }

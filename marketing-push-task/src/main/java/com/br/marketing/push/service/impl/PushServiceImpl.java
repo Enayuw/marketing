@@ -11,7 +11,9 @@ import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.push.service.PushService;
 import com.br.marketing.push.service.ZipFileCheckService;
+import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +30,8 @@ public class PushServiceImpl implements PushService {
 
     @Resource
     LoanFileMapper loanFileMapper;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -70,14 +72,14 @@ public class PushServiceImpl implements PushService {
                     boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
-                        File completeFile=new File(path+"/sftp_data/"+apiCode+"/"+completeFileaName);
+                        File completeFile=new File(syncConfigService.getPath()+"sftp_data/"+apiCode+"/"+completeFileaName);
                         if(!completeFile.getParentFile().exists()){
                             completeFile.getParentFile().mkdirs();
                         }
                         completeFile.createNewFile();
                         if(completeFile.exists()){
                             log.warn("push complete to sftp :{}",completeFileaName);
-                            sftpClient.uploadFile(remotePath, completeFileaName, path+"/sftp_data/"+apiCode+"/"+completeFileaName);
+                            sftpClient.uploadFile(remotePath, completeFileaName, syncConfigService.getPath()+"sftp_data/"+apiCode+"/"+completeFileaName);
                         }
                     }
                 }
