@@ -47,9 +47,7 @@ public class TransferSyncUserServiceImpl implements ITransferSyncUserService {
             throw new Exception("#2保存到'b_marketing_transfer_info'失败");
         }
         int rowSync = marketingTransferSyncUserMapper.insertSelective(marketingTransferSyncUser);
-        // TODO: 2022/10/24 测试使用，上线前要删除
-        if (rowSync < 1 || marketingTransferSyncUser.getCustNum().length() > 15) {
-//        if (rowSync < 1) {
+        if (rowSync < 1) {
             caseShuheUser.setSaveStatus(3);
             throw new Exception("#3保存到'b_marketing_transfer_sync_" + marketingTransferSyncUser.gettCid() + "'失败");
         }
