@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  * @dateTime 2022/10/19 14:32
  */
 @Service
+@Slf4j
 public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassService {
 
     final static String EXECUTE_TIME = " 10:30:00";
@@ -94,7 +96,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
         if (!now.before(executeTime)) {
             //查询推送记录
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, 3);
-            if (actionFrontList.size()>0) {
+            if (actionFrontList.size() > 0) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 3);
@@ -144,7 +146,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 transferData.add(batchRealTimeUserDataDTO);
             });
         });
-        artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
+        log.warn("桔子实时推送电销总数据量={}",transferData.size());
+        if (!CollectionUtils.isEmpty(transferData)) {
+            artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
+        }
     }
 
     /**
@@ -209,6 +214,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 iterator.remove();
             }
         }
+        log.warn("桔子实时A规则推送电销数据量={}",aRulecustNum.size());
         pushDaasMap.put("a", aRulecustNum);
     }
 
@@ -251,6 +257,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 iterator.remove();
             }
         }
+        log.warn("桔子实时B规则推送电销数据量={}",bRulecustNum.size());
         pushDaasMap.put("b", bRulecustNum);
     }
 
@@ -287,6 +294,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 iterator.remove();
             }
         }
+        log.warn("桔子实时C规则推送电销数据量={}",cRulecustNum.size());
         pushDaasMap.put("c", cRulecustNum);
 
     }
@@ -318,9 +326,12 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             custNums.removeAll(dRuleLockData);
             dRulecustNum.addAll(custNums);
         }
+        if (!CollectionUtils.isEmpty(dRulecustNum)) {
+            redisChgService.sadd(RedisKeyConstant.juZiPushDaasCustNumKey, dRulecustNum);
+            redisChgService.expire(RedisKeyConstant.juZiPushDaasCustNumKey, getKeyExpiration());
+        }
+        log.warn("桔子实时D规则推送电销数据量={}",dRulecustNum.size());
         pushDaasMap.put("d", dRulecustNum);
-        redisChgService.sadd(RedisKeyConstant.juZiPushDaasCustNumKey, dRulecustNum);
-        redisChgService.expire(RedisKeyConstant.juZiPushDaasCustNumKey, getKeyExpiration());
         return pushDaasMap;
     }
 
