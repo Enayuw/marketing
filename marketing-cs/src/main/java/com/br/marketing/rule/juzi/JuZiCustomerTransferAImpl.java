@@ -38,7 +38,6 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
-        log.warn("桔子推送客服转化，apicode={}",transfer.getApiCode());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
