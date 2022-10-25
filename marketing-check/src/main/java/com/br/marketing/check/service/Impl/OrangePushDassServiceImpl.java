@@ -61,18 +61,19 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     public void transferCyclicalPushDass(String apiCode) {
         final LocalDate localDate = LocalDate.now();
         final String tcId = tableCreateService.getTcId(apiCode);
+        DayObj dayObj = new DayObj(localDate, 30);
         // 推送优先级为d1>c1>b1>a1,d1为最高优先级，a1为最低优先级
         // 情况d1
-        pushPageData(tcId, apiCode, "d", localDate, this::preRejectWhereD1, "B"
+        pushPageData(tcId, apiCode, "d", dayObj, this::preRejectWhereD1, "B"
                 , "d1", "a", "b", "c", "d");
         // 情况c1
-        pushPageData(tcId, apiCode, "c", localDate, this::preRejectWhereC1, "B"
+        pushPageData(tcId, apiCode, "c", dayObj, this::preRejectWhereC1, "B"
                 , "c1", "d1", "a", "b", "c", "d");
         // 情况b1
-        pushPageData(tcId, apiCode, "b", localDate, this::preRejectWhereA1OrB1, "A"
+        pushPageData(tcId, apiCode, "b", dayObj, this::preRejectWhereA1OrB1, "A"
                 , "b1", "c1", "d1", "a", "b", "c", "d");
         // 情况a1
-        pushPageData(tcId, apiCode, "a", localDate, this::preRejectWhereA1OrB1, "A"
+        pushPageData(tcId, apiCode, "a", dayObj, this::preRejectWhereA1OrB1, "A"
                 , "a1", "b1", "c1", "d1", "a", "b", "c", "d");
     }
 
@@ -82,7 +83,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 锁定期：applyLoan=1&applyLoanTime+30天
      */
     private Map<String, MarketingTransferSyncUser> preRejectWhereC1(List<MarketingTransferSyncUser> list
-            , LocalDate localDate) {
+            , DayObj dayObj) {
+        int day = dayObj.day;
+        LocalDate localDate = dayObj.localDate;
         Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
             String reserveField1 = user.getReserveField1();
@@ -96,16 +99,19 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             String applyLoanTimeStr = jsonObject.getString("applyLoanTime");
             boolean applyLoanBool = "1".equals(applyLoan);
             if (applyLoanBool && StringUtils.isNotBlank(applyLoanTimeStr)) {
+                LocalDate applyLoanTimeLocalDate;
                 try {
-                    LocalDate applyLoanTime = LocalDate.parse(applyLoanTimeStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                    if (localDate.isEqual(applyLoanTime.plusDays(30))) {
+                    applyLoanTimeLocalDate = LocalDate.parse(applyLoanTimeStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                            .plusDays(day);
+                    if (localDate.isBefore(applyLoanTimeLocalDate) || localDate.isEqual(applyLoanTimeLocalDate)) {
                         continue;
                     }
                 } catch (Exception e) {
                     try {
-                        LocalDateTime localDateTime = LocalDateTime.parse(applyLoanTimeStr
-                                , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT));
-                        if (localDate.isEqual(localDateTime.toLocalDate().plusDays(30))) {
+                        applyLoanTimeLocalDate = LocalDateTime.parse(applyLoanTimeStr
+                                , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
+                                .toLocalDate().plusDays(day);
+                        if (localDate.isBefore(applyLoanTimeLocalDate) || localDate.isEqual(applyLoanTimeLocalDate)) {
                             continue;
                         }
                     } catch (Exception ignored) {
@@ -124,7 +130,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 锁定期：unlentAmount=0&lentTime+30天
      */
     private Map<String, MarketingTransferSyncUser> preRejectWhereD1(List<MarketingTransferSyncUser> list
-            , LocalDate localDate) {
+            , DayObj dayObj) {
         Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
             String lentTimeStr = user.getLentTime();
@@ -135,21 +141,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 continue;
             }
             boolean unlentAmountBool = "0".equals(unlentAmount);
-            if (unlentAmountBool) {
-                try {
-                    LocalDate lentTimeTime = LocalDateTime.parse(lentTimeStr, DATE_TIME_FORMATTER).toLocalDate();
-                    if (localDate.isEqual(lentTimeTime.plusDays(30))) {
-                        continue;
-                    }
-                } catch (Exception e) {
-                    try {
-                        LocalDate lentTimeLocalDate = LocalDate.parse(lentTimeStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                        if (localDate.isEqual(lentTimeLocalDate.plusDays(30))) {
-                            continue;
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
+            if (unlentAmountBool && compareDate(lentTimeStr, dayObj)) {
+                continue;
             }
             addMap(map, custNum, user);
         }
@@ -163,7 +156,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 锁定期：applyDt有值+30天
      */
     private Map<String, MarketingTransferSyncUser> preRejectWhereA1OrB1(List<MarketingTransferSyncUser> list
-            , LocalDate localDate) {
+            , DayObj dayObj) {
         Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
             String applyDtStr = user.getApplyDt();
@@ -172,24 +165,42 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 addMap(map, custNum, user);
                 continue;
             }
-            try {
-                LocalDateTime localDateTime = LocalDateTime.parse(applyDtStr, DATE_TIME_FORMATTER);
-                if (localDate.isEqual(localDateTime.toLocalDate().plusDays(30))) {
-                    continue;
-                }
-            } catch (Exception e) {
-                try {
-                    LocalDate applyDt = LocalDate.parse(applyDtStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                    if (localDate.isEqual(applyDt.plusDays(30))) {
-                        continue;
-                    }
-                } catch (Exception ignored) {
-                }
+            if (compareDate(applyDtStr, dayObj)) {
+                continue;
             }
             addMap(map, custNum, user);
         }
         list.clear();
         return map;
+    }
+
+    /**
+     * 2022/10/25 15:47
+     * 比较当前日期是否在给定日期加n天范围内（包括等于）
+     *
+     * @param dateTimeStr 给定时间字符串
+     * @param dayObj      当前日期
+     * @return true 在范围内，false 不在范围内
+     */
+    private boolean compareDate(String dateTimeStr, DayObj dayObj) {
+        LocalDate localDateNew;
+        int day = dayObj.day;
+        LocalDate localDate = dayObj.localDate;
+        try {
+            localDateNew = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER).toLocalDate().plusDays(day);
+            if (localDate.isBefore(localDateNew) || localDate.isEqual(localDateNew)) {
+                return true;
+            }
+        } catch (Exception e) {
+            try {
+                localDateNew = LocalDate.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE).plusDays(day);
+                if (localDate.isBefore(localDateNew) || localDate.isEqual(localDateNew)) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
     }
 
     /**
@@ -237,24 +248,25 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private void pushPageData(final String tcId
             , final String apiCode
             , final String status
-            , final LocalDate localDate
-            , BiFunction<List<MarketingTransferSyncUser>, LocalDate
+            , final DayObj dayObj
+            , BiFunction<List<MarketingTransferSyncUser>, DayObj
             , Map<String, MarketingTransferSyncUser>> biFunction, String userType, String... statusList) {
-        Set<String> dateSet = getDateSet(status, localDate);
+        Set<String> dateSet = getDateSet(status, dayObj.localDate);
         int page = 1;
         int pageSize = 2000;
         boolean nextBool = true;
+        String insertTimeStr = dayObj.localDate.minusDays(dayObj.day).format(DateTimeFormatter.ISO_LOCAL_DATE);
         while (nextBool) {
             List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper
-                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, page, pageSize);
+                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, insertTimeStr, page, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
             } else if (pageList.size() < pageSize) {
                 nextBool = false;
             }
             page++;
-            List<MarketingTransferSyncUser> list = statusFilter(biFunction.apply(pageList, localDate)
-                    , localDate, apiCode, statusList);
+            List<MarketingTransferSyncUser> list = statusFilter(biFunction.apply(pageList, dayObj)
+                    , dayObj.localDate, apiCode, statusList);
             sendDass(list, status + "1", userType);
         }
     }
@@ -365,5 +377,19 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         batchImportData.setSource("15");
         batchImportData.setOptype("1");
         return batchImportData;
+    }
+
+    /**
+     * 2022/10/25 16:25
+     * 天对象
+     */
+    private static class DayObj {
+        LocalDate localDate;
+        int day;
+
+        public DayObj(LocalDate localDate, int day) {
+            this.localDate = localDate;
+            this.day = day;
+        }
     }
 }
