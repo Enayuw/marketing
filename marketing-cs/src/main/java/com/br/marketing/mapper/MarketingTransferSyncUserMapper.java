@@ -278,6 +278,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("apiCode") String apiCode,
             @Param("dateSet") Set<String> dateSet,
             @Param("status") String status,
+            @Param("insertTimeStr") String insertTimeStr,
             @Param("pageNum") int pageNum,
             @Param("pageSize") int pageSize);
 }
