@@ -50,6 +50,12 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
 
     final static String EXECUTE_TIME = " 10:30:00";
 
+    final static String APPLYDT = "applyDt";
+
+    final static String APPLYLOANTIME = "applyLoanTime";
+
+    final static String LENTTIME = "lentTime";
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -199,7 +205,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             minId = juZiARuleTransferData.get(juZiARuleTransferData.size() - 1).getId() + 1;
             List<String> custNums = juZiARuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
             //剔除锁定期的数据
-            String applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String applyDt;
+            if(!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    &&(StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))){
+                applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
+            }else { //默认30天
+                applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             List<String> aRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, custNums);
             custNums.removeAll(aRuleLockData);
             //a+a1+b+b1求和7天内推送3次
@@ -242,7 +254,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             minId = juZiBRuleTransferData.get(juZiBRuleTransferData.size() - 1).getId() + 1;
             List<String> custNums = juZiBRuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
             //剔除锁定期的数据
-            String applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String applyDt;
+            if(!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    &&(StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))){
+                applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
+            }else { //默认30天
+                applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             List<String> bRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, custNums);
             custNums.removeAll(bRuleLockData);
             //a+a1+b+b1求和7天内推送3次
@@ -282,7 +300,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             }
             minId = juZiCRuleTransferData.get(juZiCRuleTransferData.size() - 1).getId() + 1;
             List<String> custNums = juZiCRuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
-            String applyLoanTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String applyLoanTime;
+            if(!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    &&(StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYLOANTIME)))){
+                applyLoanTime = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYLOANTIME);
+            }else { //默认30天
+                applyLoanTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             List<String> cRuleLockData = marketingTransferSyncUserMapper.getJuZiCRuleLockData(tcId, applyLoanTime, custNums);
             //剔除锁定期的数据
             custNums.removeAll(cRuleLockData);
@@ -320,7 +344,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             }
             minId = juZiDRuleTransferData.get(juZiDRuleTransferData.size() - 1).getId() + 1;
             List<String> custNums = juZiDRuleTransferData.stream().map(transferData -> transferData.getCustNum()).distinct().collect(Collectors.toList());
-            String lentTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String lentTime;
+            if(!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    &&(StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(LENTTIME)))){
+                lentTime = marketingCommonConfig.getJuZiRealTimeLockConfig().get(LENTTIME);
+            }else { //默认30天
+                lentTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             List<String> dRuleLockData = marketingTransferSyncUserMapper.getJuZiDRuleLockData(tcId, lentTime, custNums);
             //剔除锁定期的数据
             custNums.removeAll(dRuleLockData);
