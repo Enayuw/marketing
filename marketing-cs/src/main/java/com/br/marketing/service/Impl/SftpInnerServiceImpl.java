@@ -17,8 +17,6 @@ import java.io.File;
 @Slf4j
 public class SftpInnerServiceImpl {
 
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")

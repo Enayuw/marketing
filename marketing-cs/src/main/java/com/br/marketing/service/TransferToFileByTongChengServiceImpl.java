@@ -39,8 +39,8 @@ import java.util.stream.Collectors;
 @Service
 public class TransferToFileByTongChengServiceImpl implements ITransferToFileService {
 
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Autowired
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
@@ -107,7 +107,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
         log.warn("同程转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();

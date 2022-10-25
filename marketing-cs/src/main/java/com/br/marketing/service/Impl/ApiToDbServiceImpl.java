@@ -58,8 +58,8 @@ public class ApiToDbServiceImpl implements IApiToDbService {
     private String secretKey;
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
@@ -280,7 +280,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                 int currentPage = 1;
                 Integer taskNum = 0;
                 String separator = marketingSepService.querySepByApiCode(apiCode);
-                String filePath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
+                String filePath = syncConfigService.getPath().concat(Constants.monitorTypeMap.get(String.valueOf(customerScoreRuleVO.getExecType()))).concat("/").concat(apiCode).concat("/")
                         .concat(number).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0");
                 StraHisFile file = null;
                 if (isToFile) {
@@ -1193,7 +1193,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                             continue outFor;
                         }
                         batchNumber = resBatchNumber.getData();
-                        filePath = path.concat("/").concat(Constants.monitorTypeMap.get("1").concat("/").concat(apiCode).concat("/")
+                        filePath = syncConfigService.getPath().concat(Constants.monitorTypeMap.get("1").concat("/").concat(apiCode).concat("/")
                                 .concat(batchNumber).concat("/").concat(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).concat("/").concat("0"));
                     }
                     if (StringUtils.isBlank(batchNumber)) {

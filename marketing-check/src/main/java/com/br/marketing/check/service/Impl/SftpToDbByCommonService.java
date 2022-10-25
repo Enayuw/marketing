@@ -211,7 +211,7 @@ public class SftpToDbByCommonService {
             if (errorMark.get() > 0) {
                 updateFile.setComplete("3");
             }
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
+
             if (datafuc != null) {
                 Result apply = datafuc.apply(localFile);
                 if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
@@ -220,6 +220,8 @@ public class SftpToDbByCommonService {
                     }
                 }
             }
+            localFile.setErrorActualNumber(Integer.valueOf(errorMark.toString()));
+            localFileMapper.updateByPrimaryKeySelective(updateFile);
             producter.send(routKey, localFile.getId().toString());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -356,6 +358,7 @@ public class SftpToDbByCommonService {
             if (errorMark.get() > 0) {
                 updateFile.setComplete("3");
             }
+            localFile.setErrorActualNumber(Integer.valueOf(errorMark.toString()));
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
