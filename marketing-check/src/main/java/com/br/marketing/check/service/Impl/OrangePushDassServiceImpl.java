@@ -352,6 +352,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         String phone = null;
         try {
             String cell = decodeClient.query(custNum, "cell", "md5", "");
+            //cell转aes加密
             phone = AESUtil.aesEncrypty(cell, aesKey);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -359,7 +360,6 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         batchImportData.setPhone(phone);
         batchImportData.setName("1");
         batchImportData.setOrgname("juzi");
-        // 根据custNum取上传接口最新的cell转aes加密
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType(transfer.getUserType());
         batchImportData.setSource("15");
