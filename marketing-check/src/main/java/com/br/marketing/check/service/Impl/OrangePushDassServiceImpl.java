@@ -63,10 +63,10 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         final String tcId = tableCreateService.getTcId(apiCode);
         // 推送优先级为d1>c1>b1>a1,d1为最高优先级，a1为最低优先级
         // 情况d1
-        pushPageData(tcId, apiCode, "d", localDate, this::preRejectWhereC1OrD1, "B"
+        pushPageData(tcId, apiCode, "d", localDate, this::preRejectWhereD1, "B"
                 , "d1", "a", "b", "c", "d");
         // 情况c1
-        pushPageData(tcId, apiCode, "c", localDate, this::preRejectWhereC1OrD1, "B"
+        pushPageData(tcId, apiCode, "c", localDate, this::preRejectWhereC1, "B"
                 , "c1", "d1", "a", "b", "c", "d");
         // 情况b1
         pushPageData(tcId, apiCode, "b", localDate, this::preRejectWhereA1OrB1, "A"
@@ -78,10 +78,10 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
     /**
      * 2022/10/20 15:53
-     * c1、d1情况前置剔除条件
+     * c1情况前置剔除条件
      * 锁定期：applyLoan=1&applyLoanTime+30天
      */
-    private Map<String, MarketingTransferSyncUser> preRejectWhereC1OrD1(List<MarketingTransferSyncUser> list
+    private Map<String, MarketingTransferSyncUser> preRejectWhereC1(List<MarketingTransferSyncUser> list
             , LocalDate localDate) {
         Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
         for (MarketingTransferSyncUser user : list) {
@@ -93,9 +93,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             }
             JSONObject jsonObject = JSON.parseObject(reserveField1);
             String applyLoan = jsonObject.getString("applyLoan");
+            String applyLoanTimeStr = jsonObject.getString("applyLoanTime");
             boolean applyLoanBool = "1".equals(applyLoan);
-            if (applyLoanBool) {
-                String applyLoanTimeStr = jsonObject.getString("applyLoanTime");
+            if (applyLoanBool && StringUtils.isNotBlank(applyLoanTimeStr)) {
                 try {
                     LocalDate applyLoanTime = LocalDate.parse(applyLoanTimeStr, DateTimeFormatter.ISO_LOCAL_DATE);
                     if (localDate.isEqual(applyLoanTime.plusDays(30))) {
@@ -118,6 +118,44 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         return map;
     }
 
+    /**
+     * 2022/10/25 15:53
+     * d1情况前置剔除条件
+     * 锁定期：unlentAmount=0&lentTime+30天
+     */
+    private Map<String, MarketingTransferSyncUser> preRejectWhereD1(List<MarketingTransferSyncUser> list
+            , LocalDate localDate) {
+        Map<String, MarketingTransferSyncUser> map = new HashMap<>(list.size());
+        for (MarketingTransferSyncUser user : list) {
+            String lentTimeStr = user.getLentTime();
+            String unlentAmount = user.getUnlentAmount();
+            String custNum = user.getCustNum();
+            if (StringUtils.isBlank(lentTimeStr) || StringUtils.isBlank(unlentAmount)) {
+                addMap(map, custNum, user);
+                continue;
+            }
+            boolean unlentAmountBool = "0".equals(unlentAmount);
+            if (unlentAmountBool) {
+                try {
+                    LocalDate lentTimeTime = LocalDateTime.parse(lentTimeStr, DATE_TIME_FORMATTER).toLocalDate();
+                    if (localDate.isEqual(lentTimeTime.plusDays(30))) {
+                        continue;
+                    }
+                } catch (Exception e) {
+                    try {
+                        LocalDate lentTimeLocalDate = LocalDate.parse(lentTimeStr, DateTimeFormatter.ISO_LOCAL_DATE);
+                        if (localDate.isEqual(lentTimeLocalDate.plusDays(30))) {
+                            continue;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+            addMap(map, custNum, user);
+        }
+        list.clear();
+        return map;
+    }
 
     /**
      * 2022/10/20 15:53
@@ -187,7 +225,6 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             map.put(custNum, user);
         }
     }
-
 
     /**
      * 2022/10/20 15:13
