@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.ValidateUtil;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.client.DecodeClient;
 import com.br.marketing.common.commondto.Result;
@@ -10,6 +11,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
@@ -277,10 +279,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             error = error.replace("name不能为空;", "");
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
-                            if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
-                                phoneSale.setName(StringUtils.isBlank(content) ? "1" : content);
-                            }
+                            phoneSale.setName(decryptName(s));
                         }
                         break;
                     case "gender":
@@ -745,6 +744,24 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return objectResult;
     }
 
+    String decryptName(String name){
+        UserValidator userValidator = new UserValidator(2);
+        if (userValidator.validateName(name)) {
+            return name;
+        }
+        String res = "";
+        if (DecodeClient.isMd5(name)) {
+            //cell md5
+            res = decodeClient.query(name, "name", "md5", "");
+        } else if(name.length() == 64) {
+            //cell sha256
+            res = decodeClient.query(name, "name", "sha", "");
+        }
+        if(StringUtils.isEmpty(res)){
+            return "1";
+        }
+        return res;
+    }
     @Override
     public Result phoneTodbByJuZi(TxtToDbDTO dto) {
         PhoneSale phoneSale = new PhoneSale();
