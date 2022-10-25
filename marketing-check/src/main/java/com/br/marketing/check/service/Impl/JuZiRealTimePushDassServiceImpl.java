@@ -137,7 +137,12 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                     dassImportDataDTO.setUserType("B");
                 }
                 dassImportDataDTO.setUid(custNum);
-                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(decodeClient.query(custNum, "cell", "md5", ""), aesKey));
+                String phoneDecode = decodeClient.query(custNum, "cell", "md5", "");
+                //解密失败直接丢弃
+                if(StringUtils.isEmpty(phoneDecode)){
+                    return;
+                }
+                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(phoneDecode,aesKey));
                 PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
                 phoneSaleExtendInfo.setApiCode(apiCode);
                 phoneSaleExtendInfo.setCreateTime(new Date());
@@ -216,8 +221,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             custNums.removeAll(aRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
-            custNums.removeAll(pushThreeRecord);
+            if (!CollectionUtils.isEmpty(custNums)) {
+                List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
+                custNums.removeAll(pushThreeRecord);
+            }
             aRulecustNum.addAll(custNums);
         }
         for (Iterator<String> iterator = aRulecustNum.iterator(); iterator.hasNext(); ) {
@@ -269,8 +276,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             custNums.removeAll(bRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
-            custNums.removeAll(pushThreeRecord);
+            if (!CollectionUtils.isEmpty(custNums)) {
+                List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
+                custNums.removeAll(pushThreeRecord);
+            }
             bRulecustNum.addAll(custNums);
         }
         for (Iterator<String> iterator = bRulecustNum.iterator(); iterator.hasNext(); ) {
