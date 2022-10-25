@@ -333,6 +333,6 @@
         order by id
         limit ${(pageNum - 1) * pageSize}
         , #{pageSize}) t2
-        where t1.id = t2.id and t1.insert_time>=#{insertTimeStr}
+        where t1.id = t2.id and t1.create_time>=#{insertTimeStr}
     </select>
 </mapper>
