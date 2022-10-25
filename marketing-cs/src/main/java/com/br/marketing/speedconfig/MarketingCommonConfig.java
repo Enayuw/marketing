@@ -299,4 +299,9 @@ public class MarketingCommonConfig {
      */
     private String nfsPath;
 
+    /**
+     * 桔子转化数据入库特殊处理apicode集合
+     */
+    private List<String> juZiTransferInsertApiCodes;
+
 }
