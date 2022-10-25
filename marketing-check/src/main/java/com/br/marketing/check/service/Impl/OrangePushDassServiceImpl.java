@@ -276,8 +276,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         for (MarketingTransferSyncUser u : list) {
             BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
             u.setUserType(userType);
+            DassImportDataDTO dassImportData = getDassImportData(u);
+            if (dassImportData == null) {
+                continue;
+            }
+            dataDTO.setDassImportDataDTO(dassImportData);
             dataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendInfo(u, status));
-            dataDTO.setDassImportDataDTO(getDassImportData(u));
             transferData.add(dataDTO);
         }
         artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
@@ -361,14 +365,13 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(transfer.getId());
         String custNum = transfer.getCustNum();
-        String phone = null;
-        try {
-            String cell = decodeClient.query(custNum, "cell", "md5", "");
-            //cell转aes加密
-            phone = AESUtil.aesEncrypty(cell, aesKey);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+        String cell = decodeClient.query(custNum, "cell", "md5", "");
+        if (StringUtils.isBlank(cell)) {
+            log.warn("桔子周期性推送dass，手机号解密失败！id:{};custNum:{}", transfer.getId(), transfer.getCustNum());
+            return null;
         }
+        //cell转aes加密
+        String phone = AESUtil.aesEncrypty(cell, aesKey);
         batchImportData.setPhone(phone);
         batchImportData.setName("1");
         batchImportData.setOrgname("juzi");
