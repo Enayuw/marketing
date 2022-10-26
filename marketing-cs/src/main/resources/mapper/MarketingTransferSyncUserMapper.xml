@@ -263,7 +263,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-            if_login= '0'
+            if_login= '1'
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>

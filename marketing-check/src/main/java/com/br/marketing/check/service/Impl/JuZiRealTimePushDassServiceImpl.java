@@ -56,6 +56,8 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
 
     final static String LENTTIME = "lentTime";
 
+    final static String PUSHNUM = "pushNum";
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -212,6 +214,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             List<String> custNums = juZiARuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
             //剔除锁定期的数据
             String applyDt;
+            String recordDate;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))) {
                 applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
@@ -221,7 +224,12 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             List<String> aRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, custNums);
             custNums.removeAll(aRuleLockData);
             //a+a1+b+b1求和7天内推送3次
-            String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM)))) {
+                recordDate = marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM);
+            } else { //默认7天
+                recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             if (!CollectionUtils.isEmpty(custNums)) {
                 List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
                 custNums.removeAll(pushThreeRecord);
@@ -267,6 +275,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             List<String> custNums = juZiBRuleTransferData.stream().map(transferData -> transferData.getCustNum()).collect(Collectors.toList());
             //剔除锁定期的数据
             String applyDt;
+            String recordDate;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))) {
                 applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
@@ -276,7 +285,12 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             List<String> bRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, custNums);
             custNums.removeAll(bRuleLockData);
             //a+a1+b+b1求和7天内推送3次
-            String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
+                    && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM)))) {
+                recordDate = marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM);
+            } else { //默认7天
+                recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
             if (!CollectionUtils.isEmpty(custNums)) {
                 List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, custNums);
                 custNums.removeAll(pushThreeRecord);
