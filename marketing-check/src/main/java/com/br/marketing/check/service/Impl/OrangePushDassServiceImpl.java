@@ -255,10 +255,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         int page = 1;
         int pageSize = 2000;
         boolean nextBool = true;
-        String insertTimeStr = dayObj.localDate.minusDays(dayObj.day).format(DateTimeFormatter.ISO_LOCAL_DATE);
         while (nextBool) {
             List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper
-                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, insertTimeStr, page, pageSize);
+                    .findOrangeCyclicalTransferSyncPage(tcId, apiCode, dateSet, status, page, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
             } else if (pageList.size() < pageSize) {
