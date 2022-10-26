@@ -61,6 +61,10 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     public void transferCyclicalPushDass(String apiCode) {
         final LocalDate localDate = LocalDate.now();
         final String tcId = tableCreateService.getTcId(apiCode);
+        if (StringUtils.isBlank(tcId)) {
+            log.warn("该apicode未维护，{}", apiCode);
+            return;
+        }
         DayObj dayObj = new DayObj(localDate, 30);
         // 推送优先级为d1>c1>b1>a1,d1为最高优先级，a1为最低优先级
         // 情况d1
