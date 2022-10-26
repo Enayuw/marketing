@@ -348,14 +348,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
     private PhoneSaleExtendInfo getPhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String status) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
-        LocalDateTime localDateTime = transfer.getCreateTime().toInstant()
-                .atZone(ZoneId.systemDefault()).toLocalDateTime();
-        LocalDate localDate = localDateTime.toLocalDate();
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
-        phoneSaleExtendInfo.setAppletDate(localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        phoneSaleExtendInfo.setAppletDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        phoneSaleExtendInfo.setAppletTime(LocalDateTime.now().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setUpdateTime(phoneSaleExtendInfo.getCreateTime());
