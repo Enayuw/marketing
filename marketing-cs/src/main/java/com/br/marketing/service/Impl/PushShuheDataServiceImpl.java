@@ -835,8 +835,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
                 if (!CollectionUtils.isEmpty(varData)) {
-                    String keyId = "idt_no";
-                    String keyName = "cus_name";
+                    String keyId = "identificationNo";
+                    String keyName = "name";
                     if (varData.containsKey(keyId)) {
                         dto.setId(varData.getString(keyId));
                         varData.remove(keyId);
