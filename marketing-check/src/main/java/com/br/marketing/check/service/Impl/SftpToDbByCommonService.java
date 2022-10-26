@@ -220,7 +220,7 @@ public class SftpToDbByCommonService {
                     }
                 }
             }
-            localFile.setErrorActualNumber(Integer.valueOf(errorMark.toString()));
+            localFile.setErrorActualNumber(errorMark.get());
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             producter.send(routKey, localFile.getId().toString());
         } catch (Exception e) {
