@@ -220,7 +220,8 @@ public class SftpToDbByCommonService {
                     }
                 }
             }
-            localFile.setErrorActualNumber(errorMark.get());
+
+            updateFile.setErrorActualNumber(errorMark.get());
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             producter.send(routKey, localFile.getId().toString());
         } catch (Exception e) {
@@ -358,7 +359,7 @@ public class SftpToDbByCommonService {
             if (errorMark.get() > 0) {
                 updateFile.setComplete("3");
             }
-            localFile.setErrorActualNumber(Integer.valueOf(errorMark.toString()));
+            updateFile.setErrorActualNumber(errorMark.get());
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
@@ -379,7 +380,7 @@ public class SftpToDbByCommonService {
                     .append("文件类型：".concat(localFile.getFileType()).concat("\r\n"))
                     .append("导入文件状态：".concat(errorMark.get() == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
-                    .append("其中有问题行数：".concat(errorMark.toString()).concat("\r\n"));
+                    .append("其中有问题行数：".concat(String.valueOf(errorMark.get())).concat("\r\n"));
             alarmClient.sendAlarm(content.toString(), "sftp数据上传", appName, secretKey,
                     Constants.sendCodeMap.get("uploadSuccess"));
         } catch (Exception ex) {
