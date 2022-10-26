@@ -14,6 +14,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -70,7 +71,18 @@ public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob 
             if (size > 0) {
                 continue;
             }
+            TransferActionFront taf = new TransferActionFront();
+            taf.setApiCode(apiCode);
+            taf.setCreateTime(new Date());
+            taf.setUpdateTime(taf.getCreateTime());
+            taf.setActionType(4);
+            taf.setActionData(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            transferActionFrontMapper.insert(taf);
             orangePushDassService.transferCyclicalPushDass(apiCode);
+            TransferActionFront tafUpdate = new TransferActionFront();
+            tafUpdate.setStatus(2);
+            tafUpdate.setId(taf.getId());
+            transferActionFrontMapper.updateByPrimaryKeySelective(tafUpdate);
         }
         long end = System.currentTimeMillis();
         log.warn("【桔子周期性自动化转Daas】调度结束，耗时:{}", end - start);
