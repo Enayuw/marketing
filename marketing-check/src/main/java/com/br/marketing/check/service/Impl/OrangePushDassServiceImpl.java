@@ -335,6 +335,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         Set<String> set = phoneSaleExtendInfoMapper.getCustNumByCustNumAndStatusAndDateSet(
                 apiCode, custNumSet, Arrays.asList(statusList), dateStr);
         custNumSet.removeAll(set);
+        if (custNumSet.size() == 0) {
+            return new ArrayList<>(map.values());
+        }
         //a+a1+b+b1求和7天内推送3次
         String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
