@@ -170,7 +170,7 @@
     </select>
 
     <select id="getCustNumByCustNumAndStatusAndDateSet" resultType="java.lang.String">
-        select distinct cust_num from b_phone_sale_extend_info
+        select cust_num from b_phone_sale_extend_info
         where api_code = '${apiCode}'
         and cust_num in
         <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
@@ -180,6 +180,6 @@
         <foreach collection="statusList" item="status" open="(" separator="," close=")">
             '${status}'
         </foreach>
-        and applet_date='${appletDate}'
+        and applet_date='${appletDate}' group by cust_num
     </select>
 </mapper>
