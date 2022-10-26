@@ -339,7 +339,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             return new ArrayList<>(map.values());
         }
         //a+a1+b+b1求和7天内推送3次
-        String recordDate = LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
                 , recordDate, new ArrayList<>(custNumSet));
         custNumSet.removeAll(new HashSet<>(pushThreeRecord));
