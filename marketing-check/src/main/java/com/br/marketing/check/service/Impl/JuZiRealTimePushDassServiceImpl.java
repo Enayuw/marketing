@@ -152,6 +152,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 phoneSaleExtendInfo.setPStatus(1);
                 phoneSaleExtendInfo.setUserType(dassImportDataDTO.getUserType());
                 phoneSaleExtendInfo.setTransformType("1");
+                phoneSaleExtendInfo.setSourceId(dassImportDataDTO.getId());
                 batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
                 batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
                 transferData.add(batchRealTimeUserDataDTO);
