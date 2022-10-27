@@ -13,10 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * 桔子周期性自动化转Daas-3710037（营销→Daas）
@@ -34,31 +31,26 @@ public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob 
     @Resource
     private TransferActionFrontMapper transferActionFrontMapper;
 
-    private final static List<String> API_CODE_LIST = new ArrayList<>();
-
-    static {
-        API_CODE_LIST.add("3710037");
-    }
-
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
+        List<String> list = new ArrayList<>(Collections.singletonList("3710037"));
         String parameter = shardingContext.getJobParameter();
         boolean nextBool = true;
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
             while (string.hasMoreTokens()) {
                 String apiCode = string.nextToken();
-                if (API_CODE_LIST.contains(apiCode)) {
+                if (list.contains(apiCode)) {
                     if (nextBool) {
                         nextBool = false;
                     }
                     continue;
                 }
-                API_CODE_LIST.add(apiCode);
+                list.add(apiCode);
             }
         }
-        for (String apiCode : API_CODE_LIST) {
+        for (String apiCode : list) {
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, 2, 3);
             int size = actionFrontList.size();
             // 1. 前置任务是否完成

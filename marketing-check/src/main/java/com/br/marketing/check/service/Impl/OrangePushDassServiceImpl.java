@@ -278,13 +278,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         List<BatchRealTimeUserDataDTO> transferData = new ArrayList<>();
         for (MarketingTransferSyncUser u : list) {
             BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
-            u.setUserType(userType);
-            DassImportDataDTO dassImportData = getDassImportData(u);
+            DassImportDataDTO dassImportData = getDassImportData(u, userType);
             if (dassImportData == null) {
                 continue;
             }
             dataDTO.setDassImportDataDTO(dassImportData);
-            dataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendInfo(u, status));
+            dataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendInfo(u, status, userType));
             transferData.add(dataDTO);
         }
         artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
@@ -346,7 +345,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         return new ArrayList<>(map.values());
     }
 
-    private PhoneSaleExtendInfo getPhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String status) {
+    private PhoneSaleExtendInfo getPhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String status
+            , String userType) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
@@ -362,10 +362,11 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         phoneSaleExtendInfo.setStatus(status);
         phoneSaleExtendInfo.setType(transfer.getType());
         phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setDxType(userType);
         return phoneSaleExtendInfo;
     }
 
-    private DassImportDataDTO getDassImportData(MarketingTransferSyncUser transfer) {
+    private DassImportDataDTO getDassImportData(MarketingTransferSyncUser transfer, String userType) {
         DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(transfer.getId());
         String custNum = transfer.getCustNum();
@@ -380,7 +381,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         batchImportData.setName("1");
         batchImportData.setOrgname("juzi");
         batchImportData.setUid(transfer.getCustNum());
-        batchImportData.setUserType(transfer.getUserType());
+        batchImportData.setUserType(userType);
         batchImportData.setSource("15");
         batchImportData.setOptype("1");
         return batchImportData;
