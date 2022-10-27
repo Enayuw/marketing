@@ -180,6 +180,6 @@
         <foreach collection="statusList" item="status" open="(" separator="," close=")">
             '${status}'
         </foreach>
-        and applet_date='${appletDate}' group by cust_num
+        and <![CDATA[ and create_time >= #{appletDate} ]]> group by cust_num
     </select>
 </mapper>
