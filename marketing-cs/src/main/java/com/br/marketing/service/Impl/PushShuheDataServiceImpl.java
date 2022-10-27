@@ -177,6 +177,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
             // 3、查询db获取相应TaskId
             String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, jsonDTO.getOrderId(), userType);
+            if (taskId == null) {
+                taskId = "";
+            }
             // 4、客户转化数据适配标准转化数据
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
                     (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
