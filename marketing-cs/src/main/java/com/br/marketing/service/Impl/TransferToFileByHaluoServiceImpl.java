@@ -16,6 +16,7 @@ import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -56,6 +58,9 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
     @Autowired
     SyncConfigService syncConfigService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
@@ -75,6 +80,15 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
+        if(StringUtils.isNotEmpty(jobParameter)){
+            String[] split = jobParameter.split(";");
+            for(String s : split){
+                String paramApiCode = s.split("#")[0];
+                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(paramApiCode)){
+                    return s.split("#")[1];
+                }
+            }
+        }
         return "";
     }
 
@@ -122,8 +136,8 @@ public class TransferToFileByHaluoServiceImpl implements ITransferToFileService 
         Date now = new Date();
         String recordDate = transferFileTask.getStartDate();
         String startDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).minusDays(1L).format(YYYYMMDDLINEDF);
-        if (now.before(DateHelper.parseDate(ONLINE_TIME))) {
-            startDate = FIRST_TIME;
+        if (StringUtils.isNotEmpty(jobParameter)) {
+            startDate = jobParameter;
         }
         String endDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).format(YYYYMMDDLINEDF);
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
