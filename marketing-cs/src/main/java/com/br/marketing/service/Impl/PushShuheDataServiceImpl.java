@@ -110,8 +110,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 , "bizId"
                 , "varData"
                 , "bizType"
-                , "cus_name"
-                , "idt_no"
+                , "name"
+                , "identificationNo"
                 , "clc_usr_adt_tim_rcn_lon"
                 , "clc_usr_adt_lmt_fst_all"
                 , "clc_usr_adt_lmt_lv0"
@@ -472,8 +472,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
                 if (!CollectionUtils.isEmpty(varData)) {
-                    String keyId = "idt_no";
-                    String keyName = "cus_name";
+                    String keyId = "identificationNo";
+                    String keyName = "name";
                     if (varData.containsKey(keyId)) {
                         dto.setId(varData.getString(keyId));
                         varData.remove(keyId);
