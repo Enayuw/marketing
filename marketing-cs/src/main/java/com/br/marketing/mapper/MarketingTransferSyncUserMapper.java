@@ -237,7 +237,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime,@Param("custNums")List<String> custNums);
+    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime,@Param("custNums")Set<String> custNums);
 
     /**
      * 获取桔子C规则的锁定期数据
@@ -247,7 +247,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime,@Param("custNums")List<String> custNums);
+    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime,@Param("custNums")Set<String> custNums);
 
     /**
      * 获取桔子B规则或A规则的锁定期数据
@@ -257,7 +257,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")List<String> custNums);
+    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")Set<String> custNums);
 
 
 
