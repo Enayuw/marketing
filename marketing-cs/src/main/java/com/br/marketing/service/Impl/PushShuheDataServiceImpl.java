@@ -156,11 +156,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                  * 当bizType未传时，需要主动去上传接口中查找，
                  * 如果未查到需要返回给客户提示信息，并将数据落库到本地
                  */
-                try {
-                    userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
+                userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
             }
             final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             CaseShuheUser caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
@@ -180,12 +176,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                         .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
             }
             // 3、查询db获取相应TaskId
-            String taskId = "";
-            try {
-                taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, jsonDTO.getOrderId(), userType);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+            String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, jsonDTO.getOrderId(), userType);
             // 4、客户转化数据适配标准转化数据
             MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
                     (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
