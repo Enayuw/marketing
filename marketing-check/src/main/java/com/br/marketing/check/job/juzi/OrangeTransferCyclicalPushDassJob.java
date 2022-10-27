@@ -1,4 +1,4 @@
-package com.br.marketing.check.job.orange;
+package com.br.marketing.check.job.juzi;
 
 import com.br.marketing.check.service.OrangePushDassService;
 import com.br.marketing.entity.TransferActionFront;
