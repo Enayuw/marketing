@@ -323,7 +323,7 @@
         left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num
         where
         <foreach collection="dateSet" item="date" open="(" separator=" or " close=")">
-            a.applet_date=#{date}
+            (<![CDATA[a.create_time >='${date} 00:00:00' and a.create_time <='${date} 23:59:59']]>)
         </foreach>
         and a.api_code=#{apiCode}
         and a.status=#{status}
