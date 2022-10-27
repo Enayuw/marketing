@@ -303,5 +303,13 @@ public class MarketingCommonConfig {
      * 桔子转化数据入库特殊处理apicode集合
      */
     private List<String> juZiTransferInsertApiCodes;
+    /**
+     * 哈啰转化数据提取apicode集合
+     */
+    private List<String> haLuoTransferFileApiCodes;
+    /**
+     * 萨摩耶转化数据提取apicode集合
+     */
+    private List<String> saMoYeTransferFileApiCodes;
 
 }

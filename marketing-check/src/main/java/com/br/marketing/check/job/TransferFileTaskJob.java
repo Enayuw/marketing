@@ -138,9 +138,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
-        if (customer.getShortName().contains("萨摩耶")) {
+        if (marketingCommonConfig.getSaMoYeTransferFileApiCodes().contains(customer.getApiCode())) {
             return transferToFileBySamoyeServiveImpl;
-        } else if (customer.getShortName().contains("哈罗")) {
+        } else if (marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(customer.getApiCode())) {
             return transferToFileByHaluoServiceImpl;
         } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
             return transferToFileByShuHeService;
