@@ -128,7 +128,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private boolean preRejectWhereD1(MarketingTransferSyncUser user, LocalDate localDate, int day) {
         String lentTimeStr = user.getLentTime();
         String unlentAmount = user.getUnlentAmount();
-        if (StringUtils.isBlank(lentTimeStr) || StringUtils.isBlank(unlentAmount)) {
+        if (StringUtils.isBlank(unlentAmount)) {
             return false;
         }
         return "0".equals(unlentAmount) && compareDate(lentTimeStr, localDate, day);
@@ -154,6 +154,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * @return true 在范围内，false 不在范围内
      */
     private boolean compareDate(String dateTimeStr, LocalDate localDate, int day) {
+        if (StringUtils.isBlank(dateTimeStr)) {
+            return false;
+        }
         LocalDate localDateNew;
         try {
             localDateNew = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER).toLocalDate().plusDays(day);
