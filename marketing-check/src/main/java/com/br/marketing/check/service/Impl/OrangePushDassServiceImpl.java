@@ -96,8 +96,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         JSONObject jsonObject = JSON.parseObject(reserveField1);
         String applyLoan = jsonObject.getString("applyLoan");
         String applyLoanTimeStr = jsonObject.getString("applyLoanTime");
-        boolean applyLoanBool = "1".equals(applyLoan);
-        if (applyLoanBool && StringUtils.isNotBlank(applyLoanTimeStr)) {
+        boolean bool = "1".equals(applyLoan) && StringUtils.isNotBlank(applyLoanTimeStr);
+        if (bool) {
             LocalDate applyLoanTimeLocalDate;
             try {
                 applyLoanTimeLocalDate = LocalDate.parse(applyLoanTimeStr, DateTimeFormatter.ISO_LOCAL_DATE)
@@ -126,12 +126,11 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 锁定期：unlentAmount=0&lentTime+30天
      */
     private boolean preRejectWhereD1(MarketingTransferSyncUser user, LocalDate localDate, int day) {
-        String lentTimeStr = user.getLentTime();
         String unlentAmount = user.getUnlentAmount();
         if (StringUtils.isBlank(unlentAmount)) {
             return false;
         }
-        return "0".equals(unlentAmount) && compareDate(lentTimeStr, localDate, day);
+        return "0".equals(unlentAmount) && compareDate(user.getLentTime(), localDate, day);
     }
 
     /**
@@ -140,8 +139,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 锁定期：applyDt有值+30天
      */
     private boolean preRejectWhereA1OrB1(MarketingTransferSyncUser user, LocalDate localDate, int day) {
-        String applyDtStr = user.getApplyDt();
-        return compareDate(applyDtStr, localDate, day);
+        return compareDate(user.getApplyDt(), localDate, day);
     }
 
     /**
@@ -177,19 +175,23 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
     /**
      * 2022/10/20 15:13
-     * 分页查询对应情况、推送日期的转化分页数据
+     * 分页查询对应情况、推送日期的数据
      *
-     * @param tcId    分表后缀
-     * @param apiCode apiCode
-     * @param status  情况
+     * @param tcId            分表后缀
+     * @param apiCode         apiCode
+     * @param localDate       当前日期
+     * @param status          情况
+     * @param predicateReject 剔除函数
+     * @param userType        电销场景
+     * @param statusList      情况集合
      */
     private void pushPageData(final String tcId
             , final String apiCode
             , final LocalDate localDate
             , final String status
-            , Predicate<MarketingTransferSyncUser> predicate
-            , String userType
-            , String... statusList) {
+            , final Predicate<MarketingTransferSyncUser> predicateReject
+            , final String userType
+            , final String... statusList) {
         Set<String> dateSet = getDateSet(status, localDate);
         int page = 1;
         int pageSize = 2000;
@@ -203,20 +205,23 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 nextBool = false;
             }
             page++;
-            List<PhoneSaleExtendInfo> list = statusFilter(preReject(tcId, apiCode, pageList, predicate)
+            List<PhoneSaleExtendInfo> list = statusFilter(preReject(tcId, apiCode, pageList, predicateReject)
                     , localDate, apiCode, statusList);
             sendDass(list, status + "1", userType);
         }
     }
 
+    /**
+     * 2022/10/28 20:08
+     */
     private void sendDass(List<PhoneSaleExtendInfo> list, String status, String userType) {
         List<BatchRealTimeUserDataDTO> transferData = new ArrayList<>();
         for (PhoneSaleExtendInfo u : list) {
-            BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
             DassImportDataDTO dassImportData = getDassImportData(u, userType);
             if (dassImportData == null) {
                 continue;
             }
+            BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
             dataDTO.setDassImportDataDTO(dassImportData);
             dataDTO.setPhoneSaleExtendInfo(getPhoneSaleExtendInfo(u, status, userType));
             transferData.add(dataDTO);
@@ -257,11 +262,14 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     /**
      * 2022/10/28 17:41
      * 前置剔除
+     *
+     * @param predicateReject 剔除函数{@link MarketingTransferSyncUser}
+     * @return map key custNum value {@link PhoneSaleExtendInfo}
      */
     private Map<String, PhoneSaleExtendInfo> preReject(String tCid
             , String apiCode
             , List<PhoneSaleExtendInfo> list
-            , Predicate<MarketingTransferSyncUser> predicate) {
+            , Predicate<MarketingTransferSyncUser> predicateReject) {
         int pageSize = 2000;
         int page = 0;
         Map<String, PhoneSaleExtendInfo> map = list.parallelStream().collect(
@@ -277,7 +285,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             if (CollectionUtils.isEmpty(userList)) {
                 break;
             }
-            Set<String> set = userList.parallelStream().filter(predicate)
+            Set<String> set = userList.parallelStream().filter(predicateReject)
                     .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             numSet.addAll(set);
             if (userList.size() < pageSize) {
@@ -309,7 +317,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             return new ArrayList<>(map.values());
         }
         //a+a1+b+b1求和7天内推送3次
-        String recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ISO_LOCAL_DATE);
         List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
                 , recordDate, new ArrayList<>(custNumSet));
         custNumSet.removeAll(new HashSet<>(pushThreeRecord));
