@@ -105,7 +105,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 3);
-            Map<String, Map<String,MarketingTransferSyncUser>> buildPushDaasMap = buildRealTimePushData(apiCode, recordDate);
+            Map<String, Map<String, MarketingTransferSyncUser>> buildPushDaasMap = buildRealTimePushData(apiCode, recordDate);
             pushToDaas(apiCode, buildPushDaasMap);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate("桔子实时任务推送电销完成");
@@ -118,10 +118,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      *
      * @return
      */
-    private void pushToDaas(String apiCode, Map<String, Map<String,MarketingTransferSyncUser>> buildPushDaasMap) {
+    private void pushToDaas(String apiCode, Map<String, Map<String, MarketingTransferSyncUser>> buildPushDaasMap) {
         List<BatchRealTimeUserDataDTO> transferData = new ArrayList<>();
         buildPushDaasMap.forEach((status, map) -> {
-            map.forEach((custNum,marketingTransferSyncUser) -> {
+            map.forEach((custNum, marketingTransferSyncUser) -> {
                 BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
                 DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
                 dassImportDataDTO.setId(Long.valueOf(RandomUtils.randomStr(5)));
@@ -137,10 +137,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 dassImportDataDTO.setUid(custNum);
                 String phoneDecode = decodeClient.query(custNum, "cell", "md5", "");
                 //解密失败直接丢弃
-                if(StringUtils.isEmpty(phoneDecode)){
+                if (StringUtils.isEmpty(phoneDecode)) {
                     return;
                 }
-                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(phoneDecode,aesKey));
+                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(phoneDecode, aesKey));
                 PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
                 phoneSaleExtendInfo.setApiCode(apiCode);
                 phoneSaleExtendInfo.setCreateTime(new Date());
@@ -172,9 +172,9 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      * @param
      * @return
      */
-    private Map<String, Map<String,MarketingTransferSyncUser>> buildRealTimePushData(String apiCode, String date) {
+    private Map<String, Map<String, MarketingTransferSyncUser>> buildRealTimePushData(String apiCode, String date) {
         String tcId = tableCreateService.getTcId(apiCode);
-        Map<String, Map<String,MarketingTransferSyncUser>> pushDaasMap = new HashMap<>();
+        Map<String, Map<String, MarketingTransferSyncUser>> pushDaasMap = new HashMap<>();
         //获取d规则的待推送数据
         getDrulePushData(tcId, date, pushDaasMap);
         //获取c规则的待推送数据
@@ -196,10 +196,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      * @param
      * @return
      */
-    private void getArulePushData(String apiCode, String tcId, String date, Map<String, Map<String,MarketingTransferSyncUser>> pushDaasMap) {
+    private void getArulePushData(String apiCode, String tcId, String date, Map<String, Map<String, MarketingTransferSyncUser>> pushDaasMap) {
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
-        Map<String,MarketingTransferSyncUser> aRuleTransferData = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> aRuleTransferData = new HashMap<>();
         String loginTime = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         while (isContiue) {
             //查询a规则的转化数据
@@ -209,25 +209,23 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 continue;
             }
             minId = juZiARuleTransferData.get(juZiARuleTransferData.size() - 1).getId() + 1;
-            Map<String,MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiARuleTransferData);
+            Map<String, MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiARuleTransferData);
             //剔除锁定期的数据
-            String applyDt;
-            String recordDate;
+            int applyDtDays = 30;
+            int recordDateDays = 6;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))) {
-                applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
-            } else { //默认30天
-                applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                applyDtDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT));
+            } //默认30天
+            String applyDt = LocalDateTime.now().minusDays(applyDtDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             List<String> aRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, transferSyncUserMap.keySet());
             transferSyncUserMap.keySet().removeAll(aRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM)))) {
-                recordDate = marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM);
-            } else { //默认7天
-                recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                recordDateDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM));
+            }//默认7天
+            String recordDate = LocalDateTime.now().minusDays(recordDateDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             if (!CollectionUtils.isEmpty(transferSyncUserMap)) {
                 List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, new ArrayList<String>(transferSyncUserMap.keySet()));
                 transferSyncUserMap.keySet().removeAll(pushThreeRecord);
@@ -258,10 +256,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      * @param
      * @return
      */
-    private void getBrulePushData(String apiCode, String tcId, String date, Map<String, Map<String,MarketingTransferSyncUser>> pushDaasMap) {
+    private void getBrulePushData(String apiCode, String tcId, String date, Map<String, Map<String, MarketingTransferSyncUser>> pushDaasMap) {
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
-        Map<String,MarketingTransferSyncUser> bRuleTransferData = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> bRuleTransferData = new HashMap<>();
         String registerTime = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         while (isContiue) {
             //查询b规则的转化数据
@@ -271,25 +269,23 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 continue;
             }
             minId = juZiBRuleTransferData.get(juZiBRuleTransferData.size() - 1).getId() + 1;
-            Map<String,MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiBRuleTransferData);
+            Map<String, MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiBRuleTransferData);
             //剔除锁定期的数据
-            String applyDt;
-            String recordDate;
+            int applyDtDays = 30;
+            int recordDateDays = 6;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT)))) {
-                applyDt = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT);
-            } else { //默认30天
-                applyDt = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                applyDtDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYDT));
+            }//默认30天
+            String applyDt = LocalDateTime.now().minusDays(applyDtDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             List<String> bRuleLockData = marketingTransferSyncUserMapper.getJuZiBOrARuleLockData(tcId, applyDt, transferSyncUserMap.keySet());
             transferSyncUserMap.keySet().removeAll(bRuleLockData);
             //a+a1+b+b1求和7天内推送3次
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM)))) {
-                recordDate = marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM);
-            } else { //默认7天
-                recordDate = LocalDateTime.now().minusDays(6).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                recordDateDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(PUSHNUM));
+            }//默认7天
+            String recordDate = LocalDateTime.now().minusDays(recordDateDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             if (!CollectionUtils.isEmpty(transferSyncUserMap)) {
                 List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode, recordDate, new ArrayList<String>(transferSyncUserMap.keySet()));
                 transferSyncUserMap.keySet().removeAll(pushThreeRecord);
@@ -314,10 +310,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      * @param
      * @return
      */
-    private void getCrulePushData(String tcId, String date, Map<String, Map<String,MarketingTransferSyncUser>> pushDaasMap) {
+    private void getCrulePushData(String tcId, String date, Map<String, Map<String, MarketingTransferSyncUser>> pushDaasMap) {
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
-        Map<String,MarketingTransferSyncUser> cRuleTransferData = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> cRuleTransferData = new HashMap<>();
         while (isContiue) {
             //查询c规则的转化数据
             List<MarketingTransferSyncUser> juZiCRuleTransferData = marketingTransferSyncUserMapper.getJuZiCRuleTransferData(tcId, date, minId);
@@ -326,14 +322,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 continue;
             }
             minId = juZiCRuleTransferData.get(juZiCRuleTransferData.size() - 1).getId() + 1;
-            Map<String,MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiCRuleTransferData);
-            String applyLoanTime;
+            Map<String, MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiCRuleTransferData);
+            int applyLoanTimeDays = 30;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYLOANTIME)))) {
-                applyLoanTime = marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYLOANTIME);
-            } else { //默认30天
-                applyLoanTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                applyLoanTimeDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(APPLYLOANTIME));
+            } //默认30天
+            String applyLoanTime = LocalDateTime.now().minusDays(applyLoanTimeDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             List<String> cRuleLockData = marketingTransferSyncUserMapper.getJuZiCRuleLockData(tcId, applyLoanTime, transferSyncUserMap.keySet());
             //剔除锁定期的数据
             transferSyncUserMap.keySet().removeAll(cRuleLockData);
@@ -358,10 +353,10 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
      * @param
      * @return
      */
-    private void getDrulePushData(String tcId, String date, Map<String, Map<String,MarketingTransferSyncUser>> pushDaasMap) {
+    private void getDrulePushData(String tcId, String date, Map<String, Map<String, MarketingTransferSyncUser>> pushDaasMap) {
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
-        Map<String,MarketingTransferSyncUser> dRuleTransferData = new HashMap<>();
+        Map<String, MarketingTransferSyncUser> dRuleTransferData = new HashMap<>();
         while (isContiue) {
             //查询d规则的转化数据
             List<MarketingTransferSyncUser> juZiDRuleTransferData = marketingTransferSyncUserMapper.getJuZiDRuleTransferData(tcId, date, minId);
@@ -370,14 +365,13 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                 continue;
             }
             minId = juZiDRuleTransferData.get(juZiDRuleTransferData.size() - 1).getId() + 1;
-            Map<String,MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiDRuleTransferData);
-            String lentTime;
+            Map<String, MarketingTransferSyncUser> transferSyncUserMap = getTransferSyncUserMap(juZiDRuleTransferData);
+            int lentTimeDays = 30;
             if (!CollectionUtils.isEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig())
                     && (StringUtils.isNotEmpty(marketingCommonConfig.getJuZiRealTimeLockConfig().get(LENTTIME)))) {
-                lentTime = marketingCommonConfig.getJuZiRealTimeLockConfig().get(LENTTIME);
-            } else { //默认30天
-                lentTime = LocalDateTime.now().minusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+                lentTimeDays = Integer.valueOf(marketingCommonConfig.getJuZiRealTimeLockConfig().get(LENTTIME));
+            }//默认30天
+            String lentTime = LocalDateTime.now().minusDays(lentTimeDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             List<String> dRuleLockData = marketingTransferSyncUserMapper.getJuZiDRuleLockData(tcId, lentTime, transferSyncUserMap.keySet());
             //剔除锁定期的数据
             transferSyncUserMap.keySet().removeAll(dRuleLockData);
