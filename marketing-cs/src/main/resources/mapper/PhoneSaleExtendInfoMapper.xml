@@ -182,4 +182,18 @@
         </foreach>
         and <![CDATA[create_time >= #{appletDate}]]> group by cust_num
     </select>
+
+    <select id="findOrangeCyclicalPage" resultType="com.br.marketing.entity.PhoneSaleExtendInfo">
+        select * from b_phone_sale_extend_info a
+        where
+        <foreach collection="dateSet" item="date" open="(" separator=" or " close=")">
+            (<![CDATA[a.create_time >='${date} 00:00:00' and a.create_time <='${date} 23:59:59']]>)
+        </foreach>
+        and a.api_code=#{apiCode}
+        and a.status=#{status}
+        and a.transform_type='1'
+        and a.p_status=2
+        order by id
+        limit ${(pageNum - 1) * pageSize}, #{pageSize}
+    </select>
 </mapper>

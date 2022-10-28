@@ -98,4 +98,22 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
             @Param("custNumSet") Set<String> custNumSet,
             @Param("statusList") List<String> statusList,
             @Param("appletDate") String appletDate);
+
+    /**
+     * 2022/10/20 10:36
+     * 获取周期性推送dass的转化数据
+     *
+     * @param apiCode  apiCode
+     * @param dateSet  日期集合
+     * @param status   情况
+     * @param pageNum  页号
+     * @param pageSize 页大小
+     * @return list
+     */
+    List<PhoneSaleExtendInfo> findOrangeCyclicalPage(
+            @Param("apiCode") String apiCode,
+            @Param("dateSet") Set<String> dateSet,
+            @Param("status") String status,
+            @Param("pageNum") int pageNum,
+            @Param("pageSize") int pageSize);
 }
