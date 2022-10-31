@@ -2,23 +2,15 @@ package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.exception.HxResultRuntimeException;
-import com.br.marketing.service.IProductResultSimpleService;
-import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
-import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
 

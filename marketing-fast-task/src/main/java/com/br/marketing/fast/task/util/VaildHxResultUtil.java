@@ -1,7 +1,7 @@
 package com.br.marketing.fast.task.util;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.AlarmApiClient;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,7 +15,6 @@ import com.br.marketing.fast.task.FastTaskApplication;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
 
@@ -24,9 +23,6 @@ import java.util.Set;
  */
 @Slf4j
 public class VaildHxResultUtil {
-
-    @Resource
-    private static AlarmApiClient alarmClient;
 
     /**
      * 校验画像结果正确性
@@ -111,7 +107,10 @@ public class VaildHxResultUtil {
                                     ,apiCode,apiCode,flag,string));
                     log.warn("hxResult product flag error",hxResultRuntimeException);
                     String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
-                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(), title, AlarmSendCodeEnum.EXCEPTION_HUAX.getCode());
+                    log.warn(AlertLog.buildWarnMessage(("99".equals(string)||"98".equals(string))
+                                    ?AlarmSendCodeEnum.EXCEPTION_HUAX.getCode()
+                                    :AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
+                            , hxResultRuntimeException.getMessage(), title));
                 }
                 break;
             }
