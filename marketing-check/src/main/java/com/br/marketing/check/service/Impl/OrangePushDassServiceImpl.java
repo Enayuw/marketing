@@ -66,8 +66,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             log.warn("该apicode未维护，{}", apiCode);
             return;
         }
-        LocalDate localDate = LocalDate.now();
-        int day = 30;
+        final LocalDate localDate = LocalDate.now();
+        final int day = 30;
         String[] statusList = new String[]{"a1", "b1", "c1", "d1", "a", "b", "c", "d"};
         String dxTypeA = "A";
         String dxTypeB = "B";
@@ -209,7 +209,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             }
             page++;
             List<PhoneSaleExtendInfo> list = statusFilter(preReject(tcId, apiCode, pageList, predicateReject)
-                    , localDate, apiCode, statusList);
+                    , status, localDate, apiCode, statusList);
             sendDass(list, status + "1", dxType);
         }
     }
@@ -305,7 +305,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * 2022/10/21 15:01
      * 过滤其他情况的案件
      */
-    private List<PhoneSaleExtendInfo> statusFilter(Map<String, PhoneSaleExtendInfo> map
+    private List<PhoneSaleExtendInfo> statusFilter(Map<String, PhoneSaleExtendInfo> map, String status
             , LocalDate localDate, String apiCode, String... statusList) {
         if (map.size() < 1 || statusList.length < 1) {
             return new ArrayList<>(map.values());
@@ -320,10 +320,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             return new ArrayList<>(map.values());
         }
         //a+a1+b+b1求和7天内推送3次
-        String recordDate = localDate.minusDays(6).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
-                , recordDate, new ArrayList<>(custNumSet));
-        custNumSet.removeAll(new HashSet<>(pushThreeRecord));
+        if ("a".equals(status) || "b".equals(status)) {
+            String recordDate = localDate.minusDays(6).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            List<String> pushThreeRecord = phoneSaleExtendInfoMapper.getJuziPushThreeRecordtikv_(apiCode
+                    , recordDate, new ArrayList<>(custNumSet));
+            custNumSet.removeAll(new HashSet<>(pushThreeRecord));
+        }
         return new ArrayList<>(map.values());
     }
 
