@@ -66,8 +66,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             log.warn("该apicode未维护，{}", apiCode);
             return;
         }
-        final LocalDate localDate = LocalDate.now();
-        final int day = 30;
+        LocalDate localDate = LocalDate.now();
+        int day = 30;
         String[] statusList = new String[]{"a1", "b1", "c1", "d1", "a", "b", "c", "d"};
         String dxTypeA = "A";
         String dxTypeB = "B";
