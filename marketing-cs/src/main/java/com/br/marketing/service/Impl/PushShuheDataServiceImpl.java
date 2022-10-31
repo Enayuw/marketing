@@ -12,6 +12,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -995,7 +996,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 alarmClient.sendAlarm("本次请求发现新增字段："
                                 .concat(fieldStr.toString())
                                 .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查",
-                                Constants.sendCodeMap.get("dataExceptionUrgent"));
+                                AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
                 if (rSum == null || rSum < FIELD_SET.size()) {
                     redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));

@@ -8,6 +8,7 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.PushTransferRobotaiLog;
@@ -62,7 +63,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                     , apiCode, DateUtils.format(new Date()));
             log.error(smg.concat("\n#返回记录：").concat(outboundVO.getData().toString()).concat("\n发送记录：")
                     .concat(robotOutboundDTO.toString()));
-            alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
+            alarmClient.sendAlarm(smg, TITLE, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
         }
         String responseBody = pushTransferRobotaiLog.getResponseBody();
         String smg = String.format("apiCode:[%s];requestId:[%s];transferInfoId:[%s];tCid:[%s]的客户转化数据推送失败或部分失败!" +
@@ -74,7 +75,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                 , responseBody.length() > 300 ? responseBody.substring(0, 300).concat("...") : responseBody);
         Object data = outboundVO.getData();
         log.warn(smg.concat("\n#失败记录：").concat(data == null ? "" : data.toString()));
-        alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
+        alarmClient.sendAlarm(smg, TITLE, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
         return insert;
     }
 
@@ -102,7 +103,7 @@ public class PushTransferRobotaiLogServiceImpl implements PushTransferRobotaiLog
                     , apiCode, DateUtils.format(new Date()));
             log.error(smg.concat("\n#返回记录：").concat(outboundVO.getData().toString()).concat("\n发送记录：")
                     .concat(robotOutboundDTO.toString()));
-            alarmClient.sendAlarm(smg, TITLE, Constants.sendCodeMap.get("dataExceptionCommonly"));
+            alarmClient.sendAlarm(smg, TITLE, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
         }
         return insert;
     }

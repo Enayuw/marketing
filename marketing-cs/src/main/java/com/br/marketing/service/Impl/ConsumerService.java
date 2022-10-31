@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -59,7 +60,7 @@ public class ConsumerService {
                     , new String(message.getBody(), StandardCharsets.UTF_8)
                     , e.getMessage());
             log.error(error,e);
-            alarmClient.sendAlarm(error,"消费异常", Constants.sendCodeMap.get("sysError"));
+            alarmClient.sendAlarm(error,"消费异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             try {
                 channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             } catch (IOException ioException) {

@@ -12,6 +12,7 @@ import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
@@ -579,7 +580,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 .append("已发送批次量：".concat(String.valueOf(i - 1)).concat("\r\n"))
                                 .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
-                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务",Constants.sendCodeMap.get("dataExceptionUrgent"));
+                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                     }
                 }
             } else {

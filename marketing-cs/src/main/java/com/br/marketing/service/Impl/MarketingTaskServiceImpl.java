@@ -13,6 +13,7 @@ import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
@@ -567,7 +568,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
                 .append(String.format("预计数量: %d", preNum));
-        alarmClient.sendAlarm(content.toString(), "任务创建", Constants.sendCodeMap.get("uploadSuccess"));
+        alarmClient.sendAlarm(content.toString(), "任务创建", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         //endregion
 
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());

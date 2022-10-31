@@ -7,6 +7,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.halo.HaluoApiServiceClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.CustomerCalling;
@@ -161,7 +162,7 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
                     .append("taskId：".concat(taskId).concat("\r\n"))
                     .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
             alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务",
-                    Constants.sendCodeMap.get("uploadSuccess"));
+                    AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }

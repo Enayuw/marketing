@@ -5,6 +5,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -110,7 +111,7 @@ public class VaildHxResultUtil {
                                     ,apiCode,apiCode,flag,string));
                     log.warn("hxResult product flag error",hxResultRuntimeException);
                     String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
-                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(), title, Constants.sendCodeMap.get("huaxiangCommonly"));
+                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(), title, AlarmSendCodeEnum.EXCEPTION_HUAX.getCode());
                 }
                 break;
             }

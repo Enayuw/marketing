@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.IceClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoadResult;
@@ -78,7 +79,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                         .append("<br/>");
             }
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-            alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("dataExceptionUrgent"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }else {
             param.put("status","1");
             List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -111,7 +112,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                     }
                 }
                 String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-                alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("uploadSuccess"));
+                alarmClient.sendAlarm(content.toString(),title, AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             }
 
         }
@@ -175,7 +176,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                             .append("<br/>");
                 }
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-                alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("dataExceptionUrgent"));
+                alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }
         param.put("status","1");
         List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -266,7 +267,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
             log.error("任务信息：{}",sb1);
             content.append("<br/>");
             String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-            alarmClient.sendAlarm(content.toString(),title,Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
     }
 
@@ -343,7 +344,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                    .append(dataVolume)
                    .append(" <br/>");
             String title = "【紧急预警】【" + compShortName + "-" + apiCode + "】智能营销平台-上传数据文件数据量异常";
-            alarmClient.sendAlarm(content.toString(), title, Constants.sendCodeMap.get("dataExceptionUrgent"));
+            alarmClient.sendAlarm(content.toString(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }else{
             log.error("dataFileVolumn参数错误:{}",message);
         }

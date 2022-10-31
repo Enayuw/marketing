@@ -8,6 +8,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -211,7 +212,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
     private void sendAlarm(String smg) {
         String title = "接口转化(通用标准)数据同步到智能客服补偿任务警告";
         log.warn(smg);
-        alarmClient.sendAlarm(smg, title, Constants.sendCodeMap.get("dataExceptionCommonly"));
+        alarmClient.sendAlarm(smg, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
     }
 
 

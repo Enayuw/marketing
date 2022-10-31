@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
 import com.br.common.log.AlertLog;
 import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
@@ -99,7 +100,7 @@ public class AlarmApiClient implements ApplicationContextAware {
             }
 
         }catch (Exception e){
-            String msg = AlertLog.buildWarnMessage(Constants.sendCodeMap.get("sysError"), "", "发送邮件异常");
+            String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), "", "发送邮件异常");
             log.warn(msg);
         }
     }

@@ -9,6 +9,7 @@ import com.br.marketing.client.robotaiapi.output.*;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.InterfaceLog;
@@ -77,7 +78,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", Constants.sendCodeMap.get("samoyeCommonly"));
+            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -100,7 +101,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", Constants.sendCodeMap.get("samoyeCommonly"));
+            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());

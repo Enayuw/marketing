@@ -3,6 +3,7 @@ package com.br.marketing.task.service.Impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.*;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
@@ -181,7 +182,7 @@ public class LoanWarningServiceImpl  implements LoanWarningService{
                                     ,apiCode,sum));
                     log.warn("hxResult product flag error",hxResultRuntimeException);
                     String title = String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常", apiCode);
-                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(),title, Constants.sendCodeMap.get("huaxiangCommonly"));
+                    alarmClient.sendAlarm(hxResultRuntimeException.getMessage(),title, AlarmSendCodeEnum.EXCEPTION_HUAX.getCode());
                 }
 
             }catch (Exception e){

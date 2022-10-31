@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.task;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.PushTransferCustomerLog;
 import com.br.marketing.service.PushTransferCustomerLogService;
@@ -219,6 +220,6 @@ public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
     private void sendAlarm(String smg) {
         String title = "接口转化(私人订制)数据同步到智能客服补偿任务警告";
         log.warn(smg);
-        alarmClient.sendAlarm(smg, title, Constants.sendCodeMap.get("dataExceptionCommonly"));
+        alarmClient.sendAlarm(smg, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
     }
 }

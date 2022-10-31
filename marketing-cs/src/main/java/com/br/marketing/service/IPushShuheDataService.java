@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.ResponseCustomDTO;
 
@@ -36,7 +37,7 @@ public interface IPushShuheDataService {
 
     default void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, Constants.sendCodeMap.get("dataExceptionCommonly"));
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
         } catch (Exception ignored) {
 
         }
@@ -44,7 +45,7 @@ public interface IPushShuheDataService {
 
     default void sendAlarmMgsUrgent(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, Constants.sendCodeMap.get("dataExceptionUrgent"));
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         } catch (Exception ignored) {
 
         }

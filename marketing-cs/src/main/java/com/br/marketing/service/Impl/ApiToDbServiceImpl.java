@@ -10,6 +10,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -328,7 +329,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                     StringBuilder content = new StringBuilder();
                     content.append("停止生成的任务批次号：".concat(number).concat("\r\n"));
                     alarmClient.sendAlarm(content.toString(), "api人员数据生成任务",
-                            Constants.sendCodeMap.get("uploadSuccess"));
+                            AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
                     break outrule;
                 }
 
@@ -351,8 +352,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                                 .append("time：".concat(eTimeStr).concat("\r\n"))
                                 .append("batchNumber：".concat(number).concat("\r\n"))
                                 .append(String.format("预计数量: %d,入库数量：%d", taskNum, actNum));
-                        alarmClient.sendAlarm(content.toString(), "api人员数据生成任务",
-                                Constants.sendCodeMap.get("uploadSuccess"));
+                        alarmClient.sendAlarm(content.toString(), "api人员数据生成任务", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
                     }
@@ -973,8 +973,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                                 .append("time：".concat(endTimeJob).concat("\r\n"))
                                 .append("batchNumber：".concat(number).concat("\r\n"))
                                 .append(String.format("预计数量: %d,入库数量：%ds", taskNum, actNum));
-                        alarmClient.sendAlarm(content.toString(), "api人员数据生成任务",
-                                Constants.sendCodeMap.get("uploadSuccess"));
+                        alarmClient.sendAlarm(content.toString(), "api人员数据生成任务", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
                     }
@@ -1252,8 +1251,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
                                     .append("time：".concat(rule.getTaskTime()).concat("\r\n"))
                                     .append("batchNumber：".concat(batchNumber).concat("\r\n"))
                                     .append(String.format("预计数量: %d,入库数量：%d", preNum.get(), actNum));
-                            alarmClient.sendAlarm(content.toString(), "批量数据生成任务",
-                                    Constants.sendCodeMap.get("uploadSuccess"));
+                            alarmClient.sendAlarm(content.toString(), "批量数据生成任务", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
                         } catch (Exception ex) {
                             log.error(ex.getMessage(), ex);
                         }
