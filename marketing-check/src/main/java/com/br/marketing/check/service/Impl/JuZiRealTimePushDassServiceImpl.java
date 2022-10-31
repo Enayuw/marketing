@@ -124,7 +124,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             map.forEach((custNum, marketingTransferSyncUser) -> {
                 BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
                 DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
-                dassImportDataDTO.setId(Long.valueOf(RandomUtils.randomStr(5)));
+                dassImportDataDTO.setId(marketingTransferSyncUser.getId());
                 dassImportDataDTO.setSource("15");
                 dassImportDataDTO.setOptype("1");
                 dassImportDataDTO.setOrgname("juzi");
