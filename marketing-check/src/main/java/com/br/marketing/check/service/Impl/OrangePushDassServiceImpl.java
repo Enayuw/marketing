@@ -68,19 +68,22 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         }
         LocalDate localDate = LocalDate.now();
         int day = 30;
+        String[] statusList = new String[]{"a1", "b1", "c1", "d1", "a", "b", "c", "d"};
+        String dxTypeA = "A";
+        String dxTypeB = "B";
         // 推送优先级为d1>c1>b1>a1,d1为最高优先级，a1为最低优先级
         // 情况d1
         pushPageData(tcId, apiCode, localDate, "d", user -> preRejectWhereD1(user, localDate, day)
-                , "B", "d1", "a", "b", "c", "d");
+                , dxTypeB, statusList);
         // 情况c1
         pushPageData(tcId, apiCode, localDate, "c", user -> preRejectWhereC1(user, localDate, day)
-                , "B", "c1", "d1", "a", "b", "c", "d");
+                , dxTypeB, statusList);
         // 情况b1
         pushPageData(tcId, apiCode, localDate, "b", user -> preRejectWhereA1OrB1(user, localDate, day)
-                , "A", "b1", "c1", "d1", "a", "b", "c", "d");
+                , dxTypeA, statusList);
         // 情况a1
         pushPageData(tcId, apiCode, localDate, "a", user -> preRejectWhereA1OrB1(user, localDate, day)
-                , "A", "a1", "b1", "c1", "d1", "a", "b", "c", "d");
+                , dxTypeA, statusList);
     }
 
     /**
@@ -182,7 +185,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * @param localDate       当前日期
      * @param status          情况
      * @param predicateReject 剔除函数
-     * @param userType        电销场景
+     * @param dxType          电销场景
      * @param statusList      情况集合
      */
     private void pushPageData(final String tcId
@@ -190,7 +193,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             , final LocalDate localDate
             , final String status
             , final Predicate<MarketingTransferSyncUser> predicateReject
-            , final String userType
+            , final String dxType
             , final String... statusList) {
         Set<String> dateSet = getDateSet(status, localDate);
         int page = 1;
@@ -207,7 +210,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             page++;
             List<PhoneSaleExtendInfo> list = statusFilter(preReject(tcId, apiCode, pageList, predicateReject)
                     , localDate, apiCode, statusList);
-            sendDass(list, status + "1", userType);
+            sendDass(list, status + "1", dxType);
         }
     }
 
