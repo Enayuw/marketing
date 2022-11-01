@@ -240,18 +240,18 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
      * @param localDate 本地日期
      */
     private Set<String> getDateSet(String status, LocalDate localDate) {
-        Map<String, Set<Integer>> map = marketingCommonConfig.getOrangeTransferCyclicalPushDassDay();
-        if (map == null) {
+        Map<String, List<Integer>> map = marketingCommonConfig.getOrangeTransferCyclicalPushDassDay();
+        if (map == null || map.size() == 0) {
             map = new HashMap<>(8);
-            Set<Integer> a = new HashSet<>(Collections.singletonList(2));
-            Set<Integer> c = new HashSet<>(Arrays.asList(2, 6, 13, 27));
-            Set<Integer> d = new HashSet<>(Collections.singletonList(6));
+            List<Integer> a = Collections.singletonList(2);
+            List<Integer> c = Arrays.asList(2, 6, 13, 27);
+            List<Integer> d = Collections.singletonList(6);
             map.put("a", a);
             map.put("b", a);
             map.put("c", c);
             map.put("d", d);
         }
-        Set<Integer> daySet = map.get(status);
+        Set<Integer> daySet = new HashSet<>(map.get(status));
         if (CollectionUtils.isEmpty(daySet)) {
             return null;
         }
