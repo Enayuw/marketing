@@ -53,34 +53,12 @@
             <artifactId>asm</artifactId>
             <version>1.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.br.mom</groupId>
-            <artifactId>broker_layer_api</artifactId>
-            <version>3.0.1</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>3.14.9</version>
         </dependency>
-        <!-- ice连接es公共包 -->
-        <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--ice连接es公共包-->
         <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
         <dependency>
             <groupId>com.br.cloud</groupId>
