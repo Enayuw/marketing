@@ -215,4 +215,99 @@
         </if>
         group by cust_num
     </select>
+
+    <select id="getJuZiDRuleTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            unlent_amount > '0.00'
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND request_data = #{requestData}
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getJuZiCRuleTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            audit_amount > '0.00'
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND request_data = #{requestData}
+            AND  json_unquote(json_extract(reserve_field1,'$.applyLoan')) = '0'
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getJuZiBRuleTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            if_apply= '0'
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND request_data = #{requestData}
+            AND if_lent= '0'
+            AND <![CDATA[  register_time >= #{registerTime} and register_time < #{requestData} ]]>
+            AND  json_unquote(json_extract(reserve_field1,'$.applyLoan')) = '0'
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getJuZiARuleTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            if_login= '1'
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND request_data = #{requestData}
+            AND if_apply= '0'
+            AND if_lent= '0'
+            AND <![CDATA[  login_time >= #{loginTime} and login_time < #{requestData} ]]>
+            AND  json_unquote(json_extract(reserve_field1,'$.applyLoan')) = '0'
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getJuZiDRuleLockData" resultType="java.lang.String">
+        select cust_num from
+        b_marketing_transfer_sync_${tCid}
+        where
+        cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        AND unlent_amount= '0.00'
+        AND lent_time >= #{lentTime}
+    </select>
+
+    <select id="getJuZiCRuleLockData" resultType="java.lang.String">
+        select cust_num from
+        b_marketing_transfer_sync_${tCid}
+        where
+        cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        AND json_unquote(json_extract(reserve_field1,'$.applyLoan')) = '1'
+        AND json_unquote(json_extract(reserve_field1,'$.applyLoanTime'))>= #{applyLoanTime}
+    </select>
+
+    <select id="getJuZiBOrARuleLockData" resultType="java.lang.String">
+        select cust_num from
+        b_marketing_transfer_sync_${tCid}
+        where
+        cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        AND apply_dt >=#{applyDt}
+    </select>
 </mapper>
