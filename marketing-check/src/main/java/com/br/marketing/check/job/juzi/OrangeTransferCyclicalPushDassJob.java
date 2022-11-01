@@ -71,7 +71,7 @@ public class OrangeTransferCyclicalPushDassJob extends AbstractSimpleElasticJob 
             taf.setStatus(1);
             taf.setIsDel(1);
             taf.setActionData(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-            transferActionFrontMapper.insert(taf);
+            transferActionFrontMapper.insertSelective(taf);
             orangePushDassService.transferCyclicalPushDass(apiCode);
             TransferActionFront tafUpdate = new TransferActionFront();
             tafUpdate.setStatus(2);
