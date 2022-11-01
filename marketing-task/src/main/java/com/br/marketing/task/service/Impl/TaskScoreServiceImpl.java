@@ -60,8 +60,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class TaskScoreServiceImpl {
     @Value("${otherConfig.warning.pageSize:00}")
     private Integer pageSize;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.mom.appSecretKey:00}")
     private String appSecretKey;
 
@@ -359,7 +359,7 @@ public class TaskScoreServiceImpl {
             return;
         }
 
-        String descPath = path.concat("/").concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
+        String descPath = syncConfigService.getPath().concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
                 .concat(blt.getBatchNumber()).concat("/").concat(day);
 
         //region 写入或者获取跑分记录以及状态

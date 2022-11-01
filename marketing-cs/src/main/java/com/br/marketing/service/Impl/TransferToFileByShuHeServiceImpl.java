@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
@@ -13,8 +14,10 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -92,8 +95,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     private final static Map<String, String> FILE_NAME_PART;
 
-    @Value("${otherConfig.warning.path:/tmp/data_shuhe}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
 
     private final static String EXTENSION = ".txt";
     private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
@@ -318,7 +321,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         " LIMIT %s, %s", apiCode, userType, DateUtils.format(firstDateTime, pattern)
                 , DateUtils.format(lastDateTime, pattern), "%s", pageSize);
         List<MarketingTransferSyncUser> list = null;
-        String fileDirectory = path.concat("transferToFile").concat(File.separator).concat(apiCode)
+        String fileDirectory = syncConfigService.getPath().concat("transferToFile").concat(File.separator).concat(apiCode)
                 .concat(File.separator).concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
         if (!filePath.exists()) {
@@ -425,8 +428,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -461,8 +464,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -503,8 +506,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
