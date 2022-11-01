@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -276,7 +277,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         int pageSize = 2000;
         int page = 0;
         Map<String, PhoneSaleExtendInfo> map = list.parallelStream().collect(
-                Collectors.toMap(PhoneSaleExtendInfo::getCustNum, Function.identity()));
+                Collectors.toMap(PhoneSaleExtendInfo::getCustNum, Function.identity()
+                        , BinaryOperator.maxBy(Comparator.comparing(PhoneSaleExtendInfo::getCreateTime))));
         Set<String> numSet = new HashSet<>();
         for (; ; ) {
             MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
