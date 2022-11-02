@@ -7,10 +7,12 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerCallingMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.CallingToDbService;
+import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +29,8 @@ import java.util.*;
 @Component
 @Slf4j
 public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -146,7 +148,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         context.setSftpZipFilePath(sftpPathFromMap);
         context.setApiCode(customerCalling.getApiCode());
         context.setTxtFileName(fileName);
-        context.setLocalTxtFilePath(path.concat(customerCalling.getApiCode()).concat("/").concat("marketing-calling").concat("/"));
+        context.setLocalTxtFilePath(syncConfigService.getPath().concat(customerCalling.getApiCode()).concat("/").concat("marketing-calling").concat("/"));
         if (!sftpToDbCallingService.downLoadFile(context)) {
             return null;
         }

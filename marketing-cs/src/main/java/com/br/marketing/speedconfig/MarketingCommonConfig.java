@@ -5,10 +5,7 @@ import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -273,7 +270,14 @@ public class MarketingCommonConfig {
      * 原始上传数据推送决策 手机号加密类型{"7410437":1}
      * 1-md5;2-sha256;
      */
-    private HashMap<String,Integer> pushCellEncPolicy;
+    private HashMap<String, Integer> pushCellEncPolicy;
+
+    /**
+     * 2022/9/22 17:52
+     * 自由定义场景与上传日期
+     * key userType；value dateSet
+     */
+    private Map<String, Set<String>> freeUserTypeAndDateMap;
 
     /**
      * 同程转化数据提取apicode集合
@@ -284,5 +288,43 @@ public class MarketingCommonConfig {
      * 同程转化数据提取执行时间
      */
     private String tongChengTransferExecuteTime;
+
+    /**
+     * 携程数据推送线程数
+     */
+    private Integer xiechengDateSendThread;
+
+    /**
+     * nfs路径
+     */
+    private String nfsPath;
+
+    /**
+     * 桔子转化数据入库特殊处理apicode集合
+     */
+    private List<String> juZiTransferInsertApiCodes;
+    /**
+     * 桔子实时转化定时任务执行时间
+     */
+    private String juZiRealTimeTransferExecuteTime;
+
+    /**
+     * 桔子实时转化锁定期配置
+     */
+    private Map<String, String> juZiRealTimeLockConfig;
+
+    /**
+     * 桔子周期性推送dass,查询实时推送数据日期;eg:{"a":[2],"b":[2],"c":[2,6,13,27],"d":[6]}
+     */
+    private Map<String, List<Integer>> orangeTransferCyclicalPushDassDay;
+    /**
+     * 哈啰转化数据提取apicode集合
+     */
+    private List<String> haLuoTransferFileApiCodes;
+    /**
+     * 萨摩耶转化数据提取apicode集合
+     */
+    private List<String> saMoYeTransferFileApiCodes;
+
 
 }

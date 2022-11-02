@@ -45,6 +45,7 @@ public class CallingToDbServiceImpl implements CallingToDbService {
     private CustomerCallingDialog getCustomerCallingDialog(TxtToDbDTO dto, HashMap<Integer, String> address, List<String> dataRows) throws Exception {
         CustomerCallingDialog customerCallingDialog = new CustomerCallingDialog();
         customerCallingDialog.setApiCode(dto.getApiCode());
+        customerCallingDialog.setLocalId(dto.getLocalId());
         //是否发送数据到客户端(0:未发送/1: 已发送)
         customerCallingDialog.setSendStatus(0);
         customerCallingDialog.setStatus((byte) 1);

@@ -13,6 +13,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -60,8 +61,8 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -187,7 +188,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     context.setTxtFileName(fileName);
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
-                        context.setLocalTxtFilePath(path.concat("sftp_dianxiao_data/").concat(apiCode).concat("/"));
+                        context.setLocalTxtFilePath(syncConfigService.getPath().concat("sftp_dianxiao_data/").concat(apiCode).concat("/"));
                         if (!sftpToDbByDXService.dowloadFile(context)) {
                             continue;
                         }

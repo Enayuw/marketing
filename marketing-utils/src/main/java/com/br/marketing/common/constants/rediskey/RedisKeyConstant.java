@@ -59,5 +59,10 @@ public class RedisKeyConstant {
      */
     public static final String shuHeUploadDataFieldKey = prefix.concat("shuhe:uploaddata:field");
 
+    /**
+     * 桔子推电销custNum缓存key
+     */
+    public static final String juZiPushDaasCustNumKey = prefix.concat("juzi:pushdaas:custnum");
+
 
 }

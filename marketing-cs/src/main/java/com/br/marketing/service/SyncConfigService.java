@@ -43,4 +43,6 @@ public interface SyncConfigService {
     ApiResult<Boolean> editSftp(SyncConfigEditVO vo);
 
     List<Map> getDataTypeList();
+
+    String getPath();
 }

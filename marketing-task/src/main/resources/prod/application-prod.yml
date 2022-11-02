@@ -97,7 +97,7 @@ otherConfig:
         pageSize: 5000
         apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
         onlineUrl: http://k8s.brapp.com/compass-api/api/loan-strategy-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/marketing
+        path: /opt/data/inloan/download/marketing/
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   encodeMapping:
         appName: loan-warning

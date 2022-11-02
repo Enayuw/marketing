@@ -19,8 +19,10 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -44,8 +46,8 @@ public  class ReportServiceImpl implements EmailService {
     LoanFileMapper loanFileMapper;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     private final static Integer SIZE=2000;
 
     @Resource
@@ -240,7 +242,7 @@ public  class ReportServiceImpl implements EmailService {
         }
         String today=new SimpleDateFormat("yyyyMMdd").format(new Date());
         String fileName="result_file_list"+today+".xlsx";
-        String s = path + "/result/";
+        String s = syncConfigService.getPath() + "result/";
         export(map,fileName,s);
 
         String receive="xiaoxin.pang@brgroup.com,song.wang@brgroup.com,penghui.cheng@brgroup.com,xiangru.meng@brgroup.com,yanping.fu@brgroup.com";
