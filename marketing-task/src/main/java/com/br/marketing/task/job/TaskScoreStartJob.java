@@ -51,7 +51,7 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
         if (observedScoreThreadService.isInterrupt()) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分任务手动停止状态请手动开启");
-            alarmClient.sendAlarm(content.toString(), "跑分暂停", AlarmSendCodeEnum.SUCCESS_INTERNAL.getCode());
+            alarmClient.sendAlarm(content.toString(), "跑分暂停", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             return;
         }
 
