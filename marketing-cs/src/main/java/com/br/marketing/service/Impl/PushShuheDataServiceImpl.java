@@ -170,7 +170,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
             } else if (!iUserType.getApiCodes().contains(apiCode)) {
                 log.warn("场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
                         .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
@@ -199,7 +199,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 msg = "数禾推送数据前置表保存失败！".concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("”\nrequestId“").concat(requestId).concat("”\n");
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                this.sendAlarmMgsUrgent(title, msg, alarmClient);
                 log.error(msg.concat("”\njsondata:").concat(jsonData).concat("\n").concat("" + e.getMessage()), e);
                 faultTolerantInsert(jsonDTO, jsonData, apiCode, msg);
                 responseShuheDTO.failed("抱歉，保存失败");
