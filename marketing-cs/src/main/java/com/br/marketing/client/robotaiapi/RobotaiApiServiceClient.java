@@ -78,7 +78,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
+            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -101,7 +101,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
+            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());

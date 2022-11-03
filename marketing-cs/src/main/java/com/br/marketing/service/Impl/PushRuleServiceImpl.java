@@ -1454,8 +1454,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 JSONArray array = object.getJSONArray("unsuccessfulData");
                 if (array.size() > 0) {
                     String content = String.format("客服接口返回错误列表数据：%s", transferRobotOutboundVO.getData().toString());
-                    log.error(content);
-                    alarmApiClient.sendAlarm(content, "客服接口返回警示信息", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+//                    log.error(content);
+                    alarmApiClient.sendAlarm(content, "客服接口返回警示信息", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
                 }
             }
         }
