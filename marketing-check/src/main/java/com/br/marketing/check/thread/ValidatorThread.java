@@ -1,7 +1,6 @@
 package com.br.marketing.check.thread;
 
-import com.br.marketing.check.utils.CheckDataUtil;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;

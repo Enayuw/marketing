@@ -5,8 +5,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.DecodeClient;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -45,6 +44,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.PushTransferRobotaiLogService;
@@ -164,7 +164,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.isNotEmpty(companyMsg)) {
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
@@ -796,7 +796,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String apiCode = marketingSyncInfo.getApiCode();
         Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
         try {
-            merchantParam = IceClient.getMerchantParam(apiCode);
+            merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         } catch (Exception e) {
             log.error("从用户中心请求用户信息出错--apiCode:{}--{}", apiCode, e);
         }
@@ -1483,14 +1483,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if (DecodeClient.isMd5(content)) {
             //cell md5
-            content = decodeClient.query(content, type, "md5", "");
+            content = RpcClientProxy.decode(content, type, "md5", "");
             if (StringUtils.isBlank(content) && "cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_1.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
         } else if (content.length() == 64) {
             //cell sha256
-            content = decodeClient.query(content, type, "sha", "");
+            content = RpcClientProxy.decode(content, type, "sha", "");
             if (StringUtils.isBlank(content) && "cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_2.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());

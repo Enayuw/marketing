@@ -3,7 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoadResult;
@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +46,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void deleteMonitorFileUpload(String apiCode, String message) {
         log.info("apiCode:{},message:{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         log.info("companyMsg:{}",companyMsg);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
@@ -141,7 +142,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void fileUpload(String apiCode, String message){
         log.info("apiCode:{},message:{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         log.info("companyMsg:{}",companyMsg);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
@@ -317,7 +318,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void dataFileVolumn(String apiCode,String message){
         log.warn("apiCode {},message{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
             compShortName=companyJSONObj.getString("COMP_SHORT_NAME");

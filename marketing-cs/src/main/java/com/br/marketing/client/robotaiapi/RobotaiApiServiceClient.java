@@ -9,8 +9,6 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
-import com.br.marketing.common.utils.net.InterfaceLog;
-import com.br.marketing.common.utils.net.MomCommonUtil;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -57,11 +55,7 @@ public class RobotaiApiServiceClient {
     public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto,String requestId){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
-            InterfaceLog interfaceLog = new InterfaceLog();
-            interfaceLog.setApiCode(dto.getApiCode());
-            interfaceLog.setSwiftNumber(requestId);
-            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate,momCommonUtil,logDbpool).setUrl(robotOutboundUrl)
-                    .setInterfaceLog(interfaceLog)
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){

@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.rpcclient.IceClient;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -24,7 +26,7 @@ public class ReturnDataRepository {
     public static void needReturnProduct(Set<String> returnProduct, String apiCode,List<String> list){
         MerchantParam merchantParam=null;
         try{
-            merchantParam = IceClient.getMerchantParam(apiCode);
+            merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         }catch (Exception e){
             log.warn("Exception",e);
             log.error("从用户中心请求用户信息出错--{}--apiCode:{}",e.getMessage(),apiCode);

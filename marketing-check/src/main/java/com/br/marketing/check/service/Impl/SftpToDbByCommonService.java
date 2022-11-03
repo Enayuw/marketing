@@ -3,7 +3,7 @@ package com.br.marketing.check.service.Impl;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
@@ -15,7 +15,6 @@ import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -37,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * @Author: Bairong

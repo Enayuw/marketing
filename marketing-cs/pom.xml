@@ -70,7 +70,7 @@
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
+            <version>4.0.3-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
@@ -187,6 +187,12 @@
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>grpc-user-center-rely</artifactId>
+            <version>1.0.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>strategy-grpc</artifactId>
             <version>1.0.0</version>
             <classifier>shaded</classifier>
         </dependency>

@@ -10,6 +10,8 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.rpcclient.IceClient;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
@@ -198,7 +200,7 @@ public class CoreScoreThread implements Callable<String> {
             Map<String, String> dayNumMap = new HashMap<>();
             List<String> typeNoList = new ArrayList<>();
             addDTBPro(typeNoList);
-            MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
             if (merchantParam == null) {
                 log.error("用户中心结果为空" + apiCode);
                 return false;

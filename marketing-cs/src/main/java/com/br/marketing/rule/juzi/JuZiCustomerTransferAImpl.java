@@ -2,10 +2,11 @@ package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -58,7 +59,7 @@ public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
         }catch (DateTimeParseException e){
             log.warn("日期转换出错！applyDt或者lentTime不符合yyyy-MM-dd HH:mm:ss[:SSS]格式！");
         }
-        String query = decodeClient.query(transfer.getCustNum(), "cell", "md5", "");
+        String query = RpcClientProxy.decode(transfer.getCustNum(), "cell", "md5", "");
         conversionData.setPhone(query);
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));

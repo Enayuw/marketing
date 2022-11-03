@@ -3,7 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -14,6 +14,7 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,7 +84,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
             if(expectedFileNum!=actualFileNum||expecteDataNum!=actualDataNum){
                 String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 String compShortName="";
-                String companyMsg = IceClient.getCompanyMsg(apiCode);
+                String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
                 if(StringUtils.isNotEmpty(companyMsg)){
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                     compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -151,7 +152,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
         if(!expecteDataNum.equals(actualDataNum)){
             String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             String compShortName="";
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -187,7 +188,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     public void fileUploadFtpException(String apiCode,String message){
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
             compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -248,7 +249,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
     @Override
     public void zipFileErrorAlarm(String fileName,String apiCode) {
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
             compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -274,7 +275,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
             String apiCode = alt.getApiCode();
             String compShortName = "";
             if (marketingTaskList.size() > 0) {
-                String companyMsg = IceClient.getCompanyMsg(apiCode);
+                String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
                 if (StringUtils.isNotEmpty(companyMsg)) {
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                     compShortName = companyJSONObj.getString("COMP_SHORT_NAME");
@@ -311,7 +312,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 for (MarketingTask lt : marketingTaskList) {
                     set.add(lt.getCloseDate());
                 }
-                String companyMsg = IceClient.getCompanyMsg(apiCode);
+                String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
                 if (StringUtils.isNotEmpty(companyMsg)) {
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                     compShortName = companyJSONObj.getString("COMP_SHORT_NAME");
@@ -339,7 +340,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
         if(loanFiles !=null&& loanFiles.size()>0){
             String alarmDate= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
             String compShortName="";
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -357,7 +358,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
 
     public void fileSizeException(String apiCode,String message){
             String compShortName="";
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 compShortName=companyJSONObj.getString("COMP_SHORT_NAME");

@@ -2,10 +2,11 @@ package com.br.marketing.push.task;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.FtpUtil2;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -58,7 +59,7 @@ public class SignFileCheckTask implements Runnable {
             String signFileName=apiCode+"_ReturnCompleted_"+today+".finish";
             boolean exsits = ftp.isExsits(signFileName);
             String compShortName="";
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 compShortName=companyJSONObj.getString("COMP_SHORT_NAME");

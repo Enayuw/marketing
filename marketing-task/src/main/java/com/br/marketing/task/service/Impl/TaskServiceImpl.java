@@ -1,17 +1,17 @@
 package com.br.marketing.task.service.Impl;
 
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
@@ -23,12 +23,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,7 +128,7 @@ public class TaskServiceImpl implements ITaskService {
         List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId,hm);
 
         for (MarketingTask scoreTask : scoreTasks) {
-            MerchantParam merchantParam = IceClient.getMerchantParam(scoreTask.getApiCode());
+            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(scoreTask.getApiCode());
             if (merchantParam == null) {
                 log.error("用户中心结果为空"+scoreTask.getApiCode());
                 continue;

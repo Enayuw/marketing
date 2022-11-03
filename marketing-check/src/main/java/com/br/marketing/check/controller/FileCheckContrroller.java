@@ -3,8 +3,9 @@ package com.br.marketing.check.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.service.Impl.EncryptFileServiceImpl;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,7 +80,7 @@ public class FileCheckContrroller {
     @GetMapping("/getConfig")
     public String getConfig(String apiCode,String key) {
 
-        MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+        MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         JSONObject jsonObject = (JSONObject) JSONObject.toJSON(merchantParam);
         String value = jsonObject.getString(key);
         if("call_method".equals(key)){
@@ -96,7 +97,7 @@ public class FileCheckContrroller {
     public String checkApicode(String apiCode) {
         log.info("checkApicode api_code--{}",apiCode);
         String result="success";
-        MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+        MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         if (merchantParam==null){
             result="fail";
         }
