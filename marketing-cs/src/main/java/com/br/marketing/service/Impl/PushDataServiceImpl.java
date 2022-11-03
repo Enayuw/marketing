@@ -493,7 +493,7 @@ public class PushDataServiceImpl implements PushDataService {
                                 record.setStatus(data.getBody().getSts());
                                 haierReqMapper.updateByPrimaryKeySelective(record);
                                 if ("fail".equals(data.getBody().getSts())) {
-                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败", reqData.getReqId())
+                                    alarmClient.sendAlarm(String.format("海尔查询结果-reqId:%s-推送失败", reqData.getReqId())
                                             , "海尔推送结果查询"
                                             , AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                                 }
