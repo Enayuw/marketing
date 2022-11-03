@@ -3,7 +3,6 @@ package com.br.marketing.check.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.service.Impl.EncryptFileServiceImpl;
-import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;

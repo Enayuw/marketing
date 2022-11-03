@@ -1,6 +1,5 @@
 package com.br.marketing.task.service.Impl;
 
-import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -9,7 +8,10 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.entity.TaskStatus;
+import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.*;

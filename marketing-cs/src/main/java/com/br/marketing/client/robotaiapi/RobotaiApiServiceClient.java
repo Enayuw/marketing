@@ -40,9 +40,6 @@ public class RobotaiApiServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
-    @Autowired
-    MomCommonUtil momCommonUtil;
-
     @Qualifier("logDbpool")
     @Autowired
     public ThreadPoolExecutor logDbpool;

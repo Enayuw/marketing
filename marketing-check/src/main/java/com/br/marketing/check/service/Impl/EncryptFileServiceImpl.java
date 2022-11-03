@@ -1,7 +1,6 @@
 package com.br.marketing.check.service.Impl;
 
 import com.br.marketing.check.service.EncryptFileService;
-import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.common.utils.file.AesCrpyt;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.rpcclient.RpcClientProxy;

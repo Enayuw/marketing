@@ -2,7 +2,6 @@ package com.br.marketing.push.task;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.rpcclient.IceClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
