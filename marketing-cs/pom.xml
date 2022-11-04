@@ -66,27 +66,6 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
-        <!-- ice连接es公共包 -->
-        <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--ice连接es公共包-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -172,12 +151,6 @@
         </dependency>
         <dependency>
             <groupId>com.br</groupId>
-            <artifactId>br-grpc-common</artifactId>
-            <version>1.0.4</version>
-            <classifier>shaded</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.br</groupId>
             <artifactId>grpc-encode-mapping-rely</artifactId>
             <version>1.0.0</version>
             <classifier>shaded</classifier>
@@ -200,6 +173,43 @@
             <artifactId>strategy-grpc</artifactId>
             <version>1.0.0</version>
             <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.br.transfer</groupId>
+            <artifactId>header-transfer-spring-boot-starter</artifactId>
+            <version>1.0.3</version>
+            <!-- 排除ribbon依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-ribbon</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>4.0.3-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-access</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>br-grpc-common</artifactId>
+            <version>1.0.4</version>
+<!--            <classifier>shaded</classifier>-->
         </dependency>
     </dependencies>
     <build>
