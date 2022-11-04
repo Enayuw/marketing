@@ -1454,7 +1454,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 JSONArray array = object.getJSONArray("unsuccessfulData");
                 if (array.size() > 0) {
                     String content = String.format("客服接口返回错误列表数据：%s", transferRobotOutboundVO.getData().toString());
-//                    log.error(content);
                     alarmApiClient.sendAlarm(content, "客服接口返回警示信息", AlarmSendCodeEnum.EXCEPTION_SAMOYE.getCode());
                 }
             }
@@ -1644,7 +1643,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (CollectionUtils.isEmpty(list)) {
                 result.setDate(false);
                 String smg = String.format("主键为[%s]的客户转化基础信息不存在,该信息直接消费,不再重放队列", infoId);
-                log.error(smg);
                 result.setMessage(smg);
                 alarmClient.sendAlarm(smg, "接口转化数据同步到智能客服警告", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
                 return result;
@@ -1662,7 +1660,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (Exception e) {
                     String smg = String.format("主键[%d];apiCode[%s];requestId[%s]推送错误！\n%s", infoId, apiCode, info.getRequestId(), e.getMessage());
                     log.error(smg, e);
-                    alarmClient.sendAlarm(smg, "接口转化(通用标准)数据同步到智能客服警告", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
                 }
                 return result;
             }
@@ -1871,7 +1868,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
-            sendAlarm(e.getMessage());
             return result;
         }
     }
