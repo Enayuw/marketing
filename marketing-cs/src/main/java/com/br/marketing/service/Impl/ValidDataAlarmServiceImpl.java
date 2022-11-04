@@ -264,7 +264,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                     .append("&nbsp;监控状态：")
                     .append(monitorStatus);
             sb1.append("<br/>");
-            log.error("任务信息：{}",sb1);
+            log.warn("任务信息：{}",sb1);
             content.append("<br/>");
             String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
             alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
