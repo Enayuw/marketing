@@ -192,6 +192,7 @@ public class CoreScoreThread implements Callable<String> {
      *
      * @return
      */
+    @Deprecated
     private boolean checkRedisNumber() {
         boolean flag = true;
         if (customer.getCheckRedisNumber() == 0) {

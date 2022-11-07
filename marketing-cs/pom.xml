@@ -177,7 +177,7 @@
         <dependency>
             <groupId>com.br.transfer</groupId>
             <artifactId>header-transfer-spring-boot-starter</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.5</version>
             <!-- 排除ribbon依赖 -->
             <exclusions>
                 <exclusion>
@@ -208,7 +208,7 @@
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>br-grpc-common</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
 <!--            <classifier>shaded</classifier>-->
         </dependency>
     </dependencies>
