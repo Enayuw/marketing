@@ -5,6 +5,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -225,8 +226,7 @@ public class SftpToDbCallingService {
     }
 
     private void sendEmailAlert(StringBuilder content) {
-        alarmClient.sendAlarm(content.toString(), "----拨打回调数据sftp数据上传", appName, secretKey,
-                Constants.sendCodeMap.get("uploadSuccess"));
+        alarmClient.sendAlarm(content.toString(), "----拨打回调数据sftp数据上传", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
     }
 
     /**

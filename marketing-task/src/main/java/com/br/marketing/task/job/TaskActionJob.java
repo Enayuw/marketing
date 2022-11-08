@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.StraHisFile;
@@ -69,8 +70,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("1")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【恢复】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             observedScoreThreadService.setInterrupt(1);
             return;
         }
@@ -79,8 +79,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("0")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【暂停】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             observedScoreThreadService.stopThreadAll();
             return;
         }
