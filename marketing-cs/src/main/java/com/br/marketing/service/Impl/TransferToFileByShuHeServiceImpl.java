@@ -445,7 +445,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_adt_lmt_lv0")
                 + separator +
-                getOrDefault(json, ",clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
@@ -489,7 +489,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_lst_reaudit_apply_time")
                 + separator +
-                getOrDefault(json, ",clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
@@ -538,7 +538,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 getOrDefault(json, "applyLoanTime") + separator +
                 (StringUtils.isEmpty(transfer.getLentTime()) ? defaultValue : transfer.getLentTime())
                 + separator +
-                getOrDefault(json, ",clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
