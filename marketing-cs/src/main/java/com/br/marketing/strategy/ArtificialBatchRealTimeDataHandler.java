@@ -51,7 +51,7 @@ public class ArtificialBatchRealTimeDataHandler extends AbstractExternalInterfac
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     @Override
-    JSONObject call(List<BatchRealTimeUserDataDTO> transferData, ProcessHandlerContext context) {
+    public JSONObject call(List<BatchRealTimeUserDataDTO> transferData, ProcessHandlerContext context) {
         /**
          * 批量人工推电销接口 每1000条数据一个批次
          */

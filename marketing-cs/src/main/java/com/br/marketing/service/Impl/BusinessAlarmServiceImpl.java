@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -135,7 +136,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 }
 
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-数据差异报警";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("resultVolume01"));
+                alarmClient.sendAlarm(content.toString(),title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
 
             }
         }
@@ -181,7 +182,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                     .append(i)
                     .append("</font><br/>");
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-数据差异报警";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("resultVolume01"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
             }
     }
 
@@ -208,7 +209,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                     .append("&nbsp;&nbsp;&nbsp;本地文件大小：")
                     .append(localSize).append("B <br/>").append("&nbsp;&nbsp;&nbsp;ftp上文件大小：").append(ftpSize).append("B <br/>");
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传FTP异常报警";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("dataFileUploadFail"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }else{
             log.error("参数错误:{}",message);
         }
@@ -261,7 +262,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                 .append("智能营销平台-源文件与压缩文件的大小不一致，触发报警，请及时跟进处理<br/><br/>")
                 .append(fileName);
         String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-源文件与压缩文件大小不一致";
-        alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("ftpToSftp"));
+        alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
     @Override
@@ -292,7 +293,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                         .append("<br/><br/>")
                         .append("备注：具体的今日到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
                 String title = "【紧急报警】【" + compShortName + "-" + apiCode + "】智能营销平台-监控时间今日到期";
-                alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("fileUploadFtp"));
+                alarmClient.sendAlarm(content.toString(), title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
 
             }
         }
@@ -327,7 +328,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                         .append("<br/><br/>")
                         .append("备注：具体的即将到期的文件名称与批次编号，请联系后台研发或者产品同事进行查询获取明细");
                 String title = "【紧急报警】【" + compShortName + "-" + apiCode + "】智能营销平台-监控时间即将到期";
-                alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("fileUploadFtp"));
+                alarmClient.sendAlarm(content.toString(), title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
             }
             set.clear();
         }
@@ -350,7 +351,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                     .append(alarmDate)
                     .append("结果文件同步SFTP失败，触发报警，请及时跟进。<br/><br/>");
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-结果文件回传失败预警";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("fileUploadFtp"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }
     }
 
@@ -376,7 +377,7 @@ public  class BusinessAlarmServiceImpl implements EmailService {
                   .append("&nbsp;&nbsp;&nbsp;文件名称：").append(fileName).append(" <br/>")
                   .append("&nbsp;&nbsp;&nbsp;文件大小：").append(size).append("KB <br/>");
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件大小异常报警";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("fileSize"));
+                alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
             }else{
                 log.error("参数错误:{}",message);
             }

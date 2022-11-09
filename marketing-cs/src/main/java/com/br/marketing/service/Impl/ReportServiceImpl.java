@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.SendMailClint;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -136,7 +137,7 @@ public  class ReportServiceImpl implements EmailService {
 
         content.append("</body></html>");
         String title="智能营销平台昨日上传任务统计&当日任务进度统计";
-        alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(content.toString(),title, AlarmSendCodeEnum.SUCCESS_INTERNAL.getCode());
     }
 
     @Override

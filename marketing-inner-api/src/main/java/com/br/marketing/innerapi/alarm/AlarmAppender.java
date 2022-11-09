@@ -4,7 +4,6 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.br.marketing.innerapi.MarketingInnerApiApplication;
-import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,8 +22,8 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 content.append("-----").append(throwable.getMessage());
             }
             try {
-                EmailService emailService= MarketingInnerApiApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-INNER-API");
+                SystemExceptionServiceImpl emailService= MarketingInnerApiApplication.ac.getBean(SystemExceptionServiceImpl.class);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-INNER-API",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }
