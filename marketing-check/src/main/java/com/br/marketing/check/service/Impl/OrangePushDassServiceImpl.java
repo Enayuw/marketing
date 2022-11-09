@@ -3,7 +3,6 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.OrangePushDassService;
-import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
@@ -14,6 +13,7 @@ import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
@@ -53,8 +53,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
-    @Resource
-    private DecodeClient decodeClient;
+
     @Value("${api.dass.aesKey:}")
     private String aesKey;
 
@@ -348,7 +347,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
         DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(info.getSourceId());
         String custNum = info.getCustNum();
-        String cell = decodeClient.query(custNum, "cell", "md5", "");
+        String cell = RpcClientProxy.decode(custNum, "cell", "md5", "");
         if (StringUtils.isBlank(cell)) {
             log.warn("桔子周期性推送dass，手机号解密失败！id:{};custNum:{}", info.getId(), info.getCustNum());
             return null;
