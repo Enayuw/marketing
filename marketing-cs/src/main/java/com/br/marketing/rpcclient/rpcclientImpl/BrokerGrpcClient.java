@@ -34,37 +34,37 @@ public class BrokerGrpcClient {
     private static String push_destinationName;
 
     @Value("${otherConfig.uploadMom.producerKey:00}")
-    public static void setUpload_producerKey(String upload_producerKey) {
+    public void setUpload_producerKey(String upload_producerKey) {
         BrokerGrpcClient.upload_producerKey = upload_producerKey;
     }
 
     @Value("${otherConfig.uploadMom.appSecretKey:00}")
-    public static void setUpload_appSecretKey(String upload_appSecretKey) {
+    public void setUpload_appSecretKey(String upload_appSecretKey) {
         BrokerGrpcClient.upload_appSecretKey = upload_appSecretKey;
     }
 
     @Value("${otherConfig.uploadMom.destinationName:00}")
-    public static void setUpload_destinationName(String upload_destinationName) {
+    public void setUpload_destinationName(String upload_destinationName) {
         BrokerGrpcClient.upload_destinationName = upload_destinationName;
     }
 
     @Value("${otherConfig.uploadMom.logIceTimeout:00}")
-    public static void setUpload_logIceTimeout(int upload_logIceTimeout) {
+    public void setUpload_logIceTimeout(int upload_logIceTimeout) {
         BrokerGrpcClient.upload_logIceTimeout = upload_logIceTimeout;
     }
 
     @Value("${otherConfig.mom.appName:00}")
-    public static void setPush_appName(String push_appName) {
+    public void setPush_appName(String push_appName) {
         BrokerGrpcClient.push_appName = push_appName;
     }
 
     @Value("${otherConfig.mom.appSecretKey:00}")
-    public static void setPush_appSecretKey(String push_appSecretKey) {
+    public void setPush_appSecretKey(String push_appSecretKey) {
         BrokerGrpcClient.push_appSecretKey = push_appSecretKey;
     }
 
     @Value("${otherConfig.mom.destinationName:00}")
-    public static void setPush_destinationName(String push_destinationName) {
+    public void setPush_destinationName(String push_destinationName) {
         BrokerGrpcClient.push_destinationName = push_destinationName;
     }
 

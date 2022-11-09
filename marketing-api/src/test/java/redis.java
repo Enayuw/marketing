@@ -70,22 +70,7 @@ public class redis {
     }
     @Test
     public void test(){
-       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-        String s = redisService.get("productionMng-allProductions");
-        JSONArray array=new JSONArray();
-        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-        Iterator<ProInSys> iterator = proInSys.iterator();
-        while (iterator.hasNext()){
-            ProInSys pro=iterator.next();
-            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-                iterator.remove();
-            }
-        }
-        if(proInSys.size()>0){
-            String json= JSONObject.toJSONString(proInSys);
-            array=JSONArray.parseArray(json);
-        }
-        System.out.println(array);
+       RpcClientProxy.sendUploadLog("123");
     }
 
     @Autowired
