@@ -4,7 +4,9 @@ package com.br.marketing.rpcclient;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.rpcclient.rpcclientImpl.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RpcClientProxy {
 
     /**
@@ -14,6 +16,7 @@ public class RpcClientProxy {
      * @return
      */
     public static MerchantParam getMerchantParam(String apiCode) {
+        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:getMerchantParam:查询商户信息":"ice:getMerchantParam:查询商户信息");
         return GrpcClientInitConfig.isGrpc()
                 ? UserCenterGrpcClient.getMerchantParam(apiCode)
                 : UserCenterIceClient.getMerchantParam(apiCode);
@@ -27,6 +30,7 @@ public class RpcClientProxy {
      * @return
      */
     public static String getCompanyMsg(String apiCode) {
+        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:getCompanyMsg:查询商户名称":"ice:getCompanyMsg:查询商户名称");
         return GrpcClientInitConfig.isGrpc()
                 ? UserCenterGrpcClient.getCompanyMsg(apiCode)
                 : UserCenterIceClient.getCompanyMsg(apiCode);
@@ -42,6 +46,7 @@ public class RpcClientProxy {
      * @return
      */
     public static String decode(String param, String type, String alogrithm, String swiftNumber) {
+        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:decode:解密":"ice:decode:解密");
         return GrpcClientInitConfig.isGrpc()
                 ? DecodeGrpcClient.query(param, type, alogrithm, swiftNumber)
                 : DecodeClient.query(param, type, alogrithm, swiftNumber);
@@ -53,6 +58,7 @@ public class RpcClientProxy {
      * @param content
      */
     public static void sendUploadLog(String content) {
+        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:sendUploadLog:发送mom上传日志":"ice:sendUploadLog:发送mom上传日志");
         if (GrpcClientInitConfig.isGrpc()) {
             BrokerGrpcClient.sendUploadLog(content);
         } else {
@@ -62,6 +68,7 @@ public class RpcClientProxy {
 
 
     public static void sendRequestLog(RequestLog requestLog) {
+        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:sendRequestLog:mom接口日志":"ice:sendRequestLog:mom接口日志");
         if (GrpcClientInitConfig.isGrpc()) {
             BrokerGrpcClient.sendRequestLog(requestLog);
         } else {
