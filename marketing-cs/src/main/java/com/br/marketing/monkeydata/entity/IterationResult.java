@@ -5,17 +5,17 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class IterationResult<T> {
+public class IterationResult<I,R extends InputDataCondition> {
 
     /**
      * 输入数据列表
      */
-    List<T> inputDataList;
+    List<I> inputDataList;
 
     /**
      * 获取数据源条件
      */
-    InputDataCondition inputDataCondition;
+    R inDatacondition;
 
     /**
      * 是否是单次处理

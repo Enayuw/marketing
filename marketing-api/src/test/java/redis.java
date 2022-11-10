@@ -16,6 +16,8 @@ import com.br.marketing.entity.*;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
+import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -60,6 +62,16 @@ public class redis {
     @Resource
     RedisService redisService;
 //
+
+    @Autowired
+    IMonkeyDataHandle zhongAnHandleImpl;
+
+    @Test
+    public void testClean(){
+        PageCondition pageCondition = new PageCondition();
+        pageCondition.setPageIndex(1);
+        zhongAnHandleImpl.action(pageCondition);
+    }
 
     @Test
     public void testAes(){

@@ -3,10 +3,8 @@ package com.br.marketing.monkeydata.service;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.monkeydata.entity.InputData;
 import com.br.marketing.monkeydata.entity.InputDataCondition;
 import com.br.marketing.monkeydata.entity.IterationResult;
-import com.br.marketing.monkeydata.entity.OutputData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,12 +13,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public interface IMonkeyDataHandle {
+public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     Logger log = LoggerFactory.getLogger(IMonkeyDataHandle.class);
 
     /**
      * 是否开启多线程
+     *
      * @return
      */
     default Boolean isThread() {
@@ -30,6 +29,7 @@ public interface IMonkeyDataHandle {
 
     /**
      * 获取线程数
+     *
      * @return
      */
     default Integer getThread() {
@@ -41,7 +41,7 @@ public interface IMonkeyDataHandle {
      *
      * @return
      */
-    Result<IterationResult> getInputData(InputDataCondition condition);
+    Result<IterationResult<I, R>> getInputData(R condition);
 
     /**
      * 数据过程处理
@@ -49,7 +49,7 @@ public interface IMonkeyDataHandle {
      * @param inList
      * @return
      */
-    Result<List> processData(List inList);
+    Result<List<O>> processData(List<I> inList);
 
     /**
      * 数据标准输出
@@ -57,7 +57,7 @@ public interface IMonkeyDataHandle {
      * @param outputDataList
      * @return
      */
-    Result resultAction(List outputDataList);
+    Result resultAction(List<O> outputDataList);
 
 
     /**
@@ -66,7 +66,7 @@ public interface IMonkeyDataHandle {
      * @param condition
      * @return
      */
-    default Result action(InputDataCondition condition) {
+    default Result action(R condition) {
         Result res = new Result();
         ThreadPoolExecutor pool = null;
         if (isThread()) {
@@ -74,17 +74,17 @@ public interface IMonkeyDataHandle {
         }
         res.setCode(ResultCode.SUCCESS.getValue());
         for (; ; ) {
-            Result<IterationResult> inputRes = getInputData(condition);
+            Result<IterationResult<I, R>> inputRes = getInputData(condition);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                 break;
             }
-            condition = inputRes.getData().getInputDataCondition();
-            List<InputData> inputDataList = inputRes.getData().getInputDataList();
-            if (!isThread()) {
+            condition = inputRes.getData().getInDatacondition();
+            List inputDataList = inputRes.getData().getInputDataList();
+            if (isThread()&&pool!=null) {
                 pool.submit(() -> {
-                    Result<List<OutputData>> outRes = processData(inputDataList);
+                    Result<List<O>> outRes = processData(inputDataList);
                     if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
-                        List<OutputData> data = outRes.getData();
+                        List data = outRes.getData();
                         Result result = resultAction(data);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             res.setCode(ResultCode.FAIL.getValue());
@@ -93,9 +93,9 @@ public interface IMonkeyDataHandle {
                     }
                 });
             } else {
-                Result<List<OutputData>> outRes = processData(inputDataList);
+                Result<List<O>> outRes = processData(inputDataList);
                 if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
-                    List<OutputData> data = outRes.getData();
+                    List data = outRes.getData();
                     Result result = resultAction(data);
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         res.setCode(ResultCode.FAIL.getValue());
@@ -103,7 +103,7 @@ public interface IMonkeyDataHandle {
                     }
                 }
             }
-            if (inputRes.getData().getIsSingle()) {
+            if (inputRes.getData().getIsSingle()!=null&&inputRes.getData().getIsSingle()) {
                 break;
             }
         }
