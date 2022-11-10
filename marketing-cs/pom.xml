@@ -214,7 +214,7 @@
             <groupId>com.br</groupId>
             <artifactId>br-grpc-common</artifactId>
             <version>1.0.5</version>
-<!--            <classifier>shaded</classifier>-->
+            <classifier>shaded</classifier>
         </dependency>
     </dependencies>
     <build>
