@@ -19,86 +19,102 @@ public interface IMonkeyDataHandle {
 
     Logger log = LoggerFactory.getLogger(IMonkeyDataHandle.class);
 
-    default Boolean isThread(){
+    /**
+     * 是否开启多线程
+     * @return
+     */
+    default Boolean isThread() {
         return false;
-    };
+    }
 
-    default Integer getThread(){
+
+    /**
+     * 获取线程数
+     * @return
+     */
+    default Integer getThread() {
         return 5;
     }
 
     /**
      * 获取输入数据
+     *
      * @return
      */
     Result<IterationResult> getInputData(InputDataCondition condition);
 
     /**
      * 数据过程处理
+     *
      * @param inList
      * @return
      */
-    Result<List<OutputData>> processData(List<InputData> inList);
+    Result<List> processData(List inList);
 
     /**
      * 数据标准输出
+     *
      * @param outputDataList
      * @return
      */
-    Result resultAction(List<OutputData> outputDataList);
+    Result resultAction(List outputDataList);
 
 
     /**
      * 调用入口
+     *
      * @param condition
      * @return
      */
-    default Result action(InputDataCondition condition){
+    default Result action(InputDataCondition condition) {
         Result res = new Result();
         ThreadPoolExecutor pool = null;
-        if(isThread()){
-            pool = BrExecutors.getThreadPool(getThread(),getThread());
+        if (isThread()) {
+            pool = BrExecutors.getThreadPool(getThread(), getThread());
         }
         res.setCode(ResultCode.SUCCESS.getValue());
-        for (;;){
+        for (; ; ) {
             Result<IterationResult> inputRes = getInputData(condition);
-            if(ResultCode.FAIL.getValue().equals(inputRes.getCode())){
+            if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                 break;
             }
             condition = inputRes.getData().getInputDataCondition();
             List<InputData> inputDataList = inputRes.getData().getInputDataList();
-            if(!isThread()){
-                pool.submit(()->{
+            if (!isThread()) {
+                pool.submit(() -> {
                     Result<List<OutputData>> outRes = processData(inputDataList);
-                    if(ResultCode.SUCCESS.getValue().equals(outRes.getCode())){
+                    if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
                         List<OutputData> data = outRes.getData();
                         Result result = resultAction(data);
-                        if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             res.setCode(ResultCode.FAIL.getValue());
                             log.warn(res.getMessage());
                         }
                     }
                 });
-            }else{
+            } else {
                 Result<List<OutputData>> outRes = processData(inputDataList);
-                if(ResultCode.SUCCESS.getValue().equals(outRes.getCode())){
+                if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
                     List<OutputData> data = outRes.getData();
                     Result result = resultAction(data);
-                    if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         res.setCode(ResultCode.FAIL.getValue());
                         log.warn(res.getMessage());
                     }
                 }
             }
+            if (inputRes.getData().getIsSingle()) {
+                break;
+            }
         }
-        if(isThread()){
+        if (isThread()) {
             pool.shutdown();
             try {
                 while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
 
                 }
-            }catch (Exception ex){
-                log.error(ex.getMessage(),ex);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
             }
         }
         return res;

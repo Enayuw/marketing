@@ -14,15 +14,15 @@ import javax.annotation.Resource;
 @Service
 public class InitDataImpl {
 
-    @Autowired
+    @Resource
     MarketingSyncUserMapper userMapper;
 
     @Resource
     MarketingSyncInfoMapper infoMapper;
 
-    public Result<IterationResult> getInputData(InputDataCondition<InitByRequestIdDTO> condition) {
-        InitByRequestIdDTO requestIdDTO = condition.getConditon();
-        infoMapper.get
+    public Result<IterationResult> getInputData(InputDataCondition condition) {
+//        InitByRequestIdDTO requestIdDTO = condition.getConditon();
+//        infoMapper.get
         return null;
     }
 }
