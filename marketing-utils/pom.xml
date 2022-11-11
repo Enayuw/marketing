@@ -20,7 +20,6 @@
         <!--            <artifactId>okhttp</artifactId>-->
         <!--            <version>${com.squareup.okhttp3.version}</version>-->
         <!--        </dependency>-->
-
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
