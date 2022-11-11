@@ -19,17 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ZhongAnHandleImpl implements IMonkeyDataHandle<MarketingSyncUser, MarketingTransferSyncUser,PageCondition> {
+public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, MarketingTransferSyncUser,PageCondition> {
 
-    @Override
-    public Boolean isThread() {
-        return true;
-    }
-
-    @Override
-    public Integer getThread() {
-        return IMonkeyDataHandle.super.getThread();
-    }
 
     @Override
     public Result<IterationResult<MarketingSyncUser,PageCondition>> getInputData(PageCondition condition) {
@@ -68,8 +59,4 @@ public class ZhongAnHandleImpl implements IMonkeyDataHandle<MarketingSyncUser, M
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    @Override
-    public Result action(PageCondition condition) {
-        return IMonkeyDataHandle.super.action(condition);
-    }
 }

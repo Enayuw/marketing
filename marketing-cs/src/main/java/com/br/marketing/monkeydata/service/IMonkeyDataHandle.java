@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
+public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     Logger log = LoggerFactory.getLogger(IMonkeyDataHandle.class);
 
@@ -22,7 +22,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      *
      * @return
      */
-    default Boolean isThread() {
+    public Boolean isThread() {
         return false;
     }
 
@@ -32,7 +32,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      *
      * @return
      */
-    default Integer getThread() {
+    public Integer getThread() {
         return 5;
     }
 
@@ -41,7 +41,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      *
      * @return
      */
-    Result<IterationResult<I, R>> getInputData(R condition);
+    public abstract Result<IterationResult<I, R>> getInputData(R condition);
 
     /**
      * 数据过程处理
@@ -49,7 +49,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * @param inList
      * @return
      */
-    Result<List<O>> processData(List<I> inList);
+    public abstract Result<List<O>> processData(List<I> inList);
 
     /**
      * 数据标准输出
@@ -57,7 +57,16 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * @param outputDataList
      * @return
      */
-    Result resultAction(List<O> outputDataList);
+    public abstract Result resultAction(List<O> outputDataList);
+
+    /**
+     * 特殊执行
+     * @param condition
+     * @return
+     */
+    public Result customizedAction(R condition) {
+        return null;
+    }
 
 
     /**
@@ -66,7 +75,11 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * @param condition
      * @return
      */
-    default Result action(R condition) {
+    public final Result action(R condition) {
+        Result resCustom = customizedAction(condition);
+        if (resCustom != null) {
+            return resCustom;
+        }
         Result res = new Result();
         ThreadPoolExecutor pool = null;
         if (isThread()) {
@@ -80,7 +93,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
             }
             condition = inputRes.getData().getInDatacondition();
             List inputDataList = inputRes.getData().getInputDataList();
-            if (isThread()&&pool!=null) {
+            if (isThread() && pool != null) {
                 pool.submit(() -> {
                     Result<List<O>> outRes = processData(inputDataList);
                     if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
@@ -103,7 +116,7 @@ public interface IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                     }
                 }
             }
-            if (inputRes.getData().getIsSingle()!=null&&inputRes.getData().getIsSingle()) {
+            if (inputRes.getData().getIsSingle() != null && inputRes.getData().getIsSingle()) {
                 break;
             }
         }
