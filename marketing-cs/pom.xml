@@ -66,11 +66,11 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.google.guava</groupId>-->
+<!--            <artifactId>guava</artifactId>-->
+<!--            <version>14.0.1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.br.bsf</groupId>
             <artifactId>bsf-ext</artifactId>
@@ -158,26 +158,26 @@
             <groupId>com.br</groupId>
             <artifactId>grpc-encode-mapping-rely</artifactId>
             <version>1.0.0</version>
-            <classifier>shaded</classifier>
+<!--            <classifier>shaded</classifier>-->
         </dependency>
         <dependency>
             <groupId>com.br.mom</groupId>
             <artifactId>grpc-broker-layer-api</artifactId>
             <version>1.0.0</version>
-            <classifier>shaded</classifier>
+<!--            <classifier>shaded</classifier>-->
         </dependency>
         <!--grpc 用户中心客户端-->
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>grpc-user-center-rely</artifactId>
             <version>1.0.0</version>
-            <classifier>shaded</classifier>
+<!--            <classifier>shaded</classifier>-->
         </dependency>
         <dependency>
             <groupId>com.br</groupId>
             <artifactId>strategy-grpc</artifactId>
             <version>1.0.0</version>
-            <classifier>shaded</classifier>
+<!--            <classifier>shaded</classifier>-->
         </dependency>
         <dependency>
             <groupId>com.br.transfer</groupId>
@@ -214,7 +214,12 @@
             <groupId>com.br</groupId>
             <artifactId>br-grpc-common</artifactId>
             <version>1.0.5</version>
-            <classifier>shaded</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>
