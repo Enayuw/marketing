@@ -168,6 +168,9 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
+  zhongAn:
+    baseUrl: https://finance-gateway-pop.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

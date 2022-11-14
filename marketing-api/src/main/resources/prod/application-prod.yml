@@ -83,6 +83,9 @@ api:
   robotAiApiService:
     baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  zhongAn:
+    baseUrl: https://finance-gateway-pop.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
   customerService:
     apiCode: 4000296
   dass:

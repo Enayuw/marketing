@@ -141,6 +141,9 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+  zhongAn:
+    baseUrl: https://finance-gateway-test.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
   marketing:
     transferUrl: http://k8s.brapp.com/compass-api/api/marketing-api/marketingTransferData/receiveTransferDataSync
   halo:
