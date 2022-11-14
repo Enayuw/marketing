@@ -3,12 +3,12 @@ package com.br.marketing.client.zhongan.input;
 import lombok.Data;
 
 @Data
-public class ZhongAnRequestDTO<T> {
+public class ZhongAnRequestDTO {
     private String apiKey;
     private String reqNo;
     private String reqDate;
     private String gatewayVersion;
-    private T bizParam;
+    private String bizParam;
     private String extend;
     private String sign;
 }

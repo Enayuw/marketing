@@ -43,7 +43,7 @@
     </appender>
 
     <!--错误日志：用于将错误日志输出到独立文件-->
-    <appender name="ERROR_FILE" class="com.br.marketing.check.alarm.AlarmAppender">
+    <appender name="ERROR_FILE" class="com.br.marketing.monkey.alarm.AlarmAppender">
         <file>${LOG_HOME}/${APP_NAME}_error.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_HOME}/${APP_NAME}_error.log.%d{yyyy-MM-dd}
