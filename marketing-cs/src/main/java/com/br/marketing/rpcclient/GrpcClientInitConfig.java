@@ -113,7 +113,7 @@ public class GrpcClientInitConfig {
     }
 
     static Boolean isGrpc() {
-        return true;
-//        return "GRPC".equals(EnvUtil.getProperties("GRPC_MODE"));
+//        return true;
+        return "GRPC".equals(EnvUtil.getProperties("GRPC_MODE"));
     }
 }
