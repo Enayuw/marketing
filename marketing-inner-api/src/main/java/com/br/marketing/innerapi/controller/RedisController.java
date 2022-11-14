@@ -9,7 +9,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.UserCenterHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,16 @@ public class RedisController {
 
     @Autowired
     IProductResultSimpleService productResultSimpleService;
+
+    @Autowired
+    UserCenterHandler userCenterHandler;
+
+    @GetMapping("testM")
+    public String testM(){
+        String ms =  "{\"apiCode\":\"7479978\",\"operateType\":\"add\"}";
+        userCenterHandler.handleDataUserCenter(ms);
+        return "";
+    }
 
     @GetMapping("get")
     public String get(@RequestParam("key") String key) {

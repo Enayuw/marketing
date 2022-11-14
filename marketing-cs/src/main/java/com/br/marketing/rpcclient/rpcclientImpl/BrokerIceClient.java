@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Component
@@ -93,6 +95,7 @@ public class BrokerIceClient {
             //入参内容
             requestData.put("content", content);
             paramJson.put("requestData", requestData);
+            paramJson.put("swiftNum", UUID.randomUUID().toString().replaceAll("-",""));
             param = paramJson.toJSONString();
             AsyncResult beginSender = service.begin_sender(param);
             log.warn("userReportLog mom request return : {}", beginSender == null ? "" : beginSender.isSent());

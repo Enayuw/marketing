@@ -46,7 +46,7 @@ public class UserCenterGrpcClient {
                 .setColumns(COLUMNS).setTypeName(DB).setCache(true).build();
         UserCenterResponse info = GrpcClientInitConfig.grpcUserCenter().getInfo(request);
         if (200 != info.getCode()) {
-            log.warn("从用户中心查询的商户信息-{}--{}----{}", baseJson.toString(), JSONObject.toJSONString(info), apiCode);
+            log.warn("从用户中心查询的商户信息-{}--{}----{}", baseJson.toString(), info.toString(), apiCode);
         }
         MerchantParam merchantParam = JSONObject.parseObject(info.getResult(), MerchantParam.class);
         return merchantParam;
