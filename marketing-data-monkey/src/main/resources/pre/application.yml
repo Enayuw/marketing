@@ -18,7 +18,7 @@ spring:
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
 server:
-  port: 19707
+  port: 16707
 
 mybatis:
   mapper-locations: mapper/*.xml
