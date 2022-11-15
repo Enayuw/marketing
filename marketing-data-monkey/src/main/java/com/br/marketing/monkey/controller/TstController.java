@@ -1,9 +1,12 @@
 package com.br.marketing.monkey.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
+import com.br.marketing.client.zhongan.input.ZkReqDTO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
+import com.br.marketing.common.commondto.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +57,23 @@ public class TstController {
         details.add(zaMarketDetail2);
 
         zhongAnClient.pushDetail(dataDTO);
+        return "123";
+    }
+
+
+    @GetMapping("/testZk")
+    public String testZk(){
+
+        ZkReqDTO xd = new ZkReqDTO();
+        ZkReqDTO bx = new ZkReqDTO();
+        xd.setCustMobileMd5(Md5OfZanUtils.getMD5("14413201320"));
+        xd.setChannelCode(ZhongAnClient.XdChannelCode);
+        bx.setCustMobileMd5(Md5OfZanUtils.getMD5("14413211321"));
+        bx.setChannelCode(ZhongAnClient.BxChannelCode);
+        Result<Boolean> booleanResult = zhongAnClient.zkXd(xd);
+        Result<Boolean> booleanResult1 = zhongAnClient.zkBx(bx);
+        System.out.println("0 ==== "+JSON.toJSONString(booleanResult));
+        System.out.println("1 ==== "+JSON.toJSONString(booleanResult1));
         return "123";
     }
 }
