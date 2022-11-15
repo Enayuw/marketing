@@ -32,7 +32,7 @@ public interface IMarketingSyncUserService {
      * @param apiCode  apiCode
      * @param custNum  案件编号
      * @param userType 场景
-     * @param date     比较的日期
+     * @param date     判断是否在有效期内的日期
      * @param day      天的范围，+day 为T+day；-day 为T-day；null为T月底
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
@@ -46,10 +46,10 @@ public interface IMarketingSyncUserService {
      * @param apiCode      apiCode
      * @param custNum      案件编号
      * @param userType     场景
-     * @param date         比较的日期
+     * @param date         判断是否在有效期内的日期
      * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
      *                     0为{@code validityDate}月底
-     * @param validityDate 有效日期
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
@@ -60,11 +60,11 @@ public interface IMarketingSyncUserService {
     /**
      * 是否在有效期内
      *
-     * @param date         比较的日期
+     * @param date         判断是否在有效期内的日期
      * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
      *                     null为{@code validityDate}月底
      *                     0为{@code validityDate}当天
-     * @param validityDate 有效日期
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
@@ -213,4 +213,14 @@ public interface IMarketingSyncUserService {
      */
     Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode
             , Set<String> custNumSet);
+
+    /**
+     * 2022/11/14 19:37
+     * 根据手机号 批量获取最新时间上传数据信息
+     *
+     * @param apiCode apiCode
+     * @param cellSet 手机号集合
+     * @return Map key cell; value MarketingTransferSyncUser
+     */
+    Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode, Set<String> cellSet);
 }
