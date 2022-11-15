@@ -215,4 +215,16 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
         return CollectionUtils.isEmpty(list) ? null : list.stream().collect(
                 Collectors.groupingBy(MarketingSyncUser::getCustNum));
     }
+
+    @Override
+    public Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode
+            , Set<String> cellSet) {
+        List<MarketingSyncUser> cellByCellAndMaxAppletTime = marketingSyncUserMapper.getCellByCellAndMaxAppletTime(
+                apiCode, cellSet);
+        if (CollectionUtils.isEmpty(cellByCellAndMaxAppletTime)) {
+            return null;
+        }
+        return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCell
+                , Function.identity()));
+    }
 }
