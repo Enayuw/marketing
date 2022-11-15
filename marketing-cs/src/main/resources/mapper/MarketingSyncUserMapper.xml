@@ -283,4 +283,18 @@
         and status = 1 group by cust_num
         ) as t2 where t1.create_time = t2.createtime and t1.cust_num = t2.cust_num group by t1.cust_num
     </select>
+
+    <select id="getCellByCellAndMaxAppletTime" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select t1.cell,cust_num,applet_date,applet_time,create_time,cus_batch
+        from b_marketing_sync_${apiCode} t1,
+        (select cell,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where
+        cell in
+        <foreach collection="cellSet" item="cell" open="(" separator="," close=")">
+            '${cell}'
+        </foreach>
+        and status = 1 group by cell
+        ) as t2 where t1.applet_time = t2.applet_time and t1.cell = t2.cell group by t1.cell
+    </select>
 </mapper>
