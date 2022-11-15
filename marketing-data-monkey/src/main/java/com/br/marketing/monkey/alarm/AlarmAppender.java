@@ -6,9 +6,9 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
-//import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 
-//@Slf4j
+@Slf4j
 public class AlarmAppender<E> extends RollingFileAppender<E>  {
     @Override
     protected void subAppend(E eventObject) {
@@ -26,7 +26,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 EmailService emailService= MarketingDataMonkeyApplication.ac.getBean(SystemExceptionServiceImpl.class);
                 emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-DATA-MONKEY");
             } catch (Exception e) {
-//                log.warn("Exception",e);
+                log.warn("Exception",e);
             }
         }
     }
