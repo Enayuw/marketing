@@ -161,6 +161,7 @@ api:
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: false
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

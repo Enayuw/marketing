@@ -154,6 +154,7 @@ api:
   zhongAn:
     baseUrl: https://finance-gateway-pop.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
   marketing:
     transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
   halo:

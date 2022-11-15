@@ -86,6 +86,7 @@ api:
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
   customerService:
     apiCode: 4000296
   dass:

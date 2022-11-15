@@ -82,7 +82,7 @@ api:
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
-
+    isProxy: false
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

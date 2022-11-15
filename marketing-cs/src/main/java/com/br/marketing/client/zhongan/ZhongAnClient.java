@@ -34,6 +34,9 @@ public class ZhongAnClient {
     @Value("${api.zhongAn.api:00}")
     String url;
 
+    @Value("${api.zhongAn.isProxy:false}")
+    Boolean isProxy;
+
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -70,7 +73,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, false, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
@@ -129,7 +132,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, false, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
