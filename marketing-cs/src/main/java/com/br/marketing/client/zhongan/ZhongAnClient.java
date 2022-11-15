@@ -53,6 +53,10 @@ public class ZhongAnClient {
 
     /**
      * 推送明细
+     * 判断code
+     *  1-接口请求成功
+     *  0-接口请求失败
+     *  500-需要重试
      * @param dto
      * @return
      */
@@ -90,6 +94,10 @@ public class ZhongAnClient {
 
     /**
      * 保险撞库
+     * 判断code
+     *  1-接口请求成功
+     *  0-接口请求失败
+     *  500-需要重试
      * @param zkReqDTO
      * @return
      */
@@ -99,6 +107,10 @@ public class ZhongAnClient {
 
     /**
      * 信贷撞库
+     * 判断code
+     *  1-接口请求成功
+     *  0-接口请求失败
+     *  500-需要重试
      * @param zkReqDTO
      * @return
      */
