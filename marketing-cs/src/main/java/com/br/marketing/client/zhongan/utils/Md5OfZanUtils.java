@@ -9,7 +9,7 @@ import java.security.MessageDigest;
  * @date 2017/11/15 ========================================================
  */
 
-public class Md5Utils {
+public class Md5OfZanUtils {
 
     /** 16进制的字符数组 */
     private final static String[] hexDigits = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d",

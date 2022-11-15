@@ -9,6 +9,5 @@ public class ZhongAnRequestDTO {
     private String reqDate;
     private String gatewayVersion;
     private String bizParam;
-    private String extend;
     private String sign;
 }

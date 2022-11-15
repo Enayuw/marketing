@@ -5,11 +5,14 @@ import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.client.zhongan.input.ZhongAnRequestDTO;
-import com.br.marketing.client.zhongan.utils.Md5Utils;
+import com.br.marketing.client.zhongan.output.MarketDetailVO;
+import com.br.marketing.client.zhongan.output.ZhongAnResponseVO;
+import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.client.zhongan.utils.RSAEncrypt;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
@@ -21,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ZhongAnClient {
@@ -45,24 +49,44 @@ public class ZhongAnClient {
 
     String RSApKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB";
 
-    @RetryMethod(isOrNoDbRetry = true)
-    public Result pushDetail(ZaMarketDataDTO dto, Integer retry){
-        ZhongAnRequestDTO zhongAnRequestDTO = new ZhongAnRequestDTO();
-        zhongAnRequestDTO.setApiKey(xinDaiDetailApiKey);
-        zhongAnRequestDTO.setReqNo(dto.getReqNo());
-        zhongAnRequestDTO.setReqDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        zhongAnRequestDTO.setGatewayVersion("1.0.0");
-        HashMap<String, List<ZaMarketDetail>> bizData = new HashMap<>();
-        bizData.put("data",dto.getData());
-        zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(bizData), RSApKey));
-        BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
-        zhongAnRequestDTO.setSign(getSignature(beanMap,signKey));
-
-        HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, false, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
-        System.out.println(stringStringHashMap);
-        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    /**
+     * 推送明细
+     * @param dto
+     * @return
+     */
+    public Result pushDetail(ZaMarketDataDTO dto) {
+        try {
+            ZhongAnRequestDTO zhongAnRequestDTO = new ZhongAnRequestDTO();
+            zhongAnRequestDTO.setApiKey(xinDaiDetailApiKey);
+            zhongAnRequestDTO.setReqNo(UUID.randomUUID().toString().replaceAll("-", ""));
+            zhongAnRequestDTO.setReqDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            zhongAnRequestDTO.setGatewayVersion("1.0.0");
+            HashMap<String, List<ZaMarketDetail>> bizData = new HashMap<>();
+            bizData.put("data", dto.getData());
+            zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(bizData), RSApKey));
+            BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
+            zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
+            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, false, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+            ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
+            Result result = checkGateWay(resVo);
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                return result;
+            }
+            MarketDetailVO marketDetailVO = JSON.parseObject(resVo.getBizData(), MarketDetailVO.class);
+            if("1".equals(marketDetailVO.getRespCode())){
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            if("0".equals(marketDetailVO.getRespCode())||"3".equals(marketDetailVO.getRespCode())||"6".equals(marketDetailVO.getRespCode())){
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        } catch (Exception ex) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
     }
-
 
     /**
      * 生产签名串
@@ -82,8 +106,23 @@ public class ZhongAnClient {
             }
         }
         String str = sb.deleteCharAt(sb.lastIndexOf("&")).toString() + appId;
-        System.out.println("签名字符串===>>  "+str);
-        return Md5Utils.getMD5(str);
+        System.out.println("签名字符串===>>  " + str);
+        return Md5OfZanUtils.getMD5(str);
     }
 
+    private Result checkGateWay(ZhongAnResponseVO responseVO) {
+        //成功
+        if (responseVO.getSuccess()) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+
+        //进行重试
+        if ("GW_0008".equals(responseVO.getResultCode())
+                || "GW_0018".equals(responseVO.getResultCode())
+                || "GW_0019".equals(responseVO.getResultCode())) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(responseVO));
+    }
 }

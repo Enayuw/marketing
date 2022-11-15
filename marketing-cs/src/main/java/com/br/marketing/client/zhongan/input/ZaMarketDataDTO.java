@@ -6,8 +6,5 @@ import java.util.List;
 
 @Data
 public class ZaMarketDataDTO {
-
-    private String reqNo;
-
     private List<ZaMarketDetail> data;
 }
