@@ -19,7 +19,6 @@ public class IterationResult<I,R extends InputDataCondition> {
 
     /**
      * 是否是单次处理
-     * 设置该字段的优先级最高
      *   如果该字段为true，获取数据源的循环只获取一次
      *   如果该字段为false，退出循环需要依靠外层result的code值为FAIL
      */

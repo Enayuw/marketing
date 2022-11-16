@@ -15,6 +15,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
@@ -23,10 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ZhongAnClient {
@@ -39,6 +37,10 @@ public class ZhongAnClient {
 
     @Autowired
     HttpProxyClient httpProxyClient;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
 
     String signKey = "59018a92ca1e0d1e38f7da0617491abe";
 
@@ -54,17 +56,24 @@ public class ZhongAnClient {
 
     String RSApKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB";
 
+    final static String zanPushDetail = "zanPushDetail";
+
+    final static String zanZk = "zanZk";
+
     /**
      * 推送明细
      * 判断code
-     *  1-接口请求成功
-     *  0-接口请求失败
-     *  500-需要重试
+     * 1-接口请求成功
+     * 0-接口请求失败
+     * 500-需要重试
+     *
      * @param dto
      * @return
      */
     public Result pushDetail(ZaMarketDataDTO dto) {
         try {
+            HashMap<String, List<Boolean>> isLog = getIsLog();
+            List<Boolean> islogs = isLog.get(zanPushDetail);
             ZhongAnRequestDTO zhongAnRequestDTO = new ZhongAnRequestDTO();
             zhongAnRequestDTO.setApiKey(xinDaiDetailApiKey);
             zhongAnRequestDTO.setReqNo(UUID.randomUUID().toString().replaceAll("-", ""));
@@ -73,20 +82,20 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
-            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 return result;
             }
             MarketDetailVO marketDetailVO = JSON.parseObject(resVo.getBizData(), MarketDetailVO.class);
-            if("1".equals(marketDetailVO.getRespCode())){
+            if ("1".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            if("0".equals(marketDetailVO.getRespCode())||"3".equals(marketDetailVO.getRespCode())||"6".equals(marketDetailVO.getRespCode())){
+            if ("0".equals(marketDetailVO.getRespCode()) || "3".equals(marketDetailVO.getRespCode()) || "6".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -98,32 +107,36 @@ public class ZhongAnClient {
     /**
      * 保险撞库
      * 判断code
-     *  1-接口请求成功
-     *  0-接口请求失败
-     *  500-需要重试
+     * 1-接口请求成功
+     * 0-接口请求失败
+     * 500-需要重试
+     *
      * @param zkReqDTO
      * @return
      */
-    public Result<Boolean> zkBx(ZkReqDTO zkReqDTO){
-        return zk(zkReqDTO,bXZKApiKey);
+    public Result<Boolean> zkBx(ZkReqDTO zkReqDTO) {
+        return zk(zkReqDTO, bXZKApiKey);
     }
 
     /**
      * 信贷撞库
      * 判断code
-     *  1-接口请求成功
-     *  0-接口请求失败
-     *  500-需要重试
+     * 1-接口请求成功
+     * 0-接口请求失败
+     * 500-需要重试
+     *
      * @param zkReqDTO
      * @return
      */
-    public Result<Boolean> zkXd(ZkReqDTO zkReqDTO){
-        return zk(zkReqDTO,xinDaiZKApiKey);
+    public Result<Boolean> zkXd(ZkReqDTO zkReqDTO) {
+        return zk(zkReqDTO, xinDaiZKApiKey);
     }
 
 
-    public Result<Boolean> zk(ZkReqDTO zkReqDTO,String apiKey){
+    public Result<Boolean> zk(ZkReqDTO zkReqDTO, String apiKey) {
         try {
+            HashMap<String, List<Boolean>> isLog = getIsLog();
+            List<Boolean> islogs = isLog.get(zanZk);
             ZhongAnRequestDTO zhongAnRequestDTO = new ZhongAnRequestDTO();
             zhongAnRequestDTO.setApiKey(apiKey);
             zhongAnRequestDTO.setReqNo(UUID.randomUUID().toString().replaceAll("-", ""));
@@ -132,20 +145,23 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCode(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
-            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 return result;
             }
             ZkReponseVO zkVo = JSON.parseObject(resVo.getBizData(), ZkReponseVO.class);
-            if("1".equals(zkVo.getRespCode())){
+            if ("1".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(zkVo.getAccess());
             }
-            if("0".equals(zkVo.getRespCode())||"3".equals(zkVo.getRespCode())||"6".equals(zkVo.getRespCode())){
+            if ("0".equals(zkVo.getRespCode()) || "3".equals(zkVo.getRespCode()) || "6".equals(zkVo.getRespCode())) {
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+            if (bXZKApiKey.equals(apiKey) && "9998".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -190,5 +206,32 @@ public class ZhongAnClient {
         }
 
         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(responseVO));
+    }
+
+    /**
+     * {"zanPushDetail":[false,true],"zanZk":[false,true]}
+     *
+     * @return
+     */
+    private HashMap<String, List<Boolean>> getIsLog() {
+        HashMap<String, List<Boolean>> res = new HashMap<>();
+        HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
+        if (apiLogMark == null || !apiLogMark.containsKey(zanPushDetail)) {
+            ArrayList<Boolean> mark = new ArrayList<>();
+            mark.add(false);
+            mark.add(true);
+            res.put(zanPushDetail, mark);
+        } else {
+            res.put(zanPushDetail, apiLogMark.get(zanPushDetail));
+        }
+        if (apiLogMark == null || !apiLogMark.containsKey(zanZk)) {
+            ArrayList<Boolean> mark = new ArrayList<>();
+            mark.add(false);
+            mark.add(true);
+            res.put(zanZk, mark);
+        } else {
+            res.put(zanZk, apiLogMark.get(zanZk));
+        }
+        return res;
     }
 }
