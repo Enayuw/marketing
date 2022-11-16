@@ -16,6 +16,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.beans.BeanMap;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@Slf4j
 public class ZhongAnClient {
 
     @Value("${api.zhongAn.api:00}")
@@ -100,6 +102,7 @@ public class ZhongAnClient {
             }
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
+            log.error("众安推送明细异常"+ex.getMessage(),ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
@@ -166,6 +169,7 @@ public class ZhongAnClient {
             }
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
+            log.error("众安撞库异常"+ex.getMessage(),ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
