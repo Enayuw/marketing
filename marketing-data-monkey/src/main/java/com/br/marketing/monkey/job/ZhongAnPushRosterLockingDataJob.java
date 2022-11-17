@@ -1,6 +1,10 @@
 package com.br.marketing.monkey.job;
 
+import com.br.marketing.dto.SftpFilePushSuccessDTO;
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.ZhonganRosterLockingData;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkey.service.PushRosterLockingDataToZhongAn;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -12,10 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * 名单锁定推送众安
@@ -29,6 +30,12 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 
     @Resource
     private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
+
+    @Resource
+    private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
+
+    @Resource
+    private LocalFileMapper localFileMapper;
 
 
     @Override
@@ -65,6 +72,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         data.setPageIndex(0);
         data.setPageSize(2000);
         for (String apiCode : list) {
+            Date date = new Date();
             ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
             zhonganRosterLockingData.setApiCode(apiCode);
             zhonganRosterLockingData.setTag(tag);
@@ -72,6 +80,16 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             zhonganRosterLockingData.setPushStatus(1);
             data.setParam(zhonganRosterLockingData);
             rosterLockingDataToZhongAn.action(data);
+            List<SftpFilePushSuccessDTO> successSum = zhonganRosterLockingDataMapper.getSftpFilePushSuccessSum(
+                    apiCode, bizDate);
+            for (SftpFilePushSuccessDTO dto : successSum) {
+                LocalFile localFile = new LocalFile();
+                localFile.setPushNumber(dto.getPushSum());
+                localFile.setPushStartTime(date);
+                localFile.setId(dto.getLocalId());
+                localFile.setPushEndTime(new Date());
+                localFileMapper.updateByPrimaryKeySelective(localFile);
+            }
         }
     }
 }
