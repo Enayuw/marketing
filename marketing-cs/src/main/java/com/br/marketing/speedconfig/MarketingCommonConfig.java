@@ -68,7 +68,7 @@ public class MarketingCommonConfig {
 
 
     /**
-     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
@@ -88,7 +88,7 @@ public class MarketingCommonConfig {
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
-     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -253,7 +253,7 @@ public class MarketingCommonConfig {
      */
     private Integer OffLineInserEsThreadNum;
     /**
-     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private String tongChengPeriodOfValidityDay;
 
@@ -329,5 +329,11 @@ public class MarketingCommonConfig {
     /**
      * 接口日志记录判断标识key为接口名称，第一个为db记录判断，第二为file记录判断{"zanPushDetail":[false,true],"zanZk":[false,true]}
      */
-    private HashMap<String,List<Boolean>> apiLogMark;
+    private HashMap<String, List<Boolean>> apiLogMark;
+
+    /**
+     * 众安有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     */
+    private Map<String, String> zhongAnPeriodOfValidityDay;
+
 }
