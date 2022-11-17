@@ -43,7 +43,7 @@
     </select>
 
     <update id="updatePushStatus">
-        update b_zhongan_roster_locking_data set push_status=${updatePushStatus}
+        update b_zhongan_roster_locking_data set push_status=${updatePushStatus}, update_time=new()
         where tag='${pushStatus}' and api_code='${apiCode}' and
         <foreach collection="dataList" item="data" separator=" or " open="(" close=")">
             (mobile_md5='${data.mobileMd5}' and biz_date='${data.bizDate}')
