@@ -10,7 +10,7 @@
                 api_code='${data.apiCode}'
             </if>
             <if test="data.bizDate!=null and data.bizDate!=''">
-                and <![CDATA[biz_date <= '${data.bizDate}']]>
+                and <![CDATA[ biz_date <= '${data.bizDate}' ]]>
             </if>
             <if test="data.tag!=null and data.tag!=''">
                 and tag='${data.tag}'
@@ -19,7 +19,7 @@
                 and push_status=${data.pushStatus}
             </if>
             and status=1
-            group by mobile_md5,biz_date order by mobile_md5,biz_date limit <![CDATA[${pageNo}*${pageSize}]]>
+            group by mobile_md5,biz_date order by mobile_md5,biz_date limit <![CDATA[ ${pageNo}*${pageSize} ]]>
             ,${pageSize}
         </where>
     </select>
@@ -35,8 +35,8 @@
             </if>
             <foreach collection="queries" item="q" separator=" or " open="(" close=")">
                 (mobile_md5='${q.mobileMd5}' and
-                <![CDATA[biz_date >= '${q.periodOfValidityBO.beginDateStr}']]>
-                and <![CDATA[biz_date <= '${q.periodOfValidityBO.enDateStr}']]>)
+                <![CDATA[ biz_date >= '${q.periodOfValidityBO.beginDateStr}' ]]>
+                and <![CDATA[ biz_date <= '${q.periodOfValidityBO.enDateStr}' ]]>)
             </foreach>
             group by mobile_md5 having count(*)>0
         </where>
@@ -52,4 +52,18 @@
             and push_status=${pushStatus}
         </if>
     </update>
+
+    <select id="getSftpFilePushSuccessSum" resultType="com.br.marketing.dto.SftpFilePushSuccessDTO">
+        select count(*) as pushSum, t.local_id as localId
+        from (
+                 select mobile_md5, local_id
+                 from b_zhongan_roster_locking_data
+                 WHERE api_code = '${apiCode}'
+                   and <![CDATA[ update_time >= '${dateStr}' ]]>
+                   and push_status = 1
+                   and status = 1
+                   and data_source = 1
+                 group by mobile_md5, local_id) as t
+        group by t.local_id
+    </select>
 </mapper>

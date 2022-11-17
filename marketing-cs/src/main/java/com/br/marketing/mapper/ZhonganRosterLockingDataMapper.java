@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import org.apache.ibatis.annotations.Mapper;
@@ -48,4 +49,11 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
             , @Param("pushStatus") Integer pushStatus
             , @Param("tag") String tag
             , @Param("data") List<ZhonganRosterLockingData> data);
+
+    /**
+     * 2022/11/16 16:54
+     * 统计文件推送成功数据量
+     */
+    List<SftpFilePushSuccessDTO> getSftpFilePushSuccessSum(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr);
 }
