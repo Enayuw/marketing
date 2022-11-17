@@ -12,6 +12,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -84,7 +85,13 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                     apiCode, bizDate);
             for (SftpFilePushSuccessDTO dto : successSum) {
                 LocalFile localFile = new LocalFile();
-                localFile.setPushNumber(dto.getPushSum());
+                LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
+                Integer pushNumber = localFileOld.getPushNumber();
+                if (ObjectUtils.isEmpty(pushNumber)) {
+                    localFile.setPushNumber(dto.getPushSum());
+                } else {
+                    localFile.setPushNumber(dto.getPushSum() + pushNumber);
+                }
                 localFile.setPushStartTime(date);
                 localFile.setId(dto.getLocalId());
                 localFile.setPushEndTime(new Date());
