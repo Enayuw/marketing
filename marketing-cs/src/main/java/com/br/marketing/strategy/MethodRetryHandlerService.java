@@ -1,6 +1,7 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
@@ -22,22 +23,16 @@ import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.dto.SingleDassAndRecordDTO;
 import com.br.marketing.entity.DataCompare;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
 import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.mapper.DataCompareMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.*;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -101,13 +96,20 @@ public class MethodRetryHandlerService {
     @Autowired
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
+    @Resource
+    private ZhongAnClient zhongAnClient;
+
+    @Resource
+    private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
+
     /**
      * 全局重试任务执行类
+     *
      * @param dassExportAdapterDTO
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO, Integer retry){
+    public Result<PushBlackListResponse> callBlackList(DassExportAdapterDTO dassExportAdapterDTO, Integer retry) {
         List<BlackListDTO> list = dassExportAdapterDTO.getList();
         Result<PushBlackListResponse> pushBlackListResponseResult = dassServiceClient.postBlackList(list);
         // 调用接口成功
@@ -278,16 +280,47 @@ public class MethodRetryHandlerService {
      * @return
      */
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
-    public Result callPolicyData(PolicyRetryByRuleDTO dto,Integer retry){
+    public Result callPolicyData(PolicyRetryByRuleDTO dto, Integer retry){
         List<Long> ids = dto.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
-        if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
-            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(),infoId);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+
+    /**
+     * 推送众安接口
+     *
+     * @param bo    封装的数据
+     * @param retry 是否重试
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<?> callZhongAnData(ZaMarketDataBO bo, Integer retry) {
+        Result<Object> result = new Result<>();
+        Result zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
+        switch (zhongAnResult.getCode()) {
+            case 500:
+                updatePushStatus(bo, 3, 1);
+                break;
+            case 0:
+                updatePushStatus(bo, 4, null);
+                break;
+            default:
+                updatePushStatus(bo, 2, null);
+        }
+        result.setCode(zhongAnResult.getCode());
+        return result;
+    }
+
+    private void updatePushStatus(ZaMarketDataBO bo, int updatePushStatus,
+                                  Integer pushStatus) {
+        zhonganRosterLockingDataMapper.updatePushStatus(bo.getApiCode(), updatePushStatus, pushStatus
+                , bo.getTag(), bo.getList());
+    }
+
 }
