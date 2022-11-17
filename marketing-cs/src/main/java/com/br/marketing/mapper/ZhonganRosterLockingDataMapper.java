@@ -1,10 +1,51 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.entity.ZhonganRosterLockingData;
+import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Set;
 
 
 @Mapper
-public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingDataMapperBase{
+public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingDataMapperBase {
 
+    /**
+     * 2022/11/14 14:56
+     * 对手机号分组，根据条件分页获取满足条件的数据
+     *
+     * @param data     过滤条件
+     * @param pageNo   页号，从0页开始
+     * @param pageSize 页面大小
+     * @return List
+     */
+    List<ZhonganRosterLockingData> findGroupMobileMd5ListPage(@Param("data") ZhonganRosterLockingData data
+            , @Param("pageNo") int pageNo
+            , @Param("pageSize") int pageSize);
+
+    /**
+     * 2022/11/14 15:39
+     * 获取已推送的手机号
+     *
+     * @param queries 条件集合
+     * @param apiCode apicode
+     * @param tag     枚举,CG/MG
+     * @return Set
+     */
+    Set<String> getMobileMd5ByBeforePushSet(@Param("queries") List<ZhongAnMobileMd5BizDateQuery> queries
+            , @Param("apiCode") String apiCode
+            , @Param("tag") String tag);
+
+    /**
+     * 2022/11/16 16:54
+     * 更新推送状态
+     */
+    void updatePushStatus(@Param("apiCode") String apiCode
+            , @Param("updatePushStatus") int updatePushStatus
+            , @Param("pushStatus") Integer pushStatus
+            , @Param("tag") String tag
+            , @Param("data") List<ZhonganRosterLockingData> data);
 }
