@@ -23,7 +23,7 @@
         <foreach collection="custNumSet" open="(" close=")" separator="," item="custNum">
             case_num ='${custNum}'
         </foreach>
-        and <![CDATA[ call_start_time = '${q.callStartTimeStr}']]>
+        and <![CDATA[ call_start_time = '${q.callStartTimeStr}' ]]>
         group by case_num having count(*)>0
     </select>
 </mapper>
