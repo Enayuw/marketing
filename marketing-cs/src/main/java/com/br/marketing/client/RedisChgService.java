@@ -144,6 +144,15 @@ public class RedisChgService {
     }
 
     /**
+     * 2022/11/17 15:53
+     * 返回集合中的所有成员
+     */
+    public Set<String> smembers(String key) {
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        return jedis.smembers(key);
+    }
+
+    /**
      * 2022/9/1 17:55
      * 获取set元素中的个数
      */
