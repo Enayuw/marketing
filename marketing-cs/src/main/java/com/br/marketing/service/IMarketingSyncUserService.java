@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 
@@ -70,6 +71,19 @@ public interface IMarketingSyncUserService {
      * @dateTime 2022/2/14 9:58
      */
     Boolean isPeriodOfValidity(Date date, Integer day, Date validityDate);
+
+    /**
+     * 获取有效期构造器
+     *
+     * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
+     *                     null为{@code validityDate}月底
+     *                     0为{@code validityDate}当天
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
+     * @return 有效期范围
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/14 9:58
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate);
 
     /**
      * 根据案件编号获取客户最新的场景
