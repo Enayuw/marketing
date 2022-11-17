@@ -52,7 +52,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     /**
      * 数据过程处理
-     * 该方法抛出异常 会中断后续流程(对于开启线程的不会中断)
+     * 该方法会抛出异常
      *
      * @param inList
      * @return
@@ -61,7 +61,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     /**
      * 数据标准输出
-     * 该方法抛出异常 会中断后续流程(对于开启线程的不会中断)
+     * 该方法会抛出异常
      *
      * @param outputDataList
      * @return
@@ -85,7 +85,9 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * 调用入口
      * 该方法返回Result对象
      * 先去执行自定义执行方法
-     *
+     * 如自定义方法未实现 则执行该模板流程
+     *  需注意 未开启多线成执行，getInputData，processData，resultAction 有异常，将退出执行，执行结果返回false
+     *        开启多线成，线程内的异常只会记录日志 并不会阻断流程
      * @param condition
      * @return
      */
