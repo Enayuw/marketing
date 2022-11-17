@@ -64,5 +64,10 @@ public class RedisKeyConstant {
      */
     public static final String juZiPushDaasCustNumKey = prefix.concat("juzi:pushdaas:custnum");
 
+    /**
+     * 众安客服拨打明细 custnum今日黑名单实时缓存
+     */
+    public static final String zhongAnblackCusNumToday = prefix.concat("zhongan:black:custnum");
+
 
 }

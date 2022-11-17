@@ -7,6 +7,8 @@ import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.client.zhongan.input.ZkReqDTO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
+import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/tst")
@@ -22,6 +23,9 @@ public class TstController {
 
     @Autowired
     ZhongAnClient zhongAnClient;
+
+    @Autowired
+    IMonkeyDataHandle zhongAnHandleImpl;
 
     @GetMapping("/testPushZan")
     public String testPushZan(){
@@ -74,6 +78,14 @@ public class TstController {
         Result<Boolean> booleanResult1 = zhongAnClient.zkBx(bx);
         System.out.println("0 ==== "+JSON.toJSONString(booleanResult));
         System.out.println("1 ==== "+JSON.toJSONString(booleanResult1));
+        return "123";
+    }
+
+    @GetMapping("/testInterface")
+    public String testInterface(){
+        PageCondition pageCondition = new PageCondition();
+        pageCondition.setPageIndex(1);
+        zhongAnHandleImpl.action(pageCondition);
         return "123";
     }
 }
