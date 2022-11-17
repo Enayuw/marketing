@@ -166,7 +166,15 @@ public class HttpProxyClient {
 	@Autowired
 	ThreadPoolExecutor interfaceLogDbpool;
 
+	public  HashMap<String,String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType,Boolean isDbLog,Boolean isFileLog) {
+		return sendByCode(param,url,isPorxy,mediaType,null,isDbLog,isFileLog);
+	}
+
 	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
+		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false);
+	}
+
+	private  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
 		InterfaceLog interfaceLog = new InterfaceLog();
 		interfaceLog.setExtendInfo(extendInfo);
 		interfaceLog.setRequestId(UUID.randomUUID().toString());
@@ -227,13 +235,18 @@ public class HttpProxyClient {
 			interfaceLog.setResult(e.getMessage());
 			res.put("content",e.getMessage());
 		}
-		interfaceLogDbpool.submit(()->{
-			try {
-				interfaceLogMapper.insertSelective(interfaceLog);
-			}catch (Exception ex){
-				log.error(String.format("插入接口日志报错:%s",ex.getMessage()),ex);
-			}
-		});
+		if(isDbLog) {
+			interfaceLogDbpool.submit(() -> {
+				try {
+					interfaceLogMapper.insertSelective(interfaceLog);
+				} catch (Exception ex) {
+					log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+				}
+			});
+		}
+		if(isFileLog){
+			log.warn(JSON.toJSONString(interfaceLog));
+		}
 		return res;
 	}
 

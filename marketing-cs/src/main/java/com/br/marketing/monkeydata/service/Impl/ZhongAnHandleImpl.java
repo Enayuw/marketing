@@ -21,6 +21,10 @@ import java.util.List;
 @Service
 public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, MarketingTransferSyncUser,PageCondition> {
 
+    @Override
+    public Boolean isThread() {
+        return true;
+    }
 
     @Override
     public Result<IterationResult<MarketingSyncUser,PageCondition>> getInputData(PageCondition condition) {

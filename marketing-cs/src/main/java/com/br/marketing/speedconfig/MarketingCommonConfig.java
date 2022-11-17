@@ -326,5 +326,8 @@ public class MarketingCommonConfig {
      */
     private List<String> saMoYeTransferFileApiCodes;
 
-
+    /**
+     * 接口日志记录判断标识key为接口名称，第一个为db记录判断，第二为file记录判断{"zanPushDetail":[false,true],"zanZk":[false,true]}
+     */
+    private HashMap<String,List<Boolean>> apiLogMark;
 }
