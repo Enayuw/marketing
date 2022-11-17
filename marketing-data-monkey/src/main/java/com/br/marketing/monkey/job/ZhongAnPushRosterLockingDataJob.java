@@ -69,6 +69,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             zhonganRosterLockingData.setApiCode(apiCode);
             zhonganRosterLockingData.setTag(tag);
             zhonganRosterLockingData.setBizDate(bizDate);
+            zhonganRosterLockingData.setPushStatus(1);
             data.setParam(zhonganRosterLockingData);
             rosterLockingDataToZhongAn.action(data);
         }
