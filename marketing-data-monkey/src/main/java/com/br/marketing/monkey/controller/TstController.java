@@ -5,6 +5,7 @@ import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.client.zhongan.input.ZkReqDTO;
+import com.br.marketing.client.zhongan.output.ZkReponseVO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
@@ -74,8 +75,8 @@ public class TstController {
         xd.setChannelCode(ZhongAnClient.XdChannelCode);
         bx.setCustMobileMd5(Md5OfZanUtils.getMD5("14413211321"));
         bx.setChannelCode(ZhongAnClient.BxChannelCode);
-        Result<Boolean> booleanResult = zhongAnClient.zkXd(xd);
-        Result<Boolean> booleanResult1 = zhongAnClient.zkBx(bx);
+        Result<ZkReponseVO> booleanResult = zhongAnClient.zkXd(xd);
+        Result<ZkReponseVO> booleanResult1 = zhongAnClient.zkBx(bx);
         System.out.println("0 ==== "+JSON.toJSONString(booleanResult));
         System.out.println("1 ==== "+JSON.toJSONString(booleanResult1));
         return "123";
