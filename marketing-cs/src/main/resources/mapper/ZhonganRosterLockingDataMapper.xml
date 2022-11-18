@@ -33,9 +33,9 @@
             <if test="tag!=null and tag!=''">
                 and tag='${tag}'
             </if>
+            and
             <foreach collection="queries" item="q" separator=" or " open="(" close=")">
-                (mobile_md5='${q.mobileMd5}' and
-                <![CDATA[ biz_date >= '${q.periodOfValidityBO.beginDateStr}' ]]>
+                (mobile_md5='${q.mobileMd5}' and <![CDATA[ biz_date>='${q.periodOfValidityBO.beginDateStr}' ]]>
                 and <![CDATA[ biz_date <= '${q.periodOfValidityBO.enDateStr}' ]]>)
             </foreach>
             group by mobile_md5 having count(*)>0

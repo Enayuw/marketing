@@ -142,7 +142,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                                 : syncUser.getAppletTime()).addDateString().builder();
                 return new ZhongAnMobileMd5BizDateQuery(l.getMobileMd5(), periodOfValidityBO);
             }).collect(Collectors.toList());
-            Set<String> cgMobileMd5Set = zhonganRosterLockingDataMapper.getMobileMd5ByBeforePushSettikv_(queries, apiCode, "CG");
+            Set<String> cgMobileMd5Set = zhonganRosterLockingDataMapper.getMobileMd5ByBeforePushSettikv_(queries
+                    , apiCode, "CG");
             if (!CollectionUtils.isEmpty(cgMobileMd5Set)) {
                 // 过滤CG组是否已经推送过
                 List<ZhonganRosterLockingData> list = inList.parallelStream().filter(
