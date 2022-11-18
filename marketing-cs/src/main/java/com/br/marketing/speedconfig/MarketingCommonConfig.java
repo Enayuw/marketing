@@ -66,6 +66,20 @@ public class MarketingCommonConfig {
      */
     private List<String> universalProcessApiCode;
 
+    /**
+     * 众安推送黑名单定时任务执行时间
+     */
+    private String zhongAnPushBlackDataExecuteTime;
+
+    /**
+     * 众安推送黑名单定时任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean zhongAnPushBlackDataSwitch;
+    /**
+     * 众安推送黑名单数据有效期
+     */
+    private String zhongAnPushBlackDataPeriod;
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
