@@ -86,18 +86,30 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                if(!islogs.get(1)){
+                    log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+                }
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                if(!islogs.get(1)){
+                    log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+                }
                 return result;
             }
             MarketDetailVO marketDetailVO = JSON.parseObject(resVo.getBizData(), MarketDetailVO.class);
             if ("1".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            if ("0".equals(marketDetailVO.getRespCode()) || "3".equals(marketDetailVO.getRespCode()) || "6".equals(marketDetailVO.getRespCode())) {
+            if(!islogs.get(1)){
+                log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+            }
+            if ("0".equals(marketDetailVO.getRespCode())
+                    || "3".equals(marketDetailVO.getRespCode())
+                    || "6".equals(marketDetailVO.getRespCode())
+                    || "9999".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -150,18 +162,31 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                if(!islogs.get(1)){
+                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+                }
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                if(!islogs.get(1)){
+                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+                }
                 return result;
             }
             ZkReponseVO zkVo = JSON.parseObject(resVo.getBizData(), ZkReponseVO.class);
             if ("1".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(zkVo);
             }
-            if ("0".equals(zkVo.getRespCode()) || "3".equals(zkVo.getRespCode()) || "6".equals(zkVo.getRespCode())) {
+            if(!islogs.get(1)){
+                log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+            }
+            if ("0".equals(zkVo.getRespCode())
+                    || "3".equals(zkVo.getRespCode())
+                    || "6".equals(zkVo.getRespCode())
+                    || "9999".equals(zkVo.getRespCode())
+            ) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             if (bXZKApiKey.equals(apiKey) && "9998".equals(zkVo.getRespCode())) {
