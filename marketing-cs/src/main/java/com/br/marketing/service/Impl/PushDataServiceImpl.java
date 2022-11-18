@@ -27,6 +27,7 @@ import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.PushShDXDTO;
@@ -221,8 +222,7 @@ public class PushDataServiceImpl implements PushDataService {
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
@@ -493,9 +493,9 @@ public class PushDataServiceImpl implements PushDataService {
                                 record.setStatus(data.getBody().getSts());
                                 haierReqMapper.updateByPrimaryKeySelective(record);
                                 if ("fail".equals(data.getBody().getSts())) {
-                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败", reqData.getReqId())
+                                    alarmClient.sendAlarm(String.format("海尔查询结果-reqId:%s-推送失败", reqData.getReqId())
                                             , "海尔推送结果查询"
-                                            , app2Name, secret2Key, Constants.sendCodeMap.get("pushToHaier"));
+                                            , AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                                 }
                             }
                         }
@@ -725,8 +725,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private void sendAlarm(String msg) {
         log.warn(msg);
-        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", app2Name, secret2Key,
-                Constants.sendCodeMap.get("pushToHaier"));
+        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告",AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
     /**

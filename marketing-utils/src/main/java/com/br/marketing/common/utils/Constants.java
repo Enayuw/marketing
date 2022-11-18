@@ -37,10 +37,7 @@ public class Constants {
     public static final String SFTP_P_SECRET_KEY = "s%^*K%)l*R(a20201105";
     public static final String LOAN_WARNING_FTP = "ftp";
     public static final String LOAN_WARNING_SFTP = "sftp";
-    /**
-     * 报警发送码
-     */
-    public static Map<String, String> sendCodeMap = new HashMap<>();
+
     /**
      * 1.按逗号分隔
      * 2.按\001分隔
@@ -127,20 +124,6 @@ public class Constants {
         riskMap.put("D", 5);
         riskMap.put("无结果", 1);
         riskMap.put("Exception", 0);
-    }
-
-    static {
-        sendCodeMap.put("sysError", "60000");
-        sendCodeMap.put("resultVolume01", "50005");
-        sendCodeMap.put("ftpToSftp", "50004");
-        sendCodeMap.put("dataFileUploadFail", "50001");
-        sendCodeMap.put("dataFileVolumn", "50002");
-        sendCodeMap.put("uploadSuccess", "50000");
-        sendCodeMap.put("fileUploadFtp", "50003");
-        sendCodeMap.put("pushToCustomer", "60002");
-        sendCodeMap.put("pushToHaier", "60003");
-        sendCodeMap.put("ladderCommonly", "60006");
-        sendCodeMap.put("apiSaveDbException", "60001");
     }
 
     public static final String REDIS_STMT_RULE_PREFIX = "redisMonitor_";

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.MarketingApiApplication;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -18,6 +18,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
@@ -81,22 +82,7 @@ public class redis {
     }
     @Test
     public void test(){
-       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-        String s = redisService.get("productionMng-allProductions");
-        JSONArray array=new JSONArray();
-        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-        Iterator<ProInSys> iterator = proInSys.iterator();
-        while (iterator.hasNext()){
-            ProInSys pro=iterator.next();
-            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-                iterator.remove();
-            }
-        }
-        if(proInSys.size()>0){
-            String json= JSONObject.toJSONString(proInSys);
-            array=JSONArray.parseArray(json);
-        }
-        System.out.println(array);
+       RpcClientProxy.sendUploadLog("123");
     }
 
     @Autowired
@@ -510,7 +496,7 @@ public class redis {
     @Test
     public void testCellMd5() {
 
-        String name = decodeClient.query("1622dc9b6b57a5faf337b87b13fc1200","cell" ,"md5","");
+        String name = RpcClientProxy.decode("1622dc9b6b57a5faf337b87b13fc1200","cell" ,"md5","");
         System.out.println(name);
 
     }

@@ -33,24 +33,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-        <!-- ice连接es公共包 -->
-        <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--ice连接es公共包-->
-
         <!--工具依赖-->
         <dependency>
             <groupId>org.yaml</groupId>
@@ -96,16 +78,6 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
             <version>1.7.2.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>com.br.ice.service</groupId>
-            <artifactId>alarm-rely-new</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.br</groupId>
-            <artifactId>user-center-new</artifactId>
-            <version>2.0.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>

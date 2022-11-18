@@ -5,7 +5,7 @@ import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
@@ -20,6 +20,7 @@ import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
@@ -500,10 +501,10 @@ public class SftpToDbByDXService {
         String res = "";
         if (DecodeClient.isMd5(phone)) {
             //cell md5
-            res = decodeClient.query(phone, "cell", "md5", "");
+            res = RpcClientProxy.decode(phone, "cell", "md5", "");
         } else {
             //cell sha256
-            res = decodeClient.query(phone, "cell", "sha", "");
+            res = RpcClientProxy.decode(phone, "cell", "sha", "");
         }
         if(StringUtils.isBlank(res)){
             objectResult.setCode(ResultCode.FAIL.getValue());

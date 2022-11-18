@@ -7,6 +7,8 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
+import com.br.grpc.utils.BrGrpcUtils;
+import com.br.monitor.grpc.EnvUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -49,7 +51,26 @@ public class MarketingApiApplication {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");
         SpringApplication.run(MarketingApiApplication.class, args);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                MarketingApiApplication.stop();
+            }
+        });
         log.warn("marketing-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
+    }
+
+    /**
+     * 对客户端调用不同服务产生的资源连接进行关闭，在项目停止时需要进行关闭
+     */
+    public static void stop() {
+        try {
+            if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
+                BrGrpcUtils.shutDown();
+            }
+        } catch (Exception e) {
+            log.error("GRPC服务关闭异常", e);
+        }
     }
 
 }

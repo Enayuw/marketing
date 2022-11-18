@@ -3,6 +3,7 @@ package com.br.marketing.task.job;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTask;
@@ -50,8 +51,7 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
         if (observedScoreThreadService.isInterrupt()) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分任务手动停止状态请手动开启");
-            alarmClient.sendAlarm(content.toString(), "跑分暂停", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分暂停", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             return;
         }
 

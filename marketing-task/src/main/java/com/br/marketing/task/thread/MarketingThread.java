@@ -5,14 +5,16 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
-import com.br.marketing.client.*;
+import com.br.marketing.client.ProFieldsClient;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.RedisService;
+import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.task.Scheduler;
-import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.br.marketing.task.utils.HxUtil;
-import com.br.marketing.task.utils.MomUtil;
 import com.br.marketing.task.utils.ResultUtil;
 import com.br.marketing.task.utils.VaildHxResultUtil;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -23,7 +25,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Bairong on 2019/8/20.
@@ -225,7 +226,7 @@ public class MarketingThread implements Callable<String> {
             Map<String, String> dayNumMap = new HashMap<>();
             List<String> typeNoList = new ArrayList<>();
             addDTBPro(typeNoList);
-            MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
             if (merchantParam == null) {
                 log.error("用户中心结果为空");
                 return false;

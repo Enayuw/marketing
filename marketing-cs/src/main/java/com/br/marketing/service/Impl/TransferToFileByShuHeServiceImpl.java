@@ -101,15 +101,15 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     private final static String EXTENSION = ".txt";
     private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
             ",loginTime,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
-            ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,insertime";
+            ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,clc_usr_adt_tim_rcn_lon_wo_asset_label,insertime";
 
     private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
             ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
-            ",clc_usr_adt_lmt_lv0,createtime";
+            ",clc_usr_adt_lmt_lv0,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
     private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
             "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime";
+            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
     static {
         FILE_NAME_PART = new HashMap<>(8);
@@ -445,6 +445,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_adt_lmt_lv0")
                 + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
                 + "\r\n";
@@ -486,6 +488,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 ("".equals(getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy")) ? getOrDefault(json, "clc_usr_grp_zjy_csx_sjs_yzz_cqc_jxd_c2") : getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))
                 + separator +
                 getOrDefault(json, "clc_usr_lst_reaudit_apply_time")
+                + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
@@ -533,6 +537,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "applyLoanTime") + separator +
                 (StringUtils.isEmpty(transfer.getLentTime()) ? defaultValue : transfer.getLentTime())
+                + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))

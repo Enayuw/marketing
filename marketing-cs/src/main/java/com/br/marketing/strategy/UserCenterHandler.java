@@ -2,7 +2,6 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
@@ -10,8 +9,8 @@ import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,8 +40,8 @@ public class UserCenterHandler {
             String apiCode = jsonObject.getString("apiCode");
             String operateType = jsonObject.getString("operateType");
 
-            MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if (StringUtils.isNotEmpty(companyMsg) && merchantParam != null) {
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));

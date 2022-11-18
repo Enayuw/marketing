@@ -1,8 +1,12 @@
 package com.br.marketing.client;
 
+import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.alibaba.fastjson.JSONObject;
 import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
+import com.br.common.log.AlertLog;
 import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
 import com.br.marketing.es.util.SwiftNumberManager;
@@ -39,11 +43,9 @@ public class AlarmApiClient implements ApplicationContextAware {
     /**发送邮件
      * @param content
      * @param title
-     * @param appName
-     * @param secretKey
      * @param exceptionCode
      */
-    public void sendAlarm(String content, String title, String appName, String secretKey, String exceptionCode){
+    public void sendAlarm(String content, String title, String exceptionCode){
         String activeEnv=getActiveProfile();
         String enviroment ="";
         if(DEV.equals(activeEnv) || PRE.equals(activeEnv)){
@@ -58,13 +60,49 @@ public class AlarmApiClient implements ApplicationContextAware {
             title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
         }
         try{
-            BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
-            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-            sendMailData(content,title,appName,secretKey,exceptionCode,service);
+//            BrSendAlarmNewServicePrx service = (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
+//            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
+//            sendMailData(content,title,appName,secretKey,exceptionCode,service);
+            String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
+            log.warn(msg);
         }catch (Exception e){
             log.error("发送邮件异常", e);
         }
 
+    }
+
+    /**
+     * 新报警平台未知错误，打印堆栈信息
+     * @param content
+     * @param title
+     * @param exceptionCode
+     */
+    public void sendAlarmPrintStack(String content, String title,String exceptionCode, ThrowableProxy throwableProxy){
+        String activeEnv=getActiveProfile();
+        String enviroment ="";
+        if(DEV.equals(activeEnv) || PRE.equals(activeEnv)){
+            enviroment= "预发";
+        }else if(PROD.equals(activeEnv)){
+            enviroment= "生产";
+        }
+        String hostName = IpUtil.getHostName();
+        if(StringUtils.isNotEmpty(title)){
+            title="【"+enviroment+"】"+hostName +title;
+        }else{
+            title ="【"+enviroment+"】"+hostName+ JSONObject.parseObject(content).getString("serverName");
+        }
+        try{
+            String msg = AlertLog.buildWarnMessage(exceptionCode, content, title);
+            if(throwableProxy!=null){
+                log.warn(msg,new Exception(throwableProxy.getThrowable()));
+            }else {
+                log.warn(msg);
+            }
+
+        }catch (Exception e){
+            String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), "", "发送邮件异常");
+            log.warn(msg);
+        }
     }
 
     /**
