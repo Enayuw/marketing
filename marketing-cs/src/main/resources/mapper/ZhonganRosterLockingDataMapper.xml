@@ -19,8 +19,7 @@
                 and push_status=${data.pushStatus}
             </if>
             and status=1
-            group by mobile_md5,biz_date order by mobile_md5,biz_date limit <![CDATA[ ${pageNo}*${pageSize} ]]>
-            ,${pageSize}
+            group by mobile_md5,biz_date order by mobile_md5,biz_date limit ${pageNo * pageSize},${pageSize}
         </where>
     </select>
 
