@@ -297,4 +297,20 @@
         and status = 1 group by cell
         ) as t2 where t1.applet_time = t2.appletTime and t1.cell = t2.cell group by t1.cell
     </select>
+
+    <select id="getSyncUserByAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            <![CDATA[ AND applet_date >= #{startDate} and applet_date < #{endDate} ]]>
+            AND  status=1
+            order by id asc limit 2000;
+        </where>
+    </select>
+
 </mapper>

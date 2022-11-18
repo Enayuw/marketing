@@ -117,7 +117,7 @@ public class ZhongAnClient {
      * @param zkReqDTO
      * @return
      */
-    public Result<Boolean> zkBx(ZkReqDTO zkReqDTO) {
+    public Result<ZkReponseVO> zkBx(ZkReqDTO zkReqDTO) {
         return zk(zkReqDTO, bXZKApiKey);
     }
 
@@ -131,12 +131,12 @@ public class ZhongAnClient {
      * @param zkReqDTO
      * @return
      */
-    public Result<Boolean> zkXd(ZkReqDTO zkReqDTO) {
+    public Result<ZkReponseVO> zkXd(ZkReqDTO zkReqDTO) {
         return zk(zkReqDTO, xinDaiZKApiKey);
     }
 
 
-    public Result<Boolean> zk(ZkReqDTO zkReqDTO, String apiKey) {
+    public Result<ZkReponseVO> zk(ZkReqDTO zkReqDTO, String apiKey) {
         try {
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(zanZk);
@@ -159,7 +159,7 @@ public class ZhongAnClient {
             }
             ZkReponseVO zkVo = JSON.parseObject(resVo.getBizData(), ZkReponseVO.class);
             if ("1".equals(zkVo.getRespCode())) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(zkVo.getAccess());
+                return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(zkVo);
             }
             if ("0".equals(zkVo.getRespCode()) || "3".equals(zkVo.getRespCode()) || "6".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
