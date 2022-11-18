@@ -85,8 +85,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             content.setInputDataList(listPage);
             content.setInDatacondition(condition);
             result.setDate(content);
-            condition.setPageIndex(condition.getPageIndex() + 1);
-            result.setCode(ResultCode.SUCCESS.getValue());
+            condition.setPageIndex(condition.getPageIndex());
+            result.setCode(CollectionUtils.isEmpty(listPage) ? ResultCode.FAIL.getValue()
+                    : ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
@@ -114,6 +115,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 , mobileMd5Set);
         boolean emptyBool = CollectionUtils.isEmpty(syncUserMap);
         if (emptyBool) {
+            zhonganRosterLockingDataMapper.updatePushStatus(apiCode, 5, 1, tag, inList);
             return result;
         }
         Map<String, MarketingSyncUser> syncUserMapNew = inList.parallelStream().filter(
@@ -193,7 +195,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             }
         }
         result.setDate(list);
-        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setCode(CollectionUtils.isEmpty(list) ? ResultCode.FAIL.getValue() : ResultCode.SUCCESS.getValue());
         return result;
     }
 

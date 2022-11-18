@@ -4,7 +4,7 @@
 
 
     <select id="findGroupMobileMd5ListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
-        select mobile_md5,biz_date,tag,data_source,local_id from b_zhongan_roster_locking_data
+        select mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data
         <where>
             <if test="data.apiCode!=null and data.apiCode!=''">
                 api_code='${data.apiCode}'
