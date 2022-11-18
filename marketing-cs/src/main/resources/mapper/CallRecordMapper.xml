@@ -19,11 +19,11 @@
 
     <select id="getBlackListSettikv_" resultType="java.lang.String">
         select case_num from b_call_record
-        where call_status='12' and
+        where call_status='12' and case_num in
         <foreach collection="custNumSet" open="(" close=")" separator="," item="custNum">
-            case_num ='${custNum}'
+            '${custNum}'
         </foreach>
-        and <![CDATA[ call_start_time = '${q.callStartTimeStr}' ]]>
+        and <![CDATA[ call_start_time = '${callStartTimeStr}' ]]>
         group by case_num having count(*)>0
     </select>
 </mapper>
