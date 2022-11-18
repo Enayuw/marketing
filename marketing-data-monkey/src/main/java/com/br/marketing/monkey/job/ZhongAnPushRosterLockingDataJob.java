@@ -57,12 +57,12 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         long startcg = System.currentTimeMillis();
         action("CG", list, bizDate);
         long endcg = System.currentTimeMillis();
-        log.warn("【CG名单锁定推送众安】结束，耗时:{}", startcg - endcg);
+        log.warn("【CG名单锁定推送众安】结束，耗时:{}", endcg - startcg);
 
         long startmg = System.currentTimeMillis();
         action("MG", list, bizDate);
         long endmg = System.currentTimeMillis();
-        log.warn("【MG名单锁定推送众安】结束，耗时:{}", startmg - endmg);
+        log.warn("【MG名单锁定推送众安】结束，耗时:{}", endmg - startmg);
 
         long end = System.currentTimeMillis();
         log.warn("【名单锁定推送众安】调度结束，耗时:{}", end - start);

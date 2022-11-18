@@ -182,7 +182,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 
     private Set<String> mgFilter(List<ZhonganRosterLockingData> inList, Map<String, MarketingSyncUser> syncUserMapNew,
                                  String apiCode, String tag, String dateStr, int day) {
-        List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().map(l -> {
+        List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().filter(
+                l -> syncUserMapNew.containsKey(l.getMobileMd5())).map(l -> {
             MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5());
             PeriodOfValidityBO periodOfValidityBO = marketingSyncUserService.getPeriodOfValidityRange(day
                     , syncUser.getAppletTime() == null ? syncUser.getCreateTime()
