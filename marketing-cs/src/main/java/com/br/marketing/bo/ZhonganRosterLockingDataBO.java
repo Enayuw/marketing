@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.bo;
+package com.br.marketing.bo;
 
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
