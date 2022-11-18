@@ -14,12 +14,10 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <junit.version>4.12</junit.version>
-        <lombok.version>1.16.18</lombok.version>
+        <lombok.version>1.18.20</lombok.version>
         <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
-        <!--?????-->
         <logback.version>1.2.9</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <!--?????-->
         <com.squareup.okhttp3.version>3.9.1</com.squareup.okhttp3.version>
         <fastjson.version>1.2.58</fastjson.version>
         <elastic-job.version>1.1.7-SNAPSHOT</elastic-job.version>
@@ -118,6 +116,10 @@
                     <groupId>com.br.bsf</groupId>
                     <artifactId>bsf-ext</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- elasticJob -->
@@ -150,18 +152,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
             <version>${log4j.onver.slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.br.transfer</groupId>
-            <artifactId>header-transfer-spring-boot-starter</artifactId>
-            <version>1.0.2</version>
-            <!-- 排除ribbon依赖 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-ribbon</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
     <repositories>

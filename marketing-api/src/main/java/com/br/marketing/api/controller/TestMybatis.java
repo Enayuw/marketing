@@ -16,12 +16,6 @@ import org.apache.ibatis.ognl.OgnlRuntime;
  * ------------------------------
  */
 public class TestMybatis {
-    public static void main(String[] args) {
-        for (int i = 0; i < 2; i++) {
-            Caller caller = new Caller();
-            caller.start();
-        }
-    }
 }
 class Caller extends Thread {
 

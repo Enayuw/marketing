@@ -23,8 +23,8 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 content.append("-----").append(throwable.getMessage());
             }
             try {
-                EmailService emailService= SyncApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "MARKETING-SYNC");
+                SystemExceptionServiceImpl emailService= SyncApplication.ac.getBean(SystemExceptionServiceImpl.class);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-SYNC",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }

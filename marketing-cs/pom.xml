@@ -32,27 +32,6 @@
             <artifactId>spring-data-redis</artifactId>
             <version>1.7.2.RELEASE</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.baomidou</groupId>-->
-<!--            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>-->
-<!--            <version>3.5.1</version>-->
-<!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.redisson</groupId>-->
-        <!--            <artifactId>redisson-spring-boot-starter</artifactId>-->
-        <!--            <version>3.16.1</version>-->
-        <!--            <exclusions>-->
-        <!--                <exclusion>-->
-        <!--                    <groupId>org.redisson</groupId>-->
-        <!--                    <artifactId>redisson-spring-data-25</artifactId>-->
-        <!--                </exclusion>-->
-        <!--            </exclusions>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.redisson</groupId>-->
-        <!--            <artifactId>redisson-spring-data-18</artifactId>-->
-        <!--            <version>3.16.1</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>io.shardingsphere</groupId>
             <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
@@ -87,23 +66,6 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
-        <!-- ice连接es公共包 -->
-        <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--ice连接es公共包-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -181,6 +143,78 @@
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>1.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.br.common</groupId>
+            <artifactId>br-log</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-encode-mapping-rely</artifactId>
+            <version>1.0.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.br.mom</groupId>
+            <artifactId>grpc-broker-layer-api</artifactId>
+            <version>1.0.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <!--grpc 用户中心客户端-->
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-user-center-rely</artifactId>
+            <version>1.0.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>strategy-grpc</artifactId>
+            <version>1.0.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.br.transfer</groupId>
+            <artifactId>header-transfer-spring-boot-starter</artifactId>
+            <version>1.0.5</version>
+            <!-- 排除ribbon依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-ribbon</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>4.0.3-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-access</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>br-grpc-common</artifactId>
+            <version>1.0.6</version>
+            <classifier>shaded</classifier>
         </dependency>
     </dependencies>
     <build>

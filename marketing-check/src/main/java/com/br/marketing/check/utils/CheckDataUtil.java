@@ -2,12 +2,12 @@ package com.br.marketing.check.utils;
 
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.validator.DateUtils;
-import com.br.marketing.client.DecodeClient;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -85,7 +85,7 @@ public class CheckDataUtil {
         String[] rows = row.split(",");
         String[] columns = head.split(",");
 
-        MerchantParam merchantParam = IceClient.getMerchantParam(apiCdoe);
+        MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCdoe);
             int cusNum = findIndex(columns, "cus_num");
             if (cusNum == -1) {
                 StringBuilder errorSb=new StringBuilder();

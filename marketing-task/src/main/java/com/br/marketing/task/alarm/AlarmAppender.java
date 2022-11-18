@@ -26,7 +26,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 String loggerName = ((LoggingEvent) eventObject).getLoggerName();
                 String formattedMessage = ((LoggingEvent) eventObject).getFormattedMessage();
                 StringBuilder content=new StringBuilder(formattedMessage);
-                EmailService emailService=Scheduler.ac.getBean(SystemExceptionServiceImpl.class);
+                SystemExceptionServiceImpl emailService=Scheduler.ac.getBean(SystemExceptionServiceImpl.class);
                 if(throwableProxy!=null) {
                     Throwable throwable = throwableProxy.getThrowable();
                     if(throwable instanceof HxResultRuntimeException){
@@ -37,7 +37,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                     }
                     content.append("-----").append(throwable.getMessage());
                 }
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "LOAN-WARNING-TASK");
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "LOAN-WARNING-TASK",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }

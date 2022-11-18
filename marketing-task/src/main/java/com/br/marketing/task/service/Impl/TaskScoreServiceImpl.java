@@ -11,6 +11,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
@@ -258,7 +259,7 @@ public class TaskScoreServiceImpl {
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
                         , task.getBatchNumber(), task.getFileId().toString());
-                sendContent(content, "跑分暂停", Constants.sendCodeMap.get("uploadSuccess"));
+                sendContent(content, "跑分暂停", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             }
             //endregion
 
@@ -436,13 +437,13 @@ public class TaskScoreServiceImpl {
         //endregion
         StringBuilder addTaskContent = new StringBuilder();
         addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
-        sendContent(addTaskContent.toString(), "任务开始", Constants.sendCodeMap.get("uploadSuccess"));
+        sendContent(addTaskContent.toString(), "任务开始", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         scoreStatusListen(taskObj);
         core(blt, descPath, true, productJson, warrningExecutor, blt.getFileId().toString(), customer);
     }
 
     private void sendContent(String msg, String title, String code) {
-        alarmClient.sendAlarm(msg, title, appName, secretKey, code);
+        alarmClient.sendAlarm(msg, title, code);
     }
 
     private BaseHeadConfigVO baseHeadHandle(MarketingTaskExtend marketingTaskExtend, MarketingTask blt) {

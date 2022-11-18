@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@Deprecated
 public class MomCommonUtil {
 
     @Value("${otherConfig.mom.destinationName:00}")
@@ -29,6 +30,7 @@ public class MomCommonUtil {
      * 发送mom
      * @param requestLog 请求日志
      */
+    @Deprecated
     public void sendMQ(final InterfaceLog requestLog){
         try {
         JSONObject paramJson=new JSONObject();

@@ -1,7 +1,6 @@
 package com.br.marketing.check.service.Impl;
 
 import com.br.marketing.check.service.JuZiRealTimePushDassService;
-import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
@@ -16,6 +15,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -76,9 +76,6 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
-    @Resource
-    DecodeClient decodeClient;
-
     @Autowired
     ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
 
@@ -135,7 +132,7 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
                     dassImportDataDTO.setUserType("B");
                 }
                 dassImportDataDTO.setUid(custNum);
-                String phoneDecode = decodeClient.query(custNum, "cell", "md5", "");
+                String phoneDecode = RpcClientProxy.decode(custNum, "cell", "md5", "");
                 //解密失败直接丢弃
                 if (StringUtils.isEmpty(phoneDecode)) {
                     return;

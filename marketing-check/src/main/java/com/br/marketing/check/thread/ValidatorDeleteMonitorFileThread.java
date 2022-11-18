@@ -8,7 +8,7 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.CheckDataUtil;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.MarketingUser;

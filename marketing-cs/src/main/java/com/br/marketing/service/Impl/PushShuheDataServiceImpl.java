@@ -11,6 +11,7 @@ import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -145,7 +146,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 msg = "缺失必填参数:".concat(msg).concat("\napiCode“" + apiCode).concat("”\nuserType“"
                         + jsonDTO.getBizType()).concat("”\n案件编号“" + jsonDTO.getOrderId())
                         .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                this.sendAlarmMgsUrgent(title, msg, alarmClient);
                 return responseShuheDTO;
             }
             String userType = jsonDTO.getBizType();
@@ -169,7 +170,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                        , appName, secretKey, alarmClient);
+                                ,alarmClient);
             } else if (!iUserType.getApiCodes().contains(apiCode)) {
                 log.warn("场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
                         .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
@@ -198,7 +199,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 msg = "数禾推送数据前置表保存失败！".concat("\napiCode“").concat(apiCode).concat("”\nuserType“")
                         .concat(userType).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("”\nrequestId“").concat(requestId).concat("”\n");
-                this.sendAlarmMgs(title, msg, appName, secretKey, alarmClient);
+                this.sendAlarmMgsUrgent(title, msg, alarmClient);
                 log.error(msg.concat("”\njsondata:").concat(jsonData).concat("\n").concat("" + e.getMessage()), e);
                 faultTolerantInsert(jsonDTO, jsonData, apiCode, msg);
                 responseShuheDTO.failed("抱歉，保存失败");
@@ -259,10 +260,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
             this.sendAlarmMgs(title, ("apiCode“").concat(apiCode)
-                    .concat("”\n").concat(exception.toString()), appName, secretKey, alarmClient);
+                    .concat("”\n").concat(exception.toString()),alarmClient);
         }
         this.sendAlarmMgs(title, ("apiCode“").concat(apiCode)
-                .concat("”\n").concat(e.toString()), appName, secretKey, alarmClient);
+                .concat("”\n").concat(e.toString()),alarmClient);
     }
 
     /**
@@ -331,7 +332,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             this.sendAlarmMgs(title, "数禾客户信息未维护...".concat("\napiCode“").concat(caseShuheUser.getApiCode())
                     .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                     .concat("”\n案件编号“").concat(caseShuheUser.getCustNum())
-                    .concat("”\n").concat("尽快处理^_^"), appName, secretKey, alarmClient);
+                    .concat("”\n").concat("尽快处理^_^"),alarmClient);
             return;
         }
         LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -375,11 +376,11 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
 
     private void alarmMgs(CaseShuheUser caseShuheUser) {
-        this.sendAlarmMgs(title, ("apiCode“").concat(caseShuheUser.getApiCode())
+        this.sendAlarmMgsUrgent(title, ("apiCode“").concat(caseShuheUser.getApiCode())
                         .concat("”\nuserType“").concat(caseShuheUser.getUserType())
                         .concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n")
                         .concat(caseShuheUser.getErrorInfo())
-                , appName, secretKey, alarmClient);
+                        ,alarmClient);
     }
 
     @Override
@@ -632,8 +633,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             if (fieldStr.length() > 0) {
                 alarmClient.sendAlarm("本次请求发现新增字段："
                                 .concat(fieldStr.toString())
-                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查", appName, secretKey,
-                        Constants.sendCodeMap.get("apiSaveDbException"));
+                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查",
+                                AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                 Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
                 if (rSum == null || rSum < FIELD_SET.size()) {
                     redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));

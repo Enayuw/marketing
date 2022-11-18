@@ -1,26 +1,18 @@
 package com.br.marketing.check.thread;
 
-import cn.hutool.crypto.SecureUtil;
-import com.br.common.encryption.Sha256Util;
-import com.br.common.encryption.Sm3Util;
-import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.CheckDataUtil;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.entity.MarketingUser;
-import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingDirtyUserMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;

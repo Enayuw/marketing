@@ -1,9 +1,9 @@
 package com.br.marketing.check.service.Impl;
 
 import com.br.marketing.check.service.EncryptFileService;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.common.utils.file.AesCrpyt;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ public class EncryptFileServiceImpl implements EncryptFileService {
         if(!file.exists()){
             return false;
         }
-        MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+        MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         if("1".equals(merchantParam.getFileEncryptionMethods())){
             String[] split = fileName.split("\\.");
             if(split.length>=2){
