@@ -20,7 +20,7 @@ import com.br.marketing.monkey.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
-import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;

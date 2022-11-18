@@ -19,7 +19,7 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
 import com.br.marketing.monkeydata.handle.commonhandle.InputCommonHandle;
-import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.CustomerBlackListHandler;
 import lombok.extern.slf4j.Slf4j;

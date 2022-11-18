@@ -1,17 +1,13 @@
-package com.br.marketing.monkeydata.service.Impl;
+package com.br.marketing.monkeydata.handle.zhongan;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.Marketing;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingUser;
-import com.br.marketing.monkeydata.entity.InputDataCondition;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
-import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
-import com.github.pagehelper.Page;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import org.springframework.stereotype.Service;
 
 

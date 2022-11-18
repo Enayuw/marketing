@@ -9,7 +9,7 @@ import com.br.marketing.client.zhongan.output.ZkReponseVO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
-import com.br.marketing.monkeydata.service.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

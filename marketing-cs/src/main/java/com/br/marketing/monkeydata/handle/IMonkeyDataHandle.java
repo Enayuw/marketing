@@ -1,4 +1,4 @@
-package com.br.marketing.monkeydata.service;
+package com.br.marketing.monkeydata.handle;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
