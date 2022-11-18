@@ -42,7 +42,7 @@
         </where>
     </select>
 
-    <update id="updatePushStatusORStatus">
+    <update id="updatePushStatusOrStatus">
         update b_zhongan_roster_locking_data set
         <if test="updatePushStatus != null and updatePushStatus != ''">
             push_status=${updatePushStatus},

@@ -45,7 +45,7 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
      * 2022/11/16 16:54
      * 更新推送状态
      */
-    void updatePushStatusORStatus(@Param("apiCode") String apiCode
+    void updatePushStatusOrStatus(@Param("apiCode") String apiCode
             , @Param("updatePushStatus") Integer updatePushStatus
             , @Param("updateStatus") Integer updateStatus
             , @Param("pushStatus") Integer pushStatus

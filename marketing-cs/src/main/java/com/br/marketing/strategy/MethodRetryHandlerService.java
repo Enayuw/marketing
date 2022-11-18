@@ -323,7 +323,7 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatusORStatus(bo.getApiCode(), updatePushStatus, updateStatus
+        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(bo.getApiCode(), updatePushStatus, updateStatus
                 , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 , new Date());
     }

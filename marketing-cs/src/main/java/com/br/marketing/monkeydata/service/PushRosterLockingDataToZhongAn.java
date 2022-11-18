@@ -115,7 +115,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         if (emptyBool) {
             log.warn("tag:{},apiCode{},未获取到上传数据！", tag, apiCode);
             // 未获取到上传数据
-            zhonganRosterLockingDataMapper.updatePushStatusORStatus(apiCode, null, 3
+            zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, 3
                     , 1, tag, inList, dateStr, new Date());
             return result;
         }
@@ -153,7 +153,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 // 去掉CG组已推送
                 inList.removeAll(list);
                 // 重复数据
-                zhonganRosterLockingDataMapper.updatePushStatusORStatus(apiCode, null, 6
+                zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, 6
                         , 1, tag, list, dateStr, new Date());
             }
             Set<String> custNumSet = syncUserMapNew.values().parallelStream().map(MarketingSyncUser::getCustNum)
@@ -213,7 +213,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     private void updatePushStatus(ZhonganRosterLockingData data, int updateStatus, String dateStr) {
         List<ZhonganRosterLockingData> dataList = new ArrayList<>();
         dataList.add(data);
-        zhonganRosterLockingDataMapper.updatePushStatusORStatus(data.getApiCode(), null, updateStatus
+        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(data.getApiCode(), null, updateStatus
                 , 1, data.getTag(), dataList, dateStr, new Date());
     }
 
