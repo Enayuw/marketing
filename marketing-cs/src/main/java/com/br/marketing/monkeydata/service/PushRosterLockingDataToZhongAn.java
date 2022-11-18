@@ -116,7 +116,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             log.warn("tag:{},apiCode{},未获取到上传数据！", tag, apiCode);
             // 未获取到上传数据
             zhonganRosterLockingDataMapper.updatePushStatusORStatus(apiCode, null, 3
-                    , 1, tag, inList, dateStr);
+                    , 1, tag, inList, dateStr, new Date());
             return result;
         }
         Map<String, String> zhongAnPeriodOfValidityDay = marketingCommonConfig.getZhongAnPeriodOfValidityDay();
@@ -145,7 +145,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                                 : syncUser.getAppletTime()).addDateString().builder();
                 return new ZhongAnMobileMd5BizDateQuery(l.getMobileMd5(), periodOfValidityBO);
             }).collect(Collectors.toList());
-            Set<String> cgMobileMd5Set = zhonganRosterLockingDataMapper.getMobileMd5ByBeforePushSet(queries, apiCode, "CG");
+            Set<String> cgMobileMd5Set = zhonganRosterLockingDataMapper.getMobileMd5ByBeforePushSettikv_(queries, apiCode, "CG");
             if (!CollectionUtils.isEmpty(cgMobileMd5Set)) {
                 // 过滤CG组是否已经推送过
                 List<ZhonganRosterLockingData> list = inList.parallelStream().filter(
@@ -154,7 +154,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 inList.removeAll(list);
                 // 重复数据
                 zhonganRosterLockingDataMapper.updatePushStatusORStatus(apiCode, null, 6
-                        , 1, tag, list, dateStr);
+                        , 1, tag, list, dateStr, new Date());
             }
             Set<String> custNumSet = syncUserMapNew.values().parallelStream().map(MarketingSyncUser::getCustNum)
                     .collect(Collectors.toSet());
@@ -162,7 +162,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             custNumBlackListSet = new HashSet<>(custNumSet);
             custNumBlackListSet.retainAll(custNumCache);
             custNumSet.removeAll(custNumBlackListSet);
-            custNumBlackListSet.addAll(callRecordMapper.getBlackListSet(custNumSet, apiCode, dateStr));
+            custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumSet, apiCode, dateStr));
         }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
@@ -214,7 +214,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         List<ZhonganRosterLockingData> dataList = new ArrayList<>();
         dataList.add(data);
         zhonganRosterLockingDataMapper.updatePushStatusORStatus(data.getApiCode(), null, updateStatus
-                , 1, data.getTag(), dataList, dateStr);
+                , 1, data.getTag(), dataList, dateStr, new Date());
     }
 
     @Override

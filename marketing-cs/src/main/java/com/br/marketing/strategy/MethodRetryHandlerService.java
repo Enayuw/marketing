@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -323,7 +324,8 @@ public class MethodRetryHandlerService {
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
         zhonganRosterLockingDataMapper.updatePushStatusORStatus(bo.getApiCode(), updatePushStatus, updateStatus
-                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                , new Date());
     }
 
 }

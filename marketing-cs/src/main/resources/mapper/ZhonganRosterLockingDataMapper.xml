@@ -24,7 +24,7 @@
         </where>
     </select>
 
-    <select id="getMobileMd5ByBeforePushSet" resultType="java.lang.String">
+    <select id="getMobileMd5ByBeforePushSettikv_" resultType="java.lang.String">
         select mobile_md5 from b_zhongan_roster_locking_data
         <where>
             <if test="apiCode!=null and apiCode!=''">
@@ -50,7 +50,7 @@
         <if test="updateStatus != null and updateStatus != ''">
             status=${updateStatus},
         </if>
-        update_time=new()
+        update_time=#{date}
         where tag='${tag}' and api_code='${apiCode}' and
         <foreach collection="dataList" item="data" separator=" or " open="(" close=")">
             (mobile_md5='${data.mobileMd5}' and biz_date='${data.bizDate}')

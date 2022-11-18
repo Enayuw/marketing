@@ -17,7 +17,7 @@
         left join b_call_record b on a.case_num = b.case_num and a.create_time = b.create_time
     </select>
 
-    <select id="getBlackListSet" resultType="java.lang.String">
+    <select id="getBlackListSettikv_" resultType="java.lang.String">
         select case_num from b_call_record
         where call_status='12' and
         <foreach collection="custNumSet" open="(" close=")" separator="," item="custNum">

@@ -15,6 +15,6 @@ public interface CallRecordMapper extends CallRecordMapperBase {
      * 2022/11/17 10:51
      * 根据案件编号+外呼开始时间判断
      */
-    Set<String> getBlackListSet(@Param("custNumSet") Set<String> custNumSet
+    Set<String> getBlackListSettikv_(@Param("custNumSet") Set<String> custNumSet
             , @Param("apiCode") String apiCode, @Param("callStartTimeStr") String callStartTimeStr);
 }

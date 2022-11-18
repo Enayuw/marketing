@@ -7,6 +7,7 @@ import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
      * @param tag     枚举,CG/MG
      * @return Set
      */
-    Set<String> getMobileMd5ByBeforePushSet(@Param("queries") List<ZhongAnMobileMd5BizDateQuery> queries
+    Set<String> getMobileMd5ByBeforePushSettikv_(@Param("queries") List<ZhongAnMobileMd5BizDateQuery> queries
             , @Param("apiCode") String apiCode
             , @Param("tag") String tag);
 
@@ -50,7 +51,9 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
             , @Param("pushStatus") Integer pushStatus
             , @Param("tag") String tag
             , @Param("dataList") List<ZhonganRosterLockingData> dataList
-            , @Param("dateStr") String dateStr);
+            , @Param("dateStr") String dateStr
+            , @Param("date") Date date
+    );
 
     /**
      * 2022/11/16 16:54
