@@ -226,6 +226,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         int size = outputDataList.size();
         int pushSize = 100;
+        int sum = size % pushSize == 0 ? size / pushSize : size / pushSize + 1;
         int count = 1;
         List<ZaMarketDetail> list = new ArrayList<>();
         List<ZhonganRosterLockingData> dataList = new ArrayList<>();
@@ -240,7 +241,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             detail.setTag(data.getTag());
             detail.setMobileMd5(data.getMobileMd5());
             list.add(detail);
-            if (list.size() == pushSize || (size - (count * pushSize)) <= pushSize) {
+            if (list.size() == pushSize || sum == count) {
+                count++;
                 ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
                 dataDTO.setData(list);
                 methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO, bo.getApiCode(), bo.getTag()
@@ -248,7 +250,6 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 list.clear();
                 dataList.clear();
             }
-            count++;
         }
         result.setCode(ResultCode.SUCCESS.getValue());
         return result;
