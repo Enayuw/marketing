@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.service.Impl;
+package com.br.marketing.monkeydata.service.Impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -6,9 +6,9 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.mapper.TransferActionFrontMapper;
-import com.br.marketing.monkey.service.ZhongAnPushBlackDataService;
-import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushBlackDataHandle;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
+import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushBlackDataHandle;
+import com.br.marketing.monkeydata.service.ZhongAnPushBlackDataService;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,9 @@
-package com.br.marketing.monkey.service;
+package com.br.marketing.monkeydata.service;
 
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.ZaMarketDataBO;
+import com.br.marketing.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
@@ -15,7 +16,6 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
-import com.br.marketing.monkey.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
