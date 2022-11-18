@@ -65,6 +65,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getInputData(MarketingSyncCondition inputData) {
         //暂停开关
         if (Boolean.FALSE.equals(marketingCommonConfig.getZhongAnPushBlackDataSwitch())) {
+            log.warn("众安推送黑名单任务暂停");
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         return inputCommonHandle.getMarketingSyncUserByPage(inputData);
@@ -73,7 +74,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     @Override
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 2);
         for (; ; ) {
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
