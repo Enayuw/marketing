@@ -3,7 +3,6 @@ package com.br.marketing.monkey.service;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.ZaMarketDataBO;
-import com.br.marketing.client.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
@@ -22,6 +21,7 @@ import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -56,9 +56,6 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 
     @Resource
     private CallRecordMapper callRecordMapper;
-
-    @Resource
-    private DecodeClient decodeClient;
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -108,7 +105,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         Map<String, String> cellMap = inList.parallelStream().collect(
                 Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
-                    String query = decodeClient.query(d.getMobileMd5(), "cell", "md5", "");
+                    String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
                     return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
                 }));
         Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
