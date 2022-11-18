@@ -18,6 +18,7 @@
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
             </if>
+            -- and <![CDATA[ create_time >= '${data.bizDate}' ]]>
             and status=1
             group by mobile_md5,biz_date order by mobile_md5,biz_date limit ${pageNo * pageSize},${pageSize}
         </where>
@@ -41,15 +42,24 @@
         </where>
     </select>
 
-    <update id="updatePushStatus">
-        update b_zhongan_roster_locking_data set push_status=${updatePushStatus}, update_time=new()
-        where tag='${pushStatus}' and api_code='${apiCode}' and
+    <update id="updatePushStatusORStatus">
+        update b_zhongan_roster_locking_data set
+        <if test="updatePushStatus != null and updatePushStatus != ''">
+            push_status=${updatePushStatus},
+        </if>
+        <if test="updateStatus != null and updateStatus != ''">
+            status=${updateStatus},
+        </if>
+        update_time=new()
+        where tag='${tag}' and api_code='${apiCode}' and
         <foreach collection="dataList" item="data" separator=" or " open="(" close=")">
             (mobile_md5='${data.mobileMd5}' and biz_date='${data.bizDate}')
         </foreach>
+        and status=1
         <if test="pushStatus != null and pushStatus != ''">
             and push_status=${pushStatus}
         </if>
+        -- and <![CDATA[ create_time >= '${dateStr}' ]]>
     </update>
 
     <select id="getSftpFilePushSuccessSum" resultType="com.br.marketing.dto.SftpFilePushSuccessDTO">
