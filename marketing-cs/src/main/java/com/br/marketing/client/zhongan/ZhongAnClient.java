@@ -84,7 +84,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(dto), islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 if(!islogs.get(1)){
                     log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
@@ -160,7 +160,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), RSApKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(zkReqDTO), islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 if(!islogs.get(1)){
                     log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));

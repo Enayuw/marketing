@@ -166,8 +166,8 @@ public class HttpProxyClient {
 	@Autowired
 	ThreadPoolExecutor interfaceLogDbpool;
 
-	public  HashMap<String,String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType,Boolean isDbLog,Boolean isFileLog) {
-		return sendByCode(param,url,isPorxy,mediaType,null,isDbLog,isFileLog);
+	public  HashMap<String,String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
+		return sendByCode(param,url,isPorxy,mediaType,extendInfo,isDbLog,isFileLog);
 	}
 
 	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
