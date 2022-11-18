@@ -11,7 +11,6 @@ import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.CallRecordMapper;
@@ -32,8 +31,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -171,18 +168,18 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             String mobileMd5 = next.getMobileMd5();
             if (syncUserMapNew.containsKey(mobileMd5)) {
                 String bizDateStr = next.getBizDate();
-                LocalDate bizDate;
-                try {
-                    bizDate = LocalDate.parse(bizDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
-                } catch (Exception e) {
-                    bizDate = LocalDateTime.parse(bizDateStr, DateTimeFormatter.ofPattern(
-                            DateHelper.LINE_DATE_COLON_TIME_FORMAT)).toLocalDate();
-                }
+//                LocalDate bizDate;
+//                try {
+//                    bizDate = LocalDate.parse(bizDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+//                } catch (Exception e) {
+//                    bizDate = LocalDateTime.parse(bizDateStr, DateTimeFormatter.ofPattern(
+//                            DateHelper.LINE_DATE_COLON_TIME_FORMAT)).toLocalDate();
+//                }
+//                Date date = Date.from(bizDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
                 MarketingSyncUser syncUser = syncUserMapNew.get(mobileMd5);
-                Date date = Date.from(bizDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
                 Date validityDate = syncUser.getAppletTime() == null ? syncUser.getCreateTime()
                         : syncUser.getAppletTime();
-                boolean validityBool = marketingSyncUserService.isPeriodOfValidity(date, day, validityDate);
+                boolean validityBool = marketingSyncUserService.isPeriodOfValidity(new Date(), day, validityDate);
                 if (validityBool) {
                     //营销组
                     if (mgBool) {
