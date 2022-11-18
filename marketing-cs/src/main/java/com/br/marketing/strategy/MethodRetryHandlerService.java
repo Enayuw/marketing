@@ -38,6 +38,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -305,9 +308,11 @@ public class MethodRetryHandlerService {
         Result zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
         switch (zhongAnResult.getCode()) {
             case 500:
+                // 已推送,未成功,需要重试
                 updatePushStatus(bo, 3, 1);
                 break;
             case 0:
+                // 已推送,未成功,无需重试
                 updatePushStatus(bo, 4, null);
                 break;
             default:
@@ -317,10 +322,10 @@ public class MethodRetryHandlerService {
         return result;
     }
 
-    private void updatePushStatus(ZaMarketDataBO bo, int updatePushStatus,
-                                  Integer pushStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatus(bo.getApiCode(), updatePushStatus, pushStatus
-                , bo.getTag(), bo.getList());
+    private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
+        zhonganRosterLockingDataMapper.updatePushStatusORStatus(bo.getApiCode(), updatePushStatus, updateStatus
+                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                , new Date());
     }
 
 }

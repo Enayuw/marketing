@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -113,8 +114,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
                             .append("清洗数据量：".concat(String.valueOf(allCount)).concat("，"))
                             .append("错误数量：".concat(String.valueOf(errorCount)).concat("，"))
                             .append("总耗时：".concat(TimeUtils.millisecondsToString(endTime - startTime)).concat("\r\n"));
-                    alarmClient.sendAlarm(content.toString(), "哈啰洗库", appName, secretKey,
-                            Constants.sendCodeMap.get("uploadSuccess"));
+                    alarmClient.sendAlarm(content.toString(), "哈啰洗库", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
                 }
             }
         }

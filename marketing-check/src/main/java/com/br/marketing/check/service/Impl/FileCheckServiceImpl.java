@@ -5,7 +5,7 @@ import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.thread.ValidatorThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.check.service.FileCheckService;

@@ -3,7 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.IceClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoadResult;
@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +46,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void deleteMonitorFileUpload(String apiCode, String message) {
         log.info("apiCode:{},message:{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         log.info("companyMsg:{}",companyMsg);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
@@ -78,7 +79,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                         .append("<br/>");
             }
             String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }else {
             param.put("status","1");
             List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -111,7 +112,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                     }
                 }
                 String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
+                alarmClient.sendAlarm(content.toString(),title, AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             }
 
         }
@@ -141,7 +142,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void fileUpload(String apiCode, String message){
         log.info("apiCode:{},message:{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         log.info("companyMsg:{}",companyMsg);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
@@ -175,7 +176,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                             .append("<br/>");
                 }
                 String title="【紧急报警】【"+compShortName+"-"+apiCode+"】智能营销平台-文件校验失败";
-                alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+                alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }
         param.put("status","1");
         List<LoadResult> successList=loadResultMapper.queryLoadResult(param);
@@ -263,10 +264,10 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                     .append("&nbsp;监控状态：")
                     .append(monitorStatus);
             sb1.append("<br/>");
-            log.error("任务信息：{}",sb1);
+            log.warn("任务信息：{}",sb1);
             content.append("<br/>");
             String title="【上传通知】【"+compShortName+"-"+apiCode+"】智能营销平台-文件上传结果通知";
-            alarmClient.sendAlarm(content.toString(),title,appName,secretKey, Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(),title,AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
     }
 
@@ -317,7 +318,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
     public void dataFileVolumn(String apiCode,String message){
         log.warn("apiCode {},message{}",apiCode,message);
         String compShortName="";
-        String companyMsg = IceClient.getCompanyMsg(apiCode);
+        String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if(StringUtils.isNotEmpty(companyMsg)){
             JSONObject companyJSONObj = JSON.parseObject(companyMsg);
             compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -343,7 +344,7 @@ public  class ValidDataAlarmServiceImpl implements EmailService {
                    .append(dataVolume)
                    .append(" <br/>");
             String title = "【紧急预警】【" + compShortName + "-" + apiCode + "】智能营销平台-上传数据文件数据量异常";
-            alarmClient.sendAlarm(content.toString(), title, appName, secretKey, Constants.sendCodeMap.get("dataFileUploadFail"));
+            alarmClient.sendAlarm(content.toString(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
         }else{
             log.error("dataFileVolumn参数错误:{}",message);
         }

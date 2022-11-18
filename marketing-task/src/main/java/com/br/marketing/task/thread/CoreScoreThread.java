@@ -5,11 +5,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
-import com.br.marketing.client.*;
+import com.br.marketing.client.ProFieldsClient;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.RedisService;
+import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
@@ -188,6 +192,7 @@ public class CoreScoreThread implements Callable<String> {
      *
      * @return
      */
+    @Deprecated
     private boolean checkRedisNumber() {
         boolean flag = true;
         if (customer.getCheckRedisNumber() == 0) {
@@ -198,7 +203,7 @@ public class CoreScoreThread implements Callable<String> {
             Map<String, String> dayNumMap = new HashMap<>();
             List<String> typeNoList = new ArrayList<>();
             addDTBPro(typeNoList);
-            MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
             if (merchantParam == null) {
                 log.error("用户中心结果为空" + apiCode);
                 return false;

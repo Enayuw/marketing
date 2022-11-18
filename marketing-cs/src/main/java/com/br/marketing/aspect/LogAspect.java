@@ -1,9 +1,6 @@
 package com.br.marketing.aspect;
 
-import Ice.AsyncResult;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.bsf.ext.app.util.Ice1BSFConsumerBean;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.utils.IpUtil;
 import com.br.marketing.context.RuntimeDataContext;
@@ -11,13 +8,12 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.entity.MarketingInfoLog;
-import com.br.mom.v3.broker_layer_api.api.BrokerLayerServicePrx;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -38,14 +34,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 @Order(-1)
 public class LogAspect {
-    @Value("${otherConfig.uploadMom.producerKey:00}")
-    private String producerKey;
-    @Value("${otherConfig.uploadMom.appSecretKey:00}")
-    private String appSecretKey;
-    @Value("${otherConfig.uploadMom.destinationName:00}")
-    private String destinationName;
-    @Value("${otherConfig.uploadMom.logIceTimeout:00}")
-    private int logIceTimeout;
 
     /**
      * 方法
@@ -155,26 +143,6 @@ public class LogAspect {
      * @return
      */
     public void sendUploadLog(String content) {
-        String param = null;
-        try {
-            BrokerLayerServicePrx service = (BrokerLayerServicePrx) Ice1BSFConsumerBean
-                    .getServiceProxy(BrokerLayerServicePrx.class, "V3.0.0");
-            //超时时间
-            service.ice_invocationTimeout(logIceTimeout);
-            //请求参数
-            JSONObject paramJson = new JSONObject();
-            paramJson.put("appName", producerKey);
-            paramJson.put("appSecretKey", appSecretKey);
-            JSONObject requestData = new JSONObject();
-            requestData.put("destinationName", destinationName);
-            //入参内容
-            requestData.put("content", content);
-            paramJson.put("requestData", requestData);
-            param = paramJson.toJSONString();
-            AsyncResult beginSender = service.begin_sender(param);
-            log.warn("userReportLog mom request return : {}", beginSender == null ? "" : beginSender.isSent());
-        } catch (Exception e) {
-            log.error("userReportLog mom request Error：{}" + param, e);
-        }
+        RpcClientProxy.sendUploadLog(content);
     }
 }

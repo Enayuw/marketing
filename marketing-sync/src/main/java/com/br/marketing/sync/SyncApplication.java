@@ -6,6 +6,9 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
+import com.br.grpc.utils.BrGrpcUtils;
+import com.br.monitor.grpc.EnvUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
@@ -24,9 +27,29 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_sync")
 @EnablePrometheusIceThreadPool
+@Slf4j
 public class SyncApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
         ac= new SpringApplicationBuilder().sources(SyncApplication.class).run(args);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                SyncApplication.stop();
+            }
+        });
+    }
+
+    /**
+     * 对客户端调用不同服务产生的资源连接进行关闭，在项目停止时需要进行关闭
+     */
+    public static void stop() {
+        try {
+            if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
+                BrGrpcUtils.shutDown();
+            }
+        } catch (Exception e) {
+            log.error("GRPC服务关闭异常", e);
+        }
     }
 }
