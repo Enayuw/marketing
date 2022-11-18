@@ -120,7 +120,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             return result;
         }
         Map<String, String> zhongAnPeriodOfValidityDay = marketingCommonConfig.getZhongAnPeriodOfValidityDay();
-        if (CollectionUtils.isEmpty(zhongAnPeriodOfValidityDay) || zhongAnPeriodOfValidityDay.containsKey(apiCode)) {
+        if (CollectionUtils.isEmpty(zhongAnPeriodOfValidityDay) || !zhongAnPeriodOfValidityDay.containsKey(apiCode)) {
             log.warn("tag:{},apiCode{},未配置有效期[zhongAnPeriodOfValidityDay]！", tag, apiCode);
             return result;
         }
