@@ -138,6 +138,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         MarketingSyncUser syncUser;
         switch (tag) {
             case "CG":
+                // 对照组
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
@@ -146,6 +147,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 }
                 break;
             case "MG":
+                // 营销组
                 Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, tag, dateStr, day);
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
