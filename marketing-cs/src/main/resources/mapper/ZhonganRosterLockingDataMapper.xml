@@ -35,8 +35,8 @@
             </if>
             and
             <foreach collection="queries" item="q" separator=" or " open="(" close=")">
-                (mobile_md5='${q.mobileMd5}' and <![CDATA[ biz_date>='${q.periodOfValidityBO.beginDateStr}' ]]>
-                and <![CDATA[ biz_date <= '${q.periodOfValidityBO.enDateStr}' ]]>)
+                (mobile_md5='${q.mobileMd5}' and <![CDATA[ create_time>='${q.periodOfValidityBO.beginDateStr}' ]]>
+                and <![CDATA[ create_time <= '${q.periodOfValidityBO.enDateStr}' ]]>)
             </foreach>
             group by mobile_md5 having count(*)>0
         </where>

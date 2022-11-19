@@ -139,7 +139,7 @@ public class PeriodOfValidityBO {
                         periodOfValidityBO.getBeginDate(), DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             }
             if (periodOfValidityBO.getEnDate() != null) {
-                periodOfValidityBO.beginDateTimeStr = DateUtils.format(
+                periodOfValidityBO.enDateTimeStr = DateUtils.format(
                         periodOfValidityBO.getEnDate(), DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             }
             return this;
@@ -147,10 +147,10 @@ public class PeriodOfValidityBO {
 
         public Builder addDateOtherString(String pattern) {
             if (periodOfValidityBO.getBeginDate() != null) {
-                periodOfValidityBO.beginDateTimeStr = DateUtils.format(periodOfValidityBO.getBeginDate(), pattern);
+                periodOfValidityBO.beginDateOtherStr = DateUtils.format(periodOfValidityBO.getBeginDate(), pattern);
             }
             if (periodOfValidityBO.getEnDate() != null) {
-                periodOfValidityBO.beginDateTimeStr = DateUtils.format(periodOfValidityBO.getEnDate(), pattern);
+                periodOfValidityBO.enDateOtherStr = DateUtils.format(periodOfValidityBO.getEnDate(), pattern);
             }
             return this;
         }
