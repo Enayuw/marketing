@@ -112,8 +112,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         if (emptyBool) {
             log.warn("tag:{},apiCode{},未获取到上传数据！", tag, apiCode);
             // 未获取到上传数据
-            zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, 3
-                    , 1, tag, inList, dateStr, new Date());
+            updatePushStatus(inList, 3, apiCode, tag, dateStr);
             return result;
         }
         Map<String, String> zhongAnPeriodOfValidityDay = marketingCommonConfig.getZhongAnPeriodOfValidityDay();
@@ -139,6 +138,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
+        List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
+        List<ZhonganRosterLockingData> notValidity = new ArrayList<>();
+        List<ZhonganRosterLockingData> notUploadData = new ArrayList<>();
         while (iterator.hasNext()) {
             ZhonganRosterLockingData next = iterator.next();
             String mobileMd5 = next.getMobileMd5();
@@ -152,32 +154,28 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                         // 判断黑名单
                         if (custNumBlackListSet.contains(syncUser.getCustNum())) {
                             // 命中黑名单
-                            updatePushStatus(next, 5, dateStr);
+                            hitBlackList.add(next);
                             continue;
                         }
                     }
                     list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                 } else {
                     // 不在有效期内
-                    updatePushStatus(next, 4, dateStr);
+                    notValidity.add(next);
                 }
             } else {
                 // 未获取到上传数据
-                updatePushStatus(next, 3, dateStr);
+                notUploadData.add(next);
             }
         }
         if (!CollectionUtils.isEmpty(list)) {
             result.setDate(list);
             result.setCode(ResultCode.SUCCESS.getValue());
         }
+        updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
+        updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
+        updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
         return result;
-    }
-
-    private void updatePushStatus(ZhonganRosterLockingData data, int updateStatus, String dateStr) {
-        List<ZhonganRosterLockingData> dataList = new ArrayList<>();
-        dataList.add(data);
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(data.getApiCode(), null, updateStatus
-                , 1, data.getTag(), dataList, dateStr, new Date());
     }
 
     private Set<String> mgFilter(List<ZhonganRosterLockingData> inList, Map<String, MarketingSyncUser> syncUserMapNew,
@@ -199,8 +197,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             // 去掉CG组已推送
             inList.removeAll(list);
             // 重复数据
-            zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, 6
-                    , 1, tag, list, dateStr, new Date());
+            updatePushStatus(list, 6, apiCode, tag, dateStr);
         }
         Set<String> custNumSet = syncUserMapNew.values().parallelStream().map(MarketingSyncUser::getCustNum)
                 .collect(Collectors.toSet());
@@ -210,6 +207,22 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         custNumSet.removeAll(custNumBlackListSet);
         custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumSet, apiCode, dateStr));
         return custNumBlackListSet;
+    }
+
+    /**
+     * 2022/11/19 10:55
+     * 更新数据状态
+     */
+    private void updatePushStatus(List<ZhonganRosterLockingData> dataList
+            , int updateStatus
+            , String apiCode
+            , String tag
+            , String dateStr) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
+        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, updateStatus
+                , 1, tag, dataList, dateStr, new Date());
     }
 
     @Override
