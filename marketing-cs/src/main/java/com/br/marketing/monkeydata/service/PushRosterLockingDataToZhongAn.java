@@ -163,14 +163,14 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 }
             default:
         }
-        if (CollectionUtils.isEmpty(list)) {
-            return result;
-        }
-        result.setDate(list);
-        result.setCode(ResultCode.SUCCESS.getValue());
         updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
         updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
         updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
+        if (CollectionUtils.isEmpty(list)) {
+            return result;
+        }
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(list);
         return result;
     }
 
