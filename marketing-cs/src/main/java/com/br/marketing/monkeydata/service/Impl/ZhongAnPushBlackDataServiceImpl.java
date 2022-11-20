@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
 import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushBlackDataHandle;
@@ -44,6 +45,9 @@ public class ZhongAnPushBlackDataServiceImpl implements ZhongAnPushBlackDataServ
     @Resource
     private ZhongAnPushBlackDataHandle zhongAnPushBlackDataHandle;
 
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
     @Override
     public Result actionPushBlackData(String apiCode) {
         if (StringUtils.isEmpty(apiCode)) {
@@ -64,6 +68,19 @@ public class ZhongAnPushBlackDataServiceImpl implements ZhongAnPushBlackDataServ
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 1);
+            String CreateTimeDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            //判断T-1日上传数据是否解析完成
+            while (true) {
+                if (marketingSyncInfoMapper.getUnresolvedCount(apiCode, CreateTimeDate, recordDate) == 0) {
+                    log.warn("众安上传数据解析完成，开始推送黑名单");
+                    break;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                    log.error("众安推送黑名单，上传数据解析查询异常", e);
+                }
+            }
             int periodDay = 30;
             //默认30天
             if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackDataPeriod())) {

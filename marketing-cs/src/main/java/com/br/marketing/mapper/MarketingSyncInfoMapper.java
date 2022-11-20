@@ -227,4 +227,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getVaildUserByRequestId(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
 
+    int getUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
 }
