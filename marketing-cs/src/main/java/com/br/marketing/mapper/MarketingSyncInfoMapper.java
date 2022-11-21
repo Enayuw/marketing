@@ -227,4 +227,13 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getVaildUserByRequestId(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
 
+
+    /**
+     *  根据apiCode 和 groupType 查询
+     * @param apiCode
+     * @param groupType
+     * @return
+     */
+    List<MarketingSyncUser> getSmyDataByGroupType(@Param("apiCode") String apiCode,@Param("groupType") String groupType);
+
 }
