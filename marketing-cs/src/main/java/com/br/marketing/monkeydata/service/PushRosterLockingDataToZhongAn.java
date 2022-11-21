@@ -104,7 +104,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
                     String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
                     return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
-                }));
+                }, (v1, v2) -> v1));
         Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
         Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserService.getCellByCellAndMaxAppletTimeMap(apiCode
                 , mobileMd5Set);
@@ -121,7 +121,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             return result;
         }
         Map<String, MarketingSyncUser> syncUserMapNew = inList.parallelStream().filter(l -> syncUserMap.containsKey(
-                cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5
+                cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
                 , l -> syncUserMap.get(cellMap.get(l.getMobileMd5()))));
         Integer day;
         try {
@@ -186,7 +186,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , List<ZhonganRosterLockingData> notUploadData) {
         String mobileMd5 = next.getMobileMd5();
         if (syncUserMapNew.containsKey(mobileMd5)) {
-            MarketingSyncUser syncUser = syncUserMapNew.get(mobileMd5);
+            MarketingSyncUser syncUser = syncUserMapNew.get(mobileMd5 + next.getBizDate());
             Date validityDate = syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime();
             boolean validityBool = marketingSyncUserService.isPeriodOfValidity(new Date(), day, validityDate);
             if (validityBool) {
@@ -213,8 +213,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , String dateStr
             , int day) {
         List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().filter(
-                l -> syncUserMapNew.containsKey(l.getMobileMd5())).map(l -> {
-            MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5());
+                l -> syncUserMapNew.containsKey(l.getMobileMd5() + l.getBizDate())).map(l -> {
+            MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
             PeriodOfValidityBO periodOfValidityBO = marketingSyncUserService.getPeriodOfValidityRange(day
                     , syncUser.getAppletTime() == null ? syncUser.getCreateTime()
                             : syncUser.getAppletTime()).addDateString().builder();
