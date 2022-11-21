@@ -100,11 +100,12 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         String apiCode = data.getApiCode();
         String tag = data.getTag();
         String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-        Map<String, String> cellMap = inList.parallelStream().collect(
-                Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
-                    String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
-                    return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
-                }, (v1, v2) -> v1));
+        Map<String, String> cellMap = inList.parallelStream().collect(Collectors.collectingAndThen(
+                Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
+                , ArrayList::new)).parallelStream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
+            String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
+            return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
+        }, (v1, v2) -> v1));
         Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
         Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserService.getCellByCellAndMaxAppletTimeMap(apiCode
                 , mobileMd5Set);
@@ -185,8 +186,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , List<ZhonganRosterLockingData> notValidity
             , List<ZhonganRosterLockingData> notUploadData) {
         String mobileMd5 = next.getMobileMd5();
-        if (syncUserMapNew.containsKey(mobileMd5)) {
-            MarketingSyncUser syncUser = syncUserMapNew.get(mobileMd5 + next.getBizDate());
+        String key = mobileMd5 + next.getBizDate();
+        if (syncUserMapNew.containsKey(key)) {
+            MarketingSyncUser syncUser = syncUserMapNew.get(key);
             Date validityDate = syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime();
             boolean validityBool = marketingSyncUserService.isPeriodOfValidity(new Date(), day, validityDate);
             if (validityBool) {
