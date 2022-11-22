@@ -170,12 +170,15 @@ public class ZhongAnClient {
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             //测试
             if(zkReqDTO.getCustMobileMd5().equals("260c508c54f8675829cf68afdbe3b4fb")){
+                resVo.setSuccess(Boolean.FALSE);
                 resVo.setResultCode("GW_0008");
             }
             if(zkReqDTO.getCustMobileMd5().equals("0000077441f4b5494378cab63e5558fd")){
+                resVo.setSuccess(Boolean.FALSE);
                 resVo.setResultCode("GW_0018");
             }
             if(zkReqDTO.getCustMobileMd5().equals("e028b605aaffc07f0823ed0c791b6ca8")){
+                resVo.setSuccess(Boolean.FALSE);
                 resVo.setResultCode("GW_0019");
             }
             Result result = checkGateWay(resVo);
