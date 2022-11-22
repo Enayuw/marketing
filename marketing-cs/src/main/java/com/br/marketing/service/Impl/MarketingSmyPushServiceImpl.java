@@ -1,12 +1,7 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -14,15 +9,12 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.CopyUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
