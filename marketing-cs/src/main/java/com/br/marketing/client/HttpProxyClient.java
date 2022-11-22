@@ -60,7 +60,7 @@ public class HttpProxyClient {
 	private static final PoolingHttpClientConnectionManager HTTP_CLIENT_POOL = new PoolingHttpClientConnectionManager();
 
 	static {
-		HTTP_CLIENT_POOL.setMaxTotal(150);
+		HTTP_CLIENT_POOL.setMaxTotal(5000);
 		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(50);
 	}
 
