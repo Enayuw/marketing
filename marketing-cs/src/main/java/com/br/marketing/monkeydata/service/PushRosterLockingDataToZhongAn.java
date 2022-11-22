@@ -72,6 +72,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> result
                 = new Result<>();
         try {
+            // 以MobileMd5+BizDate分组
             List<ZhonganRosterLockingData> listPage = zhonganRosterLockingDataMapper
                     .findGroupMobileMd5ListPage(condition.getParam(), condition.getPageIndex(), condition.getPageSize());
             IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>> content
@@ -150,6 +151,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             case "MG":
                 // 营销组
                 Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, tag, dateStr, day);
+                iterator = inList.iterator();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
@@ -232,6 +234,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             inList.removeAll(list);
             // 重复数据
             updatePushStatus(list, 6, apiCode, tag, dateStr);
+        }
+        if (CollectionUtils.isEmpty(inList)) {
+            return Collections.emptySet();
         }
         Set<String> custNumSet = syncUserMapNew.values().parallelStream().map(MarketingSyncUser::getCustNum)
                 .collect(Collectors.toSet());
