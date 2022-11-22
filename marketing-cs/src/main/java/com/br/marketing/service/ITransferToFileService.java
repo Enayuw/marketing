@@ -16,7 +16,7 @@ public interface ITransferToFileService {
      */
     String isMyParam(String apiCode,String jobParameter);
 
-    Result<List<TransferFileTask>> buildTransferTask(String apiCode);
+    Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam);
 
     Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter);
 }

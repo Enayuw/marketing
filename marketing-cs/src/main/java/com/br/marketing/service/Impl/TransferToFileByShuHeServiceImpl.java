@@ -128,7 +128,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
         result.setDate(transferFileTaskList);
