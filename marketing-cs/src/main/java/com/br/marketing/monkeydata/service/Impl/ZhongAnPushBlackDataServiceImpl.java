@@ -77,6 +77,7 @@ public class ZhongAnPushBlackDataServiceImpl implements ZhongAnPushBlackDataServ
                 }
                 try {
                     Thread.sleep(3000);
+                    log.warn("众安上传数据解析中，待解析完成开始推送黑名单");
                 } catch (Exception e) {
                     log.error("众安推送黑名单，上传数据解析查询异常", e);
                 }

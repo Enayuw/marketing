@@ -74,7 +74,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     @Override
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 2);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
         for (; ; ) {
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {

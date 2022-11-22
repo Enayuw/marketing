@@ -309,8 +309,9 @@
             </if>
             <![CDATA[ AND applet_date >= #{startDate} and applet_date < #{endDate} ]]>
             AND  status=1
-            order by id asc limit 100;
+            order by id asc limit 2000;
         </where>
     </select>
 
+    
 </mapper>
