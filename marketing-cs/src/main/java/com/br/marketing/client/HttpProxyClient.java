@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.tools.helper.HttpClientHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -19,6 +20,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.*;
@@ -256,7 +258,7 @@ public class HttpProxyClient {
 		interfaceLog.setRequestId(UUID.randomUUID().toString());
 		interfaceLog.setUrl(url);
 		interfaceLog.setCreateTime(new Date());
-		HttpClient httpClient =getHttpClientInner();
+		HttpClient httpClient =getHttpClientInner(isPorxy);
 		HashMap<String,String> res = new HashMap<>();
 		Long start = System.currentTimeMillis();
 		try {
@@ -340,9 +342,19 @@ public class HttpProxyClient {
 		}
 	}
 
-	public  HttpClient getHttpClientInner() {
+	public  HttpClient getHttpClientInner(Boolean isProxy) {
+		if(isProxy){
+			// 设置代理HttpHost
+			HttpHost proxy = new HttpHost(proxyHost, proxyPort );
+			// 设置认证
+			CredentialsProvider provider = new BasicCredentialsProvider();
+			provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+			CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
+			return httpClient;
+		}else {
 			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
 			return httpClient;
+		}
 	}
 
 	/**
@@ -394,7 +406,7 @@ public class HttpProxyClient {
 		if(isProxy) {
 			return RequestConfig.custom()
 					.setSocketTimeout(sockTimeout)
-					.setConnectTimeout(1000)
+					.setConnectTimeout(5000)
 					.setProxy(new HttpHost(proxyHost, proxyPort ))
 					.setConnectionRequestTimeout(1000)
 					.build();
