@@ -12,6 +12,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.RetryMainLog;
@@ -76,6 +77,11 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         Result res = new Result();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
         for (; ; ) {
+            if(StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())){
+                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
+                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
+                log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}",pool.getCorePoolSize(),pool.getMaximumPoolSize());
+            }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                 break;

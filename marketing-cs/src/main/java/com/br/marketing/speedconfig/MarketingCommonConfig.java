@@ -80,6 +80,10 @@ public class MarketingCommonConfig {
      * 众安推送黑名单数据有效期
      */
     private String zhongAnPushBlackDataPeriod;
+    /**
+     * 众安推送黑名单线程数设置
+     */
+    private String zhongAnPushBlackThreadNum;
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
