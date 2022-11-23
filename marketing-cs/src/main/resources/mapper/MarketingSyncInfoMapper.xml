@@ -406,7 +406,7 @@
     </select>
     <select id="getSmyDataByGroupType" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from b_marketing_sync_${apiCode}
-        where TO_DAYS(create_time) = TO_DAYS(NOW())
+        where TO_DAYS(create_time) = TO_DAYS(NOW()) and  group_type = #{groupType}
         and status = 1 order by create_time desc;
     </select>
 </mapper>
