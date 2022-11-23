@@ -5,6 +5,7 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -42,6 +43,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Autowired
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Autowired
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
+
     @Override
     public void pushSmyUploadDataToDaas() {
         //7410437 为测试apiCode
@@ -63,7 +67,26 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
 
     }
 
+    @Override
+    public void pushSmyTransferDataToDaas() {
+        //7410437 为测试apiCode
+        List<MarketingSyncUser> marketingSyncUserList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("7410437", "S09");
+        List<DassImportDataDTO> dassImportDataDTOlist = new ArrayList<>();
+        marketingSyncUserList.stream().forEach(msu -> {
+            DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+            dassImportDataDTO.setName("1");
+            dassImportDataDTO.setOrgname("samoye");
+            dassImportDataDTO.setPhone(msu.getCell());
+//            dassImportDataDTO.setRecvData();
+//            dassImportDataDTO.setRecvVars();
+            dassImportDataDTO.setUid(msu.getCustNum());
+            dassImportDataDTO.setSource("23");
+            dassImportDataDTOlist.add(dassImportDataDTO);
 
+        });
+        smyPushDaas(dassImportDataDTOlist);
+
+    }
     public void smyPushDaas(List<DassImportDataDTO> daasImportDataDTOlist) {
         /**
          * 批量推电销接口 每1000条数据一个批次
