@@ -350,4 +350,9 @@ public class MarketingCommonConfig {
      */
     private Map<String, String> zhongAnPeriodOfValidityDay;
 
+    /**
+     * 众安推送数据线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> zhongAnPushTreadPoolSize;
+
 }
