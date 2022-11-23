@@ -112,6 +112,7 @@ public class ZhongAnClient {
                     || "9999".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
+            log.warn("无需重试 推送明细结果判断：{}",JSON.toJSONString(resVo));
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
             log.error("众安推送明细异常"+ex.getMessage(),ex);
@@ -233,7 +234,7 @@ public class ZhongAnClient {
                 || "GW_0019".equals(responseVO.getResultCode())) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
-
+        log.warn("无需重试 网关判断：{}",JSON.toJSONString(responseVO));
         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(responseVO));
     }
 
