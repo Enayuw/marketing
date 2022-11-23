@@ -37,6 +37,9 @@ public class ZhongAnClient {
     @Value("${api.zhongAn.isProxy:false}")
     Boolean isProxy;
 
+    @Value("${api.zhongAn.rsapKey:00}")
+    String rsapKey;
+
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -55,8 +58,6 @@ public class ZhongAnClient {
     String xinDaiZKApiKey = "zadpreloan.nexusmetric.07brdyy01";
 
     String bXZKApiKey = "zadpreloan.nexusmetric.br.3360001";
-
-    String RSApKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB";
 
     final static String zanPushDetail = "zanPushDetail";
 
@@ -81,7 +82,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setReqNo(UUID.randomUUID().toString().replaceAll("-", ""));
             zhongAnRequestDTO.setReqDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             zhongAnRequestDTO.setGatewayVersion("1.0.0");
-            zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), RSApKey));
+            zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), rsapKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(dto), islogs.get(0), islogs.get(1));
@@ -93,7 +94,7 @@ public class ZhongAnClient {
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
-            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                 if(!islogs.get(1)){
                     log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
                 }
@@ -158,7 +159,7 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setReqNo(UUID.randomUUID().toString().replaceAll("-", ""));
             zhongAnRequestDTO.setReqDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             zhongAnRequestDTO.setGatewayVersion("1.0.0");
-            zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), RSApKey));
+            zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), rsapKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(zkReqDTO), islogs.get(0), islogs.get(1));
@@ -170,7 +171,7 @@ public class ZhongAnClient {
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
-            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                 if(!islogs.get(1)){
                     log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
                 }
@@ -234,7 +235,6 @@ public class ZhongAnClient {
                 || "GW_0019".equals(responseVO.getResultCode())) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
-        log.warn("无需重试 网关判断：{}",JSON.toJSONString(responseVO));
         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(responseVO));
     }
 
