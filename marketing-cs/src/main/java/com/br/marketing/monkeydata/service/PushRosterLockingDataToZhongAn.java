@@ -362,8 +362,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         } else {
             return service;
         }
-        POOL.setCorePoolSize(corePoolSize);
-        POOL.setMaximumPoolSize(maximumPoolSize);
+        int maxPoolSize = 1000;
+        POOL.setCorePoolSize(Math.min(corePoolSize, maxPoolSize));
+        POOL.setMaximumPoolSize(Math.min(maximumPoolSize, maxPoolSize));
         return service;
     }
 }
