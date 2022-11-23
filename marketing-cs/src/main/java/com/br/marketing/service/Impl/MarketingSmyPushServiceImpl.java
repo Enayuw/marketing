@@ -49,9 +49,11 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
         List<DassImportDataDTO> dassImportDataDTOlist = new ArrayList<>();
         marketingSyncUserList.stream().forEach(msu -> {
             DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+            dassImportDataDTO.setId(msu.getId());
             dassImportDataDTO.setName("1");
             dassImportDataDTO.setOrgname("samoye");
             dassImportDataDTO.setPhone(msu.getCell());
+            dassImportDataDTO.setUserType("1");
 //            dassImportDataDTO.setRecvData();
 //            dassImportDataDTO.setRecvVars();
             dassImportDataDTO.setUid(msu.getCustNum());
