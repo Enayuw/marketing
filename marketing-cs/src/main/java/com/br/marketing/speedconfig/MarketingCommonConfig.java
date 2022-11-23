@@ -326,5 +326,8 @@ public class MarketingCommonConfig {
      */
     private List<String> saMoYeTransferFileApiCodes;
 
-
+    /**
+     * 跑分分组分位值
+     */
+    private Integer quantileValue;
 }

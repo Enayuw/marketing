@@ -175,7 +175,7 @@ public class ResultUtil {
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                     BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService) throws IOException {
+            , MarketingTaskService marketingTaskService,String part) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
