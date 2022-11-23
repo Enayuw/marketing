@@ -2,20 +2,25 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.PhoneSaleTransferInfoMapper;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,6 +51,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Autowired
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
+    @Autowired
+    private PhoneSaleTransferInfoMapper phoneSaleTransferInfoMapper;
+
     @Override
     public void pushSmyUploadDataToDaas() {
         //7410437 为测试apiCode
@@ -70,21 +78,22 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Override
     public void pushSmyTransferDataToDaas() {
         //7410437 为测试apiCode
-        List<MarketingSyncUser> marketingSyncUserList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("7410437", "S09");
-        List<DassImportDataDTO> dassImportDataDTOlist = new ArrayList<>();
-        marketingSyncUserList.stream().forEach(msu -> {
-            DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
-            dassImportDataDTO.setName("1");
-            dassImportDataDTO.setOrgname("samoye");
-            dassImportDataDTO.setPhone(msu.getCell());
-//            dassImportDataDTO.setRecvData();
-//            dassImportDataDTO.setRecvVars();
-            dassImportDataDTO.setUid(msu.getCustNum());
-            dassImportDataDTO.setSource("23");
-            dassImportDataDTOlist.add(dassImportDataDTO);
+        List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("7410437", "S09");
+        List<DassTransferDataDTO> dassImportDataDTOlist = new ArrayList<>();
+        marketingTransferInfoList.stream().forEach(transfer -> {
+            DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
+            dassTransferDataDTO.setId(transfer.getId());
+            dassTransferDataDTO.setUid(transfer.getCustNum());
+            dassTransferDataDTO.setSource("23");
+            dassTransferDataDTO.setUserType("1");
+            dassTransferDataDTO.setPhone(transfer.getCell());
+            dassTransferDataDTO.setOrgName("samoye");
+            dassTransferDataDTO.setIfTransform("1");
+            dassTransferDataDTO.setTransformStatus("1");
+            dassImportDataDTOlist.add(dassTransferDataDTO);
 
         });
-        smyPushDaas(dassImportDataDTOlist);
+        smyTransferPushDaas(dassImportDataDTOlist);
 
     }
     public void smyPushDaas(List<DassImportDataDTO> daasImportDataDTOlist) {
@@ -112,5 +121,29 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
+    public void smyTransferPushDaas(List<DassTransferDataDTO> transferData) {
+        /**
+         * 电销转化接口 每500条数据一个批次
+         */
+        int pageSize = 500;
+        int totalCount = transferData.size();
+        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        for (int i = 1; i <= pageCount; i++) {
+            List<DassTransferDataDTO> subList;
+            if (i == pageCount) {
+                subList = transferData.subList((i - 1) * pageSize, totalCount);
+            } else {
+                subList = transferData.subList((i - 1) * pageSize, pageSize * (i));
+            }
+            DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
+            dassTransferDataAdapDTO.setDassTransferDataDTOList(subList);
 
+            List<PhoneSaleTransferInfo> phoneSaleTransferInfoList = new ArrayList<>();
+            BeanUtils.copyProperties(subList, phoneSaleTransferInfoList);
+            if (phoneSaleTransferInfoList.size() > 0) {
+                phoneSaleTransferInfoMapper.insertBatch(phoneSaleTransferInfoList);
+            }
+            methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
+        }
+    }
 }
