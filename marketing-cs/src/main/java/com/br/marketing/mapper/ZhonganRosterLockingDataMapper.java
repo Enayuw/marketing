@@ -61,4 +61,18 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
      */
     List<SftpFilePushSuccessDTO> getSftpFilePushSuccessSum(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr);
+
+    /**
+     * 2022/11/16 16:54
+     * 统计文件未推送数据量
+     */
+    List<SftpFilePushSuccessDTO> getSftpFilePushFailSum(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr);
+
+    /**
+     * 2022/11/16 16:54
+     * 获取推送文件id
+     */
+    List<Long> getSftpFileIdList(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr);
 }
