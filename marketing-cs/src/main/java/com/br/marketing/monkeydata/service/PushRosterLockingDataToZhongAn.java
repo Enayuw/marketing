@@ -243,6 +243,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         Set<String> custNumBlackListSet = new HashSet<>(custNumSet);
         custNumBlackListSet.retainAll(custNumCache);
         custNumSet.removeAll(custNumBlackListSet);
+        if (CollectionUtils.isEmpty(custNumSet)) {
+            return custNumBlackListSet;
+        }
         custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumSet, apiCode, dateStr));
         return custNumBlackListSet;
     }
