@@ -1,7 +1,5 @@
 package com.br.marketing.monkey.job;
 
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
@@ -80,11 +78,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             data.setParam(zhonganRosterLockingData);
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
-                LocalFile lf = new LocalFile();
-                lf.setPushStartTime(new Date());
-                LocalFileExample localFileExample = new LocalFileExample();
-                localFileExample.createCriteria().andIdIn(sftpFileIdList);
-                localFileMapper.updateByExampleSelective(lf, localFileExample);
+                localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
             rosterLockingDataToZhongAn.action(data);
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
