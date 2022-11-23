@@ -192,6 +192,8 @@ public class ResultUtil {
         mh.setApiCode(user.getApiCode());
         mh.setStrategyId(strategyId);
         mh.setVersion("");
+        mh.setPart(part);
+        mh.setScoreTime(System.currentTimeMillis());
         //endregion
 
         //客户上传字段处理
@@ -216,6 +218,7 @@ public class ResultUtil {
             mh.setCusBatchNumber(cusBatchNumber);
             mh.setBatchNumber(marketingTask.getBatchNumber());
             mh.setFileId(fileId);
+            mh.setPart()
             //region 产品模型，扩展字段存入condition
             HashMap<String, MarketingCondition> conditions = new HashMap<>();
             List<MarketingCondition> conditionList = new ArrayList<>();
