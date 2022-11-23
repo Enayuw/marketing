@@ -61,7 +61,7 @@ public class HttpProxyClient {
 
 	static {
 		HTTP_CLIENT_POOL.setMaxTotal(5000);
-		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(50);
+		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
 	}
 
 
@@ -406,7 +406,7 @@ public class HttpProxyClient {
 					.setSocketTimeout(sockTimeout)
 					.setConnectTimeout(5000)
 					.setProxy(new HttpHost(proxyHost, proxyPort ))
-					.setConnectionRequestTimeout(1000)
+					.setConnectionRequestTimeout(5000)
 					.build();
 		}else {
 			return	RequestConfig.custom()
