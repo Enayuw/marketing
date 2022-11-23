@@ -31,6 +31,7 @@ import com.br.marketing.entity.DataCompare;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
 import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +105,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
+
+    @Resource
+    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
 
     /**
      * 全局重试任务执行类
@@ -324,6 +328,10 @@ public class MethodRetryHandlerService {
                 updatePushStatus(bo, 2, null);
         }
         result.setCode(zhongAnResult.getCode());
+        if (retry != null) {
+            rosterLockingDataToZhongAn.localFilePushStatis(bo.getApiCode()
+                    , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        }
         return result;
     }
 

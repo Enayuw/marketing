@@ -1,7 +1,7 @@
 package com.br.marketing.dto;
 
 /**
- * sftpFile推送成功数据量
+ * sftpFile推送数据量
  *
  * @author Guo Zeqiang
  * @dateTime 2022/11/17 19:52
@@ -14,13 +14,13 @@ public class SftpFilePushSuccessDTO {
     private Long localId;
     /**
      * 2022/11/17 19:56
-     * 推送成功数据量
+     * 数据量
      */
-    private int pushSum;
+    private int number;
 
-    public SftpFilePushSuccessDTO(Long localId, int pushSum) {
+    public SftpFilePushSuccessDTO(Long localId, int number) {
         this.localId = localId;
-        this.pushSum = pushSum;
+        this.number = number;
     }
 
     public SftpFilePushSuccessDTO() {
@@ -34,11 +34,11 @@ public class SftpFilePushSuccessDTO {
         this.localId = localId;
     }
 
-    public int getPushSum() {
-        return pushSum;
+    public int getNumber() {
+        return number;
     }
 
-    public void setPushSum(int pushSum) {
-        this.pushSum = pushSum;
+    public void setNumber(int number) {
+        this.number = number;
     }
 }

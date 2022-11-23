@@ -12,9 +12,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.SftpFilePushSuccessDTO;
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
@@ -68,6 +71,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private LocalFileMapper localFileMapper;
 
     private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(25, 50);
 
@@ -215,7 +221,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , String tag
             , String dateStr
             , int day) {
-        Map<String, String> custNumMap = new ConcurrentHashMap<>();
+        Map<String, String> custNumMap = new ConcurrentHashMap<>(1024);
         List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().filter(
                 l -> syncUserMapNew.containsKey(l.getMobileMd5() + l.getBizDate())).map(l -> {
             MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
@@ -281,6 +287,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             return result;
         }
         CompletionService<Result<?>> completionService = getCompletionService();
+        boolean isUseThreadPool = completionService != null;
         int size = outputDataList.size();
         int pushSize = 100;
         int count = 0;
@@ -299,25 +306,36 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             list.add(detail);
             count++;
             if (list.size() == pushSize || size == count) {
-                List<ZaMarketDetail> finalList = list;
-                List<ZhonganRosterLockingData> finalDataList = dataList;
-                completionService.submit(() -> {
+                if (isUseThreadPool) {
+                    List<ZaMarketDetail> finalList = list;
+                    List<ZhonganRosterLockingData> finalDataList = dataList;
+                    completionService.submit(() -> {
+                        ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
+                        dataDTO.setData(finalList);
+                        return methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
+                                , bo.getApiCode(), bo.getTag(), finalDataList), null);
+                    });
+                    list = new ArrayList<>();
+                    dataList = new ArrayList<>();
+                } else {
                     ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                    dataDTO.setData(finalList);
-                    return methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
-                            , bo.getApiCode(), bo.getTag(), finalDataList), null);
-                });
-                list = new ArrayList<>();
-                dataList = new ArrayList<>();
+                    dataDTO.setData(list);
+                    methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
+                            , bo.getApiCode(), bo.getTag(), dataList), null);
+                    list.clear();
+                    dataList.clear();
+                }
             }
         }
-        try {
-            int pageTotal = size % pushSize == 0 ? size / pushSize : (size / pushSize + 1);
-            for (; pageTotal > 0; pageTotal--) {
-                completionService.take().get(5, TimeUnit.SECONDS);
+        if (isUseThreadPool) {
+            try {
+                int pageTotal = size % pushSize == 0 ? size / pushSize : (size / pushSize + 1);
+                for (; pageTotal > 0; pageTotal--) {
+                    completionService.take().get(10, TimeUnit.SECONDS);
+                }
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error(e.getMessage(), e);
             }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error(e.getMessage(), e);
         }
         result.setCode(ResultCode.SUCCESS.getValue());
         return result;
@@ -345,16 +363,16 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      */
     private CompletionService<Result<?>> getCompletionService() {
         List<Integer> zhongAnPushTreadPoolSize = marketingCommonConfig.getZhongAnPushTreadPoolSize();
-        CompletionService<Result<?>> service = new ExecutorCompletionService<>(POOL);
-        if (CollectionUtils.isEmpty(zhongAnPushTreadPoolSize)) {
-            return service;
+        if (zhongAnPushTreadPoolSize == null) {
+            return null;
         }
+        CompletionService<Result<?>> service = new ExecutorCompletionService<>(POOL);
         int size = zhongAnPushTreadPoolSize.size();
         int corePoolSize;
         int maximumPoolSize;
         if (size == 1) {
             Integer poolSize = zhongAnPushTreadPoolSize.get(0);
-            if (ObjectUtils.isEmpty(poolSize)) {
+            if (ObjectUtils.isEmpty(poolSize) || poolSize < 1) {
                 return service;
             }
             corePoolSize = poolSize;
@@ -362,7 +380,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         } else if (size > 1) {
             Integer corePoolSizeNew = zhongAnPushTreadPoolSize.get(0);
             Integer maximumPoolSizeNew = zhongAnPushTreadPoolSize.get(0);
-            if (ObjectUtils.isEmpty(corePoolSizeNew) && ObjectUtils.isEmpty(maximumPoolSizeNew)) {
+            if (ObjectUtils.isEmpty(corePoolSizeNew) || ObjectUtils.isEmpty(maximumPoolSizeNew)
+                    || corePoolSizeNew < 1 || maximumPoolSizeNew < 1) {
                 return service;
             }
             corePoolSize = corePoolSizeNew;
@@ -374,5 +393,25 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         POOL.setCorePoolSize(Math.min(corePoolSize, maxPoolSize));
         POOL.setMaximumPoolSize(Math.min(maximumPoolSize, maxPoolSize));
         return service;
+    }
+
+    /**
+     * 2022/11/23 17:10
+     * sftp 数据量统计
+     */
+    public void localFilePushStatis(String apiCode, String bizDate) {
+        List<SftpFilePushSuccessDTO> successSum = zhonganRosterLockingDataMapper.getSftpFilePushSuccessSum(
+                apiCode, bizDate);
+        for (SftpFilePushSuccessDTO dto : successSum) {
+            LocalFile localFile = new LocalFile();
+            LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
+            if (ObjectUtils.isEmpty(localFileOld)) {
+                continue;
+            }
+            localFile.setPushNumber(dto.getNumber());
+            localFile.setId(dto.getLocalId());
+            localFile.setPushEndTime(new Date());
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
     }
 }

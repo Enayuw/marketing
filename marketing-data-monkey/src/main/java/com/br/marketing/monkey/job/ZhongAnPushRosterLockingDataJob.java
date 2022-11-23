@@ -1,7 +1,7 @@
 package com.br.marketing.monkey.job;
 
-import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
@@ -12,7 +12,6 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -44,7 +43,6 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
         list.add("7410906");
-        list.add("7410907");
         String parameter = shardingContext.getJobParameter();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
@@ -73,28 +71,20 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         data.setPageIndex(0);
         data.setPageSize(2000);
         for (String apiCode : list) {
-            Date date = new Date();
             ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
             zhonganRosterLockingData.setApiCode(apiCode);
             zhonganRosterLockingData.setTag(tag);
             zhonganRosterLockingData.setBizDate(bizDate);
             zhonganRosterLockingData.setPushStatus(1);
             data.setParam(zhonganRosterLockingData);
+            List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
+            LocalFile lf = new LocalFile();
+            lf.setPushStartTime(new Date());
+            LocalFileExample localFileExample = new LocalFileExample();
+            localFileExample.createCriteria().andIdIn(sftpFileIdList);
+            localFileMapper.updateByExampleSelective(lf, localFileExample);
             rosterLockingDataToZhongAn.action(data);
-            List<SftpFilePushSuccessDTO> successSum = zhonganRosterLockingDataMapper.getSftpFilePushSuccessSum(
-                    apiCode, bizDate);
-            for (SftpFilePushSuccessDTO dto : successSum) {
-                LocalFile localFile = new LocalFile();
-                LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
-                if (ObjectUtils.isEmpty(localFileOld)) {
-                    continue;
-                }
-                localFile.setPushNumber(dto.getPushSum());
-                localFile.setPushStartTime(date);
-                localFile.setId(dto.getLocalId());
-                localFile.setPushEndTime(new Date());
-                localFileMapper.updateByPrimaryKeySelective(localFile);
-            }
+            rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
     }
 }
