@@ -137,12 +137,6 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             }
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
             dassTransferDataAdapDTO.setDassTransferDataDTOList(subList);
-
-            List<PhoneSaleTransferInfo> phoneSaleTransferInfoList = new ArrayList<>();
-            BeanUtils.copyProperties(subList, phoneSaleTransferInfoList);
-            if (phoneSaleTransferInfoList.size() > 0) {
-                phoneSaleTransferInfoMapper.insertBatch(phoneSaleTransferInfoList);
-            }
             methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
         }
     }
