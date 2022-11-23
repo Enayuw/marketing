@@ -89,9 +89,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                 if (ObjectUtils.isEmpty(localFileOld)) {
                     continue;
                 }
-                Integer pushNumber = localFileOld.getPushNumber();
-                localFile.setPushNumber(ObjectUtils.isEmpty(pushNumber) ? dto.getPushSum()
-                        : (dto.getPushSum() + pushNumber));
+                localFile.setPushNumber(dto.getPushSum());
                 localFile.setPushStartTime(date);
                 localFile.setId(dto.getLocalId());
                 localFile.setPushEndTime(new Date());

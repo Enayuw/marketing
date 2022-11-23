@@ -215,9 +215,11 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , String tag
             , String dateStr
             , int day) {
+        Map<String, String> custNumMap = new ConcurrentHashMap<>();
         List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().filter(
                 l -> syncUserMapNew.containsKey(l.getMobileMd5() + l.getBizDate())).map(l -> {
             MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
+            custNumMap.put(syncUser.getCustNum(), l.getBizDate());
             PeriodOfValidityBO periodOfValidityBO = marketingSyncUserService.getPeriodOfValidityRange(day
                     , syncUser.getAppletTime() == null ? syncUser.getCreateTime()
                             : syncUser.getAppletTime()).addDateString().builder();
@@ -246,7 +248,12 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         if (CollectionUtils.isEmpty(custNumSet)) {
             return custNumBlackListSet;
         }
-        custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumSet, apiCode, dateStr));
+        Set<String> set = custNumMap.keySet();
+        set.retainAll(custNumSet);
+        if (CollectionUtils.isEmpty(custNumMap)) {
+            return custNumBlackListSet;
+        }
+        custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumMap, apiCode));
         return custNumBlackListSet;
     }
 
@@ -307,9 +314,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         try {
             int pageTotal = size % pushSize == 0 ? size / pushSize : (size / pushSize + 1);
             for (; pageTotal > 0; pageTotal--) {
-                Result<?> result1 = completionService.take().get(5, TimeUnit.SECONDS);
-                log.warn("##众安名单锁定多线程推送任务结果[总数-总页数-响应code]：{}-{}-{}", count, pageTotal
-                        , result1.getCode());
+                completionService.take().get(5, TimeUnit.SECONDS);
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.error(e.getMessage(), e);
