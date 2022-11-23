@@ -11,6 +11,7 @@ import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.CallRecordMapper;
@@ -28,11 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,6 +68,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(25, 50);
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
@@ -101,12 +106,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         String apiCode = data.getApiCode();
         String tag = data.getTag();
         String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-        Map<String, String> cellMap = inList.parallelStream().collect(Collectors.collectingAndThen(
-                Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
-                , ArrayList::new)).parallelStream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
-            String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
-            return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
-        }, (v1, v2) -> v1));
+        Map<String, String> cellMap = md5ToLogMap(inList);
         Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
         Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserService.getCellByCellAndMaxAppletTimeMap(apiCode
                 , mobileMd5Set);
@@ -176,7 +176,6 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         result.setDate(list);
         return result;
     }
-
 
     /**
      * 2022/11/19 13:40
@@ -271,9 +270,10 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
+        CompletionService<Result<?>> completionService = getCompletionService();
         int size = outputDataList.size();
         int pushSize = 100;
-        int count = 1;
+        int count = 0;
         List<ZaMarketDetail> list = new ArrayList<>();
         List<ZhonganRosterLockingData> dataList = new ArrayList<>();
         for (ZhonganRosterLockingDataBO bo : outputDataList) {
@@ -287,17 +287,83 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             detail.setTag(data.getTag());
             detail.setMobileMd5(data.getMobileMd5());
             list.add(detail);
-            if (list.size() == pushSize || size == count) {
-                ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                dataDTO.setData(list);
-                methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO, bo.getApiCode(), bo.getTag()
-                        , dataList), null);
-                list.clear();
-                dataList.clear();
-            }
             count++;
+            if (list.size() == pushSize || size == count) {
+                List<ZaMarketDetail> finalList = list;
+                List<ZhonganRosterLockingData> finalDataList = dataList;
+                completionService.submit(() -> {
+                    ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
+                    dataDTO.setData(finalList);
+                    return methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
+                            , bo.getApiCode(), bo.getTag(), finalDataList), null);
+                });
+                list = new ArrayList<>();
+                dataList = new ArrayList<>();
+            }
+        }
+        try {
+            int pageTotal = size % pushSize == 0 ? size / pushSize : (size / pushSize + 1);
+            for (; pageTotal > 0; pageTotal--) {
+                Result<?> result1 = completionService.take().get(5, TimeUnit.SECONDS);
+                log.warn("##众安名单锁定多线程推送任务结果[总数-总页数-响应code]：{}-{}-{}", count, pageTotal
+                        , result1.getCode());
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            log.error(e.getMessage(), e);
         }
         result.setCode(ResultCode.SUCCESS.getValue());
         return result;
+    }
+
+    /**
+     * 2022/11/22 17:28
+     * 手机号md5转log加密
+     * <p>
+     * key MobileMd5
+     * value cell log
+     */
+    private Map<String, String> md5ToLogMap(List<ZhonganRosterLockingData> inList) {
+        return inList.parallelStream().collect(Collectors.collectingAndThen(
+                Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
+                , ArrayList::new)).parallelStream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
+            String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
+            return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
+        }, (v1, v2) -> v1));
+    }
+
+    /**
+     * 2022/11/22 17:40
+     * 配置线程
+     */
+    private CompletionService<Result<?>> getCompletionService() {
+        List<Integer> zhongAnPushTreadPoolSize = marketingCommonConfig.getZhongAnPushTreadPoolSize();
+        CompletionService<Result<?>> service = new ExecutorCompletionService<>(POOL);
+        if (CollectionUtils.isEmpty(zhongAnPushTreadPoolSize)) {
+            return service;
+        }
+        int size = zhongAnPushTreadPoolSize.size();
+        int corePoolSize;
+        int maximumPoolSize;
+        if (size == 1) {
+            Integer poolSize = zhongAnPushTreadPoolSize.get(0);
+            if (ObjectUtils.isEmpty(poolSize)) {
+                return service;
+            }
+            corePoolSize = poolSize;
+            maximumPoolSize = poolSize;
+        } else if (size > 1) {
+            Integer corePoolSizeNew = zhongAnPushTreadPoolSize.get(0);
+            Integer maximumPoolSizeNew = zhongAnPushTreadPoolSize.get(0);
+            if (ObjectUtils.isEmpty(corePoolSizeNew) && ObjectUtils.isEmpty(maximumPoolSizeNew)) {
+                return service;
+            }
+            corePoolSize = corePoolSizeNew;
+            maximumPoolSize = maximumPoolSizeNew;
+        } else {
+            return service;
+        }
+        POOL.setCorePoolSize(corePoolSize);
+        POOL.setMaximumPoolSize(maximumPoolSize);
+        return service;
     }
 }

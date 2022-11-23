@@ -86,12 +86,12 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             for (SftpFilePushSuccessDTO dto : successSum) {
                 LocalFile localFile = new LocalFile();
                 LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
-                Integer pushNumber = localFileOld.getPushNumber();
-                if (ObjectUtils.isEmpty(pushNumber)) {
-                    localFile.setPushNumber(dto.getPushSum());
-                } else {
-                    localFile.setPushNumber(dto.getPushSum() + pushNumber);
+                if (ObjectUtils.isEmpty(localFileOld)) {
+                    continue;
                 }
+                Integer pushNumber = localFileOld.getPushNumber();
+                localFile.setPushNumber(ObjectUtils.isEmpty(pushNumber) ? dto.getPushSum()
+                        : (dto.getPushSum() + pushNumber));
                 localFile.setPushStartTime(date);
                 localFile.setId(dto.getLocalId());
                 localFile.setPushEndTime(new Date());
