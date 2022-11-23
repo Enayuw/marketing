@@ -27,5 +27,5 @@ public interface LocalFileMapper extends LocalFileMapperBase {
                      @Param("uploadEndTime") String uploadEndTime,
                      @Param("fileType") String fileType);
 
-    void updateUploadStartTimeById(@Param("ids") List<Long> ids, Date date);
+    void updateUploadStartTimeById(@Param("ids") List<Long> ids, @Param("date") Date date);
 }
