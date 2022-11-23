@@ -67,7 +67,7 @@
                  from b_zhongan_roster_locking_data
                  WHERE api_code = '${apiCode}'
                    and <![CDATA[ update_time >= '${dateStr}' ]]>
-                   and push_status = 1
+                   and push_status = 2
                    and status = 1
                    and data_source = 1
                  group by mobile_md5, local_id) as t
