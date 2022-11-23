@@ -71,4 +71,6 @@ public interface MarketingTaskService {
     Result delTask(Long id);
 
     Integer getPart(Integer sum,Integer index);
+
+    Integer getPart(Integer index);
 }

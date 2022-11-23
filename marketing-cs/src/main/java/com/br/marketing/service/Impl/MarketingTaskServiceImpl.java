@@ -731,17 +731,26 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("禁用或者已跑分结束的才能删除");
     }
 
+    private static Integer mo = 10;
+
     @Override
     public Integer getPart(Integer sum, Integer index) {
         if(sum==null||sum==0||index==null||index==0){
             throw new RuntimeException("参数不能为空或者0");
         }
         Integer zu = 1;
-        Integer mo = 10;
         Integer zuNum = marketingCommonConfig.getQuantileValue() == null ? 50000000:marketingCommonConfig.getQuantileValue();
         while (sum>zuNum*zu){
             zu++;
         }
         return ((zu-1)*mo)+(index%mo);
+    }
+
+    @Override
+    public Integer getPart(Integer index) {
+        if(index==null||index==0){
+            throw new RuntimeException("参数不能为空或者0");
+        }
+         return index%mo;
     }
 }

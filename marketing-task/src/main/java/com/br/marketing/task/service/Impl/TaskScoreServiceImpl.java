@@ -337,6 +337,7 @@ public class TaskScoreServiceImpl {
             param.put("appSecretKey", appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId", marketingTask.getFileId().toString());
+            param.put("part",marketingTaskService.getPart(num).toString());
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
