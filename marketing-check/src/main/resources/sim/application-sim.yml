@@ -143,8 +143,8 @@ api:
     baseUrl: https://finance-gateway-pop.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
     isProxy: true
-    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
-    xdCode: 07brdyy01
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCG0Brdms00ECe0Qo/Fljo1S/ZAjGe9BvhLAH9zCGpeQLI9opkvyZFSnBhdP+Nb1pFPQkls8Dpsr0J17M8uEcoglIK1ADVxnqOf9qbzwgDE44/6Bca28gid+b1aL2KpWc0B1U/Q/TFn7ez93/jGcDXN5wxErR2+sIUE1oRUuZQC9wIDAQAB
+    xdCode: 07brdyy001
     bxCode: 3360001
 spring:
   rabbitmq:
