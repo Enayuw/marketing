@@ -49,9 +49,9 @@ public class ZhongAnClient {
 
     String signKey = "59018a92ca1e0d1e38f7da0617491abe";
 
-    public static String XdChannelCode = "07brdyy01";
+    public static String XdChannelCode;
 
-    public static String BxChannelCode = "3360001";
+    public static String BxChannelCode;
 
     String xinDaiDetailApiKey = "channel.marketDetail.07brdyy01";
 
@@ -62,6 +62,16 @@ public class ZhongAnClient {
     final static String zanPushDetail = "zanPushDetail";
 
     final static String zanZk = "zanZk";
+
+    @Value("${api.zhongAn.xdCode:07brdyy01}")
+    public void setXdCode(String xdCode){
+        XdChannelCode = xdCode;
+    }
+
+    @Value("${api.zhongAn.bxCode:3360001}")
+    public void setBxCode(String bxCode){
+        BxChannelCode = bxCode;
+    }
 
     /**
      * 推送明细
