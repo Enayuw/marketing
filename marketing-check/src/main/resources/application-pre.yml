@@ -141,6 +141,13 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+  zhongAn:
+    baseUrl: https://finance-gateway-test.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: false
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
+    xdCode: 07brdyy01
+    bxCode: 3360001
   marketing:
     transferUrl: http://k8s.brapp.com/compass-api/api/marketing-api/marketingTransferData/receiveTransferDataSync
   halo:

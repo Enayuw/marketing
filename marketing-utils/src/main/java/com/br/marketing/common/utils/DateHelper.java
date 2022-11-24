@@ -38,6 +38,7 @@ public class DateHelper {
     public static final String SLASH_DATE_TIME_FORMAT = "yyyy/MM/dd/HH/mm/ss";
 
     public static final String LINE_DATE_COLON_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String LINE_DATE_COLON_TIME_FORMAT_SSS = "yyyy-MM-dd HH:mm:ss[:SSS]";
 
     //key为正则 value为日期格式
     private static Map<String, String> PATTERNS = new HashMap();

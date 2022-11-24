@@ -63,4 +63,12 @@
         </if>
     </select>
 
+    <update id="updateUploadStartTimeById">
+        update b_local_file set push_start_time = #{date,jdbcType=TIMESTAMP}
+        where id in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>
