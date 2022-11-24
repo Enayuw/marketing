@@ -88,8 +88,8 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
             if(bo.getDetail() != null && bo.getDetail().getCallStatus() != null && 12 == bo.getDetail().getCallStatus()){
                 //黑名单
                 custNumCache(bo.getCaseNum());
-                Set<String> smembers = redisChgService.smembers(RedisKeyConstant.zhongAnblackCusNumToday);
-                log.warn("众安拨打明细黑名单redis数据："+ smembers);
+                //Set<String> smembers = redisChgService.smembers(RedisKeyConstant.zhongAnblackCusNumToday);
+                //log.warn("众安拨打明细黑名单redis数据："+ smembers);
                 return flag;
             }
             //上传表获取手机号，转为md5加密
