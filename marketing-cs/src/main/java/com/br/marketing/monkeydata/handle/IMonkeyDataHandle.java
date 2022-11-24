@@ -57,7 +57,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * @param inList
      * @return
      */
-    public abstract Result<List<O>> processData(List<I> inList);
+    public abstract Result<List<O>> processData(List<I> inList) throws Exception;
 
     /**
      * 数据标准输出
