@@ -350,7 +350,7 @@ public class MarketingCommonConfig {
     private HashMap<String, List<Boolean>> apiLogMark;
 
     /**
-     * 众安有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * 众安名单锁定推送数据线有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> zhongAnPeriodOfValidityDay;
 
