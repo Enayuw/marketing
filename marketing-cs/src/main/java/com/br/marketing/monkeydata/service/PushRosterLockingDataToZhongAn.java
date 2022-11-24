@@ -11,6 +11,7 @@ import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.LocalFile;
@@ -102,12 +103,10 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     }
 
     @Override
-    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList) {
+    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList)
+            throws IllegalAccessException {
         Result<List<ZhonganRosterLockingDataBO>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
-        if (inList == null || inList.size() < 1) {
-            return result;
-        }
         ZhonganRosterLockingData data = inList.get(0);
         String apiCode = data.getApiCode();
         String tag = data.getTag();
@@ -125,8 +124,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         Map<String, String> zhongAnPeriodOfValidityDay = marketingCommonConfig.getZhongAnPeriodOfValidityDay();
         if (CollectionUtils.isEmpty(zhongAnPeriodOfValidityDay) || !zhongAnPeriodOfValidityDay.containsKey(apiCode)) {
-            log.warn("tag:{},apiCode{},未配置有效期[zhongAnPeriodOfValidityDay]！", tag, apiCode);
-            return result;
+            throw new BusinessException("tag:" + tag + ",apiCode" + apiCode
+                    + ",未配置有效期[zhongAnPeriodOfValidityDay]！");
         }
         Map<String, MarketingSyncUser> syncUserMapNew = inList.parallelStream().filter(l -> syncUserMap.containsKey(
                 cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
@@ -136,7 +135,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             day = dataLoadingHandlerService.getPeriodOfValidityDay(zhongAnPeriodOfValidityDay, apiCode);
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage(), e);
-            return result;
+            throw e;
         }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
